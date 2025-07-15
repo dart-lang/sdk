@@ -16,7 +16,7 @@ import 'frontend_server_test.dart';
 void main() async {
   group('full compiler tests', () {
     final Uri platformKernel =
-        computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+        computePlatformBinariesLocation().resolve('vm_platform.dill');
     final Uri sdkRoot = computePlatformBinariesLocation();
 
     late Directory tempDir;

@@ -21,7 +21,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_MIXIN;
+  AssistKind get assistKind => DartAssistKind.convertClassToMixin;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -52,7 +52,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
     var classFragment = classDeclaration.declaredFragment!;
     var classElement = classFragment.element;
     for (var type in classElement.mixins) {
-      if (referencedClasses.contains(type.element3)) {
+      if (referencedClasses.contains(type.element)) {
         superclassConstraints.add(type);
       } else {
         interfaces.add(type);
@@ -78,7 +78,7 @@ class ConvertClassToMixin extends ResolvedCorrectionProducer {
         (builder) {
           builder.write('mixin ');
           builder.write(classDeclaration.name.lexeme);
-          builder.writeTypeParameters(classElement.typeParameters2);
+          builder.writeTypeParameters(classElement.typeParameters);
           builder.writeTypes(superclassConstraints, prefix: ' on ');
           builder.writeTypes(interfaces, prefix: ' implements ');
           builder.write(' ');

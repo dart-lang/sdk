@@ -40,6 +40,8 @@ application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
   training_args = [
+    "--packages",
+    rebase_path("../../.dart_tool/package_config.json"),
     "--dart-sdk-summary",
     rebase_path(sdk_outline_dill),
     "-o",
@@ -267,7 +269,7 @@ template("package_kernel_outline") {
          "Need 'package' in $target_name (the name of the package)")
 
   module = invoker.package
-  output = "$target_gen_dir/${module}_outline"
+  output = "$target_gen_dir/${module}_outline.dill"
   sdk_outline = rebase_path(sdk_outline_dill)
 
   package_config =
@@ -291,7 +293,7 @@ template("package_kernel_outline") {
       "--source",
       "package:$module/$module.dart",
       "--output",
-      rebase_path("$output.dill"),
+      rebase_path(output),
     ]
     if (defined(invoker.extra_libraries)) {
       foreach(lib, invoker.extra_libraries) {

@@ -429,11 +429,15 @@ class KeywordHelper {
     required bool suggestRequired,
     required bool suggestVariableName,
     bool suggestCovariant = true,
+    bool suggestThis = true,
+    bool suggestFinal = true,
   }) {
     if (suggestCovariant) {
       addKeyword(Keyword.COVARIANT);
     }
-    addKeyword(Keyword.FINAL);
+    if (suggestFinal) {
+      addKeyword(Keyword.FINAL);
+    }
     if (suggestRequired && parameterList.inNamedGroup(offset)) {
       addKeyword(Keyword.REQUIRED);
     }
@@ -445,7 +449,9 @@ class KeywordHelper {
       if (featureSet.isEnabled(Feature.super_parameters)) {
         addKeyword(Keyword.SUPER);
       }
-      addKeyword(Keyword.THIS);
+      if (suggestThis) {
+        addKeyword(Keyword.THIS);
+      }
     }
   }
 

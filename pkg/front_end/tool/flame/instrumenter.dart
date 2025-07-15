@@ -432,6 +432,8 @@ void initializeAndReport(
     List<Procedure> procedures,
     List<Constructor> constructors,
     Procedure instrumenterReport) {
+  mainProcedure.enclosingLibrary.dependencies
+      .add(new LibraryDependency.import(initializeProcedure.enclosingLibrary));
   Block block = new Block([
     new ExpressionStatement(new StaticInvocation(initializeProcedure,
         config.createBeforeArguments(procedures, constructors))),

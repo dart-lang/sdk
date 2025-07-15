@@ -23,7 +23,7 @@ class ElementWriter with TreeWriter {
     _writeFragments(element);
     indentLevel++;
     try {
-      for (var child in element.children2) {
+      for (var child in element.children) {
         write(child);
       }
     } finally {
@@ -36,7 +36,6 @@ class ElementWriter with TreeWriter {
   Map<String, Object?> _computeProperties(Element element) {
     var properties = <String, Object?>{};
 
-    var firstFragment = element.firstFragment;
     if (element case Annotatable element) {
       properties['annotations'] = element.metadata.annotations;
     }
@@ -52,20 +51,21 @@ class ElementWriter with TreeWriter {
         properties['isValidMixin'] = element.isValidMixin;
       }
     }
-    if (firstFragment is ConstFieldFragmentImpl) {
-      properties['evaluationResult'] = firstFragment.evaluationResult;
+    if (element is FieldElementImpl) {
+      properties['evaluationResult'] = element.evaluationResult;
     }
-    if (firstFragment is ConstLocalVariableFragmentImpl) {
-      properties['evaluationResult'] = firstFragment.evaluationResult;
+    if (element is LocalVariableElementImpl &&
+        element.constantInitializer != null) {
+      properties['evaluationResult'] = element.evaluationResult;
     }
-    if (firstFragment is ConstTopLevelVariableFragmentImpl) {
-      properties['evaluationResult'] = firstFragment.evaluationResult;
+    if (element is TopLevelVariableElementImpl) {
+      properties['evaluationResult'] = element.evaluationResult;
     }
     if (element is ConstructorElement) {
       properties['isConst'] = element.isConst;
       properties['isDefaultConstructor'] = element.isDefaultConstructor;
       properties['isFactory'] = element.isFactory;
-      properties['redirectedConstructor'] = element.redirectedConstructor2;
+      properties['redirectedConstructor'] = element.redirectedConstructor;
     }
     if (element is ExecutableElement) {
       properties['hasImplicitReturnType'] = element.hasImplicitReturnType;
@@ -82,7 +82,7 @@ class ElementWriter with TreeWriter {
       properties['isEnumConstant'] = element.isEnumConstant;
     }
     if (element is FieldFormalParameterElement) {
-      properties['field'] = element.field2;
+      properties['field'] = element.field;
     }
     if (element is TopLevelFunctionElement) {
       properties['isEntryPoint'] = element.isEntryPoint;
@@ -92,7 +92,7 @@ class ElementWriter with TreeWriter {
       properties['type'] = element.type;
     }
     if (element is LibraryElement) {
-      properties['entryPoint'] = element.entryPoint2;
+      properties['entryPoint'] = element.entryPoint;
       properties['isDartAsync'] = element.isDartAsync;
       properties['isDartCore'] = element.isDartCore;
       properties['isInSdk'] = element.isInSdk;
@@ -119,7 +119,7 @@ class ElementWriter with TreeWriter {
       properties['bound'] = element.bound;
     }
     if (element is TypeParameterizedElement) {
-      properties['typeParameters'] = element.typeParameters2;
+      properties['typeParameters'] = element.typeParameters;
     }
     if (element is VariableElement) {
       properties['hasImplicitType'] = element.hasImplicitType;
@@ -152,7 +152,7 @@ class ElementWriter with TreeWriter {
   void _writeFragment(Fragment fragment, int index) {
     indent();
     buffer.write('fragments[$index]: ');
-    buffer.write(fragment.name2);
+    buffer.write(fragment.name);
     buffer.write(' <span style="color:gray">(');
     buffer.write(fragment.runtimeType);
     buffer.write(')</span>');
@@ -164,16 +164,16 @@ class ElementWriter with TreeWriter {
         for (var import in fragment.libraryImports2)
           {
             'combinators': import.combinators,
-            if (import.prefix2 != null) 'prefix': import.prefix2?.name2,
+            if (import.prefix2 != null) 'prefix': import.prefix2?.name,
             'isDeferred': import.prefix2?.isDeferred ?? false,
-            'library': import.importedLibrary2,
+            'library': import.importedLibrary,
           },
       };
       properties['imports'] = {
         for (var export in fragment.libraryExports2)
           {
             'combinators': export.combinators,
-            'library': export.exportedLibrary2,
+            'library': export.exportedLibrary,
           },
       };
     }

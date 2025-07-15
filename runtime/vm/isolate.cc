@@ -354,8 +354,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       kernel_data_lib_cache_mutex_(),
       kernel_data_class_cache_mutex_(),
       kernel_constants_mutex_(),
-      field_list_mutex_(),
-      boxed_field_list_(GrowableObjectArray::null()),
+      shared_field_initializer_rwlock_(),
       program_lock_(new SafepointRwLock(SafepointLevel::kGCAndDeopt)),
       active_mutators_monitor_(new Monitor()),
       max_active_mutators_(Scavenger::MaxMutatorThreadCount()),
@@ -452,7 +451,8 @@ bool IsolateGroup::ContainsOnlyOneIsolate() {
   // We do allow 0 here as well, because the background compiler might call
   // this method while the mutator thread is in shutdown procedure and
   // unregistered itself already.
-  return isolate_count_ == 0 || isolate_count_ == 1;
+  return (isolate_count_ == 0 || isolate_count_ == 1) &&
+         group_mutator_count_ == 0;
 }
 
 void IsolateGroup::UnregisterIsolate(Isolate* isolate) {
@@ -469,6 +469,16 @@ bool IsolateGroup::UnregisterIsolateDecrementCount() {
   SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
   isolate_count_--;
   return isolate_count_ == 0;
+}
+
+void IsolateGroup::RegisterIsolateGroupMutator() {
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  group_mutator_count_++;
+}
+
+void IsolateGroup::UnregisterIsolateGroupMutator() {
+  SafepointWriteRwLocker ml(Thread::Current(), isolates_lock_.get());
+  group_mutator_count_--;
 }
 
 void IsolateGroup::CreateHeap(bool is_vm_isolate,
@@ -646,14 +656,11 @@ void IsolateGroup::IncreaseMutatorCount(Thread* thread,
   }
 }
 
-void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
-  ASSERT(mutator->group() == this);
-
+void IsolateGroup::DecreaseMutatorCount(bool is_nested_exit) {
   // If the mutator thread has an active stack and runs on our thread pool we
   // will mark the worker as blocked, thereby possibly spawning a new worker for
   // pending tasks (if there are any).
   if (is_nested_exit) {
-    ASSERT(mutator->mutator_thread() != nullptr);
     thread_pool()->MarkCurrentWorkerAsBlocked();
   }
 
@@ -890,6 +897,7 @@ void IsolateGroup::FreeStaticField(const Field& field) {
   const intptr_t field_id = field.field_id();
   if (field.is_shared()) {
     shared_field_table()->Free(field_id);
+    shared_initial_field_table()->Free(field_id);
   } else {
     initial_field_table()->Free(field_id);
     sentinel_field_table()->Free(field_id);
@@ -1870,7 +1878,7 @@ Isolate::~Isolate() {
 
   free(name_);
   delete field_table_;
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   delete simulator_;
 #endif
   delete message_handler_;
@@ -2910,23 +2918,20 @@ Isolate* IsolateGroup::FirstIsolateLocked() const {
   return isolates_.IsEmpty() ? nullptr : isolates_.First();
 }
 
-void IsolateGroup::RunWithStoppedMutatorsCallable(
-    Callable* single_current_mutator,
-    Callable* otherwise,
-    bool use_force_growth_in_otherwise) {
+void IsolateGroup::RunWithStoppedMutatorsCallable(Callable* callable) {
   auto thread = Thread::Current();
   StoppedMutatorsScope stopped_mutators_scope(thread);
 
   if (thread->OwnsSafepoint()) {
     RELEASE_ASSERT(thread->OwnsSafepoint());
-    single_current_mutator->Call();
+    callable->Call();
     return;
   }
 
   {
     SafepointReadRwLocker ml(thread, isolates_lock_.get());
     if (thread->IsDartMutatorThread() && ContainsOnlyOneIsolate()) {
-      single_current_mutator->Call();
+      callable->Call();
       return;
     }
   }
@@ -2934,14 +2939,8 @@ void IsolateGroup::RunWithStoppedMutatorsCallable(
   // We use the more strict safepoint operation scope here (which ensures that
   // all other threads, including auxiliary threads are at a safepoint), even
   // though we only need to ensure that the mutator threads are stopped.
-  if (use_force_growth_in_otherwise) {
-    ForceGrowthSafepointOperationScope safepoint_scope(
-        thread, SafepointLevel::kGCAndDeopt);
-    otherwise->Call();
-  } else {
-    DeoptSafepointOperationScope safepoint_scope(thread);
-    otherwise->Call();
-  }
+  DeoptSafepointOperationScope safepoint_scope(thread);
+  callable->Call();
 }
 
 void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
@@ -2953,53 +2952,88 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
   VisitStackPointers(visitor, validate_frames);
 }
 
-void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
-  // Visit objects in the class table.
-  class_table()->VisitObjectPointers(visitor);
-  if (heap_walk_class_table() != class_table()) {
-    heap_walk_class_table()->VisitObjectPointers(visitor);
-  }
-  api_state()->VisitObjectPointersUnlocked(visitor);
-  // Visit objects in the object store.
-  if (object_store() != nullptr) {
-    object_store()->VisitObjectPointers(visitor);
-  }
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
-  initial_field_table()->VisitObjectPointers(visitor);
-  sentinel_field_table()->VisitObjectPointers(visitor);
-  shared_initial_field_table()->VisitObjectPointers(visitor);
-  shared_field_table()->VisitObjectPointers(visitor);
-
-  // Visit the boxed_field_list_.
-  // 'boxed_field_list_' access via mutator and background compilation threads
-  // is guarded with a monitor. This means that we can visit it only
-  // when at safepoint or the field_list_mutex_ lock has been taken.
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&boxed_field_list_));
-
-  NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
-
+void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
+                                       intptr_t slice) {
+  switch (slice) {
+    case kClassTable:
+      class_table()->VisitObjectPointers(visitor);
+      if (heap_walk_class_table() != class_table()) {
+        heap_walk_class_table()->VisitObjectPointers(visitor);
+      }
+      break;
+    case kApiState:
+      api_state()->VisitObjectPointersUnlocked(visitor);
+      break;
+    case kObjectStore:
+      if (object_store() != nullptr) {
+        object_store()->VisitObjectPointers(visitor);
+      }
+      break;
+    case kSavedUnlinkedCalls:
+      visitor->VisitPointer(
+          reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
+      break;
+    case kInitialFieldTable:
+      initial_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kSentinelFieldTable:
+      sentinel_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kSharedInitialFieldTable:
+      shared_initial_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kSharedFieldTable:
+      shared_field_table()->VisitObjectPointers(visitor);
+      break;
+    case kBackgroundCompiler:
+      NOT_IN_PRECOMPILED(background_compiler()->VisitPointers(visitor));
+      break;
+    case kDebugger:
 #if !defined(PRODUCT)
-  if (debugger() != nullptr) {
-    debugger()->VisitObjectPointers(visitor);
-  }
+      if (debugger() != nullptr) {
+        debugger()->VisitObjectPointers(visitor);
+      }
 #endif
-
+      break;
+    case kReloadContext:
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  // Visit objects that are being used for isolate reload.
-  if (program_reload_context() != nullptr) {
-    program_reload_context()->VisitObjectPointers(visitor);
-    program_reload_context()->group_reload_context()->VisitObjectPointers(
-        visitor);
-  }
+      if (program_reload_context() != nullptr) {
+        program_reload_context()->VisitObjectPointers(visitor);
+        program_reload_context()->group_reload_context()->VisitObjectPointers(
+            visitor);
+      }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  if (source()->loaded_blobs_ != nullptr) {
-    visitor->VisitPointer(
-        reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+      break;
+    case kLoadedBlobs:
+      if (source()->loaded_blobs_ != nullptr) {
+        visitor->VisitPointer(
+            reinterpret_cast<ObjectPtr*>(&(source()->loaded_blobs_)));
+      }
+      break;
+    case kBecome:
+      if (become() != nullptr) {
+        become()->VisitObjectPointers(visitor);
+      }
+      break;
+    case kObjectIdZones:
+#if !defined(PRODUCT)
+      if (visitor->trace_object_id_rings()) {
+        for (Isolate* isolate : isolates_) {
+          for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
+            isolate->GetServiceIdZone(i)->VisitPointers(visitor);
+          }
+        }
+      }
+#endif  // !defined(PRODUCT)
+      break;
+    default:
+      UNREACHABLE();
   }
+}
 
-  if (become() != nullptr) {
-    become()->VisitObjectPointers(visitor);
+void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor) {
+  for (intptr_t i = 0; i < kNumRootSlices; i++) {
+    VisitSharedPointers(visitor, static_cast<RootSlice>(i));
   }
 }
 
@@ -3018,17 +3052,6 @@ void IsolateGroup::VisitStackPointers(ObjectPointerVisitor* visitor,
   }
 
   visitor->clear_gc_root_type();
-}
-
-void IsolateGroup::VisitPointersInAllServiceIdZones(
-    ObjectPointerVisitor& visitor) {
-#if !defined(PRODUCT)
-  for (Isolate* isolate : isolates_) {
-    for (intptr_t i = 0; i < isolate->NumServiceIdZones(); ++i) {
-      isolate->GetServiceIdZone(i)->VisitPointers(visitor);
-    }
-  }
-#endif  // !defined(PRODUCT)
 }
 
 void IsolateGroup::VisitWeakPersistentHandles(HandleVisitor* visitor) {

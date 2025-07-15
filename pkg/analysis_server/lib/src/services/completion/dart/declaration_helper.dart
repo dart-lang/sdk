@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/not_imported_comple
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -181,8 +182,8 @@ class DeclarationHelper {
     required InterfaceType type,
     String? exclude,
   }) {
-    for (var constructor in type.constructors2) {
-      var name = constructor.name3;
+    for (var constructor in type.constructors) {
+      var name = constructor.name;
       if (name != 'new' &&
           name != exclude &&
           !(mustBeConstant && !constructor.isConst)) {
@@ -199,7 +200,7 @@ class DeclarationHelper {
   /// Add suggestions for declarations through [prefixElement].
   void addDeclarationsThroughImportPrefix(PrefixElement prefixElement) {
     for (var importElement in prefixElement.imports) {
-      var importedLibrary = importElement.importedLibrary2;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary == null) {
         continue;
       }
@@ -217,7 +218,7 @@ class DeclarationHelper {
             collector.addSuggestion(
               LoadLibraryFunctionSuggestion(
                 kind: CompletionSuggestionKind.INVOCATION,
-                element: importedLibrary.loadLibraryFunction2,
+                element: importedLibrary.loadLibraryFunction,
                 matcherScore: matcherScore,
               ),
             );
@@ -256,7 +257,7 @@ class DeclarationHelper {
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredFragment?.element;
         if (parameterElement is FieldFormalParameterElement) {
-          var field = parameterElement.field2;
+          var field = parameterElement.field;
           if (field != null) {
             fieldsToSkip.add(field);
           }
@@ -292,16 +293,25 @@ class DeclarationHelper {
   void addGetters({
     required DartType type,
     required Set<String> excludedGetters,
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
   }) {
     if (type is InterfaceType) {
       _addInstanceMembers(
         type: type,
         excludedGetters: excludedGetters,
-        includeMethods: false,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: isTypeNeeded,
+        includeMethods: true,
         includeSetters: false,
       );
     } else if (type is RecordType) {
-      _addFieldsOfRecordType(type: type, excludedFields: excludedGetters);
+      _addFieldsOfRecordType(
+        type: type,
+        excludedFields: excludedGetters,
+        isKeywordNeeded: isKeywordNeeded,
+        isTypeNeeded: isTypeNeeded,
+      );
     }
   }
 
@@ -321,7 +331,7 @@ class DeclarationHelper {
         continue;
       }
 
-      if (prefixElement.name3.isEmptyOrNull) {
+      if (prefixElement.name.isEmptyOrNull) {
         continue;
       }
 
@@ -329,7 +339,7 @@ class DeclarationHelper {
         continue;
       }
 
-      var importedLibrary = element.importedLibrary2;
+      var importedLibrary = element.importedLibrary;
       if (importedLibrary == null) {
         continue;
       }
@@ -363,7 +373,12 @@ class DeclarationHelper {
         onlySuper: onlySuper,
       );
     } else if (type is RecordType) {
-      _addFieldsOfRecordType(type: type, excludedFields: const {});
+      _addFieldsOfRecordType(
+        type: type,
+        excludedFields: const {},
+        isKeywordNeeded: false,
+        isTypeNeeded: false,
+      );
       _addMembersOfDartCoreObject();
       _addExtensionMembers(
         type: type,
@@ -442,7 +457,7 @@ class DeclarationHelper {
   }) {
     var extendedType = extension.extendedType;
     var referencingInterface =
-        (extendedType is InterfaceType) ? extendedType.element3 : null;
+        (extendedType is InterfaceType) ? extendedType.element : null;
     if (includeMethods) {
       for (var method in extension.methods) {
         if (!method.isStatic) {
@@ -458,7 +473,7 @@ class DeclarationHelper {
       }
     }
     for (var accessor in extension.getters) {
-      if (excludedGetters.contains(accessor.name3)) {
+      if (excludedGetters.contains(accessor.name)) {
         continue;
       }
       if (!accessor.isStatic) {
@@ -553,7 +568,7 @@ class DeclarationHelper {
   /// containing the [node] that can be referenced as a super parameter.
   void addParametersFromSuperConstructor(SuperFormalParameter node) {
     var element = node.declaredFragment?.element;
-    if (element is! SuperFormalParameterElementImpl2) {
+    if (element is! SuperFormalParameterElementImpl) {
       return;
     }
 
@@ -563,11 +578,11 @@ class DeclarationHelper {
     }
 
     var constructorElement = constructor.declaredFragment?.element;
-    if (constructorElement is! ConstructorElementImpl2) {
+    if (constructorElement is! ConstructorElementImpl) {
       return;
     }
 
-    var superConstructor = constructorElement.superConstructor2;
+    var superConstructor = constructorElement.superConstructor;
     if (superConstructor == null) {
       return;
     }
@@ -578,14 +593,14 @@ class DeclarationHelper {
               .whereType<SuperConstructorInvocation>()
               .singleOrNull;
       var specified = <String>{
-        ...constructorElement.formalParameters.map((e) => e.name3).nonNulls,
+        ...constructorElement.formalParameters.map((e) => e.name).nonNulls,
         ...?superConstructorInvocation?.argumentList.arguments
             .whereType<NamedExpression>()
             .map((e) => e.name.label.name),
       };
       for (var superParameter in superConstructor.formalParameters) {
         if (superParameter.isNamed &&
-            !specified.contains(superParameter.name3)) {
+            !specified.contains(superParameter.name)) {
           _suggestSuperParameter(superParameter);
         }
       }
@@ -615,7 +630,7 @@ class DeclarationHelper {
       if (typeSystem.isSubtypeOf(classElement.thisType, classType)) {
         for (var constructor in classElement.constructors) {
           if (constructor != redirectingConstructor &&
-              constructor.isAccessibleIn2(library)) {
+              constructor.isAccessibleIn(library)) {
             _suggestConstructor(
               constructor,
               hasClassName: false,
@@ -633,7 +648,7 @@ class DeclarationHelper {
     if (element is TypeAliasElement) {
       var aliasedType = element.aliasedType;
       if (aliasedType is InterfaceType) {
-        element = aliasedType.element3;
+        element = aliasedType.element;
       }
     }
     switch (element) {
@@ -694,7 +709,7 @@ class DeclarationHelper {
     TypeAliasElement alias,
     ImportData? importData,
   ) {
-    var aliasedElement = alias.aliasedElement2;
+    var aliasedElement = alias.aliasedElement;
     if (aliasedElement is ClassElement) {
       _suggestConstructors(
         aliasedElement.constructors,
@@ -765,11 +780,13 @@ class DeclarationHelper {
     required Set<String> excludedGetters,
     required bool includeMethods,
     required bool includeSetters,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     var libraryElement = request.libraryElement;
     var libraryFragment = request.libraryFragment;
 
-    var accessibleExtensions = libraryFragment.accessibleExtensions2;
+    var accessibleExtensions = libraryFragment.accessibleExtensions;
     var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
@@ -788,21 +805,33 @@ class DeclarationHelper {
             if (method.isOperator) {
               continue;
             }
-            _suggestMethod(method: method);
+            _suggestMethod(
+              method: method,
+              isKeywordNeeded: isKeywordNeeded,
+              isTypeNeeded: isTypeNeeded,
+            );
           }
         }
       }
       for (var getter in extension.getters) {
-        if (excludedGetters.contains(getter.name3)) {
+        if (excludedGetters.contains(getter.name)) {
           continue;
         }
         if (!getter.isSynthetic) {
-          _suggestProperty(accessor: getter);
+          _suggestProperty(
+            accessor: getter,
+            isKeywordNeeded: isKeywordNeeded,
+            isTypeNeeded: isTypeNeeded,
+          );
         } else {
           // All fields induce a getter.
-          var variable = getter.variable3;
+          var variable = getter.variable;
           if (variable is FieldElement) {
-            _suggestField(field: variable);
+            _suggestField(
+              field: variable,
+              isKeywordNeeded: isKeywordNeeded,
+              isTypeNeeded: isTypeNeeded,
+            );
           }
         }
       }
@@ -881,14 +910,26 @@ class DeclarationHelper {
   void _addFieldsOfRecordType({
     required RecordType type,
     required Set<String> excludedFields,
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
   }) {
     for (var (index, field) in type.positionalFields.indexed) {
-      _suggestRecordField(field: field, name: '\$${index + 1}');
+      _suggestRecordField(
+        field: field,
+        name: '\$${index + 1}',
+        isKeywordNeeded: false,
+        isTypeNeeded: false,
+      );
     }
 
     for (var field in type.namedFields) {
       if (!excludedFields.contains(field.name)) {
-        _suggestRecordField(field: field, name: field.name);
+        _suggestRecordField(
+          field: field,
+          name: field.name,
+          isKeywordNeeded: isKeywordNeeded,
+          isTypeNeeded: isTypeNeeded,
+        );
       }
     }
   }
@@ -900,12 +941,12 @@ class DeclarationHelper {
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
     for (var importElement in library.firstFragment.libraryImports2) {
-      var importedLibrary = importElement.importedLibrary2;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addConstructorsImportedFrom(
           library: importedLibrary,
           namespace: importElement.namespace,
-          prefix: importElement.prefix2?.element.name3,
+          prefix: importElement.prefix2?.element.name,
         );
       }
     }
@@ -918,12 +959,12 @@ class DeclarationHelper {
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
     for (var importElement in library.firstFragment.libraryImports2) {
-      var importedLibrary = importElement.importedLibrary2;
+      var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addDeclarationsImportedFrom(
           library: importedLibrary,
           namespace: importElement.namespace,
-          prefix: importElement.prefix2?.element.name3,
+          prefix: importElement.prefix2?.element.name,
         );
         if (importedLibrary.isDartCore && mustBeType) {
           var name = 'Never';
@@ -1030,6 +1071,9 @@ class DeclarationHelper {
     for (var member in members.values) {
       switch (member) {
         case MethodElement():
+          if (member.isOperator) {
+            continue;
+          }
           _suggestMethod(
             method: member,
             referencingInterface: referencingInterface,
@@ -1058,13 +1102,15 @@ class DeclarationHelper {
     required Set<String> excludedGetters,
     required bool includeMethods,
     required bool includeSetters,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
     bool onlySuper = false,
   }) {
     var substitution = Substitution.fromInterfaceType(type);
     var map =
         onlySuper
-            ? type.element3.inheritedConcreteMembers
-            : type.element3.interfaceMembers;
+            ? type.element.inheritedConcreteMembers
+            : type.element.interfaceMembers;
 
     var membersByName = <String, List<ExecutableElement>>{};
     for (var rawMember in map.values) {
@@ -1075,7 +1121,7 @@ class DeclarationHelper {
             .add(rawMember);
       }
     }
-    var referencingInterface = _referencingInterfaceFor(type.element3);
+    var referencingInterface = _referencingInterfaceFor(type.element);
     for (var entry in membersByName.entries) {
       var members = entry.value;
       var rawMember = _bestMember(members);
@@ -1089,6 +1135,8 @@ class DeclarationHelper {
           _suggestMethod(
             method: member as MethodElement,
             referencingInterface: referencingInterface,
+            isKeywordNeeded: isKeywordNeeded,
+            isTypeNeeded: isTypeNeeded,
           );
         }
       } else if (rawMember is GetterElement) {
@@ -1097,6 +1145,8 @@ class DeclarationHelper {
           _suggestProperty(
             accessor: member as PropertyAccessorElement,
             referencingInterface: referencingInterface,
+            isKeywordNeeded: isKeywordNeeded,
+            isTypeNeeded: isTypeNeeded,
           );
         }
       } else if (rawMember is SetterElement) {
@@ -1122,6 +1172,8 @@ class DeclarationHelper {
       excludedGetters: excludedGetters,
       includeMethods: includeMethods,
       includeSetters: includeSetters,
+      isKeywordNeeded: isKeywordNeeded,
+      isTypeNeeded: isTypeNeeded,
     );
     _recordOperation(
       InstanceExtensionMembersOperation(
@@ -1321,7 +1373,12 @@ class DeclarationHelper {
         includeSetters: true,
       );
     } else if (thisType is RecordType) {
-      _addFieldsOfRecordType(type: thisType, excludedFields: {});
+      _addFieldsOfRecordType(
+        type: thisType,
+        excludedFields: {},
+        isKeywordNeeded: false,
+        isTypeNeeded: false,
+      );
     }
   }
 
@@ -1334,12 +1391,12 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case ClassTypeAlias():
         var element = declaration.declaredFragment?.element;
         if (element != null) {
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case EnumDeclaration():
         var element = declaration.declaredFragment?.element;
@@ -1347,7 +1404,7 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case ExtensionDeclaration():
         var element = declaration.declaredFragment?.element;
@@ -1355,27 +1412,27 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case ExtensionTypeDeclaration():
         var element = declaration.declaredFragment?.element;
         if (element != null) {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
-            var fieldElement = element.representation2;
+            var fieldElement = element.representation;
             _suggestField(field: fieldElement);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case FunctionTypeAlias():
         var element = declaration.declaredFragment?.element;
         if (element != null) {
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case GenericTypeAlias():
         var element = declaration.declaredFragment?.element;
         if (element is TypeAliasElement) {
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
       case MixinDeclaration():
         var element = declaration.declaredFragment?.element;
@@ -1383,7 +1440,7 @@ class DeclarationHelper {
           if (!mustBeType) {
             _addMembersOfEnclosingInstance(element);
           }
-          _suggestTypeParameters(element.typeParameters2);
+          _suggestTypeParameters(element.typeParameters);
         }
     }
   }
@@ -1415,12 +1472,12 @@ class DeclarationHelper {
     for (var field in fields) {
       if (field.isStatic &&
           (!field.isSynthetic ||
-              (containingElement is EnumElement && field.name3 == 'values')) &&
+              (containingElement is EnumElement && field.name == 'values')) &&
           field.isVisibleIn(request.libraryElement)) {
         if (field.isEnumConstant) {
           var enumElement = field.enclosingElement;
           var matcherScore = state.matcher.score(
-            '${enumElement.name3}.${field.name3}',
+            '${enumElement.name}.${field.name}',
           );
           if (matcherScore != -1) {
             var suggestion = EnumConstantSuggestion(
@@ -1488,13 +1545,13 @@ class DeclarationHelper {
       }
       for (var element in library.setters) {
         if (!element.isSynthetic) {
-          if (element.correspondingGetter2 == null) {
+          if (element.correspondingGetter == null) {
             _suggestTopLevelProperty(element, null);
           }
         }
       }
       for (var element in library.extensions) {
-        if (element.name3 != null) {
+        if (element.name != null) {
           _suggestExtension(element, null);
         }
       }
@@ -1524,10 +1581,10 @@ class DeclarationHelper {
     if (mustBeAssignable) {
       if (firstMember case SetterElementImpl(
         :var isSynthetic,
-        :var correspondingGetter2,
+        :var correspondingGetter,
       )) {
-        if (isSynthetic && correspondingGetter2 != null) {
-          return correspondingGetter2;
+        if (isSynthetic && correspondingGetter != null) {
+          return correspondingGetter;
         } else {
           return firstMember;
         }
@@ -1536,10 +1593,10 @@ class DeclarationHelper {
         var member = list[i];
         if (member case SetterElementImpl(
           :var isSynthetic,
-          :var correspondingGetter2,
+          :var correspondingGetter,
         )) {
-          if (isSynthetic && correspondingGetter2 != null) {
-            return correspondingGetter2;
+          if (isSynthetic && correspondingGetter != null) {
+            return correspondingGetter;
           } else {
             return member;
           }
@@ -1563,14 +1620,14 @@ class DeclarationHelper {
     }
 
     var requestLibrary = request.libraryElement;
-    if (!element.isAccessibleIn2(requestLibrary)) {
+    if (!element.isAccessibleIn(requestLibrary)) {
       return false;
     }
 
     if (element.isInternal) {
       switch (request.fileState.workspacePackage) {
         case PubPackage pubPackage:
-          var librarySource = element.library2.firstFragment.source;
+          var librarySource = element.library.firstFragment.source;
           if (!pubPackage.contains(librarySource)) {
             return false;
           }
@@ -1583,26 +1640,26 @@ class DeclarationHelper {
         return false;
       }
 
-      if (elementInterface.library2 != requestLibrary) {
+      if (elementInterface.library != requestLibrary) {
         var contextInterface = request.target.enclosingInterfaceElement;
         if (contextInterface == null) {
           return false;
         }
 
         var contextType = contextInterface.thisType;
-        if (contextType.asInstanceOf2(elementInterface) == null) {
+        if (contextType.asInstanceOf(elementInterface) == null) {
           return false;
         }
       }
     }
 
     if (element.isVisibleForTesting) {
-      if (element.library2 != requestLibrary) {
+      if (element.library != requestLibrary) {
         var fileState = request.fileState;
         switch (fileState.workspacePackage) {
           case PubPackage pubPackage:
             // Must be in the same package.
-            var librarySource = element.library2.firstFragment.source;
+            var librarySource = element.library.firstFragment.source;
             if (!pubPackage.contains(librarySource)) {
               return false;
             }
@@ -1624,7 +1681,7 @@ class DeclarationHelper {
   }) {
     if (element.isSynthetic) {
       if (element is GetterElement) {
-        var variable = element.variable3;
+        var variable = element.variable;
         if (variable is TopLevelVariableElement) {
           return TopLevelVariableSuggestion(
             importData: importData,
@@ -1665,7 +1722,7 @@ class DeclarationHelper {
     if (element is InterfaceElement) {
       return element;
     } else if (element is InstanceElement) {
-      var thisElement = element.thisType.element3;
+      var thisElement = element.thisType.element;
       if (thisElement is InterfaceElement) {
         return thisElement;
       }
@@ -1774,6 +1831,18 @@ class DeclarationHelper {
     if (mustBeAssignable) {
       return;
     }
+    if (checkVisibilty &&
+        !visibilityTracker.isVisible(
+          element: constructors.first.enclosingElement,
+          importData: importData,
+        )) {
+      return;
+    }
+
+    if (checkVisibilty) {
+      checkVisibilty = false;
+    }
+
     for (var constructor in constructors) {
       if (constructor.isVisibleIn(request.libraryElement) &&
           (allowNonFactory || constructor.isFactory)) {
@@ -1879,9 +1948,11 @@ class DeclarationHelper {
     required FieldElement field,
     InterfaceElement? referencingInterface,
     bool isInDeclaration = false,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     if (visibilityTracker.isVisible(element: field, importData: null)) {
-      if ((mustBeAssignable && field.setter2 == null) ||
+      if ((mustBeAssignable && field.setter == null) ||
           (mustBeConstant && !field.isConst)) {
         return;
       }
@@ -1889,6 +1960,7 @@ class DeclarationHelper {
       if (matcherScore != -1) {
         var suggestion = FieldSuggestion(
           element: field,
+          replacementRange: state.request.replacementRange,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
           isInDeclaration: isInDeclaration,
@@ -1916,7 +1988,7 @@ class DeclarationHelper {
         return;
       }
       // Don't suggest wildcard local functions.
-      if (_isWildcard(element.name3)) return;
+      if (_isWildcard(element.name)) return;
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {
         var suggestion = LocalFunctionSuggestion(
@@ -1944,6 +2016,8 @@ class DeclarationHelper {
     bool ignoreVisibility = false,
     ImportData? importData,
     InterfaceElement? referencingInterface,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(element: method, importData: importData)) {
@@ -1955,25 +2029,40 @@ class DeclarationHelper {
       var matcherScore = state.matcher.score(method.displayName);
       if (matcherScore != -1) {
         var enclosingElement = method.enclosingElement;
-        if (method.name3 == 'setState' &&
+        var addTypeAnnotation = isTypeNeeded && state.includeTypes;
+        Keyword? keyword;
+        if (isKeywordNeeded) {
+          if (state.codeStyleOptions.makeLocalsFinal) {
+            keyword = Keyword.FINAL;
+          } else if (!state.includeTypes) {
+            keyword = Keyword.VAR;
+          }
+        }
+        if (method.name == 'setState' &&
             enclosingElement is ClassElement &&
             enclosingElement.isExactState) {
           var suggestion = SetStateMethodSuggestion(
             element: method,
+            replacementRange: state.request.replacementRange,
             importData: importData,
             referencingInterface: referencingInterface,
             matcherScore: matcherScore,
             indent: state.indent,
+            addTypeAnnotation: addTypeAnnotation,
+            keyword: keyword,
           );
           collector.addSuggestion(suggestion);
           return;
         }
         var suggestion = MethodSuggestion(
           kind: _executableSuggestionKind,
+          replacementRange: state.request.replacementRange,
           element: method,
           importData: importData,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
+          addTypeAnnotation: addTypeAnnotation,
+          keyword: keyword,
         );
         collector.addSuggestion(suggestion);
       }
@@ -1985,7 +2074,7 @@ class DeclarationHelper {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if (mustBeExtendable ||
           (mustBeImplementable &&
-              !element.isImplementableIn2(request.libraryElement))) {
+              !element.isImplementableIn(request.libraryElement))) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
@@ -2006,7 +2095,7 @@ class DeclarationHelper {
   /// Adds a suggestion for the parameter represented by the [element].
   void _suggestParameter(FormalParameterElement element) {
     if (visibilityTracker.isVisible(element: element, importData: null)) {
-      if (mustBeConstant || _isWildcard(element.name3)) {
+      if (mustBeConstant || _isWildcard(element.name)) {
         return;
       }
       var matcherScore = state.matcher.score(element.displayName);
@@ -2037,6 +2126,8 @@ class DeclarationHelper {
     ImportData? importData,
     InterfaceElement? referencingInterface,
     bool isInDeclaration = false,
+    bool isKeywordNeeded = false,
+    bool isTypeNeeded = false,
   }) {
     if (ignoreVisibility ||
         visibilityTracker.isVisible(
@@ -2045,25 +2136,38 @@ class DeclarationHelper {
         )) {
       if ((mustBeAssignable &&
               accessor is GetterElement &&
-              accessor.correspondingSetter2 == null) ||
+              accessor.correspondingSetter == null) ||
           mustBeConstant ||
           (mustBeNonVoid && accessor.returnType is VoidType)) {
         return;
       }
       var matcherScore = state.matcher.score(accessor.displayName);
       if (matcherScore != -1) {
+        var addTypeAnnotation =
+            isTypeNeeded && state.includeTypes && !isInDeclaration;
+        Keyword? keyword;
+        if (isKeywordNeeded) {
+          if (state.codeStyleOptions.makeLocalsFinal) {
+            keyword = Keyword.FINAL;
+          } else if (!state.includeTypes) {
+            keyword = Keyword.VAR;
+          }
+        }
         if (accessor.isSynthetic) {
           // Avoid visiting a field twice. All fields induce a getter, but only
           // non-final fields induce a setter, so we don't add a suggestion for a
           // synthetic setter.
           if (accessor is GetterElement) {
-            var variable = accessor.variable3;
+            var variable = accessor.variable;
             if (variable is FieldElement) {
               var suggestion = FieldSuggestion(
                 element: variable,
                 matcherScore: matcherScore,
                 referencingInterface: referencingInterface,
                 isInDeclaration: isInDeclaration,
+                addTypeAnnotation: addTypeAnnotation,
+                replacementRange: state.request.replacementRange,
+                keyword: keyword,
               );
               collector.addSuggestion(suggestion);
             }
@@ -2072,9 +2176,12 @@ class DeclarationHelper {
           if (accessor is GetterElement) {
             var suggestion = GetterSuggestion(
               element: accessor,
+              replacementRange: state.request.replacementRange,
               importData: importData,
               matcherScore: matcherScore,
               referencingInterface: referencingInterface,
+              addTypeAnnotation: addTypeAnnotation,
+              keyword: keyword,
             );
             collector.addSuggestion(suggestion);
           } else {
@@ -2095,13 +2202,26 @@ class DeclarationHelper {
   void _suggestRecordField({
     required RecordTypeField field,
     required String name,
+    required bool isKeywordNeeded,
+    required bool isTypeNeeded,
   }) {
     var matcherScore = state.matcher.score(name);
     if (matcherScore != -1) {
+      Keyword? keyword;
+      if (isKeywordNeeded) {
+        if (state.codeStyleOptions.makeLocalsFinal) {
+          keyword = Keyword.FINAL;
+        } else if (!state.includeTypes) {
+          keyword = Keyword.VAR;
+        }
+      }
       collector.addSuggestion(
         RecordFieldSuggestion(
           field: field,
           name: name,
+          addTypeAnnotation: isTypeNeeded && state.includeTypes,
+          replacementRange: state.request.replacementRange,
+          keyword: keyword,
           matcherScore: matcherScore,
         ),
       );
@@ -2139,16 +2259,17 @@ class DeclarationHelper {
         var matcherScore = state.matcher.score(element.displayName);
         if (matcherScore != -1) {
           if (element.isSynthetic) {
-            var getter = element.getter2;
+            var getter = element.getter;
             if (getter != null) {
               if (getter.isSynthetic) {
-                var variable = getter.variable3;
+                var variable = getter.variable;
                 if (variable is FieldElement) {
                   var suggestion = FieldSuggestion(
                     element: variable,
                     matcherScore: matcherScore,
                     referencingInterface: null,
                     isInDeclaration: false,
+                    replacementRange: state.request.replacementRange,
                   );
                   collector.addSuggestion(suggestion);
                 }
@@ -2159,6 +2280,7 @@ class DeclarationHelper {
                   referencingInterface: null,
                   matcherScore: matcherScore,
                   withEnclosingName: true,
+                  replacementRange: state.request.replacementRange,
                 );
                 collector.addSuggestion(suggestion);
               }
@@ -2228,7 +2350,7 @@ class DeclarationHelper {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
       if ((mustBeAssignable &&
               element is GetterElement &&
-              element.correspondingSetter2 == null) ||
+              element.correspondingSetter == null) ||
           (mustBeConstant && !element.isConst) ||
           (mustBeNonVoid && element.returnType is VoidType) ||
           mustBeType) {
@@ -2254,7 +2376,7 @@ class DeclarationHelper {
     ImportData? importData,
   ) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
-      if ((mustBeAssignable && element.setter2 == null) ||
+      if ((mustBeAssignable && element.setter == null) ||
           mustBeConstant && !element.isConst ||
           mustBeType) {
         return;
@@ -2306,7 +2428,7 @@ class DeclarationHelper {
   /// Adds a suggestion for each of the [typeParameters].
   void _suggestTypeParameters(List<TypeParameterElement> typeParameters) {
     for (var parameter in typeParameters) {
-      if (!_isWildcard(parameter.name3)) {
+      if (!_isWildcard(parameter.name)) {
         _suggestTypeParameter(parameter);
       }
     }
@@ -2332,12 +2454,12 @@ class DeclarationHelper {
   }
 
   void _visitCatchClause(CatchClause node) {
-    var exceptionElement = node.exceptionParameter?.declaredElement2;
+    var exceptionElement = node.exceptionParameter?.declaredElement;
     if (exceptionElement != null) {
       _suggestVariable(exceptionElement);
     }
 
-    var stackTraceElement = node.stackTraceParameter?.declaredElement2;
+    var stackTraceElement = node.stackTraceParameter?.declaredElement;
     if (stackTraceElement != null) {
       _suggestVariable(stackTraceElement);
     }
@@ -2364,7 +2486,7 @@ class DeclarationHelper {
   }
 
   void _visitDeclaredVariablePattern(DeclaredVariablePattern pattern) {
-    var declaredElement = pattern.declaredElement2;
+    var declaredElement = pattern.declaredElement;
     if (declaredElement != null) {
       _suggestVariable(declaredElement);
     }
@@ -2372,7 +2494,7 @@ class DeclarationHelper {
 
   void _visitForLoopParts(ForLoopParts node) {
     if (node is ForEachPartsWithDeclaration) {
-      var declaredElement = node.loopVariable.declaredElement2;
+      var declaredElement = node.loopVariable.declaredElement;
       if (declaredElement != null) {
         _suggestVariable(declaredElement);
       }
@@ -2381,7 +2503,7 @@ class DeclarationHelper {
     } else if (node is ForPartsWithDeclarations) {
       var variables = node.variables;
       for (var variable in variables.variables) {
-        var declaredElement = variable.declaredElement2;
+        var declaredElement = variable.declaredElement;
         if (declaredElement is LocalVariableElement) {
           _suggestVariable(declaredElement);
         }
@@ -2492,7 +2614,7 @@ class DeclarationHelper {
           var variables = statement.variables;
           for (var variable in variables.variables) {
             if (variable.end < offset) {
-              var declaredElement = variable.declaredElement2;
+              var declaredElement = variable.declaredElement;
               if (declaredElement != null) {
                 _suggestVariable(declaredElement);
               }
@@ -2558,7 +2680,7 @@ class DeclarationHelper {
     for (var typeParameter in typeParameters.typeParameters) {
       var element = typeParameter.declaredFragment?.element;
       if (element != null) {
-        if (!_isWildcard(element.name3)) {
+        if (!_isWildcard(element.name)) {
           _suggestTypeParameter(element);
         }
       }
@@ -2573,7 +2695,7 @@ class DeclarationHelper {
     if (child is VariableDeclaration) {
       var index = variables.indexOf(child);
       for (var i = index - 1; i >= 0; i--) {
-        var element = variables[i].declaredElement2;
+        var element = variables[i].declaredElement;
         if (element != null) {
           _suggestVariable(element);
         }
@@ -2588,10 +2710,10 @@ extension on Element {
   /// An element is visible if it's declared in the [referencingLibrary] or if
   /// the name is not private.
   bool isVisibleIn(LibraryElement referencingLibrary) {
-    if (library2 == referencingLibrary) {
+    if (library == referencingLibrary) {
       return true;
     }
-    var name = name3;
+    var name = this.name;
     return name != null && !Identifier.isPrivateName(name);
   }
 }
@@ -2600,7 +2722,7 @@ extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
   bool get isConst {
     if (isSynthetic) {
-      if (variable3 case var variable?) {
+      if (variable case var variable?) {
         return variable.isConst;
       }
     }

@@ -26,12 +26,12 @@ final class FixInFileProcessor {
   FixInFileProcessor(this._fixContext, {this.alreadyCalculated});
 
   Future<List<Fix>> compute() async {
-    var error = _fixContext.error;
+    var diagnostic = _fixContext.diagnostic;
 
-    var generators = _getGenerators(error.errorCode);
+    var generators = _getGenerators(diagnostic.diagnosticCode);
 
     String getAlreadyCalculatedValue(ProducerGenerator generator) {
-      return '${generator.hashCode}|${error.errorCode.name}';
+      return '${generator.hashCode}|${diagnostic.diagnosticCode.name}';
     }
 
     // Remove generators for which we've already calculated and we were asked to
@@ -47,9 +47,9 @@ final class FixInFileProcessor {
       return const <Fix>[];
     }
 
-    var errors = _fixContext.unitResult.errors
-        .where((e) => error.errorCode.name == e.errorCode.name);
-    if (errors.length < 2) {
+    var diagnostics = _fixContext.unitResult.diagnostics
+        .where((e) => diagnostic.diagnosticCode.name == e.diagnosticCode.name);
+    if (diagnostics.length < 2) {
       return const <Fix>[];
     }
 
@@ -68,10 +68,11 @@ final class FixInFileProcessor {
           workspace: _fixContext.workspace,
           libraryResult: _fixContext.libraryResult,
           unitResult: _fixContext.unitResult,
-          error: error,
+          error: diagnostic,
           correctionUtils: _fixContext.correctionUtils,
         );
-        fixState = await _fixDiagnostic(fixContext, fixState, generator, error);
+        fixState =
+            await _fixDiagnostic(fixContext, fixState, generator, diagnostic);
 
         // The original error was not fixable; continue to next generator.
         if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
@@ -79,17 +80,16 @@ final class FixInFileProcessor {
         }
 
         // Compute fixes for the rest of the errors.
-        for (var error in errors.where((item) => item != error)) {
+        for (var d in diagnostics.where((item) => item != diagnostic)) {
           var fixContext = DartFixContext(
             instrumentationService: _fixContext.instrumentationService,
             workspace: _fixContext.workspace,
             libraryResult: _fixContext.libraryResult,
             unitResult: _fixContext.unitResult,
-            error: error,
+            error: d,
             correctionUtils: _fixContext.correctionUtils,
           );
-          fixState =
-              await _fixDiagnostic(fixContext, fixState, generator, error);
+          fixState = await _fixDiagnostic(fixContext, fixState, generator, d);
         }
         if (fixState is _NotEmptyFixState) {
           var sourceChange = fixState.builder.sourceChange;

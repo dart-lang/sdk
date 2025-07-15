@@ -100,7 +100,7 @@ typedef SharedMatchContext =
       ExpressionImpl,
       DartPatternImpl,
       SharedTypeView,
-      PromotableElementImpl2
+      PromotableElementImpl
     >;
 
 typedef SharedPatternField =
@@ -127,17 +127,17 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           AstNodeImpl,
           StatementImpl,
           ExpressionImpl,
-          PromotableElementImpl2,
+          PromotableElementImpl,
           DartPatternImpl,
           void,
           InterfaceTypeImpl,
-          InterfaceElementImpl2
+          InterfaceElementImpl
         >,
         // TODO(paulberry): not yet used.
         NullShortingMixin<
           Null,
           ExpressionImpl,
-          PromotableElementImpl2,
+          PromotableElementImpl,
           SharedTypeView
         > {
   /// Debug-only: if `true`, manipulations of [_rewriteStack] performed by
@@ -163,7 +163,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   late final SharedTypeAnalyzerErrors errors = SharedTypeAnalyzerErrors(
-    errorReporter,
+    diagnosticReporter,
   );
 
   /// The source representing the compilation unit being visited.
@@ -173,22 +173,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   final TypeProviderImpl typeProvider;
 
   @override
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter diagnosticReporter;
 
   /// The analysis options used by this resolver.
   final AnalysisOptions analysisOptions;
 
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
-  InterfaceElementImpl2? enclosingClass;
+  InterfaceElementImpl? enclosingClass;
 
   /// The element representing the extension containing the AST nodes being
   /// visited, or `null` if we are not in the scope of an extension.
-  ExtensionElementImpl2? enclosingExtension;
+  ExtensionElementImpl? enclosingExtension;
 
   /// The element representing the function containing the current node, or
   /// `null` if the current node is not contained in a function.
-  ExecutableElementImpl2? enclosingFunction;
+  ExecutableElementImpl? enclosingFunction;
 
   /// The manager for the inheritance mappings.
   @override
@@ -205,7 +205,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final BoolExpressionVerifier boolExpressionVerifier =
       BoolExpressionVerifier(
         resolver: this,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
         nullableDereferenceVerifier: nullableDereferenceVerifier,
       );
 
@@ -213,7 +213,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   late final NullableDereferenceVerifier nullableDereferenceVerifier =
       NullableDereferenceVerifier(
         typeSystem: typeSystem,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
         resolver: this,
       );
 
@@ -327,19 +327,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// The [definingLibrary] is the element for the library containing the node
   /// being visited. The [source] is the source representing the compilation
   /// unit containing the node being visited. The [typeProvider] is the object
-  /// used to access the types from the core library. The [errorListener] is the
-  /// error listener that will be informed of any errors that are found during
-  /// resolution.
-  ///
-  // TODO(paulberry): make [featureSet] a required parameter (this will be a
-  // breaking change).
+  /// used to access the types from the core library. The [diagnosticListener]
+  /// is the diagnostic listener that will be informed of any diagnostics that
+  /// are found during resolution.
   ResolverVisitor(
     InheritanceManager3 inheritanceManager,
     LibraryElementImpl definingLibrary,
     LibraryResolutionContext libraryResolutionContext,
     Source source,
     TypeProvider typeProvider,
-    AnalysisErrorListener errorListener, {
+    DiagnosticListener diagnosticListener, {
     required LibraryFragmentImpl libraryFragment,
     required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
@@ -352,7 +349,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
          source,
          definingLibrary.typeSystem,
          typeProvider as TypeProviderImpl,
-         ErrorReporter(errorListener, source),
+         DiagnosticReporter(diagnosticListener, source),
          featureSet,
          analysisOptions,
          flowAnalysisHelper,
@@ -367,7 +364,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     this.source,
     this.typeSystem,
     this.typeProvider,
-    this.errorReporter,
+    this.diagnosticReporter,
     FeatureSet featureSet,
     this.analysisOptions,
     this.flowAnalysis, {
@@ -382,11 +379,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
        ),
        baseOrFinalTypeVerifier = BaseOrFinalTypeVerifier(
          definingLibrary: definingLibrary,
-         errorReporter: errorReporter,
+         diagnosticReporter: diagnosticReporter,
        ) {
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       typeSystem: typeSystem,
       dataForTesting:
           flowAnalysis.dataForTesting != null
@@ -408,7 +405,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     _yieldStatementResolver = YieldStatementResolver(resolver: this);
     nullSafetyDeadCodeVerifier = NullSafetyDeadCodeVerifier(
       typeSystem,
-      errorReporter,
+      diagnosticReporter,
       flowAnalysis,
     );
     elementResolver = ElementResolver(this);
@@ -425,7 +422,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
-    PromotableElementImpl2,
+    PromotableElementImpl,
     SharedTypeView
   >
   get flow => flowAnalysis.flow!;
@@ -443,9 +440,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   shared.TypeAnalyzerOperations<
-    PromotableElementImpl2,
+    PromotableElementImpl,
     InterfaceTypeImpl,
-    InterfaceElementImpl2
+    InterfaceElementImpl
   >
   get operations => flowAnalysis.typeOperations;
 
@@ -498,14 +495,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             variablePattern.fieldNameWithImplicitName = fieldName;
             nameToken = variablePattern.name;
           } else {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               field,
               CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME,
             );
           }
         }
       } else if (mustBeNamed) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           field,
           CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN,
         );
@@ -571,7 +568,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // TODO(srawlins): When this check is moved into the resolution stage,
         // use the result of that check to determine whether this check should
         // be done.
-        var lowerBound = typeProvider.futureElement2.instantiateImpl(
+        var lowerBound = typeProvider.futureElement.instantiateImpl(
           typeArguments: fixedTypeList(NeverTypeImpl.instance),
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -600,19 +597,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
       if (errorNode is ConstructorDeclaration) {
-        errorReporter.atConstructorDeclaration(
+        diagnosticReporter.atConstructorDeclaration(
           errorNode,
           diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is BlockFunctionBody) {
-        errorReporter.atToken(
+        diagnosticReporter.atToken(
           errorNode.block.leftBracket,
           diagnosticCode,
           arguments: [returnType],
         );
       } else if (errorNode is Token) {
-        errorReporter.atToken(
+        diagnosticReporter.atToken(
           errorNode,
           diagnosticCode,
           arguments: [returnType],
@@ -650,7 +647,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           errorNode = pattern.type;
         }
         errorNode ??= pattern;
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           errorNode,
           WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE,
           arguments: [matchedValueType, requiredType],
@@ -671,13 +668,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return;
     }
 
-    if (element is PromotableElementImpl2) {
+    if (element is PromotableElementImpl) {
       var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
       var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
 
       if (element.isLate) {
         if (unassigned) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE,
             arguments: [node.name],
@@ -688,7 +685,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       if (!assigned) {
         if (element.isFinal) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL,
             arguments: [node.name],
@@ -697,7 +694,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
 
         if (typeSystem.isPotentiallyNonNullable(element.type)) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode
                 .NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE,
@@ -735,7 +732,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           continue;
         }
         messages = entry.value.accept(whyNotPromotedVisitor);
-        // `messages` will be passed to the ErrorReporter, which might add
+        // `messages` will be passed to the DiagnosticReporter, which might add
         // additional entries. So make sure that it's not a `const []`.
         assert(_isModifiableList(messages));
         if (messages.isNotEmpty) {
@@ -856,9 +853,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var typeNode = pattern.type;
     if (typeNode.typeArguments == null) {
-      var typeNameElement = typeNode.element2;
-      if (typeNameElement is InterfaceElementImpl2) {
-        var typeParameters = typeNameElement.typeParameters2;
+      var typeNameElement = typeNode.element;
+      if (typeNameElement is InterfaceElementImpl) {
+        var typeParameters = typeNameElement.typeParameters;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -874,8 +871,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             ),
           );
         }
-      } else if (typeNameElement is TypeAliasElementImpl2) {
-        var typeParameters = typeNameElement.typeParameters2;
+      } else if (typeNameElement is TypeAliasElementImpl) {
+        var typeParameters = typeNameElement.typeParameters;
         if (typeParameters.isNotEmpty) {
           var typeArguments = _inferTypeArguments(
             typeParameters: typeParameters,
@@ -908,7 +905,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void finishJoinedPatternVariable(
-    covariant JoinPatternVariableElementImpl2 variable, {
+    covariant JoinPatternVariableElementImpl variable, {
     required JoinedPatternVariableLocation location,
     required shared.JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
@@ -922,26 +919,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var reference in variable.references) {
         if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseAbsent) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
-            arguments: [variable.name3!],
+            arguments: [variable.name!],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseHasLabel) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             reference,
             CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
-            arguments: [variable.name3!],
+            arguments: [variable.name!],
           );
         } else if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.differentFinalityOrType) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             reference,
             CompileTimeErrorCode
                 .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
-            arguments: [variable.name3!],
+            arguments: [variable.name!],
           );
         }
       }
@@ -966,11 +963,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<
-    AstNodeImpl,
-    ExpressionImpl,
-    PromotableElementImpl2
-  >
+  SwitchExpressionMemberInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
   getSwitchExpressionMemberInfo(
     covariant SwitchExpressionImpl node,
     int index,
@@ -992,10 +985,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
-    PromotableElementImpl2
+    PromotableElementImpl
   >
   getSwitchStatementMemberInfo(covariant SwitchStatementImpl node, int index) {
-    CaseHeadOrDefaultInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl2>
+    CaseHeadOrDefaultInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
     ofMember(SwitchMemberImpl member) {
       if (member is SwitchCaseImpl) {
         return CaseHeadOrDefaultInfo(pattern: member.expression, variables: {});
@@ -1079,7 +1072,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void handleCase_afterCaseHeads(
     AstNode node,
     int caseIndex,
-    Iterable<PromotableElement> variables,
+    Iterable<PromotableElementImpl> variables,
   ) {}
 
   @override
@@ -1206,19 +1199,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var staticType = expression.staticType;
-    if (staticType is! FunctionTypeImpl || staticType.typeFormals.isEmpty) {
+    if (staticType is! FunctionTypeImpl || staticType.typeParameters.isEmpty) {
       return expression;
     }
 
     var context = typeSystem.flatten(contextType);
-    if (context is! FunctionTypeImpl || context.typeFormals.isNotEmpty) {
+    if (context is! FunctionTypeImpl || context.typeParameters.isNotEmpty) {
       return expression;
     }
 
     var typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
       context,
       staticType,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       errorNode: expression,
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
@@ -1330,8 +1323,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// Set information about enclosing declarations.
   void prepareEnclosingDeclarations({
-    InterfaceElementImpl2? enclosingClassElement,
-    ExecutableElementImpl2? enclosingExecutableElement,
+    InterfaceElementImpl? enclosingClassElement,
+    ExecutableElementImpl? enclosingExecutableElement,
   }) {
     enclosingClass = enclosingClassElement;
     _setupThisType();
@@ -1415,8 +1408,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required AssignedVariablePatternImpl node,
     required SharedMatchContext context,
   }) {
-    var element = node.element2;
-    if (element is! PromotableElementImpl2) {
+    var element = node.element;
+    if (element is! PromotableElementImpl) {
       return PatternResult(
         matchedValueType: SharedTypeView(InvalidTypeImpl.instance),
       );
@@ -1426,14 +1419,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var flow = this.flow;
       if (element.isLate) {
         if (flow.isAssigned(element)) {
-          errorReporter.atToken(
+          diagnosticReporter.atToken(
             node.name,
             CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
           );
         }
       } else {
         if (!flow.isUnassigned(element)) {
-          errorReporter.atToken(
+          diagnosticReporter.atToken(
             node.name,
             CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
             arguments: [node.name.lexeme],
@@ -1544,7 +1537,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
 
       if (hasRead && result.readElementRequested2 == null) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           arguments: [node.name],
@@ -1581,7 +1574,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           valueType: SharedTypeView(typeArgumentsList.arguments[1].typeOrThrow),
         );
       } else {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           typeArgumentsList,
           CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS,
           arguments: [length],
@@ -1632,7 +1625,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         nameToken,
         CompileTimeErrorCode.UNDEFINED_GETTER,
         arguments: [nameToken.lexeme, receiverType],
@@ -1641,7 +1634,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var getter = result.getter2;
     if (getter != null) {
-      fieldNode.element2 = getter;
+      fieldNode.element = getter;
       if (getter is PropertyAccessorElement2OrMember) {
         return (getter, SharedTypeView(getter.returnType));
       } else {
@@ -1688,7 +1681,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     );
 
     if (result.needsGetterError) {
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         node.operator,
         CompileTimeErrorCode.UNDEFINED_OPERATOR,
         arguments: [methodName, matchedType],
@@ -1696,7 +1689,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     var element = result.getter2 as MethodElement2OrMember?;
-    node.element2 = element;
+    node.element = element;
     if (element == null) {
       return null;
     }
@@ -1739,22 +1732,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
-      parent.readElement2 = element;
+      parent.readElement = element;
       parent.readType = readType;
     } else if (parent is PostfixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.readElement2 = element;
+      parent.readElement = element;
       parent.readType = readType;
     } else if (parent is PrefixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.readElement2 = element;
+      parent.readElement = element;
       parent.readType = readType;
     }
   }
 
   @override
-  void setVariableType(PromotableElement variable, SharedTypeView type) {
-    if (variable is LocalVariableElementImpl2) {
+  void setVariableType(PromotableElementImpl variable, SharedTypeView type) {
+    if (variable is LocalVariableElementImpl) {
       variable.type = type.unwrapTypeView();
     } else {
       throw UnimplementedError('TODO(paulberry)');
@@ -1768,13 +1761,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
-    if (node is AugmentedExpression) {
-      if (element is SetterElement2OrMember) {
-        if (element.formalParameters case [var valueParameter]) {
-          writeType = valueParameter.type;
-        }
-      }
-    } else if (node is IndexExpression) {
+     if (node is IndexExpression) {
       if (element is MethodElement2OrMember) {
         var parameters = element.formalParameters;
         if (parameters.length == 2) {
@@ -1786,7 +1773,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node is SimpleIdentifier) {
       if (element is SetterElement2OrMember) {
         if (element.isSynthetic) {
-          var variable = element.variable3;
+          var variable = element.variable;
           if (variable != null) {
             writeType = variable.type;
           }
@@ -1803,15 +1790,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     var parent = node.parent;
     if (parent is AssignmentExpressionImpl && parent.leftHandSide == node) {
-      parent.writeElement2 = element;
+      parent.writeElement = element;
       parent.writeType = writeType;
     } else if (parent is PostfixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.writeElement2 = element;
+      parent.writeElement = element;
       parent.writeType = writeType;
     } else if (parent is PrefixExpressionImpl &&
         parent.operator.type.isIncrementOperator) {
-      parent.writeElement2 = element;
+      parent.writeElement = element;
       parent.writeType = writeType;
     }
   }
@@ -1907,12 +1894,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (staticType != null && expression is SimpleIdentifier) {
       var simpleIdentifier = expression as SimpleIdentifier;
       var element = simpleIdentifier.element;
-      if (element is PromotableElementImpl2 &&
+      if (element is PromotableElementImpl &&
           !expression.typeOrThrow.isDartCoreNull &&
           typeSystem.isNullable(element.type) &&
           typeSystem.isNonNullable(staticType) &&
           flowAnalysis.isDefinitelyUnassigned(simpleIdentifier, element)) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           simpleIdentifier,
           WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS,
           arguments: [simpleIdentifier.name],
@@ -1983,22 +1970,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
     inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
-  void visitAugmentedExpression(
-    covariant AugmentedExpressionImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    super.visitAugmentedExpression(node);
-  }
-
-  @override
-  void visitAugmentedInvocation(
-    covariant AugmentedInvocationImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    super.visitAugmentedInvocation(node);
   }
 
   @override
@@ -2335,7 +2306,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     expression = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
     if (fieldElement != null) {
-      var enclosingConstructor = enclosingFunction as ConstructorElementImpl2;
+      var enclosingConstructor = enclosingFunction as ConstructorElementImpl;
       checkForFieldInitializerNotAssignable(
         node,
         fieldElement,
@@ -2399,7 +2370,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       popRewrite();
     }
 
-    if (fragment is DefaultParameterFragmentImpl && node.isOfLocalFunction) {
+    if (node.isOfLocalFunction) {
       fragment.constantInitializer = defaultValue;
     }
   }
@@ -2590,26 +2561,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorName = initializer.constructorName;
       var constructorElement = constructorName.element;
       if (constructorElement != null) {
-        node.constructorElement2 = constructorElement;
+        node.constructorElement = constructorElement;
         if (constructorElement.isFactory) {
           var constructorName = node.arguments?.constructorSelector?.name;
           var errorTarget = constructorName ?? node.name;
-          errorReporter.atEntity(
+          diagnosticReporter.atEntity(
             errorTarget,
             CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
           );
         }
       } else {
-        if (constructorName.type.element2 is EnumElementImpl2) {
+        if (constructorName.type.element is EnumElementImpl) {
           var nameNode = node.arguments?.constructorSelector?.name;
           if (nameNode != null) {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               nameNode,
               CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED,
               arguments: [nameNode.name],
             );
           } else {
-            errorReporter.atToken(
+            diagnosticReporter.atToken(
               node.name,
               CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED,
             );
@@ -2620,11 +2591,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var arguments = node.arguments;
         if (arguments != null) {
           var argumentList = arguments.argumentList;
-          argumentList.correspondingStaticParameters2 =
+          argumentList.correspondingStaticParameters =
               ResolverVisitor.resolveArgumentsToParameters(
                 argumentList: argumentList,
                 formalParameters: constructorElement.formalParameters,
-                errorReporter: errorReporter,
+                diagnosticReporter: diagnosticReporter,
               );
         } else if (definingLibrary.featureSet.isEnabled(
           Feature.enhanced_enums,
@@ -2639,7 +2610,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               requiredParameterCount: requiredParameterCount,
               actualArgumentCount: 0,
               nameNode: node,
-              errorReporter: errorReporter,
+              diagnosticReporter: diagnosticReporter,
             );
           }
         }
@@ -4108,10 +4079,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // TODO(paulberry): try to remove these casts by changing `node` to a
         // `TryStatementImpl`
         flow.tryCatchStatement_catchBegin(
-          catchClause.exceptionParameter?.declaredElement2
-              as PromotableElementImpl2?,
-          catchClause.stackTraceParameter?.declaredElement2
-              as PromotableElementImpl2?,
+          catchClause.exceptionParameter?.declaredElement
+              as PromotableElementImpl?,
+          catchClause.stackTraceParameter?.declaredElement
+              as PromotableElementImpl?,
         );
         catchClause.accept(this);
         flow.tryCatchStatement_catchEnd();
@@ -4176,7 +4147,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
       flowAnalysis.flow?.initialize(
-        node.declaredElement2 as PromotableElementImpl2,
+        node.declaredElement as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
         initializer,
         isFinal: parent.isFinal,
@@ -4189,7 +4160,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(
+    covariant VariableDeclarationListImpl node,
+  ) {
     flowAnalysis.variableDeclarationList(node);
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -4260,8 +4233,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var targetType = invocation.realTarget?.staticType;
     if (invocation.methodName.name == 'catchError' &&
         targetType is InterfaceTypeImpl) {
-      var instanceOfFuture = targetType.asInstanceOf2(
-        typeProvider.futureElement2,
+      var instanceOfFuture = targetType.asInstanceOf(
+        typeProvider.futureElement,
       );
       if (instanceOfFuture != null) {
         var targetFutureType = instanceOfFuture.typeArguments.first;
@@ -4274,7 +4247,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           return;
         }
 
-        errorReporter.atToken(
+        diagnosticReporter.atToken(
           errorNode.block.leftBracket,
           WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
           arguments: [returnTypeBase],
@@ -4285,7 +4258,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void _checkTopLevelCycle(VariableDeclaration node) {
     var fragment = node.declaredFragment;
-    if (fragment is! PropertyInducingElementImpl) {
+    if (fragment is! PropertyInducingFragmentImpl) {
       return;
     }
     // Errors on const are reported separately with
@@ -4299,7 +4272,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     if (error.kind == TopLevelInferenceErrorKind.dependencyCycle) {
       var argumentsText = error.arguments.join(', ');
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         node.name,
         CompileTimeErrorCode.TOP_LEVEL_CYCLE,
         arguments: [node.name.lexeme, argumentsText],
@@ -4335,7 +4308,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Infers type arguments corresponding to [typeParameters] used it the
   /// [declaredType], so that thr resulting type is a subtype of [contextType].
   List<TypeImpl> _inferTypeArguments({
-    required List<TypeParameterElementImpl2> typeParameters,
+    required List<TypeParameterElementImpl> typeParameters,
     required AstNode errorNode,
     required TypeImpl declaredType,
     required TypeImpl contextType,
@@ -4391,12 +4364,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var callMethodType = callMethod.type;
     List<DartType> typeArgumentTypes;
     if (isConstructorTearoffsEnabled &&
-        callMethodType.typeFormals.isNotEmpty &&
+        callMethodType.typeParameters.isNotEmpty &&
         context is FunctionTypeImpl) {
       typeArgumentTypes = typeSystem.inferFunctionTypeInstantiation(
         context,
         callMethodType,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
         errorNode: expression,
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
@@ -4613,7 +4586,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   static List<FormalParameterElementMixin?> resolveArgumentsToParameters({
     required ArgumentList argumentList,
     required List<FormalParameterElement> formalParameters,
-    ErrorReporter? errorReporter,
+    DiagnosticReporter? diagnosticReporter,
     ConstructorDeclaration? enclosingConstructor,
   }) {
     int requiredParameterCount = 0;
@@ -4632,7 +4605,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         unnamedParameterCount++;
       } else {
         namedParameters ??= {};
-        namedParameters[parameter.name3 ?? ''] = parameter;
+        namedParameters[parameter.name ?? ''] = parameter;
       }
     }
     int unnamedIndex = 0;
@@ -4667,7 +4640,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var result = verifySuperFormalParameters(
         constructor: enclosingConstructor,
         hasExplicitPositionalArguments: positionalArgumentCount != 0,
-        errorReporter: errorReporter,
+        diagnosticReporter: diagnosticReporter,
       );
       positionalArgumentCount += result.positionalArgumentCount;
       if (result.namedArgumentNames.isNotEmpty) {
@@ -4682,7 +4655,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         String name = nameNode.name;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
-          errorReporter?.atNode(
+          diagnosticReporter?.atNode(
             nameNode,
             CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
             arguments: [name],
@@ -4693,7 +4666,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
         usedNames ??= <String>{};
         if (!usedNames.add(name)) {
-          errorReporter?.atNode(
+          diagnosticReporter?.atNode(
             nameNode,
             CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
             arguments: [name],
@@ -4704,7 +4677,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (positionalArgumentCount < requiredParameterCount && noBlankArguments) {
       var parent = argumentList.parent;
-      if (errorReporter != null && parent != null) {
+      if (diagnosticReporter != null && parent != null) {
         var token =
             lastPositionalArgument?.endToken.next ??
             argumentList.leftParenthesis.next ??
@@ -4714,7 +4687,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           requiredParameterCount: requiredParameterCount,
           actualArgumentCount: positionalArgumentCount,
           nameNode: parent,
-          errorReporter: errorReporter,
+          diagnosticReporter: diagnosticReporter,
         );
       }
     } else if (positionalArgumentCount > unnamedParameterCount &&
@@ -4729,7 +4702,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         diagnosticCode = CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS;
       }
       if (firstUnresolvedArgument != null) {
-        errorReporter?.atNode(
+        diagnosticReporter?.atNode(
           firstUnresolvedArgument,
           diagnosticCode,
           arguments: [unnamedParameterCount, positionalArgumentCount],
@@ -4761,7 +4734,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     required int requiredParameterCount,
     required int actualArgumentCount,
     required AstNode nameNode,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
   }) {
     String? name;
     if (nameNode is InstanceCreationExpression) {
@@ -4835,7 +4808,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
                   .NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR;
       arguments.add(name);
     }
-    errorReporter.atToken(token, diagnosticCode, arguments: arguments);
+    diagnosticReporter.atToken(token, diagnosticCode, arguments: arguments);
   }
 }
 
@@ -4845,9 +4818,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 // TODO(paulberry): migrate the responsibility for all scope resolution into
 // this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
-  /// The error reporter that will be informed of any errors that are found
-  /// during resolution.
-  final ErrorReporter errorReporter;
+  /// The diagnostic reporter that will be informed of any diagnostics that are
+  /// found during resolution.
+  final DiagnosticReporter diagnosticReporter;
 
   /// The scope used to resolve identifiers.
   Scope nameScope;
@@ -4872,12 +4845,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   /// Initialize a newly created visitor to resolve the nodes in an AST node.
   ///
-  /// [errorReporter] is the error reporter that will be informed of any errors
+  /// [diagnosticReporter] is the error reporter that will be informed of any errors
   /// that are found during resolution.
   /// [nameScope] is the scope used to resolve identifiers in the node that will
   /// first be visited.
   ScopeResolverVisitor(
-    this.errorReporter, {
+    this.diagnosticReporter, {
     required this.nameScope,
     List<LibraryElement> docImportLibraries = const [],
   }) : _docImportScope = DocumentationCommentScope(
@@ -4891,8 +4864,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    var element = node.element2;
-    if (element is PromotableElement) {
+    var element = node.element;
+    if (element is PromotableElementImpl) {
       _localVariableInfo.potentiallyMutatedInScope.add(element);
     }
   }
@@ -4927,10 +4900,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       Scope outerScope = nameScope;
       try {
         nameScope = LocalScope(nameScope);
-        _define(exception.declaredElement2!);
+        _define(exception.declaredElement!);
         var stackTrace = node.stackTraceParameter;
         if (stackTrace != null) {
-          _define(stackTrace.declaredElement2!);
+          _define(stackTrace.declaredElement!);
         }
         super.visitCatchClause(node);
       } finally {
@@ -4948,7 +4921,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.extendsClause?.accept(this);
@@ -4971,7 +4944,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     try {
       var element = node.declaredFragment!.element;
       nameScope = InstanceScope(
-        TypeParameterScope(nameScope, element.typeParameters2),
+        TypeParameterScope(nameScope, element.typeParameters),
         element,
       );
       _visitDocumentationComment(node.documentationComment);
@@ -5057,7 +5030,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.withClause?.accept(this);
@@ -5085,7 +5058,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
@@ -5107,7 +5080,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.representation.accept(this);
@@ -5176,7 +5149,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = parent.declaredFragment!.element;
       nameScope = FormalParameterScope(nameScope, element.formalParameters);
     } else if (parent is FunctionTypeAlias) {
-      var aliasedElement = parent.declaredFragment!.element.aliasedElement2;
+      var aliasedElement = parent.declaredFragment!.element.aliasedElement;
       var functionElement = aliasedElement as GenericFunctionTypeElement;
       nameScope = FormalParameterScope(
         nameScope,
@@ -5213,7 +5186,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       _enclosingClosure = element.ifTypeOrNull<LocalFunctionElement>();
       node.metadata.accept(this);
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.functionExpression.accept(this);
@@ -5242,7 +5215,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       }
 
       nameScope = FormalParameterScope(
-        TypeParameterScope(nameScope, element.typeParameters2),
+        TypeParameterScope(nameScope, element.typeParameters),
         element.formalParameters,
       );
       super.visitFunctionExpression(node);
@@ -5258,7 +5231,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
       node.parameters.accept(this);
@@ -5278,7 +5251,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       _visitDocumentationComment(node.documentationComment);
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5301,7 +5274,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       super.visitGenericFunctionType(node);
     } finally {
@@ -5315,15 +5288,15 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.type.accept(this);
 
-      var aliasedElement = element.aliasedElement2;
+      var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
         nameScope = FormalParameterScope(
-          TypeParameterScope(nameScope, aliasedElement.typeParameters2),
+          TypeParameterScope(nameScope, aliasedElement.typeParameters),
           aliasedElement.formalParameters,
         );
       }
@@ -5400,7 +5373,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     Scope outerScope = nameScope;
     try {
       var element = node.declaredFragment!.element;
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.returnType?.accept(this);
       node.typeParameters?.accept(this);
@@ -5435,7 +5408,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
       node.metadata.accept(this);
 
-      nameScope = TypeParameterScope(nameScope, element.typeParameters2);
+      nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
       node.typeParameters?.accept(this);
       node.onClause?.accept(this);
@@ -5531,9 +5504,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
       node.element = element;
       if (node.inSetterContext()) {
-        if (element is PatternVariableElementImpl2 &&
+        if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
           );
@@ -5541,7 +5514,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         _localVariableInfo.potentiallyMutatedInScope.add(element);
       }
     }
-    if (element is JoinPatternVariableElementImpl2) {
+    if (element is JoinPatternVariableElementImpl) {
       element.references.add(node);
     }
   }
@@ -5623,7 +5596,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     super.visitVariableDeclaration(node);
 
     if (node.parent!.parent is ForParts) {
-      _define(node.declaredElement2!);
+      _define(node.declaredElement!);
     }
   }
 
@@ -5674,7 +5647,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (labelScope == null) {
         // There are no labels in scope, so by definition the label is
         // undefined.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5685,7 +5658,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       if (definingScope == null) {
         // No definition of the given label name could be found in any
         // enclosing scope.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           labelNode,
           CompileTimeErrorCode.LABEL_UNDEFINED,
           arguments: [labelNode.name],
@@ -5698,7 +5671,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         var labelFragment = definingScope.element.firstFragment;
         var labelContainer = labelFragment.enclosingFragment;
         if (!identical(labelContainer, enclosingClosure.firstFragment)) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             labelNode,
             CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
             arguments: [labelNode.name],
@@ -5711,7 +5684,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           node is! ForStatement &&
           node is! SwitchMember &&
           node is! WhileStatement) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           parentNode,
           CompileTimeErrorCode.CONTINUE_LABEL_INVALID,
         );
@@ -5840,10 +5813,10 @@ class SwitchExhaustiveness {
 
   factory SwitchExhaustiveness(TypeImpl expressionType) {
     if (expressionType is InterfaceType) {
-      var enum_ = expressionType.element3;
-      if (enum_ is EnumElementImpl2) {
+      var enum_ = expressionType.element;
+      if (enum_ is EnumElementImpl) {
         return SwitchExhaustiveness._(
-          enum_.constants2.toSet(),
+          enum_.constants.toSet(),
           expressionType.nullabilitySuffix == NullabilitySuffix.none,
         );
       }
@@ -5893,7 +5866,7 @@ class SwitchExhaustiveness {
     if (caseConstant != null) {
       var element = _referencedElement(caseConstant);
       if (element is PropertyAccessorElement) {
-        _enumConstants!.remove(element.variable3);
+        _enumConstants!.remove(element.variable);
       }
       if (caseConstant is NullLiteral) {
         _isNullEnumValueCovered = true;
@@ -5923,7 +5896,7 @@ class _WhyNotPromotedVisitor
         NonPromotionReasonVisitor<
           List<DiagnosticMessage>,
           AstNode,
-          PromotableElement
+          PromotableElementImpl
         > {
   final Source source;
 
@@ -5937,7 +5910,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<DiagnosticMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<PromotableElement> reason,
+    DemoteViaExplicitWrite<PromotableElementImpl> reason,
   ) {
     var node = reason.node as AstNode;
     if (node is ForEachPartsWithIdentifier) {
@@ -5946,7 +5919,7 @@ class _WhyNotPromotedVisitor
     if (_dataForTesting != null) {
       _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
     }
-    var variableName = reason.variable.name3;
+    var variableName = reason.variable.name;
     return [_contextMessageForWrite(variableName, node, reason)];
   }
 
@@ -5975,8 +5948,8 @@ class _WhyNotPromotedVisitor
         DiagnosticMessageImpl(
           filePath: property.firstFragment.libraryFragment.source.fullName,
           message: message,
-          offset: property.nonSynthetic2.firstFragment.nameOffset2!,
-          length: property.name3!.length,
+          offset: property.nonSynthetic.firstFragment.nameOffset2!,
+          length: property.name!.length,
           url: reason.documentationLink.url,
         ),
         if (!reason.fieldPromotionEnabled)
@@ -5999,7 +5972,7 @@ class _WhyNotPromotedVisitor
     if (receiverElement is PropertyAccessorElement) {
       var property = propertyReference = receiverElement;
       var propertyName = reason.propertyName;
-      var library = receiverElement.library2 as LibraryElementImpl;
+      var library = receiverElement.library as LibraryElementImpl;
       var fieldNonPromotabilityInfo = library.fieldNameNonPromotabilityInfo;
       var fieldNameInfo = fieldNonPromotabilityInfo[reason.propertyName];
       var messages = <DiagnosticMessage>[];
@@ -6010,11 +5983,11 @@ class _WhyNotPromotedVisitor
         required NonPromotionDocumentationLink link,
       }) {
         var enclosingKindName = enclosingElement.kind.displayName;
-        var enclosingName = enclosingElement.name3;
+        var enclosingName = enclosingElement.name;
         var message =
             "'$propertyName' couldn't be promoted because there is a "
             "conflicting $kind in $enclosingKindName '$enclosingName'";
-        var nonSyntheticElement = conflictingElement.nonSynthetic2;
+        var nonSyntheticElement = conflictingElement.nonSynthetic;
         var nonSyntheticFragment = nonSyntheticElement.firstFragment;
         var source = nonSyntheticFragment.libraryFragment?.source;
         messages.add(
@@ -6022,7 +5995,7 @@ class _WhyNotPromotedVisitor
             filePath: source!.fullName,
             message: message,
             offset: nonSyntheticFragment.nameOffset2!,
-            length: nonSyntheticElement.name3!.length,
+            length: nonSyntheticElement.name!.length,
             url: link.url,
           ),
         );
@@ -6090,7 +6063,7 @@ class _WhyNotPromotedVisitor
   DiagnosticMessageImpl _contextMessageForWrite(
     String? variableName,
     AstNode node,
-    DemoteViaExplicitWrite<PromotableElement> reason,
+    DemoteViaExplicitWrite<PromotableElementImpl> reason,
   ) {
     return DiagnosticMessageImpl(
       filePath: source.fullName,
@@ -6113,8 +6086,8 @@ class _WhyNotPromotedVisitor
           "'$propertyName' couldn't be promoted "
           "because field promotion is only available in Dart 3.2 and "
           "above.",
-      offset: property.nonSynthetic2.firstFragment.nameOffset2!,
-      length: property.name3!.length,
+      offset: property.nonSynthetic.firstFragment.nameOffset2!,
+      length: property.name!.length,
       url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
     );
   }
@@ -6123,6 +6096,6 @@ class _WhyNotPromotedVisitor
 extension on Element {
   bool get isWildcardFunction =>
       this is LocalFunctionElement &&
-      name3 == '_' &&
-      library2.hasWildcardVariablesFeatureEnabled;
+      name == '_' &&
+      library.hasWildcardVariablesFeatureEnabled;
 }

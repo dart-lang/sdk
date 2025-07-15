@@ -83,7 +83,7 @@ class TypeDefinitionHandler
         DartType? type;
         if (node is NamedType) {
           originEntity = node.name;
-          var element = node.element2;
+          var element = node.element;
           if (element case analyzer.InterfaceElement element) {
             type = element.thisType;
           }
@@ -106,9 +106,9 @@ class TypeDefinitionHandler
 
         analyzer.Element? element;
         if (type is InterfaceType) {
-          element = type.element3;
+          element = type.element;
         } else if (type is TypeParameterType) {
-          element = type.element3;
+          element = type.element;
         }
         if (element is! analyzer.Element) {
           return success(_emptyResult);
@@ -116,14 +116,14 @@ class TypeDefinitionHandler
 
         // TODO(dantup): Consider returning all fragments for the type instead
         //  of only the first.
-        var targetFragment = element.nonSynthetic2.firstFragment;
+        var targetFragment = element.nonSynthetic.firstFragment;
         var targetUnit = targetFragment.libraryFragment;
         if (targetUnit == null) {
           return success(_emptyResult);
         }
 
         var nameOffset = targetFragment.nameOffset2;
-        var nameLength = targetFragment.name2?.length;
+        var nameLength = targetFragment.name?.length;
         if (nameOffset == null || nameLength == null) {
           return success(_emptyResult);
         }
@@ -213,11 +213,11 @@ class TypeDefinitionHandler
           return element.type;
         }
       } else if (node.inSetterContext()) {
-        var writeElement = node.writeOrReadElement2;
+        var writeElement = node.writeOrReadElement;
         if (writeElement
-            case analyzer.GetterElement(:var variable3) ||
-                analyzer.SetterElement(:var variable3)) {
-          return variable3?.type;
+            case analyzer.GetterElement(:var variable) ||
+                analyzer.SetterElement(:var variable)) {
+          return variable?.type;
         }
       }
     }

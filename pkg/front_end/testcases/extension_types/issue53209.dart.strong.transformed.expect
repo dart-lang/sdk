@@ -86,19 +86,19 @@ static extension-type-member synthetic method E|constructor#_#redirNotEnough#tea
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:6:32: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function()'.
   factory E.redirNotEnough() = E; // Error.
                                ^";
-static extension-type-member method E|constructor#redirTooMany1(core::int foo, core::String bar = #C1) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#redirTooMany1(core::int foo, core::String bar) → self::E% /* erasure=core::int, declared=! */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:8:50: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String)'.
   factory E.redirTooMany1(int foo, String bar) = E; // Error.
                                                  ^";
-static extension-type-member synthetic method E|constructor#_#redirTooMany1#tearOff(core::int foo, core::String bar = #C1) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#redirTooMany1#tearOff(core::int foo, core::String bar) → self::E% /* erasure=core::int, declared=! */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:8:50: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String)'.
   factory E.redirTooMany1(int foo, String bar) = E; // Error.
                                                  ^";
-static extension-type-member method E|constructor#redirTooMany2(core::int foo, core::String bar = #C1, core::num baz = #C1) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#redirTooMany2(core::int foo, core::String bar, core::num baz) → self::E% /* erasure=core::int, declared=! */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:9:59: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String, num)'.
   factory E.redirTooMany2(int foo, String bar, num baz) = E; // Error.
                                                           ^";
-static extension-type-member synthetic method E|constructor#_#redirTooMany2#tearOff(core::int foo, core::String bar = #C1, core::num baz = #C1) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#redirTooMany2#tearOff(core::int foo, core::String bar, core::num baz) → self::E% /* erasure=core::int, declared=! */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:9:59: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String, num)'.
   factory E.redirTooMany2(int foo, String bar, num baz) = E; // Error.
                                                           ^";
@@ -110,12 +110,12 @@ static extension-type-member synthetic method E|constructor#_#redirTooMany3#tear
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:10:53: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, [dynamic])'.
   factory E.redirTooMany3(int foo, [dynamic bar]) = E; // Error.
                                                     ^";
-static extension-type-member method E|constructor#redirTooMany4(core::int foo, {required core::Object bar = #C1}) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#redirTooMany4(core::int foo, {required core::Object bar}) → self::E% /* erasure=core::int, declared=! */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {Object bar})'.
  - 'Object' is from 'dart:core'.
   factory E.redirTooMany4(int foo, {required Object bar}) = E; // Error.
                                                             ^";
-static extension-type-member synthetic method E|constructor#_#redirTooMany4#tearOff(core::int foo, {required core::Object bar = #C1}) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member synthetic method E|constructor#_#redirTooMany4#tearOff(core::int foo, {required core::Object bar}) → self::E% /* erasure=core::int, declared=! */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {Object bar})'.
  - 'Object' is from 'dart:core'.
   factory E.redirTooMany4(int foo, {required Object bar}) = E; // Error.

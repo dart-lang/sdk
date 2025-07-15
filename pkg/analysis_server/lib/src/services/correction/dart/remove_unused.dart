@@ -251,7 +251,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment!.element;
-    if (declaredElement.field2 == element) {
+    if (declaredElement.field == element) {
       references.add(node);
     }
 
@@ -260,7 +260,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (node.element2 == element) {
+    if (node.element == element) {
       references.add(node);
     }
 
@@ -269,15 +269,15 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var staticElement = node.writeOrReadElement2;
+    var staticElement = node.writeOrReadElement;
     if (staticElement == element) {
       references.add(node);
     } else if (staticElement is PropertyAccessorElement) {
-      if (staticElement.variable3 == element) {
+      if (staticElement.variable == element) {
         references.add(node);
       }
     } else if (staticElement is FieldFormalParameterElement) {
-      if (staticElement.field2 == element) {
+      if (staticElement.field == element) {
         references.add(node);
       }
     }

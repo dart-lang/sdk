@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -18,11 +20,9 @@ class DoNotUseEnvironment extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.do_not_use_environment;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -31,6 +31,32 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
+
+  void reportIfUsingEnvironment(
+    AstNode node,
+    String constructorName,
+    DartType staticType,
+  ) {
+    if (((staticType.isDartCoreBool ||
+                staticType.isDartCoreInt ||
+                staticType.isDartCoreString) &&
+            constructorName == 'fromEnvironment') ||
+        (staticType.isDartCoreBool && constructorName == 'hasEnvironment')) {
+      rule.reportAtNode(node);
+    }
+  }
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var nameNode = node.constructorName;
+    var staticType = node.staticType;
+    if (staticType == null) {
+      return;
+    }
+    reportIfUsingEnvironment(nameNode, nameNode.name, staticType);
+  }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -46,13 +72,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorName == null) {
       return;
     }
-
-    if (((staticType.isDartCoreBool ||
-                staticType.isDartCoreInt ||
-                staticType.isDartCoreString) &&
-            constructorName == 'fromEnvironment') ||
-        (staticType.isDartCoreBool && constructorName == 'hasEnvironment')) {
-      rule.reportAtNode(constructorNameNode);
-    }
+    reportIfUsingEnvironment(constructorNameNode, constructorName, staticType);
   }
 }

@@ -47,7 +47,7 @@ class ElementLocation {
     var result = await session.getLibraryByUri(_libraryUri);
     if (result is! LibraryElementResult) return null;
 
-    return result.element2.children2.firstWhereOrNull(
+    return result.element2.children.firstWhereOrNull(
       (child) => child.lookupName == _topLevelName,
     );
   }
@@ -57,7 +57,7 @@ class ElementLocation {
   /// Returns `null` if this element is neither a top level element or a
   /// member of a top level element, or if either do not have a `lookupName`.
   static ElementLocation? forElement(Element element) {
-    var library = element.library2;
+    var library = element.library;
     if (library == null) return null;
     var libraryUri = library.uri.toString();
 
@@ -99,7 +99,7 @@ class _MemberElementLocation extends ElementLocation {
   Future<Element?> locateIn(AnalysisSession session) async {
     var topLevel = await super.locateIn(session);
 
-    return topLevel?.children2.firstWhereOrNull(
+    return topLevel?.children.firstWhereOrNull(
       (child) => child.lookupName == _memberName,
     );
   }

@@ -115,9 +115,9 @@ part 'part.dart';
 ''');
     ResolvedUnitResult libResult = await resolveFile(libFile);
     ResolvedUnitResult partResult = await resolveFile(partFile);
-    expect(libResult.errors, hasLength(0));
-    GatheringErrorListener()
-      ..addAll(partResult.errors)
+    expect(libResult.diagnostics, hasLength(0));
+    GatheringDiagnosticListener()
+      ..addAll(partResult.diagnostics)
       ..assertErrors([
         error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 36, 1),
         error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 36, 1),

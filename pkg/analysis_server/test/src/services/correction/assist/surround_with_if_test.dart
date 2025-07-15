@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SurroundWithIfTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SURROUND_WITH_IF;
+  AssistKind get kind => DartAssistKind.surroundWithIf;
 
   Future<void> test_encloseForWithPattern() async {
     await resolveTestCode('''

@@ -72,7 +72,7 @@ List<String> getVariableNameSuggestionsForExpression(
     } else if (expectedType.isDartCoreString) {
       _addSingleCharacterName(excluded, res, 0x73);
     } else if (expectedType is InterfaceType) {
-      var className = expectedType.element3.name3;
+      var className = expectedType.element.name;
       if (className != null) {
         _addAll(excluded, res, getCamelWordCombinations(className));
       }
@@ -202,7 +202,7 @@ String? _getBaseNameFromUnwrappedExpression(Expression expression) {
       return namedType.name.lexeme;
     }
     // new prefix.ClassName()
-    if (importPrefix.element2 is PrefixElement) {
+    if (importPrefix.element is PrefixElement) {
       return namedType.name.lexeme;
     }
     // new ClassName.constructorName()

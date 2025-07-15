@@ -12,8 +12,8 @@ import 'package:front_end/src/base/local_scope.dart';
 import 'package:front_end/src/base/name_space.dart';
 import 'package:front_end/src/base/scope.dart';
 import 'package:front_end/src/base/uri_translator.dart';
+import 'package:front_end/src/builder/compilation_unit.dart';
 import 'package:front_end/src/builder/declaration_builders.dart';
-import 'package:front_end/src/builder/library_builder.dart';
 import 'package:front_end/src/builder/prefix_builder.dart';
 import 'package:front_end/src/builder/type_builder.dart';
 import 'package:front_end/src/codes/cfe_codes.dart'
@@ -26,13 +26,12 @@ import 'package:front_end/src/kernel/expression_generator.dart';
 import 'package:front_end/src/kernel/expression_generator_helper.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show KernelTarget;
 import 'package:front_end/src/kernel/load_library_builder.dart';
+import 'package:front_end/src/source/name_space_builder.dart';
+import 'package:front_end/src/source/source_compilation_unit.dart'
+    show SourceCompilationUnitImpl;
 import 'package:front_end/src/source/source_library_builder.dart'
-    show
-        ImplicitLanguageVersion,
-        SourceCompilationUnitImpl,
-        SourceLibraryBuilder;
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 import 'package:front_end/src/source/source_loader.dart';
-import 'package:front_end/src/source/type_parameter_scope_builder.dart';
 import 'package:front_end/src/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart'
     show

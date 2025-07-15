@@ -187,24 +187,27 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       // Determine the existing errors in the code without either valid or
       // invalid code.
       //
-      GatheringErrorListener listener = GatheringErrorListener();
+      GatheringDiagnosticListener listener = GatheringDiagnosticListener();
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
-      var baseErrorCodes = <DiagnosticCode>[];
-      for (var error in listener.errors) {
-        if (error.errorCode == ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
-            error.errorCode == ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
-            error.errorCode == ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
-          baseErrorCodes.add(error.errorCode);
+      var baseDiagnosticCodes = <DiagnosticCode>[];
+      for (var diagnostic in listener.diagnostics) {
+        if (diagnostic.diagnosticCode ==
+                ParserErrorCode.BREAK_OUTSIDE_OF_LOOP ||
+            diagnostic.diagnosticCode ==
+                ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP ||
+            diagnostic.diagnosticCode ==
+                ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE) {
+          baseDiagnosticCodes.add(diagnostic.diagnosticCode);
         }
       }
 
       var expectedValidCodeDiagnostics = <DiagnosticCode>[
-        ...baseErrorCodes,
+        ...baseDiagnosticCodes,
         ...?descriptor.expectedDiagnosticsInValidCode,
       ];
 
       var expectedInvalidCodeErrors = <DiagnosticCode>[
-        ...baseErrorCodes,
+        ...baseDiagnosticCodes,
         ...?descriptor.diagnosticCodes,
       ];
       //

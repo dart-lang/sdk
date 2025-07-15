@@ -107,10 +107,10 @@ class ForResolver {
 
     ClassElement iteratedElement =
         isAsync
-            ? _resolver.typeProvider.streamElement2
-            : _resolver.typeProvider.iterableElement2;
+            ? _resolver.typeProvider.streamElement
+            : _resolver.typeProvider.iterableElement;
 
-    var iteratedType = iterableType.asInstanceOf2(iteratedElement);
+    var iteratedType = iterableType.asInstanceOf(iteratedElement);
     if (iteratedType == null) {
       return InvalidTypeImpl.instance;
     }
@@ -185,12 +185,12 @@ class ForResolver {
     var elementType = _computeForEachElementType(iterable, isAsync);
     if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =
-          loopVariable.declaredFragment?.element as LocalVariableElementImpl2;
+          loopVariable.declaredFragment?.element as LocalVariableElementImpl;
       loopVariableElement.type = elementType;
     }
 
     if (loopVariable != null) {
-      var declaredElement = loopVariable.declaredElement2!;
+      var declaredElement = loopVariable.declaredElement!;
       _resolver.flowAnalysis.flow?.declare(
         declaredElement,
         SharedTypeView(declaredElement.type),
@@ -199,7 +199,7 @@ class ForResolver {
     }
 
     _resolver.flowAnalysis.flow?.forEach_bodyBegin(node);
-    if (identifierElement is PromotableElementImpl2 &&
+    if (identifierElement is PromotableElementImpl &&
         forEachParts is ForEachPartsWithIdentifier) {
       _resolver.flowAnalysis.flow?.write(
         forEachParts,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,10 +24,7 @@ class UnnecessaryOverrides extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_overrides;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -143,7 +141,7 @@ abstract class _AbstractUnnecessaryOverrideVisitor
       var superParam = _inheritedMethod.formalParameters[i];
       var param = declaredElement.formalParameters[i];
       if (param.type != superParam.type) return false;
-      if (param.name3 != superParam.name3) return false;
+      if (param.name != superParam.name) return false;
       if (param.isCovariant != superParam.isCovariant) return false;
       if (!_sameKind(param, superParam)) return false;
       if (param.defaultValueCode != superParam.defaultValueCode) return false;
@@ -187,11 +185,11 @@ class _UnnecessaryGetterOverrideVisitor
     if (element == null) return null;
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
-    var getterName = element.name3;
+    var getterName = element.name;
     if (getterName == null) return null;
-    return enclosingElement.thisType.lookUpGetter3(
+    return enclosingElement.thisType.lookUpGetter(
       getterName,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -199,7 +197,7 @@ class _UnnecessaryGetterOverrideVisitor
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.propertyName.name == _inheritedMethod.name3) {
+    if (node.propertyName.name == _inheritedMethod.name) {
       node.target?.accept(this);
     }
   }
@@ -217,9 +215,9 @@ class _UnnecessaryMethodOverrideVisitor
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
 
-    return enclosingElement.firstFragment.element.thisType.lookUpMethod3(
+    return enclosingElement.firstFragment.element.thisType.lookUpMethod(
       node.name.lexeme,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -229,7 +227,7 @@ class _UnnecessaryMethodOverrideVisitor
   void visitMethodInvocation(MethodInvocation node) {
     var declarationParameters = declaration.parameters;
     if (declarationParameters != null &&
-        node.methodName.name == _inheritedMethod.name3 &&
+        node.methodName.name == _inheritedMethod.name &&
         argumentsMatchParameters(
           node.argumentList.arguments,
           declarationParameters.parameters,
@@ -249,11 +247,11 @@ class _UnnecessaryOperatorOverrideVisitor
     if (element == null) return null;
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
-    var methodName = element.name3;
+    var methodName = element.name;
     if (methodName == null) return null;
-    return enclosingElement.thisType.lookUpMethod3(
+    return enclosingElement.thisType.lookUpMethod(
       methodName,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -298,9 +296,9 @@ class _UnnecessarySetterOverrideVisitor
     if (element == null) return null;
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is! InterfaceElement) return null;
-    return enclosingElement.thisType.lookUpSetter3(
+    return enclosingElement.thisType.lookUpSetter(
       node.name.lexeme,
-      element.library2,
+      element.library,
       concrete: true,
       inherited: true,
     );
@@ -315,7 +313,7 @@ class _UnnecessarySetterOverrideVisitor
             node.rightHandSide.canonicalElement) {
       var leftPart = node.leftHandSide.unParenthesized;
       if (leftPart is PropertyAccess) {
-        if (node.writeElement2?.name3 == _inheritedMethod.name3) {
+        if (node.writeElement?.name == _inheritedMethod.name) {
           leftPart.target?.accept(this);
         }
       }

@@ -86,6 +86,10 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
     return fd;
   }
 
+  int optval = 1;
+  VOID_NO_RETRY_EXPECTED(
+      setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)));
+
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
   if (result != 0) {

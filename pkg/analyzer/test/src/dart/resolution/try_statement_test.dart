@@ -39,8 +39,10 @@ TryStatement
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: <empty> <synthetic>
-        declaredElement: hasImplicitType isFinal @27
-          type: Object
+        declaredFragment: isFinal isPublic @null
+          type: null
+          element: hasImplicitType isFinal isPrivate
+            type: Object
       rightParenthesis: )
       body: Block
         leftBracket: {
@@ -74,13 +76,17 @@ TryStatement
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: x
-        declaredElement: hasImplicitType isFinal x@27
-          type: Object
+        declaredFragment: isFinal isPublic x@27
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: y
-        declaredElement: isFinal y@30
-          type: StackTrace
+        declaredFragment: isFinal isPublic y@30
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: StackTrace
       rightParenthesis: )
       body: Block
         leftBracket: {
@@ -114,13 +120,17 @@ TryStatement
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: x
-        declaredElement: hasImplicitType isFinal x@27
-          type: Object
+        declaredFragment: isFinal isPublic x@27
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
-        declaredElement: isFinal st@31
-          type: StackTrace
+        declaredFragment: isFinal isPublic st@31
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: StackTrace
       rightParenthesis: )
       body: Block
         leftBracket: {
@@ -154,13 +164,17 @@ TryStatement
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: x
-        declaredElement: hasImplicitType isFinal x@27
-          type: Object
+        declaredFragment: isFinal isPublic x@27
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
-        declaredElement: isFinal st@31
-          type: StackTrace
+        declaredFragment: isFinal isPublic st@31
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: StackTrace
       rightParenthesis: )
       body: Block
         leftBracket: {
@@ -191,13 +205,17 @@ TryStatement
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: e
-        declaredElement: hasImplicitType isFinal e@27
-          type: Object
+        declaredFragment: isFinal isPublic e@27
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
-        declaredElement: isFinal st@30
-          type: StackTrace
+        declaredFragment: isFinal isPublic st@30
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: StackTrace
       rightParenthesis: )
       body: Block
         leftBracket: {
@@ -233,13 +251,17 @@ TryStatement
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: e
-        declaredElement: isFinal e@34
+        declaredFragment: isFinal isPublic e@34
           type: int
+          element: isFinal isPublic
+            type: int
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
-        declaredElement: isFinal st@37
-          type: StackTrace
+        declaredFragment: isFinal isPublic st@37
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: StackTrace
       rightParenthesis: )
       body: Block
         leftBracket: {

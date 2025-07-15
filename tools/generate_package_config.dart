@@ -82,9 +82,11 @@ $overrides
               rootUri.startsWith('../pkg/') || // SDK package
               rootUri.startsWith('../samples/') || // sample package
               rootUri.startsWith('../runtime/') || // VM package
+              rootUri.startsWith('../tests/ffi') || // FFI tests
               rootUri.startsWith(
                 '../tools',
               ) || // A tool package for developing the SDK.
+              rootUri.startsWith('../utils' ) || // Utils for building the SDK.
               rootUri == '../' // The main workspace package
           )) {
         print('Package ${package['name']} is imported from outside the SDK.');

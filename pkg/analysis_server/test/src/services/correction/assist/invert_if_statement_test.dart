@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class InvertIfStatementTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.INVERT_IF_STATEMENT;
+  AssistKind get kind => DartAssistKind.invertIfStatement;
 
   Future<void> test_ifCase() async {
     await resolveTestCode('''

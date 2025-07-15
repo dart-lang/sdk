@@ -236,7 +236,7 @@ class EnumElementDeclaration
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {}
+      TypeParameterFactory typeParameterFactory) {}
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -259,7 +259,7 @@ class EnumElementDeclaration
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> getExportedGetterReferences(
       PropertyReferences references) {
-    return [references.getterReference!];
+    return [references.getterReference];
   }
 
   @override

@@ -28,7 +28,7 @@ Source _createSource(Uri uri) {
 }
 
 /// Dart source linter, only for package:linter's tools and tests.
-class TestLinter implements AnalysisErrorListener {
+class TestLinter implements DiagnosticListener {
   final errors = <Diagnostic>[];
 
   final LinterOptions options;
@@ -65,7 +65,7 @@ class TestLinter implements AnalysisErrorListener {
         // processing gets pushed down, this hack can go away.)
         if (sourceUrl != null) {
           var source = _createSource(sourceUrl);
-          rule.reporter = ErrorReporter(this, source);
+          rule.reporter = DiagnosticReporter(this, source);
         }
         try {
           spec.accept(visitor);
@@ -77,7 +77,7 @@ class TestLinter implements AnalysisErrorListener {
   }
 
   @override
-  void onError(Diagnostic error) => errors.add(error);
+  void onDiagnostic(Diagnostic error) => errors.add(error);
 
   /// Returns whether this [entry] is a pubspec file.
   bool _isPubspecFile(FileSystemEntity entry) =>

@@ -441,7 +441,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   /// [expectedCodes] are produced.
   void assertDiagnostics(String content, List<DiagnosticCode> expectedCodes) {
     List<Diagnostic> diagnostics = validator.validate(content, true);
-    GatheringErrorListener listener = GatheringErrorListener();
+    GatheringDiagnosticListener listener = GatheringDiagnosticListener();
     listener.addAll(diagnostics);
     listener.assertErrorsWithCodes(expectedCodes);
   }

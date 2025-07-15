@@ -33,6 +33,10 @@ class CompletionState {
   CompletionState(this.request, this.selection, this.budget, this.matcher)
     : assert(selection.length == 0);
 
+  /// The [CodeStyleOptions] used to format the completion text.
+  CodeStyleOptions get codeStyleOptions =>
+      request.fileState.analysisOptions.codeStyleOptions;
+
   /// The type of value required by the context in which completion was
   /// requested.
   DartType? get contextType => request.contextType;
@@ -44,8 +48,7 @@ class CompletionState {
   }
 
   /// Indicates if types should be specified whenever possible.
-  bool get includeTypes =>
-      request.fileState.analysisOptions.codeStyleOptions.specifyTypes;
+  bool get includeTypes => codeStyleOptions.specifyTypes;
 
   /// The indentation for the completion text.
   String get indent => getRequestLineIndent(request);
@@ -60,13 +63,10 @@ class CompletionState {
   /// The element of the library containing the completion location.
   LibraryElement get libraryElement => request.libraryElement;
 
-  /// The type of quotes preferred for [String]s as specified in [CodeStyleOptions].
+  /// The type of quotes preferred for [String]s as specified in
+  /// [CodeStyleOptions].
   String get preferredQuoteForStrings =>
-      request
-          .fileState
-          .analysisOptions
-          .codeStyleOptions
-          .preferredQuoteForStrings;
+      codeStyleOptions.preferredQuoteForStrings;
 
   /// The type of `this` at the completion location, or `null` if the completion
   /// location doesn't allow `this` to be used.

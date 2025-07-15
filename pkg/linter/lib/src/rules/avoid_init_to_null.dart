@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,10 +22,7 @@ class AvoidInitToNull extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.avoid_init_to_null;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addVariableDeclaration(this, visitor);
     registry.addDefaultFormalParameter(this, visitor);
@@ -33,7 +31,7 @@ class AvoidInitToNull extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -45,8 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement == null) return;
 
     if (declaredElement is SuperFormalParameterElement) {
-      var superConstructorParameter =
-          declaredElement.superConstructorParameter2;
+      var superConstructorParameter = declaredElement.superConstructorParameter;
       if (superConstructorParameter is! FormalParameterElement) return;
       var defaultValue = superConstructorParameter.defaultValueCode ?? 'null';
       if (defaultValue != 'null') return;
@@ -60,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var declaredElement =
-        node.declaredElement2 ?? node.declaredFragment?.element;
+        node.declaredElement ?? node.declaredFragment?.element;
     if (declaredElement != null &&
         !node.isConst &&
         !node.isFinal &&

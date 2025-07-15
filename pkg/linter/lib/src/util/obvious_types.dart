@@ -164,8 +164,13 @@ extension ExpressionExtensions on Expression {
       case SimpleIdentifier():
         if (self.isQualified) return false;
         var declaration = self.element;
-        if (declaration is! LocalVariableElement) return false;
-        return self.staticType == declaration.type;
+        if (declaration is LocalVariableElement) {
+          return self.staticType == declaration.type;
+        }
+        if (declaration is FormalParameterElement) {
+          return self.staticType == declaration.type;
+        }
+        return false;
       case InstanceCreationExpression():
         var createdType = self.constructorName.type;
         if (createdType.typeArguments != null) {
@@ -174,7 +179,7 @@ extension ExpressionExtensions on Expression {
         } else {
           DartType? dartType = createdType.typeOrThrow;
           if (dartType is InterfaceType &&
-              dartType.element3.typeParameters2.isNotEmpty) {
+              dartType.element.typeParameters.isNotEmpty) {
             // A raw type is not trivial.
             return false;
           }

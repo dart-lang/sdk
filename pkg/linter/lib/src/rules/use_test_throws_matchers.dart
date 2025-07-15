@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,10 +20,7 @@ class UseTestThrowsMatchers extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.use_test_throws_matchers;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addTryStatement(this, visitor);
   }
@@ -39,9 +37,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expression is! MethodInvocation) return false;
     var element = expression.methodName.element;
     return element is TopLevelFunctionElement &&
-        element.library2.uri ==
+        element.library.uri ==
             Uri.parse('package:test_api/src/frontend/expect.dart') &&
-        element.name3 == functionName;
+        element.name == functionName;
   }
 
   @override

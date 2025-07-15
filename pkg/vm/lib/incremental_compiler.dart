@@ -214,7 +214,13 @@ class IncrementalCompiler {
       false,
       incrementalSerializer,
     );
-    await _generator.computeDelta(entryPoints: _latestAcceptedEntryPoints);
+    var compilerResult = await _generator.computeDelta(
+      entryPoints: _latestAcceptedEntryPoints,
+    );
+    // Make '_lastKnownGood' up-to-date.
+    _lastKnownGood = null;
+    _pendingDeltas.add(compilerResult);
+    accept();
   }
 
   /// This tells incremental compiler that it needs rescan [uri] file during

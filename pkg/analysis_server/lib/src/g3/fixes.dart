@@ -73,9 +73,9 @@ class LintFixTester {
     var unitResult = resolvedLibrary.unitWithPath(path)!;
 
     Diagnostic diagnostic;
-    var errors = unitResult.errors;
+    var errors = unitResult.diagnostics;
     if (inFile) {
-      var groups = errors.groupListsBy((error) => error.errorCode);
+      var groups = errors.groupListsBy((error) => error.diagnosticCode);
       if (groups.length != 1) {
         throw StateError(
           'Exactly one error code expected:'
@@ -90,7 +90,7 @@ class LintFixTester {
       diagnostic = errors.single;
     }
 
-    if (diagnostic.errorCode is! LintCode) {
+    if (diagnostic.diagnosticCode is! LintCode) {
       throw StateError('A lint expected: $errors');
     }
 

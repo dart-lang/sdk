@@ -3244,8 +3244,10 @@ void _addEvent({
 ///
 /// The events are printed in reverse chronological order in case the tail gets
 /// truncated, the newest events are retained.
-String _getEventLog() {
+String? _getEventLog() {
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
+  if (initializationEventLog == null) return null;
+
   final o = JS('', 'Array.from(#).reverse()', initializationEventLog);
   JS(
     '',

@@ -31,6 +31,9 @@ class DevelopmentServiceCommand extends DartdevCommand {
   }
 
   @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
+  @override
   Future<int> run() async {
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
@@ -47,12 +50,11 @@ class DevelopmentServiceCommand extends DartdevCommand {
       // On ia32 platforms we do not have an AOT snapshot and so we need
       // to run the JIT snapshot.
       useExecProcess = false;
-      script = fullSdk
-          ? sdk.ddsSnapshot
-          : absolute(sdkDir, 'dds.dart.snapshot');
+      script =
+          fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
       if (!Sdk.checkArtifactExists(script, logError: false)) {
         log.stderr('Error: launching development server failed : '
-                   'Unable to find snapshot for the development server');
+            'Unable to find snapshot for the development server');
         return 255;
       }
     }

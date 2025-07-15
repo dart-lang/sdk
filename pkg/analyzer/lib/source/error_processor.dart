@@ -82,8 +82,8 @@ class ErrorProcessor {
   /// analysis issues uses uppercase; `errorCode.name` for lints uses lowercase.
   @visibleForTesting
   bool appliesTo(Diagnostic diagnostic) =>
-      code == diagnostic.errorCode.name ||
-      code == diagnostic.errorCode.name.toUpperCase();
+      code == diagnostic.diagnosticCode.name ||
+      code == diagnostic.diagnosticCode.name.toUpperCase();
 
   @override
   String toString() => "ErrorProcessor[code='$code', severity=$severity]";

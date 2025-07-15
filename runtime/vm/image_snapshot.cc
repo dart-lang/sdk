@@ -1064,24 +1064,26 @@ class DwarfAssemblyStream : public DwarfWriteStream {
         stream_(ASSERT_NOTNULL(stream)),
         label_to_name_(label_to_name) {}
 
-  void sleb128(intptr_t value) { stream_->Printf(".sleb128 %" Pd "\n", value); }
-  void uleb128(uintptr_t value) {
+  void sleb128(intptr_t value) override {
+    stream_->Printf(".sleb128 %" Pd "\n", value);
+  }
+  void uleb128(uintptr_t value) override {
     stream_->Printf(".uleb128 %" Pd "\n", value);
   }
-  void u1(uint8_t value) {
+  void u1(uint8_t value) override {
     stream_->Printf("%s %u\n", kSizeDirectives[kInt8SizeLog2], value);
   }
-  void u2(uint16_t value) {
+  void u2(uint16_t value) override {
     stream_->Printf("%s %u\n", kSizeDirectives[kInt16SizeLog2], value);
   }
-  void u4(uint32_t value) {
+  void u4(uint32_t value) override {
     stream_->Printf("%s %" Pu32 "\n", kSizeDirectives[kInt32SizeLog2], value);
   }
-  void u8(uint64_t value) {
+  void u8(uint64_t value) override {
     stream_->Printf("%s %" Pu64 "\n", kSizeDirectives[kInt64SizeLog2], value);
   }
-  void string(const char* cstr) {        // NOLINT
-    stream_->WriteString(".string \"");  // NOLINT
+  void string(const char* cstr) override {  // NOLINT
+    stream_->WriteString(".string \"");     // NOLINT
     while (char c = *cstr++) {
       if (c == '"') {
         stream_->WriteString("\\\"");
@@ -1097,7 +1099,8 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     }
     stream_->WriteString("\"\n");
   }
-  void WritePrefixedLength(const char* prefix, std::function<void()> body) {
+  void WritePrefixedLength(const char* prefix,
+                           std::function<void()> body) override {
     ASSERT(prefix != nullptr);
     const char* const length_prefix_symbol =
         OS::SCreate(zone_, ".L%s_length_prefix", prefix);
@@ -1113,23 +1116,25 @@ class DwarfAssemblyStream : public DwarfWriteStream {
     body();
     stream_->Printf(".L%s_end:\n", prefix);
   }
-  void OffsetFromSymbol(intptr_t label, intptr_t offset) {
+  void OffsetFromSymbol(intptr_t label,
+                        intptr_t offset,
+                        size_t size = kAddressSize) override {
     const char* symbol = label_to_name_.Lookup(label);
     ASSERT(symbol != nullptr);
     if (offset == 0) {
-      PrintNamedAddress(symbol);
+      PrintNamedAddress(symbol, size);
     } else {
-      PrintNamedAddressWithOffset(symbol, offset);
+      PrintNamedAddressWithOffset(symbol, offset, size);
     }
   }
 
   // No-op, we'll be using labels.
-  void InitializeAbstractOrigins(intptr_t size) {}
-  void RegisterAbstractOrigin(intptr_t index) {
+  void InitializeAbstractOrigins(intptr_t size) override {}
+  void RegisterAbstractOrigin(intptr_t index) override {
     // Label for DW_AT_abstract_origin references
     stream_->Printf("Lfunc%" Pd " = .-%s\n", index, kDebugInfoLabel);
   }
-  void AbstractOrigin(intptr_t index) {
+  void AbstractOrigin(intptr_t index) override {
     stream_->Printf("%s Lfunc%" Pd "\n", kSizeDirectives[kInt32SizeLog2],
                     index);
   }
@@ -1171,11 +1176,15 @@ class DwarfAssemblyStream : public DwarfWriteStream {
  private:
   static constexpr const char* kDebugInfoLabel = ".Ldebug_info";
 
-  void PrintNamedAddress(const char* name) {
-    stream_->Printf("%s \"%s\"\n", kWordDirective, name);
+  void PrintNamedAddress(const char* name, size_t size) {
+    auto* const directive = kSizeDirectives[Utils::ShiftForPowerOfTwo(size)];
+    stream_->Printf("%s \"%s\"\n", directive, name);
   }
-  void PrintNamedAddressWithOffset(const char* name, intptr_t offset) {
-    stream_->Printf("%s \"%s\" + %" Pd "\n", kWordDirective, name, offset);
+  void PrintNamedAddressWithOffset(const char* name,
+                                   intptr_t offset,
+                                   size_t size) {
+    auto* const directive = kSizeDirectives[Utils::ShiftForPowerOfTwo(size)];
+    stream_->Printf("%s \"%s\" + %" Pd "\n", directive, name, offset);
   }
 
   Zone* const zone_;
@@ -1759,6 +1768,8 @@ void AssemblyImageWriter::FrameUnwindPrologue() {
   assembly_stream_->WriteString(".cfi_offset rip, -8\n");
   assembly_stream_->WriteString(".cfi_offset rbp, -16\n");
 #elif defined(TARGET_ARCH_ARM64)
+  // If this changes, then MachOHeader::GenerateUnwindingInformation must
+  // also change to generate the appropriate compact unwinding information.
   COMPILE_ASSERT(R29 == FP);
   COMPILE_ASSERT(R30 == LINK_REGISTER);
   assembly_stream_->WriteString(".cfi_def_cfa x29, 16\n");

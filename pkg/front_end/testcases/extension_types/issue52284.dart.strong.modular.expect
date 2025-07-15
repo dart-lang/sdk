@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extension_types/issue52284.dart:9:11: Error: The getter 'unresolved' isn't defined for the class 'Id'.
+// pkg/front_end/testcases/extension_types/issue52284.dart:9:11: Error: The getter 'unresolved' isn't defined for the type 'Id'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
 //   print(c.unresolved); // Error
 //           ^^^^^^^^^^
@@ -23,7 +23,7 @@ static extension-type-member synthetic method Id|constructor#_#new#tearOff(core:
   return self::Id|constructor#(id);
 static method test() → dynamic {
   self::Id% /* erasure=core::int, declared=! */ c = self::Id|constructor#(2);
-  core::print(invalid-expression "pkg/front_end/testcases/extension_types/issue52284.dart:9:11: Error: The getter 'unresolved' isn't defined for the class 'Id'.
+  core::print(invalid-expression "pkg/front_end/testcases/extension_types/issue52284.dart:9:11: Error: The getter 'unresolved' isn't defined for the type 'Id'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'unresolved'.
   print(c.unresolved); // Error
           ^^^^^^^^^^" in c{<unresolved>}.unresolved);

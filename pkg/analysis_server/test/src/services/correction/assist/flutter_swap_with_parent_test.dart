@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterSwapWithParentTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_SWAP_WITH_PARENT;
+  AssistKind get kind => DartAssistKind.flutterSwapWithParent;
 
   @override
   void setUp() {

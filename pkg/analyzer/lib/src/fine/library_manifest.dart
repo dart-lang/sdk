@@ -194,7 +194,7 @@ class LibraryManifestBuilder {
   void _addClass({
     required EncodeContext encodingContext,
     required Map<LookupName, ClassItem> newItems,
-    required ClassElementImpl2 element,
+    required ClassElementImpl element,
     required LookupName lookupName,
   }) {
     var classItem = _getOrBuildElementItem(element, () {
@@ -206,7 +206,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = classItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       classItem.beforeUpdatingMembers();
@@ -224,10 +224,10 @@ class LibraryManifestBuilder {
   /// change. So, it is enough to record that supertype constructors into
   /// the manifest.
   void _addClassTypeAliasConstructors() {
-    var hasConstructors = <ClassElementImpl2>{};
-    var inheritedMap = <ConstructorElementImpl2, ManifestItemId>{};
+    var hasConstructors = <ClassElementImpl>{};
+    var inheritedMap = <ConstructorElementImpl, ManifestItemId>{};
 
-    void addForElement(ClassElementImpl2 element) {
+    void addForElement(ClassElementImpl element) {
       if (!element.isMixinApplication) {
         return;
       }
@@ -241,8 +241,8 @@ class LibraryManifestBuilder {
       var item = declaredItems[element] as ClassItem;
 
       // SAFETY: we set `Object` during linking if it is not a class.
-      var superElement = element.supertype!.element3;
-      superElement as ClassElementImpl2;
+      var superElement = element.supertype!.element;
+      superElement as ClassElementImpl;
 
       // The supertype could be a mixin application itself.
       addForElement(superElement);
@@ -254,7 +254,7 @@ class LibraryManifestBuilder {
         }
 
         // SAFETY: we build inherited constructors from existing super.
-        var superConstructor = constructor.superConstructor2!.baseElement;
+        var superConstructor = constructor.superConstructor!.baseElement;
 
         // Maybe the super constructor is "inherited" itself.
         var id = inheritedMap[superConstructor];
@@ -268,8 +268,8 @@ class LibraryManifestBuilder {
     }
 
     for (var libraryElement in libraryElements) {
-      for (var element in libraryElement.children2) {
-        if (element is ClassElementImpl2) {
+      for (var element in libraryElement.children) {
+        if (element is ClassElementImpl) {
           addForElement(element);
         }
       }
@@ -279,7 +279,7 @@ class LibraryManifestBuilder {
   void _addEnum({
     required EncodeContext encodingContext,
     required Map<LookupName, TopLevelItem> newItems,
-    required EnumElementImpl2 element,
+    required EnumElementImpl element,
     required LookupName lookupName,
   }) {
     var enumItem = _getOrBuildElementItem(element, () {
@@ -291,7 +291,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = enumItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       enumItem.beforeUpdatingMembers();
@@ -306,7 +306,7 @@ class LibraryManifestBuilder {
   void _addExtension({
     required EncodeContext encodingContext,
     required Map<LookupName, ExtensionItem> newItems,
-    required ExtensionElementImpl2 element,
+    required ExtensionElementImpl element,
     required LookupName lookupName,
   }) {
     var extensionItem = _getOrBuildElementItem(element, () {
@@ -318,7 +318,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = extensionItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       extensionItem.beforeUpdatingMembers();
@@ -333,7 +333,7 @@ class LibraryManifestBuilder {
   void _addExtensionType({
     required EncodeContext encodingContext,
     required Map<LookupName, TopLevelItem> newItems,
-    required ExtensionTypeElementImpl2 element,
+    required ExtensionTypeElementImpl element,
     required LookupName lookupName,
   }) {
     var extensionTypeItem = _getOrBuildElementItem(element, () {
@@ -345,7 +345,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = extensionTypeItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       extensionTypeItem.beforeUpdatingMembers();
@@ -360,7 +360,7 @@ class LibraryManifestBuilder {
   void _addInstanceElementField({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
-    required FieldElementImpl2 element,
+    required FieldElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -401,7 +401,7 @@ class LibraryManifestBuilder {
 
   void _addInstanceElementMembers({
     required EncodeContext encodingContext,
-    required InstanceElementImpl2 instanceElement,
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
   }) {
     for (var field in instanceElement.fields) {
@@ -440,7 +440,7 @@ class LibraryManifestBuilder {
   void _addInstanceElementMethod({
     required EncodeContext encodingContext,
     required InstanceItem instanceItem,
-    required MethodElementImpl2 element,
+    required MethodElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -482,7 +482,7 @@ class LibraryManifestBuilder {
   void _addInterfaceElementConstructor({
     required EncodeContext encodingContext,
     required InterfaceItem interfaceItem,
-    required ConstructorElementImpl2 element,
+    required ConstructorElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -502,12 +502,12 @@ class LibraryManifestBuilder {
 
   void _addInterfaceElementMembers({
     required EncodeContext encodingContext,
-    required InterfaceElementImpl2 instanceElement,
+    required InterfaceElementImpl instanceElement,
     required InterfaceItem interfaceItem,
   }) {
     // Class type aliases don't have declared members.
     // We don't consider constructors as declared.
-    if (instanceElement is ClassElementImpl2 &&
+    if (instanceElement is ClassElementImpl &&
         instanceElement.isMixinApplication) {
       return;
     }
@@ -530,7 +530,7 @@ class LibraryManifestBuilder {
   void _addMixin({
     required EncodeContext encodingContext,
     required Map<LookupName, MixinItem> newItems,
-    required MixinElementImpl2 element,
+    required MixinElementImpl element,
     required LookupName lookupName,
   }) {
     var mixinItem = _getOrBuildElementItem(element, () {
@@ -542,7 +542,7 @@ class LibraryManifestBuilder {
     });
     newItems[lookupName] = mixinItem;
 
-    encodingContext.withTypeParameters(element.typeParameters2, (
+    encodingContext.withTypeParameters(element.typeParameters, (
       typeParameters,
     ) {
       mixinItem.beforeUpdatingMembers();
@@ -564,7 +564,7 @@ class LibraryManifestBuilder {
         var element = entry.value;
 
         // Skip elements that exist in nowhere.
-        var elementLibraryUri = element.library2?.uri;
+        var elementLibraryUri = element.library?.uri;
         if (elementLibraryUri == null) {
           continue;
         }
@@ -575,7 +575,7 @@ class LibraryManifestBuilder {
         }
 
         // Skip if the element is declared in this library.
-        if (element.library2 == libraryElement) {
+        if (element.library == libraryElement) {
           continue;
         }
 
@@ -649,7 +649,7 @@ class LibraryManifestBuilder {
   void _addTopLevelVariable({
     required EncodeContext encodingContext,
     required Map<LookupName, TopLevelVariableItem> newItems,
-    required TopLevelVariableElementImpl2 element,
+    required TopLevelVariableElementImpl element,
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
@@ -665,7 +665,7 @@ class LibraryManifestBuilder {
   void _addTypeAlias({
     required EncodeContext encodingContext,
     required Map<LookupName, TypeAliasItem> newItems,
-    required TypeAliasElementImpl2 element,
+    required TypeAliasElementImpl element,
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
@@ -720,35 +720,35 @@ class LibraryManifestBuilder {
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
       var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
 
-      for (var element in libraryElement.children2) {
+      for (var element in libraryElement.children) {
         var lookupName = element.lookupName?.asLookupName;
         if (lookupName == null) {
           continue;
         }
 
         switch (element) {
-          case ClassElementImpl2():
+          case ClassElementImpl():
             _addClass(
               encodingContext: encodingContext,
               newItems: newClassItems,
               element: element,
               lookupName: lookupName,
             );
-          case EnumElementImpl2():
+          case EnumElementImpl():
             _addEnum(
               encodingContext: encodingContext,
               newItems: newEnumItems,
               element: element,
               lookupName: lookupName,
             );
-          case ExtensionElementImpl2():
+          case ExtensionElementImpl():
             _addExtension(
               encodingContext: encodingContext,
               newItems: newExtensionItems,
               element: element,
               lookupName: lookupName,
             );
-          case ExtensionTypeElementImpl2():
+          case ExtensionTypeElementImpl():
             _addExtensionType(
               encodingContext: encodingContext,
               newItems: newExtensionTypeItems,
@@ -762,7 +762,7 @@ class LibraryManifestBuilder {
               element: element,
               lookupName: lookupName,
             );
-          case MixinElementImpl2():
+          case MixinElementImpl():
             _addMixin(
               encodingContext: encodingContext,
               newItems: newMixinItems,
@@ -783,14 +783,14 @@ class LibraryManifestBuilder {
               element: element,
               lookupName: lookupName,
             );
-          case TopLevelVariableElementImpl2():
+          case TopLevelVariableElementImpl():
             _addTopLevelVariable(
               encodingContext: encodingContext,
               newItems: newTopLevelVariables,
               element: element,
               lookupName: lookupName,
             );
-          case TypeAliasElementImpl2():
+          case TypeAliasElementImpl():
             _addTypeAlias(
               encodingContext: encodingContext,
               newItems: newTypeAliasItems,
@@ -823,7 +823,7 @@ class LibraryManifestBuilder {
     return newManifests;
   }
 
-  void _fillInterfaceElementInterface(InterfaceElementImpl2 element) {
+  void _fillInterfaceElementInterface(InterfaceElementImpl element) {
     // We don't create items for elements without name.
     if (element.lookupName == null) {
       return;
@@ -833,8 +833,8 @@ class LibraryManifestBuilder {
     var item = declaredItems[element] as InterfaceItem;
     item.interface.beforeUpdating();
 
-    var interface = element.inheritanceManager.getInterface2(element);
-    for (var entry in interface.map2.entries) {
+    var interface = element.inheritanceManager.getInterface(element);
+    for (var entry in interface.map.entries) {
       var executable = entry.value.baseElement;
 
       var lookupName = executable.lookupName?.asLookupName;
@@ -880,25 +880,25 @@ class LibraryManifestBuilder {
 
   void _fillInterfaceElementsInterface() {
     var librarySet = libraryElements.toSet();
-    var interfaceSet = <InterfaceElementImpl2>{};
+    var interfaceSet = <InterfaceElementImpl>{};
 
-    void addInterfacesToFill(InterfaceElementImpl2 element) {
+    void addInterfacesToFill(InterfaceElementImpl element) {
       // If not in this bundle, it has interface ready.
-      if (!librarySet.contains(element.library2)) {
+      if (!librarySet.contains(element.library)) {
         return;
       }
 
       // Ensure that we have interfaces of supertypes first.
       for (var superType in element.allSupertypes) {
-        addInterfacesToFill(superType.element3);
+        addInterfacesToFill(superType.element);
       }
 
       interfaceSet.add(element);
     }
 
     for (var libraryElement in libraryElements) {
-      for (var element in libraryElement.children2) {
-        if (element is InterfaceElementImpl2) {
+      for (var element in libraryElement.children) {
+        if (element is InterfaceElementImpl) {
           addInterfacesToFill(element);
         }
       }
@@ -995,9 +995,9 @@ class LibraryManifestBuilder {
         );
   }
 
-  ManifestItemId _getInterfaceElementMemberId(ExecutableElementImpl2 element) {
+  ManifestItemId _getInterfaceElementMemberId(ExecutableElementImpl element) {
     var enclosingElement = element.enclosingElement;
-    enclosingElement as InterfaceElementImpl2;
+    enclosingElement as InterfaceElementImpl;
 
     var enclosingItem = declaredItems[enclosingElement];
     if (enclosingItem != null) {
@@ -1026,13 +1026,13 @@ class LibraryManifestBuilder {
             return declaredSetter.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case MethodElementImpl2():
+        case MethodElementImpl():
           var declaredMethod = enclosingItem.declaredMethods[lookupName];
           if (declaredMethod != null) {
             return declaredMethod.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case ConstructorElementImpl2():
+        case ConstructorElementImpl():
           if (enclosingItem.declaredConstructors[lookupName] case var item?) {
             return item.id;
           }
@@ -1044,10 +1044,10 @@ class LibraryManifestBuilder {
   }
 
   /// Returns either the existing item from [declaredItems], or builds a new one.
-  Item _getOrBuildElementItem<
-    E extends ElementImpl2,
-    Item extends ManifestItem
-  >(E element, Item Function() build) {
+  Item _getOrBuildElementItem<E extends ElementImpl, Item extends ManifestItem>(
+    E element,
+    Item Function() build,
+  ) {
     // We assume that when matching elements against the structure of
     // the item, we put into [itemMap] only the type of the item that
     // corresponds the type of the element.
@@ -1107,22 +1107,22 @@ class _LibraryMatch {
   });
 
   void compareStructures() {
-    for (var element in library.children2) {
+    for (var element in library.children) {
       var name = element.lookupName?.asLookupName;
       switch (element) {
-        case ClassElementImpl2():
+        case ClassElementImpl():
           if (!_matchClass(name: name, element: element)) {
             structureMismatched.add(element);
           }
-        case EnumElementImpl2():
+        case EnumElementImpl():
           if (!_matchEnum(name: name, element: element)) {
             structureMismatched.add(element);
           }
-        case ExtensionElementImpl2():
+        case ExtensionElementImpl():
           if (!_matchExtension(name: name, element: element)) {
             structureMismatched.add(element);
           }
-        case ExtensionTypeElementImpl2():
+        case ExtensionTypeElementImpl():
           if (!_matchExtensionType(name: name, element: element)) {
             structureMismatched.add(element);
           }
@@ -1130,7 +1130,7 @@ class _LibraryMatch {
           if (!_matchTopGetter(name: name, element: element)) {
             structureMismatched.add(element);
           }
-        case MixinElementImpl2():
+        case MixinElementImpl():
           if (!_matchMixin(name: name, element: element)) {
             structureMismatched.add(element);
           }
@@ -1142,11 +1142,11 @@ class _LibraryMatch {
           if (!_matchTopFunction(name: name, element: element)) {
             structureMismatched.add(element);
           }
-        case TopLevelVariableElementImpl2():
+        case TopLevelVariableElementImpl():
           if (!_matchTopVariable(name: name, element: element)) {
             structureMismatched.add(element);
           }
-        case TypeAliasElementImpl2():
+        case TypeAliasElementImpl():
           if (!_matchTypeAlias(name: name, element: element)) {
             structureMismatched.add(element);
           }
@@ -1158,7 +1158,7 @@ class _LibraryMatch {
   ///
   /// The fact that it does match is checked outside.
   void _addMatchingElementItem(
-    ElementImpl2 element,
+    ElementImpl element,
     ManifestItem item,
     MatchContext matchContext,
   ) {
@@ -1169,7 +1169,7 @@ class _LibraryMatch {
 
   bool _matchClass({
     required LookupName? name,
-    required ClassElementImpl2 element,
+    required ClassElementImpl element,
   }) {
     var item = manifest.declaredClasses[name];
     if (item == null) {
@@ -1200,7 +1200,7 @@ class _LibraryMatch {
 
   bool _matchEnum({
     required LookupName? name,
-    required EnumElementImpl2 element,
+    required EnumElementImpl element,
   }) {
     var item = manifest.declaredEnums[name];
     if (item is! EnumItem) {
@@ -1231,7 +1231,7 @@ class _LibraryMatch {
 
   bool _matchExtension({
     required LookupName? name,
-    required ExtensionElementImpl2 element,
+    required ExtensionElementImpl element,
   }) {
     var item = manifest.declaredExtensions[name];
     if (item == null) {
@@ -1256,7 +1256,7 @@ class _LibraryMatch {
 
   bool _matchExtensionType({
     required LookupName? name,
-    required ExtensionTypeElementImpl2 element,
+    required ExtensionTypeElementImpl element,
   }) {
     var item = manifest.declaredExtensionTypes[name];
     if (item is! ExtensionTypeItem) {
@@ -1286,7 +1286,7 @@ class _LibraryMatch {
   }
 
   void _matchInstanceElementExecutables({
-    required InstanceElementImpl2 element,
+    required InstanceElementImpl element,
     required InstanceItem item,
     required MatchContext matchContext,
   }) {
@@ -1334,7 +1334,7 @@ class _LibraryMatch {
   bool _matchInstanceElementField({
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
-    required FieldElementImpl2 element,
+    required FieldElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -1382,7 +1382,7 @@ class _LibraryMatch {
   bool _matchInstanceElementMethod({
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
-    required MethodElementImpl2 element,
+    required MethodElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -1430,7 +1430,7 @@ class _LibraryMatch {
   bool _matchInterfaceElementConstructor({
     required InterfaceItem interfaceItem,
     required MatchContext interfaceMatchContext,
-    required ConstructorElementImpl2 element,
+    required ConstructorElementImpl element,
   }) {
     var lookupName = element.lookupName?.asLookupName;
     if (lookupName == null) {
@@ -1453,7 +1453,7 @@ class _LibraryMatch {
 
   void _matchInterfaceElementConstructors({
     required MatchContext matchContext,
-    required InterfaceElementImpl2 interfaceElement,
+    required InterfaceElementImpl interfaceElement,
     required InterfaceItem item,
   }) {
     for (var constructor in interfaceElement.constructors) {
@@ -1469,7 +1469,7 @@ class _LibraryMatch {
 
   bool _matchMixin({
     required LookupName? name,
-    required MixinElementImpl2 element,
+    required MixinElementImpl element,
   }) {
     var item = manifest.declaredMixins[name];
     if (item == null) {
@@ -1548,7 +1548,7 @@ class _LibraryMatch {
 
   bool _matchTopVariable({
     required LookupName? name,
-    required TopLevelVariableElementImpl2 element,
+    required TopLevelVariableElementImpl element,
   }) {
     var item = manifest.declaredVariables[name];
     if (item == null) {
@@ -1566,7 +1566,7 @@ class _LibraryMatch {
 
   bool _matchTypeAlias({
     required LookupName? name,
-    required TypeAliasElementImpl2 element,
+    required TypeAliasElementImpl element,
   }) {
     var item = manifest.declaredTypeAliases[name];
     if (item == null) {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -27,10 +28,7 @@ class VisitRegisteredNodes extends LintRule {
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -41,28 +39,28 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
   _BodyVisitor(this.rule);
 
   bool implements(ClassElement visitor, String methodName) {
-    var member = visitor.lookUpConcreteMethod(methodName, visitor.library2);
+    var member = visitor.lookUpConcreteMethod(methodName, visitor.library);
     // In general lint visitors should only inherit from [SimpleAstVisitor]s
     // (and the method implementations inherited from there are only stubs).
     // (We might consider enforcing this since it's harder to ensure that
     // Unifying and Generalizing visitors are doing the right thing.)
     // For now we flag methods inherited from SimpleAstVisitor since they
     // surely don't do anything.
-    return member?.enclosingElement?.name3 != 'SimpleAstVisitor';
+    return member?.enclosingElement?.name != 'SimpleAstVisitor';
   }
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
     var targetType = node.target?.staticType;
     if (targetType is! InterfaceType) return;
-    if (targetType.element3.name3 != 'NodeLintRegistry') return;
+    if (targetType.element.name != 'NodeLintRegistry') return;
     var methodName = node.methodName.name;
     if (!methodName.startsWith('add')) return;
     var nodeType = methodName.substring(3);
     var args = node.argumentList.arguments;
     var argType = args[1].staticType;
     if (argType is! InterfaceType) return;
-    var visitor = argType.element3;
+    var visitor = argType.element;
     if (visitor is! ClassElement) return;
     if (implements(visitor, 'visit$nodeType')) return;
 

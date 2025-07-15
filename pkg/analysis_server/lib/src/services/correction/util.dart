@@ -104,7 +104,7 @@ String getElementQualifiedName(Element element) {
 /// Returns a class or an unit member enclosing the given [input].
 AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   var member = input;
-  for (var node in input.withParents) {
+  for (var node in input.withAncestors) {
     switch (node) {
       case ClassDeclaration _:
       case CompilationUnit _:
@@ -121,7 +121,7 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
 
 /// Return the enclosing executable [AstNode].
 AstNode? getEnclosingExecutableNode(AstNode input) {
-  for (var node in input.withParents) {
+  for (var node in input.withAncestors) {
     if (node is FunctionDeclaration) {
       return node;
     }
@@ -253,27 +253,16 @@ Expression? getNodeQualifier(SimpleIdentifier node) {
 /// Return parent [AstNode]s from compilation unit (at index "0") to the given
 /// [node].
 List<AstNode> getParents(AstNode node) {
-  return node.withParents.toList().reversed.toList();
+  return node.withAncestors.toList().reversed.toList();
 }
 
 /// If given [node] is name of qualified property extraction, returns target
 /// from which this property is extracted, otherwise `null`.
-Expression? getQualifiedPropertyTarget(AstNode node) {
-  var parent = node.parent;
-  if (parent is PrefixedIdentifier) {
-    var prefixed = parent;
-    if (prefixed.identifier == node) {
-      return parent.prefix;
-    }
-  }
-  if (parent is PropertyAccess) {
-    var access = parent;
-    if (access.propertyName == node) {
-      return access.realTarget;
-    }
-  }
-  return null;
-}
+Expression? getQualifiedPropertyTarget(AstNode node) => switch (node.parent) {
+  PrefixedIdentifier parent when parent.identifier == node => parent.prefix,
+  PropertyAccess parent when parent.propertyName == node => parent.realTarget,
+  _ => null,
+};
 
 /// Returns the given [statement] if not a block, or the first child statement
 /// if a block, or `null` if more than one child.
@@ -447,7 +436,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    if (node.element2 == element) {
+    if (node.element == element) {
       references.add(SimpleIdentifierImpl(token: node.name));
     }
   }
@@ -456,7 +445,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   void visitListPattern(ListPattern node) {
     for (var item in node.elements) {
       if (item is AssignedVariablePattern) {
-        if (item.element2 == element) {
+        if (item.element == element) {
           references.add(item);
         }
       }
@@ -468,7 +457,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
     for (var field in node.fields) {
       var pattern = field.pattern.unparenthesized;
       if (pattern is AssignedVariablePattern) {
-        if (pattern.element2 == element) {
+        if (pattern.element == element) {
           references.add(field.pattern);
         }
       }

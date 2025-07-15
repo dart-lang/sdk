@@ -43,9 +43,9 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       prefix = ', ';
     }
     var producers = <ResolvedCorrectionProducer>[];
-    for (var constructor in superType.constructors2) {
+    for (var constructor in superType.constructors) {
       // Only propose public constructors.
-      var name = constructor.name3;
+      var name = constructor.name;
       if (name != null && !Identifier.isPrivateName(name)) {
         producers.add(
           _AddInvocation(constructor, insertOffset, prefix, context: context),
@@ -84,7 +84,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
   List<String> get fixArguments {
     var buffer = StringBuffer();
     buffer.write('super');
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     if (constructorName != null && constructorName != 'new') {
       buffer.write('.');
       buffer.write(constructorName);
@@ -98,9 +98,9 @@ class _AddInvocation extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructorName = _constructor.name3;
+    var constructorName = _constructor.name;
     if (constructorName == null ||
-        _constructor.formalParameters.any((p) => p.name3 == null)) {
+        _constructor.formalParameters.any((p) => p.name == null)) {
       return;
     }
     var currentConstructor =
@@ -137,7 +137,7 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           if (parameter.isOptional) {
             break;
           }
-          if (parameter.isNamed && namedParameters.contains(parameter.name3)) {
+          if (parameter.isNamed && namedParameters.contains(parameter.name)) {
             // skip already initialized named parameters
             continue;
           }
@@ -154,11 +154,11 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           }
 
           if (parameter.isNamed) {
-            builder.write('${parameter.name3}: ');
+            builder.write('${parameter.name}: ');
           }
           // A default value to pass as an argument.
           builder.addSimpleLinkedEdit(
-            parameter.name3!,
+            parameter.name!,
             parameter.type.defaultArgumentCode,
           );
         }

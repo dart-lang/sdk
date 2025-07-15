@@ -116,11 +116,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 
   String _elementToReferenceString(Element element) {
     var enclosingElement = element.enclosingElement;
-    var reference = switch (element) {
-      ElementImpl2() =>
-        element.reference ?? (element.firstFragment as FragmentImpl).reference,
-      _ => null,
-    };
+    var reference = (element as ElementImpl).reference;
     if (reference != null) {
       return _referenceToString(reference);
     } else if (element is FormalParameterElement) {
@@ -128,9 +124,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
           enclosingElement != null
               ? _elementToReferenceString(enclosingElement)
               : 'root';
-      return '$enclosingStr::@parameter::${element.name3}';
+      return '$enclosingStr::@parameter::${element.name}';
     } else {
-      return '${element.name3}';
+      return '${element.name}';
     }
   }
 
@@ -178,7 +174,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::new
+element: self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -196,7 +192,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::new
+element: self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -213,7 +209,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::named
+element: self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -230,7 +226,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::named
+element: self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -247,7 +243,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::named
+element: self::@class::A::@constructor::named
 formalParameters
   id: 0
     kind: requiredPositional
@@ -269,7 +265,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: optionalNamed
@@ -291,7 +287,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: optionalPositional
@@ -317,7 +313,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: requiredNamed
@@ -339,7 +335,7 @@ class B extends A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::B::@constructor::new
+element: self::@class::B::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional
@@ -356,7 +352,7 @@ class A {
 ''');
 
     _assertSelectionState(selectionState, r'''
-element: self::@fragment::self::@class::A::@constructor::new
+element: self::@class::A::@constructor::new
 formalParameters
   id: 0
     kind: requiredPositional

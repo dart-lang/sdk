@@ -13,7 +13,7 @@ import 'package:meta/meta_meta.dart';
 
 extension DartTypeExtension on DartType {
   bool get isExtensionType {
-    return element3 is ExtensionTypeElement;
+    return element is ExtensionTypeElement;
   }
 }
 
@@ -78,7 +78,7 @@ extension Element2Extension on Element {
 
   /// Whether this element is a wildcard variable.
   bool get isWildcardVariable {
-    return name3 == '_' &&
+    return name == '_' &&
         (this is LocalFunctionElement ||
             this is LocalVariableElement ||
             this is PrefixElement ||
@@ -86,7 +86,7 @@ extension Element2Extension on Element {
             (this is FormalParameterElement &&
                 this is! FieldFormalParameterElement &&
                 this is! SuperFormalParameterElement)) &&
-        library2.hasWildcardVariablesFeatureEnabled;
+        library.hasWildcardVariablesFeatureEnabled;
   }
 }
 
@@ -110,7 +110,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
     if (element is GetterElement) {
       var type = element.returnType;
       if (type is InterfaceType) {
-        interfaceElement = type.element3;
+        interfaceElement = type.element;
       }
     } else if (element is ConstructorElement) {
       interfaceElement = element.enclosingElement;
@@ -161,10 +161,14 @@ extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
     ParameterKind? kind,
     bool? isCovariant,
   }) {
-    var firstFragment = this.firstFragment as FormalParameterFragmentImpl;
-    return FormalParameterElementImpl(
-      firstFragment.copyWith(type: type, kind: kind, isCovariant: isCovariant),
+    var element = FormalParameterElementImpl.synthetic(
+      name,
+      type ?? this.type,
+      kind ?? parameterKind,
     );
+    element.firstFragment.isExplicitlyCovariant =
+        isCovariant ?? this.isCovariant;
+    return element;
   }
 }
 
@@ -177,21 +181,6 @@ extension InterfaceTypeExtension on InterfaceType {
 extension LibraryExtension2 on LibraryElement? {
   bool get hasWildcardVariablesFeatureEnabled =>
       this?.featureSet.isEnabled(Feature.wildcard_variables) ?? false;
-}
-
-extension ParameterElementMixinExtension on ParameterElementMixin {
-  /// Return [FormalParameterFragmentImpl] with the specified properties replaced.
-  FormalParameterFragmentImpl copyWith({
-    TypeImpl? type,
-    ParameterKind? kind,
-    bool? isCovariant,
-  }) {
-    return FormalParameterFragmentImpl.synthetic(
-      name2,
-      type ?? this.type,
-      kind ?? parameterKind,
-    )..isExplicitlyCovariant = isCovariant ?? this.isCovariant;
-  }
 }
 
 extension RecordTypeExtension on RecordType {
@@ -245,6 +234,6 @@ extension RecordTypeExtension on RecordType {
 
 extension TypeParameterElementImplExtension on TypeParameterFragmentImpl {
   bool get isWildcardVariable {
-    return name2 == '_' && library.hasWildcardVariablesFeatureEnabled;
+    return name == '_' && library.hasWildcardVariablesFeatureEnabled;
   }
 }

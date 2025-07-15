@@ -61,7 +61,6 @@ class IsolateProfilerData;
 class Log;
 class Message;
 class MessageHandler;
-class MonitorLocker;
 class Mutex;
 class Object;
 class ObjectIdRing;
@@ -263,6 +262,60 @@ class MutatorThreadPool : public ThreadPool {
   IsolateGroup* isolate_group_ = nullptr;
 };
 
+enum RootSlice : intptr_t {
+  kClassTable,
+  kApiState,
+  kObjectStore,
+  kSavedUnlinkedCalls,
+  kInitialFieldTable,
+  kSentinelFieldTable,
+  kSharedInitialFieldTable,
+  kSharedFieldTable,
+  kBackgroundCompiler,
+  kDebugger,
+  kReloadContext,
+  kLoadedBlobs,
+  kBecome,
+  kObjectIdZones,
+
+  kNumRootSlices,
+};
+
+inline const char* RootSliceToCString(intptr_t slice) {
+  switch (slice) {
+    case kClassTable:
+      return "class table";
+    case kApiState:
+      return "api state";
+    case kObjectStore:
+      return "group object store";
+    case kSavedUnlinkedCalls:
+      return "saved unlinked calls";
+    case kInitialFieldTable:
+      return "initial field table";
+    case kSentinelFieldTable:
+      return "sentinel field table";
+    case kSharedInitialFieldTable:
+      return "shared initial field table";
+    case kSharedFieldTable:
+      return "shared field table";
+    case kBackgroundCompiler:
+      return "background compiler";
+    case kDebugger:
+      return "debugger";
+    case kReloadContext:
+      return "reload context";
+    case kLoadedBlobs:
+      return "loaded blobs";
+    case kBecome:
+      return "become";
+    case kObjectIdZones:
+      return "object id zones";
+    default:
+      return "?";
+  }
+}
+
 // Represents an isolate group and is shared among all isolates within a group.
 class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
  public:
@@ -316,12 +369,13 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   IdleTimeHandler* idle_time_handler() { return &idle_time_handler_; }
 
-  // Returns true if this is the first isolate registered.
   void RegisterIsolate(Isolate* isolate);
   void UnregisterIsolate(Isolate* isolate);
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
   bool UnregisterIsolateDecrementCount();
+  void RegisterIsolateGroupMutator();
+  void UnregisterIsolateGroupMutator();
 
   bool ContainsOnlyOneIsolate();
 
@@ -534,6 +588,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex* initializer_functions_mutex() { return &initializer_functions_mutex_; }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
+  SafepointRwLock* shared_field_initializer_rwlock() {
+    return &shared_field_initializer_rwlock_;
+  }
+
   SafepointRwLock* program_lock() { return program_lock_.get(); }
 
   static inline IsolateGroup* Current() {
@@ -544,7 +602,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void IncreaseMutatorCount(Thread* thread,
                             bool is_nested_reenter,
                             bool was_stolen);
-  void DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit);
+  void DecreaseMutatorCount(bool is_nested_exit);
   NO_SANITIZE_THREAD
   intptr_t MutatorCount() const { return active_mutators_; }
 
@@ -595,32 +653,17 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
-  // [single_current_mutator] will be called. Otherwise [otherwise] will be
-  // called inside a [SafepointOperationsScope] (or
-  // [ForceGrowthSafepointOperationScope] if [use_force_growth_in_otherwise]
-  // is set).
+  // [callable] will be called directly. Otherwise [callable] will be
+  // called inside a [SafepointOperationsScope].
   //
   // During the duration of this function, no new isolates can be added to the
   // isolate group.
-  void RunWithStoppedMutatorsCallable(
-      Callable* single_current_mutator,
-      Callable* otherwise,
-      bool use_force_growth_in_otherwise = false);
-
-  template <typename T, typename S>
-  void RunWithStoppedMutators(T single_current_mutator,
-                              S otherwise,
-                              bool use_force_growth_in_otherwise = false) {
-    LambdaCallable<T> single_callable(single_current_mutator);
-    LambdaCallable<S> otherwise_callable(otherwise);
-    RunWithStoppedMutatorsCallable(&single_callable, &otherwise_callable,
-                                   use_force_growth_in_otherwise);
-  }
+  void RunWithStoppedMutatorsCallable(Callable* callable);
 
   template <typename T>
-  void RunWithStoppedMutators(T function, bool use_force_growth = false) {
+  void RunWithStoppedMutators(T function) {
     LambdaCallable<T> callable(function);
-    RunWithStoppedMutatorsCallable(&callable, &callable, use_force_growth);
+    RunWithStoppedMutatorsCallable(&callable);
   }
 
 #ifndef PRODUCT
@@ -704,9 +747,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
   void VisitSharedPointers(ObjectPointerVisitor* visitor);
+  void VisitSharedPointers(ObjectPointerVisitor* visitor, intptr_t slice);
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
-  void VisitPointersInAllServiceIdZones(ObjectPointerVisitor& visitor);
   void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   // In precompilation we finalize all regular classes before compiling.
@@ -860,6 +903,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IntrusiveDList<Isolate> isolates_;
   RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
+  intptr_t group_mutator_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
   Dart_DeferredLoadHandler deferred_load_handler_ = nullptr;
@@ -936,10 +980,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Mutex initializer_functions_mutex_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
-  // Protect access to boxed_field_list_.
-  Mutex field_list_mutex_;
-  // List of fields that became boxed and that trigger deoptimization.
-  GrowableObjectArrayPtr boxed_field_list_;
+  // Ensure exclusive execution of shared field initializers.
+  SafepointRwLock shared_field_initializer_rwlock_;
 
   // Ensures synchronized access to classes functions, fields and other
   // program structure elements to accommodate concurrent modification done

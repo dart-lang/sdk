@@ -87,7 +87,7 @@ class ProcessedOptionsTest {
       ..sdkRoot = Uri.parse('org-dartlang-test:///sdk/dir/')
       ..compileSdk = false;
     expect(new ProcessedOptions(options: raw).sdkSummary,
-        Uri.parse('org-dartlang-test:///sdk/dir/vm_platform_strong.dill'));
+        Uri.parse('org-dartlang-test:///sdk/dir/vm_platform.dill'));
 
     // But it is left null when compile-sdk is true
     raw = new CompilerOptions()
@@ -448,7 +448,7 @@ class ProcessedOptionsTest {
         .entityForUri(sdkRoot)
         .writeAsStringSync('\n');
     fileSystem
-        .entityForUri(sdkRoot.resolve('vm_platform_strong.dill'))
+        .entityForUri(sdkRoot.resolve('vm_platform.dill'))
         .writeAsStringSync('\n');
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
@@ -523,7 +523,7 @@ class ProcessedOptionsTest {
   Future<void> test_validateOptions_inferred_summary_exists() async {
     var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root/');
     var sdkSummary =
-        Uri.parse('org-dartlang-test:///sdk/root/vm_platform_strong.dill');
+        Uri.parse('org-dartlang-test:///sdk/root/vm_platform.dill');
     fileSystem.entityForUri(sdkRoot).writeAsStringSync('\n');
     fileSystem.entityForUri(sdkSummary).writeAsStringSync('\n');
     fileSystem

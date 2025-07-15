@@ -31,7 +31,7 @@ class PostfixExpressionResolver {
       _typePropertyResolver = resolver.typePropertyResolver,
       _assignmentShared = AssignmentExpressionShared(resolver: resolver);
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;
 
@@ -84,7 +84,7 @@ class PostfixExpressionResolver {
       operandWriteType,
       strictCasts: _resolver.analysisOptions.strictCasts,
     )) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         arguments: [type, operandWriteType],
@@ -131,7 +131,7 @@ class PostfixExpressionResolver {
     ExpressionImpl operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         operand,
         WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
@@ -151,13 +151,13 @@ class PostfixExpressionResolver {
     node.element = result.getter2 as MethodElement?;
     if (result.needsGetterError) {
       if (operand is SuperExpression) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
           arguments: [methodName, receiverType],
         );
       } else {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_OPERATOR,
           arguments: [methodName, receiverType],
@@ -183,7 +183,7 @@ class PostfixExpressionResolver {
       }
       if (operand is SimpleIdentifier) {
         var element = operand.element;
-        if (element is PromotableElementImpl2) {
+        if (element is PromotableElementImpl) {
           if (_resolver.definingLibrary.featureSet.isEnabled(
             Feature.inference_update_4,
           )) {
@@ -215,7 +215,7 @@ class PostfixExpressionResolver {
     var operand = node.operand;
 
     if (operand is SuperExpression) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         node,
         ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
       );

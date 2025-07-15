@@ -9,7 +9,7 @@ class A extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::A
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "A.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic {}

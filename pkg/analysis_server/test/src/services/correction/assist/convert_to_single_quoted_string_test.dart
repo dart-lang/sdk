@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToSingleQuotedStringTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SINGLE_QUOTED_STRING;
+  AssistKind get kind => DartAssistKind.convertToSingleQuotedString;
 
   Future<void> test_interpolation_surroundedByEscapedQuote() async {
     await resolveTestCode(r'''

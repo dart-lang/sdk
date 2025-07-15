@@ -5,18 +5,15 @@
 /// Common AST helpers.
 library;
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
-    show ExpressionExtension;
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
-
-import 'analyzer.dart';
 
 final Set<String> _reservedWords = {
   for (var entry in Keyword.keywords.entries)
@@ -54,7 +51,7 @@ Token? getFieldName(FieldDeclaration decl, String name) {
 /// minus and then an [IntegerLiteral]. If a [context] is provided,
 /// [SimpleIdentifier]s are evaluated as constants. For anything else,
 /// returns `null`.
-int? getIntValue(Expression expression, LinterContext? context) {
+int? getIntValue(Expression expression, RuleContext? context) {
   if (expression is PrefixExpression) {
     var operand = expression.operand;
     if (expression.operator.type != TokenType.MINUS) return null;
@@ -126,7 +123,7 @@ Element? getWriteOrReadElement(SimpleIdentifier node) =>
     _getWriteElement(node) ?? node.element;
 
 bool hasConstantError(Expression node) =>
-    node.computeConstantValue().errors.isNotEmpty;
+    node.computeConstantValue()?.diagnostics.isNotEmpty ?? true;
 
 /// Returns `true` if this element is the `==` method declaration.
 bool isEquals(ClassMember element) =>
@@ -264,7 +261,7 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
       // Skipping library level getters, test that the enclosing element is
       // the same
       if (staticElement.enclosingElement == enclosingElement) {
-        var variable = staticElement.variable3;
+        var variable = staticElement.variable;
         if (variable != null) {
           return staticElement.isSynthetic && variable.isPrivate;
         }
@@ -285,7 +282,7 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
   var leftHandSide = expression.leftHandSide;
   var rightHandSide = expression.rightHandSide;
   if (leftHandSide is SimpleIdentifier && rightHandSide is SimpleIdentifier) {
-    var leftElement = expression.writeElement2;
+    var leftElement = expression.writeElement;
     if (leftElement is! SetterElement || !leftElement.isSynthetic) {
       return false;
     }
@@ -311,14 +308,14 @@ bool _checkForSimpleSetter(MethodDeclaration setter, Expression expression) {
 
 int? _getIntValue(
   Expression expression,
-  LinterContext? context, {
+  RuleContext? context, {
   bool negated = false,
 }) {
   int? value;
   if (expression is IntegerLiteral) {
     value = expression.value;
   } else if (expression is SimpleIdentifier && context != null) {
-    value = expression.computeConstantValue().value?.toIntValue();
+    value = expression.computeConstantValue()?.value?.toIntValue();
   }
   if (value is! int) return null;
 
@@ -332,13 +329,13 @@ int? _getIntValue(
 Element? _getWriteElement(AstNode node) {
   var parent = node.parent;
   if (parent is AssignmentExpression && parent.leftHandSide == node) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PostfixExpression) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
   if (parent is PrefixExpression) {
-    return parent.writeElement2;
+    return parent.writeElement;
   }
 
   if (parent is PrefixedIdentifier && parent.identifier == node) {
@@ -359,7 +356,7 @@ bool _hasFieldOrMethod(ClassMember element, String name) =>
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
 void _visitChildren(Element element, ElementProcessor processor) {
-  element.visitChildren2(_ElementVisitorAdapter(processor));
+  element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
 /// An [Element] processor function type.
@@ -376,7 +373,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   void visitElement(Element element) {
     var visitChildren = processor(element);
     if (visitChildren) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 }

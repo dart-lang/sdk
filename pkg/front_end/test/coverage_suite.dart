@@ -57,6 +57,12 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
       "--coverage=${coverageTmpDir.path}/",
     ]));
   }
+  futures.add(Process.run(Platform.resolvedExecutable, [
+    "--enable-asserts",
+    "--deterministic",
+    "pkg/front_end/test/parser_suite.dart",
+    "--coverage=${coverageTmpDir.path}/",
+  ]));
 
   // Wait for isolates to terminate and clean up.
   Iterable<ProcessResult> runResults = await Future.wait(futures);

@@ -312,6 +312,9 @@ class RunCommand extends DartdevCommand {
   String get invocation =>
       '${super.invocation} [<dart-file|package-target> [args]]';
 
+  @override
+  CommandCategory get commandCategory => CommandCategory.project;
+
   /// Attempts to compile [executable] to a kernel file using the Resident
   /// Frontend Compiler associated with [residentCompilerInfoFile]. If
   /// [shouldRetryOnFrontendCompilerException] is true, when a
@@ -413,6 +416,7 @@ class RunCommand extends DartdevCommand {
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
           runPackageName: runPackageName,
+          includeDevDependencies: false,
           verbose: verbose,
         );
         if (!nativeAssetsExperimentEnabled) {

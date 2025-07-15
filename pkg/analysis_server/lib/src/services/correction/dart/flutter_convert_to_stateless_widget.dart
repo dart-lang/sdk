@@ -26,8 +26,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind =>
-      DartAssistKind.FLUTTER_CONVERT_TO_STATELESS_WIDGET;
+  AssistKind get assistKind => DartAssistKind.flutterConvertToStatelessWidget;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -99,12 +98,12 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
 
-            var getter = fieldElement.getter2;
+            var getter = fieldElement.getter;
             if (getter != null) {
               elementsToMove.add(getter);
             }
 
-            var setter = fieldElement.setter2;
+            var setter = fieldElement.setter;
             if (setter != null) {
               elementsToMove.add(setter);
             }
@@ -270,11 +269,11 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
 
     var firstArgument = type.typeArguments.singleOrNull;
     if (firstArgument is! InterfaceType ||
-        firstArgument.element3 != widgetClassElement) {
+        firstArgument.element != widgetClassElement) {
       return false;
     }
 
-    var classElement = type.element3;
+    var classElement = type.element;
     return classElement is ClassElement && classElement.isExactState;
   }
 }
@@ -287,7 +286,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
     if (node.parent is FieldFormalParameter) {
       var element = node.element;
       if (element is FieldFormalParameterElement) {
-        var field = element.field2;
+        var field = element.field;
         if (field != null) {
           fieldsAssignedInConstructors.add(field);
         }
@@ -300,9 +299,9 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
       }
     }
     if (node.inSetterContext()) {
-      var element = node.writeOrReadElement2;
+      var element = node.writeOrReadElement;
       var field = switch (element) {
-        PropertyAccessorElement(:var variable3) => variable3,
+        PropertyAccessorElement(:var variable) => variable,
         _ => null,
       };
       if (field is FieldElement) {
@@ -413,7 +412,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     super.visitInstanceCreationExpression(node);
     var type = node.staticType;
-    if (type is! InterfaceType || type.element3 != stateClassElement) {
+    if (type is! InterfaceType || type.element != stateClassElement) {
       return;
     }
     var methodDeclaration = node.thisOrAncestorOfType<MethodDeclaration>();
@@ -432,7 +431,7 @@ class _StateUsageVisitor extends RecursiveAstVisitor<void> {
     if (type is InterfaceType &&
         node.methodName.name == 'createState' &&
         (FlutterConvertToStatelessWidget._isState(widgetClassElement, type) ||
-            type.element3 == stateClassElement)) {
+            type.element == stateClassElement)) {
       used = true;
     }
   }

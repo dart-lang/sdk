@@ -35,7 +35,7 @@ class MissingDependencyTest with ResourceProviderMixin {
   }) {
     var error = _runValidator(content, usedDeps, usedDevDeps).first;
     var data = error.data as MissingDependencyData;
-    expect(error.errorCode, PubspecWarningCode.MISSING_DEPENDENCY);
+    expect(error.diagnosticCode, PubspecWarningCode.MISSING_DEPENDENCY);
     expect(data.addDeps, addDeps);
     expect(data.addDevDeps, addDevDeps);
     expect(data.removeDevDeps, removeDevDeps);

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -35,10 +36,7 @@ class AlwaysSpecifyTypes extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
@@ -68,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var keyword = node.keyword;
     if (node.type == null && keyword != null) {
-      var element = node.declaredElement2;
+      var element = node.declaredElement;
       if (element is VariableElement) {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportAtToken(
@@ -118,9 +116,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitNamedType(NamedType namedType) {
     var type = namedType.type;
     if (type is InterfaceType) {
-      var element = namedType.element2;
+      var element = namedType.element;
       if (element is TypeParameterizedElement &&
-          element.typeParameters2.isNotEmpty &&
+          element.typeParameters.isNotEmpty &&
           namedType.typeArguments == null &&
           namedType.parent is! IsExpression &&
           !element.metadata.hasOptionalTypeArgs) {

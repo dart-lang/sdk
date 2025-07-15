@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -26,10 +27,7 @@ class PreferFinalInForEach extends MultiAnalysisRule {
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addForEachPartsWithDeclaration(this, visitor);
     registry.addForEachPartsWithPattern(this, visitor);
@@ -47,10 +45,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (loopVariable.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
-    var loopVariableElement = loopVariable.declaredElement2;
+    var loopVariableElement = loopVariable.declaredElement;
     if (function != null &&
         loopVariableElement != null &&
-        !function.isPotentiallyMutatedInScope2(loopVariableElement)) {
+        !function.isPotentiallyMutatedInScope(loopVariableElement)) {
       var name = loopVariable.name;
       rule.reportAtToken(
         name,
@@ -105,9 +103,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on FunctionBody {
   bool potentiallyMutates(Object pattern) {
     if (pattern is! DeclaredVariablePattern) return true;
-    var element = pattern.declaredElement2;
+    var element = pattern.declaredElement;
     if (element == null) return true;
-    return isPotentiallyMutatedInScope2(element.baseElement);
+    return isPotentiallyMutatedInScope(element.baseElement);
   }
 
   bool potentiallyMutatesAnyField(List<PatternField> fields) =>

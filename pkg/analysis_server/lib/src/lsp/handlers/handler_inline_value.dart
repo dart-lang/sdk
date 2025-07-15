@@ -92,6 +92,7 @@ class InlineValueHandler
           server.lspClientConfiguration,
           collector,
           function,
+          stoppedOffset,
         );
         function.accept(visitor);
 
@@ -139,7 +140,7 @@ class _InlineValueCollector {
   final Range rangeAlreadyExecuted;
 
   /// A [LineInfo] used to convert offsets to lines/columns for comparing to
-  /// [applicableRange].
+  /// locations provided by the client.
   final LineInfo lineInfo;
 
   _InlineValueCollector(
@@ -263,10 +264,53 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   final _InlineValueCollector collector;
   final AstNode rootNode;
 
-  _InlineValueVisitor(this.clientConfiguration, this.collector, this.rootNode);
+  /// The offset where execution currently is.
+  ///
+  /// This is used to determine which block of code we're inside, so we can
+  /// avoid showing inline values in other branches.
+  final int currentExecutionOffset;
+
+  _InlineValueVisitor(
+    this.clientConfiguration,
+    this.collector,
+    this.rootNode,
+    this.currentExecutionOffset,
+  );
 
   bool get experimentalInlineValuesProperties =>
       clientConfiguration.global.experimentalInlineValuesProperties;
+
+  @override
+  void visitBlock(Block node) {
+    if (currentExecutionOffset < node.offset ||
+        currentExecutionOffset > node.end) {
+      return;
+    }
+
+    super.visitBlock(node);
+  }
+
+  @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    var name = node.name;
+    collector.recordVariableLookup(
+      node.declaredElement,
+      name.offset,
+      name.length,
+    );
+    super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var name = node.name;
+    collector.recordVariableLookup(
+      node.declaredElement,
+      name.offset,
+      name.length,
+    );
+    super.visitDeclaredVariablePattern(node);
+  }
 
   @override
   void visitFormalParameter(FormalParameter node) {
@@ -346,7 +390,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
     var isInvocation = parent is InvocationExpression;
     if (!isTarget && !isInvocation) {
       switch (node.element) {
-        case analyzer.LocalVariableElement(name3: _?):
+        case analyzer.LocalVariableElement(name: _?):
         case analyzer.FormalParameterElement():
           collector.recordVariableLookup(
             node.element,
@@ -360,10 +404,20 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    if (currentExecutionOffset < node.offset ||
+        currentExecutionOffset > (node.statements.endToken?.end ?? node.end)) {
+      return;
+    }
+
+    super.visitSwitchPatternCase(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var name = node.name;
     collector.recordVariableLookup(
-      node.declaredElement2,
+      node.declaredElement,
       name.offset,
       name.length,
     );

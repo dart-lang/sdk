@@ -30,7 +30,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -64,7 +64,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@getter::x#element
+    element: <testLibrary>::@getter::x
     staticType: int
   caseClause: CaseClause
     caseKeyword: case
@@ -72,8 +72,10 @@ IfElement
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@40
-          type: int
+        declaredFragment: isPublic a@40
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
   rightParenthesis: )
   thenElement: SimpleIdentifier
@@ -124,7 +126,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -138,8 +140,10 @@ IfElement
               element2: dart:core::@class::int
               type: int
             name: a
-            declaredElement: a@56
+            declaredFragment: isPublic a@56
               type: int
+              element: isPublic
+                type: int
             matchedValueType: Object?
           RelationalPattern
             operator: ==
@@ -162,7 +166,7 @@ IfElement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
           element: dart:core::@class::num::@method::>
           staticInvokeType: bool Function(num)
@@ -175,7 +179,7 @@ IfElement
   elseKeyword: else
   elseElement: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -202,7 +206,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -213,8 +217,10 @@ IfElement
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@42
+        declaredFragment: isPublic a@42
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object
       whenClause: WhenClause
         whenKeyword: when
@@ -226,7 +232,7 @@ IfElement
           operator: >
           rightOperand: IntegerLiteral
             literal: 0
-            correspondingParameter: dart:core::<fragment>::@class::num::@method::>::@parameter::other#element
+            correspondingParameter: dart:core::@class::num::@method::>::@formalParameter::other
             staticType: int
           element: dart:core::@class::num::@method::>
           staticInvokeType: bool Function(num)
@@ -296,7 +302,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -309,7 +315,7 @@ IfElement
               name: A
               element2: <testLibrary>::@class::A
               type: A
-            element: <testLibraryFragment>::@class::A::@constructor::new#element
+            element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
@@ -337,7 +343,7 @@ IfElement
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: bool Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -367,7 +373,7 @@ IfElement
   expression: FunctionExpressionInvocation
     function: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -404,7 +410,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case
@@ -419,7 +425,7 @@ IfElement
         expression: FunctionExpressionInvocation
           function: SimpleIdentifier
             token: a
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: bool Function()
           argumentList: ArgumentList
             leftParenthesis: (
@@ -448,7 +454,7 @@ IfElement
   leftParenthesis: (
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object
   caseClause: CaseClause
     caseKeyword: case

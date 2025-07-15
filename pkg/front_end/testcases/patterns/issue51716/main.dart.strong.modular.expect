@@ -14,7 +14,7 @@ class Main1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Main1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Main1.${this.{core::_Enum::_name}{core::String}}";
 }
 class Main2 extends core::_Enum /*isEnum*/  {
@@ -24,7 +24,7 @@ class Main2 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::Main2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Main2.${this.{core::_Enum::_name}{core::String}}";
 }
 static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {
@@ -155,7 +155,7 @@ class Lib1a extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1a
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Lib1a.${this.{core::_Enum::_name}{core::String}}";
 }
 class Lib1b extends core::_Enum /*isEnum*/  {
@@ -165,7 +165,7 @@ class Lib1b extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → mai::Lib1b
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Lib1b.${this.{core::_Enum::_name}{core::String}}";
 }
 static method method1(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, mai::Lib1b lib1b, mai2::Lib2 lib2) → dynamic {

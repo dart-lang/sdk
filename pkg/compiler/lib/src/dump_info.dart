@@ -1883,6 +1883,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.info.deferredFiles = _dumpInfoData.fragmentDeferredMap;
     stopwatch.stop();
 
+    final ramUsage =
+        (options.omitMemorySummary ? null : await currentHeapCapacityInMb()) ??
+        'N/A MB';
+
     result.info.program = ProgramInfo(
       entrypoint:
           infoCollector.state.entityToInfo[closedWorld
@@ -1890,7 +1894,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
                   .mainFunction]
               as FunctionInfo,
       size: _dumpInfoData.programSize,
-      ramUsage: await currentHeapCapacityInMb() ?? 'N/A MB',
+      ramUsage: ramUsage,
       dart2jsVersion: options.hasBuildId ? options.buildId : null,
       compilationMoment: DateTime.now(),
       compilationDuration: measurer.elapsedWallClock,
@@ -1967,6 +1971,10 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.info.deferredFiles = _dumpInfoData.fragmentDeferredMap;
     stopwatch.stop();
 
+    final ramUsage =
+        (options.omitMemorySummary ? null : await currentHeapCapacityInMb()) ??
+        'N/A MB';
+
     result.info.program = ProgramInfo(
       entrypoint:
           infoCollector.state.entityToInfo[closedWorld
@@ -1974,7 +1982,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
                   .mainFunction]
               as FunctionInfo,
       size: _dumpInfoData.programSize,
-      ramUsage: await currentHeapCapacityInMb() ?? 'N/A MB',
+      ramUsage: ramUsage,
       dart2jsVersion: options.hasBuildId ? options.buildId : null,
       compilationMoment: DateTime.now(),
       compilationDuration: measurer.elapsedWallClock,

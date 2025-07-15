@@ -254,10 +254,8 @@ class ConstantToTextVisitor
       _unsupported(constant);
 
   @override
-  void visitDummyInterceptor(
-    DummyInterceptorConstantValue constant,
-    StringBuffer sb,
-  ) => _unsupported(constant);
+  void visitDummy(DummyConstantValue constant, StringBuffer sb) =>
+      _unsupported(constant);
 
   @override
   void visitLateSentinel(LateSentinelConstantValue constant, StringBuffer sb) =>

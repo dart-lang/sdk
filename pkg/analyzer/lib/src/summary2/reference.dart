@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:meta/meta.dart';
 
-/// Indirection between a name and the corresponding [FragmentImpl].
+/// Indirection between a name and the corresponding [ElementImpl].
 ///
 /// References are organized in a prefix tree.
-/// Each reference knows its parent, children, and the [FragmentImpl].
+/// Each reference knows its parent, children, and the [ElementImpl].
 ///
 ///      Library:
 ///         URI of library
@@ -24,7 +23,7 @@ import 'package:meta/meta.dart';
 ///         "@method"
 ///         Name of the method
 ///
-/// There is only one reference object per [FragmentImpl].
+/// There is only one reference object per [ElementImpl].
 class Reference {
   /// The name of the container used for duplicate declarations.
   static const _defName = '@def';
@@ -35,11 +34,8 @@ class Reference {
   /// The simple name of the reference in its [parent].
   String name;
 
-  /// The corresponding [FragmentImpl], or `null` if a named container.
-  FragmentImpl? element;
-
-  /// The corresponding [Element], or `null` if a named container.
-  Element? element2;
+  /// The corresponding [ElementImpl], or `null` if a named container.
+  ElementImpl? element;
 
   /// Temporary index used during serialization and linking.
   int? index;

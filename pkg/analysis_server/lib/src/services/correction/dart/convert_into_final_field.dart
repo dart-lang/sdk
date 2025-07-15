@@ -21,13 +21,13 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FINAL_FIELD;
+  AssistKind get assistKind => DartAssistKind.convertIntoFinalField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Find the enclosing getter.
     MethodDeclaration? getter;
-    for (var n in node.withParents) {
+    for (var n in node.withAncestors) {
       if (n is MethodDeclaration) {
         getter = n;
         break;
@@ -62,13 +62,13 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
       }
     }
 
-    var variable = getterElement.variable3;
+    var variable = getterElement.variable;
     if (variable == null) {
       return;
     }
 
     // Check that there is no corresponding setter.
-    if (variable.setter2 != null) {
+    if (variable.setter != null) {
       return;
     }
 

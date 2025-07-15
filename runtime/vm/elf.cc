@@ -91,10 +91,10 @@ class ElfSection : public ZoneAllocated {
              bool allocate,
              bool executable,
              bool writable,
-             intptr_t align = compiler::target::kWordSize)
+             intptr_t alignment = compiler::target::kWordSize)
       : type(t),
         flags(EncodeFlags(allocate, executable, writable)),
-        alignment(align),
+        alignment(alignment),
         // Non-segments will never have a memory offset, here represented by 0.
         memory_offset_(allocate ? kLinearInitValue : 0) {
     // Only SHT_NULL sections (namely, the reserved section) are allowed to have
@@ -1174,7 +1174,6 @@ void ElfWriter::CreateBSS() {
     } else {
       // Not VM or isolate text.
       UNREACHABLE();
-      continue;
     }
 
     uint8_t* bytes = nullptr;
@@ -1275,19 +1274,25 @@ void ElfWriter::InitializeSymbolTables() {
 
 void ElfWriter::FinalizeEhFrame() {
 #if !defined(TARGET_ARCH_IA32)
-#if defined(TARGET_ARCH_X64)
-  // The x86_64 psABI defines the DWARF register numbers, which differ from
-  // the registers' usual encoding within instructions.
-  const intptr_t DWARF_RA = 16;  // No corresponding register.
-  const intptr_t DWARF_FP = 6;   // RBP
-#else
-  const intptr_t DWARF_RA = ConcreteRegister(LINK_REGISTER);
-  const intptr_t DWARF_FP = FP;
-#endif
-
   auto text_section = section_table_->FindTextSection();
   // No text section added means no .eh_frame.
   if (text_section == nullptr) return;
+
+  GrowableArray<Dwarf::FrameDescriptionEntry> fdes(zone_, 0);
+  for (const auto& portion : text_section->portions()) {
+    ASSERT(portion.label != 0);
+    fdes.Add({portion.label, portion.size});
+  }
+
+  ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
+  DwarfSharedObjectStream dwarf_stream(zone_, &stream);
+  Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
+
+  auto* const eh_frame = new (zone_)
+      BitsContainer(type_, /*executable=*/false, /*writable=*/false);
+  eh_frame->AddPortion(dwarf_stream.buffer(), dwarf_stream.bytes_written(),
+                       dwarf_stream.relocations());
+  section_table_->Add(eh_frame, ".eh_frame");
 
 #if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
   // Append Windows unwinding instructions to the end of .text section.
@@ -1310,84 +1315,6 @@ void ElfWriter::FinalizeEhFrame() {
     section_table_->Add(unwinding_instructions_frame, kTextName);
   }
 #endif
-
-  // Multiplier which will be used to scale operands of DW_CFA_offset and
-  // DW_CFA_val_offset.
-  const intptr_t kDataAlignment = -compiler::target::kWordSize;
-
-  static constexpr uint8_t DW_EH_PE_pcrel = 0x10;
-  static constexpr uint8_t DW_EH_PE_sdata4 = 0x0b;
-
-  ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
-  DwarfSharedObjectStream dwarf_stream(zone_, &stream);
-
-  // Emit CIE.
-
-  // Used to calculate offset to CIE in FDEs.
-  const intptr_t cie_start = dwarf_stream.Position();
-  dwarf_stream.WritePrefixedLength([&] {
-    dwarf_stream.u4(0);  // CIE
-    dwarf_stream.u1(1);  // Version (must be 1 or 3)
-    // Augmentation String
-    dwarf_stream.string("zR");             // NOLINT
-    dwarf_stream.uleb128(1);               // Code alignment (must be 1).
-    dwarf_stream.sleb128(kDataAlignment);  // Data alignment
-    dwarf_stream.u1(DWARF_RA);             // Return address register
-    dwarf_stream.uleb128(1);               // Augmentation size
-    dwarf_stream.u1(DW_EH_PE_pcrel | DW_EH_PE_sdata4);  // FDE encoding.
-    // CFA is caller's SP (FP+kCallerSpSlotFromFp*kWordSize)
-    dwarf_stream.u1(Dwarf::DW_CFA_def_cfa);
-    dwarf_stream.uleb128(DWARF_FP);
-    dwarf_stream.uleb128(kCallerSpSlotFromFp * compiler::target::kWordSize);
-  });
-
-  // Emit rule defining that |reg| value is stored at CFA+offset.
-  const auto cfa_offset = [&](intptr_t reg, intptr_t offset) {
-    const intptr_t scaled_offset = offset / kDataAlignment;
-    RELEASE_ASSERT(scaled_offset >= 0);
-    dwarf_stream.u1(Dwarf::DW_CFA_offset | reg);
-    dwarf_stream.uleb128(scaled_offset);
-  };
-
-  // Emit an FDE covering each .text section.
-  for (const auto& portion : text_section->portions()) {
-#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
-    if (portion.label == 0) {
-      // Unwinding instructions sections doesn't have label, doesn't dwarf
-      continue;
-    }
-#endif
-    ASSERT(portion.label != 0);  // Needed for relocations.
-    dwarf_stream.WritePrefixedLength([&]() {
-      // Offset to CIE. Note that unlike pcrel this offset is encoded
-      // backwards: it will be subtracted from the current position.
-      dwarf_stream.u4(stream.Position() - cie_start);
-      // Start address as a PC relative reference.
-      dwarf_stream.RelativeSymbolOffset<int32_t>(portion.label);
-      dwarf_stream.u4(portion.size);  // Size.
-      dwarf_stream.u1(0);             // Augmentation Data length.
-
-      // Caller FP at FP+kSavedCallerPcSlotFromFp*kWordSize,
-      // where FP is CFA - kCallerSpSlotFromFp*kWordSize.
-      COMPILE_ASSERT((kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) <= 0);
-      cfa_offset(DWARF_FP, (kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) *
-                               compiler::target::kWordSize);
-
-      // Caller LR at FP+kSavedCallerPcSlotFromFp*kWordSize,
-      // where FP is CFA - kCallerSpSlotFromFp*kWordSize
-      COMPILE_ASSERT((kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) <= 0);
-      cfa_offset(DWARF_RA, (kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) *
-                               compiler::target::kWordSize);
-    });
-  }
-
-  dwarf_stream.u4(0);  // end of section (FDE with zero length)
-
-  auto* const eh_frame = new (zone_)
-      BitsContainer(type_, /*writable=*/false, /*executable=*/false);
-  eh_frame->AddPortion(dwarf_stream.buffer(), dwarf_stream.bytes_written(),
-                       dwarf_stream.relocations());
-  section_table_->Add(eh_frame, ".eh_frame");
 #endif  // !defined(TARGET_ARCH_IA32)
 }
 

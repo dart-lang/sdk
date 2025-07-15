@@ -77,7 +77,7 @@ abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
 
     await addForObjectPattern(
       builder: builder,
-      targetElement: matchedType.element3,
+      targetElement: matchedType.element,
       fieldName: effectiveName,
       fieldType: fieldType,
     );
@@ -144,7 +144,7 @@ class CreateGetter extends CreateFieldOrGetter {
     var staticModifier = false;
     InstanceElement? targetElement;
     if (target is ExtensionOverride) {
-      targetElement = target.element2;
+      targetElement = target.element;
     } else if (target case Identifier(element: InstanceElement element)) {
       targetElement = element;
       staticModifier = true;
@@ -154,7 +154,7 @@ class CreateGetter extends CreateFieldOrGetter {
       if (targetType is! InterfaceType) {
         return;
       }
-      targetElement = targetType.element3;
+      targetElement = targetType.element;
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;
@@ -164,7 +164,11 @@ class CreateGetter extends CreateFieldOrGetter {
     } else {
       staticModifier = inStaticContext;
       targetElement = nameNode.enclosingInstanceElement;
-      if (targetElement is ExtensionElement && !staticModifier) {
+      if (targetElement is ExtensionElement) {
+        if (staticModifier) {
+          // This should be handled by create extension member fixes
+          return;
+        }
         targetElement = targetElement.extendedInterfaceElement;
       }
       if (targetElement == null) {
@@ -195,7 +199,7 @@ class CreateGetter extends CreateFieldOrGetter {
 
     var targetFragment = targetElement.firstFragment;
     var targetSource = targetFragment.libraryFragment.source;
-    if (targetElement.library2.isInSdk) {
+    if (targetElement.library.isInSdk) {
       return;
     }
     // prepare target declaration

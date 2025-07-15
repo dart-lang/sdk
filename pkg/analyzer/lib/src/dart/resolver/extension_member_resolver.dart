@@ -30,7 +30,7 @@ class ExtensionMemberResolver {
 
   ExtensionMemberResolver(this._resolver);
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   bool get _genericMetadataIsEnabled =>
       _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
@@ -42,8 +42,8 @@ class ExtensionMemberResolver {
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
   TypeImpl? computeOverrideReceiverContextType(ExtensionOverride node) {
-    var element = node.element2;
-    var typeParameters = element.typeParameters2;
+    var element = node.element;
+    var typeParameters = element.typeParameters;
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
@@ -85,7 +85,7 @@ class ExtensionMemberResolver {
     SyntacticEntity nameEntity,
     Name name,
   ) {
-    var extensions = _resolver.libraryFragment.accessibleExtensions2
+    var extensions = _resolver.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .toList()
         .applicableTo(
@@ -116,7 +116,7 @@ class ExtensionMemberResolver {
 
     // The most specific extension is ambiguous.
     if (mostSpecific.length == 2) {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         nameEntity,
         CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
         arguments: [
@@ -127,13 +127,13 @@ class ExtensionMemberResolver {
       );
     } else {
       var extensions = mostSpecific.map((e) => e.extension).toList();
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         nameEntity,
         CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
         arguments: [
           name.name,
           mostSpecific.map((e) {
-            var name = e.extension.name3;
+            var name = e.extension.name;
             if (name != null) {
               return "extension '$name'";
             }
@@ -155,10 +155,10 @@ class ExtensionMemberResolver {
     ExtensionOverrideImpl node,
     String name,
   ) {
-    var element = node.element2;
+    var element = node.element;
 
-    ExecutableElementImpl2? getter;
-    ExecutableElementImpl2? setter;
+    ExecutableElementImpl? getter;
+    ExecutableElementImpl? setter;
     if (name == '[]') {
       getter = element.getMethod('[]');
       setter = element.getMethod('[]=');
@@ -172,7 +172,7 @@ class ExtensionMemberResolver {
     }
 
     var substitution = Substitution.fromPairs2(
-      element.typeParameters2,
+      element.typeParameters,
       node.typeArgumentTypes!,
     );
 
@@ -193,15 +193,15 @@ class ExtensionMemberResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     var nodeImpl = node as ExtensionOverrideImpl;
-    var element = node.element2;
+    var element = node.element;
     // TODO(paulberry): make this cast unnecessary by changing the type of
     // `ExtensionOverrideImpl.element2`.
     var typeParameters =
-        element.typeParameters2.cast<TypeParameterElementImpl2>();
+        element.typeParameters.cast<TypeParameterElementImpl>();
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
         );
@@ -211,7 +211,7 @@ class ExtensionMemberResolver {
 
     var arguments = node.argumentList.arguments;
     if (arguments.length != 1) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.argumentList,
         CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
       );
@@ -254,7 +254,7 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         receiverExpression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -265,7 +265,7 @@ class ExtensionMemberResolver {
     )) {
       var whyNotPromoted =
           whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         receiverExpression,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         arguments: [receiverType, extendedType],
@@ -278,7 +278,7 @@ class ExtensionMemberResolver {
   }
 
   void _checkTypeArgumentsMatchingBounds(
-    List<TypeParameterElementImpl2> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     TypeArgumentList? typeArgumentList,
     List<TypeImpl> typeArgumentTypes,
     Substitution substitution,
@@ -287,12 +287,12 @@ class ExtensionMemberResolver {
       for (var i = 0; i < typeArgumentTypes.length; i++) {
         var argument = typeArgumentTypes[i];
         var parameter = typeParameters[i];
-        var name = parameter.name3;
+        var name = parameter.name;
         var parameterBound = parameter.bound;
         if (name != null && parameterBound != null) {
           parameterBound = substitution.substituteType(parameterBound);
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               typeArgumentList.arguments[i],
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               arguments: [argument, name, parameterBound],
@@ -360,8 +360,8 @@ class ExtensionMemberResolver {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
     required AstNodeImpl? nodeForTesting,
   }) {
-    var element = node.element2;
-    var typeParameters = element.typeParameters2;
+    var element = node.element;
+    var typeParameters = element.typeParameters;
     var typeArguments = node.typeArguments;
 
     if (typeArguments != null) {
@@ -375,10 +375,10 @@ class ExtensionMemberResolver {
         // We can safely assume `element.name` is non-`null` because type
         // arguments can only be applied to explicit extension overrides, and
         // explicit extension overrides cannot refer to unnamed extensions.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          arguments: [element.name3!, typeParameters.length, arguments.length],
+          arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }
@@ -390,7 +390,7 @@ class ExtensionMemberResolver {
       var inferrer = GenericInferrer(
         _typeSystem,
         typeParameters,
-        errorReporter: _errorReporter,
+        diagnosticReporter: _diagnosticReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
@@ -411,11 +411,11 @@ class ExtensionMemberResolver {
   /// Instantiate the extended type of the [extension] to the bounds of the
   /// type formals of the extension.
   TypeImpl _instantiateToBounds(ExtensionElement extension) {
-    extension as ExtensionElementImpl2;
-    var typeParameters = extension.typeParameters2;
+    extension as ExtensionElementImpl;
+    var typeParameters = extension.typeParameters;
     return Substitution.fromPairs2(
       typeParameters,
-      _typeSystem.instantiateTypeFormalsToBounds2(typeParameters),
+      _typeSystem.instantiateTypeFormalsToBounds(typeParameters),
     ).substituteType(extension.extendedType);
   }
 
@@ -428,8 +428,8 @@ class ExtensionMemberResolver {
     //    former extension is not.
     // 2. They are both declared in platform libraries, or both declared in
     //    non-platform libraries.
-    var e1_isInSdk = e1.extension.library2.isInSdk;
-    var e2_isInSdk = e2.extension.library2.isInSdk;
+    var e1_isInSdk = e1.extension.library.isInSdk;
+    var e2_isInSdk = e2.extension.library.isInSdk;
     if (e1_isInSdk && !e2_isInSdk) {
       return false;
     } else if (!e1_isInSdk && e2_isInSdk) {

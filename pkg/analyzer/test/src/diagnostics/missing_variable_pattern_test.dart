@@ -36,8 +36,10 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@35
-      type: int
+    declaredFragment: isFinal isPublic a@35
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
 ''');
 
@@ -47,8 +49,10 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: b
-    declaredElement: hasImplicitType isFinal b@61
-      type: int
+    declaredFragment: isFinal isPublic b@61
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
 ''');
   }
@@ -73,8 +77,10 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@35
-      type: int
+    declaredFragment: isFinal isPublic a@35
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
 ''');
 
@@ -84,8 +90,10 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: b
-    declaredElement: hasImplicitType isFinal b@60
-      type: int
+    declaredFragment: isFinal isPublic b@60
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
 ''');
   }
@@ -109,15 +117,19 @@ LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@35
-      type: int
+    declaredFragment: isFinal isPublic a@35
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@46
-      type: int
+    declaredFragment: isFinal isPublic a@46
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -148,16 +160,20 @@ LogicalOrPattern
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@40
-        type: int
+      declaredFragment: isFinal isPublic a@40
+        type: null
+        element: hasImplicitType isFinal isPublic
+          type: int
       matchedValueType: int
     matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@51
-      type: int
+    declaredFragment: isFinal isPublic a@51
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -185,8 +201,10 @@ LogicalOrPattern
       element2: dart:core::@class::int
       type: int
     name: a
-    declaredElement: isFinal a@39
+    declaredFragment: isFinal isPublic a@39
       type: int
+      element: isFinal isPublic
+        type: int
     matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
@@ -222,8 +240,10 @@ LogicalOrPattern
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@40
-      type: int
+    declaredFragment: isFinal isPublic a@40
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -253,8 +273,10 @@ LogicalOrPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: isFinal a@39
+      declaredFragment: isFinal isPublic a@39
         type: int
+        element: isFinal isPublic
+          type: int
       matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
@@ -297,8 +319,10 @@ LogicalOrPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: isFinal a@39
+      declaredFragment: isFinal isPublic a@39
         type: int
+        element: isFinal isPublic
+          type: int
       matchedValueType: num
     operator: ||
     rightOperand: DeclaredVariablePattern
@@ -308,8 +332,10 @@ LogicalOrPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: isFinal a@54
+      declaredFragment: isFinal isPublic a@54
         type: int
+        element: isFinal isPublic
+          type: int
       matchedValueType: num
     matchedValueType: num
   operator: ||
@@ -344,23 +370,29 @@ LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@35
-        type: int
+      declaredFragment: isFinal isPublic a@35
+        type: null
+        element: hasImplicitType isFinal isPublic
+          type: int
       matchedValueType: int
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@46
-        type: int
+      declaredFragment: isFinal isPublic a@46
+        type: null
+        element: hasImplicitType isFinal isPublic
+          type: int
       matchedValueType: int
     matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@57
-      type: int
+    declaredFragment: isFinal isPublic a@57
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -390,8 +422,10 @@ LogicalOrPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: isFinal a@39
+      declaredFragment: isFinal isPublic a@39
         type: int
+        element: isFinal isPublic
+          type: int
       matchedValueType: num
     operator: ||
     rightOperand: ConstantPattern
@@ -408,8 +442,10 @@ LogicalOrPattern
       element2: dart:core::@class::int
       type: int
     name: a
-    declaredElement: isFinal a@59
+    declaredFragment: isFinal isPublic a@59
       type: int
+      element: isFinal isPublic
+        type: int
     matchedValueType: num
   matchedValueType: num
 ''');
@@ -445,8 +481,10 @@ LogicalOrPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: isFinal a@44
+      declaredFragment: isFinal isPublic a@44
         type: int
+        element: isFinal isPublic
+          type: int
       matchedValueType: num
     matchedValueType: num
   operator: ||
@@ -486,16 +524,20 @@ LogicalOrPattern
     rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
-      declaredElement: hasImplicitType isFinal a@40
-        type: int
+      declaredFragment: isFinal isPublic a@40
+        type: null
+        element: hasImplicitType isFinal isPublic
+          type: int
       matchedValueType: int
     matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@51
-      type: int
+    declaredFragment: isFinal isPublic a@51
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -533,8 +575,10 @@ LogicalOrPattern
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@45
-      type: int
+    declaredFragment: isFinal isPublic a@45
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -562,15 +606,19 @@ LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@46
-      type: int
+    declaredFragment: isFinal isPublic a@46
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@57
-      type: int
+    declaredFragment: isFinal isPublic a@57
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -603,8 +651,10 @@ LogicalOrPattern
       element2: dart:core::@class::int
       type: int
     name: a
-    declaredElement: isFinal a@50
+    declaredFragment: isFinal isPublic a@50
       type: int
+      element: isFinal isPublic
+        type: int
     matchedValueType: num
   operator: ||
   rightOperand: ConstantPattern
@@ -643,8 +693,10 @@ LogicalOrPattern
   rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@51
-      type: int
+    declaredFragment: isFinal isPublic a@51
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   matchedValueType: int
 ''');
@@ -675,8 +727,10 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@52
-      type: int
+    declaredFragment: isFinal isPublic a@52
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
 ''');
 
@@ -686,8 +740,10 @@ GuardedPattern
   pattern: DeclaredVariablePattern
     keyword: final
     name: a
-    declaredElement: hasImplicitType isFinal a@76
-      type: int
+    declaredFragment: isFinal isPublic a@76
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
 ''');
   }

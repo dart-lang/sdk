@@ -26,7 +26,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
+  AssistKind get assistKind => DartAssistKind.flutterRemoveWidget;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_UNNECESSARY_CONTAINER;
@@ -168,7 +168,7 @@ class _UsageFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.writeOrReadElement2 == element) {
+    if (node.writeOrReadElement == element) {
       used = true;
     }
   }

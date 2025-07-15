@@ -41,7 +41,7 @@ f(C c) {
 MethodInvocation
   target: SimpleIdentifier
     token: c
-    element: <testLibraryFragment>::@function::f::@parameter::c#element
+    element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   operator: .
   methodName: SimpleIdentifier
@@ -206,7 +206,7 @@ f(A a) {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   operator: .
   methodName: SimpleIdentifier

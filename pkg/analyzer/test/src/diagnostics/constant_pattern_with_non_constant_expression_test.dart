@@ -57,9 +57,9 @@ GuardedPattern
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::A::@getter::a#element
+        element: <testLibrary>::@class::A::@getter::a
         staticType: int
-      element: <testLibraryFragment>::@class::A::@getter::a#element
+      element: <testLibrary>::@class::A::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -139,7 +139,7 @@ GuardedPattern
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        element: package:test/a.dart::<fragment>::@class::A::@getter::a#element
+        element: package:test/a.dart::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -181,7 +181,7 @@ GuardedPattern
       operator: .
       propertyName: SimpleIdentifier
         token: a
-        element: package:test/a.dart::<fragment>::@class::A::@getter::a#element
+        element: package:test/a.dart::@class::A::@getter::a
         staticType: int
       staticType: int
     matchedValueType: dynamic
@@ -210,7 +210,7 @@ GuardedPattern
           name: A
           element2: <testLibrary>::@class::A
           type: A
-        element: <testLibraryFragment>::@class::A::@constructor::new#element
+        element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -560,7 +560,7 @@ GuardedPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');
@@ -590,7 +590,7 @@ GuardedPattern
   pattern: ConstantPattern
     expression: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@getter::a#element
+      element: <testLibrary>::@getter::a
       staticType: int
     matchedValueType: dynamic
 ''');

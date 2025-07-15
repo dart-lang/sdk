@@ -30,8 +30,8 @@ class AnalyzerConverter {
     analyzer.LineInfo? lineInfo,
     analyzer.DiagnosticSeverity? severity,
   }) {
-    var errorCode = diagnostic.errorCode;
-    severity ??= errorCode.severity;
+    var diagnosticCode = diagnostic.diagnosticCode;
+    severity ??= diagnosticCode.severity;
     var offset = diagnostic.offset;
     var startLine = -1;
     var startColumn = -1;
@@ -54,12 +54,12 @@ class AnalyzerConverter {
     }
     return plugin.AnalysisError(
         convertErrorSeverity(severity),
-        convertErrorType(errorCode.type),
+        convertErrorType(diagnosticCode.type),
         plugin.Location(diagnostic.source.fullName, offset, diagnostic.length,
             startLine, startColumn,
             endLine: endLine, endColumn: endColumn),
         diagnostic.message,
-        errorCode.name.toLowerCase(),
+        diagnosticCode.name.toLowerCase(),
         contextMessages: contextMessages,
         correction: diagnostic.correctionMessage,
         hasFix: true);
@@ -204,7 +204,7 @@ class AnalyzerConverter {
     }
     var fragment = element.firstFragment;
     var offset = fragment.nameOffset2 ?? -1;
-    var length = fragment.name2?.length ?? 0;
+    var length = fragment.name?.length ?? 0;
     var range = analyzer.SourceRange(offset, length);
     return _locationForArgs(fragment, range);
   }
@@ -260,7 +260,7 @@ class AnalyzerConverter {
       } else if (parameter.metadata.hasDeprecated) {
         sb.write('@required ');
       }
-      parameter.appendToWithoutDelimiters2(sb);
+      parameter.appendToWithoutDelimiters(sb);
     }
     sb.write(closeOptionalString);
     return '($sb)';
@@ -289,9 +289,9 @@ class AnalyzerConverter {
   String? _getTypeParametersString(analyzer.Element element) {
     List<analyzer.TypeParameterElement>? typeParameters;
     if (element is analyzer.InterfaceElement) {
-      typeParameters = element.typeParameters2;
+      typeParameters = element.typeParameters;
     } else if (element is analyzer.TypeAliasElement) {
-      typeParameters = element.typeParameters2;
+      typeParameters = element.typeParameters;
     }
     if (typeParameters == null || typeParameters.isEmpty) {
       return null;

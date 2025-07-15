@@ -151,7 +151,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
           annotatable: _invokeTarget,
           annotatableFileUri: _invokeTarget.fileUri,
           isClassInstanceMember: isClassInstanceMember);
-      for (MethodDeclaration augmentation in _augmentations) {
+      for (int i = 0; i < _augmentations.length; i++) {
+        MethodDeclaration augmentation = _augmentations[i];
         augmentation.buildOutlineExpressions(
             classHierarchy: classHierarchy,
             libraryBuilder: libraryBuilder,
@@ -172,7 +173,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
     // default values declared on the introductory method and omitted on the
     // augmenting method.
     _introductory.checkTypes(library, typeEnvironment);
-    for (MethodDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      MethodDeclaration augmentation = _augmentations[i];
       augmentation.checkTypes(library, typeEnvironment);
     }
   }
@@ -182,7 +184,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
     if (!isClassInstanceMember) return;
     _introductory.checkVariance(sourceClassBuilder, typeEnvironment);
-    for (MethodDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      MethodDeclaration augmentation = _augmentations[i];
       augmentation.checkVariance(sourceClassBuilder, typeEnvironment);
     }
   }
@@ -231,7 +234,8 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   int computeDefaultTypes(ComputeDefaultTypeContext context,
       {required bool inErrorRecovery}) {
     int count = _introductory.computeDefaultTypes(context);
-    for (MethodDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      MethodDeclaration augmentation = _augmentations[i];
       count += augmentation.computeDefaultTypes(context);
     }
     return count;

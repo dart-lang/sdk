@@ -360,6 +360,9 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
           if (variable.isHoisted && !setVariables.contains(variable)) {
             // A hoisted variable that isn't set (yet) --- pretend it isn't
             // there.
+          } else if (variable.isWildcard) {
+            // A wildcard variable doesn't really exist so we'll ignore it,
+            // see https://github.com/dart-lang/sdk/issues/60841.
           } else {
             expectedVariablesMap[name] = variable.type;
           }

@@ -24,24 +24,24 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
   final LibraryElement _libraryElement;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   TypeArgumentsVerifier(
     this._options,
     this._libraryElement,
-    this._errorReporter,
+    this._diagnosticReporter,
   );
 
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
 
   void checkConstructorReference(ConstructorReferenceImpl node) {
-    var classElement = node.constructorName.type.element2;
-    List<TypeParameterElementImpl2> typeParameters;
-    if (classElement is TypeAliasElementImpl2) {
-      typeParameters = classElement.typeParameters2;
-    } else if (classElement is InterfaceElementImpl2) {
-      typeParameters = classElement.typeParameters2;
+    var classElement = node.constructorName.type.element;
+    List<TypeParameterElementImpl> typeParameters;
+    if (classElement is TypeAliasElementImpl) {
+      typeParameters = classElement.typeParameters;
+    } else if (classElement is InterfaceElementImpl) {
+      typeParameters = classElement.typeParameters;
     } else {
       return;
     }
@@ -51,7 +51,7 @@ class TypeArgumentsVerifier {
     }
 
     for (var typeParameter in typeParameters) {
-      if (typeParameter.name3 == null) {
+      if (typeParameter.name == null) {
         return;
       }
     }
@@ -91,26 +91,26 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         var errorNode =
             i < typeArgumentListLength ? typeArgumentList.arguments[i] : node;
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           errorNode,
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [typeArgument, typeParameter.name3!, bound],
+          arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
     }
   }
 
   void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
-    var constructorElement = node.constructorElement2;
+    var constructorElement = node.constructorElement;
     if (constructorElement == null) {
       return;
     }
 
     var enumElement = constructorElement.enclosingElement;
-    var typeParameters = enumElement.typeParameters2;
+    var typeParameters = enumElement.typeParameters;
 
     for (var typeParameter in typeParameters) {
-      if (typeParameter.name3 == null) {
+      if (typeParameter.name == null) {
         return;
       }
     }
@@ -120,7 +120,7 @@ class TypeArgumentsVerifier {
     if (typeArgumentList != null &&
         typeArgumentNodes != null &&
         typeArgumentNodes.length != typeParameters.length) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArgumentList,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM,
         arguments: [typeParameters.length, typeArgumentNodes.length],
@@ -147,10 +147,10 @@ class TypeArgumentsVerifier {
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         var errorTarget = typeArgumentNodes?[i] ?? node.name;
-        _errorReporter.atEntity(
+        _diagnosticReporter.atEntity(
           errorTarget,
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-          arguments: [typeArgument, typeParameter.name3!, bound],
+          arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
     }
@@ -277,7 +277,7 @@ class TypeArgumentsVerifier {
       return;
     }
     var type = node.typeOrThrow;
-    if (_isMissingTypeArguments(node, type, node.element2)) {
+    if (_isMissingTypeArguments(node, type, node.element)) {
       AstNode unwrappedParent = parentEscapingTypeArguments(node);
       if (unwrappedParent is AsExpression ||
           unwrappedParent is CastPattern ||
@@ -286,7 +286,7 @@ class TypeArgumentsVerifier {
         // Do not report a "Strict raw type" error in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           WarningCode.STRICT_RAW_TYPE,
           arguments: [type],
@@ -303,17 +303,17 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    List<TypeParameterElementImpl2> typeParameters;
+    List<TypeParameterElementImpl> typeParameters;
     String? elementName;
     List<TypeImpl> typeArguments;
     var alias = type.alias;
     if (alias != null) {
-      elementName = alias.element2.name3;
-      typeParameters = alias.element2.typeParameters2;
+      elementName = alias.element.name;
+      typeParameters = alias.element.typeParameters;
       typeArguments = alias.typeArguments;
     } else if (type is InterfaceTypeImpl) {
-      elementName = type.element3.name3;
-      typeParameters = type.element3.typeParameters2;
+      elementName = type.element.name;
+      typeParameters = type.element.typeParameters;
       typeArguments = type.typeArguments;
     } else {
       return;
@@ -332,7 +332,7 @@ class TypeArgumentsVerifier {
     var substitution = Substitution.fromPairs2(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];
-      var typeParameterName = typeParameter.name3;
+      var typeParameterName = typeParameter.name;
       if (typeParameterName == null) {
         return;
       }
@@ -342,7 +342,7 @@ class TypeArgumentsVerifier {
       if (typeArgument is FunctionTypeImpl &&
           typeArgument.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             _typeArgumentErrorNode(namedType, i),
             CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
           );
@@ -384,7 +384,7 @@ class TypeArgumentsVerifier {
       void addMessage(String message) {
         messages.add(
           DiagnosticMessageImpl(
-            filePath: _errorReporter.source.fullName,
+            filePath: _diagnosticReporter.source.fullName,
             length: namedType.length,
             message: message,
             offset: namedType.offset,
@@ -420,7 +420,7 @@ class TypeArgumentsVerifier {
     // If not allowed to be super-bounded, report issues.
     if (!_shouldAllowSuperBoundedTypes(namedType)) {
       for (var issue in issues) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           _typeArgumentErrorNode(namedType, issue.index),
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           arguments: [
@@ -453,7 +453,7 @@ class TypeArgumentsVerifier {
     );
     for (var i = 0; i < invertedTypeArguments.length; i++) {
       var typeParameter = typeParameters[i];
-      var typeParameterName = typeParameter.name3;
+      var typeParameterName = typeParameter.name;
       if (typeParameterName == null) {
         return;
       }
@@ -468,7 +468,7 @@ class TypeArgumentsVerifier {
       bound = invertedSubstitution.substituteType(bound);
 
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           _typeArgumentErrorNode(namedType, i),
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           arguments: [typeArgument, typeParameterName, bound],
@@ -518,7 +518,7 @@ class TypeArgumentsVerifier {
 
       if (argType is FunctionTypeImpl && argType.typeParameters.isNotEmpty) {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             typeArgumentList[i],
             CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT,
           );
@@ -527,7 +527,7 @@ class TypeArgumentsVerifier {
       }
 
       var fnTypeParam = fnTypeParams[i];
-      var fnTypeParamName = fnTypeParam.name3;
+      var fnTypeParamName = fnTypeParam.name;
       if (fnTypeParamName == null) {
         continue;
       }
@@ -540,7 +540,7 @@ class TypeArgumentsVerifier {
       var substitution = Substitution.fromPairs2(fnTypeParams, typeArgs);
       var bound = substitution.substituteType(rawBound);
       if (!_typeSystem.isSubtypeOf(argType, bound)) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           typeArgumentList[i],
           CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
           arguments: [argType, fnTypeParamName, bound],
@@ -562,7 +562,7 @@ class TypeArgumentsVerifier {
     switch (typeAnnotation) {
       case NamedType(:var type, :var typeArguments):
         if (type is TypeParameterType) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             typeAnnotation,
             errorCode,
             arguments: [typeAnnotation.name.lexeme],
@@ -576,7 +576,7 @@ class TypeArgumentsVerifier {
         for (var parameter in parameters.parameters) {
           if (parameter case SimpleFormalParameter(type: var typeAnnotation?)) {
             if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-              _errorReporter.atNode(
+              _diagnosticReporter.atNode(
                 typeAnnotation,
                 errorCode,
                 arguments: [type],
@@ -591,7 +591,11 @@ class TypeArgumentsVerifier {
         }
         if (returnType case TypeAnnotation(:var type)) {
           if (type is TypeParameterType) {
-            _errorReporter.atNode(returnType, errorCode, arguments: [type]);
+            _diagnosticReporter.atNode(
+              returnType,
+              errorCode,
+              arguments: [type],
+            );
           } else {
             _checkTypeArgumentConst(returnType, errorCode);
           }
@@ -600,7 +604,11 @@ class TypeArgumentsVerifier {
         for (var field in fields) {
           var typeAnnotation = field.type;
           if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
-            _errorReporter.atNode(typeAnnotation, errorCode, arguments: [type]);
+            _diagnosticReporter.atNode(
+              typeAnnotation,
+              errorCode,
+              arguments: [type],
+            );
           } else {
             _checkTypeArgumentConst(typeAnnotation, errorCode);
           }
@@ -617,7 +625,7 @@ class TypeArgumentsVerifier {
   ) {
     int actualCount = typeArguments.arguments.length;
     if (actualCount != expectedCount) {
-      _errorReporter.atNode(typeArguments, code, arguments: [actualCount]);
+      _diagnosticReporter.atNode(typeArguments, code, arguments: [actualCount]);
     }
   }
 
@@ -673,7 +681,7 @@ class TypeArgumentsVerifier {
         return false;
     }
 
-    if (namedType.type?.element3 is ExtensionTypeElement) {
+    if (namedType.type?.element is ExtensionTypeElement) {
       return false;
     }
 

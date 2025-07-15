@@ -20,7 +20,7 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.SPLIT_AND_CONDITION;
+  AssistKind get assistKind => DartAssistKind.splitAndCondition;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

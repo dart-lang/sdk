@@ -86,7 +86,7 @@ class LibraryElementSuggestionBuilder
   @override
   void visitExtensionElement(ExtensionElement element) {
     if (opType.includeReturnValueSuggestions) {
-      if (element.name3 != null) {
+      if (element.name != null) {
         builder.suggestExtension(element, kind: kind, prefix: prefix);
       }
     }
@@ -99,7 +99,7 @@ class LibraryElementSuggestionBuilder
 
   @override
   void visitGetterElement(GetterElement element) {
-    var variable = element.variable3;
+    var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions &&
             variable != null &&
@@ -122,7 +122,7 @@ class LibraryElementSuggestionBuilder
   @override
   void visitLibraryElement(LibraryElement element) {
     if (visitedLibraries.add(element)) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 
@@ -130,7 +130,7 @@ class LibraryElementSuggestionBuilder
   visitMixinElement(MixinElement element) {
     AstNode node = request.target.containingNode;
     if (node is ImplementsClause &&
-        !element.isImplementableIn2(request.libraryElement)) {
+        !element.isImplementableIn(request.libraryElement)) {
       return;
     }
     _visitInterfaceElement(element);
@@ -138,7 +138,7 @@ class LibraryElementSuggestionBuilder
 
   @override
   void visitSetterElement(SetterElement element) {
-    var variable = element.variable3;
+    var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions &&
             variable != null &&
@@ -225,10 +225,10 @@ class LibraryElementSuggestionBuilder
         // TODO(scheglov): This looks not ideal - we should suggest getters.
         for (var field in element.fields) {
           if (field.isStatic &&
-              field.isAccessibleIn2(request.libraryElement) &&
+              field.isAccessibleIn(request.libraryElement) &&
               typeSystem.isSubtypeOf(field.type, contextType)) {
             if (field.isSynthetic) {
-              var getter = field.getter2;
+              var getter = field.getter;
               if (getter != null) {
                 builder.suggestGetter(
                   getter,

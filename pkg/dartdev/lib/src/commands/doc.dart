@@ -56,6 +56,9 @@ For additional documentation generation options, see the 'dartdoc_options.yaml' 
   }
 
   @override
+  CommandCategory get commandCategory => CommandCategory.sourceCode;
+
+  @override
   String get invocation => '${super.invocation} [<directory>]';
 
   @override

@@ -47,7 +47,7 @@ void testInterface() {
     x = a.c;
     //    ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'c' isn't defined for the class 'A'.
+    // [cfe] The getter 'c' isn't defined for the type 'A'.
   }
   B b = new B();
   if (b is A) {
@@ -59,7 +59,7 @@ void testInterface() {
     y = x.b;
     //    ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'b' isn't defined for the class 'A'.
+    // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
 }
 
@@ -93,7 +93,7 @@ testGeneric() {
     x = d2.e;
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'e' isn't defined for the class 'D<A>'.
+    // [cfe] The getter 'e' isn't defined for the type 'D<A>'.
   }
 
   D<A> d3 = new E<B>(new B());

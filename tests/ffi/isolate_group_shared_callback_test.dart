@@ -17,19 +17,14 @@
 import 'dart:async';
 import 'dart:concurrent';
 import 'dart:ffi';
-import 'dart:io';
+import 'dart:io' show Platform;
 import 'dart:isolate';
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
-import 'dylib_utils.dart';
-
 typedef CallbackNativeType = Void Function(Int64, Int32);
 typedef CallbackReturningIntNativeType = Int32 Function(Int32, Int32);
-
-final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 typedef FnRunnerNativeType = Void Function(Int64, Pointer);
 typedef FnRunnerType = void Function(int, Pointer);
@@ -39,6 +34,22 @@ typedef FnSleepType = void Function(int);
 typedef TwoIntFnNativeType = Int32 Function(Pointer, Int32, Int32);
 typedef TwoIntFnType = int Function(Pointer, int, int);
 
+@pragma('vm:shared')
+final _dylibExtension = () {
+  if (Platform.isLinux || Platform.isAndroid || Platform.isFuchsia)
+    return '.so';
+  if (Platform.isMacOS) return '.dylib';
+  if (Platform.isWindows) return '.dll';
+  throw Exception('Platform not implemented.');
+}();
+
+@pragma('vm:shared')
+final _dylibPrefix = Platform.isWindows ? '' : 'lib';
+
+DynamicLibrary dlopenPlatformSpecific(String name) {
+  return DynamicLibrary.open('$_dylibPrefix$name$_dylibExtension');
+}
+
 class NativeLibrary {
   late final FnRunnerType callFunctionOnSameThread;
   late final FnRunnerType callFunctionOnNewThreadBlocking;
@@ -46,7 +57,7 @@ class NativeLibrary {
   late final TwoIntFnType callTwoIntFunction;
   late final FnSleepType sleep;
 
-  NativeLibrary() {
+  NativeLibrary(DynamicLibrary ffiTestFunctions) {
     callFunctionOnNewThreadNonBlocking = ffiTestFunctions
         .lookupFunction<FnRunnerNativeType, FnRunnerType>(
           "CallFunctionOnNewThreadNonBlocking",
@@ -73,13 +84,12 @@ int result = 0;
 @pragma('vm:shared')
 bool resultIsReady = false;
 
-@pragma('vm:shared')
-late NativeLibrary lib;
-
 const int sleepForMs = 1000;
 
 void simpleFunction(int a, int b) {
   result += (a * b);
+  final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
+  final lib = NativeLibrary(ffiTestFunctions);
   lib.sleep(sleepForMs);
   mutexCondvar.runLocked(() {
     resultIsReady = true;
@@ -87,7 +97,7 @@ void simpleFunction(int a, int b) {
   });
 }
 
-Future<void> testNativeCallableHelloWorld() async {
+Future<void> testNativeCallableHelloWorld(NativeLibrary lib) async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
@@ -124,7 +134,7 @@ void simpleFunctionThatThrows(int a, int b) {
   throw 'hello, world';
 }
 
-Future<void> testNativeCallableThrows() async {
+Future<void> testNativeCallableThrows(NativeLibrary lib) async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
@@ -148,7 +158,7 @@ Future<void> testNativeCallableThrows() async {
   callback.close();
 }
 
-Future<void> testNativeCallableHelloWorldClosure() async {
+Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   final callback = NativeCallable<CallbackNativeType>.isolateGroupShared((
@@ -186,7 +196,7 @@ Future<void> testNativeCallableHelloWorldClosure() async {
   callback.close();
 }
 
-void testNativeCallableSync() {
+void testNativeCallableSync(NativeLibrary lib) {
   final callback =
       NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared((
         int a,
@@ -202,15 +212,15 @@ void testNativeCallableSync() {
   callback.close();
 }
 
-void testNativeCallableSyncThrows() {
+void testNativeCallableSyncThrows(NativeLibrary lib) {
   final callback =
-      NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared((
-        int a,
-        int b,
-      ) {
-        throw "foo";
-        return a + b;
-      }, exceptionalReturn: 1111);
+      NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared(
+        (int a, int b) {
+              throw "foo";
+            }
+            as int Function(int, int),
+        exceptionalReturn: 1111,
+      );
 
   Expect.equals(
     1111,
@@ -221,7 +231,7 @@ void testNativeCallableSyncThrows() {
 
 int isolateVar = 10;
 
-void testNativeCallableAccessNonSharedVar() {
+void testNativeCallableAccessNonSharedVar(NativeLibrary lib) {
   final callback =
       NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared((
         int a,
@@ -242,15 +252,17 @@ Future<void> testKeepIsolateAliveTrue() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   ReceivePort rpOnExit = ReceivePort("onExit");
-  Isolate.spawn(
-    (_) async {
-      final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
-        simpleFunction,
-      );
-      callback.keepIsolateAlive = true;
-    },
-    /*message=*/ null,
-    onExit: rpOnExit.sendPort,
+  unawaited(
+    Isolate.spawn(
+      (_) async {
+        final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+          simpleFunction,
+        );
+        callback.keepIsolateAlive = true;
+      },
+      /*message=*/ null,
+      onExit: rpOnExit.sendPort,
+    ),
   );
   try {
     await rpOnExit.first.timeout(Duration(seconds: 5));
@@ -267,15 +279,17 @@ Future<void> testKeepIsolateAliveFalse() async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
   ReceivePort rpOnExit = ReceivePort("onExit");
-  Isolate.spawn(
-    (_) async {
-      final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
-        simpleFunction,
-      );
-      callback.keepIsolateAlive = false;
-    },
-    /*message=*/ null,
-    onExit: rpOnExit.sendPort,
+  unawaited(
+    Isolate.spawn(
+      (_) async {
+        final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+          simpleFunction,
+        );
+        callback.keepIsolateAlive = false;
+      },
+      /*message=*/ null,
+      onExit: rpOnExit.sendPort,
+    ),
   );
   try {
     await rpOnExit.first.timeout(Duration(seconds: 30));
@@ -289,14 +303,15 @@ Future<void> testKeepIsolateAliveFalse() async {
 
 main(args, message) async {
   asyncStart();
-  lib = NativeLibrary();
   // Simple tests.
-  await testNativeCallableHelloWorld();
-  await testNativeCallableThrows();
-  await testNativeCallableHelloWorldClosure();
-  testNativeCallableSync();
-  testNativeCallableSyncThrows();
-  testNativeCallableAccessNonSharedVar();
+  final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
+  final lib = NativeLibrary(ffiTestFunctions);
+  await testNativeCallableHelloWorld(lib);
+  await testNativeCallableThrows(lib);
+  await testNativeCallableHelloWorldClosure(lib);
+  testNativeCallableSync(lib);
+  testNativeCallableSyncThrows(lib);
+  testNativeCallableAccessNonSharedVar(lib);
   await testKeepIsolateAliveTrue();
   await testKeepIsolateAliveFalse();
   asyncEnd();

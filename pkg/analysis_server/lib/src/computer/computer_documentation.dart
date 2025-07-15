@@ -17,11 +17,7 @@ class DartDocumentationComputer {
     Element elementBeingDocumented, {
     bool includeSummary = false,
   }) {
-    var element = switch (elementBeingDocumented) {
-      FieldFormalParameterElement() => elementBeingDocumented.field2,
-      FormalParameterElement() => elementBeingDocumented.enclosingElement,
-      _ => elementBeingDocumented,
-    };
+    var element = elementBeingDocumented.elementWithDocumentation;
     if (element == null) {
       // This can happen when the code is invalid, such as having an
       // initializing formal parameter for a field that does not exist.
@@ -37,8 +33,7 @@ class DartDocumentationComputer {
       element,
       ...overridden.superElements,
       ...overridden.interfaceElements,
-      if (element case PropertyAccessorElement(variable3: var variable?))
-        variable,
+      if (element case PropertyAccessorElement(:var variable?)) variable,
     ];
     for (var candidate in candidates) {
       if (candidate.documentationCommentOrNull != null) {
@@ -46,7 +41,7 @@ class DartDocumentationComputer {
         break;
       }
       if (documentedGetter == null && candidate is SetterElement) {
-        var getter = candidate.correspondingGetter2;
+        var getter = candidate.correspondingGetter;
         if (getter != null && getter.documentationComment != null) {
           documentedGetter = getter;
         }
@@ -100,3 +95,29 @@ class DartDocumentationComputer {
 /// The type of documentation the user prefers to see in hovers and other
 /// related displays in their editor.
 enum DocumentationPreference { none, summary, full }
+
+extension on Element {
+  /// The element whose documentation should be used when showing documentation
+  /// for this element.
+  Element? get elementWithDocumentation {
+    var self = this;
+    if (self is FieldFormalParameterElement) {
+      return self.field;
+    } else if (self is SuperFormalParameterElement) {
+      // Treat a super formal parameter like a field formal parameter if it's
+      // eventually assigned to a field, but as any other formal parameter if it
+      // isn't.
+      var superParameter = self.superConstructorParameter;
+      while (superParameter is SuperFormalParameterElement) {
+        superParameter = superParameter.superConstructorParameter;
+      }
+      if (superParameter is FieldFormalParameterElement) {
+        return superParameter.field;
+      }
+      return self.enclosingElement;
+    } else if (self is FormalParameterElement) {
+      return self.enclosingElement;
+    }
+    return this;
+  }
+}

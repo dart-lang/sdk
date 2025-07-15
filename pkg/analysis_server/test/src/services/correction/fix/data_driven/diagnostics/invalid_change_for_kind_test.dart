@@ -24,14 +24,14 @@ transforms:
   date: 2021-11-30
   element:
     uris: ['test.dart']
-    class: 'C'
+    extension: 'E'
   changes:
     - kind: 'replacedBy'
       newElement:
         uris: ['test.dart']
-        class: 'D'
+        extension: 'F'
 ''',
-      [error(TransformSetErrorCode.invalidChangeForKind, 173, 39)],
+      [error(TransformSetErrorCode.invalidChangeForKind, 177, 43)],
     );
   }
 }

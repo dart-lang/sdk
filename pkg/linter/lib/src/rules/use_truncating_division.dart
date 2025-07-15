@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,10 +20,7 @@ class UseTruncatingDivision extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.use_truncating_division;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }
@@ -49,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var methodElement = node.element;
     if (methodElement == null) return;
 
-    var libraryElement = methodElement.library2;
+    var libraryElement = methodElement.library;
     if (!libraryElement.isDartCore) return;
 
     var parent = node.parent;

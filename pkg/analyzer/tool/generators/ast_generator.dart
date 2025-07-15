@@ -36,7 +36,7 @@ class _Generator {
     );
     utilitiesLibraryResult as LibraryElementResult;
     parameterKindClass =
-        utilitiesLibraryResult.element2.getClass2('ParameterKind')!;
+        utilitiesLibraryResult.element2.getClass('ParameterKind')!;
 
     await _buildImplClasses(astUnitResult);
     _removeGeneratedMembers(astUnitResult);
@@ -55,7 +55,7 @@ class _Generator {
             .map((annotation) {
               var generateObject = annotation.computeConstantValue();
               var generateObjectType = generateObject?.type;
-              if (generateObjectType?.element3?.name3 != 'GenerateNodeImpl') {
+              if (generateObjectType?.element?.name != 'GenerateNodeImpl') {
                 return null;
               }
               return generateObject;
@@ -77,7 +77,7 @@ class _Generator {
     }
 
     currentClassElement = classElement;
-    var interfaceElement = classElement.interfaces.last.element3;
+    var interfaceElement = classElement.interfaces.last.element;
 
     var inheritanceManager = classElement.inheritanceManager;
 
@@ -96,7 +96,7 @@ class _Generator {
               var type = entity.getField('type')!.toTypeValue();
 
               if (type == null) {
-                var member = inheritanceManager.getMember4(
+                var member = inheritanceManager.getMember(
                   interfaceElement,
                   Name(null, propertyName),
                 );
@@ -801,7 +801,7 @@ class _ImplClass {
   @deprecated
   bool get hasNotAbstractVisitChildren {
     var element = node.declaredFragment!.element;
-    return element.inheritanceManager.getMember4(
+    return element.inheritanceManager.getMember(
           element,
           Name(null, 'visitChildren'),
           forSuper: true,
@@ -809,19 +809,19 @@ class _ImplClass {
         null;
   }
 
-  String get interfaceName => interfaceElement.name3!;
+  String get interfaceName => interfaceElement.name!;
 
   bool get isAnnotatedNodeSubclass {
     var element = node.declaredFragment!.element;
     return element.allSupertypes.any(
-      (type) => type.element3.isAnnotatedNodeExactly,
+      (type) => type.element.isAnnotatedNodeExactly,
     );
   }
 
   bool get isNamedCompilationUnitMemberSubclass {
     var element = node.declaredFragment!.element;
     return element.allSupertypes.any(
-      (type) => type.element3.isNamedCompilationUnitMemberNodeExactly,
+      (type) => type.element.isNamedCompilationUnitMemberNodeExactly,
     );
   }
 
@@ -864,7 +864,7 @@ class _Property {
       case _PropertyTypeKindOther():
         return type.asCode;
       default:
-        return '${type.element3.name3!}Impl$nullSuffix';
+        return '${type.element.name!}Impl$nullSuffix';
     }
   }
 }
@@ -899,7 +899,7 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   _PropertyTypeKindNodeList({required this.elementType});
 
   String get elementTypeCode {
-    return '${elementType.element3.name3!}Impl';
+    return '${elementType.element.name!}Impl';
   }
 }
 
@@ -929,13 +929,13 @@ extension _DartTypeExtension on DartType {
       case InterfaceType self:
         var typeArguments = self.typeArguments;
         if (typeArguments.isEmpty) {
-          return '${self.element3.name3!}$nullSuffix';
+          return '${self.element.name!}$nullSuffix';
         } else {
           var typeArgumentsStr = typeArguments.map((t) => t.asCode).join(', ');
-          return '${self.element3.name3}<$typeArgumentsStr>$nullSuffix';
+          return '${self.element.name}<$typeArgumentsStr>$nullSuffix';
         }
       case TypeParameterType self:
-        return '${self.element3.name3!}$nullSuffix';
+        return '${self.element.name!}$nullSuffix';
       case VoidType():
         return 'void';
       default:
@@ -989,15 +989,15 @@ extension _InterfaceElementExtension on InterfaceElement {
   );
 
   bool get isAnnotatedNodeExactly {
-    return library2.uri == uriAst && name3 == 'AnnotatedNode';
+    return library.uri == uriAst && name == 'AnnotatedNode';
   }
 
   bool get isDoNotGenerateExactly {
-    return library2.uri == uriAst && name3 == 'DoNotGenerate';
+    return library.uri == uriAst && name == 'DoNotGenerate';
   }
 
   bool get isExpressionExactly {
-    return library2.uri == uriAst && name3 == 'Expression';
+    return library.uri == uriAst && name == 'Expression';
   }
 
   bool get isExpressionOrSubtype {
@@ -1006,37 +1006,37 @@ extension _InterfaceElementExtension on InterfaceElement {
   }
 
   bool get isListExactly {
-    return library2.uri == Uri.parse('dart:core') && name3 == 'List';
+    return library.uri == Uri.parse('dart:core') && name == 'List';
   }
 
   bool get isNamedCompilationUnitMemberNodeExactly {
-    return library2.uri == uriAst && name3 == 'NamedCompilationUnitMember';
+    return library.uri == uriAst && name == 'NamedCompilationUnitMember';
   }
 
   bool get isNodeExactly {
-    return library2.uri == uriAst && name3 == 'AstNode';
+    return library.uri == uriAst && name == 'AstNode';
   }
 
   bool get isNodeListExactly {
-    return library2.uri == uriAst && name3 == 'NodeList';
+    return library.uri == uriAst && name == 'NodeList';
   }
 
   bool get isTokenExactly {
-    return library2.uri == uriToken && name3 == 'Token';
+    return library.uri == uriToken && name == 'Token';
   }
 }
 
 extension _InterfaceTypeExtension on InterfaceType {
   bool get isExpressionExactly {
-    return element3.isExpressionExactly;
+    return element.isExpressionExactly;
   }
 
   bool get isNodeExactly {
-    return element3.isNodeExactly;
+    return element.isNodeExactly;
   }
 
   bool get isNodeListExactly {
-    return element3.isNodeListExactly;
+    return element.isNodeListExactly;
   }
 
   bool get isNodeOrSubtype {
@@ -1044,11 +1044,11 @@ extension _InterfaceTypeExtension on InterfaceType {
   }
 
   bool get isToken {
-    return element3.isTokenExactly;
+    return element.isTokenExactly;
   }
 
   bool get isTokenListExactly {
-    return element3.isListExactly &&
+    return element.isListExactly &&
         typeArguments.length == 1 &&
         typeArguments.single.isToken;
   }

@@ -35,7 +35,7 @@ import 'package:collection/collection.dart';
 /// `Future<T>.catchError` must return `FutureOr<T>`, and any return statements
 /// in a function literal must return a value of type `FutureOr<T>`.
 class ErrorHandlerVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   final TypeProviderImpl _typeProvider;
 
@@ -46,7 +46,7 @@ class ErrorHandlerVerifier {
   final bool _strictCasts;
 
   ErrorHandlerVerifier(
-    this._errorReporter,
+    this._diagnosticReporter,
     this._typeProvider,
     this._typeSystem, {
     required bool strictCasts,
@@ -54,7 +54,7 @@ class ErrorHandlerVerifier {
        _returnTypeVerifier = ReturnTypeVerifier(
          typeProvider: _typeProvider,
          typeSystem: _typeSystem,
-         errorReporter: _errorReporter,
+         diagnosticReporter: _diagnosticReporter,
          strictCasts: strictCasts,
        );
 
@@ -201,7 +201,7 @@ class ErrorHandlerVerifier {
     bool checkFirstParameterType = true,
   }) {
     void report() {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
         arguments: [expressionType, expectedFunctionReturnType],
@@ -290,7 +290,7 @@ class ErrorHandlerVerifier {
       expectedType,
       strictCasts: _strictCasts,
     )) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         callback,
         WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
         arguments: [functionReturnType, expectedType],
@@ -302,8 +302,8 @@ class ErrorHandlerVerifier {
   /// the 'dart:async' library.
   bool _isDartCoreAsyncType(DartType type, String typeName) =>
       type is InterfaceType &&
-      type.element3.name3 == typeName &&
-      type.element3.library2.isDartAsync;
+      type.element.name == typeName &&
+      type.element.library.isDartAsync;
 }
 
 /// Visits a function body, looking for return statements.

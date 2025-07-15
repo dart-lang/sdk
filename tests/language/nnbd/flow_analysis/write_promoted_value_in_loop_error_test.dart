@@ -15,7 +15,7 @@ void forLoopAssignInCondition(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
     }
   }
 }
@@ -30,7 +30,7 @@ void forLoopAssignInUpdater(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
     }
   }
 }
@@ -45,7 +45,7 @@ void forLoopAssignInBody(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     }
   }
@@ -61,7 +61,7 @@ void forEachAssignInBody(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     }
   }
@@ -77,7 +77,7 @@ void whileAssignInCondition(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
     }
   }
 }
@@ -92,7 +92,7 @@ void whileAssignInBody(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     }
   }
@@ -108,7 +108,7 @@ void doAssignInCondition(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
     } while ((x = 0) == 0);
   }
 }
@@ -123,7 +123,7 @@ void doAssignInBody(Object x) {
       print(x.isEven);
       //      ^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'isEven' isn't defined for the class 'Object'.
+      // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
       x = 0;
     } while (true);
   }

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the class 'Class<A>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the type 'Class<A>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'method'.

@@ -32,7 +32,7 @@ FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
     returnType: NamedType
       name: T
-      element2: T@17
+      element2: #E0 T
       type: T
     name: g
     functionExpression: FunctionExpression
@@ -41,11 +41,11 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: T@17
+            declaredElement: <testLibraryFragment> T@17
               defaultType: dynamic
           TypeParameter
             name: U
-            declaredElement: U@20
+            declaredElement: <testLibraryFragment> U@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -53,31 +53,31 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: T@17
+            element2: #E0 T
             type: T
           name: a
-          declaredElement: g@15::@formalParameter::a
+          declaredElement: <testLibraryFragment> a@25
             type: T
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
-            element2: U@20
+            element2: #E1 U
             type: U
           name: b
-          declaredElement: g@15::@formalParameter::b
+          declaredElement: <testLibraryFragment> b@30
             type: U
         rightParenthesis: )
       body: ExpressionFunctionBody
         functionDefinition: =>
         expression: SimpleIdentifier
           token: a
-          element: g@15::@parameter::a#element
+          element: a@25
           staticType: T
         semicolon: ;
-      declaredElement: g@15
+      declaredElement: <testLibraryFragment> g@15
         type: T Function<T, U>(T, U)
       staticType: T Function<T, U>(T, U)
-    declaredElement: g@15
+    declaredElement: <testLibraryFragment> g@15
       type: T Function<T, U>(T, U)
 ''');
   }
@@ -110,22 +110,22 @@ FunctionDeclarationStatement
             extendsKeyword: extends
             bound: NamedType
               name: U
-              element2: U@33
+              element2: #E0 U
               type: U
-            declaredElement: T@20
+            declaredElement: <testLibraryFragment> T@20
               defaultType: dynamic
           TypeParameter
             name: U
-            declaredElement: U@33
+            declaredElement: <testLibraryFragment> U@33
               defaultType: dynamic
           TypeParameter
             name: V
             extendsKeyword: extends
             bound: NamedType
               name: U
-              element2: U@33
+              element2: #E0 U
               type: U
-            declaredElement: V@36
+            declaredElement: <testLibraryFragment> V@36
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -133,36 +133,36 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: T@20
+            element2: #E1 T
             type: T
           name: x
-          declaredElement: g@18::@formalParameter::x
+          declaredElement: <testLibraryFragment> x@51
             type: T
         parameter: SimpleFormalParameter
           type: NamedType
             name: U
-            element2: U@33
+            element2: #E0 U
             type: U
           name: y
-          declaredElement: g@18::@formalParameter::y
+          declaredElement: <testLibraryFragment> y@56
             type: U
         parameter: SimpleFormalParameter
           type: NamedType
             name: V
-            element2: V@36
+            element2: #E2 V
             type: V
           name: z
-          declaredElement: g@18::@formalParameter::z
+          declaredElement: <testLibraryFragment> z@61
             type: V
         rightParenthesis: )
       body: BlockFunctionBody
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: g@18
+      declaredElement: <testLibraryFragment> g@18
         type: void Function<T extends U, U, V extends U>(T, U, V)
       staticType: void Function<T extends U, U, V extends U>(T, U, V)
-    declaredElement: g@18
+    declaredElement: <testLibraryFragment> g@18
       type: void Function<T extends U, U, V extends U>(T, U, V)
 ''');
   }
@@ -192,7 +192,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: T@20
+            declaredElement: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -203,12 +203,12 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element2: T@20
+              element2: #E0 T
               type: T?
             name: a
-            declaredElement: g@18::@formalParameter::a
+            declaredElement: <testLibraryFragment> a@27
               type: T?
-          declaredElement: g@18::@formalParameter::a
+          declaredElement: <testLibraryFragment> a@27
             type: T?
         rightDelimiter: }
         rightParenthesis: )
@@ -216,10 +216,10 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: g@18
+      declaredElement: <testLibraryFragment> g@18
         type: void Function<T>({T? a})
       staticType: void Function<T>({T? a})
-    declaredElement: g@18
+    declaredElement: <testLibraryFragment> g@18
       type: void Function<T>({T? a})
 ''');
   }
@@ -249,7 +249,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: T@20
+            declaredElement: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -260,12 +260,12 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element2: T@20
+              element2: #E0 T
               type: T?
             name: a
-            declaredElement: g@18::@formalParameter::a
+            declaredElement: <testLibraryFragment> a@27
               type: T?
-          declaredElement: g@18::@formalParameter::a
+          declaredElement: <testLibraryFragment> a@27
             type: T?
         rightDelimiter: ]
         rightParenthesis: )
@@ -273,10 +273,10 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: g@18
+      declaredElement: <testLibraryFragment> g@18
         type: void Function<T>([T?])
       staticType: void Function<T>([T?])
-    declaredElement: g@18
+    declaredElement: <testLibraryFragment> g@18
       type: void Function<T>([T?])
 ''');
   }
@@ -306,7 +306,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: T@20
+            declaredElement: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -318,12 +318,12 @@ FunctionDeclarationStatement
             type: NamedType
               name: T
               question: ?
-              element2: T@20
+              element2: #E0 T
               type: T?
             name: a
-            declaredElement: g@18::@formalParameter::a
+            declaredElement: <testLibraryFragment> a@36
               type: T?
-          declaredElement: g@18::@formalParameter::a
+          declaredElement: <testLibraryFragment> a@36
             type: T?
         rightDelimiter: }
         rightParenthesis: )
@@ -331,10 +331,10 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: g@18
+      declaredElement: <testLibraryFragment> g@18
         type: void Function<T>({required T? a})
       staticType: void Function<T>({required T? a})
-    declaredElement: g@18
+    declaredElement: <testLibraryFragment> g@18
       type: void Function<T>({required T? a})
 ''');
   }
@@ -364,7 +364,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: T@20
+            declaredElement: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -372,20 +372,20 @@ FunctionDeclarationStatement
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: T@20
+            element2: #E0 T
             type: T
           name: a
-          declaredElement: g@18::@formalParameter::a
+          declaredElement: <testLibraryFragment> a@25
             type: T
         rightParenthesis: )
       body: BlockFunctionBody
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: g@18
+      declaredElement: <testLibraryFragment> g@18
         type: void Function<T>(T)
       staticType: void Function<T>(T)
-    declaredElement: g@18
+    declaredElement: <testLibraryFragment> g@18
       type: void Function<T>(T)
 ''');
   }
@@ -413,10 +413,10 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: g@13
+      declaredElement: <testLibraryFragment> g@13
         type: Null Function()
       staticType: Null Function()
-    declaredElement: g@13
+    declaredElement: <testLibraryFragment> g@13
       type: Null Function()
 ''');
   }
@@ -446,10 +446,10 @@ FunctionDeclarationStatement
           literal: 0
           staticType: int
         semicolon: ;
-      declaredElement: g@13
+      declaredElement: <testLibraryFragment> g@13
         type: int Function()
       staticType: int Function()
-    declaredElement: g@13
+    declaredElement: <testLibraryFragment> g@13
       type: int Function()
 ''');
   }

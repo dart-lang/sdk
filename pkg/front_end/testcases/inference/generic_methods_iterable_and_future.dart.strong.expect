@@ -2,7 +2,7 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:120: Error: The operator '+' isn't defined for the class 'FutureOr<String>'.
+// pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:120: Error: The operator '+' isn't defined for the type 'FutureOr<String>'.
 // Try correcting the operator to an existing operator, or defining a '+' operator.
 //                           /*@type=int*/ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
 //                                                                                                                        ^
@@ -22,7 +22,7 @@ static method make(core::int x) → asy::Future<core::int>
 static method test() → dynamic {
   core::Iterable<asy::Future<core::int>> list = <core::int>[1, 2, 3].{core::Iterable::map}<asy::Future<core::int>>(#C1){((core::int) → asy::Future<core::int>) → core::Iterable<asy::Future<core::int>>};
   asy::Future<core::List<core::int>> results = asy::Future::wait<core::int>(list);
-  asy::Future<core::String> results2 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → FutureOr<core::String> => list.{core::Iterable::fold}<FutureOr<core::String>>("", (FutureOr<core::String>x, core::int y) → FutureOr<core::String> => invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:120: Error: The operator '+' isn't defined for the class 'FutureOr<String>'.
+  asy::Future<core::String> results2 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → FutureOr<core::String> => list.{core::Iterable::fold}<FutureOr<core::String>>("", (FutureOr<core::String>x, core::int y) → FutureOr<core::String> => invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:23:120: Error: The operator '+' isn't defined for the type 'FutureOr<String>'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
                           /*@type=int*/ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
                                                                                                                        ^" in x{<unresolved>}.+(y.{core::int::toString}(){() → core::String}) as{TypeError,ForDynamic} FutureOr<core::String>){(FutureOr<core::String>, (FutureOr<core::String>, core::int) → FutureOr<core::String>) → FutureOr<core::String>}){((core::List<core::int>) → FutureOr<core::String>, {onError: core::Function?}) → asy::Future<core::String>};

@@ -111,7 +111,7 @@ class Enum1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, decl
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum1<self::Enum1::X%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum1.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M1<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */> extends core::List<core::num> /*isMixinDeclaration*/  {
@@ -126,7 +126,7 @@ class Enum2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, decl
   const synthetic constructor •(core::int #index, core::String #name) → self::Enum2<self::Enum2::X%, self::Enum2::Y%>
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "Enum2.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M2<X extends invalid-type = self::E1<dynamic>% /* erasure=dynamic, declared=! */, Y extends self::M2::X% = dynamic> extends core::List<core::num> /*isMixinDeclaration*/  {

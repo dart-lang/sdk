@@ -24,6 +24,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
 class ExtensionInstanceGetterEncoding extends GetterEncoding
@@ -297,7 +298,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,
@@ -395,7 +396,6 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
           : null;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<FormalParameterBuilder>? get formals =>
       [_thisFormal, ...?_fragment.declaredFormals];
 
@@ -537,7 +537,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         ?.builders;
     // Coverage-ignore(suite): Not run.
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      libraryBuilder.checkTypeParameterDependencies(typeParameters);
+      checkTypeParameterDependencies(libraryBuilder, typeParameters);
     }
     libraryBuilder.checkInitializersInFormals(
         _fragment.declaredFormals, typeEnvironment,

@@ -350,7 +350,7 @@ class Linker {
   }
 
   void _writeLibraries({required OperationPerformanceImpl performance}) {
-    var bundleWriter = BundleWriter(elementFactory.dynamicRef);
+    var bundleWriter = BundleWriter();
 
     for (var builder in builders.values) {
       bundleWriter.writeLibraryElement(builder.element);

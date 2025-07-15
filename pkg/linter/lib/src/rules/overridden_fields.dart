@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,10 +22,7 @@ class OverriddenFields extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.overridden_fields;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
   }
@@ -44,7 +42,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var parent = variable.declaredFragment?.element.enclosingElement;
       if (parent is InterfaceElement) {
         var overriddenMember = parent.getInheritedConcreteMember(
-          Name(parent.library2.uri, variable.name.lexeme),
+          Name(parent.library.uri, variable.name.lexeme),
         );
         if (overriddenMember is GetterElement2OrMember &&
             overriddenMember.isSynthetic) {

@@ -3,13 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 dynamic bar(int Function(int) f) => f;
 T foo<T>(T a) => a;
 
+Type typeLiteral<T>() => T;
+
 void main() {
   final closure = bar(foo);
-  String s = closure.toString();
-  print(s);
-  Expect.isTrue(s.contains("(int) => int") || s.contains("with <int>"));
+  Expect.equals(typeLiteral<int Function(int)>(), closure.runtimeType);
+  if (readableTypeStrings) {
+    final s = closure.toString();
+    print(s);
+    Expect.isTrue(s.contains("(int) => int") || s.contains("with <int>"));
+  }
 }

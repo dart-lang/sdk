@@ -28,11 +28,9 @@ String? computePlatformDillName(Target target, void Function() onError) {
     case 'dart2js_server':
       return 'dart2js_server_platform.dill';
     case 'vm':
-      // TODO(johnniwinther): Stop generating 'vm_platform.dill' and rename
-      // 'vm_platform_strong.dill' to 'vm_platform.dill'.
-      return "vm_platform_strong.dill";
+      return 'vm_platform.dill';
     case 'none':
-      return "vm_platform_strong.dill";
+      return 'vm_platform.dill';
     case 'wasm':
       return 'dart2wasm_outline.dill';
     // Coverage-ignore(suite): Not run.

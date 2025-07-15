@@ -17,14 +17,13 @@ import 'package:analyzer/src/generated/java_core.dart';
 /// [guidelines]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/doc/implementation/diagnostics.md
 class Diagnostic {
   /// The diagnostic code associated with the diagnostic.
-  // TODO(srawlins): Rename this to `diagnosticCode`.
-  final DiagnosticCode errorCode;
+  final DiagnosticCode diagnosticCode;
 
   /// A list of messages that provide context for understanding the problem
   /// being reported. The list will be empty if there are no such messages.
   final List<DiagnosticMessage> contextMessages;
 
-  /// Data associated with this diagnostic, specific for [errorCode].
+  /// Data associated with this diagnostic, specific for [diagnosticCode].
   final Object? data;
 
   /// A description of how to fix the problem, or `null` if there is no such
@@ -41,12 +40,15 @@ class Diagnostic {
     required this.source,
     required int offset,
     required int length,
-    required this.errorCode,
+    DiagnosticCode? diagnosticCode,
+    @Deprecated("Pass a value for 'diagnosticCode' instead")
+    DiagnosticCode? errorCode,
     required String message,
     this.correctionMessage,
     this.contextMessages = const [],
     this.data,
-  }) : problemMessage = DiagnosticMessageImpl(
+  }) : diagnosticCode = _useNonNullCodeBetween(diagnosticCode, errorCode),
+       problemMessage = DiagnosticMessageImpl(
          filePath: source.fullName,
          length: length,
          message: message,
@@ -65,22 +67,24 @@ class Diagnostic {
     required Source source,
     required int offset,
     required int length,
-    // TODO(srawlins): Rename to `diagnosticCode`.
-    required DiagnosticCode errorCode,
+    DiagnosticCode? diagnosticCode,
+    @Deprecated("Pass a value for 'diagnosticCode' instead")
+    DiagnosticCode? errorCode,
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
     Object? data,
   }) {
+    var code = _useNonNullCodeBetween(diagnosticCode, errorCode);
     assert(
-      arguments.length == errorCode.numParameters,
-      'Message $errorCode requires ${errorCode.numParameters} '
-      'argument${errorCode.numParameters == 1 ? '' : 's'}, but '
+      arguments.length == code.numParameters,
+      'Message $code requires ${code.numParameters} '
+      'argument${code.numParameters == 1 ? '' : 's'}, but '
       '${arguments.length} '
       'argument${arguments.length == 1 ? ' was' : 's were'} '
       'provided',
     );
-    String message = formatList(errorCode.problemMessage, arguments);
-    String? correctionTemplate = errorCode.correctionMessage;
+    String message = formatList(code.problemMessage, arguments);
+    String? correctionTemplate = code.correctionMessage;
     String? correctionMessage;
     if (correctionTemplate != null) {
       correctionMessage = formatList(correctionTemplate, arguments);
@@ -90,7 +94,7 @@ class Diagnostic {
       source: source,
       offset: offset,
       length: length,
-      errorCode: errorCode,
+      diagnosticCode: code,
       message: message,
       correctionMessage: correctionMessage,
       contextMessages: contextMessages,
@@ -103,6 +107,9 @@ class Diagnostic {
   /// error. The correction should indicate how the user can fix the error.
   @Deprecated("Use 'correctionMessage' instead.")
   String? get correction => correctionMessage;
+
+  @Deprecated("Use 'diagnosticCode' instead")
+  DiagnosticCode get errorCode => diagnosticCode;
 
   @override
   int get hashCode {
@@ -126,7 +133,7 @@ class Diagnostic {
   int get offset => problemMessage.offset;
 
   Severity get severity {
-    switch (errorCode.severity) {
+    switch (diagnosticCode.severity) {
       case DiagnosticSeverity.ERROR:
         return Severity.error;
       case DiagnosticSeverity.WARNING:
@@ -134,7 +141,7 @@ class Diagnostic {
       case DiagnosticSeverity.INFO:
         return Severity.info;
       default:
-        throw StateError('Invalid error severity: ${errorCode.severity}');
+        throw StateError('Invalid severity: ${diagnosticCode.severity}');
     }
   }
 
@@ -146,7 +153,7 @@ class Diagnostic {
     // prepare the other Diagnostic.
     if (other is Diagnostic) {
       // Quick checks.
-      if (!identical(errorCode, other.errorCode)) {
+      if (!identical(diagnosticCode, other.diagnosticCode)) {
         return false;
       }
       if (offset != other.offset || length != other.length) {
@@ -176,6 +183,19 @@ class Diagnostic {
     //buffer.write("(" + lineNumber + ":" + columnNumber + "): ");
     buffer.write(message);
     return buffer.toString();
+  }
+
+  /// The non-`null` [DiagnosticCode] value between the two parameters.
+  static DiagnosticCode _useNonNullCodeBetween(
+    DiagnosticCode? diagnosticCode,
+    DiagnosticCode? errorCode,
+  ) {
+    if ((diagnosticCode == null) == (errorCode == null)) {
+      throw ArgumentError(
+        "Exactly one of 'diagnosticCode' and 'errorCode' may be passed",
+      );
+    }
+    return diagnosticCode ?? errorCode!;
   }
 }
 

@@ -79,11 +79,11 @@ abstract class ClassBuilder implements DeclarationBuilder {
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
+    with DeclarationBuilderMixin
     implements ClassBuilder {
   @override
   bool isNullClass = false;
 
-  InterfaceType? _legacyRawType;
   InterfaceType? _nullableRawType;
   InterfaceType? _nonNullableRawType;
   InterfaceType? _thisType;
@@ -99,42 +99,9 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   }
 
   @override
-  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
-      LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.nameOriginBuilder !=
-            libraryBuilder.nameOriginBuilder &&
-        name.startsWith("_")) {
-      return null;
-    }
-    return nameSpace.lookupLocal(name,
-        fileUri: fileUri, fileOffset: fileOffset, staticOnly: true);
-  }
-
-  @override
-  NamedBuilder? lookupLocalMember(String name,
-      {bool setter = false, bool required = false}) {
-    LookupResult? result = nameSpace.lookupLocalMember(name);
-    NamedBuilder? builder = setter ? result?.setable : result?.getable;
-    if (required && builder == null) {
-      internalProblem(
-          templateInternalProblemNotFoundIn.withArguments(
-              name, fullNameForErrors),
-          -1,
-          null);
-    }
-    return builder;
-  }
-
-  @override
   InterfaceType get thisType {
     return _thisType ??= new InterfaceType(cls, Nullability.nonNullable,
         getAsTypeArguments(cls.typeParameters, libraryBuilder.library));
-  }
-
-  // Coverage-ignore(suite): Not run.
-  InterfaceType get legacyRawType {
-    return _legacyRawType ??= new InterfaceType(cls, Nullability.legacy,
-        new List<DartType>.filled(typeParametersCount, const DynamicType()));
   }
 
   InterfaceType get nullableRawType {
@@ -151,9 +118,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
   InterfaceType rawType(Nullability nullability) {
     switch (nullability) {
-      case Nullability.legacy:
-        // Coverage-ignore(suite): Not run.
-        return legacyRawType;
       case Nullability.nullable:
         return nullableRawType;
       case Nullability.nonNullable:
@@ -269,7 +233,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (arguments != null) {
       List<DartType> typeArguments =
           buildAliasedTypeArguments(library, arguments, /* hierarchy = */ null);
-      typeArguments = unaliasTypes(typeArguments, legacyEraseAliases: false)!;
+      typeArguments = unaliasTypes(typeArguments)!;
       return new Supertype(cls, typeArguments);
     } else {
       return new Supertype(

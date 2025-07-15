@@ -128,7 +128,7 @@ class C {
 const C constant = const C(0);
 ''');
     var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.errors, isEmpty);
+    expect(otherFileResult.diagnostics, isEmpty);
   }
 
   test_int_to_double_reference_from_other_library_other_file_before() async {
@@ -148,7 +148,7 @@ class D {
 const D constant2 = const D(constant);
 ''');
     var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.errors, isEmpty);
+    expect(otherFileResult.diagnostics, isEmpty);
   }
 
   test_int_to_double_single_library() async {
@@ -173,7 +173,7 @@ import 'other.dart';
 const c = C();
 ''');
     var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.errors, isEmpty);
+    expect(otherFileResult.diagnostics, isEmpty);
   }
 
   test_int_to_double_via_default_value_other_file_before() async {
@@ -184,7 +184,7 @@ class C {
 }
 ''');
     var otherFileResult = await resolveFile(other);
-    expect(otherFileResult.errors, isEmpty);
+    expect(otherFileResult.diagnostics, isEmpty);
 
     await assertNoErrorsInCode('''
 import 'other.dart';

@@ -216,7 +216,7 @@ bool isLocalElement(Element? element) {
 }
 
 Element? _getLocalElement(SimpleIdentifier node) {
-  var element = node.writeOrReadElement2;
+  var element = node.writeOrReadElement;
   if (isLocalElement(element)) {
     return element;
   }
@@ -1034,7 +1034,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       _variableType = _getTypeCode(returnTypeObj);
       if (_hasAwait) {
         if (returnTypeObj is InterfaceType &&
-            returnTypeObj.element3 != typeProvider.futureElement2) {
+            returnTypeObj.element != typeProvider.futureElement) {
           returnType = _getTypeCode(typeProvider.futureType(returnTypeObj));
         }
       } else {
@@ -1101,7 +1101,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   void _prepareExcludedNames() {
     _excludedNames.clear();
     var localElements = getDefinedLocalElements(_parentMember!);
-    _excludedNames.addAll(localElements.map((e) => e.name3!));
+    _excludedNames.addAll(localElements.map((e) => e.name!));
   }
 
   void _prepareNames() {
@@ -1339,7 +1339,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
         invalidSelection('Cannot extract the name part of a declaration.');
       }
       // method name
-      var element = node.writeOrReadElement2;
+      var element = node.writeOrReadElement;
       if (element is LocalFunctionElement ||
           element is MethodElement ||
           element is TopLevelFunctionElement) {
@@ -1376,7 +1376,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
 
   void _checkParent(AstNode node) {
     var firstParent = firstSelectedNode!.parent;
-    for (var parent in node.withParents) {
+    for (var parent in node.withAncestors) {
       if (identical(parent, firstParent)) {
         return;
       }
@@ -1729,7 +1729,7 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var nodeElement = node.writeOrReadElement2;
+    var nodeElement = node.writeOrReadElement;
     if (identical(nodeElement, element)) {
       var nodeOffset = node.offset;
       if (nodeOffset > ref._selectionRange.end) {
@@ -1788,7 +1788,7 @@ extension on LibraryElement {
     if (alias != null) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: alias.element2,
+        element: alias.element,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: alias.typeArguments,
       );
@@ -1809,7 +1809,7 @@ extension on LibraryElement {
           parametersBuffer.write(', ');
         }
         parametersBuffer.write(parameterType);
-        var parameterName = parameter.name3;
+        var parameterName = parameter.name;
         if (parameterName != null && parameterName.isNotEmpty) {
           parametersBuffer.write(' ');
           parametersBuffer.write(parameterName);
@@ -1822,7 +1822,7 @@ extension on LibraryElement {
     if (type is InterfaceType) {
       return _getTypeCodeElementArguments(
         librariesToImport: librariesToImport,
-        element: type.element3,
+        element: type.element,
         isNullable: type.nullabilitySuffix == NullabilitySuffix.question,
         typeArguments: type.typeArguments,
       );
@@ -1879,7 +1879,7 @@ extension on LibraryElement {
     var sb = StringBuffer();
 
     // Check if imported.
-    var library = element.library2;
+    var library = element.library;
     if (library != null && library != this) {
       // No source, if private.
       if (element.isPrivate) {

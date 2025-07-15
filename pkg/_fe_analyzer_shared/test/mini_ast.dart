@@ -90,6 +90,15 @@ Expression checkPromoted(Promotable promotable, String? expectedTypeStr) =>
       location: computeLocation(),
     );
 
+Expression checkPromotionChain(
+  Promotable promotable,
+  List<String> expectedPromotionChain,
+) => new CheckPromotionChain._(
+  promotable,
+  expectedPromotionChain,
+  location: computeLocation(),
+);
+
 /// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers the current location's reachability state to be
 /// [expectedReachable].
@@ -150,16 +159,13 @@ Statement declare(
   String? expectInferredType,
 }) {
   var location = computeLocation();
-  return new Declare._(
-    new VariablePattern._(
-      type == null ? null : Type(type),
-      variable,
-      expectInferredType,
-      location: location,
-    ),
-    initializer?.asExpression(location: location),
+  return new VariableDeclaration._(
+    variable: variable,
     isLate: isLate,
     isFinal: isFinal,
+    declaredType: type == null ? null : Type(type),
+    initializer: initializer?.asExpression(location: location),
+    expectInferredType: expectInferredType,
     location: location,
   );
 }
@@ -444,22 +450,6 @@ Pattern mapPatternWithTypeArguments({
   );
 }
 
-Statement match(
-  Pattern pattern,
-  ProtoExpression initializer, {
-  bool isLate = false,
-  bool isFinal = false,
-}) {
-  var location = computeLocation();
-  return new Declare._(
-    pattern,
-    initializer.asExpression(location: location),
-    isLate: isLate,
-    isFinal: isFinal,
-    location: location,
-  );
-}
-
 Pattern objectPattern({
   required String requiredType,
   required List<RecordPatternField> fields,
@@ -515,6 +505,20 @@ CollectionElement patternForInElement(
     expression.asExpression(location: location),
     body.asCollectionElement(location: location),
     hasAwait: hasAwait,
+    location: location,
+  );
+}
+
+Statement patternVariableDeclaration(
+  Pattern pattern,
+  ProtoExpression initializer, {
+  bool isFinal = false,
+}) {
+  var location = computeLocation();
+  return new PatternVariableDeclaration._(
+    pattern,
+    initializer.asExpression(location: location),
+    isFinal: isFinal,
     location: location,
   );
 }
@@ -1004,25 +1008,51 @@ class CastPattern extends Pattern {
 /// [TryBuilder.catch_] to create instances of this class.
 class CatchClause {
   final Statement body;
+  final Type? exceptionType;
   final Var? exception;
   final Var? stackTrace;
 
-  CatchClause._(this.body, this.exception, this.stackTrace);
+  CatchClause._(
+    this.body,
+    this.exceptionType,
+    this.exception,
+    this.stackTrace,
+  ) {
+    if (exception == null && stackTrace != null) {
+      fail(
+        'If a stack trace variable is provided, an exception variable must be '
+        'provided too',
+      );
+    }
+    if (exception == null && exceptionType == null) {
+      fail(
+        'If no exception variable is provided, an exception type must be '
+        'provided',
+      );
+    }
+  }
 
   @override
   String toString() {
-    String initialPart;
-    if (stackTrace != null) {
-      initialPart = 'catch (${exception!.name}, ${stackTrace!.name})';
-    } else if (exception != null) {
-      initialPart = 'catch (${exception!.name})';
-    } else {
-      initialPart = 'on ...';
-    }
-    return '$initialPart $body';
+    return [
+      if (exceptionType case var exceptionType?) 'on $exceptionType',
+      if (exception case Var(name: var exceptionName))
+        switch (stackTrace) {
+          Var(name: var stackTraceName) =>
+            'catch ($exceptionName, $stackTraceName)',
+          _ => 'catch ($exceptionName)',
+        },
+      body,
+    ].join(' ');
   }
 
   void _preVisit(PreVisitor visitor) {
+    if (exception case var exception?) {
+      visitor._assignedVariables.declare(exception);
+    }
+    if (stackTrace case var stackTrace?) {
+      visitor._assignedVariables.declare(stackTrace);
+    }
     body.preVisit(visitor);
   }
 }
@@ -1088,6 +1118,42 @@ class CheckPromoted extends Expression {
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var promotedType = promotable._getPromotedType(h);
     expect(promotedType?.type, expectedTypeStr, reason: 'at $location');
+    return ExpressionTypeAnalysisResult(
+      type: SharedTypeView(NullType.instance),
+    );
+  }
+}
+
+class CheckPromotionChain extends Expression {
+  final Promotable promotable;
+  final List<String> expectedPromotionChain;
+
+  CheckPromotionChain._(
+    this.promotable,
+    this.expectedPromotionChain, {
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    promotable.preVisit(visitor);
+  }
+
+  @override
+  String toString() =>
+      'check $promotable has promotion chain $expectedPromotionChain';
+
+  @override
+  shared.ExpressionTypeAnalysisResult visit(
+    Harness h,
+    SharedTypeSchemaView schema,
+  ) {
+    var promotionChain = promotable._getPromotionChain(h);
+    expect(
+      [for (var t in promotionChain) t.type],
+      expectedPromotionChain,
+      reason: 'at $location',
+    );
     return ExpressionTypeAnalysisResult(
       type: SharedTypeView(NullType.instance),
     );
@@ -1299,149 +1365,6 @@ class Continue extends Statement {
           : target._getBinding(),
     );
     h.irBuilder.apply('continue', [], Kind.statement, location: location);
-  }
-}
-
-class Declare extends Statement {
-  final bool isLate;
-  final bool isFinal;
-  final Pattern pattern;
-  final Expression? initializer;
-
-  Declare._(
-    this.pattern,
-    this.initializer, {
-    required this.isLate,
-    required this.isFinal,
-    required super.location,
-  });
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    var variableBinder = _VariableBinder(visitor);
-    variableBinder.casePatternStart();
-    pattern.preVisit(visitor, variableBinder, isInAssignment: false);
-    variableBinder.casePatternFinish();
-    variableBinder.finish();
-    if (isLate) {
-      visitor._assignedVariables.beginNode();
-    }
-    initializer?.preVisit(visitor);
-    if (isLate) {
-      visitor._assignedVariables.endNode(this);
-    }
-  }
-
-  @override
-  String toString() {
-    var parts = <String>[
-      if (isLate) 'late',
-      if (isFinal) 'final',
-      pattern._debugString(needsKeywordOrType: !isFinal),
-      if (initializer != null) '= $initializer',
-    ];
-    return '${parts.join(' ')};';
-  }
-
-  @override
-  void visit(Harness h) {
-    String irName;
-    List<Kind> argKinds;
-    List<String> names = const [];
-    var initializer = this.initializer;
-    if (isLate) {
-      // Late declarations are not allowed using patterns, so interpret the
-      // declaration as an old-fashioned variable declaration.
-      var pattern = this.pattern as VariablePattern;
-      var variable = pattern.variable;
-      h.irBuilder.atom(variable.name, Kind.variable, location: location);
-      var declaredType = pattern.declaredType;
-      Type staticType;
-      if (initializer == null) {
-        // Use the shared logic for analyzing uninitialized variable
-        // declarations.
-        staticType =
-            h.typeAnalyzer
-                .analyzeUninitializedVariableDeclaration(
-                  this,
-                  pattern.variable,
-                  declaredType?.wrapSharedTypeView(),
-                  isFinal: isFinal,
-                )
-                .unwrapTypeView();
-        irName = 'declare';
-        argKinds = [Kind.variable];
-      } else {
-        // There's no shared logic for analyzing initialized late variable
-        // declarations, so analyze the declaration directly.
-        h.flow.lateInitializer_begin(this);
-        var initializerType =
-            h.typeAnalyzer
-                .analyzeExpression(
-                  initializer,
-                  declaredType?.wrapSharedTypeSchemaView() ??
-                      h.operations.unknownType,
-                )
-                .unwrapTypeView<Type>();
-        h.flow.lateInitializer_end();
-        staticType = variable.type = declaredType ?? initializerType;
-        h.flow.declare(variable, SharedTypeView(staticType), initialized: true);
-        h.flow.initialize(
-          variable,
-          SharedTypeView(initializerType),
-          initializer,
-          isFinal: isFinal,
-          isLate: true,
-          isImplicitlyTyped: declaredType == null,
-        );
-        h.irBuilder.atom(initializerType.type, Kind.type, location: location);
-        h.irBuilder.atom(staticType.type, Kind.type, location: location);
-        irName = 'declare';
-        argKinds = [Kind.variable, Kind.expression, Kind.type, Kind.type];
-        names = (['initializerType', 'staticType']);
-      }
-      // Finally, double check the inferred variable type, if necessary for the
-      // test.
-      var expectInferredType = pattern.expectInferredType;
-      if (expectInferredType != null) {
-        expect(staticType, expectInferredType);
-      }
-    } else if (initializer == null) {
-      var pattern = this.pattern as VariablePattern;
-      var declaredType = pattern.declaredType;
-      var staticType =
-          h.typeAnalyzer
-              .analyzeUninitializedVariableDeclaration(
-                this,
-                pattern.variable,
-                declaredType?.wrapSharedTypeView(),
-                isFinal: isFinal,
-              )
-              .unwrapTypeView<Type>();
-      h.typeAnalyzer.handleDeclaredVariablePattern(
-        pattern,
-        matchedType: staticType,
-        staticType: staticType,
-      );
-      irName = 'declare';
-      argKinds = [Kind.pattern];
-    } else {
-      h.typeAnalyzer.analyzePatternVariableDeclaration(
-        this,
-        pattern,
-        initializer,
-        isFinal: isFinal,
-      );
-      irName = 'match';
-      argKinds = [Kind.expression, Kind.pattern];
-    }
-    h.irBuilder.apply(
-      [irName, if (isLate) 'late', if (isFinal) 'final'].join('_'),
-      argKinds,
-      Kind.statement,
-      location: location,
-      names: names,
-    );
   }
 }
 
@@ -4224,6 +4147,55 @@ class PatternForInElement extends CollectionElement {
   }
 }
 
+class PatternVariableDeclaration extends Statement {
+  final bool isFinal;
+  final Pattern pattern;
+  final Expression initializer;
+
+  PatternVariableDeclaration._(
+    this.pattern,
+    this.initializer, {
+    required this.isFinal,
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    var variableBinder = _VariableBinder(visitor);
+    variableBinder.casePatternStart();
+    pattern.preVisit(visitor, variableBinder, isInAssignment: false);
+    variableBinder.casePatternFinish();
+    variableBinder.finish();
+    initializer.preVisit(visitor);
+  }
+
+  @override
+  String toString() {
+    var parts = <String>[
+      if (isFinal) 'final',
+      pattern._debugString(needsKeywordOrType: !isFinal),
+      '= $initializer',
+    ];
+    return '${parts.join(' ')};';
+  }
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.analyzePatternVariableDeclaration(
+      this,
+      pattern,
+      initializer,
+      isFinal: isFinal,
+    );
+    h.irBuilder.apply(
+      ['match', if (isFinal) 'final'].join('_'),
+      [Kind.expression, Kind.pattern],
+      Kind.statement,
+      location: location,
+    );
+  }
+}
+
 /// A variable modelling an implicit join of variables declared inside
 /// logical-or patterns or switch cases sharing a body.
 ///
@@ -4395,6 +4367,11 @@ abstract class Promotable {
   /// Queries the current promotion status of `this`.  Return value is either a
   /// type (if `this` is promoted), or `null` (if it isn't).
   Type? _getPromotedType(Harness h);
+
+  /// Queries the current promotion status of `this`.  Return value is a list of
+  /// types, in order from least promoted type to most promoted type, or an
+  ///  empty list if `this` is not promoted.
+  List<Type> _getPromotionChain(Harness h);
 }
 
 /// Base class for l-values that, at a given point in flow analysis, might or
@@ -4441,8 +4418,7 @@ class Property extends PromotableLValue {
     );
   }
 
-  @override
-  Type? _getPromotedType(Harness h) {
+  _PropertyElement? _computeMember(Harness h) {
     if (isNullAware) {
       fail(
         "at $location: it doesn't make sense to compute the promoted type of "
@@ -4454,6 +4430,12 @@ class Property extends PromotableLValue {
             .analyzeExpression(target, h.operations.unknownType)
             .unwrapTypeView<Type>();
     var member = h.typeAnalyzer._lookupMember(receiverType, propertyName);
+    return member;
+  }
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    _PropertyElement? member = _computeMember(h);
     return h.flow
         .promotedPropertyType(
           ExpressionPropertyTarget(target),
@@ -4462,6 +4444,19 @@ class Property extends PromotableLValue {
           SharedTypeView(member!._type),
         )
         ?.unwrapTypeView();
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    _PropertyElement? member = _computeMember(h);
+    return h.flow
+        .propertyPromotionChainForTesting(
+          ExpressionPropertyTarget(target),
+          propertyName,
+          member,
+        )
+        .map((t) => t.unwrapTypeView<Type>())
+        .toList();
   }
 
   @override
@@ -5323,8 +5318,7 @@ class ThisOrSuperProperty extends PromotableLValue {
     return result;
   }
 
-  @override
-  Type? _getPromotedType(Harness h) {
+  _PropertyElement? _computeMember(Harness h) {
     var thisOrSuper = isSuperAccess ? 'super' : 'this';
     h.irBuilder.atom(
       '$thisOrSuper.$propertyName',
@@ -5332,6 +5326,12 @@ class ThisOrSuperProperty extends PromotableLValue {
       location: location,
     );
     var member = h.typeAnalyzer._lookupMember(h._thisType!, propertyName);
+    return member;
+  }
+
+  @override
+  Type? _getPromotedType(Harness h) {
+    _PropertyElement? member = _computeMember(h);
     return h.flow
         .promotedPropertyType(
           isSuperAccess
@@ -5342,6 +5342,21 @@ class ThisOrSuperProperty extends PromotableLValue {
           SharedTypeView(member!._type),
         )
         ?.unwrapTypeView();
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    _PropertyElement? member = _computeMember(h);
+    return h.flow
+        .propertyPromotionChainForTesting(
+          isSuperAccess
+              ? SuperPropertyTarget.singleton
+              : ThisPropertyTarget.singleton,
+          propertyName,
+          member,
+        )
+        .map((t) => t.unwrapTypeView<Type>())
+        .toList();
   }
 
   @override
@@ -5385,6 +5400,7 @@ class Throw extends Expression {
 
 abstract class TryBuilder {
   TryStatement catch_({
+    String? type,
     Var? exception,
     Var? stackTrace,
     required List<ProtoStatement> body,
@@ -5411,6 +5427,7 @@ class TryStatementImpl extends TryStatement {
 
   @override
   TryStatement catch_({
+    String? type,
     Var? exception,
     Var? stackTrace,
     required List<ProtoStatement> body,
@@ -5422,6 +5439,7 @@ class TryStatementImpl extends TryStatement {
         ...catches,
         CatchClause._(
           Block._(body, location: computeLocation()),
+          type == null ? null : Type(type),
           exception,
           stackTrace,
         ),
@@ -5591,6 +5609,134 @@ class Var extends Node
   Type? _getPromotedType(Harness h) {
     h.irBuilder.atom(name, Kind.expression, location: location);
     return h.flow.promotedType(this)?.unwrapTypeView();
+  }
+
+  @override
+  List<Type> _getPromotionChain(Harness h) {
+    h.irBuilder.atom(name, Kind.expression, location: location);
+    return h.flow
+        .variablePromotionChainForTesting(this)
+        .map((t) => t.unwrapTypeView<Type>())
+        .toList();
+  }
+}
+
+class VariableDeclaration extends Statement {
+  final Var variable;
+  final bool isLate;
+  final bool isFinal;
+  final Type? declaredType;
+  final Expression? initializer;
+  final String? expectInferredType;
+
+  VariableDeclaration._({
+    required super.location,
+    required this.variable,
+    required this.isLate,
+    required this.isFinal,
+    required this.declaredType,
+    required this.initializer,
+    required this.expectInferredType,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    visitor._assignedVariables.declare(variable);
+    if (isLate) {
+      visitor._assignedVariables.beginNode();
+    }
+    initializer?.preVisit(visitor);
+    if (isLate) {
+      visitor._assignedVariables.endNode(this);
+    }
+  }
+
+  @override
+  String toString() {
+    var parts = <String>[
+      if (isLate) 'late',
+      if (isFinal) 'final',
+      if (declaredType != null) declaredType!.type else if (!isFinal) 'var',
+      variable.name,
+      if (expectInferredType != null) '(expected type $expectInferredType)',
+      if (initializer != null) '= $initializer',
+    ];
+    return '${parts.join(' ')};';
+  }
+
+  @override
+  void visit(Harness h) {
+    String irName;
+    List<Kind> argKinds;
+    List<String> names = const [];
+    var initializer = this.initializer;
+    h.irBuilder.atom(variable.name, Kind.variable, location: location);
+    Type staticType;
+    if (initializer == null) {
+      // Use the shared logic for analyzing uninitialized variable
+      // declarations.
+      staticType =
+          h.typeAnalyzer
+              .analyzeUninitializedVariableDeclaration(
+                this,
+                variable,
+                declaredType?.wrapSharedTypeView(),
+                isFinal: isFinal,
+              )
+              .unwrapTypeView();
+      h.irBuilder.atom(staticType.type, Kind.type, location: location);
+      irName = 'declare';
+      argKinds = [Kind.variable, Kind.type];
+      names = ['staticType'];
+    } else {
+      // There's no shared logic for analyzing initialized variable
+      // declarations, so analyze the declaration directly.
+      if (isLate) h.flow.lateInitializer_begin(this);
+      var initializerType =
+          h.typeAnalyzer
+              .analyzeExpression(
+                initializer,
+                declaredType?.wrapSharedTypeSchemaView() ??
+                    h.operations.unknownType,
+              )
+              .unwrapTypeView<Type>();
+      if (isLate) h.flow.lateInitializer_end();
+      staticType =
+          variable.type =
+              declaredType ??
+              h.typeAnalyzer
+                  .variableTypeFromInitializerType(
+                    initializerType.wrapSharedTypeView(),
+                  )
+                  .unwrapTypeView();
+      h.flow.declare(variable, SharedTypeView(staticType), initialized: true);
+      h.flow.initialize(
+        variable,
+        SharedTypeView(initializerType),
+        initializer,
+        isFinal: isFinal,
+        isLate: isLate,
+        isImplicitlyTyped: declaredType == null,
+      );
+      h.irBuilder.atom(initializerType.type, Kind.type, location: location);
+      h.irBuilder.atom(staticType.type, Kind.type, location: location);
+      irName = 'declare';
+      argKinds = [Kind.variable, Kind.expression, Kind.type, Kind.type];
+      names = ['initializerType', 'staticType'];
+    }
+    // Finally, double check the inferred variable type, if necessary for the
+    // test.
+    var expectInferredType = this.expectInferredType;
+    if (expectInferredType != null) {
+      expect(staticType.type, expectInferredType, reason: 'at $location');
+    }
+    h.irBuilder.apply(
+      [irName, if (isLate) 'late', if (isFinal) 'final'].join('_'),
+      argKinds,
+      Kind.statement,
+      location: location,
+      names: names,
+    );
   }
 }
 
@@ -6632,6 +6778,8 @@ class _MiniAstTypeAnalyzer
     if (catchClauses.isNotEmpty) {
       flow.tryCatchStatement_bodyEnd(body);
       for (var catch_ in catchClauses) {
+        catch_.exception?._type = catch_.exceptionType ?? Type('dynamic');
+        catch_.stackTrace?._type = Type('StackTrace');
         flow.tryCatchStatement_catchBegin(catch_.exception, catch_.stackTrace);
         dispatchStatement(catch_.body);
         flow.tryCatchStatement_catchEnd();

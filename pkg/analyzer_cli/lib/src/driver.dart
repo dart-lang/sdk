@@ -293,7 +293,7 @@ class Driver implements CommandLineStarter {
               lineInfo: lineInfo,
               isLibrary: true,
               isPart: false,
-              errors: errors,
+              diagnostics: errors,
               analysisOptions: analysisOptions,
             ),
           ]);
@@ -346,7 +346,7 @@ class Driver implements CommandLineStarter {
                   lineInfo: lineInfo,
                   isLibrary: true,
                   isPart: false,
-                  errors: diagnostics,
+                  diagnostics: diagnostics,
                   analysisOptions: analysisOptions,
                 ),
               ]);
@@ -377,7 +377,7 @@ class Driver implements CommandLineStarter {
                 lineInfo: lineInfo,
                 isLibrary: true,
                 isPart: false,
-                errors: errors,
+                diagnostics: errors,
                 analysisOptions: analysisOptions,
               ),
             ]);

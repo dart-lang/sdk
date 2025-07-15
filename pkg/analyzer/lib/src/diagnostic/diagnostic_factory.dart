@@ -9,6 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 
@@ -21,7 +22,7 @@ class DiagnosticFactory {
   /// as a previous [original] node in a pattern assignment.
   Diagnostic duplicateAssignmentPatternVariable({
     required Source source,
-    required PromotableElement variable,
+    required PromotableElementImpl variable,
     required AssignedVariablePatternImpl original,
     required AssignedVariablePatternImpl duplicate,
   }) {
@@ -29,8 +30,9 @@ class DiagnosticFactory {
       source: source,
       offset: duplicate.offset,
       length: duplicate.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
-      arguments: [variable.name3!],
+      diagnosticCode:
+          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+      arguments: [variable.name!],
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -43,30 +45,27 @@ class DiagnosticFactory {
     );
   }
 
-  /// Return a diagnostic indicating that [duplicateElement] reuses a name
+  /// Return a diagnostic indicating that [duplicateFragment] reuses a name
   /// already used by [originalElement].
   Diagnostic duplicateDefinition(
     DiagnosticCode code,
-    Element duplicateElement,
-    Element originalElement,
+    FragmentImpl duplicateFragment,
+    ElementImpl originalElement,
     List<Object> arguments,
   ) {
-    var duplicate = duplicateElement.nonSynthetic2;
-    var duplicateFragment = duplicate.firstFragment;
-    var original = originalElement.nonSynthetic2;
-    var originalFragment = original.firstFragment;
+    var originalFragment = originalElement.nonSynthetic.firstFragment;
     return Diagnostic.tmp(
       source: duplicateFragment.libraryFragment!.source,
       offset: duplicateFragment.nameOffset2 ?? -1,
-      length: duplicate.name3!.length,
-      errorCode: code,
+      length: duplicateFragment.name!.length,
+      diagnosticCode: code,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: originalFragment.libraryFragment!.source.fullName,
           message: "The first definition of this name.",
           offset: originalFragment.nameOffset2 ?? -1,
-          length: original.name3!.length,
+          length: originalElement.nonSynthetic.name!.length,
           url: null,
         ),
       ],
@@ -86,7 +85,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      errorCode: code,
+      diagnosticCode: code,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
@@ -113,7 +112,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -143,7 +142,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -173,7 +172,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateTarget.offset,
       length: duplicateTarget.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
       arguments: [name],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -198,7 +197,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      errorCode: CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -222,7 +221,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      errorCode: CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+      diagnosticCode: CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -246,7 +245,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      errorCode: CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -270,7 +269,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      errorCode: CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -295,7 +294,7 @@ class DiagnosticFactory {
       source: source,
       offset: offset,
       length: length,
-      errorCode:
+      diagnosticCode:
           StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
       arguments: arguments,
       contextMessages: [
@@ -323,17 +322,17 @@ class DiagnosticFactory {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
-    var superFragment = superMember.nonSynthetic2.firstFragment;
+    var superFragment = superMember.nonSynthetic.firstFragment;
     return Diagnostic.tmp(
       source: source,
       offset: errorNode.offset,
       length: errorNode.length,
-      errorCode: code,
+      diagnosticCode: code,
       arguments: [
         memberName,
-        member.enclosingElement!.name3,
+        member.enclosingElement!.name,
         member.type,
-        superMember.enclosingElement!.name3,
+        superMember.enclosingElement!.name,
         superMember.type,
       ],
       contextMessages: [
@@ -347,7 +346,7 @@ class DiagnosticFactory {
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The member being overridden.",
             offset: superFragment.nameOffset2 ?? -1,
-            length: superFragment.name2!.length,
+            length: superFragment.name!.length,
             url: null,
           ),
         if (code == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
@@ -355,7 +354,7 @@ class DiagnosticFactory {
             filePath: superFragment.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
             offset: superFragment.nameOffset2 ?? -1,
-            length: superFragment.name2!.length,
+            length: superFragment.name!.length,
             url: null,
           ),
       ],
@@ -387,7 +386,7 @@ class DiagnosticFactory {
       source: source,
       offset: nameToken.offset,
       length: nameToken.length,
-      errorCode: CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+      diagnosticCode: CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
       arguments: [name],
       contextMessages: contextMessages ?? const [],
     );

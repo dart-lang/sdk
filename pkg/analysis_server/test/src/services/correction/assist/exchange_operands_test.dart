@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ExchangeOperandsTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.EXCHANGE_OPERANDS;
+  AssistKind get kind => DartAssistKind.exchangeOperands;
 
   Future<void> test_compare() async {
     const initialOperators = ['<', '<=', '>', '>='];

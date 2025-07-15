@@ -211,22 +211,20 @@ Never _throwReachabilityError([String? _message]) {
   throw ReachabilityError(_message);
 }
 
-const _indexErrorWithoutDetails = _ErrorWithoutDetails(
-  'IndexError (details omitted due to --minify)',
-);
-const _rangeErrorWithoutDetails = _ErrorWithoutDetails(
+const _indexErrorWithoutDetails = _IndexErrorWithoutDetails();
+const _rangeErrorWithoutDetails = _RangeErrorWithoutDetails(
   'RangeError (details omitted due to --minify)',
 );
-const _alignmentErrorWithoutDetails = _ErrorWithoutDetails(
+const _alignmentErrorWithoutDetails = _RangeErrorWithoutDetails(
   'Offset had incorrect alignment (details omitted due to --minify)',
 );
-const _negativeValueErrorWithoutDetails = _ErrorWithoutDetails(
+const _negativeValueErrorWithoutDetails = _RangeErrorWithoutDetails(
   'Value was negative (details omitted due to --minify)',
 );
-const _negativeOrZeroValueErrorWithoutDetails = _ErrorWithoutDetails(
+const _negativeOrZeroValueErrorWithoutDetails = _RangeErrorWithoutDetails(
   'Value was negative or zero (details omitted due to --minify)',
 );
-const _nullErrorWithoutDetails = _LateErrorWithoutDetails(
+const _nullErrorWithoutDetails = _ArgumentErrorWithoutDetails(
   'Value must not be null (details omitted due to --minify)',
 );
 
@@ -258,14 +256,15 @@ const _reachabilityError = _LateErrorWithoutDetails(
   'ReachabilityError (details omitted due to --minify)',
 );
 
-const _NoSuchMethodErrorWithoutDetails _noSuchMethodErrorWithoutDetails =
-    _NoSuchMethodErrorWithoutDetails();
+const _noSuchMethodErrorWithoutDetails = _NoSuchMethodErrorWithoutDetails();
 
-const _TypeErrorWithoutDetails typeErrorWithoutDetails =
-    _TypeErrorWithoutDetails();
+const _unsupportedErrorWithoutDetails = _UnsupportedErrorWithoutDetails();
+
+const typeErrorWithoutDetails = _TypeErrorWithoutDetails();
 
 class _ErrorWithoutDetails implements Error {
   final String _message;
+
   const _ErrorWithoutDetails(this._message);
 
   StackTrace? get stackTrace => null;
@@ -273,29 +272,77 @@ class _ErrorWithoutDetails implements Error {
   String toString() => _message;
 }
 
-class _TypeErrorWithoutDetails implements TypeError {
-  const _TypeErrorWithoutDetails();
+class _ArgumentErrorWithoutDetails extends _ErrorWithoutDetails
+    implements ArgumentError {
+  const _ArgumentErrorWithoutDetails(String message) : super(message);
 
-  StackTrace? get stackTrace => null;
+  @override
+  String? get name => null;
 
-  String toString() =>
-      'Runtime type check failed (details omitted due to --minify)';
+  @override
+  String get message => _message;
+
+  @override
+  dynamic get invalidValue => null;
 }
 
-class _NoSuchMethodErrorWithoutDetails implements NoSuchMethodError {
-  const _NoSuchMethodErrorWithoutDetails();
+class _IndexErrorWithoutDetails extends _ArgumentErrorWithoutDetails
+    implements IndexError {
+  const _IndexErrorWithoutDetails()
+    : super('IndexError (details omitted due to --minify)');
 
-  StackTrace? get stackTrace => null;
+  @override
+  int get start => throw _unsupportedErrorWithoutDetails;
 
-  String toString() => 'NoSuchMethodError (details omitted due to --minify)';
+  @override
+  int get end => throw _unsupportedErrorWithoutDetails;
+
+  @override
+  int get length => throw _unsupportedErrorWithoutDetails;
+
+  @override
+  int get invalidValue => throw _unsupportedErrorWithoutDetails;
+
+  @override
+  Object? get indexable => null;
 }
 
-class _LateErrorWithoutDetails implements LateError {
-  final String _message;
+class _RangeErrorWithoutDetails extends _ArgumentErrorWithoutDetails
+    implements RangeError {
+  const _RangeErrorWithoutDetails(String message) : super(message);
 
-  const _LateErrorWithoutDetails(this._message);
+  @override
+  num? get start => null;
 
-  StackTrace? get stackTrace => null;
+  @override
+  num? get end => null;
 
-  String toString() => _message;
+  @override
+  num? get invalidValue => null;
+}
+
+class _TypeErrorWithoutDetails extends _ErrorWithoutDetails
+    implements TypeError {
+  const _TypeErrorWithoutDetails()
+    : super('Runtime type check failed (details omitted due to --minify)');
+}
+
+class _NoSuchMethodErrorWithoutDetails extends _ErrorWithoutDetails
+    implements NoSuchMethodError {
+  const _NoSuchMethodErrorWithoutDetails()
+    : super('NoSuchMethodError (details omitted due to --minify)');
+}
+
+class _LateErrorWithoutDetails extends _ErrorWithoutDetails
+    implements LateError {
+  const _LateErrorWithoutDetails(String message) : super(message);
+}
+
+class _UnsupportedErrorWithoutDetails extends _ErrorWithoutDetails
+    implements UnsupportedError {
+  const _UnsupportedErrorWithoutDetails()
+    : super('UnsupportedError (details omitted due to --minify)');
+
+  @override
+  String get message => _message;
 }

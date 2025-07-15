@@ -37,16 +37,17 @@ final httpGetIsolateRpcTests = <IsolateTest>[
         ),
         ['Isolate'],
       )! as Isolate;
-      Expect.isTrue(result.id!.startsWith('isolates/'));
+      Expect.isTrue(result.id!.startsWith('isolates/'), 'id was ${result.id}');
       Expect.isNotNull(result.number);
-      Expect.isTrue(result.startTime! > 0);
-      Expect.isTrue(result.livePorts! > 0);
+      Expect.isTrue(result.startTime! > 0, 'startTime was ${result.startTime}');
+      Expect.isTrue(result.livePorts! > 0, 'livePorts was ${result.livePorts}');
       Expect.isFalse(result.pauseOnExit);
       Expect.isNotNull(result.pauseEvent);
       Expect.isNull(result.error);
       Expect.isNotNull(result.rootLib);
-      Expect.isTrue(result.libraries!.isNotEmpty);
-      Expect.isTrue(result.breakpoints!.isEmpty);
+      Expect.isTrue(result.libraries!.isNotEmpty, 'libraries was empty');
+      Expect.isTrue(
+          result.breakpoints!.isEmpty, 'breakpoints was ${result.breakpoints}',);
       Expect.equals(result.json!['_heaps']['new']['type'], 'HeapSpace');
       Expect.equals(result.json!['_heaps']['old']['type'], 'HeapSpace');
       Expect.equals(result.json!['isolate_group']['type'], '@IsolateGroup');

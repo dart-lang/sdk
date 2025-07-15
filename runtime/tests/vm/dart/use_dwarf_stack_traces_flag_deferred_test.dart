@@ -16,7 +16,8 @@ import "dart:io";
 
 import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:native_stack_traces/src/constants.dart' show rootLoadingUnitId;
-import 'package:native_stack_traces/src/macho.dart';
+import 'package:native_stack_traces/src/macho.dart'
+    show emptyMachOForArchitecture, MachO;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -283,6 +284,7 @@ Future<DeferredAssemblyState?> runAssembly(
       final entry = debugManifest[id]!;
       final snapshotPath = MachO.handleDSYM(debugManifest[id]!.dwarfPath!);
       final singlePath = path.join(singleDir.path, path.basename(snapshotPath));
+      final lipo = llvmTool('llvm-lipo', verbose: true)!;
       await run(lipo, <String>[snapshotPath, '-create', '-output', singlePath]);
       final multiPath = path.join(multiDir.path, path.basename(snapshotPath));
       await run(lipo, <String>[

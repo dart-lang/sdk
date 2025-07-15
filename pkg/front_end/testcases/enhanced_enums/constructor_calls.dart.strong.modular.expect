@@ -77,7 +77,7 @@ class E extends core::_Enum /*isEnum*/  {
   const constructor named(core::int #index, core::String #name) → self::E
     : this self::E::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
   static factory f() → self::E
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:8:9: Error: Couldn't find constructor 'E.f'.
@@ -98,7 +98,7 @@ class E extends core::_Enum /*isEnum*/  {
                    ^";
   static factory f5() → self::E /* redirection-target: self::E::f */
     return self::E::f();
-  static factory f6(core::int value = #C7) → self::E
+  static factory f6(core::int value) → self::E
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:28:29: Error: The constructor function type 'E Function()' isn't a subtype of 'E Function(int)'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/constructor_calls.dart'.
   factory E.f6(int value) = E.f; // Error.
@@ -128,7 +128,7 @@ static method test() → dynamic {
 Try using a constructor or factory that is 'const'.
   const E.f(); // Error.
         ^";
-  #C8;
+  #C7;
 }
 static method main() → dynamic {}
 
@@ -139,8 +139,7 @@ constants  {
   #C4 = 1
   #C5 = "two"
   #C6 = self::E {index:#C4, _name:#C5}
-  #C7 = null
-  #C8 = constructor-tearoff self::E::f
+  #C7 = constructor-tearoff self::E::f
 }
 
 

@@ -90,7 +90,7 @@ class En extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::En
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "En.${this.{core::_Enum::_name}{core::String}}";
 }
 extension type E1(core::num it) implements core::Object {

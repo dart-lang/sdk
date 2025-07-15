@@ -47,7 +47,7 @@ class FixProcessor {
   /// If passing [alreadyCalculated] for calculations where we know the output
   /// will be the same, a result will only be calculated if one hasn't been
   /// calculated already (for a similar situation). If calculating the Set will
-  /// be ammended with this information.
+  /// be amended with this information.
   /// If not passing [alreadyCalculated] the calculation will always be
   /// performed.
   FixProcessor(
@@ -64,105 +64,103 @@ class FixProcessor {
     return _fixes;
   }
 
-  void _addFixFromBuilder(ChangeBuilder builder, CorrectionProducer producer) {
-    var change = builder.sourceChange;
-    if (change.edits.isEmpty) {
-      return;
-    }
-
+  Future<void> _addFromProducer(CorrectionProducer producer) async {
     var kind = producer.fixKind;
+    // If this producer is not actually designed to work as an fix, ignore it.
     if (kind == null) {
       return;
     }
 
-    change.id = kind.id;
-    change.message = formatList(kind.message, producer.fixArguments);
-    _fixes.add(Fix(kind: kind, change: change));
+    var builder =
+        ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
+    try {
+      var fixKind = producer.fixKind;
+
+      if (_performance != null) {
+        var startTime = _timer.elapsedMilliseconds;
+        await producer.compute(builder);
+        _performance.producerTimings.add((
+          className: producer.runtimeType.toString(),
+          elapsedTime: _timer.elapsedMilliseconds - startTime,
+        ));
+      } else {
+        await producer.compute(builder);
+      }
+
+      assert(
+        !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
+        'Producers used in bulk fixes must not modify the FixKind during '
+        'computation. $producer changed from $fixKind to ${producer.fixKind}.',
+      );
+
+      var change = builder.sourceChange;
+      if (change.edits.isEmpty) {
+        return;
+      }
+
+      change.id = kind.id;
+      change.message = formatList(kind.message, producer.fixArguments);
+      _fixes.add(Fix(kind: kind, change: change));
+    } on ConflictingEditException catch (exception, stackTrace) {
+      // Handle the exception by (a) not adding a fix based on the producer
+      // and (b) logging the exception.
+      _fixContext.instrumentationService.logException(exception, stackTrace);
+    }
   }
 
   Future<void> _addFromProducers() async {
-    var error = _fixContext.error;
+    var diagnostic = _fixContext.diagnostic;
     var context = CorrectionProducerContext.createResolved(
       libraryResult: _fixContext.libraryResult,
       unitResult: _fixContext.unitResult,
       dartFixContext: _fixContext,
-      diagnostic: error,
-      selectionOffset: _fixContext.error.offset,
-      selectionLength: _fixContext.error.length,
+      diagnostic: diagnostic,
+      selectionOffset: _fixContext.diagnostic.offset,
+      selectionLength: _fixContext.diagnostic.length,
     );
 
-    Future<void> compute(CorrectionProducer producer) async {
-      var builder =
-          ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
-      try {
-        var fixKind = producer.fixKind;
-
-        if (_performance != null) {
-          var startTime = _timer.elapsedMilliseconds;
-          await producer.compute(builder);
-          _performance.producerTimings.add((
-            className: producer.runtimeType.toString(),
-            elapsedTime: _timer.elapsedMilliseconds - startTime,
-          ));
-        } else {
-          await producer.compute(builder);
-        }
-
-        assert(
-          !producer.canBeAppliedAcrossSingleFile || producer.fixKind == fixKind,
-          'Producers used in bulk fixes must not modify the FixKind during '
-          'computation. $producer changed from $fixKind to ${producer.fixKind}.',
-        );
-
-        _addFixFromBuilder(builder, producer);
-      } on ConflictingEditException catch (exception, stackTrace) {
-        // Handle the exception by (a) not adding a fix based on the producer
-        // and (b) logging the exception.
-        _fixContext.instrumentationService.logException(exception, stackTrace);
-      }
-    }
-
-    var errorCode = error.errorCode;
+    var diagnosticCode = diagnostic.diagnosticCode;
     List<ProducerGenerator>? generators;
     List<MultiProducerGenerator>? multiGenerators;
-    if (errorCode is LintCode) {
-      generators = registeredFixGenerators.lintProducers[errorCode];
-      multiGenerators = registeredFixGenerators.lintMultiProducers[errorCode];
-    } else {
-      generators = registeredFixGenerators.nonLintProducers[errorCode];
+    if (diagnosticCode is LintCode) {
+      generators = registeredFixGenerators.lintProducers[diagnosticCode];
       multiGenerators =
-          registeredFixGenerators.nonLintMultiProducers[errorCode];
+          registeredFixGenerators.lintMultiProducers[diagnosticCode];
+    } else {
+      generators = registeredFixGenerators.nonLintProducers[diagnosticCode];
+      multiGenerators =
+          registeredFixGenerators.nonLintMultiProducers[diagnosticCode];
     }
 
     if (generators != null) {
       for (var generator in generators) {
-        await compute(generator(context: context));
+        await _addFromProducer(generator(context: context));
       }
     }
     if (multiGenerators != null) {
       for (var multiGenerator in multiGenerators) {
         var multiProducer = multiGenerator(context: context);
         for (var producer in await multiProducer.producers) {
-          await compute(producer);
+          await _addFromProducer(producer);
         }
       }
     }
 
-    if (errorCode is LintCode ||
-        errorCode is HintCode ||
-        errorCode is WarningCode) {
+    if (diagnosticCode is LintCode ||
+        diagnosticCode is HintCode ||
+        diagnosticCode is WarningCode) {
       for (var generator in registeredFixGenerators.ignoreProducerGenerators) {
         var producer = generator(context: context);
         if (producer.fixKind == ignoreErrorAnalysisFileKind) {
           if (alreadyCalculated?.add('${generator.hashCode}|'
                   '${ignoreErrorAnalysisFileKind.id}|'
-                  '${error.errorCode.name}') ==
+                  '${diagnostic.diagnosticCode.name}') ==
               false) {
             // We did this before and was asked to not do it again. Skip.
             continue;
           }
         }
-        await compute(producer);
+        await _addFromProducer(generator(context: context));
       }
     }
   }

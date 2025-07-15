@@ -91,7 +91,7 @@ class InheritedReferenceContributor
         }
       }
     }
-    for (var elem in type.methods2) {
+    for (var elem in type.methods) {
       if (elem.returnType is! VoidType) {
         if (optype.includeReturnValueSuggestions) {
           addSuggestion(elem);

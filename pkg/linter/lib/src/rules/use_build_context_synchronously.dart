@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -933,10 +933,7 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
@@ -1213,7 +1210,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // Static function called; `target` is the class.
       for (var method in protectedStaticMethods) {
         if (invocation.methodName.name == method.name &&
-            targetElement.name3 == method.type) {
+            targetElement.name == method.type) {
           checkPositionalArguments(
             method.positional,
             positionalArguments,
@@ -1233,7 +1230,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (staticType == null) return;
       for (var method in protectedInstanceMethods) {
         if (invocation.methodName.name == method.name &&
-            staticType.element3?.name3 == method.type) {
+            staticType.element?.name == method.type) {
           checkPositionalArguments(
             method.positional,
             positionalArguments,
@@ -1447,7 +1444,7 @@ extension on Statement {
 }
 
 extension on Expression {
-  bool? get constantBoolValue => computeConstantValue().value?.toBoolValue();
+  bool? get constantBoolValue => computeConstantValue()?.value?.toBoolValue();
 }
 
 @visibleForTesting
@@ -1465,7 +1462,7 @@ extension ElementExtension on Element {
         // check on the State.
         return enclosingElement.lookUpGetter(
           name: 'mounted',
-          library: enclosingElement.library2,
+          library: enclosingElement.library,
         );
       }
     }
@@ -1475,11 +1472,11 @@ extension ElementExtension on Element {
           ExecutableElement() => self.returnType,
           VariableElement() => self.type,
           _ => null,
-        }?.element3;
+        }?.element;
     if (buildContextElement is InterfaceElement) {
       return buildContextElement.lookUpGetter(
         name: 'mounted',
-        library: buildContextElement.library2,
+        library: buildContextElement.library,
       );
     }
 

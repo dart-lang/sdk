@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
@@ -12,6 +10,7 @@ import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
@@ -111,8 +110,69 @@ class ContextLocatorImpl {
       }
     }
 
+    var workspaceResolutionRootMap = <String, List<Folder>>{};
+    var nonWorkspaceResolutionFolders = <Folder>[];
+    _sortIncludedFoldersIntoWorkspaceResolutions(
+      includedFolders,
+      defaultOptionsFile,
+      defaultPackagesFile,
+      nonWorkspaceResolutionFolders,
+      workspaceResolutionRootMap,
+    );
+
     var roots = <ContextRootImpl>[];
-    for (Folder folder in includedFolders) {
+    for (var workspaceResolution in workspaceResolutionRootMap.entries) {
+      var workspaceRootFolder = resourceProvider.getFolder(
+        workspaceResolution.key,
+      );
+      var location = _contextRootLocation(
+        workspaceRootFolder,
+        defaultOptionsFile: defaultOptionsFile,
+        defaultPackagesFile: defaultPackagesFile,
+        defaultRootFolder: () => workspaceRootFolder,
+      );
+
+      ContextRootImpl root = _createContextRoot(
+        roots,
+        rootFolder: workspaceRootFolder,
+        workspace: location.workspace,
+        optionsFile: location.optionsFile,
+        packagesFile: location.packagesFile,
+      );
+
+      var rootEnabledLegacyPlugins = _getEnabledLegacyPlugins(
+        location.workspace,
+        location.optionsFile,
+      );
+
+      Set<String> visited = {};
+      bool usedRoot = false;
+
+      for (var folder in workspaceResolution.value) {
+        if (!root.isAnalyzed(folder.path)) {
+          root.included.add(folder);
+        }
+
+        usedRoot |= _createContextRoots(
+          roots,
+          visited,
+          folder,
+          excludedFolders,
+          root,
+          rootEnabledLegacyPlugins,
+          root.excludedGlobs,
+          defaultOptionsFile,
+          defaultPackagesFile,
+        );
+      }
+      if (!usedRoot) {
+        // If all included folders under this workspace resolution ended up
+        // creating new contexts remove the (not used) root.
+        roots.remove(root);
+      }
+    }
+
+    for (Folder folder in nonWorkspaceResolutionFolders) {
       var location = _contextRootLocation(
         folder,
         defaultOptionsFile: defaultOptionsFile,
@@ -121,11 +181,26 @@ class ContextLocatorImpl {
       );
 
       ContextRootImpl? root;
+      // Check whether there are existing roots that overlap with this one.
       for (var existingRoot in roots) {
-        if (existingRoot.root.isOrContains(folder.path) &&
-            _matchRootWithLocation(existingRoot, location)) {
-          root = existingRoot;
-          break;
+        if (existingRoot.root.isOrContains(folder.path)) {
+          if (_matchRootWithLocation(existingRoot, location)) {
+            // This root is covered exactly by the existing root (with the same
+            // options/packages file) so we can simple use it.
+            root = existingRoot;
+            break;
+          } else {
+            // This root is within another (but doesn't share options/packages)
+            // so we still need a new root. However, we should exclude this
+            // from the existing root so these files aren't analyzed by both.
+            //
+            // It's possible this folder is already excluded (for example
+            // because it's also a project and had a context root created as
+            // part of the parent analysis root).
+            if (!existingRoot.excluded.contains(folder)) {
+              existingRoot.excluded.add(folder);
+            }
+          }
         }
       }
 
@@ -315,7 +390,10 @@ class ContextLocatorImpl {
   /// For each directory within the given [folder] that is neither in the list
   /// of [excludedFolders] nor excluded by the [excludedGlobs], recursively
   /// search for nested context roots.
-  void _createContextRoots(
+  ///
+  /// Returns true if the folder was contained in the root and did not create a
+  /// new root, false if it did create a new root.
+  bool _createContextRoots(
     List<ContextRoot> roots,
     Set<String> visited,
     Folder folder,
@@ -352,6 +430,8 @@ class ContextLocatorImpl {
           containingRootEnabledLegacyPlugins,
           localEnabledPlugins,
         );
+
+    bool usedThisRoot = true;
 
     // Create a context root for the given [folder] if a packages or build file
     // is locally specified, or the set of enabled legacy plugins changed.
@@ -391,6 +471,7 @@ class ContextLocatorImpl {
       containingRootEnabledLegacyPlugins = localEnabledPlugins;
       excludedGlobs = _getExcludedGlobs(root.optionsFile, workspace);
       root.excludedGlobs = excludedGlobs;
+      usedThisRoot = false;
     }
 
     if (localOptionsFile != null) {
@@ -414,6 +495,8 @@ class ContextLocatorImpl {
       optionsFile,
       packagesFile,
     );
+
+    return usedThisRoot;
   }
 
   /// For each directory within the given [folder] that is neither in the list
@@ -647,6 +730,47 @@ class ContextLocatorImpl {
     return null;
   }
 
+  /// Load the `workspace` paths from the pubspec file in the given [root].
+  ///
+  /// From https://dart.dev/tools/pub/workspaces a root folder pubspec file will
+  /// look like this:
+  ///
+  /// ```
+  /// name: _
+  /// publish_to: none
+  /// environment:
+  ///   sdk: ^3.6.0
+  /// workspace:
+  ///   - packages/helper
+  ///   - packages/client_package
+  ///   - packages/server_package
+  /// ```
+  ///
+  /// This loads the paths from the `workspace` entry and return them as
+  /// Folders if they exist as folders in the filesystem.
+  Set<Folder> _loadWorkspaceDetailsFromPubspec(String root) {
+    var result = <Folder>{};
+    var rootFolder = resourceProvider.getFolder(root);
+    var rootPubspecFile = rootFolder.getChildAssumingFile(
+      file_paths.pubspecYaml,
+    );
+    if (rootPubspecFile.exists) {
+      var rootPubspec = Pubspec.parse(rootPubspecFile.readAsStringSync());
+      var workspace = rootPubspec.workspace;
+      if (workspace != null) {
+        for (var entry in workspace) {
+          if (entry.text case var relativePath?) {
+            var child = rootFolder.getChild(relativePath);
+            if (child.exists && child is Folder) {
+              result.add(child);
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+
   /// Add to the given lists of [folders] and [files] all of the resources in
   /// the given list of [paths] that exist and are not contained within one of
   /// the folders.
@@ -667,10 +791,69 @@ class ContextLocatorImpl {
     }
   }
 
+  /// Sorts [includedFolders] into either pub workspace resolution or not.
+  ///
+  /// For each [Folder] in [includedFolders] sort into either
+  /// [nonWorkspaceResolutionFolders] or [workspaceResolutionRootMap] depending
+  /// on `pubspec.yaml` specifications.
+  ///
+  /// Folders with `pubspec.yaml` files with a `resolution: workspace` setting
+  /// that matches a root-folders `pubspec.yaml` files `workspace` list is
+  /// sorted into the [workspaceResolutionRootMap] map. Other folders end up in
+  /// [nonWorkspaceResolutionFolders].
+  void _sortIncludedFoldersIntoWorkspaceResolutions(
+    List<Folder> includedFolders,
+    File? defaultOptionsFile,
+    File? defaultPackagesFile,
+    List<Folder> nonWorkspaceResolutionFolders,
+    Map<String, List<Folder>> workspaceResolutionRootMap,
+  ) {
+    var rootWorkspaceSpecification = <String, Set<Folder>>{};
+    for (Folder folder in includedFolders) {
+      var location = _contextRootLocation(
+        folder,
+        defaultOptionsFile: defaultOptionsFile,
+        defaultPackagesFile: defaultPackagesFile,
+        defaultRootFolder: () => folder,
+      );
+
+      var addedToWorkspace = false;
+
+      if (folder.path == location.workspace.root) {
+        // If opening the root don't try to do anything special.
+        var known = rootWorkspaceSpecification[location.workspace.root] ??= {};
+        known.clear();
+        nonWorkspaceResolutionFolders.addAll(
+          workspaceResolutionRootMap[location.workspace.root] ?? [],
+        );
+      } else {
+        var pubspecFile = folder.getChildAssumingFile(file_paths.pubspecYaml);
+        if (pubspecFile.exists) {
+          var pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
+          var resolution = pubspec.resolution;
+          if (resolution != null && resolution.value.text == 'workspace') {
+            var known =
+                rootWorkspaceSpecification[location.workspace.root] ??=
+                    _loadWorkspaceDetailsFromPubspec(location.workspace.root);
+            if (known.contains(folder)) {
+              (workspaceResolutionRootMap[location.workspace.root] ??= []).add(
+                folder,
+              );
+              addedToWorkspace = true;
+            }
+          }
+        }
+      }
+      if (!addedToWorkspace) {
+        nonWorkspaceResolutionFolders.add(folder);
+      }
+    }
+  }
+
   /// Return a list of paths that contains all of the unique elements from the
   /// given list of [paths], sorted such that shorter paths are first.
   List<String> _uniqueSortedPaths(List<String> paths) {
-    Set<String> uniquePaths = HashSet<String>.from(paths);
+    Set<String> uniquePaths = Set<String>.from(paths);
     List<String> sortedPaths = uniquePaths.toList();
     sortedPaths.sort((a, b) => a.length - b.length);
     return sortedPaths;

@@ -265,7 +265,7 @@ class DriverEventsPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
   }
 
   void _writeErrorsEvent(GetErrorsEvent event) {
@@ -303,7 +303,7 @@ class DriverEventsPrinter {
             sink.writeln('---');
           }
 
-          sink.writeElements('errors', result.errors, _writeDiagnostic);
+          sink.writeElements('errors', result.diagnostics, _writeDiagnostic);
         });
       default:
         throw UnimplementedError('${result.runtimeType}');
@@ -1532,7 +1532,7 @@ class ResolvedUnitResultPrinter {
   }
 
   void _writeDiagnostic(Diagnostic d) {
-    sink.writelnWithIndent('${d.offset} +${d.length} ${d.errorCode.name}');
+    sink.writelnWithIndent('${d.offset} +${d.length} ${d.diagnosticCode.name}');
   }
 
   void _writeResolvedUnitResult(ResolvedUnitResultImpl result) {
@@ -1568,7 +1568,7 @@ class ResolvedUnitResultPrinter {
         sink.writeln('---');
       }
 
-      sink.writeElements('errors', result.errors, _writeDiagnostic);
+      sink.writeElements('errors', result.diagnostics, _writeDiagnostic);
 
       var nodeToWrite = configuration.nodeSelector(result);
       if (nodeToWrite != null) {
@@ -1596,7 +1596,7 @@ class ResolvedUnitResultPrinter {
         variable,
       ) {
         sink.writeIndent();
-        sink.write('${variable.name3}: ');
+        sink.write('${variable.name}: ');
         if (variable is LocalVariableElement) {
           elementPrinter.writeType(variable.type);
         } else if (variable is TopLevelVariableElement) {

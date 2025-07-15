@@ -69,7 +69,7 @@ namespace bin {
   V(v, verbose, verbose_option)
 
 #define DEBUG_BOOL_OPTIONS_LIST(V)                                             \
-  V(force_load_elf_from_memory, force_load_elf_from_memory)
+  V(force_load_from_memory, force_load_from_memory)
 
 // A list of flags taking arguments from an enum. Organized as:
 //   V(flag_name, enum_type, field_name)

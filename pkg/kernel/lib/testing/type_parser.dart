@@ -12,9 +12,6 @@ enum ParsedNullability {
   // Used when the type is declared with the '?' suffix.
   nullable,
 
-  // Used when the type is declared with the '*' suffix.
-  legacy,
-
   // Used when the type isn't known to be nullable or non-nullable.
   //
   // For example, the type `A` is such a type, given the declaration:
@@ -34,8 +31,6 @@ Nullability interpretParsedNullability(ParsedNullability parsedNullability,
   switch (parsedNullability) {
     case ParsedNullability.nullable:
       return Nullability.nullable;
-    case ParsedNullability.legacy:
-      return Nullability.legacy;
     case ParsedNullability.undetermined:
       return Nullability.undetermined;
     case ParsedNullability.omitted:
@@ -47,8 +42,6 @@ String parsedNullabilityToString(ParsedNullability parsedNullability) {
   switch (parsedNullability) {
     case ParsedNullability.nullable:
       return '?';
-    case ParsedNullability.legacy:
-      return '*';
     case ParsedNullability.undetermined:
       return '%';
     case ParsedNullability.omitted:
@@ -463,8 +456,6 @@ class Parser {
       result = ParsedNullability.nullable;
     } else if (optionalAdvance("%")) {
       result = ParsedNullability.undetermined;
-    } else if (optionalAdvance("*")) {
-      result = ParsedNullability.legacy;
     }
     return result;
   }

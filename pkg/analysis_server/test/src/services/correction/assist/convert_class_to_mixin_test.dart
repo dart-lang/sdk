@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertClassToMixinTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_CLASS_TO_MIXIN;
+  AssistKind get kind => DartAssistKind.convertClassToMixin;
 
   Future<void> test_abstract() async {
     await resolveTestCode('''

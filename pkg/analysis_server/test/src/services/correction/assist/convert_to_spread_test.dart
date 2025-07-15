@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToSpreadTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_SPREAD;
+  AssistKind get kind => DartAssistKind.convertToSpread;
 
   Future<void> test_addAll_condition_const() async {
     await resolveTestCode('''

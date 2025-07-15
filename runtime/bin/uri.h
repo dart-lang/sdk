@@ -31,6 +31,13 @@ std::unique_ptr<ParsedUri> ParseUri(const char* uri);
 // Returns nullptr if the resolve fails.
 CStringUniquePtr ResolveUri(const char* ref_uri, const char* base_uri);
 
+// Resolves a path with respect to a base path.
+//
+// Path must contain only forward slashes.
+//
+// Returns nullptr if the resolve fails.
+CStringUniquePtr ResolvePath(const char* ref_path, const char* base_path);
+
 }  // namespace dart
 
 #endif  // RUNTIME_BIN_URI_H_

@@ -22,7 +22,7 @@ void main() {
 }
 
 bool _ignoreDeadCode(Diagnostic diagnostic) =>
-    diagnostic.errorCode != WarningCode.DEAD_CODE;
+    diagnostic.diagnosticCode != WarningCode.DEAD_CODE;
 
 @reflectiveTest
 class RemoveComparisonTest extends FixProcessorTest {
@@ -153,6 +153,32 @@ void f(String s) {
   print(s.isEmpty);
 }
 ''');
+  }
+
+  Future<void> test_conditional_expression_alwaysFalse() async {
+    await resolveTestCode('''
+void f(int x) {
+  print(x == null ? 1 : 0);
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  print(0);
+}
+''', errorFilter: _ignoreDeadCode);
+  }
+
+  Future<void> test_conditional_expression_alwaysTrue() async {
+    await resolveTestCode('''
+void f(int x) {
+  print(x != null ? 1 : 0);
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  print(1);
+}
+''', errorFilter: _ignoreDeadCode);
   }
 
   Future<void> test_ifElement_alwaysFalse_hasElse() async {
@@ -788,6 +814,32 @@ void g(int a, int b) {
 class RemoveTypeCheckTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_TYPE_CHECK;
+
+  Future<void> test_conditional_expression_alwaysFalse() async {
+    await resolveTestCode('''
+void f(int x) {
+  print(x is! int ? 1 : 0);
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  print(0);
+}
+''', errorFilter: _ignoreDeadCode);
+  }
+
+  Future<void> test_conditional_expression_alwaysTrue() async {
+    await resolveTestCode('''
+void f(int x) {
+  print(x is int ? 1 : 0);
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  print(1);
+}
+''', errorFilter: _ignoreDeadCode);
+  }
 
   Future<void> test_unnecessaryTypeCheck_false() async {
     await resolveTestCode('''

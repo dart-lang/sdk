@@ -42,7 +42,7 @@ class C2<V extends core::Object? = dynamic> extends self::Super<self::C2::V%> im
     return mix::V();
   method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
     return mix::_private();
-  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+  method /* from org-dartlang-testcase:///mixin_library.dart */ mix::_privateMethod() → dynamic
     return 49;
   method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
     return this.{mix::Mixin::_privateMethod}(){() → dynamic};
@@ -65,7 +65,7 @@ class D2 extends self::Super<dynamic> implements mix::Mixin<dynamic> /*isElimina
     return mix::V();
   method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
     return mix::_private();
-  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+  method /* from org-dartlang-testcase:///mixin_library.dart */ mix::_privateMethod() → dynamic
     return 49;
   method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
     return this.{mix::Mixin::_privateMethod}(){() → dynamic};
@@ -88,7 +88,7 @@ abstract class _C&Super&Mixin<V extends core::Object? = dynamic> extends self::S
     return mix::V();
   method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
     return mix::_private();
-  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+  method /* from org-dartlang-testcase:///mixin_library.dart */ mix::_privateMethod() → dynamic
     return 49;
   method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
     return this.{mix::Mixin::_privateMethod}(){() → dynamic};
@@ -111,7 +111,7 @@ abstract class _D&Super&Mixin extends self::Super<dynamic> implements mix::Mixin
     return mix::V();
   method /* from org-dartlang-testcase:///mixin_library.dart */ l() → dynamic
     return mix::_private();
-  method /* from org-dartlang-testcase:///mixin_library.dart */ _privateMethod() → dynamic
+  method /* from org-dartlang-testcase:///mixin_library.dart */ mix::_privateMethod() → dynamic
     return 49;
   method /* from org-dartlang-testcase:///mixin_library.dart */ publicMethod() → dynamic
     return this.{mix::Mixin::_privateMethod}(){() → dynamic};

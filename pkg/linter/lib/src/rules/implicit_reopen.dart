@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -24,10 +25,7 @@ class ImplicitReopen extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.implicit_reopen;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addClassTypeAlias(this, visitor);
@@ -49,10 +47,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element.isSealed) return;
     if (element.isMixinClass) return;
 
-    var library = element.library2;
-    var supertype = element.supertype?.element3;
+    var library = element.library;
+    var supertype = element.supertype?.element;
     if (supertype is! ClassElement) return;
-    if (supertype.library2 != library) return;
+    if (supertype.library != library) return;
 
     if (element.isBase) {
       if (supertype.isFinal) {
@@ -95,8 +93,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     required InterfaceElement other,
     required String reason,
   }) {
-    var targetName = target.name3;
-    var otherName = other.name3;
+    var targetName = target.name;
+    var otherName = other.name;
     if (targetName != null && otherName != null) {
       rule.reportAtToken(
         member.name,

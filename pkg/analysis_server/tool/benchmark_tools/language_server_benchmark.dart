@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'io_utils.dart';
 import 'legacy_messages.dart';
@@ -19,7 +20,7 @@ abstract class DartLanguageServerBenchmark {
   bool _launched = false;
   bool _exited = false;
   Completer<bool> _analyzingCompleter = Completer();
-  final _buffer = <int>[];
+  final _buffer = _Uint8ListHelper();
   int? _headerContentLength;
   bool _printedVmServiceStuff = false;
   final String executableToUse;
@@ -347,11 +348,11 @@ abstract class DartLanguageServerBenchmark {
           _buffer.length % 1000 == 0) {
         print(
           'DEBUG MESSAGE: Stdout buffer with length ${_buffer.length} so far: '
-          '${utf8.decode(_buffer)}',
+          '${utf8.decode(_buffer.view())}',
         );
       }
       if (_lsp == true && _headerContentLength == null && _endsWithCrLfCrLf()) {
-        String headerRaw = utf8.decode(_buffer);
+        String headerRaw = utf8.decode(_buffer.view());
         _buffer.clear();
         // Use a regex that makes the '\r' optional to handle "The Dart VM service
         // is listening on [..." message - at least on linux - being \n terminated
@@ -377,7 +378,7 @@ abstract class DartLanguageServerBenchmark {
               _headerContentLength != null &&
               _buffer.length == _headerContentLength!) ||
           (_lsp == false && _endsWithLf())) {
-        String messageString = utf8.decode(_buffer);
+        String messageString = utf8.decode(_buffer.view());
         _buffer.clear();
         _headerContentLength = null;
 
@@ -512,6 +513,34 @@ class OutstandingRequest {
   final Completer<Map<String, dynamic>> completer = Completer();
   OutstandingRequest() {
     stopwatch.start();
+  }
+}
+
+class _Uint8ListHelper {
+  Uint8List data;
+  int length = 0;
+  _Uint8ListHelper() : data = Uint8List(1024);
+
+  int operator [](int index) {
+    if (index < 0 || index >= length) throw 'Out of bounds: $index';
+    return data[index];
+  }
+
+  void add(int i) {
+    if (length == data.length) {
+      var newData = Uint8List(length * 2);
+      newData.setRange(0, length, data);
+      data = newData;
+    }
+    data[length++] = i;
+  }
+
+  void clear() {
+    length = 0;
+  }
+
+  Uint8List view() {
+    return Uint8List.sublistView(data, 0, length);
   }
 }
 

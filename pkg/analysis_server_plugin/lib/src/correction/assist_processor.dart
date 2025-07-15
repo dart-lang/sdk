@@ -107,12 +107,12 @@ class AssistProcessor {
   }
 
   /// Returns whether [generator] applies to any enabled lint rule, among
-  /// [errorCodes].
+  /// [lintCodes].
   bool _generatorAppliesToAnyLintRule(
     ProducerGenerator generator,
-    Set<LintCode> errorCodes,
+    Set<LintCode> lintCodes,
   ) {
-    if (errorCodes.isEmpty) {
+    if (lintCodes.isEmpty) {
       return false;
     }
 
@@ -125,12 +125,12 @@ class AssistProcessor {
     }
 
     var fileOffset = node.offset;
-    for (var error in _assistContext.unitResult.errors) {
-      var errorSource = error.source;
+    for (var diagnostic in _assistContext.unitResult.diagnostics) {
+      var errorSource = diagnostic.source;
       if (_assistContext.unitResult.path == errorSource.fullName) {
-        if (fileOffset >= error.offset &&
-            fileOffset <= error.offset + error.length) {
-          if (errorCodes.contains(error.errorCode)) {
+        if (fileOffset >= diagnostic.offset &&
+            fileOffset <= diagnostic.offset + diagnostic.length) {
+          if (lintCodes.contains(diagnostic.diagnosticCode)) {
             return true;
           }
         }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -44,8 +45,8 @@ List<Diagnostic> validatePubspec({
   required ResourceProvider provider,
   AnalysisOptions? analysisOptions,
 }) {
-  var recorder = RecordingErrorListener();
-  ErrorReporter reporter = ErrorReporter(recorder, source);
+  var recorder = RecordingDiagnosticListener();
+  DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
   var ctx = PubspecValidationContext._(
     contents: contents,
     source: source,
@@ -75,7 +76,9 @@ List<Diagnostic> validatePubspec({
   var lineInfo = LineInfo.fromContent(source.contents.data);
   var ignoreInfo = IgnoreInfo.forYaml(source.contents.data, lineInfo);
 
-  return recorder.errors.where((error) => !ignoreInfo.ignored(error)).toList();
+  return recorder.diagnostics
+      .where((error) => !ignoreInfo.ignored(error))
+      .toList();
 }
 
 /// A function that can validate a `pubspec.yaml`.
@@ -134,7 +137,7 @@ final class PubspecValidationContext {
   final Source source;
 
   /// The reporter to which errors should be reported.
-  final ErrorReporter reporter;
+  final DiagnosticReporter reporter;
 
   /// The resource provider used to access the file system.
   final ResourceProvider provider;

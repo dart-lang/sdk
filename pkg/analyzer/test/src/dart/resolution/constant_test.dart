@@ -38,15 +38,14 @@ const a = const A();
       ],
     );
 
-    var aLib = findElement2.import('package:test/a.dart').importedLibrary2!;
-    var aConstructor = aLib.getClass2('A')!.constructors.single;
-    var p = aConstructor.formalParameters.single;
-    var pf = p.firstFragment as DefaultParameterFragmentImpl;
+    var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
+    var aConstructor = aLib.getClass('A')!.constructors.single;
+    var p = aConstructor.formalParameters.single as FormalParameterElementImpl;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
-    expect(pf.isConstantEvaluated, isTrue);
-    expect(pf.computeConstantValue()!.isNull, isTrue);
+    expect(p.isConstantEvaluated, isTrue);
+    expect(p.computeConstantValue()!.isNull, isTrue);
   }
 
   test_constFactoryRedirection_super() async {
@@ -280,9 +279,8 @@ class B extends A {
     await resolveFile2(a);
     assertErrorsInResolvedUnit(result, []);
 
-    var bElement = findElement2.field('b');
-    var bFragment = bElement.firstFragment as ConstVariableElement;
-    var bValue = bFragment.evaluationResult as DartObjectImpl;
+    var bElement = findElement2.field('b') as FieldElementImpl;
+    var bValue = bElement.evaluationResult as DartObjectImpl;
     var superFields = bValue.getField(GenericState.SUPERCLASS_FIELD);
     expect(superFields!.getField('f1')!.toBoolValue(), false);
   }

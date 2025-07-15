@@ -60,7 +60,7 @@ runTestCase(Uri source) async {
 Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     {required Target target}) async {
   final platformKernel =
-      computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
+      computePlatformBinariesLocation().resolve('vm_platform.dill');
   final options = CompilerOptions()
     ..target = target
     ..additionalDills = <Uri>[platformKernel]

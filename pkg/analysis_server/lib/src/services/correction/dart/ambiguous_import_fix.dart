@@ -24,7 +24,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
     Element? element;
     String? prefix;
     if (node is NamedType) {
-      element = node.element2;
+      element = node.element;
       prefix = node.importPrefix?.name.lexeme;
     } else if (node is SimpleIdentifier) {
       element = node.element;
@@ -38,7 +38,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
       return const [];
     }
     var conflictingElements = element.conflictingElements2;
-    var name = element.name3;
+    var name = element.name;
     if (name == null || name.isEmpty) {
       return const [];
     }

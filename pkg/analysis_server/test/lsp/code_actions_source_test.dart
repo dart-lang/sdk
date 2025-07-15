@@ -162,10 +162,11 @@ void f() {
       Method.workspace_applyEdit,
       ApplyWorkspaceEditParams.fromJson,
       () async {
-        // Apply the command and immediately modify a file afterwards.
+        // Apply the command and immediately modify a file afterwards without
+        // awaiting.
         var commandFuture = executeCommand(command);
-        await commandFuture;
         await replaceFile(12345, testFileUri, 'client-modified-content');
+
         return commandFuture;
       },
       handler: (edit) {

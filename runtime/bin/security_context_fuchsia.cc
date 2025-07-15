@@ -50,7 +50,7 @@ void SSLCertContext::RegisterCallbacks(SSL* ssl) {
   // verification mechanism.
 }
 
-TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() const {
+TrustEvaluateHandlerFunc SSLCertContext::GetTrustEvaluateHandler() {
   return nullptr;
 }
 

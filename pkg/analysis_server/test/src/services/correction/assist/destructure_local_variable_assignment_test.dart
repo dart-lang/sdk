@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class DestructureLocalVariableAssignmentObjectTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+  AssistKind get kind => DartAssistKind.destructureLocalVariableAssignment;
 
   Future<void> test_object() async {
     await resolveTestCode('''
@@ -44,7 +44,7 @@ m() {
 
   Future<void> test_object_propertyAssigned_noAssist() async {
     await resolveTestCode('''
-class A { 
+class A {
   set a(int a) {}
 }
 
@@ -60,7 +60,7 @@ m() {
 
   Future<void> test_object_propertyPostIncremented_noAssist() async {
     await resolveTestCode('''
-class A { 
+class A {
   int a = 1;
 }
 
@@ -76,7 +76,7 @@ m() {
 
   Future<void> test_object_propertyPreIncremented_noAssist() async {
     await resolveTestCode('''
-class A { 
+class A {
   int a = 1;
 }
 
@@ -106,7 +106,7 @@ m() {
 
   Future<void> test_object_referenced() async {
     await resolveTestCode('''
-class A { 
+class A {
   String get a => '';
   String get b => '';
   String get c => '';
@@ -124,7 +124,7 @@ m(var c) {
 }
 ''');
     await assertHasAssist(r'''
-class A { 
+class A {
   String get a => '';
   String get b => '';
   String get c => '';
@@ -161,7 +161,7 @@ m() {
 @reflectiveTest
 class DestructureLocalVariableAssignmentRecordTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+  AssistKind get kind => DartAssistKind.destructureLocalVariableAssignment;
 
   Future<void> test_namedFields() async {
     await resolveTestCode('''

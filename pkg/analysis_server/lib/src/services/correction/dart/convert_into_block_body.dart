@@ -35,7 +35,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
       applicability = CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_BLOCK_BODY;
+  AssistKind get assistKind => DartAssistKind.convertIntoBlockBody;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_INTO_BLOCK_BODY;

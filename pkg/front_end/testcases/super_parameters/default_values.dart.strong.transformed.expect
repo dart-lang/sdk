@@ -84,7 +84,7 @@ class S5 extends core::Object {
     ;
 }
 class C5 extends self::S5 {
-  constructor •([core::int x = #C4]) → self::C5
+  constructor •([erroneously-initialized core::int x = #C4]) → self::C5
     : super self::S5::•(x)
     ;
 }
@@ -101,7 +101,7 @@ class C6 extends self::S6 {
     ;
 }
 class D6 extends self::C6 {
-  constructor •([core::int x = #C4]) → self::D6
+  constructor •([erroneously-initialized core::int x = #C4]) → self::D6
     : super self::C6::•(x)
     ;
 }
@@ -166,7 +166,7 @@ class S5b extends core::Object {
     ;
 }
 class C5b extends self::S5b {
-  constructor •({core::int x = #C4}) → self::C5b
+  constructor •({erroneously-initialized core::int x = #C4}) → self::C5b
     : super self::S5b::•(x: x)
     ;
 }
@@ -183,7 +183,7 @@ class C6b extends self::S6b {
     ;
 }
 class D6b extends self::C6b {
-  constructor •({core::int x = #C4}) → self::D6b
+  constructor •({erroneously-initialized core::int x = #C4}) → self::D6b
     : super self::C6b::•(x: x)
     ;
 }
@@ -247,7 +247,7 @@ class Ap extends core::Object {
     ;
 }
 class Bp extends self::Ap {
-  constructor •([core::int x = #C4]) → self::Bp
+  constructor •([erroneously-initialized core::int x = #C4]) → self::Bp
     : super self::Ap::•(x)
     ;
   constructor req(core::int x) → self::Bp
@@ -260,7 +260,7 @@ class An extends core::Object {
     ;
 }
 class Bn extends self::An {
-  constructor •({core::int x = #C4}) → self::Bn
+  constructor •({erroneously-initialized core::int x = #C4}) → self::Bn
     : super self::An::•(x: x)
     ;
   constructor req({required core::int x}) → self::Bn

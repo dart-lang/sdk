@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToMultilineStringTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_MULTILINE_STRING;
+  AssistKind get kind => DartAssistKind.convertToMultilineString;
 
   Future<void> test_doubleQuoted() async {
     await resolveTestCode('''

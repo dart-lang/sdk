@@ -35,11 +35,11 @@ Future<void> main(List<String> args) async {
     print('File does not exist: `$filePath`');
     exit(1);
   }
-  var errors = result.errors;
-  if (errors.isNotEmpty) {
-    print('${errors.length} errors found:');
-    for (var error in errors) {
-      print('  $error');
+  var diagnostics = result.diagnostics;
+  if (diagnostics.isNotEmpty) {
+    print('${diagnostics.length} diagnostics found:');
+    for (var diagnostic in diagnostics) {
+      print('  $diagnostic');
     }
   }
 }

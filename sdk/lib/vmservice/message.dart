@@ -147,12 +147,29 @@ class Message {
   // elements in the list are strings, making consumption by C++ simpler.
   // This has a side effect that boolean literal values like true become 'true'
   // and thus indistinguishable from the string literal 'true'.
-  List<String> _makeAllString(List<Object?> list) {
-    var new_list = List<String>.filled(list.length, "");
+  static void _convertAllToStringInPlace(List<Object?> list) {
     for (var i = 0; i < list.length; i++) {
-      new_list[i] = list[i].toString();
+      list[i] = list[i].toString();
     }
-    return new_list;
+  }
+
+  List<Object?> _toRequest(RawReceivePort responsePort) {
+    final parametersAreObjects = _methodNeedsObjectParameters(method!);
+    final keys = params.keys.toList(growable: false);
+    var values = params.values.cast<Object?>().toList(growable: false);
+    if (!parametersAreObjects) {
+      _convertAllToStringInPlace(values);
+    }
+    // Keep in sync with Service::InvokeMethod in service.cc.
+    return List<Object?>.filled(7, null)
+      ..[0] =
+          0 // Make room for OOB message type.
+      ..[1] = responsePort.sendPort
+      ..[2] = serial
+      ..[3] = method
+      ..[4] = parametersAreObjects
+      ..[5] = keys
+      ..[6] = values;
   }
 
   Future<Response> sendToIsolate(
@@ -168,19 +185,7 @@ class Message {
       ports.remove(receivePort);
       _setResponseFromPort(value);
     };
-    final keys = _makeAllString(params.keys.toList(growable: false));
-    final values = _makeAllString(
-      params.values.cast<Object?>().toList(growable: false),
-    );
-    final request = List<Object?>.filled(6, null)
-      ..[0] =
-          0 // Make room for OOB message type.
-      ..[1] = receivePort.sendPort
-      ..[2] = serial
-      ..[3] = method
-      ..[4] = keys
-      ..[5] = values;
-    if (!sendIsolateServiceMessage(sendPort, request)) {
+    if (!sendIsolateServiceMessage(sendPort, _toRequest(receivePort))) {
       receivePort.close();
       ports.remove(receivePort);
       _completer.complete(
@@ -205,6 +210,9 @@ class Message {
       case '_writeDevFSFiles':
       case '_readDevFSFile':
       case '_spawnUri':
+      case '_reloadKernel':
+      case '_reloadSources':
+      case 'reloadSources':
         return true;
       default:
         return false;
@@ -217,28 +225,7 @@ class Message {
       receivePort.close();
       _setResponseFromPort(value);
     };
-    var keys = params.keys.toList(growable: false);
-    var values = params.values.cast<Object>().toList(growable: false);
-    if (!_methodNeedsObjectParameters(method!)) {
-      keys = _makeAllString(keys);
-      values = _makeAllString(values);
-    }
-    final request = List<dynamic>.filled(6, null)
-      ..[0] =
-          0 // Make room for OOB message type.
-      ..[1] = receivePort.sendPort
-      ..[2] = serial
-      ..[3] = method
-      ..[4] = keys
-      ..[5] = values;
-
-    if (_methodNeedsObjectParameters(method!)) {
-      // We use a different method invocation path here.
-      sendObjectRootServiceMessage(request);
-    } else {
-      sendRootServiceMessage(request);
-    }
-
+    sendRootServiceMessage(_toRequest(receivePort));
     return _completer.future;
   }
 
@@ -263,6 +250,3 @@ external bool sendIsolateServiceMessage(SendPort sp, List<Object?> m);
 
 @pragma("vm:external-name", "VMService_SendRootServiceMessage")
 external void sendRootServiceMessage(List<Object?> m);
-
-@pragma("vm:external-name", "VMService_SendObjectRootServiceMessage")
-external void sendObjectRootServiceMessage(List<Object?> m);

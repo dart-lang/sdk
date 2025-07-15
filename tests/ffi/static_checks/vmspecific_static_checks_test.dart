@@ -84,8 +84,8 @@ void testGetGeneric() {
     int result = -1;
     result = p.value;
     //         ^^^^^
-    // [cfe] The getter 'value' isn't defined for the class 'Pointer<NativeType>'.
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [cfe] The getter 'value' isn't defined for the type 'Pointer<NativeType>'.
     return result;
   }
 
@@ -119,8 +119,8 @@ void testGetVoid() {
 
   p2.value;
   // ^^^^^
-  // [cfe] The getter 'value' isn't defined for the class 'Pointer<Void>'.
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'value' isn't defined for the type 'Pointer<Void>'.
 
   calloc.free(p1);
 }
@@ -129,8 +129,8 @@ void testGetNativeFunction() {
   Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
   IntUnOp f = p.value;
   //            ^^^^^
-  // [cfe] The getter 'value' isn't defined for the class 'Pointer<NativeFunction<Int8 Function(Int8)>>'.
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [cfe] The getter 'value' isn't defined for the type 'Pointer<NativeFunction<Int8 Function(Int8)>>'.
 }
 
 void testGetNativeType() {
@@ -144,10 +144,10 @@ void testGetTypeMismatch() {
 
   // this fails to compile due to type mismatch
   Pointer<Int8> p2 = p.value;
-  //                   ^
-  // [cfe] A value of type 'Pointer<Int16>' can't be assigned to a variable of type 'Pointer<Int8>'.
   //                 ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  //                   ^
+  // [cfe] A value of type 'Pointer<Int16>' can't be assigned to a variable of type 'Pointer<Int8>'.
 
   calloc.free(p);
 }
@@ -156,8 +156,8 @@ void testSetGeneric() {
   void generic(Pointer p) {
     p.value = 123;
     //^^^^^
-    // [cfe] The setter 'value' isn't defined for the class 'Pointer<NativeType>'.
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+    // [cfe] The setter 'value' isn't defined for the type 'Pointer<NativeType>'.
   }
 
   Pointer<Int8> p = calloc();
@@ -172,8 +172,8 @@ void testSetGeneric2() {
     Pointer<Int8> p = calloc();
     p.value = arg;
     //        ^^^
-    // [cfe] A value of type 'T' can't be assigned to a variable of type 'int'.
     // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+    // [cfe] A value of type 'T' can't be assigned to a variable of type 'int'.
     calloc.free(p);
   }
 
@@ -186,8 +186,8 @@ void testSetVoid() {
 
   p2.value = 1234;
   // ^^^^^
-  // [cfe] The setter 'value' isn't defined for the class 'Pointer<Void>'.
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [cfe] The setter 'value' isn't defined for the type 'Pointer<Void>'.
 
   calloc.free(p1);
 }
@@ -197,8 +197,8 @@ void testSetNativeFunction() {
   IntUnOp f = (a) => a + 1;
   p.value = f;
   //^^^^^
-  // [cfe] The setter 'value' isn't defined for the class 'Pointer<NativeFunction<Int8 Function(Int8)>>'.
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [cfe] The setter 'value' isn't defined for the type 'Pointer<NativeFunction<Int8 Function(Int8)>>'.
 }
 
 void testSetNativeType() {
@@ -215,8 +215,8 @@ void testSetTypeMismatch() {
   // this fails to compile due to type mismatch
   p.value = pHelper;
   //        ^^^^^^^
-  // [cfe] A value of type 'Pointer<Int8>' can't be assigned to a variable of type 'Pointer<Int16>'.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_ASSIGNMENT
+  // [cfe] A value of type 'Pointer<Int8>' can't be assigned to a variable of type 'Pointer<Int16>'.
 
   calloc.free(pHelper);
   calloc.free(p);
@@ -256,8 +256,8 @@ void testAsFunctionWrongNativeFunctionSignature() {
   Pointer<NativeFunction<IntUnOp>> p;
   Function f = p.asFunction<IntUnOp>();
   //           ^
-  // [cfe] Non-nullable variable 'p' must be assigned before it can be used.
   // [analyzer] COMPILE_TIME_ERROR.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE
+  // [cfe] Non-nullable variable 'p' must be assigned before it can be used.
   //             ^
   // [cfe] Expected type 'NativeFunction<int Function(int)>' to be a valid and instantiated subtype of 'NativeType'.
   //                        ^^^^^^^
@@ -296,8 +296,8 @@ void testFromFunctionGeneric() {
     Pointer<NativeFunction<NativeDoubleUnOp>> result = nullptr;
     result = Pointer.fromFunction(f);
     //                            ^
-    // [cfe] fromFunction expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.
     // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+    // [cfe] fromFunction expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.
     return result;
   }
 
@@ -309,8 +309,8 @@ void testFromFunctionGeneric2() {
     Pointer<NativeFunction<T>> result = nullptr;
     result = Pointer.fromFunction(myTimesThree);
     //               ^^^^^^^^^^^^
-    // [cfe] Expected type 'NativeFunction<T>' to be a valid and instantiated subtype of 'NativeType'.
     // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+    // [cfe] Expected type 'NativeFunction<T>' to be a valid and instantiated subtype of 'NativeType'.
     return result;
   }
 
@@ -319,19 +319,19 @@ void testFromFunctionGeneric2() {
 
 void testFromFunctionWrongNativeFunctionSignature() {
   Pointer.fromFunction<IntUnOp>(myTimesFour);
-  //                   ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
   //      ^
   // [cfe] Expected type 'NativeFunction<int Function(int)>' to be a valid and instantiated subtype of 'NativeType'.
+  //                   ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
 }
 
 void testFromFunctionTypeMismatch() {
   Pointer<NativeFunction<NativeDoubleUnOp>> p;
   p = Pointer.fromFunction(myTimesFour);
-  //                       ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
   //          ^
   // [cfe] Expected type 'int Function(int)' to be 'double Function(double)', which is the Dart type corresponding to 'NativeFunction<Double Function(Double)>'.
+  //                       ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 }
 
 void testFromFunctionClosure() {
@@ -360,20 +360,20 @@ void testFromFunctionTearOff() {
 
 void testFromFunctionAbstract() {
   Pointer.fromFunction<Function>(testFromFunctionAbstract);
-  //                   ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
   //      ^
   // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
+  //                   ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
 }
 
 void testFromFunctionFunctionExceptionValueMustBeConst() {
   final notAConst = 1.1;
   Pointer<NativeFunction<NativeDoubleUnOp>> p;
   p = Pointer.fromFunction(myTimesThree, notAConst);
-  //                                     ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_A_CONSTANT
   //          ^
   // [cfe] Exceptional return value must be a constant.
+  //                                     ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_A_CONSTANT
 }
 
 typedef NativeVoidFunc = Void Function();
@@ -391,10 +391,10 @@ void testNativeCallableListenerGeneric() {
   NativeCallable? generic<T extends Function>(T f) {
     NativeCallable<NativeVoidFunc>? result;
     result = NativeCallable.listener(f);
-    //                               ^
-    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
     //                      ^
     // [cfe] Expected type 'T' to be 'void Function()', which is the Dart type corresponding to 'NativeFunction<Void Function()>'.
+    //                               ^
+    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
     return result;
   }
 
@@ -419,44 +419,44 @@ void testNativeCallableListenerGeneric2() {
 
 void testNativeCallableListenerWrongNativeFunctionSignature() {
   /**/ NativeCallable<NativeVoidFunc>.listener(myVoidFunc2);
-  //                                           ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
   //   ^
   // [cfe] Expected type 'void Function(int)' to be 'void Function()', which is the Dart type corresponding to 'NativeFunction<Void Function()>'.
+  //                                           ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 }
 
 void testNativeCallableListenerTypeMismatch() {
   NativeCallable<NativeVoidFunc> p;
   p = NativeCallable.listener(myVoidFunc2);
-  //                          ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
   //                 ^
   // [cfe] Expected type 'void Function(int)' to be 'void Function()', which is the Dart type corresponding to 'NativeFunction<Void Function()>'.
+  //                          ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 }
 
 void testNativeCallableListenerAbstract() {
   final f = NativeCallable<Function>.listener(
       //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-      // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
       // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+      // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
       testNativeCallableListenerAbstract);
 }
 
 void testNativeCallableListenerMustReturnVoid() {
   final f = NativeCallable<NativeDoubleUnOp>.listener(myTimesThree);
   //                                                  ^^^^^^^^^^^^
-  // [cfe] The return type of the function passed to NativeCallable.listener must be void rather than 'double'.
   // [analyzer] COMPILE_TIME_ERROR.MUST_RETURN_VOID
+  // [cfe] The return type of the function passed to NativeCallable.listener must be void rather than 'double'.
 }
 
 void testNativeCallableIsolateLocalGeneric() {
   NativeCallable<Function> generic<T extends Function>(T f) {
     late NativeCallable<NativeDoubleUnOp> result;
     result = NativeCallable.isolateLocal(f);
-    //                                   ^
-    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
     //                      ^
     // [cfe] Expected type 'T' to be 'double Function(double)', which is the Dart type corresponding to 'NativeFunction<Double Function(Double)>'.
+    //                                   ^
+    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
     return result;
   }
 
@@ -467,10 +467,10 @@ void testNativeCallableIsolateLocalGeneric2() {
   NativeCallable<T> generic<T extends Function>() {
     late NativeCallable<T> result;
     result = NativeCallable.isolateLocal(myTimesThree);
-    //                      ^
-    // [cfe] Expected type 'NativeFunction<T>' to be a valid and instantiated subtype of 'NativeType'.
     //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+    //                      ^
+    // [cfe] Expected type 'NativeFunction<T>' to be a valid and instantiated subtype of 'NativeType'.
     return result;
   }
 
@@ -481,17 +481,16 @@ void testNativeCallableIsolateLocalWrongNativeFunctionSignature() {
   /**/ NativeCallable<IntUnOp>.isolateLocal(myTimesFour);
   //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
-  //   ^
   // [cfe] Expected type 'NativeFunction<int Function(int)>' to be a valid and instantiated subtype of 'NativeType'.
 }
 
 void testNativeCallableIsolateLocalTypeMismatch() {
   NativeCallable<NativeDoubleUnOp> p;
   p = NativeCallable.isolateLocal(myTimesFour);
-  //                              ^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
   //                 ^
   // [cfe] Expected type 'int Function(int)' to be 'double Function(double)', which is the Dart type corresponding to 'NativeFunction<Double Function(Double)>'.
+  //                              ^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 }
 
 void testNativeCallableIsolateLocalTearOff() {
@@ -507,18 +506,18 @@ void testNativeCallableIsolateLocalTearOff() {
 void testNativeCallableIsolateLocalAbstract() {
   NativeCallable<Function>.isolateLocal(testNativeCallableIsolateLocalAbstract);
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
-  // [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
+// [cfe] Expected type 'NativeFunction<Function>' to be a valid and instantiated subtype of 'NativeType'.
 }
 
 void testNativeCallableIsolateLocalFunctionExceptionValueMustBeConst() {
   final notAConst = 1.1;
   NativeCallable<NativeDoubleUnOp> p;
   p = NativeCallable.isolateLocal(myTimesThree, exceptionalReturn: notAConst);
-  //                                                               ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_A_CONSTANT
   //                 ^
   // [cfe] Exceptional return value must be a constant.
+  //                                                               ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_A_CONSTANT
 }
 
 void testLookupFunctionGeneric() {
@@ -526,10 +525,10 @@ void testLookupFunctionGeneric() {
     DynamicLibrary l = DynamicLibrary.process();
     Function result = () => "dummy";
     result = l.lookupFunction<T, DoubleUnOp>("cos");
-    //                        ^
-    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
     //         ^
     // [cfe] Expected type 'NativeFunction<T>' to be a valid and instantiated subtype of 'NativeType'.
+    //                        ^
+    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
     return result;
   }
 
@@ -541,10 +540,10 @@ void testLookupFunctionGeneric2() {
     DynamicLibrary l = DynamicLibrary.process();
     Function result = () => "dummy";
     result = l.lookupFunction<NativeDoubleUnOp, T>("cos");
-    //                                          ^
-    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
     //         ^
     // [cfe] Expected type 'T' to be 'double Function(double)', which is the Dart type corresponding to 'NativeFunction<Double Function(Double)>'.
+    //                                          ^
+    // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
     return result;
   }
 
@@ -554,19 +553,19 @@ void testLookupFunctionGeneric2() {
 void testLookupFunctionWrongNativeFunctionSignature() {
   DynamicLibrary l = DynamicLibrary.process();
   l.lookupFunction<IntUnOp, IntUnOp>("cos");
-  //               ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
   //^
   // [cfe] Expected type 'NativeFunction<int Function(int)>' to be a valid and instantiated subtype of 'NativeType'.
+  //               ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
 }
 
 void testLookupFunctionTypeMismatch() {
   DynamicLibrary l = DynamicLibrary.process();
   l.lookupFunction<NativeDoubleUnOp, IntUnOp>("cos");
-  //                                 ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
   //^
   // [cfe] Expected type 'int Function(int)' to be 'double Function(double)', which is the Dart type corresponding to 'NativeFunction<Double Function(Double)>'.
+  //                                 ^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
 }
 
 typedef PointervoidN = Void Function(Pointer<void>);
@@ -602,10 +601,10 @@ final class TestStruct extends Struct {
 // Cannot extend structs.
 class TestStruct3 extends TestStruct {}
 //    ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] Class 'TestStruct' cannot be extended or implemented.
 // [cfe] TestStruct 'TestStruct3' is empty. Empty structs and unions are undefined behavior.
 // [cfe] The type 'TestStruct3' must be 'base', 'final' or 'sealed' because the supertype 'TestStruct' is 'final'.
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 //                        ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_STRUCT_CLASS
 
@@ -670,8 +669,8 @@ final class TestStruct8 extends Struct {
   @Double()
   double z = 10.0;
   //     ^
-  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
   // [analyzer] COMPILE_TIME_ERROR.FIELD_MUST_BE_EXTERNAL_IN_STRUCT
+  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
 
   external Pointer notEmpty;
 }
@@ -681,8 +680,8 @@ final class TestStruct9 extends Struct {
   @Double()
   double z;
   //     ^
-  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
   // [analyzer] COMPILE_TIME_ERROR.FIELD_MUST_BE_EXTERNAL_IN_STRUCT
+  // [cfe] Field 'z' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
 
   external Pointer notEmpty;
 
@@ -698,8 +697,8 @@ class TestStruct11<T> extends Struct<TestStruct11<dynamic>> {}
 // [analyzer] COMPILE_TIME_ERROR.GENERIC_STRUCT_SUBCLASS
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 //                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [cfe] Expected 0 type arguments.
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS
+// [cfe] Expected 0 type arguments.
 
 // Structs may not appear inside structs (currently, there is no suitable
 // annotation).
@@ -729,85 +728,85 @@ final class TestStruct13 extends Struct {
 
 class ENativeType extends NativeType {}
 //                        ^^^^^^^^^^
-// [cfe] The class 'NativeType' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'NativeType' can't be extended outside of its library because it's a final class.
 
 class EInt8 extends Int8 {}
 //                  ^^^^
-// [cfe] The class 'Int8' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int8' can't be extended outside of its library because it's a final class.
 
 class EInt16 extends Int16 {}
 //                   ^^^^^
-// [cfe] The class 'Int16' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int16' can't be extended outside of its library because it's a final class.
 
 class EInt32 extends Int32 {}
 //                   ^^^^^
-// [cfe] The class 'Int32' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int32' can't be extended outside of its library because it's a final class.
 
 class EInt64 extends Int64 {}
 //                   ^^^^^
-// [cfe] The class 'Int64' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int64' can't be extended outside of its library because it's a final class.
 
 class EUint8 extends Uint8 {}
 //                   ^^^^^
-// [cfe] The class 'Uint8' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint8' can't be extended outside of its library because it's a final class.
 
 class EUint16 extends Uint16 {}
 //                    ^^^^^^
-// [cfe] The class 'Uint16' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint16' can't be extended outside of its library because it's a final class.
 
 class EUint32 extends Uint32 {}
 //                    ^^^^^^
-// [cfe] The class 'Uint32' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint32' can't be extended outside of its library because it's a final class.
 
 class EUint64 extends Uint64 {}
 //                    ^^^^^^
-// [cfe] The class 'Uint64' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint64' can't be extended outside of its library because it's a final class.
 
 class EIntPtr extends IntPtr {}
-//                    ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
-// [cfe] The class 'IntPtr' can't be extended outside of its library because it's a final class.
 //    ^
 // [cfe] Class 'IntPtr' cannot be extended or implemented.
 // [cfe] Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.
 // [cfe] Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.
+//                    ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'IntPtr' can't be extended outside of its library because it's a final class.
 
 class EFloat extends Float {}
 //                   ^^^^^
-// [cfe] The class 'Float' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Float' can't be extended outside of its library because it's a final class.
 
 class EDouble extends Double {}
 //                    ^^^^^^
-// [cfe] The class 'Double' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Double' can't be extended outside of its library because it's a final class.
 
 class EVoid extends Void {}
 //                  ^^^^
-// [cfe] The class 'Void' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Void' can't be extended outside of its library because it's a final class.
 
 class ENativeFunction extends NativeFunction {}
 //                            ^^^^^^^^^^^^^^
-// [cfe] The class 'NativeFunction' can't be extended outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'NativeFunction' can't be extended outside of its library because it's a final class.
 
 class EPointer extends Pointer {}
-//                     ^^^^^^^
-// [cfe] The class 'Pointer' can't be extended outside of its library because it's a final class.
-// [analyzer] COMPILE_TIME_ERROR.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS
 //    ^
-// [cfe] The superclass, 'Pointer', has no unnamed constructor that takes no arguments.
 // [cfe] Subtypes of deeply immutable classes must be deeply immutable.
+// [cfe] The superclass, 'Pointer', has no unnamed constructor that takes no arguments.
+//                     ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS
+// [cfe] The class 'Pointer' can't be extended outside of its library because it's a final class.
 
 // Cannot implement native natives or Struct.
 
@@ -815,104 +814,104 @@ class EPointer extends Pointer {}
 
 class INativeType implements NativeType {}
 //                           ^^^^^^^^^^
-// [cfe] The class 'NativeType' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'NativeType' can't be implemented outside of its library because it's a final class.
 
 class IInt8 implements Int8 {}
 //                     ^^^^
-// [cfe] The class 'Int8' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int8' can't be implemented outside of its library because it's a final class.
 
 class IInt16 implements Int16 {}
 //                      ^^^^^
-// [cfe] The class 'Int16' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int16' can't be implemented outside of its library because it's a final class.
 
 class IInt32 implements Int32 {}
 //                      ^^^^^
-// [cfe] The class 'Int32' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int32' can't be implemented outside of its library because it's a final class.
 
 class IInt64 implements Int64 {}
 //                      ^^^^^
-// [cfe] The class 'Int64' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Int64' can't be implemented outside of its library because it's a final class.
 
 class IUint8 implements Uint8 {}
 //                      ^^^^^
-// [cfe] The class 'Uint8' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint8' can't be implemented outside of its library because it's a final class.
 
 class IUint16 implements Uint16 {}
 //                       ^^^^^^
-// [cfe] The class 'Uint16' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint16' can't be implemented outside of its library because it's a final class.
 
 class IUint32 implements Uint32 {}
 //                       ^^^^^^
-// [cfe] The class 'Uint32' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint32' can't be implemented outside of its library because it's a final class.
 
 class IUint64 implements Uint64 {}
 //                       ^^^^^^
-// [cfe] The class 'Uint64' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Uint64' can't be implemented outside of its library because it's a final class.
 
 class IIntPtr implements IntPtr {}
+//    ^
+// [cfe] Class 'Object' cannot be extended or implemented.
 //                       ^^^^^^
-// [cfe] The class 'IntPtr' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_STRUCT_CLASS
-//    ^
-// [cfe] Class 'Object' cannot be extended or implemented.
+// [cfe] The class 'IntPtr' can't be implemented outside of its library because it's a final class.
 
 class IFloat implements Float {}
 //                      ^^^^^
-// [cfe] The class 'Float' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Float' can't be implemented outside of its library because it's a final class.
 
 class IDouble implements Double {}
 //                       ^^^^^^
-// [cfe] The class 'Double' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Double' can't be implemented outside of its library because it's a final class.
 
 class IVoid implements Void {}
 //                     ^^^^
-// [cfe] The class 'Void' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Void' can't be implemented outside of its library because it's a final class.
 
 class INativeFunction implements NativeFunction {}
 //                               ^^^^^^^^^^^^^^
-// [cfe] The class 'NativeFunction' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'NativeFunction' can't be implemented outside of its library because it's a final class.
 
 class IPointer implements Pointer {}
 //    ^^^^^^^^
-// [cfe] The non-abstract class 'IPointer' is missing implementations for these members:
-// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
 // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
+// [cfe] Subtypes of deeply immutable classes must be deeply immutable.
+// [cfe] The non-abstract class 'IPointer' is missing implementations for these members:
 //                        ^^^^^^^
-// [cfe] The class 'Pointer' can't be implemented outside of its library because it's a final class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Pointer' can't be implemented outside of its library because it's a final class.
 
 class IStruct implements Struct {}
 //    ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] Class 'Object' cannot be extended or implemented.
 // [cfe] The type 'IStruct' must be 'base', 'final' or 'sealed' because the supertype 'Struct' is 'base'.
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 //                       ^^^^^^
-// [cfe] The class 'Struct' can't be implemented outside of its library because it's a base class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Struct' can't be implemented outside of its library because it's a base class.
 
 class IOpaque implements Opaque {}
 //    ^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] Class 'Object' cannot be extended or implemented.
 // [cfe] The type 'IOpaque' must be 'base', 'final' or 'sealed' because the supertype 'Opaque' is 'base'.
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 //                       ^^^^^^
-// [cfe] The class 'Opaque' can't be implemented outside of its library because it's a base class.
 // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+// [cfe] The class 'Opaque' can't be implemented outside of its library because it's a base class.
 
 class MyClass {
   int x;
@@ -958,8 +957,8 @@ final class TestStruct1002 extends Struct {
 
 final class EmptyStruct extends Struct {}
 //          ^^^^^^^^^^^
-// [cfe] Struct 'EmptyStruct' is empty. Empty structs and unions are undefined behavior.
 // [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
+// [cfe] Struct 'EmptyStruct' is empty. Empty structs and unions are undefined behavior.
 
 void testEmptyStructLookupFunctionArgument() {
   testLibrary.lookupFunction<
@@ -1014,7 +1013,7 @@ void testEmptyStructFromFunctionReturn() {
 final class HasNestedEmptyStruct extends Struct {
   external EmptyStruct nestedEmptyStruct;
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
+// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
 
   external Pointer notEmpty;
 }
@@ -1138,8 +1137,8 @@ void testSizeOfGeneric() {
     int size = sizeOf<IntPtr>();
     size = sizeOf<T>();
     //     ^^^^^^^^^^^
-    // [cfe] Expected type 'T' to be a valid and instantiated subtype of 'NativeType'.
     // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+    // [cfe] Expected type 'T' to be a valid and instantiated subtype of 'NativeType'.
     return size;
   }
 
@@ -1149,23 +1148,23 @@ void testSizeOfGeneric() {
 void testSizeOfInvalidType() {
   sizeOf();
 //^^^^^^^^
-  // [cfe] Expected type 'SizedNativeType' to be a valid and instantiated subtype of 'NativeType'.
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [cfe] Expected type 'SizedNativeType' to be a valid and instantiated subtype of 'NativeType'.
 
   sizeOf<Struct>();
 //^^^^^^^^^^^^^^^^
-  // [cfe] Expected type 'Struct' to be a valid and instantiated subtype of 'NativeType'.
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [cfe] Expected type 'Struct' to be a valid and instantiated subtype of 'NativeType'.
 
   sizeOf<Union>();
 //^^^^^^^^^^^^^^^
-  // [cfe] Expected type 'Union' to be a valid and instantiated subtype of 'NativeType'.
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [cfe] Expected type 'Union' to be a valid and instantiated subtype of 'NativeType'.
 
   sizeOf<AbiSpecificInteger>();
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [cfe] Expected type 'AbiSpecificInteger' to be a valid and instantiated subtype of 'NativeType'.
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_TYPE_ARGUMENT
+// [cfe] Expected type 'AbiSpecificInteger' to be a valid and instantiated subtype of 'NativeType'.
 }
 
 
@@ -1173,7 +1172,7 @@ final class TestStruct1400 extends Struct {
   @Array(8)
   @Array(8)
 //^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.EXTRA_SIZE_ANNOTATION_CARRAY
+// [analyzer] COMPILE_TIME_ERROR.EXTRA_SIZE_ANNOTATION_CARRAY
   external Array<Uint8> a0;
   //                    ^
   // [cfe] Field 'a0' must have exactly one 'Array' annotation.
@@ -1181,10 +1180,10 @@ final class TestStruct1400 extends Struct {
 
 final class TestStruct1401 extends Struct {
   external Array<Uint8> a0;
-  //                    ^
-  // [cfe] Field 'a0' must have exactly one 'Array' annotation.
   //       ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MISSING_SIZE_ANNOTATION_CARRAY
+  //                    ^
+  // [cfe] Field 'a0' must have exactly one 'Array' annotation.
 
   external Pointer<Uint8> notEmpty;
 }
@@ -1248,10 +1247,10 @@ void testAsFunctionIsLeafMustBeConst() {
   bool notAConst = false;
   Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
   IntUnOp f = p.asFunction(isLeaf: notAConst);
-  //                               ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_A_CONSTANT
   //            ^
   // [cfe] Argument 'isLeaf' must be a constant.
+  //                               ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_A_CONSTANT
 }
 
 typedef NativeTakesHandle = Void Function(Handle);
@@ -1260,10 +1259,10 @@ typedef TakesHandle = void Function(Object);
 void testLookupFunctionTakesHandle() {
   DynamicLibrary l = DynamicLibrary.process();
   l.lookupFunction<NativeTakesHandle, TakesHandle>("takesHandle", isLeaf: true);
-  //               ^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_TAKE_HANDLE
   //^
   // [cfe] FFI leaf call must not have Handle argument types.
+  //               ^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_TAKE_HANDLE
 }
 
 void testAsFunctionTakesHandle() {
@@ -1280,10 +1279,10 @@ typedef ReturnsHandle = Object Function();
 void testLookupFunctionReturnsHandle() {
   DynamicLibrary l = DynamicLibrary.process();
   /**/ l.lookupFunction<NativeReturnsHandle, ReturnsHandle>("returnsHandle",
-      //                ^^^^^^^^^^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_RETURN_HANDLE
       // ^
       // [cfe] FFI leaf call must not have Handle return type.
+      //                ^^^^^^^^^^^^^^^^^^^
+      // [analyzer] COMPILE_TIME_ERROR.LEAF_CALL_MUST_NOT_RETURN_HANDLE
       isLeaf: true);
 }
 
@@ -1381,9 +1380,9 @@ final class TestStruct1802 extends Struct {
 // [analyzer] COMPILE_TIME_ERROR.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA
 final class AbiSpecificInteger1 extends AbiSpecificInteger {
   //        ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.ABI_SPECIFIC_INTEGER_INVALID
   // [cfe] Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.
   // [cfe] Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.
-  // [analyzer] COMPILE_TIME_ERROR.ABI_SPECIFIC_INTEGER_INVALID
   const AbiSpecificInteger1();
   //    ^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
@@ -1397,24 +1396,23 @@ final class AbiSpecificInteger1 extends AbiSpecificInteger {
 
 class AbiSpecificInteger2 implements AbiSpecificInteger {
   //  ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
   // [cfe] Class 'Object' cannot be extended or implemented.
   // [cfe] The type 'AbiSpecificInteger2' must be 'base', 'final' or 'sealed' because the supertype 'AbiSpecificInteger' is 'base'.
-  // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
   //                                 ^^^^^^^^^^^^^^^^^^
-  // [cfe] The class 'AbiSpecificInteger' can't be implemented outside of its library because it's a base class.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
+  // [cfe] The class 'AbiSpecificInteger' can't be implemented outside of its library because it's a base class.
   const AbiSpecificInteger2();
 }
 
 class AbiSpecificInteger3 extends AbiSpecificInteger1 {
   //  ^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
   // [cfe] Class 'AbiSpecificInteger1' cannot be extended or implemented.
   // [cfe] Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.
-  // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+  // [cfe] The type 'AbiSpecificInteger3' must be 'base', 'final' or 'sealed' because the supertype 'AbiSpecificInteger1' is 'final'.
   //                              ^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_STRUCT_CLASS
-  //  ^
-  // [cfe] The type 'AbiSpecificInteger3' must be 'base', 'final' or 'sealed' because the supertype 'AbiSpecificInteger1' is 'final'.
   const AbiSpecificInteger3();
   //    ^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
@@ -1422,23 +1420,22 @@ class AbiSpecificInteger3 extends AbiSpecificInteger1 {
 
 class AbiSpecificInteger4 implements AbiSpecificInteger1 {
   //  ^^^^^^^^^^^^^^^^^^^
-  // [cfe] Class 'Object' cannot be extended or implemented.
-  // [cfe] The non-abstract class 'AbiSpecificInteger4' is missing implementations for these members:
   // [analyzer] COMPILE_TIME_ERROR.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER
   // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+  // [cfe] Class 'Object' cannot be extended or implemented.
+  // [cfe] The non-abstract class 'AbiSpecificInteger4' is missing implementations for these members:
+  // [cfe] The type 'AbiSpecificInteger4' must be 'base', 'final' or 'sealed' because the supertype 'AbiSpecificInteger1' is 'final'.
   //                                 ^^^^^^^^^^^^^^^^^^^
-  // [cfe] The class 'AbiSpecificInteger' can't be implemented outside of its library because it's a base class.
   // [analyzer] COMPILE_TIME_ERROR.INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
   // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_STRUCT_CLASS
-  //  ^
-  // [cfe] The type 'AbiSpecificInteger4' must be 'base', 'final' or 'sealed' because the supertype 'AbiSpecificInteger1' is 'final'.
+  // [cfe] The class 'AbiSpecificInteger' can't be implemented outside of its library because it's a base class.
   const AbiSpecificInteger4();
 }
 
 final class MyFinalizableStruct extends Struct implements Finalizable {
   //        ^^^^^^^^^^^^^^^^^^^
-  // [cfe] Struct 'MyFinalizableStruct' can't implement Finalizable.
   // [analyzer] COMPILE_TIME_ERROR.COMPOUND_IMPLEMENTS_FINALIZABLE
+  // [cfe] Struct 'MyFinalizableStruct' can't implement Finalizable.
   external Pointer<Void> field;
 }
 

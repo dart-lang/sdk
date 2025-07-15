@@ -31,7 +31,7 @@ mixin DartFixesMixin implements FixesMixin {
   List<Diagnostic> _getDiagnostics(int offset, ResolvedUnitResult result) {
     var lineInfo = result.lineInfo;
     var offsetLine = lineInfo.getLocation(offset).lineNumber;
-    return result.errors.where((error) {
+    return result.diagnostics.where((error) {
       var errorLine = lineInfo.getLocation(error.offset).lineNumber;
       return errorLine == offsetLine;
     }).toList();

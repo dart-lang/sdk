@@ -62,7 +62,7 @@ String _getMethodSourceForInvocation(
     for (var arg in arguments) {
       // Compare using names because parameter elements may not be the same
       // instance for methods with generic type arguments.
-      if (arg.correspondingParameter?.name3 == parameter.name3) {
+      if (arg.correspondingParameter?.name == parameter.name) {
         argument = arg;
         break;
       }
@@ -80,7 +80,7 @@ String _getMethodSourceForInvocation(
       // report about a missing required parameter
       if (parameter.isRequiredPositional) {
         status.addError(
-          'No argument for the parameter "${parameter.name3}".',
+          'No argument for the parameter "${parameter.name}".',
           newLocation_fromNode(contextNode),
         );
         return;
@@ -192,7 +192,7 @@ Set<String> _getNamesConflictingAt(AstNode node) {
     var enclosingInterfaceElement = node.enclosingInterfaceElement;
     if (enclosingInterfaceElement != null) {
       var elements = [
-        ...enclosingInterfaceElement.allSupertypes.map((type) => type.element3),
+        ...enclosingInterfaceElement.allSupertypes.map((type) => type.element),
         enclosingInterfaceElement,
       ];
       for (var interfaceElement in elements) {
@@ -362,7 +362,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
     } else if (selectedNode is SimpleIdentifier) {
-      element = selectedNode.writeOrReadElement2;
+      element = selectedNode.writeOrReadElement;
     } else {
       return fatalStatus;
     }
@@ -416,8 +416,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     } else if (selectedNode is MethodDeclaration) {
       element = selectedNode.declaredFragment?.element;
       isDeclaration = true;
-    } else if (selectedNode is SimpleIdentifier) {
-      element = selectedNode.writeOrReadElement2;
+    } else if (selectedNode is SimpleIdentifier &&
+        selectedNode.parent is! Combinator) {
+      element = selectedNode.writeOrReadElement;
     } else {
       return fatalStatus;
     }
@@ -701,6 +702,11 @@ class _ReferenceProcessor {
     if (!_shouldProcess()) {
       return;
     }
+    // References in a combinator list can't be inlined, but not doing so isn't
+    // an error.
+    if (nodeParent is Combinator) {
+      return;
+    }
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
     if (ref._methodElement!.firstFragment.isAsynchronous) {
@@ -974,7 +980,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
     // should be a method or field reference
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element is ExecutableElement) {
       if (element is MethodElement || element is PropertyAccessorElement) {
         // OK
@@ -990,7 +996,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     // record the implicit static or instance reference
     var offset = node.offset;
     if (element.isStatic) {
-      var className = element.enclosingElement!.name3!;
+      var className = element.enclosingElement!.name!;
       result.addImplicitClassNameOffset(className, offset);
     } else {
       result.addImplicitThisOffset(offset);

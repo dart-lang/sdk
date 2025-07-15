@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -25,10 +26,7 @@ class NoSoloTests extends LintRule {
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodDeclaration(this, visitor);
@@ -60,9 +58,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Annotation {
   bool get isSoloTest {
-    var element = element2;
+    var element = this.element;
     return element is GetterElement &&
-        element.name3 == 'soloTest' &&
-        element.library2.name3 == 'test_reflective_loader';
+        element.name == 'soloTest' &&
+        element.library.name == 'test_reflective_loader';
   }
 }

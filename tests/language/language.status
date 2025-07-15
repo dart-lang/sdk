@@ -15,11 +15,7 @@ vm/type_cast_vm_test: SkipByDesign # Relies on symbolic stack traces
 
 [ $builder_tag == obfuscated ]
 closure/tearoff_dynamic_test: SkipByDesign # Relies on symbol names
-generic/f_bounded_quantification4_test: SkipByDesign # Relies on symbol names
-generic/no_such_method_dispatcher_test: SkipByDesign # Relies on symbol names
-generic/recursive_generic_test: SkipByDesign # Relies on symbol names
 nnbd/syntax/late_modifier_runtime_error_test: SkipByDesign # Names are obfuscated in error messages
-no_such_method/native_test: SkipByDesign # Relies on symbol names
 records/simple/to_string_test: SkipByDesign # Relies on symbol names
 regress/regress45529_test: SkipByDesign # Relies on symbol names
 stack_trace/demangle_ctors_test: SkipByDesign # Relies on symbol names

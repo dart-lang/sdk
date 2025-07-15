@@ -300,7 +300,8 @@ class Types {
             : ConstructorInvocation(
                 namedParameterConstructor,
                 Arguments([
-                  ConstantExpression(SymbolConstant(n.name, null)),
+                  ConstantExpression(
+                      translator.symbols.symbolForNamedParameter(n.name)),
                   TypeLiteral(n.type),
                   BoolLiteral(n.isRequired)
                 ])));
@@ -535,10 +536,8 @@ class Types {
     // We may only need to check that either of these hold:
     //   * value is non-null
     //   * value is null and the type is nullable.
-    return translator.typeEnvironment.isSubtypeOf(
-        operandType,
-        testedAgainstType.withDeclaredNullability(Nullability.nullable),
-        type_env.SubtypeCheckMode.withNullabilities);
+    return translator.typeEnvironment.isSubtypeOf(operandType,
+        testedAgainstType.withDeclaredNullability(Nullability.nullable));
   }
 }
 
@@ -591,8 +590,7 @@ abstract class _TypeCheckers {
     final sufficiency = typeEnvironment.computeTypeShapeCheckSufficiency(
         expressionStaticType: operandType,
         checkTargetType:
-            testedAgainstType.withDeclaredNullability(Nullability.nullable),
-        subtypeCheckMode: type_env.SubtypeCheckMode.withNullabilities);
+            testedAgainstType.withDeclaredNullability(Nullability.nullable));
 
     // If `true` the caller only needs to check nullabillity and the actual
     // concrete class, no need to check [testedAgainstType] arguments.

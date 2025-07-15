@@ -6,6 +6,7 @@
 
 #include "vm/code_comments.h"
 #include "vm/code_descriptors.h"
+#include "vm/dwarf_so_writer.h"
 #include "vm/elf.h"
 #include "vm/image_snapshot.h"
 #include "vm/object_store.h"
@@ -938,6 +939,88 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
     }
   });
 }
+
+#if !defined(TARGET_ARCH_IA32)
+void Dwarf::WriteCallFrameInformationRecords(
+    DwarfSharedObjectStream* stream,
+    const GrowableArray<FrameDescriptionEntry>& fdes) {
+  ASSERT(!fdes.is_empty());
+
+#if defined(TARGET_ARCH_X64)
+  // The x86_64 psABI defines the DWARF register numbers, which differ from
+  // the registers' usual encoding within instructions.
+  const intptr_t DWARF_RA = 16;  // No corresponding register.
+  const intptr_t DWARF_FP = 6;   // RBP
+#else
+  const intptr_t DWARF_RA = ConcreteRegister(LINK_REGISTER);
+  const intptr_t DWARF_FP = FP;
+#endif
+
+  // Multiplier which will be used to scale operands of DW_CFA_offset and
+  // DW_CFA_val_offset.
+  const intptr_t kDataAlignment = -compiler::target::kWordSize;
+
+  // Used to calculate offset to CIE in FDEs.
+  const intptr_t cie_start = stream->Position();
+  stream->WritePrefixedLength([&] {
+    stream->u4(0);  // CIE
+    stream->u1(1);  // Version (must be 1 or 3)
+    // Augmentation String
+    stream->string("zR");             // NOLINT
+    stream->uleb128(1);               // Code alignment (must be 1).
+    stream->sleb128(kDataAlignment);  // Data alignment
+    stream->u1(DWARF_RA);             // Return address register
+    stream->uleb128(1);               // Augmentation size
+    stream->u1(DW_EH_PE_pcrel | DW_EH_PE_sdata4);  // FDE encoding.
+    // CFA is caller's SP (FP+kCallerSpSlotFromFp*kWordSize)
+    stream->u1(Dwarf::DW_CFA_def_cfa);
+    stream->uleb128(DWARF_FP);
+    stream->uleb128(kCallerSpSlotFromFp * compiler::target::kWordSize);
+  });
+
+  // Emit rule defining that |reg| value is stored at CFA+offset.
+  const auto cfa_offset = [&](intptr_t reg, intptr_t offset) {
+    const intptr_t scaled_offset = offset / kDataAlignment;
+    RELEASE_ASSERT(scaled_offset >= 0);
+    stream->u1(Dwarf::DW_CFA_offset | reg);
+    stream->uleb128(scaled_offset);
+  };
+
+  // Emit an FDE covering each .text section.
+  for (const auto& fde : fdes) {
+#if defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
+    if (fde.label == 0) {
+      // Unwinding instructions sections doesn't have label, doesn't dwarf
+      continue;
+    }
+#endif
+    ASSERT(fde.label != 0);  // Needed for relocations.
+    stream->WritePrefixedLength([&]() {
+      // Offset to CIE. Note that unlike pcrel this offset is encoded
+      // backwards: it will be subtracted from the current position.
+      stream->u4(stream->Position() - cie_start);
+      // Start address as a PC relative reference.
+      stream->RelativeSymbolOffset(fde.label, kInt32Size);
+      stream->u4(fde.size);  // Size.
+      stream->u1(0);         // Augmentation Data length.
+
+      // Caller FP at FP+kSavedCallerPcSlotFromFp*kWordSize,
+      // where FP is CFA - kCallerSpSlotFromFp*kWordSize.
+      COMPILE_ASSERT((kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) <= 0);
+      cfa_offset(DWARF_FP, (kSavedCallerFpSlotFromFp - kCallerSpSlotFromFp) *
+                               compiler::target::kWordSize);
+
+      // Caller LR at FP+kSavedCallerPcSlotFromFp*kWordSize,
+      // where FP is CFA - kCallerSpSlotFromFp*kWordSize
+      COMPILE_ASSERT((kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) <= 0);
+      cfa_offset(DWARF_RA, (kSavedCallerPcSlotFromFp - kCallerSpSlotFromFp) *
+                               compiler::target::kWordSize);
+    });
+  }
+
+  stream->u4(0);  // end of section (FDE with zero length)
+}
+#endif
 
 #endif  // DART_PRECOMPILER
 

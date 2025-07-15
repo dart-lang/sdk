@@ -386,7 +386,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
   TargetCPUFeatures::Init();
   FfiCallbackMetadata::Init();
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   Simulator::Init();
 #endif
   // Create the read-only handles area.
@@ -556,7 +556,6 @@ char* Dart::Init(const Dart_InitializeParams* params) {
   // The embedder, not the VM, should trigger creation of the service and kernel
   // isolates. https://github.com/dart-lang/sdk/issues/33433
 #if !defined(PRODUCT)
-  Service::SetGetServiceAssetsCallback(params->get_service_assets);
   ServiceIsolate::Run();
 #endif
 

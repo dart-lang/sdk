@@ -63,7 +63,7 @@ class ImportsHandler
         return success(null);
       }
 
-      var element = ElementLocator.locate2(node);
+      var element = ElementLocator.locate(node);
       if (element == null) {
         return success(null);
       }
@@ -101,7 +101,7 @@ class ImportsHandler
     Element element,
     String? prefix,
   ) {
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName == null) {
       return [];
     }

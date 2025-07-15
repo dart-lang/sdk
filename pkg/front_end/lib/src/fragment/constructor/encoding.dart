@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
+import '../../base/modifiers.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
+import '../../builder/named_type_builder.dart';
 import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
@@ -15,17 +20,92 @@ import '../../kernel/kernel_helper.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
+import '../../source/source_extension_builder.dart';
 import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_function_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_schema.dart';
+import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'declaration.dart';
 
-class RegularConstructorEncoding {
+abstract class ConstructorEncoding {
+  FunctionNode get function;
+
+  List<Initializer> get initializers;
+
+  void prepareInitializers();
+
+  void prependInitializer(Initializer initializer);
+
+  VariableDeclaration getFormalParameter(int index);
+
+  VariableDeclaration? getTearOffParameter(int index);
+
+  VariableDeclaration? get thisVariable;
+
+  List<TypeParameter>? get thisTypeParameters;
+
+  /// Mark the constructor as erroneous.
+  ///
+  /// This is used during the compilation phase to set the appropriate flag on
+  /// the input AST node. The flag helps the verifier to skip apriori erroneous
+  /// members and to avoid reporting cascading errors.
+  void markAsErroneous();
+
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required covariant DeclarationBuilder declarationBuilder,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
+    required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
+    required bool isConst,
+    required bool isSynthetic,
+    required TypeBuilder returnType,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<FormalParameterBuilder>? formals,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  });
+
+  void buildBody();
+
+  BodyBuilderContext createBodyBuilderContext(
+      SourceConstructorBuilder constructorBuilder,
+      ConstructorFragmentDeclaration constructorDeclaration);
+
+  void registerFunctionBody(Statement value);
+
+  void registerNoBodyConstructor();
+
+  void addSuperParameterDefaultValueCloners(
+      {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+      required Member superTarget,
+      required List<int?>? positionalSuperParameters,
+      required List<String>? namedSuperParameters,
+      required SourceLibraryBuilder libraryBuilder});
+
+  void becomeNative(SourceLoader loader, String nativeMethodName);
+
+  Substitution computeFieldTypeSubstitution(
+      covariant DeclarationBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters);
+
+  bool get isRedirecting;
+}
+
+class RegularConstructorEncoding implements ConstructorEncoding {
   late final Constructor _constructor;
 
   late final Procedure? _constructorTearOff;
@@ -41,63 +121,20 @@ class RegularConstructorEncoding {
       : _isExternal = isExternal,
         _isEnumConstructor = isEnumConstructor;
 
-  Member get readTarget =>
-      _constructorTearOff ??
-      // The case is need to ensure that the upper bound is [Member] and not
-      // [GenericFunction].
-      _constructor as Member;
-
-  Reference get readTargetReference =>
-      (_constructorTearOff ?? _constructor).reference;
-
-  Member get invokeTarget => _constructor;
-
-  Reference get invokeTargetReference => _constructor.reference;
-
+  @override
   void registerFunctionBody(Statement value) {
     function.body = value..parent = function;
   }
 
+  @override
   void registerNoBodyConstructor() {
     if (!_isExternal) {
       registerFunctionBody(new EmptyStatement());
     }
   }
 
+  @override
   FunctionNode get function => _constructor.function;
-
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference,
-      required Uri fileUri,
-      required int startOffset,
-      required int fileOffset,
-      required int endOffset,
-      required bool isSynthetic,
-      required bool forAbstractClassOrEnumOrMixin}) {
-    _constructor = new Constructor(
-        new FunctionNode(_isExternal ? null : new EmptyStatement()),
-        name: dummyName,
-        fileUri: fileUri,
-        reference: constructorReference,
-        isSynthetic: isSynthetic)
-      ..startFileOffset = startOffset
-      ..fileOffset = fileOffset
-      ..fileEndOffset = endOffset;
-    nameScheme
-        .getConstructorMemberName(name, isTearOff: false)
-        .attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(
-        nameScheme.getConstructorMemberName(name, isTearOff: true),
-        libraryBuilder,
-        fileUri,
-        fileOffset,
-        tearOffReference,
-        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
-  }
 
   // Coverage-ignore(suite): Not run.
   Member get constructor => _constructor;
@@ -105,15 +142,41 @@ class RegularConstructorEncoding {
   // Coverage-ignore(suite): Not run.
   Procedure? get constructorTearOff => _constructorTearOff;
 
+  @override
   List<Initializer> get initializers => _constructor.initializers;
 
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  VariableDeclaration? get thisVariable => null;
+
+  @override
+  List<TypeParameter>? get thisTypeParameters => null;
+
+  @override
   void buildOutlineNodes(
     BuildNodesCallback f, {
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceClassBuilder declarationBuilder,
-    required Member declarationConstructor,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool isSynthetic,
+    required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -124,8 +187,16 @@ class RegularConstructorEncoding {
         constructorBuilder: constructorBuilder,
         libraryBuilder: libraryBuilder,
         classBuilder: declarationBuilder,
-        declarationConstructor: declarationConstructor,
+        name: name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
+        startOffset: startOffset,
+        fileOffset: fileOffset,
         formalsOffset: formalsOffset,
+        endOffset: endOffset,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+        isSynthetic: isSynthetic,
         isConst: isConst,
         returnType: returnType,
         typeParameters: typeParameters,
@@ -143,8 +214,16 @@ class RegularConstructorEncoding {
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceClassBuilder classBuilder,
-    required Member declarationConstructor,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
+    required bool isSynthetic,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -152,6 +231,27 @@ class RegularConstructorEncoding {
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     if (!_hasBeenBuilt) {
+      _constructor = new Constructor(
+          new FunctionNode(_isExternal ? null : new EmptyStatement()),
+          name: dummyName,
+          fileUri: fileUri,
+          reference: constructorReferences?.constructorReference,
+          isSynthetic: isSynthetic)
+        ..startFileOffset = startOffset
+        ..fileOffset = fileOffset
+        ..fileEndOffset = endOffset;
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: false)
+          .attachMember(_constructor);
+      _constructorTearOff = createConstructorTearOffProcedure(
+          nameScheme.getConstructorMemberName(name, isTearOff: true),
+          libraryBuilder,
+          fileUri,
+          fileOffset,
+          constructorReferences?.tearOffReference,
+          forAbstractClassOrEnumOrMixin:
+              forAbstractClassOrEnumOrMixin || _isEnumConstructor);
+
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
       function.asyncMarker = AsyncMarker.Sync;
@@ -178,7 +278,7 @@ class RegularConstructorEncoding {
         DelayedDefaultValueCloner delayedDefaultValueCloner =
             buildConstructorTearOffProcedure(
                 tearOff: _constructorTearOff,
-                declarationConstructor: declarationConstructor,
+                declarationConstructor: _constructor,
                 implementationConstructor: _constructor,
                 enclosingDeclarationTypeParameters:
                     classBuilder.cls.typeParameters,
@@ -207,6 +307,10 @@ class RegularConstructorEncoding {
     }
   }
 
+  @override
+  void buildBody() {}
+
+  @override
   void prepareInitializers() {
     // For const constructors we parse initializers already at the outlining
     // stage, there is no easy way to make body building stage skip initializer
@@ -218,21 +322,26 @@ class RegularConstructorEncoding {
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
     _constructor.initializers = [];
+    // TODO(johnniwinther): Can these be moved here from the
+    //  [SourceConstructorBuilder]?
     //redirectingInitializer = null;
     //superInitializer = null;
   }
 
+  @override
   void prependInitializer(Initializer initializer) {
     initializer.parent = _constructor;
     _constructor.initializers.insert(0, initializer);
   }
 
+  @override
   void becomeNative(SourceLoader loader, String nativeMethodName) {
     _constructor.isExternal = true;
 
     loader.addNativeAnnotation(_constructor, nativeMethodName);
   }
 
+  @override
   VariableDeclaration getFormalParameter(int index) {
     if (_isEnumConstructor) {
       // Skip synthetic parameters for index and name.
@@ -247,6 +356,7 @@ class RegularConstructorEncoding {
     }
   }
 
+  @override
   VariableDeclaration? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
@@ -264,6 +374,7 @@ class RegularConstructorEncoding {
 
   bool _hasAddedDefaultValueCloners = false;
 
+  @override
   void addSuperParameterDefaultValueCloners(
       {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
       required Member superTarget,
@@ -292,29 +403,40 @@ class RegularConstructorEncoding {
     }
   }
 
+  @override
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
       ConstructorFragmentDeclaration constructorDeclaration) {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
   }
 
-  /// Mark the constructor as erroneous.
-  ///
-  /// This is used during the compilation phase to set the appropriate flag on
-  /// the input AST node. The flag helps the verifier to skip apriori erroneous
-  /// members and to avoid reporting cascading errors.
+  @override
   void markAsErroneous() {
     _constructor.isErroneous = true;
   }
+
+  @override
+  Substitution computeFieldTypeSubstitution(
+      covariant DeclarationBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters) {
+    // Nothing to substitute. Regular generative constructors don't have their
+    // own type parameters.
+    return Substitution.empty;
+  }
 }
 
-class ExtensionTypeConstructorEncoding {
+mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
+    implements ConstructorEncoding {
   late final Procedure _constructor;
 
   late final Procedure? _constructorTearOff;
 
-  final bool _isExternal;
+  bool get _isExternal;
+
+  bool get _isExtensionMember;
+
+  bool get _isExtensionTypeMember;
 
   Statement? bodyInternal;
 
@@ -328,112 +450,42 @@ class ExtensionTypeConstructorEncoding {
   /// from the extension/extension type declaration.
   List<TypeParameter>? _thisTypeParameters;
 
-  List<Initializer> initializers = [];
+  List<Initializer> _initializers = [];
 
-  ExtensionTypeConstructorEncoding({required bool isExternal})
-      : _isExternal = isExternal;
+  @override
+  List<Initializer> get initializers => _initializers;
 
-  Member get readTarget =>
-      _constructorTearOff ?? // Coverage-ignore(suite): Not run.
-      _constructor;
-
-  Reference get readTargetReference =>
-      (_constructorTearOff ?? // Coverage-ignore(suite): Not run.
-              _constructor)
-          .reference;
-
-  Member get invokeTarget => _constructor;
-
-  Reference get invokeTargetReference => _constructor.reference;
-
+  @override
   void registerFunctionBody(Statement value) {
     function.body = value..parent = function;
   }
 
+  @override
   void registerNoBodyConstructor() {
     if (!_hasBuiltBody && !_isExternal) {
       registerFunctionBody(new EmptyStatement());
     }
   }
 
+  @override
   FunctionNode get function => _constructor.function;
 
-  void createNode(
-      {required String name,
-      required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required Reference? constructorReference,
-      required Reference? tearOffReference,
-      required Uri fileUri,
-      required int fileOffset,
-      required int endOffset,
-      required bool forAbstractClassOrEnumOrMixin}) {
-    _constructor = new Procedure(dummyName, ProcedureKind.Method,
-        new FunctionNode(_isExternal ? null : new EmptyStatement()),
-        fileUri: fileUri, reference: constructorReference)
-      ..fileOffset = fileOffset
-      ..fileEndOffset = endOffset;
-    nameScheme
-        .getConstructorMemberName(name, isTearOff: false)
-        .attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(
-        nameScheme.getConstructorMemberName(name, isTearOff: true),
-        libraryBuilder,
-        fileUri,
-        fileOffset,
-        tearOffReference,
-        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
-        forceCreateLowering: true)
-      ?..isExtensionTypeMember = true;
-  }
-
-  // Coverage-ignore(suite): Not run.
-  Member get constructor => _constructor;
-
-  // Coverage-ignore(suite): Not run.
-  Procedure? get constructorTearOff => _constructorTearOff;
-
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
-    required SourceConstructorBuilder constructorBuilder,
-    required SourceLibraryBuilder libraryBuilder,
-    required SourceExtensionTypeDeclarationBuilder declarationBuilder,
-    required Member declarationConstructor,
-    required int fileOffset,
-    required int formalsOffset,
-    required bool isConst,
-    required TypeBuilder returnType,
-    required List<SourceNominalParameterBuilder>? typeParameters,
-    required List<FormalParameterBuilder>? formals,
-    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
-  }) {
-    _build(
-        constructorBuilder: constructorBuilder,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        declarationConstructor: declarationConstructor,
-        fileOffset: fileOffset,
-        formalsOffset: formalsOffset,
-        isConst: isConst,
-        returnType: returnType,
-        typeParameters: typeParameters,
-        formals: formals,
-        delayedDefaultValueCloners: delayedDefaultValueCloners);
-    f(
-        member: _constructor,
-        tearOff: _constructorTearOff,
-        kind: BuiltMemberKind.ExtensionTypeConstructor);
-  }
-
   bool _hasBeenBuilt = false;
+
+  DartType _computeThisType(T declarationBuilder, List<DartType> typeArguments);
 
   void _build({
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
-    required SourceExtensionTypeDeclarationBuilder declarationBuilder,
-    required Member declarationConstructor,
+    required T declarationBuilder,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
     required int fileOffset,
     required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
     required bool isConst,
     required TypeBuilder returnType,
     required List<SourceNominalParameterBuilder>? typeParameters,
@@ -441,6 +493,26 @@ class ExtensionTypeConstructorEncoding {
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     if (!_hasBeenBuilt) {
+      _constructor = new Procedure(dummyName, ProcedureKind.Method,
+          new FunctionNode(_isExternal ? null : new EmptyStatement()),
+          fileUri: fileUri,
+          reference: constructorReferences?.constructorReference)
+        ..fileOffset = fileOffset
+        ..fileEndOffset = endOffset;
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: false)
+          .attachMember(_constructor);
+      _constructorTearOff = createConstructorTearOffProcedure(
+          nameScheme.getConstructorMemberName(name, isTearOff: true),
+          libraryBuilder,
+          fileUri,
+          fileOffset,
+          constructorReferences?.tearOffReference,
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+          forceCreateLowering: true)
+        ?..isExtensionMember = _isExtensionMember
+        ..isExtensionTypeMember = _isExtensionTypeMember;
+
       // According to the specification §9.3 the return type of a constructor
       // function is its enclosing class.
       function.asyncMarker = AsyncMarker.Sync;
@@ -464,12 +536,9 @@ class ExtensionTypeConstructorEncoding {
         typeArguments = [];
       }
 
-      ExtensionTypeDeclaration extensionTypeDeclaration =
-          declarationBuilder.extensionTypeDeclaration;
       _thisVariable = new VariableDeclarationImpl(syntheticThisName,
           isFinal: true,
-          type: new ExtensionType(
-              extensionTypeDeclaration, Nullability.nonNullable, typeArguments))
+          type: _computeThisType(declarationBuilder, typeArguments))
         ..fileOffset = fileOffset
         ..isLowered = true;
 
@@ -479,20 +548,20 @@ class ExtensionTypeConstructorEncoding {
         typeParameterTypes
             .add(new TypeParameterType.withDefaultNullability(typeParameter));
       }
-      ExtensionType type = new ExtensionType(extensionTypeDeclaration,
-          Nullability.nonNullable, typeParameterTypes);
-      returnType.registerInferredType(type);
+      returnType.registerInferredType(
+          _computeThisType(declarationBuilder, typeParameterTypes));
       _constructor.function.fileOffset = formalsOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
       _constructor.isConst = isConst;
       _constructor.isExternal = _isExternal;
       _constructor.isStatic = true;
-      _constructor.isExtensionTypeMember = true;
+      _constructor.isExtensionMember = _isExtensionMember;
+      _constructor.isExtensionTypeMember = _isExtensionTypeMember;
 
       if (_constructorTearOff != null) {
         delayedDefaultValueCloners.add(buildConstructorTearOffProcedure(
             tearOff: _constructorTearOff,
-            declarationConstructor: declarationConstructor,
+            declarationConstructor: _constructor,
             implementationConstructor: _constructor,
             libraryBuilder: libraryBuilder));
       }
@@ -518,12 +587,14 @@ class ExtensionTypeConstructorEncoding {
     }
   }
 
+  @override
   VariableDeclaration? get thisVariable {
     assert(_thisVariable != null,
         "ProcedureBuilder.thisVariable has not been set.");
     return _thisVariable;
   }
 
+  @override
   List<TypeParameter>? get thisTypeParameters {
     // Use [_thisVariable] as marker for whether this type parameters have
     // been computed.
@@ -532,6 +603,7 @@ class ExtensionTypeConstructorEncoding {
     return _thisTypeParameters;
   }
 
+  @override
   void prepareInitializers() {
     // For const constructors we parse initializers already at the outlining
     // stage, there is no easy way to make body building stage skip initializer
@@ -542,15 +614,19 @@ class ExtensionTypeConstructorEncoding {
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    initializers = [];
+    _initializers = [];
+    // TODO(johnniwinther): Can these be moved here from the
+    //  [SourceConstructorBuilder]?
     //redirectingInitializer = null;
     //superInitializer = null;
   }
 
+  @override
   void prependInitializer(Initializer initializer) {
-    initializers.insert(0, initializer);
+    _initializers.insert(0, initializer);
   }
 
+  @override
   VariableDeclaration getFormalParameter(int index) {
     if (index < function.positionalParameters.length) {
       return function.positionalParameters[index];
@@ -561,6 +637,7 @@ class ExtensionTypeConstructorEncoding {
     }
   }
 
+  @override
   VariableDeclaration? getTearOffParameter(int index) {
     Procedure? constructorTearOff = _constructorTearOff;
     if (constructorTearOff != null) {
@@ -578,6 +655,7 @@ class ExtensionTypeConstructorEncoding {
 
   bool _hasBuiltBody = false;
 
+  @override
   void buildBody() {
     if (_hasBuiltBody) {
       return;
@@ -585,10 +663,10 @@ class ExtensionTypeConstructorEncoding {
     if (!_isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
-      ExtensionTypeInitializerToStatementConverter visitor =
-          new ExtensionTypeInitializerToStatementConverter(
+      _ExtensionTypeInitializerToStatementConverter visitor =
+          new _ExtensionTypeInitializerToStatementConverter(
               statements, thisVariable);
-      for (Initializer initializer in initializers) {
+      for (Initializer initializer in _initializers) {
         initializer.accept(visitor);
       }
       if (function.body != null && function.body is! EmptyStatement) {
@@ -600,19 +678,487 @@ class ExtensionTypeConstructorEncoding {
     _hasBuiltBody = true;
   }
 
+  @override
   BodyBuilderContext createBodyBuilderContext(
-      SourceConstructorBuilderImpl constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
       ConstructorFragmentDeclaration constructorDeclaration) {
     return new ConstructorBodyBuilderContext(
         constructorBuilder, constructorDeclaration, _constructor);
   }
 
-  /// Mark the constructor as erroneous.
-  ///
-  /// This is used during the compilation phase to set the appropriate flag on
-  /// the input AST node. The flag helps the verifier to skip apriori erroneous
-  /// members and to avoid reporting cascading errors.
+  @override
   void markAsErroneous() {
     _constructor.isErroneous = true;
+  }
+
+  @override
+  void addSuperParameterDefaultValueCloners(
+      {required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+      required Member superTarget,
+      required List<int?>? positionalSuperParameters,
+      required List<String>? namedSuperParameters,
+      required SourceLibraryBuilder libraryBuilder}) {
+    throw new UnsupportedError(
+        '$runtimeType.addSuperParameterDefaultValueCloners');
+  }
+
+  @override
+  void becomeNative(SourceLoader loader, String nativeMethodName) {
+    throw new UnsupportedError('$runtimeType.becomeNative');
+  }
+}
+
+class _ExtensionTypeInitializerToStatementConverter
+    implements InitializerVisitor<void> {
+  VariableDeclaration thisVariable;
+  final List<Statement> statements;
+
+  _ExtensionTypeInitializerToStatementConverter(
+      this.statements, this.thisVariable);
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    statements.add(node.statement);
+  }
+
+  @override
+  void visitAuxiliaryInitializer(AuxiliaryInitializer node) {
+    if (node is ExtensionTypeRedirectingInitializer) {
+      statements.add(new ExpressionStatement(
+          new VariableSet(
+              thisVariable,
+              new StaticInvocation(node.target, node.arguments)
+                ..fileOffset = node.fileOffset)
+            ..fileOffset = node.fileOffset)
+        ..fileOffset = node.fileOffset);
+      return;
+    } else if (node is ExtensionTypeRepresentationFieldInitializer) {
+      thisVariable
+        ..initializer = (node.value..parent = thisVariable)
+        ..fileOffset = node.fileOffset;
+      return;
+    }
+    // Coverage-ignore-block(suite): Not run.
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitFieldInitializer(FieldInitializer node) {
+    thisVariable
+      ..initializer = (node.value..parent = thisVariable)
+      ..fileOffset = node.fileOffset;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitInvalidInitializer(InvalidInitializer node) {
+    statements.add(new ExpressionStatement(
+        new InvalidExpression(null)..fileOffset = node.fileOffset)
+      ..fileOffset);
+  }
+
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
+    statements.add(node.variable);
+  }
+
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void visitSuperInitializer(SuperInitializer node) {
+    // TODO(johnniwinther): Report error for this case.
+  }
+}
+
+class ExtensionTypeConstructorEncoding
+    with
+        _ExtensionTypeConstructorEncodingMixin<
+            SourceExtensionTypeDeclarationBuilder>
+    implements
+        ConstructorEncoding {
+  @override
+  final bool _isExternal;
+
+  ExtensionTypeConstructorEncoding({required bool isExternal})
+      : _isExternal = isExternal;
+
+  @override
+  DartType _computeThisType(
+      SourceExtensionTypeDeclarationBuilder declarationBuilder,
+      List<DartType> typeArguments) {
+    ExtensionTypeDeclaration extensionTypeDeclaration =
+        declarationBuilder.extensionTypeDeclaration;
+    return new ExtensionType(
+        extensionTypeDeclaration, Nullability.nonNullable, typeArguments);
+  }
+
+  @override
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceExtensionTypeDeclarationBuilder declarationBuilder,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
+    required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
+    required bool isConst,
+    required bool isSynthetic,
+    required TypeBuilder returnType,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<FormalParameterBuilder>? formals,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    _build(
+        constructorBuilder: constructorBuilder,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        name: name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        formalsOffset: formalsOffset,
+        endOffset: endOffset,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+        isConst: isConst,
+        returnType: returnType,
+        typeParameters: typeParameters,
+        formals: formals,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+    f(
+        member: _constructor,
+        tearOff: _constructorTearOff,
+        kind: BuiltMemberKind.ExtensionTypeConstructor);
+  }
+
+  @override
+  bool get _isExtensionMember => false;
+
+  @override
+  bool get _isExtensionTypeMember => true;
+
+  @override
+  Substitution computeFieldTypeSubstitution(
+      DeclarationBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters) {
+    if (typeParameters != null) {
+      assert(
+          declarationBuilder.typeParameters!.length == typeParameters.length);
+      return Substitution.fromPairs(
+          (declarationBuilder as SourceExtensionTypeDeclarationBuilder)
+              .extensionTypeDeclaration
+              .typeParameters,
+          new List<DartType>.generate(
+              declarationBuilder.typeParameters!.length,
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
+    } else {
+      return Substitution.empty;
+    }
+  }
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is ExtensionTypeRedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+class ExtensionConstructorEncoding
+    with _ExtensionTypeConstructorEncodingMixin<SourceExtensionBuilder>
+    implements ConstructorEncoding {
+  @override
+  final bool _isExternal;
+
+  ExtensionConstructorEncoding({required bool isExternal})
+      : _isExternal = isExternal;
+
+  @override
+  void buildOutlineNodes(
+    BuildNodesCallback f, {
+    required SourceConstructorBuilder constructorBuilder,
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceExtensionBuilder declarationBuilder,
+    required String name,
+    required NameScheme nameScheme,
+    required ConstructorReferences? constructorReferences,
+    required Uri fileUri,
+    required int startOffset,
+    required int fileOffset,
+    required int formalsOffset,
+    required int endOffset,
+    required bool forAbstractClassOrEnumOrMixin,
+    required bool isConst,
+    required bool isSynthetic,
+    required TypeBuilder returnType,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required List<FormalParameterBuilder>? formals,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  }) {
+    _build(
+        constructorBuilder: constructorBuilder,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        name: name,
+        nameScheme: nameScheme,
+        constructorReferences: constructorReferences,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        formalsOffset: formalsOffset,
+        endOffset: endOffset,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+        isConst: isConst,
+        returnType: returnType,
+        typeParameters: typeParameters,
+        formals: formals,
+        delayedDefaultValueCloners: delayedDefaultValueCloners);
+    // Extension constructors are erroneous and are therefore not added to the
+    // AST.
+  }
+
+  @override
+  bool get _isExtensionMember => true;
+
+  @override
+  bool get _isExtensionTypeMember => false;
+
+  @override
+  DartType _computeThisType(
+      SourceExtensionBuilder declarationBuilder, List<DartType> typeArguments) {
+    Extension extension = declarationBuilder.extension;
+    return Substitution.fromPairs(extension.typeParameters, typeArguments)
+        .substituteType(extension.onType);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Substitution computeFieldTypeSubstitution(
+      SourceExtensionBuilder declarationBuilder,
+      List<SourceNominalParameterBuilder>? typeParameters) {
+    if (typeParameters != null) {
+      assert(
+          declarationBuilder.typeParameters!.length == typeParameters.length);
+      return Substitution.fromPairs(
+          declarationBuilder.extension.typeParameters,
+          new List<DartType>.generate(
+              declarationBuilder.typeParameters!.length,
+              (int index) => new TypeParameterType.withDefaultNullability(
+                  function.typeParameters[index])));
+    } else {
+      return Substitution.empty;
+    }
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRedirecting {
+    // TODO(johnniwinther): Update this if redirecting extension constructors
+    //  are supported.
+    return false;
+  }
+}
+
+abstract class ConstructorEncodingStrategy {
+  factory ConstructorEncodingStrategy(DeclarationBuilder declarationBuilder) {
+    switch (declarationBuilder) {
+      case ClassBuilder():
+        if (declarationBuilder.isEnum) {
+          return const EnumConstructorEncodingStrategy();
+        } else {
+          return const RegularConstructorEncodingStrategy();
+        }
+      case ExtensionBuilder():
+        return const ExtensionConstructorEncodingStrategy();
+      case ExtensionTypeDeclarationBuilder():
+        return const ExtensionTypeConstructorEncodingStrategy();
+    }
+  }
+
+  List<FormalParameterBuilder>? createFormals({
+    required SourceLoader loader,
+    required List<FormalParameterBuilder>? formals,
+    required Uri fileUri,
+    required int fileOffset,
+  });
+
+  List<SourceNominalParameterBuilder>? createTypeParameters({
+    required DeclarationBuilder declarationBuilder,
+    required List<TypeParameterFragment>? declarationTypeParameterFragments,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required TypeParameterFactory typeParameterFactory,
+  });
+
+  ConstructorEncoding createEncoding({required bool isExternal});
+}
+
+class RegularConstructorEncodingStrategy
+    implements ConstructorEncodingStrategy {
+  const RegularConstructorEncodingStrategy();
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new RegularConstructorEncoding(
+        isExternal: isExternal, isEnumConstructor: false);
+  }
+
+  @override
+  List<FormalParameterBuilder>? createFormals(
+      {required SourceLoader loader,
+      required List<FormalParameterBuilder>? formals,
+      required Uri fileUri,
+      required int fileOffset}) {
+    return formals;
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters(
+      {required DeclarationBuilder declarationBuilder,
+      required List<TypeParameterFragment>? declarationTypeParameterFragments,
+      required List<SourceNominalParameterBuilder>? typeParameters,
+      required TypeParameterFactory typeParameterFactory}) {
+    return typeParameters;
+  }
+}
+
+class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
+  const EnumConstructorEncodingStrategy();
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new RegularConstructorEncoding(
+        isExternal: isExternal, isEnumConstructor: true);
+  }
+
+  @override
+  List<FormalParameterBuilder>? createFormals({
+    required SourceLoader loader,
+    required List<FormalParameterBuilder>? formals,
+    required Uri fileUri,
+    required int fileOffset,
+  }) {
+    return [
+      new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+          Modifiers.empty, loader.target.intType, "#index", fileOffset,
+          fileUri: fileUri, hasImmediatelyDeclaredInitializer: false),
+      new FormalParameterBuilder(FormalParameterKind.requiredPositional,
+          Modifiers.empty, loader.target.stringType, "#name", fileOffset,
+          fileUri: fileUri, hasImmediatelyDeclaredInitializer: false),
+      ...?formals
+    ];
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters(
+      {required DeclarationBuilder declarationBuilder,
+      required List<TypeParameterFragment>? declarationTypeParameterFragments,
+      required List<SourceNominalParameterBuilder>? typeParameters,
+      required TypeParameterFactory typeParameterFactory}) {
+    return typeParameters;
+  }
+}
+
+class ExtensionConstructorEncodingStrategy
+    implements ConstructorEncodingStrategy {
+  const ExtensionConstructorEncodingStrategy();
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new ExtensionConstructorEncoding(isExternal: isExternal);
+  }
+
+  @override
+  List<FormalParameterBuilder>? createFormals(
+      {required SourceLoader loader,
+      required List<FormalParameterBuilder>? formals,
+      required Uri fileUri,
+      required int fileOffset}) {
+    return formals;
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters(
+      {required DeclarationBuilder declarationBuilder,
+      required List<TypeParameterFragment>? declarationTypeParameterFragments,
+      required List<SourceNominalParameterBuilder>? typeParameters,
+      required TypeParameterFactory typeParameterFactory}) {
+    NominalParameterCopy? nominalVariableCopy =
+        typeParameterFactory.copyTypeParameters(
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: declarationTypeParameterFragments,
+            kind: TypeParameterKind.extensionSynthesized,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+    if (nominalVariableCopy != null) {
+      if (typeParameters != null) {
+        // Coverage-ignore-block(suite): Not run.
+        typeParameters = nominalVariableCopy.newParameterBuilders
+          ..addAll(typeParameters);
+      } else {
+        typeParameters = nominalVariableCopy.newParameterBuilders;
+      }
+    }
+    return typeParameters;
+  }
+}
+
+class ExtensionTypeConstructorEncodingStrategy
+    implements ConstructorEncodingStrategy {
+  const ExtensionTypeConstructorEncodingStrategy();
+
+  @override
+  List<FormalParameterBuilder>? createFormals(
+      {required SourceLoader loader,
+      required List<FormalParameterBuilder>? formals,
+      required Uri fileUri,
+      required int fileOffset}) {
+    return formals;
+  }
+
+  @override
+  List<SourceNominalParameterBuilder>? createTypeParameters({
+    required DeclarationBuilder declarationBuilder,
+    required List<TypeParameterFragment>? declarationTypeParameterFragments,
+    required List<SourceNominalParameterBuilder>? typeParameters,
+    required TypeParameterFactory typeParameterFactory,
+  }) {
+    NominalParameterCopy? nominalVariableCopy =
+        typeParameterFactory.copyTypeParameters(
+            oldParameterBuilders: declarationBuilder.typeParameters,
+            oldParameterFragments: declarationTypeParameterFragments,
+            kind: TypeParameterKind.extensionSynthesized,
+            instanceTypeParameterAccess:
+                InstanceTypeParameterAccessState.Allowed);
+    if (nominalVariableCopy != null) {
+      if (typeParameters != null) {
+        // Coverage-ignore-block(suite): Not run.
+        typeParameters = nominalVariableCopy.newParameterBuilders
+          ..addAll(typeParameters);
+      } else {
+        typeParameters = nominalVariableCopy.newParameterBuilders;
+      }
+    }
+    return typeParameters;
+  }
+
+  @override
+  ConstructorEncoding createEncoding({required bool isExternal}) {
+    return new ExtensionTypeConstructorEncoding(isExternal: isExternal);
   }
 }

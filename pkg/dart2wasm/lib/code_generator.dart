@@ -1741,7 +1741,7 @@ abstract class AstCodeGenerator
     final typeArguments = node.arguments.types;
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
-    final memberName = node.name.text;
+    final memberName = node.name;
     final forwarder = translator
         .getDynamicForwardersForModule(b.module)
         .getDynamicInvocationForwarder(memberName);
@@ -1788,8 +1788,8 @@ abstract class AstCodeGenerator
         final name = namedArgumentLocals[elementIdx ~/ 2].key;
         final w.ValueType symbolValueType =
             translator.classInfo[translator.symbolClass]!.nonNullableType;
-        translator.constants.instantiateConstant(
-            b, SymbolConstant(name, null), symbolValueType);
+        translator.constants.instantiateConstant(b,
+            translator.symbols.symbolForNamedParameter(name), symbolValueType);
       } else {
         final local = namedArgumentLocals[elementIdx ~/ 2].value;
         b.local_get(local);
@@ -2165,7 +2165,7 @@ abstract class AstCodeGenerator
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
     final receiver = node.receiver;
-    final memberName = node.name.text;
+    final memberName = node.name;
     final forwarder = translator
         .getDynamicForwardersForModule(b.module)
         .getDynamicGetForwarder(memberName);
@@ -2198,7 +2198,7 @@ abstract class AstCodeGenerator
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
     final receiver = node.receiver;
     final value = node.value;
-    final memberName = node.name.text;
+    final memberName = node.name;
     final forwarder = translator
         .getDynamicForwardersForModule(b.module)
         .getDynamicSetForwarder(memberName);
@@ -3179,7 +3179,7 @@ abstract class AstCodeGenerator
     }
     translator.constants.instantiateConstant(
         b,
-        SymbolConstant(member.name.text, null),
+        translator.symbols.methodSymbolFromName(member.name),
         translator.classInfo[translator.symbolClass]!.nonNullableType);
     call(translator
         .noSuchMethodErrorThrowUnimplementedExternalMemberError.reference);
@@ -4348,14 +4348,10 @@ class SwitchInfo {
     // required. See #60375 for more details.
     bool canInvokeTypeEquality() =>
         translator.typeEnvironment.isSubtypeOf(
-            switchExprType,
-            translator.coreTypes.typeNullableRawType,
-            SubtypeCheckMode.withNullabilities) ||
+            switchExprType, translator.coreTypes.typeNullableRawType) ||
         node.cases.expand((c) => c.expressions).any((e) =>
-            translator.typeEnvironment.isSubtypeOf(
-                codeGen.dartTypeOf(e),
-                translator.coreTypes.typeNonNullableRawType,
-                SubtypeCheckMode.withNullabilities));
+            translator.typeEnvironment.isSubtypeOf(codeGen.dartTypeOf(e),
+                translator.coreTypes.typeNonNullableRawType));
 
     if (node.cases.every((c) =>
         c.expressions.isEmpty && c.isDefault ||

@@ -12,7 +12,7 @@ class C {
 
   dynamic noSuchMethod(Invocation invoke) {
     Expect.equals(invoke.typeArguments.length, 1);
-    Expect.equals(invoke.typeArguments[0].toString(), 'int');
+    Expect.equals(invoke.typeArguments[0], int);
     Expect.equals(invoke.positionalArguments[0], 1);
     return 1;
   }

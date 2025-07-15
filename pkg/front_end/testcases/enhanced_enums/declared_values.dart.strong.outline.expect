@@ -10,14 +10,18 @@ library;
 //   int values = 42; // Error in E2.
 //       ^^^^^^
 //
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Error: An enum can't declare a member named 'values'.
+//   static const List<E3> values = [E3.element]; // Error in E3.
+//                         ^^^^^^
+//
+// pkg/front_end/testcases/enhanced_enums/declared_values.dart:21:7: Error: An enum can't declare a member named 'values'.
+//   int values = 42; // Error: Duplicate.
+//       ^^^^^^
+//
 // pkg/front_end/testcases/enhanced_enums/declared_values.dart:21:7: Error: 'values' is already declared in this scope.
 //   int values = 42; // Error: Duplicate.
 //       ^^^^^^
 // pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Context: Previous declaration of 'values'.
-//   static const List<E3> values = [E3.element]; // Error in E3.
-//                         ^^^^^^
-//
-// pkg/front_end/testcases/enhanced_enums/declared_values.dart:20:25: Error: An enum can't declare a member named 'values'.
 //   static const List<E3> values = [E3.element]; // Error in E3.
 //                         ^^^^^^
 //
@@ -34,7 +38,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E1
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class E2 extends core::_Enum /*isEnum*/  {
@@ -43,7 +47,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E2
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class E3 extends core::_Enum /*isEnum*/  {
@@ -52,7 +56,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E3
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 class E4 extends core::_Enum /*isEnum*/  {
@@ -61,7 +65,7 @@ class E4 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E4
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
   static set values(core::List<self::E4> x) → void
     ;
@@ -72,7 +76,7 @@ class E5 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E5
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
   static set values(dynamic x) → void
     ;
@@ -83,7 +87,7 @@ class E6 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E6
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
   static set values(Never x) → void
     ;
@@ -94,7 +98,7 @@ class E7 extends core::_Enum /*isEnum*/  {
   const synthetic constructor •(core::int #index, core::String #name) → self::E7
     : super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic

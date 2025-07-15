@@ -337,7 +337,6 @@ void f(int a, int b) {
     );
   }
 
-  @FailingTest() // TODO(scheglov): implement augmentation
   Future<void> test_augmentation_method() async {
     var content = '''
 part 'a.dart';
@@ -429,16 +428,12 @@ foo(String s, int i) {
     includesFull: true,
   );
 
-  Future<void> test_dartDocPreference_none() => assertArgsDocumentation(
-    'none',
-    includesSummary: false,
-    includesFull: false,
-  );
-
   Future<void> test_dartDocPreference_summary() => assertArgsDocumentation(
     'summary',
     includesSummary: true,
-    includesFull: false,
+    // Doc preferences don't apply to single-result requests so always expect
+    // full docs.
+    includesFull: true,
   );
 
   /// No preference should result in full docs.
@@ -896,19 +891,14 @@ foo(String s, int i) {
         includesFull: true,
       );
 
-  Future<void> test_typeArgs_dartDocPreference_none() =>
-      assertArgsDocumentation(
-        'none',
-        includesSummary: false,
-        includesFull: false,
-      );
-
-  Future<void> test_typeArgs_dartDocPreference_summary() =>
-      assertArgsDocumentation(
-        'summary',
-        includesSummary: true,
-        includesFull: false,
-      );
+  Future<void>
+  test_typeArgs_dartDocPreference_summary() => assertArgsDocumentation(
+    'summary',
+    includesSummary: true,
+    // Doc preferences don't apply to single-result requests so always expect
+    // full docs.
+    includesFull: true,
+  );
 
   /// No preference should result in full docs.
   Future<void> test_typeArgs_dartDocPreference_unset() =>

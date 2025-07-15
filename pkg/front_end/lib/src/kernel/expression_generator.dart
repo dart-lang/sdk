@@ -3287,8 +3287,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                       declarationBuilder.buildAliasedTypeArguments(
                           _helper.libraryBuilder,
                           unaliasedTypeArguments,
-                          /* hierarchy = */ null),
-                      legacyEraseAliases: false)!;
+                          /* hierarchy = */ null))!;
                 }
               } else if (typeArguments != null) {
                 builtTypeArguments = _helper.buildDartTypeArguments(
@@ -3327,9 +3326,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                         .add(freshTypeParameters.substitute(builtTypeArgument));
                   }
                 }
-                substitutedTypeArguments = unaliasTypes(
-                    substitutedTypeArguments,
-                    legacyEraseAliases: false);
+                substitutedTypeArguments =
+                    unaliasTypes(substitutedTypeArguments);
 
                 tearOffExpression = _helper.forest.createTypedefTearOff(
                     token.charOffset,
@@ -3339,8 +3337,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               } else {
                 if (builtTypeArguments != null &&
                     builtTypeArguments.isNotEmpty) {
-                  builtTypeArguments = unaliasTypes(builtTypeArguments,
-                      legacyEraseAliases: false)!;
+                  builtTypeArguments = unaliasTypes(builtTypeArguments)!;
 
                   tearOffExpression = _helper.forest.createInstantiation(
                       token.charOffset, tearOffExpression, builtTypeArguments);

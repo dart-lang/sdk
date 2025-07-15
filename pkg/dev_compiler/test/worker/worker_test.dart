@@ -14,26 +14,28 @@ import 'package:test/test.dart';
 Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
 File file(String path) => File.fromUri(tmp.uri.resolve(path));
 String _resolvePath(String executableRelativePath) {
-  return Uri.file(Platform.resolvedExecutable)
-      .resolve(executableRelativePath)
-      .toFilePath();
+  return Uri.file(
+    Platform.resolvedExecutable,
+  ).resolve(executableRelativePath).toFilePath();
 }
 
 void main() {
   var baseArgs = <String>[];
   var sdkPath = p.dirname(Platform.executable);
   var dartAotRuntime = p.absolute(
-      sdkPath,
-      Platform.isWindows
-          ? 'dartaotruntime_product.exe'
-          : 'dartaotruntime_product');
+    sdkPath,
+    Platform.isWindows
+        ? 'dartaotruntime_product.exe'
+        : 'dartaotruntime_product',
+  );
   var snapshotName = _resolvePath('gen/dartdevc_aot_product.dart.snapshot');
   if (!File(dartAotRuntime).existsSync()) {
     dartAotRuntime = p.absolute(
-        sdkPath,
-        Platform.isWindows
-            ? 'dartaotruntime_product.exe'
-            : 'dartaotruntime_product');
+      sdkPath,
+      Platform.isWindows
+          ? 'dartaotruntime_product.exe'
+          : 'dartaotruntime_product',
+    );
     snapshotName = _resolvePath('gen/dartdevc_aot.dart.snapshot');
   }
   final executableArgs = <String>[
@@ -45,7 +47,8 @@ void main() {
     final argsFile = file('hello_world.args');
     final inputDartFile = file('hello_world.dart');
     final outputJsFile = file('out/hello_world.js');
-    final compilerArgs = baseArgs +
+    final compilerArgs =
+        baseArgs +
         [
           '--no-source-map',
           '--no-summarize',
@@ -99,9 +102,11 @@ void main() {
       response = await _readResponse(messageGrouper);
       expect(response.exitCode, 1, reason: response.output);
       expect(
-          response.output,
-          contains(
-              'A value of type \'String\' can\'t be assigned to a variable of type \'int\'.'));
+        response.output,
+        contains(
+          'A value of type \'String\' can\'t be assigned to a variable of type \'int\'.',
+        ),
+      );
 
       process.kill();
 
@@ -127,8 +132,10 @@ void main() {
       var result = Process.runSync(dartAotRuntime, args);
 
       expect(result.exitCode, 64);
-      expect(result.stdout,
-          contains('Could not find an option named "--does-not-exist"'));
+      expect(
+        result.stdout,
+        contains('Could not find an option named "--does-not-exist"'),
+      );
       expect(result.stderr, isEmpty);
       expect(outputJsFile.existsSync(), isFalse);
     });
@@ -186,8 +193,10 @@ void main() {
 
     setUp(() {
       greetingDart.writeAsStringSync('String greeting = "hello";');
-      helloDart.writeAsStringSync('import "greeting.dart";'
-          'main() => print(greeting);');
+      helloDart.writeAsStringSync(
+        'import "greeting.dart";'
+        'main() => print(greeting);',
+      );
     });
 
     tearDown(() {
@@ -202,15 +211,11 @@ void main() {
 
     test('can compile in basic mode', () {
       var result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-source-map',
-                '-o',
-                greetingJS.path,
-                greetingDart.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            ['--no-source-map', '-o', greetingJS.path, greetingDart.path],
+      );
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
       expect(result.exitCode, EXIT_CODE_OK);
@@ -218,18 +223,19 @@ void main() {
       expect(greetingSummary.existsSync(), isTrue);
 
       result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-source-map',
-                '--no-summarize',
-                '-s',
-                greetingSummary.path,
-                '-o',
-                helloJS.path,
-                helloDart.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            [
+              '--no-source-map',
+              '--no-summarize',
+              '-s',
+              greetingSummary.path,
+              '-o',
+              helloJS.path,
+              helloDart.path,
+            ],
+      );
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
@@ -238,15 +244,11 @@ void main() {
 
     test('reports error on overlapping summaries', () {
       var result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-source-map',
-                '-o',
-                greetingJS.path,
-                greetingDart.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            ['--no-source-map', '-o', greetingJS.path, greetingDart.path],
+      );
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
@@ -254,15 +256,11 @@ void main() {
       expect(greetingSummary.existsSync(), isTrue);
 
       result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-source-map',
-                '-o',
-                greeting2JS.path,
-                greetingDart.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            ['--no-source-map', '-o', greeting2JS.path, greetingDart.path],
+      );
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
@@ -270,20 +268,21 @@ void main() {
       expect(greeting2Summary.existsSync(), isTrue);
 
       result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-source-map',
-                '--no-summarize',
-                '-s',
-                greetingSummary.path,
-                '-s',
-                greeting2Summary.path,
-                '-o',
-                helloJS.path,
-                helloDart.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            [
+              '--no-source-map',
+              '--no-summarize',
+              '-s',
+              greetingSummary.path,
+              '-s',
+              greeting2Summary.path,
+              '-o',
+              helloJS.path,
+              helloDart.path,
+            ],
+      );
       // TODO(vsm): Re-enable when we turn this check back on.
       expect(result.exitCode, 0);
       // expect(result.exitCode, 65);
@@ -304,30 +303,25 @@ void main() {
 
     test('incorrect usage', () {
       var result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                'oops',
-              ]);
+        dartAotRuntime,
+        executableArgs + baseArgs + ['oops'],
+      );
       expect(result.exitCode, 64);
       expect(
-          result.stdout, contains('Please specify the output file location.'));
+        result.stdout,
+        contains('Please specify the output file location.'),
+      );
       expect(result.stdout, isNot(contains('#0')));
     });
 
     test('compile errors', () {
       badFileDart.writeAsStringSync('main() => "hello world"');
       var result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-source-map',
-                '-o',
-                badFileJs.path,
-                badFileDart.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            ['--no-source-map', '-o', badFileJs.path, badFileDart.path],
+      );
       expect(result.exitCode, 1);
       expect(result.stdout, contains(RegExp(r"Expected (to find )?\';\'")));
     });
@@ -340,11 +334,15 @@ void main() {
     final outJS = file('output.js');
 
     setUp(() {
-      partFile.writeAsStringSync('part of hello;\n'
-          'String greeting = "hello";');
-      libraryFile.writeAsStringSync('library hello;\n'
-          'part "greeting.dart";\n'
-          'main() => print(greeting);\n');
+      partFile.writeAsStringSync(
+        'part of hello;\n'
+        'String greeting = "hello";',
+      );
+      libraryFile.writeAsStringSync(
+        'library hello;\n'
+        'part "greeting.dart";\n'
+        'main() => print(greeting);\n',
+      );
     });
 
     tearDown(() {
@@ -355,17 +353,18 @@ void main() {
 
     test('works if part and library supplied', () {
       var result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-summarize',
-                '--no-source-map',
-                '-o',
-                outJS.path,
-                partFile.path,
-                libraryFile.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            [
+              '--no-summarize',
+              '--no-source-map',
+              '-o',
+              outJS.path,
+              partFile.path,
+              libraryFile.path,
+            ],
+      );
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
@@ -374,16 +373,17 @@ void main() {
 
     test('works if part is not supplied', () {
       var result = Process.runSync(
-          dartAotRuntime,
-          executableArgs +
-              baseArgs +
-              [
-                '--no-summarize',
-                '--no-source-map',
-                '-o',
-                outJS.path,
-                libraryFile.path,
-              ]);
+        dartAotRuntime,
+        executableArgs +
+            baseArgs +
+            [
+              '--no-summarize',
+              '--no-source-map',
+              '-o',
+              outJS.path,
+              libraryFile.path,
+            ],
+      );
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
       expect(result.exitCode, 0);
@@ -397,8 +397,9 @@ Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
   try {
     return WorkResponse.fromBuffer(buffer!);
   } catch (_) {
-    var bufferAsString =
-        buffer == null ? '' : 'String: ${utf8.decode(buffer)}\n';
+    var bufferAsString = buffer == null
+        ? ''
+        : 'String: ${utf8.decode(buffer)}\n';
     throw 'Failed to parse response:\nbytes: $buffer\n$bufferAsString';
   }
 }

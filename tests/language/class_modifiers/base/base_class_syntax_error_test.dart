@@ -40,7 +40,6 @@ base base class BaseDuplicateClass {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
-// [cfe] Can't use 'base' because it is declared more than once.
 //   ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -49,7 +48,6 @@ base abstract class BaseAbstractClass {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
-// [cfe] Can't use 'base' because it is declared more than once.
 //   ^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -59,7 +57,6 @@ class BaseVariable {
     base var x = 2;
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Can't use 'base' because it is declared more than once.
 // [cfe] Expected ';' after this.
     return x;
   }

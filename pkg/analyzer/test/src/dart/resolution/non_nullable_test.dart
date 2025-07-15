@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullableTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -65,7 +67,7 @@ FieldDeclaration
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment>::@class::C::@field::f
+        declaredElement: <testLibraryFragment> f@51
   semicolon: ;
   declaredElement: <null>
 ''');
@@ -268,7 +270,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@function::f1::@formalParameter::p1
+    declaredElement: <testLibraryFragment> p1@13
       type: void Function()
   rightParenthesis: )
 ''');
@@ -287,7 +289,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment>::@function::f2::@formalParameter::p2
+    declaredElement: <testLibraryFragment> p2@35
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -308,9 +310,9 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
+      declaredElement: <testLibraryFragment> p3@59
         type: void Function()?
-    declaredElement: <testLibraryFragment>::@function::f3::@parameter::p3
+    declaredElement: <testLibraryFragment> p3@59
       type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
@@ -344,7 +346,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f1::@formalParameter::f1
+    declaredElement: <testLibraryFragment> f1@57
       type: void Function()
   rightParenthesis: )
 ''');
@@ -365,7 +367,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f2::@formalParameter::f2
+    declaredElement: <testLibraryFragment> f2@81
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -388,9 +390,9 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
+      declaredElement: <testLibraryFragment> f3@107
         type: void Function()?
-    declaredElement: <testLibraryFragment>::@class::A::@constructor::f3::@parameter::f3
+    declaredElement: <testLibraryFragment> f3@107
       type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
@@ -426,7 +428,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: f1@13::@formalParameter::p1
+    declaredElement: <testLibraryFragment> p1@21
       type: void Function()
   rightParenthesis: )
 ''');
@@ -445,7 +447,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: f2@37::@formalParameter::p2
+    declaredElement: <testLibraryFragment> p2@45
       type: void Function()?
   rightParenthesis: )
 ''');
@@ -466,9 +468,9 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: f3@62::@formalParameter::p3
+      declaredElement: <testLibraryFragment> p3@71
         type: void Function()?
-    declaredElement: f3@62::@formalParameter::p3
+    declaredElement: <testLibraryFragment> p3@71
       type: void Function()?
   rightDelimiter: }
   rightParenthesis: )

@@ -23,21 +23,21 @@ class AstResolver {
   final LibraryFragmentImpl _unitElement;
   final Scope _nameScope;
   final FeatureSet _featureSet;
-  final AnalysisErrorListener _errorListener =
-      AnalysisErrorListener.NULL_LISTENER;
+  final DiagnosticListener _diagnosticListener =
+      DiagnosticListener.nullListener;
   final AnalysisOptions analysisOptions;
-  final InterfaceElementImpl2? enclosingClassElement;
-  final ExecutableElementImpl2? enclosingExecutableElement;
+  final InterfaceElementImpl? enclosingClassElement;
+  final ExecutableElementImpl? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
     unitElement: _unitElement,
     nameScope: _nameScope,
-    errorListener: _errorListener,
+    diagnosticListener: _diagnosticListener,
     strictInference: analysisOptions.strictInference,
     strictCasts: analysisOptions.strictCasts,
     dataForTesting: null,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
-    ErrorReporter(_errorListener, _unitElement.source),
+    DiagnosticReporter(_diagnosticListener, _unitElement.source),
     nameScope: _nameScope,
   );
   late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
@@ -55,7 +55,7 @@ class AstResolver {
     LibraryResolutionContext(),
     _unitElement.source,
     _unitElement.library.typeProvider,
-    _errorListener,
+    _diagnosticListener,
     featureSet: _featureSet,
     analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,

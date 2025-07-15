@@ -16,20 +16,22 @@ abstract class SuperclassWithValues {
   Never get values => throw 0;
 }
 
-enum E1 {
-  element.new();
-}
+enum E1 { element.new(); }
 
-enum E2<values> {
-  element;
-}
+enum E2<values> { element; }
 
-enum E3<element> {
-  element;
-}
+enum E3<element> { element; }
 
-enum values {
-  element;
-}
+enum E4 { E4 }
+
+enum E5 { a; get E5 => null; }
+
+enum E6 { a; set E6(_) {} }
+
+enum E7 { a; E7() {} }
+
+enum E8 { a; factory E8.values() => a; }
+
+enum values { element; }
 
 main() {}

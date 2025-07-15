@@ -24,9 +24,9 @@ import 'package:analyzer/src/error/codes.dart';
 /// The public methods of this class form a complete accounting of possible
 /// node replacements.
 class AstRewriter {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  AstRewriter(this._errorReporter);
+  AstRewriter(this._diagnosticReporter);
 
   /// Possibly rewrites [node] as a [MethodInvocation] with a
   /// [FunctionReference] target.
@@ -53,8 +53,8 @@ class AstRewriter {
           node: node,
           function: SimpleIdentifierImpl(token: typeNode.name),
         );
-      } else if (element is TypeAliasElementImpl2 &&
-          element.aliasedElement2 is GenericFunctionTypeElement) {
+      } else if (element is TypeAliasElementImpl &&
+          element.aliasedElement is GenericFunctionTypeElement) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
           function: SimpleIdentifierImpl(token: typeNode.name),
@@ -76,8 +76,8 @@ class AstRewriter {
               identifier: SimpleIdentifierImpl(token: typeNode.name),
             ),
           );
-        } else if (element is TypeAliasElementImpl2 &&
-            element.aliasedElement2 is GenericFunctionTypeElement) {
+        } else if (element is TypeAliasElementImpl &&
+            element.aliasedElement is GenericFunctionTypeElement) {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
             function: PrefixedIdentifierImpl(
@@ -139,11 +139,11 @@ class AstRewriter {
       var element = nameScope.lookup(methodName.name).getter2;
       if (element is InterfaceElement) {
         return _toInstanceCreation_type(node: node, typeIdentifier: methodName);
-      } else if (element is ExtensionElementImpl2) {
+      } else if (element is ExtensionElementImpl) {
         var extensionOverride = ExtensionOverrideImpl(
           importPrefix: null,
           name: methodName.token,
-          element2: element,
+          element: element,
           typeArguments: node.typeArguments,
           argumentList: node.argumentList,
         );
@@ -178,14 +178,14 @@ class AstRewriter {
             prefixIdentifier: target,
             typeIdentifier: methodName,
           );
-        } else if (prefixedElement is ExtensionElementImpl2) {
+        } else if (prefixedElement is ExtensionElementImpl) {
           var extensionOverride = ExtensionOverrideImpl(
             importPrefix: ImportPrefixReferenceImpl(
               name: target.token,
               period: operator,
-            )..element2 = element,
+            )..element = element,
             name: node.methodName.token,
-            element2: prefixedElement,
+            element: prefixedElement,
             typeArguments: node.typeArguments,
             argumentList: node.argumentList,
           );
@@ -209,7 +209,7 @@ class AstRewriter {
             node: node,
             typeIdentifier: target,
             constructorIdentifier: methodName,
-            classElement: aliasedType.element3,
+            classElement: aliasedType.element,
           );
         }
       }
@@ -234,7 +234,7 @@ class AstRewriter {
               node: node,
               typeNameIdentifier: target,
               constructorIdentifier: methodName,
-              classElement: aliasedType.element3,
+              classElement: aliasedType.element,
             );
           }
         }
@@ -296,7 +296,7 @@ class AstRewriter {
         //     X.named
         return _toConstructorReference_prefixed(
           node: node,
-          classElement: aliasedType.element3,
+          classElement: aliasedType.element,
         );
       }
     }
@@ -386,7 +386,7 @@ class AstRewriter {
           node: node,
           receiver: receiverIdentifier,
           typeArguments: typeArguments,
-          classElement: aliasedType.element3,
+          classElement: aliasedType.element,
         );
       }
     }
@@ -424,7 +424,7 @@ class AstRewriter {
     required SimpleIdentifierImpl constructorIdentifier,
     required InterfaceElement classElement,
   }) {
-    var constructorElement = classElement.getNamedConstructor2(
+    var constructorElement = classElement.getNamedConstructor(
       constructorIdentifier.name,
     );
     if (constructorElement == null) {
@@ -433,7 +433,7 @@ class AstRewriter {
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArguments,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         arguments: [typeNameIdentifier.toString(), constructorIdentifier.name],
@@ -471,8 +471,8 @@ class AstRewriter {
     var name = node.identifier.name;
     var constructorElement =
         name == 'new'
-            ? classElement.unnamedConstructor2
-            : classElement.getNamedConstructor2(name);
+            ? classElement.unnamedConstructor
+            : classElement.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }
@@ -504,8 +504,8 @@ class AstRewriter {
     var name = node.propertyName.name;
     var constructorElement =
         name == 'new'
-            ? classElement.unnamedConstructor2
-            : classElement.getNamedConstructor2(name);
+            ? classElement.unnamedConstructor
+            : classElement.getNamedConstructor(name);
     if (constructorElement == null && typeArguments == null) {
       // If there is no constructor by this name, and no type arguments,
       // do not rewrite the node. If there _are_ type arguments (like
@@ -593,14 +593,14 @@ class AstRewriter {
     required InterfaceElement classElement,
   }) {
     var name = constructorIdentifier.name;
-    var constructorElement = classElement.getNamedConstructor2(name);
+    var constructorElement = classElement.getNamedConstructor(name);
     if (constructorElement == null) {
       return node;
     }
 
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArguments,
         CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
         arguments: [typeIdentifier.name, constructorIdentifier.name],
@@ -631,7 +631,7 @@ class AstRewriter {
   MethodInvocation _toMethodInvocationOfAliasedTypeLiteral({
     required InstanceCreationExpressionImpl node,
     required Identifier function,
-    required TypeAliasElementImpl2 element,
+    required TypeAliasElementImpl element,
   }) {
     var typeName = NamedTypeImpl(
       importPrefix: node.constructorName.type.importPrefix,

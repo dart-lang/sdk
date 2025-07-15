@@ -92,8 +92,8 @@ void main() {
       client = await DartToolingDaemon.connect(dtdUri);
     });
 
-    group(kFileSystemServiceName, () {
-      group('setIDEWorkspaceRoots', () {
+    group(FileSystemServiceConstants.serviceName, () {
+      group(FileSystemServiceConstants.setIDEWorkspaceRoots, () {
         test('wrong secret is unauthorized', () {
           expect(
             () => client.setIDEWorkspaceRoots('abc123', [Uri.directory('/')]),
@@ -217,7 +217,7 @@ void main() {
         });
       });
 
-      group('getIDEWorkspaceRoots', () {
+      group(FileSystemServiceConstants.getIDEWorkspaceRoots, () {
         test('empty IDE workspace roots', () async {
           final roots = await client.getIDEWorkspaceRoots();
           expect(roots.ideWorkspaceRoots, isEmpty);
@@ -239,7 +239,7 @@ void main() {
         });
       });
 
-      group('getProjectRoots', () {
+      group(FileSystemServiceConstants.getProjectRoots, () {
         test('with empty IDE workspace roots', () async {
           final roots = await client.getIDEWorkspaceRoots();
           expect(roots.ideWorkspaceRoots, isEmpty);
@@ -309,7 +309,7 @@ void main() {
         });
       });
 
-      group('listDirectoryContents', () {
+      group(FileSystemServiceConstants.listDirectoryContents, () {
         test('listing a file should fail', () async {
           await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
           expect(
@@ -348,7 +348,7 @@ void main() {
         });
       });
 
-      group('readFileAsString', () {
+      group(FileSystemServiceConstants.readFileAsString, () {
         test('fails on a non-existent file', () async {
           await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
           expect(
@@ -399,7 +399,7 @@ void main() {
         );
       });
 
-      group('writeFileAsString', () {
+      group(FileSystemServiceConstants.writeFileAsString, () {
         final newFileContents = 'Some new file contents';
 
         test('can overwrite an existing file', () async {
@@ -464,11 +464,11 @@ void main() {
         final simplifiedPath = p.join(barDirectory.path, 'a.txt');
 
         await client.call(
-          'FileSystem',
-          'setIDEWorkspaceRoots',
+          FileSystemServiceConstants.serviceName,
+          FileSystemServiceConstants.setIDEWorkspaceRoots,
           params: {
-            'secret': dtdSecret,
-            'roots': [
+            DtdParameters.secret: dtdSecret,
+            DtdParameters.roots: [
               Uri.file(relativePath).toString(),
             ],
           },
@@ -485,30 +485,32 @@ void main() {
         await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
         expect(
           () => client.call(
-            'FileSystem',
-            'readFileAsString',
-            params: {'uri': p.join('${fooDirectory.uri}', '..', 'a.txt')},
-          ),
-          throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
-        );
-        expect(
-          () => client.call(
-            'FileSystem',
-            'writeFileAsString',
+            FileSystemServiceConstants.serviceName,
+            FileSystemServiceConstants.readFileAsString,
             params: {
-              'uri': p.join('${fooDirectory.uri}', '..', 'a.txt'),
-              'contents': 'abc',
-              'encoding': 'utf-8',
+              DtdParameters.uri: p.join('${fooDirectory.uri}', '..', 'a.txt'),
             },
           ),
           throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
         );
         expect(
           () => client.call(
-            'FileSystem',
-            'listDirectoryContents',
+            FileSystemServiceConstants.serviceName,
+            FileSystemServiceConstants.writeFileAsString,
             params: {
-              'uri': p.join('${fooDirectory.uri}', '..'),
+              DtdParameters.uri: p.join('${fooDirectory.uri}', '..', 'a.txt'),
+              DtdParameters.contents: 'abc',
+              DtdParameters.encoding: 'utf-8',
+            },
+          ),
+          throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
+        );
+        expect(
+          () => client.call(
+            FileSystemServiceConstants.serviceName,
+            FileSystemServiceConstants.listDirectoryContents,
+            params: {
+              DtdParameters.uri: p.join('${fooDirectory.uri}', '..'),
             },
           ),
           throwsAnRpcError(RpcErrorCodes.kPermissionDenied),
@@ -520,10 +522,10 @@ void main() {
         await client.setIDEWorkspaceRoots(dtdSecret, [fooDirectory.uri]);
 
         final writeResult = await client.call(
-          'FileSystem',
-          'writeFileAsString',
+          FileSystemServiceConstants.serviceName,
+          FileSystemServiceConstants.writeFileAsString,
           params: {
-            'uri': p.join(
+            DtdParameters.uri: p.join(
               fooDirectory.uri.toString(),
               'C',
               'D',
@@ -532,17 +534,17 @@ void main() {
               'C',
               'd.txt',
             ),
-            'contents': 'abc',
-            'encoding': 'utf-8',
+            DtdParameters.contents: 'abc',
+            DtdParameters.encoding: 'utf-8',
           },
         );
 
         expect(writeResult.result, {'type': 'Success'});
         final readResult = await client.call(
-          'FileSystem',
-          'readFileAsString',
+          FileSystemServiceConstants.serviceName,
+          FileSystemServiceConstants.readFileAsString,
           params: {
-            'uri': p.join(
+            DtdParameters.uri: p.join(
               fooDirectory.uri.toString(),
               'C',
               'D',
@@ -556,10 +558,10 @@ void main() {
         expect(readResult.result, {'type': 'FileContent', 'content': 'abc'});
 
         final listResult = await client.call(
-          'FileSystem',
-          'listDirectoryContents',
+          FileSystemServiceConstants.serviceName,
+          FileSystemServiceConstants.listDirectoryContents,
           params: {
-            'uri': p.join(
+            DtdParameters.uri: p.join(
               fooDirectory.uri.toString(),
               'C',
               'D',
@@ -606,30 +608,30 @@ void main() {
           final error = invalidDirectory['error'] as Matcher;
           expect(
             () => client.call(
-              'FileSystem',
-              'readFileAsString',
-              params: {'uri': '${dir}a.txt'},
+              FileSystemServiceConstants.serviceName,
+              FileSystemServiceConstants.readFileAsString,
+              params: {DtdParameters.uri: '${dir}a.txt'},
             ),
             error,
           );
           expect(
             () => client.call(
-              'FileSystem',
-              'writeFileAsString',
+              FileSystemServiceConstants.serviceName,
+              FileSystemServiceConstants.writeFileAsString,
               params: {
-                'uri': '${dir}a.txt',
-                'contents': 'abc',
-                'encoding': 'utf-8',
+                DtdParameters.uri: '${dir}a.txt',
+                DtdParameters.contents: 'abc',
+                DtdParameters.encoding: 'utf-8',
               },
             ),
             error,
           );
           expect(
             () => client.call(
-              'FileSystem',
-              'listDirectoryContents',
+              FileSystemServiceConstants.serviceName,
+              FileSystemServiceConstants.listDirectoryContents,
               params: {
-                'uri': dir,
+                DtdParameters.uri: dir,
               },
             ),
             error,

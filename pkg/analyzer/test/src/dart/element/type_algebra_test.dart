@@ -217,13 +217,13 @@ class SubstituteTest extends _Base {
 
     assertType(type, 'bool Function<T extends Triple<T, U, V>, U>()');
 
-    var result = substitute2(type, {V: intNone}) as FunctionType;
+    var result = substitute(type, {V: intNone}) as FunctionType;
     assertType(result, 'bool Function<T extends Triple<T, U, int>, U>()');
     var T2 = result.typeParameters[0];
     var U2 = result.typeParameters[1];
     var T2boundArgs = (T2.bound as InterfaceType).typeArguments;
-    expect((T2boundArgs[0] as TypeParameterType).element3, same(T2));
-    expect((T2boundArgs[1] as TypeParameterType).element3, same(U2));
+    expect((T2boundArgs[0] as TypeParameterType).element, same(T2));
+    expect((T2boundArgs[1] as TypeParameterType).element, same(U2));
   }
 
   test_interface_arguments() async {
@@ -247,7 +247,7 @@ class SubstituteTest extends _Base {
       A,
       typeArguments: [
         interfaceTypeNone(
-          typeProvider.listElement2,
+          typeProvider.listElement,
           typeArguments: [typeParameterTypeNone(U)],
         ),
       ],
@@ -411,7 +411,7 @@ class SubstituteTest extends _Base {
       InterfaceType typeArgument,
       InterfaceType expectedType,
     ) {
-      var result = Substitution.fromMap2({
+      var result = Substitution.fromMap({
         tElement: typeArgument,
       }).substituteType(
         tElement.instantiate(nullabilitySuffix: typeParameterNullability),
@@ -444,7 +444,7 @@ class SubstituteTest extends _Base {
     DartType type,
     Map<TypeParameterElement, DartType> substitution,
   ) {
-    var result = substitute2(type, substitution);
+    var result = substitute(type, substitution);
     expect(result, same(type));
   }
 }
@@ -491,7 +491,7 @@ class _Base extends AbstractTypeSystemTest {
     Map<TypeParameterElement, DartType> substitution,
     String expected,
   ) {
-    var result = substitute2(type, substitution);
+    var result = substitute(type, substitution);
     assertType(result, expected);
     expect(result, isNot(same(type)));
   }
@@ -501,7 +501,7 @@ class _Base extends AbstractTypeSystemTest {
 
     var alias = type.alias;
     if (alias != null) {
-      result += ' via ${alias.element2.name3}';
+      result += ' via ${alias.element.name}';
       var typeArgumentStrList = alias.typeArguments.map(_typeStr).toList();
       if (typeArgumentStrList.isNotEmpty) {
         result += '<${typeArgumentStrList.join(', ')}>';

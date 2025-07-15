@@ -13,7 +13,6 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
@@ -590,40 +589,16 @@ class FileState {
     return other is FileState && other.uri == uri;
   }
 
-  /// Returns either new, or cached parsed result for this file.
-  ParsedFileState getParsed({required OperationPerformanceImpl performance}) {
-    var result = _fsState.parsedFileStateCache.get(this);
-    if (result != null) {
-      return result;
-    }
-
-    var errorListener = RecordingErrorListener();
-    var unit = parseCode(
-      code: content,
-      errorListener: errorListener,
-      performance: performance,
-    );
-
-    result = ParsedFileState(
-      code: content,
-      unit: unit,
-      errors: errorListener.errors,
-    );
-    _fsState.parsedFileStateCache.put(this, result);
-
-    return result;
-  }
-
   /// Return a new parsed unresolved [CompilationUnit].
   CompilationUnitImpl parse({
-    AnalysisErrorListener? errorListener,
+    DiagnosticOrErrorListener diagnosticListener =
+        DiagnosticListener.nullListener,
     required OperationPerformanceImpl performance,
   }) {
-    errorListener ??= AnalysisErrorListener.NULL_LISTENER;
     try {
       return parseCode(
         code: content,
-        errorListener: errorListener,
+        diagnosticListener: diagnosticListener,
         performance: performance,
       );
     } catch (exception, stackTrace) {
@@ -634,14 +609,14 @@ class FileState {
   /// Parses given [code] with the same features as this file.
   CompilationUnitImpl parseCode({
     required String code,
-    required AnalysisErrorListener errorListener,
+    required DiagnosticOrErrorListener diagnosticListener,
     required OperationPerformanceImpl performance,
   }) {
     return performance.run('parseCode', (performance) {
       performance.getDataInt('length').add(code.length);
 
       CharSequenceReader reader = CharSequenceReader(code);
-      Scanner scanner = Scanner(source, reader, errorListener)
+      Scanner scanner = Scanner(source, reader, diagnosticListener)
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),
@@ -655,7 +630,7 @@ class FileState {
 
       Parser parser = Parser(
         source,
-        errorListener,
+        diagnosticListener,
         featureSet: scanner.featureSet,
         lineInfo: lineInfo,
         languageVersion: languageVersion,
@@ -681,7 +656,6 @@ class FileState {
     var rawFileState = _fsState.fileContentStrategy.get(path);
     var contentChanged = _fileContent?.contentHash != rawFileState.contentHash;
     _fileContent = rawFileState;
-    _fsState.parsedFileStateCache.remove(this);
 
     // Prepare the unlinked bundle key.
     var previousUnlinkedKey = _unlinkedKey;
@@ -856,7 +830,7 @@ class FileState {
       return result;
     }
 
-    var unit = getParsed(performance: performance).unit;
+    var unit = parse(performance: performance);
 
     return performance.run('compute', (performance) {
       var unlinkedUnit = performance.run('serializeAstUnlinked2', (
@@ -1005,7 +979,7 @@ class FileState {
       } else if (directive is LibraryDirective) {
         libraryDirective = UnlinkedLibraryDirective(
           docImports: buildDocImports(directive),
-          name: directive.name2?.name,
+          name: directive.name?.name,
         );
       } else if (directive is PartDirective) {
         var unlinked = _serializePart(directive);
@@ -1280,12 +1254,6 @@ class FileSystemState {
   /// through getters, which we would like to keep getters. So, instead we
   /// store here the instance to attach [_newFile] operations.
   OperationPerformanceImpl? newFileOperationPerformance;
-
-  /// We cache results of parsing [FileState]s because they might be useful
-  /// in the process of a single analysis operation. But after that, even
-  /// if these results are still valid, they are often never used again. So,
-  /// currently we clear the cache after each operation.
-  ParsedFileStateCache parsedFileStateCache = ParsedFileStateCache();
 
   FileSystemState(
     this._byteStore,
@@ -2104,39 +2072,6 @@ class LibraryResolutionResult {
   final Uint8List bytes;
 
   LibraryResolutionResult({required this.requirements, required this.bytes});
-}
-
-class ParsedFileState {
-  final String code;
-  final CompilationUnitImpl unit;
-  // TODO(srawlins): Rename to `diagnostics`.
-  final List<Diagnostic> errors;
-
-  ParsedFileState({
-    required this.code,
-    required this.unit,
-    required this.errors,
-  });
-}
-
-class ParsedFileStateCache {
-  final Map<FileState, ParsedFileState> _map = Map.identity();
-
-  void clear() {
-    _map.clear();
-  }
-
-  ParsedFileState? get(FileState file) {
-    return _map[file];
-  }
-
-  void put(FileState file, ParsedFileState result) {
-    _map[file] = result;
-  }
-
-  void remove(FileState file) {
-    _map.remove(file);
-  }
 }
 
 /// The file has `part of` directive.

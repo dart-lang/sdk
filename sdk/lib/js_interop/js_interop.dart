@@ -22,13 +22,14 @@
 /// and previous JavaScript interop.
 ///
 /// > [!NOTE]
-/// > The types defined in this library only provide static guarantees.
-/// > The runtime types differ based on the backend, so it is important to rely
-/// > on static functionality like the conversion functions, for example `toJS`
-/// > and not runtime mechanisms like type checks (`is`) and casts (`as`).
-/// > Similarly, `identical` may return different results for the same JS value
-/// > depending on the compiler. Use `==` to check for equality of two JS types
-/// > instead.
+/// > The types defined in this library only provide static guarantees. The
+/// > runtime types differ based on the backend, so it is important to rely on
+/// > static functionality like the conversion functions. Similarly, don't rely
+/// > on `is` checks that involve JS types or JS-typed values. Furthermore,
+/// > `identical` may also return different results for the same JS value
+/// > depending on the compiler. Use `==` to check for equality of two JS-typed
+/// > values instead, but do not check for equality between a Dart value and a
+/// > JS-typed value.
 ///
 /// {@category Web}
 library;
@@ -869,16 +870,19 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   /// Converts this [ByteBuffer] to a [JSArrayBuffer] by either casting,
   /// unwrapping, or cloning the [ByteBuffer].
   ///
+  /// Throws if the [ByteBuffer] wraps a JS `SharedArrayBuffer`.
+  ///
   /// > [!NOTE]
   /// > Depending on whether code is compiled to JavaScript or Wasm, this
   /// > conversion will have different semantics.
-  /// > When compiling to JavaScript, all typed lists are the equivalent
-  /// > JavaScript typed arrays, and therefore this method simply casts.
+  /// > When compiling to JavaScript, [ByteBuffer]s are either `ArrayBuffer`s or
+  /// > `SharedArrayBuffer`s so this will just check the type and cast.
   /// > When compiling to Wasm, this [ByteBuffer] may or may not be a wrapper
   /// > depending on if it was converted from JavaScript or instantiated in
-  /// > Dart. If it's a wrapper, this method unwraps it. If it's instantiated in
-  /// > Dart, this method clones this [ByteBuffer]'s values into a new
-  /// > [JSArrayBuffer].
+  /// > Dart. If it's a wrapper, this method unwraps it and either returns the
+  /// > `ArrayBuffer` or throws if the unwrapped buffer was a
+  /// > `SharedArrayBuffer`. If it's instantiated in Dart, this method clones
+  /// > this [ByteBuffer]'s values into a new [JSArrayBuffer].
   /// > Avoid assuming that modifications to this [ByteBuffer] will affect the
   /// > [JSArrayBuffer] and vice versa unless it was instantiated in JavaScript.
   external JSArrayBuffer get toJS;
@@ -1388,11 +1392,14 @@ extension JSAnyOperatorExtension on JSAny? {
 /// For example:
 ///
 /// ```
+/// library;
+///
 /// @JS()
 /// external String get name;
 /// ```
 ///
-/// Reading `name` will execute JavaScript code like `globalContext.name`.
+/// Reading the top-level member `name` will execute JavaScript code like
+/// `<globalContext>.name`.
 ///
 /// There are subtle differences depending on the compiler, but in general,
 /// [globalContext] can be treated like JavaScript's `globalThis`.

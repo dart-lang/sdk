@@ -4,45 +4,29 @@
 
 /// An indication of the kind of an element.
 enum ElementKind {
-  classKind,
-  constantKind,
-  constructorKind,
-  enumKind,
-  extensionKind,
-  fieldKind,
-  functionKind,
-  getterKind,
-  methodKind,
-  mixinKind,
-  setterKind,
-  typedefKind,
-  variableKind,
-}
+  classKind('class'),
+  constantKind('constant'),
+  constructorKind('constructor'),
+  enumKind('enum'),
+  extensionKind('extension'),
+  extensionTypeKind('extensionType'),
+  fieldKind('field'),
+  functionKind('function'),
+  getterKind('getter'),
+  methodKind('method'),
+  mixinKind('mixin'),
+  setterKind('setter'),
+  typedefKind('typedef'),
+  variableKind('variable');
 
-extension ElementKindUtilities on ElementKind {
-  /// Return a human readable name for the kind.
-  String get displayName {
-    return switch (this) {
-      ElementKind.classKind => 'class',
-      ElementKind.constantKind => 'constant',
-      ElementKind.constructorKind => 'constructor',
-      ElementKind.enumKind => 'enum',
-      ElementKind.extensionKind => 'extension',
-      ElementKind.fieldKind => 'field',
-      ElementKind.functionKind => 'function',
-      ElementKind.getterKind => 'getter',
-      ElementKind.methodKind => 'method',
-      ElementKind.mixinKind => 'mixin',
-      ElementKind.setterKind => 'setter',
-      ElementKind.typedefKind => 'typedef',
-      ElementKind.variableKind => 'variable',
-    };
-  }
+  /// A human readable name for the kind.
+  final String displayName;
+  const ElementKind(this.displayName);
 
-  /// Return the element kind corresponding to the given [name].
+  /// The element kind corresponding to the given [name].
   static ElementKind? fromName(String name) {
-    for (var kind in ElementKind.values) {
-      if (kind.toString() == 'ElementKind.${name}Kind') {
+    for (var kind in values) {
+      if (kind.displayName == name) {
         return kind;
       }
     }

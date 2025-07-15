@@ -218,7 +218,7 @@ class DefinitionHandler
     // variable to get the codeOffset/codeLength.
     if (codeFragment is PropertyAccessorFragment &&
         codeFragment.element.isSynthetic) {
-      codeFragment = codeFragment.element.nonSynthetic2.firstFragment;
+      codeFragment = codeFragment.element.nonSynthetic.firstFragment;
     }
 
     // For extension types, the primary constructor has a range that covers only
@@ -227,7 +227,7 @@ class DefinitionHandler
     // which is not what the user expects.
     if (codeFragment.element.enclosingElement
         case ExtensionTypeElement enclosingElement
-        when enclosingElement.primaryConstructor2 == codeFragment.element) {
+        when enclosingElement.primaryConstructor == codeFragment.element) {
       codeFragment = codeFragment.enclosingFragment;
     }
 

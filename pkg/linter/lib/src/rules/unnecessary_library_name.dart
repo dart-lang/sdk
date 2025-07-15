@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,10 +20,7 @@ class UnnecessaryLibraryName extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_library_name;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isFeatureEnabled(Feature.unnamedLibraries)) return;
 
     var visitor = _Visitor(this);
@@ -37,7 +35,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    var name = node.name2;
+    var name = node.name;
     if (name != null) {
       rule.reportAtNode(name);
     }

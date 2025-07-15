@@ -162,10 +162,7 @@ class ModularConstantEmitter
   }
 
   @override
-  js_ast.Expression visitDummyInterceptor(
-    DummyInterceptorConstantValue constant, [
-    _,
-  ]) {
+  js_ast.Expression visitDummy(DummyConstantValue constant, [_]) {
     return js_ast.LiteralNumber('0');
   }
 

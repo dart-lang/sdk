@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:js_interop';
 import 'dart:convert';
+import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:benchmark_harness/benchmark_harness.dart';
@@ -76,7 +76,7 @@ class WasmDataTransferFromBrowserString extends Benchmark {
     // But currently we use internal one/two byte strings and using string
     // interpolation forces transfer of string to be internal string.
     //
-    // Though string interpolation also causes other work (it convers JS string
+    // Though string interpolation also causes other work (it converts JS string
     // to dart and then allocates new string for interpolation result)
     use('a${jsonString.toDart}');
   }

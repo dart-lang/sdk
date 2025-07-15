@@ -103,7 +103,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   }
 
   test_isBottom() {
-    TypeParameterElementImpl2 T;
+    TypeParameterElementImpl T;
 
     // BOTTOM(Never) is true
     isBottom(neverNone);

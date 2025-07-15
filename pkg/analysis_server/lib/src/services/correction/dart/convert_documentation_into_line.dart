@@ -20,7 +20,7 @@ class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE;
+  AssistKind get assistKind => DartAssistKind.convertDocumentationIntoLine;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_LINE_COMMENT;

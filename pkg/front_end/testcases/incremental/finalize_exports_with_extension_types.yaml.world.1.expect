@@ -1,0 +1,23 @@
+main = <No Member>;
+library from "org-dartlang-test:///bar.dart" as bar {
+
+  import "org-dartlang-test:///foo.dart";
+
+  extension type Baz(dart.core::String qux) {
+    abstract extension-type-member representation-field get qux() → dart.core::String;
+    constructor • = bar::Baz|constructor#;
+    constructor tearoff • = bar::Baz|constructor#_#new#tearOff;
+  }
+  static extension-type-member method Baz|constructor#(dart.core::String qux) → bar::Baz% /* erasure=dart.core::String, declared=! */ {
+    lowered final bar::Baz% /* erasure=dart.core::String, declared=! */ #this = qux;
+    return #this;
+  }
+  static extension-type-member synthetic method Baz|constructor#_#new#tearOff(dart.core::String qux) → bar::Baz% /* erasure=dart.core::String, declared=! */
+    return bar::Baz|constructor#(qux);
+}
+library from "org-dartlang-test:///foo.dart" as foo {
+additionalExports = (bar::Baz)
+
+  export "org-dartlang-test:///bar.dart";
+
+}

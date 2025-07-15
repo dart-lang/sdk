@@ -54,7 +54,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
       );
       return;
     }
-    if (node.offset == errorOffset) {
+    if (node.offset == diagnosticOffset) {
       // The dead code warning starts at the beginning of `node`. Use this node
       // as the starting point for dead code removal, or, if there is a larger
       // AST node that is fully contained in the dead code range, use it as the
@@ -98,7 +98,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
   Future<void> _handleDeadAtEndOfNode(AstNode node) async {
     switch (node) {
       case BinaryExpression(:var leftOperand, :var operator)
-          when operator.offset == errorOffset &&
+          when operator.offset == diagnosticOffset &&
               const [
                 TokenType.AMPERSAND_AMPERSAND,
                 TokenType.BAR_BAR,
@@ -109,12 +109,13 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
         await _addEdit((builder) {
           builder.addDeletion(range.endEnd(leftOperand, node));
         });
-      case Block(:var rightBracket) when rightBracket.offset == errorOffset:
+      case Block(:var rightBracket)
+          when rightBracket.offset == diagnosticOffset:
         // Dead code starts at the `}` of a block. It's not possible to remove
         // the `}`, but if any dead code follows the block, it may be removed.
         await _removeDeadCodeAfter(partiallyDeadNode: node);
       case DoStatement(:var body, :var whileKeyword)
-          when whileKeyword.offset == errorOffset:
+          when whileKeyword.offset == diagnosticOffset:
         // Dead code starts at the `while` keyword of a `do` loop. This means
         // the body of the loop is partially dead, so the situation is handled
         // by `_removeDeadCodeAfter`.

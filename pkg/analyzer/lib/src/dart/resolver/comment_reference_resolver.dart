@@ -27,7 +27,7 @@ class CommentReferenceResolver {
 
   /// Resolves [commentReference].
   void resolve(CommentReference commentReference) {
-    _resolver.errorReporter.lockLevel++;
+    _resolver.diagnosticReporter.lockLevel++;
     try {
       var expression = commentReference.expression;
       if (expression is SimpleIdentifierImpl) {
@@ -47,7 +47,7 @@ class CommentReferenceResolver {
         );
       }
     } finally {
-      _resolver.errorReporter.lockLevel--;
+      _resolver.diagnosticReporter.lockLevel--;
     }
   }
 
@@ -67,7 +67,7 @@ class CommentReferenceResolver {
 
     if (prefixElement is TypeAliasElement) {
       // When resolving `name`, use the aliased element.
-      prefixElement = prefixElement.aliasedType.element3;
+      prefixElement = prefixElement.aliasedType.element;
     }
 
     if (prefixElement is PrefixElement) {
@@ -81,14 +81,14 @@ class CommentReferenceResolver {
     if (!hasNewKeyword) {
       if (prefixElement is InterfaceElement) {
         name.element =
-            _resolver.inheritance.getMember4(
+            _resolver.inheritance.getMember(
               prefixElement,
-              Name(prefixElement.library2.uri, name.name),
+              Name(prefixElement.library.uri, name.name),
             ) ??
             prefixElement.getMethod(name.name) ??
             prefixElement.getGetter(name.name) ??
             prefixElement.getSetter(name.name) ??
-            prefixElement.getNamedConstructor2(name.name);
+            prefixElement.getNamedConstructor(name.name);
       } else if (prefixElement is ExtensionElement) {
         name.element =
             prefixElement.getMethod(name.name) ??
@@ -98,7 +98,7 @@ class CommentReferenceResolver {
         // TODO(brianwilkerson): Report this error.
       }
     } else if (prefixElement is InterfaceElement) {
-      var constructor = prefixElement.getNamedConstructor2(name.name);
+      var constructor = prefixElement.getNamedConstructor(name.name);
       if (constructor == null) {
         // TODO(brianwilkerson): Report this error.
       } else {
@@ -140,7 +140,7 @@ class CommentReferenceResolver {
 
     if (element is TypeAliasElement) {
       // When resolving `propertyName`, use the aliased element.
-      element = element.aliasedType.element3;
+      element = element.aliasedType.element;
     }
 
     if (element is InterfaceElement) {
@@ -148,7 +148,7 @@ class CommentReferenceResolver {
           element.getMethod(propertyName.name) ??
           element.getGetter(propertyName.name) ??
           element.getSetter(propertyName.name) ??
-          element.getNamedConstructor2(propertyName.name);
+          element.getNamedConstructor(propertyName.name);
     } else if (element is ExtensionElement) {
       propertyName.element =
           element.getMethod(propertyName.name) ??
@@ -167,7 +167,7 @@ class CommentReferenceResolver {
 
     // Usually referencing just an import prefix is an error.
     // But we allow this in documentation comments.
-    if (element is PrefixElementImpl2) {
+    if (element is PrefixElementImpl) {
       element.scope.notifyPrefixUsedInCommentReference();
     }
 
@@ -217,7 +217,7 @@ class CommentReferenceResolver {
     expression.element = element;
     if (hasNewKeyword) {
       if (element is InterfaceElement) {
-        var constructor = element.unnamedConstructor2;
+        var constructor = element.unnamedConstructor;
         if (constructor == null) {
           // TODO(brianwilkerson): Report this error.
         } else {

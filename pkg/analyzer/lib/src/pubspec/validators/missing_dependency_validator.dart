@@ -30,13 +30,13 @@ class MissingDependencyValidator {
   final Source source;
 
   /// The reporter to which errors should be reported.
-  late ErrorReporter reporter;
+  late DiagnosticReporter reporter;
 
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
   /// The listener to record the errors.
-  final RecordingErrorListener recorder;
+  final RecordingDiagnosticListener recorder;
 
   /// A set of names of special packages that should not be added as
   /// dependencies in the `pubspec.yaml` file. For example, the flutter_gen
@@ -45,8 +45,8 @@ class MissingDependencyValidator {
   final Set noDepsPackages = <String>{'flutter_gen'};
 
   MissingDependencyValidator(this.contents, this.source, this.provider)
-    : recorder = RecordingErrorListener() {
-    reporter = ErrorReporter(recorder, source);
+    : recorder = RecordingDiagnosticListener() {
+    reporter = DiagnosticReporter(recorder, source);
   }
 
   /// Given the set of dependencies and dev dependencies used in the sources,
@@ -135,7 +135,7 @@ class MissingDependencyValidator {
         MissingDependencyData(addDeps, addDevDeps, removeDevDeps),
       );
     }
-    return recorder.errors;
+    return recorder.diagnostics;
   }
 
   /// Report an error for the given node.

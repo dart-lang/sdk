@@ -219,7 +219,7 @@ class _ImportSummary {
   _ImportSummary(LibraryElement library) {
     for (var fragment in library.fragments) {
       for (var import in fragment.libraryImports2) {
-        var importedLibrary = import.importedLibrary2;
+        var importedLibrary = import.importedLibrary;
         if (importedLibrary != null) {
           if (import.combinators.isEmpty) {
             importedLibraries.add(importedLibrary);

@@ -9,10 +9,10 @@ import 'dart:math' as math;
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:args/args.dart';
-import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
@@ -219,7 +219,7 @@ int _maxSeverity(List<DiagnosticInfo> infos) {
   var filteredErrors = infos.expand((i) => i.diagnostics);
   return filteredErrors.fold(
     0,
-    (value, e) => math.max(value, e.errorCode.severity.ordinal),
+    (value, e) => math.max(value, e.diagnosticCode.severity.ordinal),
   );
 }
 

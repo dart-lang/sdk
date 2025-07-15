@@ -738,7 +738,7 @@ void StackFrameIterator::FrameSetIterator::Unpoison() {
   // instrumented C++, so there is nothing to unpoison. Additionally,
   // fp_ will be somewhere in the simulator's stack instead of the OSThread's
   // stack.
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   if (fp_ == 0) return;
   // Note that Thread::os_thread_ is cleared when the thread is descheduled.
   ASSERT(is_interpreted() || (thread_->os_thread() == nullptr) ||
@@ -754,7 +754,7 @@ void StackFrameIterator::FrameSetIterator::Unpoison() {
   uword upper = fp_ + kSavedCallerPcSlotFromFp * kWordSize;
   // Both lower and upper are inclusive, so we add one word when computing size.
   MSAN_UNPOISON(reinterpret_cast<void*>(lower), upper - lower + kWordSize);
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 }
 
 StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {

@@ -174,15 +174,15 @@ class MoveTopLevelToFile extends RefactoringProducer {
         );
         // And also for the getter if this might be something like a top-level
         // variable.
-        if (element case PropertyInducingElement(:var getter2?)) {
+        if (element case PropertyInducingElement(:var getter?)) {
           prefixes.addAll(
-            await searchEngine.searchPrefixesUsedInLibrary(library, getter2),
+            await searchEngine.searchPrefixesUsedInLibrary(library, getter),
           );
         }
         // And setters.
-        if (element case PropertyInducingElement(:var setter2?)) {
+        if (element case PropertyInducingElement(:var setter?)) {
           prefixes.addAll(
-            await searchEngine.searchPrefixesUsedInLibrary(library, setter2),
+            await searchEngine.searchPrefixesUsedInLibrary(library, setter),
           );
         }
       }
@@ -221,7 +221,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
       var element = entry.key;
       var imports = entry.value;
       for (var import in imports) {
-        var library = import.importedLibrary2;
+        var library = import.importedLibrary;
         if (library == null || library.isDartCore) {
           continue;
         }
@@ -229,8 +229,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
             import.combinators.whereType<ShowElementCombinator>().isNotEmpty;
         builder.importLibrary(
           library.uri,
-          prefix: import.prefix2?.element.name3,
-          showName: element.name3,
+          prefix: import.prefix2?.element.name,
+          showName: element.name,
           useShow: hasShowCombinator,
         );
       }
@@ -562,7 +562,7 @@ extension on CompilationUnitMember {
   /// Gets all sealed [ClassElement]s that are superclasses of this member.
   Iterable<ClassElement> get sealedSuperclassElements {
     return superclasses
-        .map((type) => type?.element2)
+        .map((type) => type?.element)
         .whereType<ClassElement>()
         .where((element) => element.isSealed);
   }

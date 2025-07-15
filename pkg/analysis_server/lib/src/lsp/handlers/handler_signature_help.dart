@@ -78,13 +78,7 @@ class SignatureHelpHandler
         return success(typeArgsSignature);
       }
 
-      var computer = DartUnitSignatureComputer(
-        dartDocInfo,
-        unit.unit,
-        offset,
-        documentationPreference:
-            server.lspClientConfiguration.global.preferredDocumentation,
-      );
+      var computer = DartUnitSignatureComputer(dartDocInfo, unit.unit, offset);
       if (!computer.offsetIsValid) {
         return success(null); // No error, just no valid hover.
       }
@@ -122,8 +116,6 @@ class SignatureHelpHandler
       unit,
       offset,
       formats,
-      documentationPreference:
-          server.lspClientConfiguration.global.preferredDocumentation,
     );
     if (!typeArgsComputer.offsetIsValid) {
       return null;

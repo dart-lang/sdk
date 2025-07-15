@@ -239,7 +239,7 @@ enum E<T> {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: T
-  element: T@7
+  element: #E0 T
   staticType: Type
 ''');
   }
@@ -257,7 +257,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -280,7 +280,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -308,7 +308,7 @@ class C {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@getter::a#element
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -328,8 +328,8 @@ void f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  correspondingParameter: <testLibraryFragment>::@function::foo::@parameter::a#element
-  element: <testLibraryFragment>::@getter::a#element
+  correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
+  element: <testLibrary>::@getter::a
   staticType: int
 ''');
   }
@@ -349,7 +349,7 @@ int Function() foo(A a) {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::foo::@parameter::a#element
+  element: <testLibrary>::@function::foo::@formalParameter::a
   staticType: A
 ''');
   }
@@ -372,7 +372,7 @@ int Function() foo(A? a) {
     assertResolvedNodeText(identifier, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::foo::@parameter::a#element
+  element: <testLibrary>::@function::foo::@formalParameter::a
   staticType: A?
 ''');
   }
@@ -395,7 +395,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
   staticType: int
 ''');
   }
@@ -538,7 +538,7 @@ extension E on ({int foo}) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: bar
-  element: <testLibraryFragment>::@extension::E::@getter::bar#element
+  element: <testLibrary>::@extension::E::@getter::bar
   staticType: bool
 ''');
   }
@@ -615,7 +615,7 @@ extension E on (int, String) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: $3
-  element: <testLibraryFragment>::@extension::E::@getter::$3#element
+  element: <testLibrary>::@extension::E::@getter::$3
   staticType: bool
 ''');
   }
@@ -656,7 +656,7 @@ extension type A(int it) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+  element: <testLibrary>::@extensionType::A::@getter::foo
   staticType: int
 ''');
   }
@@ -680,7 +680,7 @@ extension type X(B it) implements A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@class::A::@getter::foo#element
+  element: <testLibrary>::@class::A::@getter::foo
   staticType: int
 ''');
   }

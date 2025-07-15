@@ -117,9 +117,10 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
   ASSERT(script_uri != nullptr);
   Dart_Isolate isolate = nullptr;
-  auto isolate_group_data = new bin::IsolateGroupData(
-      script_uri, packages_config, /*app_snapshot=*/nullptr,
-      /*isolate_run_app_snapshot=*/false);
+  auto isolate_group_data =
+      new bin::IsolateGroupData(script_uri, /*asset_resolution_base=*/nullptr,
+                                packages_config, /*app_snapshot=*/nullptr,
+                                /*isolate_run_app_snapshot=*/false);
 
   const uint8_t* kernel_buffer = nullptr;
   intptr_t kernel_buffer_size = 0;
@@ -149,7 +150,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
 
   // Load embedder specific bits and return.
   if (!bin::VmService::Setup("127.0.0.1", 0,
-                             /*dev_mode=*/false, /*auth_disabled=*/true,
+                             /*dev_mode_server=*/false,
+                             /*auth_codes_disabled=*/true,
                              /*write_service_info_filename=*/"",
                              /*trace_loading=*/false, /*deterministic=*/true,
                              /*enable_service_port_fallback=*/false,
@@ -210,7 +212,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
         &ignore_vm_snapshot_data, &ignore_vm_snapshot_instructions,
         &isolate_snapshot_data, &isolate_snapshot_instructions);
     isolate_group_data = new bin::IsolateGroupData(
-        script_uri, packages_config, app_snapshot, app_snapshot != nullptr);
+        script_uri, /*asset_resolution_base=*/nullptr, packages_config,
+        app_snapshot, app_snapshot != nullptr);
     isolate = Dart_CreateIsolateGroup(
         DART_KERNEL_ISOLATE_NAME, DART_KERNEL_ISOLATE_NAME,
         isolate_snapshot_data, isolate_snapshot_instructions, flags,
@@ -238,7 +241,8 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                &kernel_service_buffer_size);
     ASSERT(kernel_service_buffer != nullptr);
     isolate_group_data =
-        new bin::IsolateGroupData(script_uri, packages_config, nullptr, false);
+        new bin::IsolateGroupData(script_uri, /*asset_resolution_base=*/nullptr,
+                                  packages_config, nullptr, false);
     isolate_group_data->SetKernelBufferUnowned(
         const_cast<uint8_t*>(kernel_service_buffer),
         kernel_service_buffer_size);

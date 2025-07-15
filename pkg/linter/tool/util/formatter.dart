@@ -41,8 +41,8 @@ class ReportFormatter {
   /// Override to influence diagnostic sorting.
   int compare(Diagnostic diagnostic1, Diagnostic diagnostic2) {
     // Severity.
-    var compare = diagnostic2.errorCode.severity.compareTo(
-      diagnostic1.errorCode.severity,
+    var compare = diagnostic2.diagnosticCode.severity.compareTo(
+      diagnostic1.diagnosticCode.severity,
     );
     if (compare != 0) {
       return compare;
@@ -76,7 +76,7 @@ class ReportFormatter {
       ..write('${diagnostic.source.fullName} ')
       ..write('$line:$column ')
       ..writeln(
-        '[${diagnostic.errorCode.type.displayName}] ${diagnostic.message}',
+        '[${diagnostic.diagnosticCode.type.displayName}] ${diagnostic.message}',
       );
     var contents = _getLineContents(line, diagnostic);
     out.writeln(contents);

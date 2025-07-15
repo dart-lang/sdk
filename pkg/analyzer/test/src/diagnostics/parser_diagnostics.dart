@@ -96,9 +96,9 @@ extension ParseStringResultExtension on ParseStringResult {
   }
 
   void assertErrors(List<ExpectedError> expectedErrors) {
-    var errorListener = GatheringErrorListener();
-    errorListener.addAll(errors);
-    errorListener.assertErrors(expectedErrors);
+    var diagnosticListener = GatheringDiagnosticListener();
+    diagnosticListener.addAll(errors);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 
   void assertNoErrors() {

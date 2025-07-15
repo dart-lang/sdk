@@ -181,11 +181,13 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo2
-        declaredElement: hasImplicitType foo2@90
-          type: int
+        declaredFragment: isPublic foo2@90
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: GetterMember
-        baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+        baseElement: <testLibrary>::@class::A::@getter::foo
         substitution: {T: int}
   rightParenthesis: )
   matchedValueType: dynamic
@@ -223,7 +225,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -262,7 +264,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element2: <testLibrary>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -300,8 +302,10 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@83
-          type: void Function()
+        declaredFragment: isPublic y@83
+          type: null
+          element: hasImplicitType isPublic
+            type: void Function()
         matchedValueType: void Function()
       element2: <testLibrary>::@class::A::@method::foo
   rightParenthesis: )
@@ -343,8 +347,10 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@97
-          type: void Function()
+        declaredFragment: isPublic y@97
+          type: null
+          element: hasImplicitType isPublic
+            type: void Function()
         matchedValueType: void Function()
       element2: <testLibrary>::@extension::E::@method::foo
   rightParenthesis: )
@@ -384,10 +390,12 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo2
-        declaredElement: hasImplicitType foo2@84
-          type: int
+        declaredFragment: isPublic foo2@84
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -463,10 +471,12 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo
-        declaredElement: hasImplicitType foo@81
-          type: int
+        declaredFragment: isPublic foo@81
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -504,8 +514,10 @@ ObjectPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@82
-            type: int
+          declaredFragment: isPublic foo@82
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         asToken: as
         type: NamedType
@@ -513,7 +525,7 @@ ObjectPattern
           element2: dart:core::@class::int
           type: int
         matchedValueType: int?
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -551,12 +563,14 @@ ObjectPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@82
-            type: int
+          declaredFragment: isPublic foo@82
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: !
         matchedValueType: int?
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -594,12 +608,14 @@ ObjectPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@82
-            type: int
+          declaredFragment: isPublic foo@82
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: ?
         matchedValueType: int?
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -638,12 +654,14 @@ ObjectPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@82
-            type: int
+          declaredFragment: isPublic foo@82
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         rightParenthesis: )
         matchedValueType: int
-      element2: <testLibraryFragment>::@class::A::@getter::foo#element
+      element2: <testLibrary>::@class::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -749,8 +767,10 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo
-        declaredElement: hasImplicitType foo@65
-          type: dynamic
+        declaredFragment: isPublic foo@65
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       element2: <null>
   rightParenthesis: )
@@ -789,7 +809,7 @@ ObjectPattern
           literal: 0
           staticType: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+      element2: <testLibrary>::@extensionType::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -826,10 +846,12 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: final
         name: foo
-        declaredElement: hasImplicitType isFinal foo@96
-          type: int
+        declaredFragment: isFinal isPublic foo@96
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extensionType::A::@getter::foo#element
+      element2: <testLibrary>::@extensionType::A::@getter::foo
   rightParenthesis: )
   matchedValueType: dynamic
 ''');
@@ -948,8 +970,10 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@77
-          type: dynamic
+        declaredFragment: isPublic y@77
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       element2: <null>
   rightParenthesis: )
@@ -1002,10 +1026,12 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@145
-          type: int
+        declaredFragment: isPublic y@145
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element2: <testLibrary>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1046,10 +1072,12 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@141
-          type: int
+        declaredFragment: isPublic y@141
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
-      element2: <testLibraryFragment>::@extension::E::@getter::foo#element
+      element2: <testLibrary>::@extension::E::@getter::foo
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1086,10 +1114,12 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@90
-          type: int
+        declaredFragment: isPublic y@90
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
-      element2: dart:core::<fragment>::@class::Object::@getter::hashCode#element
+      element2: dart:core::@class::Object::@getter::hashCode
   rightParenthesis: )
   matchedValueType: Object?
 ''');
@@ -1129,8 +1159,10 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@85
-          type: dynamic
+        declaredFragment: isPublic y@85
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       element2: <null>
   rightParenthesis: )
@@ -1169,8 +1201,10 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@73
-          type: int
+        declaredFragment: isPublic y@73
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -1209,8 +1243,10 @@ ObjectPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@71
-          type: int
+        declaredFragment: isPublic y@71
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -1248,18 +1284,20 @@ PatternVariableDeclaration
           colon: :
         pattern: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@32
-            type: int
+          declaredFragment: isPublic a@32
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         element2: GetterMember
-          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+          baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: A<int>
   patternTypeSchema: A<dynamic>
 ''');
@@ -1304,11 +1342,13 @@ PatternVariableDeclaration
           colon: :
         pattern: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@29
-            type: int
+          declaredFragment: isPublic a@29
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         element2: GetterMember
-          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+          baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: int}
     rightParenthesis: )
     matchedValueType: A<int>
@@ -1321,7 +1361,7 @@ PatternVariableDeclaration
         element2: <testLibrary>::@class::A
         type: A<int>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+        baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1366,11 +1406,13 @@ PatternVariableDeclaration
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@28
+          declaredFragment: isPublic a@28
             type: int
+            element: isPublic
+              type: int
           matchedValueType: dynamic
         element2: GetterMember
-          baseElement: <testLibraryFragment>::@class::A::@getter::foo#element
+          baseElement: <testLibrary>::@class::A::@getter::foo
           substitution: {T: dynamic}
     rightParenthesis: )
     matchedValueType: A<dynamic>
@@ -1383,7 +1425,7 @@ PatternVariableDeclaration
         element2: <testLibrary>::@class::A
         type: A<dynamic>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+        baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: dynamic}
     argumentList: ArgumentList
       leftParenthesis: (

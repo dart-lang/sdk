@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -23,10 +24,7 @@ class UnnecessaryParenthesis extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_parenthesis;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addParenthesizedExpression(this, visitor);
   }
@@ -68,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Don't over-report on records missing trailing commas.
     // `(int,) r = (3);` is OK.
     if (parent is VariableDeclaration &&
-        parent.declaredElement2?.type is RecordType) {
+        parent.declaredElement?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
 

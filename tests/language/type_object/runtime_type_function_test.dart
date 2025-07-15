@@ -3,62 +3,71 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 import "runtime_type_function_helper.dart";
 
+Type typeLiteral<T>() => T;
+
 main() {
-  // Types that do not use class names - these can be checked on dart2js in
-  // minified mode.
-
-  check(fn('dynamic', ''), main); //        Top-level tear-off.
-  check(fn('void', ''), Xyzzy.foo); //      Class static member tear-off.
-  check(fn('void', 'Object?'), new MyList().add); //  Instance tear-off.
-  check(fn('int', ''), () => 1); //       closure.
-
-  var s = new Xyzzy().runtimeType.toString();
-  if (!s.startsWith('minified')) {
-    Expect.equals(
-      'Xyzzy',
-      s,
-      'runtime type of plain class prints as class name',
-    );
-  }
-
-  check(fn('void', 'String, dynamic'), check);
+  // Top-level tear-offs.
+  checkType<dynamic Function()>(main);
+  checkType<void Function<X0>(dynamic)>(checkType);
 
   // Class static member tear-offs.
-  check(fn('String', 'String, [String?, dynamic]'), Xyzzy.opt);
-  // TODO(dartbug.com/53879): VM obfuscation also obfuscates named parameters,
-  // but currently they are not deobfuscated if the function is annotated
-  // with @pragma("vm:keep-name"), just the function name.
-  if (!isObfuscated) {
-    check(fn('String', 'String', {'a': 'String?', 'b': 'dynamic'}), Xyzzy.nam);
-  }
+  checkType<void Function()>(Xyzzy.foo);
+  checkType<String Function(String, [String?, dynamic])>(Xyzzy.opt);
+  checkType<String Function(String, {String? a, dynamic b})>(Xyzzy.nam);
 
   // Instance method tear-offs.
-  check(fn('void', 'Object?'), new MyList<String>().add);
-  check(fn('void', 'Object?'), new MyList<int>().add);
-  check(fn('void', 'int'), new Xyzzy().intAdd);
-
-  check(fn('String', 'Object?'), new G<String, int>().foo);
+  checkType<void Function(Object?)>(new MyList().add); // Instance tear-off.
+  checkType<void Function(Object?)>(new MyList<String>().add);
+  checkType<void Function(Object?)>(new MyList<int>().add);
+  checkType<void Function(int)>(new Xyzzy().intAdd);
+  checkType<String Function(Object?)>(new G<String, int>().foo);
 
   // Instance method with function parameter.
-  var string2int = fn('int', 'String');
-  check(fn('String', 'Object?'), new G<String, int>().moo);
-  check(fn('String', '$string2int'), new G<String, int>().higherOrder);
+  checkType<String Function(Object?)>(new G<String, int>().moo);
+  checkType<String Function(int Function(String))>(
+    new G<String, int>().higherOrder,
+  );
 
   // Closures.
   String localFunc(String a, String b, [Map<String, String>? named]) => a + b;
-  void localFunc2(int a) {
-    print(a);
-  }
+  void localFunc2(int a) => print(a);
 
-  Expect.isTrue(localFunc is F);
-  check(fn('String', 'String, String, [Map<String, String>?]'), localFunc);
-  check(fn('void', 'int'), localFunc2);
+  Expect.isTrue(
+    localFunc is String Function(String, String, [Map<String, String>]),
+  );
+
+  checkType<int Function()>(() => 1); // closure
+  checkType<String Function(String, String, [Map<String, String>?])>(localFunc);
+  checkType<void Function(int)>(localFunc2);
+
+  // String of function runtime type objects.
+  checkFunctionTypeString<int Function(bool, int, [String, Xyzzy])>(
+    int,
+    [bool],
+    [String, Xyzzy],
+    {},
+  );
+  checkFunctionTypeString<int Function(bool, int, {String a, Xyzzy b})>(
+    int,
+    [],
+    [],
+    {#a: String, #b: Xyzzy},
+  );
+
+  // String of class name.
+  if (readableTypeStrings) {
+    Expect.equals(
+      'Xyzzy',
+      Xyzzy().runtimeType.toString(),
+      'runtime type of plain class prints as class name',
+    );
+  }
 }
 
-@pragma("vm:keep-name")
 class Xyzzy {
   static void foo() {}
   static String opt(String x, [String? a, b]) => "";

@@ -109,6 +109,20 @@ build_libdart_builtin("libdart_builtin_product_linux_arm64") {
   ]
 }
 
+build_libdart_builtin("libdart_builtin_product_linux_arm") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_linux_arm_config",
+  ]
+}
+
+build_libdart_builtin("libdart_builtin_product_linux_riscv64") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_linux_riscv64_config",
+  ]
+}
+
 template("build_native_assets_api") {
   extra_configs = []
   if (defined(invoker.extra_configs)) {
@@ -162,6 +176,7 @@ static_library("crashpad") {
   }
 }
 
+# Don't remove until no longer used by Flutter.
 template("build_elf_loader") {
   source_set(target_name) {
     configs += [
@@ -175,6 +190,8 @@ template("build_elf_loader") {
     sources = [
       "elf_loader.cc",
       "elf_loader.h",
+      "mappable.cc",
+      "mappable.h",
       "virtual_memory.h",
       "virtual_memory_fuchsia.cc",
       "virtual_memory_posix.cc",
@@ -189,6 +206,40 @@ build_elf_loader("elf_loader") {
 }
 
 build_elf_loader("elf_loader_product") {
+  deps = [ ":libdart_builtin_product" ]
+}
+
+template("build_shared_object_loaders") {
+  source_set(target_name) {
+    configs += [
+      "..:dart_arch_config",
+      "..:dart_config",
+      "..:dart_os_config",
+      "..:dart_product_config",
+      "..:dart_shared_lib",
+    ]
+    include_dirs = [ ".." ]
+    sources = [
+      "elf_loader.cc",
+      "elf_loader.h",
+      "macho_loader.cc",
+      "macho_loader.h",
+      "mappable.cc",
+      "mappable.h",
+      "virtual_memory.h",
+      "virtual_memory_fuchsia.cc",
+      "virtual_memory_posix.cc",
+      "virtual_memory_win.cc",
+    ]
+    deps = invoker.deps
+  }
+}
+
+build_shared_object_loaders("shared_object_loaders") {
+  deps = [ ":libdart_builtin" ]
+}
+
+build_shared_object_loaders("shared_object_loaders_product") {
   deps = [ ":libdart_builtin_product" ]
 }
 
@@ -329,6 +380,33 @@ build_gen_snapshot("gen_snapshot_product_linux_arm64") {
     "../platform:libdart_platform_precompiler_product_linux_arm64",
   ]
 }
+
+build_gen_snapshot("gen_snapshot_product_linux_arm") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_linux_arm_config",
+  ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_product_linux_arm",
+    ":libdart_builtin_product_linux_arm",
+    "..:libdart_precompiler_product_linux_arm",
+    "../platform:libdart_platform_precompiler_product_linux_arm",
+  ]
+}
+
+build_gen_snapshot("gen_snapshot_product_linux_riscv64") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_linux_riscv64_config",
+  ]
+  extra_deps = [
+    ":gen_snapshot_dart_io_product_linux_riscv64",
+    ":libdart_builtin_product_linux_riscv64",
+    "..:libdart_precompiler_product_linux_riscv64",
+    "../platform:libdart_platform_precompiler_product_linux_riscv64",
+  ]
+}
+
 build_gen_snapshot("gen_snapshot_host_targeting_host") {
   extra_configs = [ "..:dart_maybe_product_config" ]
   extra_deps = [
@@ -431,6 +509,20 @@ build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_linux_arm64") {
   ]
 }
 
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_linux_arm") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_linux_arm_config",
+  ]
+}
+
+build_gen_snapshot_dart_io("gen_snapshot_dart_io_product_linux_riscv64") {
+  extra_configs = [
+    "..:dart_product_config",
+    "..:dart_linux_riscv64_config",
+  ]
+}
+
 # A source set for the implementation of 'dart:io' library.
 template("dart_io") {
   extra_configs = []
@@ -498,6 +590,10 @@ template("dart_io") {
       }
     }
 
+    if (dart_disable_secure_socket) {
+      defines += [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+    }
+
     include_dirs = [
       "..",
       "//third_party",
@@ -545,7 +641,7 @@ gen_snapshot_action("generate_snapshot_bin") {
   isolate_snapshot_instructions =
       "$target_gen_dir/isolate_snapshot_instructions.bin"
 
-  platform_dill = "$root_out_dir/vm_platform_strong_stripped.dill"
+  platform_dill = "$root_out_dir/vm_platform_stripped.dill"
   inputs = [ platform_dill ]
   outputs = [
     vm_snapshot_data,
@@ -697,11 +793,11 @@ bin_to_linkable("kernel_service_dill_linkable") {
   executable = false
 }
 
-bin_to_linkable("platform_strong_dill_linkable") {
+bin_to_linkable("platform_dill_linkable") {
   deps = [ "../vm:vm_platform" ]
-  input = "$root_out_dir/vm_platform_strong.dill"
-  symbol = "kPlatformStrongDill"
-  size_symbol = "kPlatformStrongDillSize"
+  input = "$root_out_dir/vm_platform.dill"
+  symbol = "kPlatformDill"
+  size_symbol = "kPlatformDillSize"
   executable = false
 }
 
@@ -739,10 +835,10 @@ source_set("dart_kernel_platform_cc") {
   ]
   deps = [
     ":kernel_service_dill_linkable",
-    ":platform_strong_dill_linkable",
+    ":platform_dill_linkable",
   ]
   sources = get_target_outputs(":kernel_service_dill_linkable") +
-            get_target_outputs(":platform_strong_dill_linkable")
+            get_target_outputs(":platform_dill_linkable")
 }
 
 source_set("icudtl_cc") {
@@ -807,6 +903,9 @@ template("dart_executable") {
     defines = [ "DART_EMBED_ICU_DATA" ] + extra_defines
     if (exclude_kernel_service) {
       defines += [ "EXCLUDE_CFE_AND_KERNEL_PLATFORM" ]
+    }
+    if (dart_disable_secure_socket) {
+      defines += [ "DART_IO_SECURE_SOCKET_DISABLED" ]
     }
     include_dirs = [
       "..",
@@ -873,9 +972,6 @@ dart_executable("dart") {
     "..:libdart_jit",
     "../platform:libdart_platform_jit",
   ]
-  if (dart_runtime_mode != "release") {
-    extra_deps += [ "../observatory:standalone_observatory_archive" ]
-  }
   extra_sources = [
     "builtin.cc",
     "dartdev_isolate.cc",
@@ -889,9 +985,6 @@ dart_executable("dart") {
     "main.cc",
     "main_impl.cc",
   ]
-  if (dart_runtime_mode == "release") {
-    extra_sources += [ "observatory_assets_empty.cc" ]
-  }
   if (!exclude_kernel_service) {
     extra_deps += [ ":dart_kernel_platform_cc" ]
   }
@@ -912,9 +1005,6 @@ dart_executable("dartaotruntime") {
     "..:libdart_aotruntime",
     "../platform:libdart_platform_aotruntime",
   ]
-  if (dart_runtime_mode != "release") {
-    extra_deps += [ "../observatory:standalone_observatory_archive" ]
-  }
   extra_sources = [
     "builtin.cc",
     "gzip.cc",
@@ -928,18 +1018,14 @@ dart_executable("dartaotruntime") {
 
   if (dart_runtime_mode == "release") {
     extra_deps += [
-      ":elf_loader_product",
       ":native_assets_api_product",
+      ":shared_object_loaders_product",
     ]
   } else {
     extra_deps += [
-      ":elf_loader",
       ":native_assets_api",
+      ":shared_object_loaders",
     ]
-  }
-
-  if (dart_runtime_mode == "release") {
-    extra_sources += [ "observatory_assets_empty.cc" ]
   }
 }
 
@@ -961,13 +1047,12 @@ dart_executable("dartaotruntime_product") {
     "loader.h",
     "main.cc",
     "main_impl.cc",
-    "observatory_assets_empty.cc",
     "snapshot_empty.cc",
   ]
 
   extra_deps += [
-    ":elf_loader_product",
     ":native_assets_api_product",
+    ":shared_object_loaders_product",
   ]
 }
 
@@ -999,9 +1084,9 @@ if (build_analyze_snapshot) {
     ]
 
     if (use_product_mode) {
-      extra_deps += [ ":elf_loader_product" ]
+      extra_deps += [ ":shared_object_loaders_product" ]
     } else {
-      extra_deps += [ ":elf_loader" ]
+      extra_deps += [ ":shared_object_loaders" ]
     }
   }
 }

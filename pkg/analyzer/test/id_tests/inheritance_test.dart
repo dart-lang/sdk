@@ -35,7 +35,7 @@ main(List<String> args) {
 
 String supertypeToString(InterfaceType type) {
   var sb = StringBuffer();
-  sb.write(type.element3.name3);
+  sb.write(type.element.name);
   if (type.typeArguments.isNotEmpty) {
     sb.write('<');
     var comma = '';
@@ -65,7 +65,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
     Id id,
     List<Diagnostic> diagnostics,
   ) {
-    return diagnostics.map((e) => e.errorCode).join(',');
+    return diagnostics.map((e) => e.diagnosticCode).join(',');
   }
 
   @override
@@ -106,16 +106,16 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
         registerValue(uri, offset, id, type.getDisplayString(), object);
       }
 
-      var interface = inheritance.getInterface2(element);
-      for (var name in interface.map2.keys) {
-        var executable = interface.map2[name]!;
+      var interface = inheritance.getInterface(element);
+      for (var name in interface.map.keys) {
+        var executable = interface.map[name]!;
 
         var enclosingClass = executable.enclosingElement as InterfaceElement;
         if (enclosingClass is ClassElement && enclosingClass.isDartCoreObject) {
           continue;
         }
 
-        var id = MemberId.internal(name.name, className: element.name3);
+        var id = MemberId.internal(name.name, className: element.name);
 
         var offset =
             enclosingClass == element

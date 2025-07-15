@@ -166,19 +166,25 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
     if (diagnostic == null) {
       return null;
     }
-    var errorOffset = diagnostic.problemMessage.offset;
-    var errorLength = diagnostic.problemMessage.length;
+    var diagnosticOffset = diagnostic.problemMessage.offset;
+    var diagnosticLength = diagnostic.problemMessage.length;
     return _coveringNode =
-        unit.nodeCovering(offset: errorOffset, length: errorLength);
+        unit.nodeCovering(offset: diagnosticOffset, length: diagnosticLength);
   }
 
-  /// The length of the source range associated with the error message being
+  /// The length of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
-  int? get errorLength => diagnostic?.problemMessage.length;
+  int? get diagnosticLength => diagnostic?.problemMessage.length;
 
-  /// The offset of the source range associated with the error message being
+  /// The offset of the source range associated with the diagnostic being
   /// fixed, or `null` if there is no diagnostic.
-  int? get errorOffset => diagnostic?.problemMessage.offset;
+  int? get diagnosticOffset => diagnostic?.problemMessage.offset;
+
+  @Deprecated("Use 'diagnosticLength' instead")
+  int? get errorLength => diagnosticLength;
+
+  @Deprecated("Use 'diagnosticOffset' instead")
+  int? get errorOffset => diagnosticOffset;
 
   /// The arguments that should be used when composing the message for a fix, or
   /// `null` if the fix message has no parameters or if this producer doesn't
@@ -476,7 +482,7 @@ abstract class ResolvedCorrectionProducer
   InterfaceElement? getTargetInterfaceElement(Expression target) {
     var type = target.staticType;
     if (type is InterfaceType) {
-      return type.element3;
+      return type.element;
     } else if (target is Identifier) {
       var element = target.element;
       if (element is InterfaceElement) {
@@ -490,6 +496,30 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
+    // `(myFunction(),)` or `(name: myFunction())`.
+    if (parent case NamedExpression(parent: var grandParent) && var named) {
+      parent = grandParent;
+      expression = named;
+    }
+    if (parent is RecordLiteral) {
+      var recordType = inferUndefinedExpressionType(parent);
+      if (recordType is RecordType) {
+        if (expression case NamedExpression named) {
+          return recordType.namedFields
+              .firstWhere((field) => field.name == named.name.label.name)
+              .type;
+        } else {
+          var index = parent.fields.indexed
+              .firstWhere((record) => record.$2 == expression)
+              .$1;
+          return recordType.positionalFields[index].type;
+        }
+      }
+    }
+    // `await (v + v2)`
+    if (parent is ParenthesizedExpression) {
+      return inferUndefinedExpressionType(parent);
+    }
     // `myFunction();`.
     if (expression is MethodInvocation) {
       if (parent is CascadeExpression && parent.parent is ExpressionStatement) {
@@ -507,7 +537,7 @@ abstract class ResolvedCorrectionProducer
         var type = conditionalExpression.correspondingParameter?.type;
         if (type is InterfaceType && type.isDartCoreFunction) {
           return FunctionTypeImpl(
-            typeFormals: const [],
+            typeParameters: const [],
             parameters: const [],
             returnType: DynamicTypeImpl.instance,
             nullabilitySuffix: NullabilitySuffix.none,

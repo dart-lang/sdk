@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -22,11 +23,9 @@ class UnnecessaryConst extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_const;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
+    registry.addDotShorthandConstructorInvocation(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addRecordLiteral(this, visitor);
@@ -37,6 +36,17 @@ class UnnecessaryConst extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   _Visitor(this.rule);
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var constKeyword = node.constKeyword;
+    if (constKeyword == null) return;
+    if (node.inConstantContext) {
+      rule.reportAtToken(constKeyword);
+    }
+  }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {

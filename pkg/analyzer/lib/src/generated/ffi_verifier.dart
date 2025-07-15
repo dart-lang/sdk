@@ -97,8 +97,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Whether implicit casts should be reported as potential problems.
   final bool strictCasts;
 
-  /// The error reporter used to report errors.
-  final ErrorReporter _errorReporter;
+  /// The diagnostic reporter used to report diagnostics.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// A flag indicating whether we are currently visiting inside a subclass of
   /// `Struct`.
@@ -113,7 +113,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Initialize a newly created verifier.
   FfiVerifier(
     this.typeSystem,
-    this._errorReporter, {
+    this._diagnosticReporter, {
     required this.strictCasts,
   });
 
@@ -127,12 +127,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       NamedType superclass = extendsClause.superclass;
       var ffiClass = superclass.ffiClass;
       if (ffiClass != null) {
-        var className = ffiClass.name3;
+        var className = ffiClass.name;
         if (className == _structClassName || className == _unionClassName) {
           inCompound = true;
           compound = node;
           if (node.declaredFragment!.element.isEmptyStruct) {
-            _errorReporter.atToken(
+            _diagnosticReporter.atToken(
               node.name,
               FfiCode.EMPTY_STRUCT,
               arguments: [node.name.lexeme, className ?? '<null>'],
@@ -150,7 +150,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       } else if (superclass.isCompoundSubtype ||
           superclass.isAbiSpecificIntegerSubtype) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           superclass,
           FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS,
           arguments: [node.name.lexeme, superclass.name.lexeme],
@@ -160,13 +160,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     // No classes from the FFI may be explicitly implemented.
     void checkSupertype(NamedType typename, FfiCode subtypeOfStructCode) {
-      var superName = typename.element2?.name3;
+      var superName = typename.element?.name;
       if (superName == _allocatorClassName ||
           superName == _finalizableClassName) {
         return;
       }
       if (typename.isCompoundSubtype || typename.isAbiSpecificIntegerSubtype) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           typename,
           subtypeOfStructCode,
           arguments: [node.name.lexeme, typename.name.lexeme],
@@ -188,8 +188,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (inCompound) {
-      if (node.declaredFragment!.element.typeParameters2.isNotEmpty) {
-        _errorReporter.atToken(
+      if (node.declaredFragment!.element.typeParameters.isNotEmpty) {
+        _diagnosticReporter.atToken(
           node.name,
           FfiCode.GENERIC_STRUCT_SUBCLASS,
           arguments: [node.name.lexeme],
@@ -199,11 +199,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (implementsClause != null) {
         var compoundType = node.declaredFragment!.element.thisType;
         var structType = compoundType.superclass!;
-        var ffiLibrary = structType.element3.library2;
-        var finalizableElement = ffiLibrary.getClass2(_finalizableClassName)!;
+        var ffiLibrary = structType.element.library;
+        var finalizableElement = ffiLibrary.getClass(_finalizableClassName)!;
         var finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             node.name,
             FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE,
             arguments: [node.name.lexeme],
@@ -257,7 +257,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (element is MethodElement2OrMember) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isAllocatorExtension &&
-          element.name3 == _allocateExtensionMethodName) {
+          element.name == _allocateExtensionMethodName) {
         _validateAllocate(node);
       }
     }
@@ -273,7 +273,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           enclosingElement.isNativeStructArrayExtension ||
           enclosingElement.isNativeUnionPointerExtension ||
           enclosingElement.isNativeUnionArrayExtension) {
-        if (element.name3 == '[]') {
+        if (element.name == '[]') {
           _validateRefIndexed(node);
         }
       }
@@ -288,7 +288,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var class_ = constructor?.enclosingElement;
     if (class_.isStructSubclass || class_.isUnionSubclass) {
       if (!constructor!.isFactory) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.constructorName,
           FfiCode.CREATION_OF_STRUCT_OR_UNION,
         );
@@ -305,13 +305,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Ensure there is at most one @DefaultAsset annotation per library
     var hasDefaultAsset = false;
 
-    if (node.element2 case LibraryElementImpl library) {
+    if (node.element case LibraryElementImpl library) {
       for (var annotation in library.metadata.annotations) {
         var annotationValue = annotation.computeConstantValue();
         if (annotationValue != null && annotationValue.isDefaultAsset) {
           if (hasDefaultAsset) {
             var name = annotation.annotationAst.name;
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               name,
               FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET,
             );
@@ -343,36 +343,36 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (element is MethodElement2OrMember) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isPointer) {
-        if (element.name3 == 'fromFunction') {
+        if (element.name == 'fromFunction') {
           _validateFromFunction(node, element);
-        } else if (element.name3 == 'elementAt') {
+        } else if (element.name == 'elementAt') {
           _validateElementAt(node);
         }
       } else if (enclosingElement.isStruct || enclosingElement.isUnion) {
-        if (element.name3 == 'create') {
-          _validateCreate(node, enclosingElement!.name3!);
+        if (element.name == 'create') {
+          _validateCreate(node, enclosingElement!.name!);
         }
       } else if (enclosingElement.isNative) {
-        if (element.name3 == 'addressOf') {
+        if (element.name == 'addressOf') {
           _validateNativeAddressOf(node);
         }
       } else if (enclosingElement.isNativeFunctionPointerExtension) {
-        if (element.name3 == 'asFunction') {
+        if (element.name == 'asFunction') {
           _validateAsFunction(node, element);
         }
       } else if (enclosingElement.isDynamicLibraryExtension) {
-        if (element.name3 == 'lookupFunction') {
+        if (element.name == 'lookupFunction') {
           _validateLookupFunction(node);
         }
       } else if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name3 == 'refWithFinalizer') {
+        if (element.name == 'refWithFinalizer') {
           _validateRefWithFinalizer(node);
         }
       }
     } else if (element is TopLevelFunctionElement) {
-      if (element.library2.name3 == 'dart.ffi') {
-        if (element.name3 == 'sizeOf') {
+      if (element.library.name == 'dart.ffi') {
+        if (element.name == 'sizeOf') {
           _validateSizeOf(node);
         }
       }
@@ -387,11 +387,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name3 == 'ref') {
+        if (element.name == 'ref') {
           _validateRefPrefixedIdentifier(node);
         }
       } else if (enclosingElement.isAddressOfExtension) {
-        if (element.name3 == 'address') {
+        if (element.name == 'address') {
           _validateAddressPrefixedIdentifier(node);
         }
       }
@@ -406,11 +406,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isNativeStructPointerExtension ||
           enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name3 == 'ref') {
+        if (element.name == 'ref') {
           _validateRefPropertyAccess(node);
         }
       } else if (enclosingElement.isAddressOfExtension) {
-        if (element.name3 == 'address') {
+        if (element.name == 'address') {
           _validateAddressPropertyAccess(node);
         }
       }
@@ -466,7 +466,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
       if (hadNativeAnnotation) {
         var name = (annotation as ElementAnnotationImpl).annotationAst.name;
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           name,
           FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS,
         );
@@ -476,7 +476,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       hadNativeAnnotation = true;
 
       if (!isExternal) {
-        _errorReporter.atToken(errorNode, FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL);
+        _diagnosticReporter.atToken(
+          errorNode,
+          FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL,
+        );
       }
 
       var ffiSignature = annotationType.typeArguments[0]; // The T in @Native<T>
@@ -492,7 +495,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           );
         } else {
           // Field annotated with a function type, that can't work.
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             errorNode,
             FfiCode.NATIVE_FIELD_INVALID_TYPE,
             arguments: [ffiSignature],
@@ -515,8 +518,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 formalParameters: dartSignature.formalParameters,
                 returnType:
                     ffiVoidType ??=
-                        annotationType.element3.library2
-                            .getClass2('Void')!
+                        annotationType.element.library
+                            .getClass('Void')!
                             .thisType,
                 nullabilitySuffix: dartSignature.nullabilitySuffix,
               );
@@ -532,7 +535,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           }
 
           // Function annotated with something that isn't a function type.
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             errorNode,
             FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
             arguments: ['T', 'Native'],
@@ -563,19 +566,22 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     if (declarationElement is FieldElement2OrMember) {
       if (!declarationElement.isStatic) {
-        _errorReporter.atToken(errorToken, FfiCode.NATIVE_FIELD_NOT_STATIC);
+        _diagnosticReporter.atToken(
+          errorToken,
+          FfiCode.NATIVE_FIELD_NOT_STATIC,
+        );
       }
       type = declarationElement.type;
-    } else if (declarationElement is TopLevelVariableElementImpl2) {
+    } else if (declarationElement is TopLevelVariableElementImpl) {
       type = declarationElement.type;
     } else if (declarationElement is PropertyAccessorElement2OrMember) {
-      var variable = declarationElement.variable3;
+      var variable = declarationElement.variable;
       if (variable == null) {
         return;
       }
       type = variable.type;
     } else {
-      _errorReporter.atToken(errorToken, FfiCode.NATIVE_FIELD_NOT_STATIC);
+      _diagnosticReporter.atToken(errorToken, FfiCode.NATIVE_FIELD_NOT_STATIC);
       return;
     }
 
@@ -584,7 +590,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var canonical = _canonicalFfiTypeForDartType(type);
 
       if (canonical == null) {
-        _errorReporter.atToken(errorToken, FfiCode.NATIVE_FIELD_MISSING_TYPE);
+        _diagnosticReporter.atToken(
+          errorToken,
+          FfiCode.NATIVE_FIELD_MISSING_TYPE,
+        );
         return;
       } else {
         ffiSignature = canonical;
@@ -600,7 +609,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // invalid field type.
       allowFunctions: true,
     )) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         errorToken,
         FfiCode.MUST_BE_A_SUBTYPE,
         arguments: [type, ffiSignature, 'Native'],
@@ -614,7 +623,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         allowVariableLength,
       );
     } else if (ffiSignature.isHandle || ffiSignature.isNativeFunction) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         errorToken,
         FfiCode.NATIVE_FIELD_INVALID_TYPE,
         arguments: [ffiSignature],
@@ -645,7 +654,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Instance methods must have the receiver as an extra parameter in the
       // Native annotation.
       if (formalParameters.length + 1 != ffiParameterTypes.length) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           errorToken,
           FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
           arguments: [formalParameters.length + 1, ffiParameterTypes.length],
@@ -658,7 +667,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (ffiSignature.normalParameterTypes[0].isPointer) {
         var cls = declarationElement.enclosingElement as InterfaceElement;
         if (!_extendsNativeFieldWrapperClass1(cls.thisType)) {
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             errorToken,
             FfiCode
                 .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
@@ -672,7 +681,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Number of parameters in the Native annotation must match the
       // annotated declaration.
       if (formalParameters.length != ffiParameterTypes.length) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           errorToken,
           FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS,
           arguments: [ffiParameterTypes.length, formalParameters.length],
@@ -690,7 +699,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             (!type.isPointer &&
                 !_extendsNativeFieldWrapperClass1(type) &&
                 !type.isTypedData)) {
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             errorToken,
             FfiCode
                 .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
@@ -711,12 +720,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           (annotationValue.type! as InterfaceType).typeArguments[0]
               is DynamicType;
       if (nativeTypeIsOmitted) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           errorToken,
           FfiCode.NATIVE_FUNCTION_MISSING_TYPE,
         );
       } else {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           errorToken,
           FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
           arguments: [nativeType, 'Native'],
@@ -730,7 +739,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       nativeType,
       nativeFieldWrappersAsPointer: true,
     )) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         errorToken,
         FfiCode.MUST_BE_A_SUBTYPE,
         arguments: [nativeType, dartType, 'Native'],
@@ -744,7 +753,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (type.getDisplayString() == 'NativeFieldWrapperClass1') {
         return true;
       }
-      var element = type.element3;
+      var element = type.element;
       type = element.supertype;
     }
     return false;
@@ -760,7 +769,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (element is PropertyAccessorElement) {
-        var variable = element.variable3;
+        var variable = element.variable;
         if (variable != null && variable.isConst) {
           return true;
         }
@@ -774,7 +783,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     for (var arg in args) {
-      if (arg is! NamedExpression || arg.element2?.name3 != _isLeafParamName) {
+      if (arg is! NamedExpression || arg.element?.name != _isLeafParamName) {
         continue;
       }
       return _maybeGetBoolConstValue(arg.expression) ?? false;
@@ -880,7 +889,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (nativeType.isCompoundSubtype) {
         if (!allowEmptyStruct) {
-          if (nativeType.element3.isEmptyStruct) {
+          if (nativeType.element.isEmptyStruct) {
             // TODO(dacoharkes): This results in an error message not  mentioning
             // empty structs at all.
             // dartbug.com/36780
@@ -910,18 +919,18 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   bool _isValidTypedData(InterfaceType nativeType, InterfaceType dartType) {
     if (nativeType.isPointer) {
       var elementType = nativeType.typeArguments.single;
-      var elementName = elementType.element3?.name3;
-      if (dartType.element3.isTypedDataClass) {
+      var elementName = elementType.element?.name;
+      if (dartType.element.isTypedDataClass) {
         if (elementName == 'Float' &&
-            dartType.element3.name3 == 'Float32List') {
+            dartType.element.name == 'Float32List') {
           return true;
         }
         if (elementName == 'Double' &&
-            dartType.element3.name3 == 'Float64List') {
+            dartType.element.name == 'Float64List') {
           return true;
         }
         if (_primitiveIntegerNativeTypesFixedSize.contains(elementName) &&
-            dartType.element3.name3 == '${elementName}List') {
+            dartType.element.name == '${elementName}List') {
           return true;
         }
       }
@@ -941,7 +950,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return element.computeConstantValue()?.toBoolValue();
       }
       if (element is PropertyAccessorElement) {
-        var variable = element.variable3;
+        var variable = element.variable;
         if (variable == null) {
           return null;
         }
@@ -955,9 +964,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
     if (nativeType is InterfaceType) {
-      var element = nativeType.element3;
+      var element = nativeType.element;
       if (element.isFfiClass) {
-        var name = element.name3;
+        var name = element.name;
         if (_primitiveIntegerNativeTypes.contains(name)) {
           return _PrimitiveDartType.int;
         }
@@ -980,9 +989,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   /// Return an indication of the Dart type associated with the [annotation].
   _PrimitiveDartType _typeForAnnotation(Annotation annotation) {
-    var element = annotation.element2;
+    var element = annotation.element;
     if (element is ConstructorElement) {
-      var name = element.enclosingElement.name3;
+      var name = element.enclosingElement.name;
       if (_primitiveIntegerNativeTypes.contains(name)) {
         return _PrimitiveDartType.int;
       } else if (_primitiveDoubleNativeTypes.contains(name)) {
@@ -1002,7 +1011,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         node.members.length != 1 ||
         node.members.single is! ConstructorDeclaration ||
         (node.members.single as ConstructorDeclaration).constKeyword == null) {
-      _errorReporter.atToken(node.name, FfiCode.ABI_SPECIFIC_INTEGER_INVALID);
+      _diagnosticReporter.atToken(
+        node.name,
+        FfiCode.ABI_SPECIFIC_INTEGER_INVALID,
+      );
     }
   }
 
@@ -1017,7 +1029,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             .toList();
 
     if (ffiPackedAnnotations.isEmpty) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         errorToken,
         FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING,
       );
@@ -1027,7 +1039,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (ffiPackedAnnotations.length > 1) {
       var extraAnnotations = ffiPackedAnnotations.skip(1);
       for (var annotation in extraAnnotations) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           annotation.name,
           FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA,
         );
@@ -1047,9 +1059,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           if (element is MapLiteralEntry) {
             var valueType = element.value.staticType;
             if (valueType is InterfaceType) {
-              var name = valueType.element3.name3!;
+              var name = valueType.element.name!;
               if (!_primitiveIntegerNativeTypesFixedSize.contains(name)) {
-                _errorReporter.atNode(
+                _diagnosticReporter.atNode(
                   element.value,
                   FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
                   arguments: [name],
@@ -1070,9 +1082,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     for (var nativeType in mappingValues.values) {
       var type = nativeType?.type;
       if (type is InterfaceType) {
-        var nativeTypeName = type.element3.name3!;
+        var nativeTypeName = type.element.name!;
         if (!_primitiveIntegerNativeTypesFixedSize.contains(nativeTypeName)) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             arguments.first,
             FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
             arguments: [nativeTypeName],
@@ -1099,14 +1111,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (parent is! ArgumentList ||
         grandParent is! MethodInvocation ||
         !grandParent.isNativeLeafInvocation) {
-      _errorReporter.atNode(errorNode, FfiCode.ADDRESS_POSITION);
+      _diagnosticReporter.atNode(errorNode, FfiCode.ADDRESS_POSITION);
     }
   }
 
   void _validateAddressPrefixedIdentifier(PrefixedIdentifier node) {
     var errorNode = node.identifier;
     _validateAddressPosition(node, errorNode);
-    var extensionName = node.element?.enclosingElement?.name3;
+    var extensionName = node.element?.enclosingElement?.name;
     var receiver = node.prefix;
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
@@ -1114,7 +1126,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateAddressPropertyAccess(PropertyAccess node) {
     var errorNode = node.propertyName;
     _validateAddressPosition(node, errorNode);
-    var extensionName = node.propertyName.element?.enclosingElement?.name3;
+    var extensionName = node.propertyName.element?.enclosingElement?.name;
     var receiver = node.target;
     _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
@@ -1159,7 +1171,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         }
       default:
     }
-    _errorReporter.atNode(errorNode, FfiCode.ADDRESS_RECEIVER);
+    _diagnosticReporter.atNode(errorNode, FfiCode.ADDRESS_RECEIVER);
   }
 
   void _validateAllocate(FunctionExpressionInvocationImpl node) {
@@ -1174,7 +1186,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       allowEmptyStruct: true,
     )) {
       AstNode errorNode = node;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['$_allocatorExtensionName.$_allocateExtensionMethodName'],
@@ -1193,8 +1205,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     bool requiredFound = false;
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
-      if (annotation.element2.ffiClass != null ||
-          annotation.element2?.enclosingElement.isAbiSpecificIntegerSubclass ==
+      if (annotation.element.ffiClass != null ||
+          annotation.element?.enclosingElement.isAbiSpecificIntegerSubclass ==
               true) {
         if (requiredFound) {
           extraAnnotations.add(annotation);
@@ -1211,19 +1223,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (extraAnnotations.isNotEmpty) {
       if (!requiredFound) {
         Annotation invalidAnnotation = extraAnnotations.removeAt(0);
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           invalidAnnotation,
           FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD,
         );
       }
       for (Annotation extraAnnotation in extraAnnotations) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           extraAnnotation,
           FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD,
         );
       }
     } else if (!requiredFound) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD,
         arguments: [
@@ -1256,7 +1268,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       var pointerTypeArg = (T as InterfaceTypeImpl).typeArguments.single;
       if (pointerTypeArg is TypeParameterType) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           target,
           FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
           arguments: ['asFunction'],
@@ -1264,7 +1276,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       if (!_isValidFfiNativeFunctionType(pointerTypeArg)) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           errorNode,
           FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
           arguments: [T],
@@ -1280,7 +1292,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         F,
         TPrime,
       )) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           FfiCode.MUST_BE_A_SUBTYPE,
           arguments: [TPrime, F, 'asFunction'],
@@ -1367,7 +1379,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var nativeReturnType = _primitiveNativeType(nativeType);
     if (nativeReturnType == _PrimitiveDartType.int ||
         (nativeType is InterfaceTypeImpl &&
-            nativeType.superclass?.element3.name3 ==
+            nativeType.superclass?.element.name ==
                 _abiSpecificIntegerClassName)) {
       return dartType.isDartCoreInt;
     } else if (nativeReturnType == _PrimitiveDartType.double) {
@@ -1427,7 +1439,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var dartType = typeArgumentTypes[0];
     if (!_isValidFfiNativeType(dartType)) {
       AstNode errorNode = node;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['$errorClass.create'],
@@ -1442,7 +1454,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
       if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
         AstNode errorNode = node;
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           errorNode,
           FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
           arguments: ['elementAt'],
@@ -1458,14 +1470,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (nativeType is FunctionType) {
       if (_primitiveNativeType(nativeType.returnType) ==
           _PrimitiveDartType.handle) {
-        _errorReporter.atEntity(
+        _diagnosticReporter.atEntity(
           errorEntity,
           FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE,
         );
       }
       for (var param in nativeType.normalParameterTypes) {
         if (_primitiveNativeType(param) == _PrimitiveDartType.handle) {
-          _errorReporter.atEntity(
+          _diagnosticReporter.atEntity(
             errorEntity,
             FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE,
           );
@@ -1485,7 +1497,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     NodeList<Annotation> annotations = node.metadata;
 
     if (node.externalKeyword == null) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         fields.variables[0].name,
         FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT,
       );
@@ -1493,14 +1505,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var fieldType = fields.type;
     if (fieldType == null) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         fields.variables[0].name,
         FfiCode.MISSING_FIELD_TYPE_IN_STRUCT,
       );
     } else {
       DartType declaredType = fieldType.typeOrThrow;
       if (declaredType.nullabilitySuffix == NullabilitySuffix.question) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           fieldType,
           FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
           arguments: [fieldType.toSource()],
@@ -1523,7 +1535,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               errorNode = typeArguments[0];
             }
           }
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             errorNode,
             FfiCode.NON_SIZED_TYPE_ARGUMENT,
             arguments: [_arrayClassName, typeArg],
@@ -1537,8 +1549,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 .where((field) {
                   if (field.isStatic) return false;
                   if (!field.isExternal) {
-                    if (!(field.getter2?.isExternal ?? false) &&
-                        !(field.setter2?.isExternal ?? false)) {
+                    if (!(field.getter?.isExternal ?? false) &&
+                        !(field.setter?.isExternal ?? false)) {
                       return false;
                     }
                   }
@@ -1553,16 +1565,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           isLastField,
         );
       } else if (declaredType.isCompoundSubtype) {
-        var clazz = (declaredType as InterfaceType).element3;
+        var clazz = (declaredType as InterfaceType).element;
         if (clazz.isEmptyStruct) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             node,
             FfiCode.EMPTY_STRUCT,
-            arguments: [clazz.name3!, clazz.supertype!.getDisplayString()],
+            arguments: [clazz.name!, clazz.supertype!.getDisplayString()],
           );
         }
       } else {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           fieldType,
           FfiCode.INVALID_FIELD_TYPE_IN_STRUCT,
           arguments: [fieldType.toSource()],
@@ -1588,7 +1600,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (typeArgument != null) {
         errorNode = typeArgument;
       }
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
         arguments: [T, 'fromFunction'],
@@ -1603,7 +1615,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       FT,
       T,
     )) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         f,
         FfiCode.MUST_BE_A_SUBTYPE,
         arguments: [FT, T, 'fromFunction'],
@@ -1618,14 +1630,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         R.isHandle ||
         R.isCompoundSubtype) {
       if (argCount != 1) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node.argumentList.arguments[1],
           FfiCode.INVALID_EXCEPTION_VALUE,
           arguments: ['fromFunction'],
         );
       }
     } else if (argCount != 2) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.methodName,
         FfiCode.MISSING_EXCEPTION_VALUE,
         arguments: ['fromFunction'],
@@ -1638,14 +1650,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         eType,
         R,
       )) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           e,
           FfiCode.MUST_BE_A_SUBTYPE,
           arguments: [eType, R, 'fromFunction'],
         );
       }
       if (!_isConst(e)) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           e,
           FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
           arguments: ['exceptionalReturn'],
@@ -1661,9 +1673,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (args.isNotEmpty) {
       for (var arg in args) {
         if (arg is NamedExpression) {
-          if (arg.element2?.name3 == _isLeafParamName) {
+          if (arg.element?.name == _isLeafParamName) {
             if (!_isConst(arg.expression)) {
-              _errorReporter.atNode(
+              _diagnosticReporter.atNode(
                 arg.expression,
                 FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
                 arguments: [_isLeafParamName],
@@ -1690,7 +1702,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var F = argTypes[1];
     if (!_isValidFfiNativeFunctionType(S)) {
       AstNode errorNode = typeArguments[0];
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
         arguments: [S, 'lookupFunction'],
@@ -1704,7 +1716,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       S,
     )) {
       AstNode errorNode = typeArguments[1];
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.MUST_BE_A_SUBTYPE,
         arguments: [S, F, 'lookupFunction'],
@@ -1733,7 +1745,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var validTarget = false;
 
     var referencedElement = switch (argument) {
-      IdentifierImpl() => argument.element?.nonSynthetic2,
+      IdentifierImpl() => argument.element?.nonSynthetic,
       _ => null,
     };
 
@@ -1743,7 +1755,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var annotationType = value?.type;
 
         if (annotationType is InterfaceTypeImpl &&
-            annotationType.element3.isNative) {
+            annotationType.element.isNative) {
           var nativeType = annotationType.typeArguments[0];
 
           if (nativeType is FunctionType) {
@@ -1753,14 +1765,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             if (targetType case InterfaceTypeImpl(isNativeFunction: true)) {
               var targetFunctionType = targetType.typeArguments[0];
               if (!typeSystem.isEqualTo(nativeType, targetFunctionType)) {
-                _errorReporter.atNode(
+                _diagnosticReporter.atNode(
                   node,
                   FfiCode.MUST_BE_A_SUBTYPE,
                   arguments: [nativeType, targetFunctionType, _nativeAddressOf],
                 );
               }
             } else {
-              _errorReporter.atNode(
+              _diagnosticReporter.atNode(
                 node,
                 FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
                 arguments: [targetType, _nativeAddressOf],
@@ -1780,8 +1792,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                     formalParameters: staticType.formalParameters,
                     returnType:
                         ffiVoidType ??=
-                            annotationType.element3.library2
-                                .getClass2('Void')!
+                            annotationType.element.library
+                                .getClass('Void')!
                                 .thisType,
                     nullabilitySuffix: staticType.nullabilitySuffix,
                   );
@@ -1790,7 +1802,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 if (targetType case InterfaceTypeImpl(isNativeFunction: true)) {
                   var targetFunctionType = targetType.typeArguments[0];
                   if (!typeSystem.isEqualTo(staticType, targetFunctionType)) {
-                    _errorReporter.atNode(
+                    _diagnosticReporter.atNode(
                       node,
                       FfiCode.MUST_BE_A_SUBTYPE,
                       arguments: [
@@ -1801,7 +1813,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                     );
                   }
                 } else {
-                  _errorReporter.atNode(
+                  _diagnosticReporter.atNode(
                     node,
                     FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
                     arguments: [targetType, _nativeAddressOf],
@@ -1809,7 +1821,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                 }
               } else {
                 if (!typeSystem.isEqualTo(staticType, targetType)) {
-                  _errorReporter.atNode(
+                  _diagnosticReporter.atNode(
                     node,
                     FfiCode.MUST_BE_A_SUBTYPE,
                     arguments: [staticType, targetType, _nativeAddressOf],
@@ -1826,7 +1838,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     if (!validTarget) {
-      _errorReporter.atNode(argument, FfiCode.ARGUMENT_MUST_BE_NATIVE);
+      _diagnosticReporter.atNode(argument, FfiCode.ARGUMENT_MUST_BE_NATIVE);
     }
   }
 
@@ -1851,7 +1863,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
     var typeArg = nodeType.typeArguments[0];
     if (!_isValidFfiNativeFunctionType(typeArg)) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.constructorName,
         FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
         arguments: [typeArg, _nativeCallable],
@@ -1866,7 +1878,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       funcType,
       typeArg,
     )) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         f,
         FfiCode.MUST_BE_A_SUBTYPE,
         arguments: [funcType, typeArg, _nativeCallable],
@@ -1881,14 +1893,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           natRetType.isHandle ||
           natRetType.isCompoundSubtype) {
         if (argCount != 1) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             node.argumentList.arguments[1],
             FfiCode.INVALID_EXCEPTION_VALUE,
             arguments: [name],
           );
         }
       } else if (argCount != 2) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           FfiCode.MISSING_EXCEPTION_VALUE,
           arguments: [name],
@@ -1901,14 +1913,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           eType,
           natRetType,
         )) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             e,
             FfiCode.MUST_BE_A_SUBTYPE,
             arguments: [eType, natRetType, name],
           );
         }
         if (!_isConst(e)) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             e,
             FfiCode.ARGUMENT_MUST_BE_A_CONSTANT,
             arguments: ['exceptionalReturn'],
@@ -1917,7 +1929,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     } else {
       if (_primitiveNativeType(natRetType) != _PrimitiveDartType.void_) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           f,
           FfiCode.MUST_RETURN_VOID,
           arguments: [natRetType],
@@ -1929,8 +1941,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// Validate that none of the [annotations] are from `dart:ffi`.
   void _validateNoAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
-      if (annotation.element2.ffiClass != null) {
-        _errorReporter.atNode(annotation, FfiCode.ANNOTATION_ON_POINTER_FIELD);
+      if (annotation.element.ffiClass != null) {
+        _diagnosticReporter.atNode(
+          annotation,
+          FfiCode.ANNOTATION_ON_POINTER_FIELD,
+        );
       }
     }
   }
@@ -1947,7 +1962,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (ffiPackedAnnotations.length > 1) {
       var extraAnnotations = ffiPackedAnnotations.skip(1);
       for (var annotation in extraAnnotations) {
-        _errorReporter.atNode(annotation, FfiCode.PACKED_ANNOTATION);
+        _diagnosticReporter.atNode(annotation, FfiCode.PACKED_ANNOTATION);
       }
     }
 
@@ -1960,7 +1975,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (arguments != null && arguments.isNotEmpty) {
         errorNode = arguments[0];
       }
-      _errorReporter.atNode(errorNode, FfiCode.PACKED_ANNOTATION_ALIGNMENT);
+      _diagnosticReporter.atNode(
+        errorNode,
+        FfiCode.PACKED_ANNOTATION_ALIGNMENT,
+      );
     }
   }
 
@@ -1972,7 +1990,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       allowArray: true,
     )) {
       AstNode errorNode = node;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['[]'],
@@ -1986,7 +2004,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var targetType = node.prefix.staticType;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       AstNode errorNode = node;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['ref'],
@@ -1998,7 +2016,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var targetType = node.realTarget.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
       AstNode errorNode = node;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['ref'],
@@ -2012,7 +2030,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _validateRefWithFinalizer(MethodInvocationImpl node) {
     var targetType = node.realTarget?.typeOrThrow;
     if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['refWithFinalizer'],
@@ -2028,7 +2046,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var T = typeArgumentTypes[0];
     if (!_isValidFfiNativeType(T, allowVoid: true, allowEmptyStruct: true)) {
       AstNode errorNode = node;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: ['sizeOf'],
@@ -2049,7 +2067,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         annotations.where((annotation) => annotation.isArray).toList();
 
     if (ffiSizeAnnotations.isEmpty) {
-      _errorReporter.atEntity(
+      _diagnosticReporter.atEntity(
         errorEntity,
         FfiCode.MISSING_SIZE_ANNOTATION_CARRAY,
       );
@@ -2059,7 +2077,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (ffiSizeAnnotations.length > 1) {
       var extraAnnotations = ffiSizeAnnotations.skip(1);
       for (var annotation in extraAnnotations) {
-        _errorReporter.atNode(annotation, FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY);
+        _diagnosticReporter.atNode(
+          annotation,
+          FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY,
+        );
       }
     }
 
@@ -2069,12 +2090,15 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         annotation.elementAnnotation?.arraySizeDimensions ?? (<int>[], false);
     var annotationDimensions = dimensions.length;
     if (annotationDimensions != arrayDimensions) {
-      _errorReporter.atNode(annotation, FfiCode.SIZE_ANNOTATION_DIMENSIONS);
+      _diagnosticReporter.atNode(
+        annotation,
+        FfiCode.SIZE_ANNOTATION_DIMENSIONS,
+      );
     }
 
     if (variableLength) {
       if (!allowVariableLength) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           annotation,
           FfiCode.VARIABLE_LENGTH_ARRAY_NOT_LAST,
         );
@@ -2123,13 +2147,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (i == 0 && variableLength) {
         // Variable dimension can't be negative.
         if (dimensions[0] < 0) {
-          _errorReporter.atNode(errorNode, FfiCode.NEGATIVE_VARIABLE_DIMENSION);
+          _diagnosticReporter.atNode(
+            errorNode,
+            FfiCode.NEGATIVE_VARIABLE_DIMENSION,
+          );
         }
         continue;
       }
 
       if (dimensions[i] <= 0) {
-        _errorReporter.atNode(errorNode, FfiCode.NON_POSITIVE_ARRAY_DIMENSION);
+        _diagnosticReporter.atNode(
+          errorNode,
+          FfiCode.NON_POSITIVE_ARRAY_DIMENSION,
+        );
       }
     }
   }
@@ -2138,7 +2168,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// if a diagnostic was produced because it isn't constant.
   bool _validateTypeArgument(TypeAnnotation typeArgument, String functionName) {
     if (typeArgument.type is TypeParameterType) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         typeArgument,
         FfiCode.NON_CONSTANT_TYPE_ARGUMENT,
         arguments: [functionName],
@@ -2172,25 +2202,25 @@ enum _PrimitiveDartType { double, int, bool, void_, handle, none }
 
 extension on Annotation {
   bool get isAbiSpecificIntegerMapping {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name3 ==
+        element.enclosingElement.name ==
             FfiVerifier._abiSpecificIntegerMappingClassName;
   }
 
   bool get isArray {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name3 == 'Array';
+        element.enclosingElement.name == 'Array';
   }
 
   bool get isPacked {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name3 == 'Packed';
+        element.enclosingElement.name == 'Packed';
   }
 }
 
@@ -2241,7 +2271,7 @@ extension on ElementAnnotation {
     var element = element2;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name3 == 'Array';
+        element.enclosingElement.name == 'Array';
     // Note: this is 'Array' instead of '_ArraySize' because it finds the
     // forwarding factory instead of the forwarded constructor.
   }
@@ -2266,7 +2296,7 @@ extension on ElementAnnotation {
     var element = element2;
     return element is ConstructorElement &&
         element.ffiClass != null &&
-        element.enclosingElement.name3 == 'Packed';
+        element.enclosingElement.name == 'Packed';
   }
 
   int? get packedMemberAlignment {
@@ -2317,14 +2347,14 @@ extension on MethodInvocation {
 extension on DartObject {
   bool get isDefaultAsset {
     return switch (type) {
-      InterfaceType(:var element3) => element3.isDefaultAsset,
+      InterfaceType(:var element) => element.isDefaultAsset,
       _ => false,
     };
   }
 
   bool get isNative {
     return switch (type) {
-      InterfaceType(:var element3) => element3.isNative,
+      InterfaceType(:var element) => element.isNative,
       _ => false,
     };
   }
@@ -2347,7 +2377,7 @@ extension on Element? {
   bool get isAbiSpecificInteger {
     var element = this;
     return element is ClassElement &&
-        element.name3 == FfiVerifier._abiSpecificIntegerClassName &&
+        element.name == FfiVerifier._abiSpecificIntegerClassName &&
         element.isFfiClass;
   }
 
@@ -2362,14 +2392,14 @@ extension on Element? {
     var element = this;
     return element is ExtensionElement &&
         element.isFfiExtension &&
-        FfiVerifier._addressOfExtensionNames.contains(element.name3);
+        FfiVerifier._addressOfExtensionNames.contains(element.name);
   }
 
   /// Return `true` if this represents the extension `AllocatorAlloc`.
   bool get isAllocatorExtension {
     var element = this;
     return element is ExtensionElement &&
-        element.name3 == FfiVerifier._allocatorExtensionName &&
+        element.name == FfiVerifier._allocatorExtensionName &&
         element.isFfiExtension;
   }
 
@@ -2377,7 +2407,7 @@ extension on Element? {
   bool get isDefaultAsset {
     var element = this;
     return element is ClassElement &&
-        element.name3 == 'DefaultAsset' &&
+        element.name == 'DefaultAsset' &&
         element.isFfiClass;
   }
 
@@ -2385,7 +2415,7 @@ extension on Element? {
   bool get isDynamicLibraryExtension {
     var element = this;
     return element is ExtensionElement &&
-        element.name3 == 'DynamicLibraryExtension' &&
+        element.name == 'DynamicLibraryExtension' &&
         element.isFfiExtension;
   }
 
@@ -2393,7 +2423,7 @@ extension on Element? {
   bool get isNative {
     var element = this;
     return element is ClassElement &&
-        element.name3 == 'Native' &&
+        element.name == 'Native' &&
         element.isFfiClass;
   }
 
@@ -2401,42 +2431,42 @@ extension on Element? {
   bool get isNativeCallable {
     var element = this;
     return element is ClassElement &&
-        element.name3 == FfiVerifier._nativeCallable &&
+        element.name == FfiVerifier._nativeCallable &&
         element.isFfiClass;
   }
 
   bool get isNativeFunctionPointerExtension {
     var element = this;
     return element is ExtensionElement &&
-        element.name3 == 'NativeFunctionPointer' &&
+        element.name == 'NativeFunctionPointer' &&
         element.isFfiExtension;
   }
 
   bool get isNativeStructArrayExtension {
     var element = this;
     return element is ExtensionElement &&
-        element.name3 == 'StructArray' &&
+        element.name == 'StructArray' &&
         element.isFfiExtension;
   }
 
   bool get isNativeStructPointerExtension {
     var element = this;
     return element is ExtensionElement &&
-        element.name3 == 'StructPointer' &&
+        element.name == 'StructPointer' &&
         element.isFfiExtension;
   }
 
   bool get isNativeUnionArrayExtension {
     var element = this;
     return element is ExtensionElement &&
-        element.name3 == 'UnionArray' &&
+        element.name == 'UnionArray' &&
         element.isFfiExtension;
   }
 
   bool get isNativeUnionPointerExtension {
     var element = this;
     return element is ExtensionElement &&
-        element.name3 == 'UnionPointer' &&
+        element.name == 'UnionPointer' &&
         element.isFfiExtension;
   }
 
@@ -2444,7 +2474,7 @@ extension on Element? {
   bool get isOpaque {
     var element = this;
     return element is ClassElement &&
-        element.name3 == FfiVerifier._opaqueClassName &&
+        element.name == FfiVerifier._opaqueClassName &&
         element.isFfiClass;
   }
 
@@ -2452,7 +2482,7 @@ extension on Element? {
   bool get isPointer {
     var element = this;
     return element is ClassElement &&
-        element.name3 == 'Pointer' &&
+        element.name == 'Pointer' &&
         element.isFfiClass;
   }
 
@@ -2460,7 +2490,7 @@ extension on Element? {
   bool get isStruct {
     var element = this;
     return element is ClassElement &&
-        element.name3 == 'Struct' &&
+        element.name == 'Struct' &&
         element.isFfiClass;
   }
 
@@ -2474,7 +2504,7 @@ extension on Element? {
   bool get isUnion {
     var element = this;
     return element is ClassElement &&
-        element.name3 == 'Union' &&
+        element.name == 'Union' &&
         element.isFfiClass;
   }
 
@@ -2507,34 +2537,34 @@ extension on InterfaceElement {
   }
 
   bool get isFfiClass {
-    return library2.name3 == FfiVerifier._dartFfiLibraryName;
+    return library.name == FfiVerifier._dartFfiLibraryName;
   }
 
   bool get isTypedDataClass {
-    return library2.name3 == FfiVerifier._dartTypedDataLibraryName;
+    return library.name == FfiVerifier._dartTypedDataLibraryName;
   }
 }
 
 extension on ExtensionElement {
   bool get isFfiExtension {
-    return library2.name3 == FfiVerifier._dartFfiLibraryName;
+    return library.name == FfiVerifier._dartFfiLibraryName;
   }
 }
 
 extension on DartType? {
   bool get isAbiSpecificInteger {
     var self = this;
-    return self is InterfaceType && self.element3.isAbiSpecificInteger;
+    return self is InterfaceType && self.element.isAbiSpecificInteger;
   }
 
   bool get isStruct {
     var self = this;
-    return self is InterfaceType && self.element3.isStruct;
+    return self is InterfaceType && self.element.isStruct;
   }
 
   bool get isUnion {
     var self = this;
-    return self is InterfaceType && self.element3.isUnion;
+    return self is InterfaceType && self.element.isUnion;
   }
 }
 
@@ -2543,8 +2573,8 @@ extension on DartType {
     DartType iterator = this;
     int dimensions = 0;
     while (iterator is InterfaceType &&
-        iterator.element3.name3 == FfiVerifier._arrayClassName &&
-        iterator.element3.isFfiClass) {
+        iterator.element.name == FfiVerifier._arrayClassName &&
+        iterator.element.isFfiClass) {
       dimensions++;
       iterator = iterator.typeArguments.single;
     }
@@ -2554,8 +2584,8 @@ extension on DartType {
   bool get isAbiSpecificInteger {
     var self = this;
     if (self is InterfaceType) {
-      var element = self.element3;
-      var name = element.name3;
+      var element = self.element;
+      var name = element.name;
       return name == FfiVerifier._abiSpecificIntegerClassName &&
           element.isFfiClass;
     }
@@ -2567,10 +2597,10 @@ extension on DartType {
   bool get isAbiSpecificIntegerSubtype {
     var self = this;
     if (self is InterfaceType) {
-      var superType = self.element3.supertype;
+      var superType = self.element.supertype;
       if (superType != null) {
-        var superClassElement = superType.element3;
-        return superClassElement.name3 ==
+        var superClassElement = superType.element;
+        return superClassElement.name ==
                 FfiVerifier._abiSpecificIntegerClassName &&
             superClassElement.isFfiClass;
       }
@@ -2582,8 +2612,8 @@ extension on DartType {
   bool get isArray {
     var self = this;
     if (self is InterfaceType) {
-      var element = self.element3;
-      return element.name3 == FfiVerifier._arrayClassName && element.isFfiClass;
+      var element = self.element;
+      return element.name == FfiVerifier._arrayClassName && element.isFfiClass;
     }
     return false;
   }
@@ -2591,8 +2621,8 @@ extension on DartType {
   bool get isCompound {
     var self = this;
     if (self is InterfaceType) {
-      var element = self.element3;
-      var name = element.name3;
+      var element = self.element;
+      var name = element.name;
       return (name == FfiVerifier._structClassName ||
               name == FfiVerifier._unionClassName) &&
           element.isFfiClass;
@@ -2604,7 +2634,7 @@ extension on DartType {
   bool get isCompoundSubtype {
     var self = this;
     if (self is InterfaceType) {
-      var superType = self.element3.supertype;
+      var superType = self.element.supertype;
       if (superType != null) {
         return superType.isCompound;
       }
@@ -2615,8 +2645,8 @@ extension on DartType {
   bool get isHandle {
     var self = this;
     if (self is InterfaceType) {
-      var element = self.element3;
-      return element.name3 == 'Handle' && element.isFfiClass;
+      var element = self.element;
+      return element.name == 'Handle' && element.isFfiClass;
     }
     return false;
   }
@@ -2625,8 +2655,8 @@ extension on DartType {
   bool get isNativeFunction {
     var self = this;
     if (self is InterfaceType) {
-      var element = self.element3;
-      return element.name3 == 'NativeFunction' && element.isFfiClass;
+      var element = self.element;
+      return element.name == 'NativeFunction' && element.isFfiClass;
     }
     return false;
   }
@@ -2635,24 +2665,24 @@ extension on DartType {
   bool get isNativeType {
     var self = this;
     if (self is InterfaceType) {
-      var element = self.element3;
-      return element.name3 == 'NativeType' && element.isFfiClass;
+      var element = self.element;
+      return element.name == 'NativeType' && element.isFfiClass;
     }
     return false;
   }
 
   bool get isOpaque {
     var self = this;
-    return self is InterfaceType && self.element3.isOpaque;
+    return self is InterfaceType && self.element.isOpaque;
   }
 
   /// Returns `true` iff this is a opaque type, i.e. a subtype of `Opaque`.
   bool get isOpaqueSubtype {
     var self = this;
     if (self is InterfaceType) {
-      var superType = self.element3.supertype;
+      var superType = self.element.supertype;
       if (superType != null) {
-        return superType.element3.isOpaque;
+        return superType.element.isOpaque;
       }
     }
     return false;
@@ -2660,7 +2690,7 @@ extension on DartType {
 
   bool get isPointer {
     var self = this;
-    return self is InterfaceType && self.element3.isPointer;
+    return self is InterfaceType && self.element.isPointer;
   }
 
   /// Only the subset of typed data classes that correspond to a Pointer.
@@ -2669,10 +2699,10 @@ extension on DartType {
     if (self is! InterfaceType) {
       return false;
     }
-    if (!self.element3.isTypedDataClass) {
+    if (!self.element.isTypedDataClass) {
       return false;
     }
-    var elementName = self.element3.name3!;
+    var elementName = self.element.name!;
     if (!elementName.endsWith('List')) {
       return false;
     }
@@ -2689,8 +2719,8 @@ extension on DartType {
   bool get isVarArgs {
     var self = this;
     if (self is InterfaceType) {
-      var element = self.element3;
-      return element.name3 == 'VarArgs' && element.isFfiClass;
+      var element = self.element;
+      return element.name == 'VarArgs' && element.isFfiClass;
     }
     return false;
   }
@@ -2699,12 +2729,12 @@ extension on DartType {
 extension on NamedType {
   /// If this is a name of class from `dart:ffi`, return it.
   ClassElement? get ffiClass {
-    return element2.ffiClass;
+    return element.ffiClass;
   }
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isAbiSpecificIntegerSubtype {
-    var element = element2;
+    var element = this.element;
     if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isAbiSpecificInteger);
     }
@@ -2713,7 +2743,7 @@ extension on NamedType {
 
   /// Return `true` if this represents a subtype of `Struct` or `Union`.
   bool get isCompoundSubtype {
-    var element = element2;
+    var element = this.element;
     if (element is ClassElement) {
       return element.allSupertypes.any((e) => e.isCompound);
     }

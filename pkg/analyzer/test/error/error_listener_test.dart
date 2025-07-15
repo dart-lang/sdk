@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class RecordingErrorListenerTest {
   test_orderedAsReported() {
-    var listener = RecordingErrorListener();
+    var listener = RecordingDiagnosticListener();
     listener.onError(_MockDiagnostic(expectedIndex: 0, hashCode: 1));
     listener.onError(_MockDiagnostic(expectedIndex: 1, hashCode: 10));
     listener.onError(_MockDiagnostic(expectedIndex: 2, hashCode: -50));
@@ -26,7 +26,7 @@ class RecordingErrorListenerTest {
     // Expect the errors are returned in the order they are reported, and not
     // affected by their hashcodes.
     expect(
-      listener.errors.cast<_MockDiagnostic>().map((e) => e.expectedIndex),
+      listener.diagnostics.cast<_MockDiagnostic>().map((e) => e.expectedIndex),
       [0, 1, 2, 3, 4],
     );
   }

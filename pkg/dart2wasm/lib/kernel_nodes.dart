@@ -39,6 +39,10 @@ mixin KernelNodes {
       index.getClass("dart:_boxed_int", "BoxedInt");
   late final Class closureClass = index.getClass("dart:core", "_Closure");
   late final Class listBaseClass = index.getClass("dart:_list", "WasmListBase");
+  late final Field listBaseLengthField =
+      index.getField("dart:_list", "WasmListBase", "_length");
+  late final Field listBaseDataField =
+      index.getField("dart:_list", "WasmListBase", "_data");
   late final Procedure listBaseIndexOperator =
       index.getProcedure("dart:_list", "WasmListBase", "[]");
   late final Class fixedLengthListClass =

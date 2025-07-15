@@ -28,7 +28,7 @@ class A {
       Expect.equals(invoke.positionalArguments[0], "ok");
       return null;
     } else if (invoke.memberName == #test5) {
-      Expect.equals(invoke.typeArguments[0].toString(), "int");
+      Expect.equals(invoke.typeArguments[0], int);
       return null;
     } else if (invoke.memberName == #test6) {
       return 1;
@@ -36,8 +36,8 @@ class A {
       return "hi";
     } else if (invoke.memberName == #allTogetherNow) {
       Expect.equals(invoke.typeArguments.length, 2);
-      Expect.equals(invoke.typeArguments[0].toString(), "num");
-      Expect.equals(invoke.typeArguments[1].toString(), "double");
+      Expect.equals(invoke.typeArguments[0], num);
+      Expect.equals(invoke.typeArguments[1], double);
 
       Expect.equals(invoke.positionalArguments.length, 1);
       Expect.equals(invoke.positionalArguments[0], 2.0);
@@ -50,8 +50,8 @@ class A {
       Expect.equals(null, invoke.positionalArguments[0]);
     } else if (invoke.memberName == #test9) {
       Expect.equals(invoke.typeArguments.length, 2);
-      Expect.equals(invoke.typeArguments[0].toString(), "num");
-      Expect.equals(invoke.typeArguments[1].toString(), "double");
+      Expect.equals(invoke.typeArguments[0], num);
+      Expect.equals(invoke.typeArguments[1], double);
 
       Expect.equals(1, invoke.positionalArguments.length);
       Expect.equals(4.2, invoke.positionalArguments[0]);

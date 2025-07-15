@@ -17,19 +17,19 @@ import 'package:analyzer/src/error/codes.dart';
 class GetterSetterTypesVerifier {
   final LibraryElementImpl library;
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   GetterSetterTypesVerifier({
     required this.library,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
   }) : _typeSystem = library.typeSystem,
-       _errorReporter = errorReporter;
+       _diagnosticReporter = diagnosticReporter;
 
   bool get _skipGetterSetterTypesCheck {
     return library.featureSet.isEnabled(Feature.getter_setter_error);
   }
 
-  void checkExtension(ExtensionElementImpl2 element) {
+  void checkExtension(ExtensionElementImpl element) {
     if (_skipGetterSetterTypesCheck) {
       return;
     }
@@ -40,7 +40,7 @@ class GetterSetterTypesVerifier {
   }
 
   void checkExtensionType(
-    ExtensionTypeElementImpl2 element,
+    ExtensionTypeElementImpl element,
     Interface interface,
   ) {
     if (_skipGetterSetterTypesCheck) {
@@ -51,14 +51,14 @@ class GetterSetterTypesVerifier {
     checkStaticGetters(element.getters);
   }
 
-  void checkInterface(InterfaceElementImpl2 element, Interface interface) {
+  void checkInterface(InterfaceElementImpl element, Interface interface) {
     if (_skipGetterSetterTypesCheck) {
       return;
     }
 
-    var libraryUri = element.library2.uri;
+    var libraryUri = element.library.uri;
 
-    var interfaceMap = interface.map2;
+    var interfaceMap = interface.map;
     for (var entry in interfaceMap.entries) {
       var getterName = entry.key;
       if (!getterName.isAccessibleFor(libraryUri)) continue;
@@ -72,8 +72,8 @@ class GetterSetterTypesVerifier {
           if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
             Element errorElement;
             if (getter.enclosingElement == element) {
-              if (element is ExtensionTypeElementImpl2 &&
-                  element.representation2.getter2 == getter) {
+              if (element is ExtensionTypeElementImpl &&
+                  element.representation.getter == getter) {
                 errorElement = setter;
               } else {
                 errorElement = getter;
@@ -96,7 +96,7 @@ class GetterSetterTypesVerifier {
               setterName = '$setterClassName.$setterName';
             }
 
-            _errorReporter.atElement2(
+            _diagnosticReporter.atElement2(
               errorElement,
               CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
               arguments: [getterName, getterType, setterType, setterName],
@@ -120,12 +120,12 @@ class GetterSetterTypesVerifier {
   }
 
   void _checkLocalGetter(GetterElement2OrMember getter) {
-    var name = getter.name3;
+    var name = getter.name;
     if (name == null) {
       return;
     }
 
-    var setter = getter.variable3?.setter2;
+    var setter = getter.variable?.setter;
     if (setter == null) {
       return;
     }
@@ -137,7 +137,7 @@ class GetterSetterTypesVerifier {
 
     var getterType = _getGetterType(getter);
     if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
-      _errorReporter.atElement2(
+      _diagnosticReporter.atElement2(
         getter,
         CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
         arguments: [name, getterType, setterType, name],

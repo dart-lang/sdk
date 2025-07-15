@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 class ElementLocator {
   /// Return the element associated with the given [node], or `null` if there
   /// is no element associated with the node.
-  static Element? locate2(AstNode? node) {
+  static Element? locate(AstNode? node) {
     if (node == null) return null;
 
     var mapper = _ElementMapper2();
@@ -23,12 +23,12 @@ class ElementLocator {
 class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
   Element? visitAssignedVariablePattern(AssignedVariablePattern node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -43,7 +43,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitCatchClauseParameter(CatchClauseParameter node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -72,7 +72,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
     if (parent is EnumConstantArguments) {
       var parent2 = parent.parent;
       if (parent2 is EnumConstantDeclaration) {
-        return parent2.constructorElement2;
+        return parent2.constructorElement;
       }
     }
     return null;
@@ -80,12 +80,12 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitDeclaredIdentifier(DeclaredIdentifier node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
   Element? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    return node.declaredElement2;
+    return node.declaredElement;
   }
 
   @override
@@ -117,7 +117,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitExportDirective(ExportDirective node) {
-    return node.libraryExport?.exportedLibrary2;
+    return node.libraryExport?.exportedLibrary;
   }
 
   @override
@@ -127,7 +127,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitExtensionOverride(ExtensionOverride node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -161,7 +161,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
     if (parent is Annotation) {
       // Map the type name in an annotation.
       if (identical(parent.name, node) && parent.constructorName == null) {
-        return parent.element2;
+        return parent.element;
       }
     } else if (parent is ConstructorDeclaration) {
       // Map a constructor declarations to its associated constructor element.
@@ -173,7 +173,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
         }
         var element = node.element;
         if (element is InterfaceElement) {
-          return element.unnamedConstructor2;
+          return element.unnamedConstructor;
         }
       } else if (parent.name == node.endToken) {
         return parent.declaredFragment?.element;
@@ -183,27 +183,27 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
       if (parent2 is EnumConstantArguments) {
         var parent3 = parent2.parent;
         if (parent3 is EnumConstantDeclaration) {
-          return parent3.constructorElement2;
+          return parent3.constructorElement;
         }
       }
     } else if (parent is LibraryIdentifier) {
       var grandParent = parent.parent;
       if (grandParent is LibraryDirective) {
-        return grandParent.element2;
+        return grandParent.element;
       }
       return null;
     }
-    return node.writeOrReadElement2;
+    return node.writeOrReadElement;
   }
 
   @override
   Element? visitImportDirective(ImportDirective node) {
-    return node.libraryImport?.importedLibrary2;
+    return node.libraryImport?.importedLibrary;
   }
 
   @override
   Element? visitImportPrefixReference(ImportPrefixReference node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -218,7 +218,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitLibraryDirective(LibraryDirective node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -238,7 +238,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitNamedType(NamedType node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
@@ -248,14 +248,14 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPatternField(PatternField node) {
-    return node.element2;
+    return node.element;
   }
 
   @override
   Element? visitPatternFieldName(PatternFieldName node) {
     var parent = node.parent;
     if (parent is PatternField) {
-      return parent.element2;
+      return parent.element;
     } else {
       return null;
     }
@@ -293,9 +293,9 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   Element? visitStringLiteral(StringLiteral node) {
     var parent = node.parent;
     if (parent is ExportDirective) {
-      return parent.libraryExport?.exportedLibrary2;
+      return parent.libraryExport?.exportedLibrary;
     } else if (parent is ImportDirective) {
-      return parent.libraryImport?.importedLibrary2;
+      return parent.libraryImport?.importedLibrary;
     } else if (parent is PartDirective) {
       return null;
     }
@@ -309,6 +309,6 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitVariableDeclaration(VariableDeclaration node) {
-    return node.declaredFragment?.element ?? node.declaredElement2;
+    return node.declaredFragment?.element ?? node.declaredElement;
   }
 }

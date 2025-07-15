@@ -14,13 +14,13 @@ import 'package:collection/collection.dart';
 
 /// Checks for missing arguments for required named parameters.
 class RequiredParametersVerifier extends SimpleAstVisitor<void> {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _errorReporter;
 
   RequiredParametersVerifier(this._errorReporter);
 
   @override
   void visitAnnotation(Annotation node) {
-    var element = node.element2;
+    var element = node.element;
     var argumentList = node.arguments;
     if (element is ConstructorElement && argumentList != null) {
       var errorNode = node.constructorIdentifier ?? node.classIdentifier;
@@ -60,7 +60,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
-      parameters: node.constructorElement2?.formalParameters,
+      parameters: node.constructorElement?.formalParameters,
       arguments: node.arguments?.argumentList.arguments ?? <Expression>[],
       errorEntity: node.name,
     );
@@ -144,7 +144,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     for (FormalParameterElement parameter in parameters) {
       if (parameter.isRequiredNamed) {
-        String parameterName = parameter.name3!;
+        String parameterName = parameter.name!;
         if (!_containsNamedExpression(
           enclosingConstructor,
           arguments,
@@ -165,7 +165,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
       if (parameter.isOptionalNamed) {
         var annotation = _requiredAnnotation(parameter);
         if (annotation != null) {
-          String parameterName = parameter.name3!;
+          String parameterName = parameter.name!;
           if (!_containsNamedExpression(
             enclosingConstructor,
             arguments,
@@ -207,7 +207,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
     if (enclosingConstructor != null) {
       return enclosingConstructor.formalParameters.any(
-        (e) => e is SuperFormalParameterElement && e.isNamed && e.name3 == name,
+        (e) => e is SuperFormalParameterElement && e.isNamed && e.name == name,
       );
     }
 

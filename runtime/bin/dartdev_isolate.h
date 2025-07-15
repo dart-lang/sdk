@@ -36,6 +36,11 @@ class DartDevIsolate {
   // not an HTTP resource.
   static bool ShouldParseCommand(const char* script_uri);
 
+  // Returns true if VM options need to be recorded and passed to the VM
+  // that executes the command (this is true only for dart CL commands like
+  // 'run' and 'test'.
+  static bool ShouldParseVMOptions(const char* command);
+
   static void set_should_run_dart_dev(bool enable) {
     should_run_dart_dev_ = enable;
   }

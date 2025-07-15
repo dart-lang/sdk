@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -32,10 +33,7 @@ class ParameterAssignments extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.parameter_assignments;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -162,7 +160,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var parameter in parameterList.parameters) {
       var declaredElement = parameter.declaredFragment?.element;
       if (declaredElement != null &&
-          body.isPotentiallyMutatedInScope2(declaredElement)) {
+          body.isPotentiallyMutatedInScope(declaredElement)) {
         var paramIsNotNullByDefault =
             parameter is SimpleFormalParameter ||
             _isDefaultFormalParameterWithDefaultValue(parameter);
@@ -186,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on AstNode {
   Element? get element => switch (this) {
-    AssignedVariablePattern(:var element2) => element2,
+    AssignedVariablePattern(:var element) => element,
     _ => null,
   };
 }

@@ -56,18 +56,18 @@ class VarianceBuilder {
 
   Variance _compute(TypeParameterElement variable, DartType? type) {
     if (type is TypeParameterType) {
-      if (type.element3 == variable) {
+      if (type.element == variable) {
         return Variance.covariant;
       } else {
         return Variance.unrelated;
       }
     } else if (type is NamedTypeBuilder) {
-      var element = type.element3;
+      var element = type.element;
       var arguments = type.arguments;
-      if (element is InterfaceElementImpl2) {
+      if (element is InterfaceElementImpl) {
         var result = Variance.unrelated;
         if (arguments.isNotEmpty) {
-          var typeParameters = element.typeParameters2;
+          var typeParameters = element.typeParameters;
           for (
             var i = 0;
             i < arguments.length && i < typeParameters.length;
@@ -80,13 +80,13 @@ class VarianceBuilder {
           }
         }
         return result;
-      } else if (element is TypeAliasElementImpl2) {
+      } else if (element is TypeAliasElementImpl) {
         _typeAliasElement(element);
 
         var result = Variance.unrelated;
 
         if (arguments.isNotEmpty) {
-          var typeParameters = element.typeParameters2;
+          var typeParameters = element.typeParameters;
           for (
             var i = 0;
             i < arguments.length && i < typeParameters.length;
@@ -139,9 +139,11 @@ class VarianceBuilder {
       }
     }
 
-    for (var typeParameter in formalParameters) {
+    for (var formalParameter in formalParameters) {
       result = result.meet(
-        Variance.contravariant.combine(_compute(variable, typeParameter.type)),
+        Variance.contravariant.combine(
+          _compute(variable, formalParameter.type),
+        ),
       );
     }
 
@@ -222,7 +224,7 @@ class VarianceBuilder {
     }
   }
 
-  void _typeAliasElement(TypeAliasElementImpl2 element) {
+  void _typeAliasElement(TypeAliasElementImpl element) {
     var node = _linker.getLinkingNode2(element.firstFragment);
     if (node == null) {
       // Not linking.
@@ -250,7 +252,7 @@ class VarianceBuilder {
   }
 
   static void _setVariance(TypeParameter node, Variance variance) {
-    var element = node.declaredFragment!.element as TypeParameterElementImpl2;
+    var element = node.declaredFragment!.element as TypeParameterElementImpl;
     element.variance = variance;
   }
 }

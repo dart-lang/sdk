@@ -69,6 +69,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ],
     );
     C.firstFragment.methods = [m];
+    C.methods = [m.element];
     // }
 
     // C<Object> cOfObject;
@@ -80,17 +81,17 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     // B b;
     // cOfB.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfB.getMethod2('m')!.type, [typeB]),
+      _inferCall2(cOfB.getMethod('m')!.type, [typeB]),
       'B Function(B)',
     );
     // cOfA.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfA.getMethod2('m')!.type, [typeB]),
+      _inferCall2(cOfA.getMethod('m')!.type, [typeB]),
       'B Function(B)',
     );
     // cOfObject.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfObject.getMethod2('m')!.type, [typeB]),
+      _inferCall2(cOfObject.getMethod('m')!.type, [typeB]),
       'B Function(B)',
     );
   }
@@ -121,6 +122,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       ],
     );
     C.firstFragment.methods = [m];
+    C.methods = [m.element];
     // }
 
     // C<Object> cOfObject;
@@ -133,17 +135,17 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     var listOfB = listNone(typeB);
     // cOfB.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfB.getMethod2('m')!.type, [listOfB]),
+      _inferCall2(cOfB.getMethod('m')!.type, [listOfB]),
       'List<B> Function(List<B>)',
     );
     // cOfA.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfA.getMethod2('m')!.type, [listOfB]),
+      _inferCall2(cOfA.getMethod('m')!.type, [listOfB]),
       'List<B> Function(List<B>)',
     );
     // cOfObject.m(b); // infer <B>
     _assertType(
-      _inferCall2(cOfObject.getMethod2('m')!.type, [listOfB]),
+      _inferCall2(cOfObject.getMethod('m')!.type, [listOfB]),
       'List<B> Function(List<B>)',
     );
   }
@@ -203,7 +205,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     var inferredTypes = _inferCall(rawType, [S_and_int]);
     var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
-    expect(inferredType.element3, S);
+    expect(inferredType.element, S);
     expect(inferredType.promotedBound, isNull);
   }
 
@@ -572,9 +574,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     TypeImpl returnType = UnknownInferredType.instance,
     bool expectError = false,
   }) {
-    var listener = RecordingErrorListener();
+    var listener = RecordingDiagnosticListener();
 
-    var reporter = ErrorReporter(
+    var reporter = DiagnosticReporter(
       listener,
       NonExistingSource('/test.dart', toUri('/test.dart')),
     );
@@ -583,7 +585,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
       typeParameters: ft.typeParameters,
       declaredReturnType: ft.returnType,
       contextReturnType: returnType,
-      errorReporter: reporter,
+      diagnosticReporter: reporter,
       errorEntity: NullLiteralImpl(literal: KeywordToken(Keyword.NULL, 0)),
       genericMetadataIsEnabled: true,
       inferenceUsingBoundsIsEnabled: true,
@@ -602,12 +604,16 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     if (expectError) {
       expect(
-        listener.errors.map((e) => e.errorCode).toList(),
+        listener.diagnostics.map((e) => e.diagnosticCode).toList(),
         [CompileTimeErrorCode.COULD_NOT_INFER],
         reason: 'expected exactly 1 could not infer error.',
       );
     } else {
-      expect(listener.errors, isEmpty, reason: 'did not expect any errors.');
+      expect(
+        listener.diagnostics,
+        isEmpty,
+        reason: 'did not expect any errors.',
+      );
     }
     return typeArguments;
   }

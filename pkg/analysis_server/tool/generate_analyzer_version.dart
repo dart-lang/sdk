@@ -10,15 +10,14 @@ import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
 
 void main() async {
-  await GeneratedContent.generateAll(
-    normalize(join(packageRoot, 'analysis_server')),
-    allTargets,
-  );
+  await GeneratedContent.generateAll(packageRoot, allTargets);
 }
 
 List<GeneratedContent> get allTargets {
   return [
-    GeneratedFile('lib/src/plugin2/analyzer_version.g.dart', (_) async {
+    GeneratedFile('analysis_server/lib/src/plugin2/analyzer_version.g.dart', (
+      _,
+    ) async {
       var buffer = StringBuffer('''
 // Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

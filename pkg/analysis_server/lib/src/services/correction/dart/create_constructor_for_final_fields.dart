@@ -254,7 +254,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
               builder.write('required ');
             }
             builder.write('super.');
-            builder.write(formalParameter.name3!);
+            builder.write(formalParameter.name!);
             hasWritten = true;
           }
         }
@@ -420,7 +420,7 @@ class _FixContext {
   });
 
   List<FormalParameterElement>? get superNamed {
-    var superConstructor = superType.constructors2.singleOrNull;
+    var superConstructor = superType.constructors.singleOrNull;
     if (superConstructor != null) {
       var superAll = superConstructor.formalParameters;
       var superNamed = superAll.where((e) => e.isNamed).toList();

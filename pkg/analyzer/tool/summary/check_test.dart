@@ -16,9 +16,8 @@ void main() async {
   );
   var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
   await GeneratedContent.checkAll(
-    idlFolderPath,
+    package_root.packageRoot,
     'pkg/analyzer/tool/summary/generate.dart',
     getAllTargets(idlPath),
-    args: [idlPath],
   );
 }

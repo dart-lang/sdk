@@ -92,9 +92,10 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         if (preserveType) {
           builder.addSimpleInsertion(identifier.offset, 'this.');
         } else {
+          var prefix = parameter.requiredKeyword != null ? 'required ' : '';
           builder.addSimpleReplacement(
             range.node(parameter),
-            'this.${identifier.lexeme}',
+            '${prefix}this.${identifier.lexeme}',
           );
         }
 

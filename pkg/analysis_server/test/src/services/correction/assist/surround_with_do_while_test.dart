@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SurroundWithDoWhileTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SURROUND_WITH_DO_WHILE;
+  AssistKind get kind => DartAssistKind.surroundWithDoWhile;
 
   Future<void> test_twoStatements() async {
     await resolveTestCode('''

@@ -125,6 +125,9 @@
 #if TARGET_OS_WATCH
 #define DART_HOST_OS_WATCH 1
 #endif
+#if TARGET_OS_SIMULATOR
+#define DART_HOST_OS_SIMULATOR 1
+#endif
 
 #elif defined(_WIN32)
 
@@ -365,30 +368,30 @@ struct simd128_value_t {
 // Determine whether we will be using the simulator.
 #if defined(TARGET_ARCH_IA32)
 #if !defined(HOST_ARCH_IA32)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_X64)
 #if !defined(HOST_ARCH_X64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_ARM)
 #if !defined(HOST_ARCH_ARM)
 #define TARGET_HOST_MISMATCH 1
 #if !defined(IS_SIMARM_HOST64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #endif
 #elif defined(TARGET_ARCH_ARM64)
 #if !defined(HOST_ARCH_ARM64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_RISCV32)
 #if !defined(HOST_ARCH_RISCV32)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #elif defined(TARGET_ARCH_RISCV64)
 #if !defined(HOST_ARCH_RISCV64)
-#define USING_SIMULATOR 1
+#define DART_INCLUDE_SIMULATOR 1
 #endif
 #else
 #error Unknown architecture.
@@ -730,24 +733,6 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 
 // Undefine math.h definition which clashes with our condition names.
 #undef OVERFLOW
-
-// Include IL printer and disassembler functionality into non-PRODUCT builds,
-// in all AOT compiler builds or when forced.
-#if !defined(PRODUCT) || defined(DART_PRECOMPILER) ||                          \
-    defined(FORCE_INCLUDE_DISASSEMBLER)
-#if defined(DART_PRECOMPILED_RUNTIME) && defined(PRODUCT)
-#error Requested to include IL printer into PRODUCT AOT runtime
-#endif
-#define INCLUDE_IL_PRINTER 1
-#if !defined(FORCE_INCLUDE_DISASSEMBLER)
-#define FORCE_INCLUDE_DISASSEMBLER 1
-#endif
-#endif
-
-// Include HeapSnapshotWriter functionality if not in PRODUCT.
-#if !defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER) && !defined(PRODUCT)
-#define DART_ENABLE_HEAP_SNAPSHOT_WRITER 1
-#endif
 
 #if defined(DART_HOST_OS_ANDROID)
 #define kHostOperatingSystemName "android"

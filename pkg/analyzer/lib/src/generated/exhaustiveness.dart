@@ -79,7 +79,7 @@ class AnalyzerEnumOperations
 
   @override
   EnumElement? getEnumClass(TypeImpl type) {
-    var element = type.element3;
+    var element = type.element;
     if (element is EnumElement) {
       return element;
     }
@@ -88,7 +88,7 @@ class AnalyzerEnumOperations
 
   @override
   String getEnumElementName(FieldElement enumField) {
-    return '${enumField.enclosingElement.name3}.${enumField.name3}';
+    return '${enumField.enclosingElement.name}.${enumField.name}';
   }
 
   @override
@@ -131,25 +131,25 @@ class AnalyzerExhaustivenessCache
 }
 
 class AnalyzerSealedClassOperations
-    implements SealedClassOperations<TypeImpl, InterfaceElementImpl2> {
+    implements SealedClassOperations<TypeImpl, InterfaceElementImpl> {
   final TypeSystemImpl _typeSystem;
 
   AnalyzerSealedClassOperations(this._typeSystem);
 
   @override
-  List<InterfaceElementImpl2> getDirectSubclasses(
-    InterfaceElementImpl2 sealedClass,
+  List<InterfaceElementImpl> getDirectSubclasses(
+    InterfaceElementImpl sealedClass,
   ) {
-    List<InterfaceElementImpl2> subclasses = [];
-    var library = sealedClass.library2;
+    List<InterfaceElementImpl> subclasses = [];
+    var library = sealedClass.library;
     outer:
-    for (var declaration in library.children2) {
+    for (var declaration in library.children) {
       if (declaration is ExtensionTypeElement) {
         continue;
       }
-      if (declaration != sealedClass && declaration is InterfaceElementImpl2) {
+      if (declaration != sealedClass && declaration is InterfaceElementImpl) {
         bool checkType(InterfaceTypeImpl? type) {
-          if (type?.element3 == sealedClass) {
+          if (type?.element == sealedClass) {
             subclasses.add(declaration);
             return true;
           }
@@ -169,7 +169,7 @@ class AnalyzerSealedClassOperations
             continue outer;
           }
         }
-        if (declaration is MixinElementImpl2) {
+        if (declaration is MixinElementImpl) {
           for (var type in declaration.superclassConstraints) {
             if (checkType(type)) {
               continue outer;
@@ -182,9 +182,9 @@ class AnalyzerSealedClassOperations
   }
 
   @override
-  ClassElementImpl2? getSealedClass(TypeImpl type) {
-    var element = type.element3;
-    if (element is ClassElementImpl2 && element.isSealed) {
+  ClassElementImpl? getSealedClass(TypeImpl type) {
+    var element = type.element;
+    if (element is ClassElementImpl && element.isSealed) {
       return element;
     }
     return null;
@@ -192,11 +192,11 @@ class AnalyzerSealedClassOperations
 
   @override
   TypeImpl? getSubclassAsInstanceOf(
-    InterfaceElementImpl2 subClass,
+    InterfaceElementImpl subClass,
     covariant InterfaceTypeImpl sealedClassType,
   ) {
     var thisType = subClass.thisType;
-    var asSealedClass = thisType.asInstanceOf2(sealedClassType.element3)!;
+    var asSealedClass = thisType.asInstanceOf(sealedClassType.element)!;
     if (thisType.typeArguments.isEmpty) {
       return thisType;
     }
@@ -210,11 +210,11 @@ class AnalyzerSealedClassOperations
       }
       if (trivialSubstitution) {
         Substitution substitution = Substitution.fromPairs2(
-          subClass.typeParameters2,
+          subClass.typeParameters,
           sealedClassType.typeArguments,
         );
-        for (int i = 0; i < subClass.typeParameters2.length; i++) {
-          var bound = subClass.typeParameters2[i].bound;
+        for (int i = 0; i < subClass.typeParameters.length; i++) {
+          var bound = subClass.typeParameters[i].bound;
           if (bound != null &&
               !_typeSystem.isSubtypeOf(
                 sealedClassType.typeArguments[i],
@@ -288,7 +288,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListElementType(TypeImpl type) {
-    var listType = type.asInstanceOf2(_typeSystem.typeProvider.listElement2);
+    var listType = type.asInstanceOf(_typeSystem.typeProvider.listElement);
     if (listType != null) {
       return listType.typeArguments[0];
     }
@@ -297,12 +297,12 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
 
   @override
   TypeImpl? getListType(TypeImpl type) {
-    return type.asInstanceOf2(_typeSystem.typeProvider.listElement2);
+    return type.asInstanceOf(_typeSystem.typeProvider.listElement);
   }
 
   @override
   TypeImpl? getMapValueType(TypeImpl type) {
-    var mapType = type.asInstanceOf2(_typeSystem.typeProvider.mapElement2);
+    var mapType = type.asInstanceOf(_typeSystem.typeProvider.mapElement);
     if (mapType != null) {
       return mapType.typeArguments[1];
     }
@@ -407,10 +407,10 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
         fieldTypes.addAll(_getInterfaceFieldTypes(supertype));
       }
       for (var getter in type.getters) {
-        if (getter.isPrivate && getter.library2 != _enclosingLibrary) {
+        if (getter.isPrivate && getter.library != _enclosingLibrary) {
           continue;
         }
-        var name = getter.name3;
+        var name = getter.name;
         if (name == null) {
           continue;
         }
@@ -418,11 +418,11 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
           fieldTypes[NameKey(name)] = getter.type.returnType;
         }
       }
-      for (var method in type.methods2) {
-        if (method.isPrivate && method.library2 != _enclosingLibrary) {
+      for (var method in type.methods) {
+        if (method.isPrivate && method.library != _enclosingLibrary) {
           continue;
         }
-        var name = method.name3;
+        var name = method.name;
         if (name == null) {
           continue;
         }
@@ -473,7 +473,7 @@ class MissingPatternEnumValuePart extends MissingPatternPart {
   });
 
   @override
-  String toString() => value2.name3!;
+  String toString() => value2.name!;
 }
 
 abstract class MissingPatternPart {}
@@ -561,7 +561,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       return createVariableSpace(
         path,
         contextType,
-        pattern.declaredElement2!.type,
+        pattern.declaredElement!.type,
         nonNull: nonNull,
       );
     } else if (pattern is ObjectPattern) {
@@ -574,15 +574,15 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
           continue;
         }
         properties[name] = field.pattern;
-        var element = field.element2;
+        var element = field.element;
         TypeImpl? extensionPropertyType;
         if (element is PropertyAccessorElement2OrMember &&
-            (element.enclosingElement is ExtensionElementImpl2 ||
-                element.enclosingElement is ExtensionTypeElementImpl2)) {
+            (element.enclosingElement is ExtensionElementImpl ||
+                element.enclosingElement is ExtensionTypeElementImpl)) {
           extensionPropertyType = element.returnType;
         } else if (element is ExecutableElement2OrMember &&
-            (element.enclosingElement is ExtensionElementImpl2 ||
-                element.enclosingElement is ExtensionTypeElementImpl2)) {
+            (element.enclosingElement is ExtensionElementImpl ||
+                element.enclosingElement is ExtensionTypeElementImpl)) {
           extensionPropertyType = element.type;
         }
         if (extensionPropertyType != null) {
@@ -677,7 +677,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is ListPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
       assert(
-        type.element3 == cache.typeSystem.typeProvider.listElement2 &&
+        type.element == cache.typeSystem.typeProvider.listElement &&
             type.typeArguments.length == 1,
       );
       var elementType = type.typeArguments[0];
@@ -708,7 +708,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
     } else if (pattern is MapPattern) {
       var type = pattern.requiredType as InterfaceTypeImpl;
       assert(
-        type.element3 == cache.typeSystem.typeProvider.mapElement2 &&
+        type.element == cache.typeSystem.typeProvider.mapElement &&
             type.typeArguments.length == 2,
       );
       var keyType = type.typeArguments[0];
@@ -778,8 +778,8 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
       return Space(path, cache.getStaticType(type), properties: properties);
     }
     if (type is InterfaceTypeImpl) {
-      var element = type.element3;
-      if (element is EnumElementImpl2) {
+      var element = type.element;
+      if (element is EnumElementImpl) {
         return Space(path, cache.getEnumElementStaticType(element, value));
       }
     }
@@ -830,7 +830,7 @@ class TypeParameterReplacer extends ReplacementVisitor {
     if (_variance == Variance.contravariant) {
       return _replaceTypeParameterTypes(_typeSystem.typeProvider.neverType);
     } else {
-      var element = node.element3;
+      var element = node.element;
       var defaultType = element.defaultType!;
       return _replaceTypeParameterTypes(defaultType);
     }

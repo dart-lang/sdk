@@ -271,7 +271,7 @@ class DartUnitHighlightsComputer {
       type = HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION;
     } else if (element is GetterElement) {
       var accessor = element;
-      var variable = accessor.variable3;
+      var variable = accessor.variable;
       if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE;
       } else if (variable is FieldElement && variable.isEnumConstant) {
@@ -283,7 +283,7 @@ class DartUnitHighlightsComputer {
       }
     } else if (element is SetterElement) {
       var accessor = element;
-      var variable = accessor.variable3;
+      var variable = accessor.variable;
       if (variable is TopLevelVariableElement) {
         type = HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE;
       } else if (variable is FieldElement && variable.isEnumConstant) {
@@ -441,7 +441,9 @@ class DartUnitHighlightsComputer {
     }
     var isStatic = element.isStatic;
     var isInvocation =
-        parent is MethodInvocation && parent.methodName.token == nameToken;
+        (parent is MethodInvocation && parent.methodName.token == nameToken) ||
+        (parent is DotShorthandInvocation &&
+            parent.memberName.token == nameToken);
     // OK
     HighlightRegionType type;
     if (isStatic) {
@@ -718,24 +720,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    computer._addRegion_token(
-      node.augmentedKeyword,
-      HighlightRegionType.KEYWORD,
-    );
-    super.visitAugmentedExpression(node);
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    computer._addRegion_token(
-      node.augmentedKeyword,
-      HighlightRegionType.KEYWORD,
-    );
-    super.visitAugmentedInvocation(node);
-  }
-
-  @override
   void visitAwaitExpression(AwaitExpression node) {
     computer._addRegion_token(
       node.awaitKeyword,
@@ -803,7 +787,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         exceptionParameter.name,
         HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
         additionalSemanticTokenModifiers: _additionalModifiersForElement(
-          exceptionParameter.declaredElement2,
+          exceptionParameter.declaredElement,
         ),
       );
     }
@@ -813,7 +797,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         stackTraceParameter.name,
         HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
         additionalSemanticTokenModifiers: _additionalModifiersForElement(
-          stackTraceParameter.declaredElement2,
+          stackTraceParameter.declaredElement,
         ),
       );
     }
@@ -938,7 +922,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       node.name,
       HighlightRegionType.LOCAL_VARIABLE_DECLARATION,
       additionalSemanticTokenModifiers: _additionalModifiersForElement(
-        node.declaredElement2,
+        node.declaredElement,
       ),
     );
 
@@ -977,6 +961,23 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       semanticTokenModifiers: {CustomSemanticTokenModifiers.control},
     );
     super.visitDoStatement(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    var element = node.propertyName.element;
+    if (element is ConstructorElement) {
+      computer._addRegion_node(
+        node.propertyName,
+        HighlightRegionType.CONSTRUCTOR_TEAR_OFF,
+      );
+    } else {
+      computer._addIdentifierRegion(
+        parent: node,
+        nameToken: node.propertyName.token,
+        element: element,
+      );
+    }
   }
 
   @override
@@ -1485,7 +1486,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addIdentifierRegion(
       parent: node,
       nameToken: node.name,
-      element: node.element2,
+      element: node.element,
     );
 
     node.typeArguments?.accept(this);
@@ -1533,7 +1534,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     if (name != null) {
       // Patterns can be method tear-offs as well as getters:
       // https://github.com/dart-lang/sdk/issues/59976#issuecomment-2613558317
-      var type = switch (node.element2) {
+      var type = switch (node.element) {
         MethodElement() => HighlightRegionType.INSTANCE_METHOD_TEAR_OFF,
         _ => HighlightRegionType.INSTANCE_GETTER_REFERENCE,
       };
@@ -1669,7 +1670,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       computer._addIdentifierRegion(
         parent: parent,
         nameToken: node.token,
-        element: node.writeOrReadElement2,
+        element: node.writeOrReadElement,
       );
     }
     super.visitSimpleIdentifier(node);
@@ -1830,7 +1831,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    var element = node.declaredFragment?.element ?? node.declaredElement2;
+    var element = node.declaredFragment?.element ?? node.declaredElement;
     if (element is FieldElement) {
       computer._addRegion_token(
         node.name,

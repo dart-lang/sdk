@@ -88,7 +88,7 @@ class PrefixedIdentifierResolver {
         inferenceLogWriter?.recordExpressionWithNoType(node);
       }
       return null;
-    } else if (element is DynamicElementImpl2) {
+    } else if (element is DynamicElementImpl) {
       var type = _typeProvider.typeType;
       node.recordStaticType(type, resolver: _resolver);
       identifier.setPseudoExpressionStaticType(type);
@@ -179,7 +179,7 @@ class PrefixedIdentifierResolver {
       return;
     }
 
-    _resolver.errorReporter.atNode(
+    _resolver.diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
       arguments: [node.name],

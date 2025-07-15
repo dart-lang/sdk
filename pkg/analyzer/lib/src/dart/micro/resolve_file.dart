@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -255,7 +254,7 @@ class FileResolver {
     Element element, {
     OperationPerformanceImpl? performance,
   }) {
-    return logger.runAsync('findReferences for ${element.name3}', () async {
+    return logger.runAsync('findReferences for ${element.name}', () async {
       var references = <CiderSearchMatch>[];
 
       Future<void> collectReferences2(
@@ -304,7 +303,6 @@ class FileResolver {
         for (var filePath in result) {
           await collectReferences2(filePath, performance!);
         }
-        _clearFileSystemStateParsedCache();
       }
       return references;
     });
@@ -338,7 +336,7 @@ class FileResolver {
             }).toList();
       } else {
         var unitResult = await resolve(path: path, performance: performance);
-        diagnostics = unitResult.errors;
+        diagnostics = unitResult.diagnostics;
 
         _errorResultsCache.put(
           errorsKey,
@@ -356,7 +354,7 @@ class FileResolver {
         lineInfo: file.lineInfo,
         isLibrary: file.kind is LibraryFileKind,
         isPart: file.kind is PartFileKind,
-        errors: diagnostics,
+        diagnostics: diagnostics,
         analysisOptions: file.analysisOptions,
       );
     });
@@ -415,7 +413,6 @@ class FileResolver {
 
     performance.run('libraryContext', (performance) {
       libraryContext!.load(targetLibrary: kind, performance: performance);
-      _clearFileSystemStateParsedCache();
     });
 
     return libraryContext!.elementFactory.libraryOfUri2(uri);
@@ -515,7 +512,6 @@ class FileResolver {
         path: libraryFile.path,
         performance: performance,
       );
-      _clearFileSystemStateParsedCache();
       var unit = libraryResult.units.firstWhereOrNull(
         (unitResult) => unitResult.path == path,
       );
@@ -575,7 +571,6 @@ class FileResolver {
           performance: OperationPerformanceImpl('<root>'),
           typeSystemOperations: typeSystemOperations,
         );
-        _clearFileSystemStateParsedCache();
 
         var analysisResult = performance!.run('analyze', (performance) {
           return libraryAnalyzer.analyzeForCompletion(
@@ -661,7 +656,7 @@ class FileResolver {
               session: contextObjects!.analysisSession,
               fileState: file,
               unit: fileResult.unit,
-              errors: fileResult.errors,
+              diagnostics: fileResult.diagnostics,
             );
           }).toList();
 
@@ -678,10 +673,6 @@ class FileResolver {
     });
   }
 
-  void _clearFileSystemStateParsedCache() {
-    fsState?.parsedFileStateCache.clear();
-  }
-
   /// Make sure that [fsState], [contextObjects], and [libraryContext] are
   /// created and configured with the given [fileAnalysisOptions].
   ///
@@ -695,10 +686,6 @@ class FileResolver {
   /// system. And there are lints that are enabled for one package, but not
   /// for another.
   void _createContext(String path, AnalysisOptionsImpl fileAnalysisOptions) {
-    // Clear it here too, so that even if we miss the invocation somewhere,
-    // we still eventually do it, and so limit the number of cached items.
-    _clearFileSystemStateParsedCache();
-
     if (contextObjects != null) {
       libraryContext!.analysisContext.analysisOptions = fileAnalysisOptions;
       return;
@@ -759,7 +746,6 @@ class FileResolver {
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
         eventsController: null,
-        infoDeclarationStore: const NoOpInfoDeclarationStore(),
         analysisOptionsMap: AnalysisOptionsMap.forSharedOptions(
           contextObjects!.analysisOptions,
         ),
@@ -882,7 +868,7 @@ class FileResolver {
     MockLibraryImportElement element,
   ) async {
     var results = <CiderSearchMatch>[];
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     for (var libraryFragment in libraryElement.fragments) {
       String unitPath = libraryFragment.source.fullName;
       var unitResult = await resolve(path: unitPath);

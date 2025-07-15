@@ -23,7 +23,7 @@ class AnnotationResolver {
 
   LibraryElementImpl get _definingLibrary => _resolver.definingLibrary;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   void resolve(
     AnnotationImpl node,
@@ -35,25 +35,25 @@ class AnnotationResolver {
 
   void _classConstructorInvocation(
     AnnotationImpl node,
-    InterfaceElementImpl2 classElement,
+    InterfaceElementImpl classElement,
     SimpleIdentifierImpl? constructorName,
     ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     ConstructorElementMixin2? constructorElement;
     if (constructorName != null) {
-      constructorElement = classElement.getNamedConstructor2(
+      constructorElement = classElement.getNamedConstructor(
         constructorName.name,
       );
     } else {
-      constructorElement = classElement.unnamedConstructor2;
+      constructorElement = classElement.unnamedConstructor;
     }
 
     _constructorInvocation(
       node,
-      classElement.name3!,
+      classElement.name!,
       constructorName,
-      classElement.typeParameters2,
+      classElement.typeParameters,
       constructorElement,
       argumentList,
       (typeArguments) {
@@ -76,13 +76,13 @@ class AnnotationResolver {
     if (getterName != null) {
       getter = classElement.getGetter(getterName.name);
       // Recovery, try to find a constructor.
-      getter ??= classElement.getNamedConstructor2(getterName.name);
+      getter ??= classElement.getNamedConstructor(getterName.name);
     } else {
-      getter = classElement.unnamedConstructor2;
+      getter = classElement.unnamedConstructor;
     }
 
     getterName?.element = getter;
-    node.element2 = getter;
+    node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
@@ -93,7 +93,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(
@@ -107,17 +107,17 @@ class AnnotationResolver {
     AnnotationImpl node,
     String typeDisplayName,
     SimpleIdentifierImpl? constructorName,
-    List<TypeParameterElementImpl2> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     ConstructorElementMixin2? constructorElement,
     ArgumentListImpl argumentList,
     InterfaceType Function(List<TypeImpl> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     constructorName?.element = constructorElement;
-    node.element2 = constructorElement;
+    node.element = constructorElement;
 
     if (constructorElement == null) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
       AnnotationInferrer(
         resolver: _resolver,
         node: node,
@@ -161,7 +161,7 @@ class AnnotationResolver {
     }
 
     getterName?.element = getter;
-    node.element2 = getter;
+    node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
@@ -172,7 +172,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(
@@ -188,7 +188,7 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     if (!element.isConst || node.arguments != null) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(
@@ -205,7 +205,7 @@ class AnnotationResolver {
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
     name.element = element;
-    node.element2 = element;
+    node.element = element;
 
     _resolveAnnotationElementGetter(node, element);
     _visitArguments(
@@ -237,7 +237,7 @@ class AnnotationResolver {
     name1.element = element1;
 
     if (element1 == null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.UNDEFINED_ANNOTATION,
         arguments: [name1.name],
@@ -251,7 +251,7 @@ class AnnotationResolver {
     }
 
     // Class(args) or Class.CONST
-    if (element1 is InterfaceElementImpl2) {
+    if (element1 is InterfaceElementImpl) {
       if (argumentList != null) {
         _classConstructorInvocation(
           node,
@@ -278,7 +278,7 @@ class AnnotationResolver {
         var element = element1.scope.lookup(name2.name).getter2;
         name2.element = element;
         // prefix.Class(args) or prefix.Class.CONST
-        if (element is InterfaceElementImpl2) {
+        if (element is InterfaceElementImpl) {
           if (element is ClassElement && argumentList != null) {
             _classConstructorInvocation(
               node,
@@ -309,7 +309,7 @@ class AnnotationResolver {
         }
 
         // prefix.TypeAlias(args) or prefix.TypeAlias.CONST
-        if (element is TypeAliasElementImpl2) {
+        if (element is TypeAliasElementImpl) {
           var aliasedType = element.aliasedType;
           var argumentList = node.arguments;
           if (aliasedType is InterfaceTypeImpl && argumentList != null) {
@@ -329,7 +329,7 @@ class AnnotationResolver {
         }
         // undefined
         if (element == null) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.UNDEFINED_ANNOTATION,
             arguments: [name2.name],
@@ -351,7 +351,7 @@ class AnnotationResolver {
     }
 
     // TypeAlias(args) or TypeAlias.CONST
-    if (element1 is TypeAliasElementImpl2) {
+    if (element1 is TypeAliasElementImpl) {
       var aliasedType = element1.aliasedType;
       var argumentList = node.arguments;
       if (aliasedType is InterfaceTypeImpl && argumentList != null) {
@@ -375,7 +375,7 @@ class AnnotationResolver {
       return;
     }
 
-    _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+    _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
 
     _visitArguments(
       node,
@@ -390,7 +390,7 @@ class AnnotationResolver {
   ) {
     // The accessor should be synthetic, the variable should be constant, and
     // there should be no arguments.
-    var variableElement = accessorElement.variable3;
+    var variableElement = accessorElement.variable;
     if (variableElement == null) {
       return;
     }
@@ -398,7 +398,7 @@ class AnnotationResolver {
     if (!accessorElement.isSynthetic ||
         !variableElement.isConst ||
         annotation.arguments != null) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         annotation,
         CompileTimeErrorCode.INVALID_ANNOTATION,
       );
@@ -407,23 +407,23 @@ class AnnotationResolver {
 
   void _typeAliasConstructorInvocation(
     AnnotationImpl node,
-    TypeAliasElementImpl2 typeAliasElement,
+    TypeAliasElementImpl typeAliasElement,
     SimpleIdentifierImpl? constructorName,
     InterfaceTypeImpl aliasedType,
     ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
   }) {
-    var constructorElement = aliasedType.lookUpConstructor2(
+    var constructorElement = aliasedType.lookUpConstructor(
       constructorName?.name,
       _definingLibrary,
     );
 
     _constructorInvocation(
       node,
-      typeAliasElement.name3!,
+      typeAliasElement.name!,
       constructorName,
-      typeAliasElement.typeParameters2,
+      typeAliasElement.typeParameters,
       constructorElement,
       argumentList,
       (typeArguments) {
@@ -446,14 +446,14 @@ class AnnotationResolver {
     ExecutableElement? getter;
     var aliasedType = typeAliasElement.aliasedType;
     if (aliasedType is InterfaceType) {
-      var classElement = aliasedType.element3;
+      var classElement = aliasedType.element;
       if (getterName != null) {
         getter = classElement.getGetter(getterName.name);
       }
     }
 
     getterName?.element = getter;
-    node.element2 = getter;
+    node.element = getter;
 
     if (getterName != null && getter is PropertyAccessorElement) {
       _propertyAccessorElement(
@@ -464,7 +464,7 @@ class AnnotationResolver {
       );
       _resolveAnnotationElementGetter(node, getter);
     } else if (getter is! ConstructorElement) {
-      _errorReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.INVALID_ANNOTATION);
     }
 
     _visitArguments(

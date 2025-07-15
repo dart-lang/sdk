@@ -4,7 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
+    show ClassHierarchy, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/names.dart' show equalsName;
 import 'package:kernel/reference_from_index.dart'
@@ -45,19 +45,20 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_algorithms.dart';
 import '../kernel/utils.dart' show compareProcedures;
 import 'builder_factory.dart';
-import 'class_declaration.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
+import 'nominal_parameter_name_space.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
+import 'source_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
+import 'type_parameter_factory.dart';
 
 Class initializeClass(
     List<SourceNominalParameterBuilder>? typeParameters,
@@ -92,10 +93,8 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    implements
-        Comparable<SourceClassBuilder>,
-        ClassDeclarationBuilder,
-        SourceDeclarationBuilder {
+    with SourceDeclarationBuilderBaseMixin
+    implements Comparable<SourceClassBuilder>, SourceDeclarationBuilder {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
@@ -204,7 +203,8 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   int resolveConstructors(SourceLibraryBuilder libraryBuilder) {
     int count = _introductory.resolveConstructorReferences(libraryBuilder);
-    for (ClassDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ClassDeclaration augmentation = _augmentations[i];
       count += augmentation.resolveConstructorReferences(libraryBuilder);
     }
     if (count > 0) {
@@ -276,15 +276,19 @@ class SourceClassBuilder extends ClassBuilderImpl
         containerType: ContainerType.Class,
         containerName: new ClassName(name),
         constructorBuilders: _constructorBuilders,
-        memberBuilders: _memberBuilders);
+        memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory,
+        syntheticDeclarations: createSyntheticDeclarations());
   }
+
+  Map<String, SyntheticDeclaration>? createSyntheticDeclarations() => null;
 
   bool _hasComputedSupertypes = false;
 
   void computeSupertypeBuilder({
     required SourceLoader loader,
     required ProblemReporting problemReporting,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required IndexedLibrary? indexedLibrary,
     required Map<SourceClassBuilder, TypeBuilder> mixinApplications,
     required void Function(SourceClassBuilder) addAnonymousMixinClassBuilder,
@@ -292,7 +296,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     assert(!_hasComputedSupertypes, "Supertypes have already been computed.");
     _hasComputedSupertypes = true;
     _supertypeBuilder = _applyMixins(
-        unboundNominalParameters: unboundNominalParameters,
+        typeParameterFactory: typeParameterFactory,
         compilationUnitScope: _introductory.compilationUnitScope,
         problemReporting: problemReporting,
         objectTypeBuilder: loader.target.objectType,
@@ -391,23 +395,23 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   SourceLibraryBuilder get parent => libraryBuilder;
 
-  Class build(LibraryBuilder coreLibrary) {
-    void buildBuilders(SourceMemberBuilder memberBuilder) {
-      assert(memberBuilder.parent == this,
-          "Unexpected member $memberBuilder from outside $this.");
-      memberBuilder.buildOutlineNodes((
-          {required Member member,
-          Member? tearOff,
-          required BuiltMemberKind kind}) {
-        _addMemberToClass(memberBuilder, member);
-        if (tearOff != null) {
-          _addMemberToClass(memberBuilder, tearOff);
-        }
-      });
-    }
+  void _buildMemberOutlineNodes(SourceMemberBuilder memberBuilder) {
+    assert(memberBuilder.parent == this,
+        "Unexpected member $memberBuilder from outside $this.");
+    memberBuilder.buildOutlineNodes((
+        {required Member member,
+        Member? tearOff,
+        required BuiltMemberKind kind}) {
+      _addMemberToClass(memberBuilder, member);
+      if (tearOff != null) {
+        _addMemberToClass(memberBuilder, tearOff);
+      }
+    });
+  }
 
-    _memberBuilders.forEach(buildBuilders);
-    _constructorBuilders.forEach(buildBuilders);
+  Class build(LibraryBuilder coreLibrary) {
+    _memberBuilders.forEach(_buildMemberOutlineNodes);
+    _constructorBuilders.forEach(_buildMemberOutlineNodes);
 
     if (_supertypeBuilder != null) {
       _supertypeBuilder = _checkSupertype(_supertypeBuilder!);
@@ -518,9 +522,8 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   void buildOutlineExpressions(ClassHierarchy classHierarchy,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    void build(Builder declaration) {
-      SourceMemberBuilder member = declaration as SourceMemberBuilder;
-      member.buildOutlineExpressions(
+    void build(SourceMemberBuilder declaration) {
+      declaration.buildOutlineExpressions(
           classHierarchy, delayedDefaultValueCloners);
     }
 
@@ -532,7 +535,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         libraryBuilder: libraryBuilder,
         classHierarchy: classHierarchy,
         createFileUriExpression: false);
-    for (ClassDeclaration augmentation in _augmentations) {
+    for (int i = 0; i < _augmentations.length; i++) {
+      ClassDeclaration augmentation = _augmentations[i];
       augmentation.buildOutlineExpressions(
           annotatable: cls,
           annotatableFileUri: cls.fileUri,
@@ -548,8 +552,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    filteredConstructorsIterator(includeDuplicates: false).forEach(build);
-    filteredMembersIterator(includeDuplicates: false).forEach(build);
+    filteredConstructorsIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
+    filteredMembersIterator<SourceMemberBuilder>(includeDuplicates: false)
+        .forEach(build);
   }
 
   /// Looks up the constructor by [name] on the class built by this class
@@ -575,62 +581,14 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     Class? superclass = cls.superclass;
     if (superclass != null) {
-      for (Constructor constructor in superclass.constructors) {
+      for (int i = 0; i < superclass.constructors.length; i++) {
+        Constructor constructor = superclass.constructors[i];
         if (constructor.name == name) {
           return constructor;
         }
       }
     }
     return null;
-  }
-
-  @override
-  int get typeParametersCount => typeParameters?.length ?? 0;
-
-  @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    if (arguments == null && typeParameters == null) {
-      return <DartType>[];
-    }
-
-    if (arguments == null && typeParameters != null) {
-      // TODO(johnniwinther): Use i2b here when needed.
-      List<DartType> result = new List<DartType>.generate(
-          typeParameters!.length,
-          (int i) => typeParameters![i]
-              .defaultType!
-              // TODO(johnniwinther): Using [libraryBuilder] here instead of
-              // [library] preserves the nullability of the original
-              // declaration. Should we legacy erase this?
-              .buildAliased(
-                  libraryBuilder, TypeUse.defaultTypeAsTypeArgument, hierarchy),
-          growable: true);
-      return result;
-    }
-
-    if (arguments != null && arguments.length != typeParametersCount) {
-      // Coverage-ignore-block(suite): Not run.
-      assert(libraryBuilder.loader.assertProblemReportedElsewhere(
-          "SourceClassBuilder.buildAliasedTypeArguments: "
-          "the numbers of type parameters and type arguments don't match.",
-          expectedPhase: CompilationPhaseForProblemReporting.outline));
-      return unhandled(
-          templateTypeArgumentMismatch
-              .withArguments(typeParametersCount)
-              .problemMessage,
-          "buildTypeArguments",
-          -1,
-          null);
-    }
-
-    assert(arguments!.length == typeParametersCount);
-    List<DartType> result = new List<DartType>.generate(
-        arguments!.length,
-        (int i) =>
-            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-        growable: true);
-    return result;
   }
 
   /// Returns a map which maps the type parameters of [superclass] to their
@@ -903,12 +861,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         SourceMemberBuilder constructor = constructorIterator.current;
         // Assumes the constructor isn't synthetic since
         // [installSyntheticConstructors] hasn't been called yet.
-        if (constructor is SourceConstructorBuilderImpl) {
+        if (constructor is SourceConstructorBuilder) {
           // Report an error if a mixin class has a constructor with parameters,
           // is external, or is a redirecting constructor.
-          if (constructor.isRedirecting ||
+          if (constructor.isEffectivelyRedirecting ||
               constructor.hasParameters ||
-              constructor.isExternal) {
+              constructor.isEffectivelyExternal) {
             libraryBuilder.addProblem(
                 templateIllegalMixinDueToConstructors
                     .withArguments(fullNameForErrors),
@@ -1019,8 +977,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           hierarchy.getInterfaceTypeAsInstanceOfClass(
               supertype, requiredInterface.classNode);
       if (implementedInterface == null ||
-          !typeEnvironment.areMutualSubtypes(implementedInterface,
-              requiredInterface, SubtypeCheckMode.withNullabilities)) {
+          !typeEnvironment.areMutualSubtypes(
+              implementedInterface, requiredInterface)) {
         libraryBuilder.addProblem(
             templateMixinApplicationIncompatibleSupertype.withArguments(
                 supertype, requiredInterface, cls.mixedInType!.asInterfaceType),
@@ -1239,67 +1197,20 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context) {
-    bool hasErrors = context.reportNonSimplicityIssues(this, typeParameters);
-    int count = context.computeDefaultTypesForVariables(typeParameters,
-        inErrorRecovery: hasErrors);
-
-    Iterator<SourceMemberBuilder> iterator =
-        filteredConstructorsIterator(includeDuplicates: false);
-    while (iterator.moveNext()) {
-      count += iterator.current
-          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
-    }
-
-    Iterator<SourceMemberBuilder> memberIterator =
-        filteredMembersIterator(includeDuplicates: false);
-    while (memberIterator.moveNext()) {
-      count += memberIterator.current
-          .computeDefaultTypes(context, inErrorRecovery: hasErrors);
-    }
-    return count;
-  }
-
-  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    Iterator<SourceMemberBuilder> memberIterator =
-        filteredMembersIterator(includeDuplicates: false);
-    while (memberIterator.moveNext()) {
-      SourceMemberBuilder builder = memberIterator.current;
-      builder.checkVariance(this, typeEnvironment);
-      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    }
-
-    Iterator<SourceMemberBuilder> constructorIterator =
-        filteredConstructorsIterator(includeDuplicates: false);
-    while (constructorIterator.moveNext()) {
-      SourceMemberBuilder builder = constructorIterator.current;
-      builder.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    }
-  }
-
-  void addSyntheticConstructor(
-      SyntheticSourceConstructorBuilder constructorBuilder) {
+  void addSyntheticConstructor(SourceConstructorBuilder constructorBuilder) {
     String name = constructorBuilder.name;
     assert(
         nameSpace.lookupConstructor(name) == null,
         "Unexpected existing constructor when adding synthetic constructor "
         "$constructorBuilder to $this.");
     addConstructorInternal(constructorBuilder, addToNameSpace: true);
-    // Synthetic constructors are created after the component has been built
-    // so we need to add the constructor to the class.
-    cls.addConstructor(constructorBuilder.invokeTarget);
-    if (constructorBuilder.readTarget != constructorBuilder.invokeTarget) {
-      cls.addProcedure(constructorBuilder.readTarget as Procedure);
-    }
+    _buildMemberOutlineNodes(constructorBuilder);
     if (constructorBuilder.isConst) {
       cls.hasConstConstructor = true;
     }
   }
 
   int buildBodyNodes() {
-    adjustAnnotationFileUri(cls, cls.fileUri);
-
     int count = 0;
 
     void buildMembers(SourceMemberBuilder builder) {
@@ -1578,9 +1489,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
           if (!types
-              .performNullabilityAwareMutualSubtypesCheck(
-                  declaredBound, computedBound)
-              .isSubtypeWhenUsingNullabilities()) {
+              .performMutualSubtypesCheck(declaredBound, computedBound)
+              .isSuccess()) {
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,
@@ -1652,12 +1562,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     DartType subtype = inParameter ? interfaceType : declaredType;
     DartType supertype = inParameter ? declaredType : interfaceType;
 
-    if (types.isSubtypeOf(
-        subtype, supertype, SubtypeCheckMode.withNullabilities)) {
+    if (types.isSubtypeOf(subtype, supertype)) {
       // No problem--the proper subtyping relation is satisfied.
     } else if (isCovariantByDeclaration &&
-        types.isSubtypeOf(
-            supertype, subtype, SubtypeCheckMode.withNullabilities)) {
+        types.isSubtypeOf(supertype, subtype)) {
       // No problem--the overriding parameter is marked "covariant" and has
       // a type which is a subtype of the parameter it overrides.
     } else if (subtype is InvalidType || supertype is InvalidType) {
@@ -2161,7 +2069,7 @@ int? getOverlookedOverrideProblemChoice(DeclarationBuilder declarationBuilder) {
 TypeBuilder? _applyMixins(
     {required ProblemReporting problemReporting,
     required SourceLibraryBuilder enclosingLibraryBuilder,
-    required List<NominalParameterBuilder> unboundNominalParameters,
+    required TypeParameterFactory typeParameterFactory,
     required TypeBuilder? supertype,
     required List<TypeBuilder>? mixins,
     required int startOffset,
@@ -2271,8 +2179,7 @@ TypeBuilder? _applyMixins(
           new NominalParameterNameSpace();
 
       NominalParameterCopy nominalVariableCopy =
-          NominalParameterCopy.copyTypeParameters(
-              unboundNominalParameters: unboundNominalParameters,
+          typeParameterFactory.copyTypeParameters(
               oldParameterBuilders: typeParameters,
               kind: TypeParameterKind.extensionSynthesized,
               instanceTypeParameterAccess:

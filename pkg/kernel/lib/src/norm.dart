@@ -52,8 +52,7 @@ class _Norm extends ReplacementVisitor {
     DartType typeArgument = node.typeArgument;
     typeArgument = typeArgument.accept1(this, variance) ?? typeArgument;
     if (coreTypes.isTop(typeArgument)) {
-      assert(typeArgument.nullability == Nullability.nullable ||
-          typeArgument.nullability == Nullability.legacy);
+      assert(typeArgument.nullability == Nullability.nullable);
       // [typeArgument] is nullable because it's a top type.  No need to unite
       // the nullabilities of [node] and [typeArgument].
       return typeArgument;

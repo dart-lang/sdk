@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterSurroundWithSetStateTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SURROUND_WITH_SET_STATE;
+  AssistKind get kind => DartAssistKind.surroundWithSetState;
 
   @override
   void setUp() {

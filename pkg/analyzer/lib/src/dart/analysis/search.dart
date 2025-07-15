@@ -35,7 +35,7 @@ Fragment _getEnclosingFragment(
 
     var codeEnd = codeOffset + codeLength;
     if (codeOffset <= offset && offset <= codeEnd) {
-      for (var child in fragment.children3) {
+      for (var child in fragment.children) {
         var result = visitFragment(child);
         if (result != null) {
           return result;
@@ -240,7 +240,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    if (importedElements.contains(node.element2)) {
+    if (importedElements.contains(node.element)) {
       var prefixFragment = import.prefix2;
       var importPrefix = node.importPrefix;
       if (prefixFragment == null) {
@@ -249,7 +249,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       } else {
         if (importPrefix != null &&
-            importPrefix.element2 == prefixFragment.element) {
+            importPrefix.element == prefixFragment.element) {
           var offset = importPrefix.offset;
           var end = importPrefix.period.end;
           _addResult(offset, end - offset);
@@ -270,7 +270,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
       if (node.element == import.prefix2?.element) {
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement2?.baseElement;
+          var element = parent.writeOrReadElement?.baseElement;
           if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
@@ -283,7 +283,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
         }
       }
     } else {
-      var element = node.writeOrReadElement2?.baseElement;
+      var element = node.writeOrReadElement?.baseElement;
       if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }
@@ -417,7 +417,7 @@ class Search {
       return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
     } else if (element is ExecutableElement) {
       return _searchReferences_Function(element, searchedFiles);
-    } else if (element is PatternVariableElementImpl2) {
+    } else if (element is PatternVariableElementImpl) {
       return _searchReferences_PatternVariable(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
@@ -436,7 +436,7 @@ class Search {
       return _searchReferences_Library(element, searchedFiles);
     } else if (element is FormalParameterElement) {
       return _searchReferences_Parameter(element, searchedFiles);
-    } else if (element is PrefixElementImpl2) {
+    } else if (element is PrefixElementImpl) {
       return _searchReferences_Prefix(element, searchedFiles);
     } else if (element is TypeParameterElement) {
       return _searchReferences_Local(
@@ -513,8 +513,8 @@ class Search {
     String name;
     String id;
     if (type1 != null) {
-      name = type1.name3!;
-      var librarySource = type1.library2.firstFragment.source;
+      name = type1.name!;
+      var librarySource = type1.library.firstFragment.source;
       var source = type1.firstFragment.libraryFragment.source;
       id = '${librarySource.uri};${source.uri};$name';
     } else {
@@ -641,7 +641,7 @@ class Search {
     // Prepare the list of files that reference the element name.
     var files = <FileState>[];
     if (name.startsWith('_')) {
-      String libraryPath = element.library2!.firstFragment.source.fullName;
+      String libraryPath = element.library!.firstFragment.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
         var libraryFile = _driver.fsState.getFileForPath(libraryPath);
         var libraryKind = libraryFile.kind;
@@ -786,8 +786,8 @@ class Search {
     SearchedFiles searchedFiles,
   ) async {
     List<SearchResult> results = <SearchResult>[];
-    var getter = field.getter2;
-    var setter = field.setter2;
+    var getter = field.getter;
+    var setter = field.setter;
     if (!field.isSynthetic) {
       await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
@@ -919,7 +919,7 @@ class Search {
     );
     assert(
       enclosingNode != null && enclosingNode is! CompilationUnit,
-      'Did not find enclosing node for local "${element.name3}". '
+      'Did not find enclosing node for local "${element.name}". '
       'Perhaps the isRootNode function is missing a condition to locate the '
       'outermost node where this element is in scope?',
     );
@@ -953,7 +953,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_PatternVariable(
-    PatternVariableElementImpl2 element,
+    PatternVariableElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
     String path = element.firstFragment.libraryFragment.source.fullName;
@@ -963,14 +963,14 @@ class Search {
 
     var rootVariable = element.rootVariable;
     var transitiveVariables =
-        rootVariable is JoinPatternVariableElementImpl2
+        rootVariable is JoinPatternVariableElementImpl
             ? rootVariable.transitiveVariables
             : [rootVariable];
 
     // Prepare a binding element for the variable.
     var bindElement =
         transitiveVariables
-            .whereType<BindPatternVariableElementImpl2>()
+            .whereType<BindPatternVariableElementImpl>()
             .firstOrNull;
     if (bindElement == null) {
       return const <SearchResult>[];
@@ -994,7 +994,7 @@ class Search {
   }
 
   Future<List<SearchResult>> _searchReferences_Prefix(
-    PrefixElementImpl2 element,
+    PrefixElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
     String path = element.firstFragment.libraryFragment.source.fullName;
@@ -1003,7 +1003,7 @@ class Search {
     }
 
     List<SearchResult> results = <SearchResult>[];
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     for (var unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResolvedUnit(unitPath);
@@ -1286,7 +1286,7 @@ class _FindLibraryDeclarations {
   void _addClasses(List<InterfaceElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
       _addGetters(element.getters);
       _addConstructors(element.constructors);
       _addFields(element.fields);
@@ -1299,7 +1299,7 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
@@ -1320,9 +1320,9 @@ class _FindLibraryDeclarations {
     if (enclosing is EnumElement) {
       // skip
     } else if (enclosing is MixinElement) {
-      mixinName = enclosing.name3;
+      mixinName = enclosing.name;
     } else if (enclosing is InterfaceElement) {
-      className = enclosing.name3;
+      className = enclosing.name;
     }
 
     var kind = _getSearchElementKind(element);
@@ -1332,7 +1332,7 @@ class _FindLibraryDeclarations {
 
     String? parameters;
     if (element is ExecutableElement) {
-      var displayString = element.displayString2();
+      var displayString = element.displayString();
       var parameterIndex = displayString.indexOf('(');
       if (parameterIndex > 0) {
         parameters = displayString.substring(parameterIndex);
@@ -1384,7 +1384,7 @@ class _FindLibraryDeclarations {
   void _addExtensions(List<ExtensionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      var name = element.name3;
+      var name = element.name;
       if (name != null) {
         _addDeclaration(element, name);
       }
@@ -1399,7 +1399,7 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
@@ -1407,7 +1407,7 @@ class _FindLibraryDeclarations {
   void _addFunctions(List<TopLevelFunctionElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1423,7 +1423,7 @@ class _FindLibraryDeclarations {
   void _addMethods(List<MethodElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1439,7 +1439,7 @@ class _FindLibraryDeclarations {
   void _addTypeAliases(List<TypeAliasElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name3!);
+      _addDeclaration(element, element.name!);
     }
   }
 
@@ -1447,7 +1447,7 @@ class _FindLibraryDeclarations {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       if (!element.isSynthetic) {
-        _addDeclaration(element, element.name3!);
+        _addDeclaration(element, element.name!);
       }
     }
   }
@@ -1683,7 +1683,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    if (elements.contains(node.element2)) {
+    if (elements.contains(node.element)) {
       _addResult(node, SearchResultKind.WRITE);
     }
 
@@ -1699,7 +1699,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    var element = node.element2;
+    var element = node.element;
     if (elements.contains(element)) {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }
@@ -1707,7 +1707,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (elements.contains(element)) {
       _addResult(node.name, SearchResultKind.REFERENCE);
     }

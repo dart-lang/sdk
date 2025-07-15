@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -23,10 +24,7 @@ class DeprecatedConsistency extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldFormalParameter(this, visitor);
@@ -58,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement is! FieldFormalParameterElement) return;
 
-    var field = declaredElement.field2;
+    var field = declaredElement.field;
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
@@ -71,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var fieldFragment = field.firstFragment;
       var nameOffset = fieldFragment.nameOffset2;
       if (nameOffset == null) return;
-      var nameLength = fieldFragment.name2?.length;
+      var nameLength = fieldFragment.name?.length;
       if (nameLength == null) return;
       rule.reportAtOffset(
         nameOffset,

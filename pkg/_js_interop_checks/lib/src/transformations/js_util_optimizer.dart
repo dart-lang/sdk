@@ -1228,7 +1228,6 @@ class ExtensionIndex {
               _typeEnvironment.isSubtypeOf(
                 type,
                 InterfaceType(_javaScriptObject, Nullability.nullable),
-                SubtypeCheckMode.withNullabilities,
               ))) {
         return _coreInteropTypeIndex[reference] = reference;
       }

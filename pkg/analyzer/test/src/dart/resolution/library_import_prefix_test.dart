@@ -70,8 +70,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: x
-      declaredElement: hasImplicitType x@47
-        type: InvalidType
+      declaredFragment: isPublic x@47
+        type: null
+        element: hasImplicitType isPublic
+          type: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
@@ -117,7 +119,7 @@ InstanceCreationExpression
       element2: <testLibrary>::@class::C
       type: C<dynamic>
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+      baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: dynamic}
   argumentList: ArgumentList
     leftParenthesis: (
@@ -125,7 +127,7 @@ InstanceCreationExpression
       SimpleIdentifier
         token: p
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
         element: <testLibraryFragment>::@prefix2::p
         staticType: InvalidType
@@ -239,7 +241,7 @@ f() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: package:test/a.dart::<fragment>::@getter::a#element
+  element: package:test/a.dart::@getter::a
   staticType: int
 ''');
   }

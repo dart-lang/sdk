@@ -627,6 +627,68 @@ linter:
             '2 fixes made in 1 file.',
           ]));
     });
+
+    group('AOT mode', () {
+      test('--use-aot-snapshot', () async {
+        p = project(
+          mainSrc: 'String a() => "";',
+          analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+        );
+        var result = await p!.runFix(['--use-aot-snapshot', '--dry-run', '.'],
+            workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(result.stdout, contains('1 proposed fix in 1 file.'));
+      });
+
+      test('--no-use-aot-snapshot', () async {
+        p = project(
+          mainSrc: 'String a() => "";',
+          analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+        );
+        var result = await p!.runFix(
+            ['--no-use-aot-snapshot', '--dry-run', '.'],
+            workingDir: p!.dirPath);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isEmpty);
+        expect(result.stdout, contains('1 proposed fix in 1 file.'));
+      });
+    });
+  });
+
+  group('regression', () {
+    test('field without name', () async {
+      // This is a test for https://github.com/dart-lang/sdk/issues/60927.
+      p = project(
+        mainSrc: '''
+class C {
+  int? a,;
+}
+''',
+        analysisOptions: '''
+linter:
+  rules:
+    - prefer_final_fields
+''',
+      );
+      var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+          result.stdout,
+          stringContainsInOrderWithVariableBullets([
+            'Computing fixes in myapp...',
+            'Nothing to fix!',
+          ]));
+    });
   });
 
   group('compare-to-golden', () {

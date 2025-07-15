@@ -489,7 +489,7 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   // occupying a mutator again (decreases its max size).
   ASSERT(!(isolate_shutdown && is_nested_exit));
   if (!(is_nested_exit && thread->OwnsSafepoint())) {
-    group->DecreaseMutatorCount(isolate, is_nested_exit);
+    group->DecreaseMutatorCount(is_nested_exit);
   }
 }
 
@@ -520,6 +520,11 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
 
 void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
                                         bool bypass_safepoint) {
+  isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
+                                      /*is_nested_reenter=*/true,
+                                      /*was_stolen=*/false);
+  isolate_group->RegisterIsolateGroupMutator();
+
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr,
                                    kMutatorTask, bypass_safepoint);
   RELEASE_ASSERT(thread != nullptr);
@@ -532,8 +537,12 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   thread->SetupDartMutatorStateDependingOnSnapshot(isolate_group);
 
   ResumeThreadInternal(thread);
-#if defined(USING_SIMULATOR)
-  thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+  } else {
+    thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+  }
 #else
   thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
 #endif
@@ -551,7 +560,10 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   thread->ResetMutatorState();
   thread->ClearStackLimit();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
+  auto group = thread->isolate_group();
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
+  group->UnregisterIsolateGroupMutator();
+  group->DecreaseMutatorCount(/*is_nested_exit=*/true);
 }
 
 void Thread::EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
@@ -577,8 +589,12 @@ void Thread::ResumeDartMutatorThreadInternal(Thread* thread) {
   ResumeThreadInternal(thread);
   if (Dart::vm_isolate() != nullptr &&
       thread->isolate() != Dart::vm_isolate()) {
-#if defined(USING_SIMULATOR)
-    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+#if defined(DART_INCLUDE_SIMULATOR)
+    if (FLAG_use_simulator) {
+      thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+    } else {
+      thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+    }
 #else
     thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
 #endif
@@ -1315,7 +1331,7 @@ intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 bool Thread::TopErrorHandlerIsSetJump() const {
   if (long_jump_base() == nullptr) return false;
   if (top_exit_frame_info_ == 0) return true;
-#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+#if defined(DART_INCLUDE_SIMULATOR) || defined(USING_SAFE_STACK)
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
@@ -1331,7 +1347,7 @@ bool Thread::TopErrorHandlerIsSetJump() const {
 bool Thread::TopErrorHandlerIsExitFrame() const {
   if (top_exit_frame_info_ == 0) return false;
   if (long_jump_base() == nullptr) return true;
-#if defined(USING_SIMULATOR) || defined(USING_SAFE_STACK)
+#if defined(DART_INCLUDE_SIMULATOR) || defined(USING_SAFE_STACK)
   // False positives: simulator stack and native stack are unordered.
   return true;
 #else
@@ -1682,7 +1698,8 @@ NoReloadScope::~NoReloadScope() {
     if (isolate != nullptr &&
         Thread::IsSafepointLevelRequested(
             state, SafepointLevel::kGCAndDeoptAndReload)) {
-      isolate->SendInternalLibMessage(Isolate::kCheckForReload, /*ignored=*/-1);
+      isolate->SendInternalLibMessage(Isolate::kCheckForReload,
+                                      /*capability=*/-1);
     }
   }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

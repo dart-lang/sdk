@@ -32,9 +32,13 @@ export 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// Returns a list of AnalysisErrors corresponding to the given list of Engine
 /// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
 ) {
-  return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
+  return mapEngineErrors(
+    result,
+    result.diagnostics,
+    newAnalysisError_fromEngine,
+  );
 }
 
 /// Adds [edit] to the file containing the given [fragment].
@@ -107,10 +111,10 @@ String? getReturnTypeString(engine.Element element) {
 
 /// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
   List<engine.Diagnostic> diagnostics,
   T Function(
-    engine.AnalysisResultWithErrors result,
+    engine.AnalysisResultWithDiagnostics result,
     engine.Diagnostic diagnostic, [
     engine.DiagnosticSeverity severity,
   ])
@@ -140,12 +144,12 @@ List<T> mapEngineErrors<T>(
 /// If an [diagnosticSeverity] is specified, it will override the one in
 /// [diagnostic].
 AnalysisError newAnalysisError_fromEngine(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
   engine.Diagnostic diagnostic, [
   engine.DiagnosticSeverity? diagnosticSeverity,
 ]) {
-  var errorCode = diagnostic.errorCode;
-  // prepare location
+  var diagnosticCode = diagnostic.diagnosticCode;
+  // Prepare location.
   Location location;
   {
     var file = diagnostic.source.fullName;
@@ -172,14 +176,14 @@ AnalysisError newAnalysisError_fromEngine(
     );
   }
 
-  // Default to the error's severity if none is specified.
-  diagnosticSeverity ??= errorCode.severity;
+  // Default to the diagnostic's severity if none is specified.
+  diagnosticSeverity ??= diagnosticCode.severity;
 
   // done
   var severity = AnalysisErrorSeverity.values.byName(diagnosticSeverity.name);
-  var type = AnalysisErrorType.values.byName(errorCode.type.name);
+  var type = AnalysisErrorType.values.byName(diagnosticCode.type.name);
   var message = diagnostic.message;
-  var code = errorCode.name.toLowerCase();
+  var code = diagnosticCode.name.toLowerCase();
   List<DiagnosticMessage>? contextMessages;
   if (diagnostic.contextMessages.isNotEmpty) {
     contextMessages =
@@ -188,7 +192,7 @@ AnalysisError newAnalysisError_fromEngine(
             .toList();
   }
   var correction = diagnostic.correctionMessage;
-  var url = errorCode.url;
+  var url = diagnosticCode.url;
   return AnalysisError(
     severity,
     type,
@@ -208,7 +212,7 @@ AnalysisError newAnalysisError_fromEngine(
 
 /// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
-  engine.AnalysisResultWithErrors result,
+  engine.AnalysisResultWithDiagnostics result,
   engine.DiagnosticMessage message,
 ) {
   var file = message.filePath;
@@ -263,9 +267,9 @@ Location? newLocation_fromElement(engine.Element? element) {
     // instead of using 0,0.
     engine.ConstructorFragment(:var typeNameOffset, :var typeName) =>
       fragment.nameOffset2 != null
-          ? (fragment.nameOffset2 ?? 0, fragment.name2.length)
+          ? (fragment.nameOffset2 ?? 0, fragment.name.length)
           : (typeNameOffset ?? 0, typeName?.length ?? 0),
-    _ => (fragment.nameOffset2 ?? 0, fragment.name2?.length ?? 0),
+    _ => (fragment.nameOffset2 ?? 0, fragment.name?.length ?? 0),
   };
   var range = engine.SourceRange(offset, length);
   return _locationForArgs2(fragment, range);
@@ -281,7 +285,7 @@ Location? newLocation_fromFragment(engine.Fragment? fragment) {
     return null;
   }
   var offset = fragment.nameOffset2 ?? 0;
-  var length = fragment.name2?.length ?? 0;
+  var length = fragment.name?.length ?? 0;
   var range = engine.SourceRange(offset, length);
   return _locationForArgs2(fragment, range);
 }

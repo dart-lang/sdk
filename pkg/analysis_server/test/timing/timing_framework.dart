@@ -8,8 +8,8 @@ import 'dart:math';
 
 import 'package:path/path.dart';
 
-import '../integration/support/integration_test_methods.dart';
-import '../integration/support/integration_tests.dart';
+import '../../integration_test/support/integration_test_methods.dart';
+import '../../integration_test/support/integration_tests.dart';
 
 /// Instances of the class [TimingResult] represent the timing information
 /// gathered while executing a given timing test.
@@ -137,7 +137,9 @@ abstract class TimingTest extends IntegrationTest {
   /// iterations.
   Future<void> oneTimeSetUp() {
     server = Server();
-    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
+    sourceDirectory = Directory.systemTemp.createTempSync(
+      'analysisServer_test_timing',
+    );
     var serverConnected = Completer<void>();
     onServerConnected.listen((_) {
       serverConnected.complete();

@@ -88,7 +88,7 @@ FormalParameterList
       element2: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
+    declaredElement: <testLibraryFragment> x@45
       type: InvalidType
   rightParenthesis: )
 ''');
@@ -113,7 +113,7 @@ FormalParameterList
       element2: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
+    declaredElement: <testLibraryFragment> x@37
       type: InvalidType
   rightParenthesis: )
 ''');

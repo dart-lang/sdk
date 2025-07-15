@@ -127,70 +127,6 @@ class Program {
   DISALLOW_COPY_AND_ASSIGN(Program);
 };
 
-class KernelLineStartsReader {
- public:
-  KernelLineStartsReader(const dart::TypedData& line_starts_data,
-                         dart::Zone* zone);
-
-  ~KernelLineStartsReader() { delete helper_; }
-
-  uint32_t At(intptr_t index) const {
-    return helper_->At(line_starts_data_, index);
-  }
-
-  uint32_t MaxPosition() const;
-
-  // Returns whether the given offset corresponds to a valid source offset
-  // If it does, then *line and *column (if column is not nullptr) are set
-  // to the line and column the token starts at.
-  DART_WARN_UNUSED_RESULT bool LocationForPosition(
-      intptr_t position,
-      intptr_t* line,
-      intptr_t* col = nullptr) const;
-
-  // Returns whether any tokens were found for the given line. When found,
-  // *first_token_index and *last_token_index are set to the first and
-  // last token on the line, respectively.
-  DART_WARN_UNUSED_RESULT bool TokenRangeAtLine(
-      intptr_t line_number,
-      dart::TokenPosition* first_token_index,
-      dart::TokenPosition* last_token_index) const;
-
- private:
-  class KernelLineStartsHelper {
-   public:
-    KernelLineStartsHelper() {}
-    virtual ~KernelLineStartsHelper() {}
-    virtual uint32_t At(const dart::TypedData& data, intptr_t index) const = 0;
-
-   private:
-    DISALLOW_COPY_AND_ASSIGN(KernelLineStartsHelper);
-  };
-
-  class KernelUint16LineStartsHelper : public KernelLineStartsHelper {
-   public:
-    KernelUint16LineStartsHelper() {}
-    virtual uint32_t At(const dart::TypedData& data, intptr_t index) const;
-
-   private:
-    DISALLOW_COPY_AND_ASSIGN(KernelUint16LineStartsHelper);
-  };
-
-  class KernelUint32LineStartsHelper : public KernelLineStartsHelper {
-   public:
-    KernelUint32LineStartsHelper() {}
-    virtual uint32_t At(const dart::TypedData& data, intptr_t index) const;
-
-   private:
-    DISALLOW_COPY_AND_ASSIGN(KernelUint32LineStartsHelper);
-  };
-
-  const dart::TypedData& line_starts_data_;
-  KernelLineStartsHelper* helper_;
-
-  DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
-};
-
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field);
 ObjectPtr EvaluateMetadata(const Library& library,
                            intptr_t kernel_offset,
@@ -218,6 +154,12 @@ UnboxingInfoMetadata* UnboxingInfoMetadataOf(const Function& function,
 TableSelectorMetadata* TableSelectorMetadataForProgram(
     const KernelProgramInfo& info,
     Zone* zone);
+
+// Fills [token_positions] array with all token positions for the given script.
+// Resulting array may have duplicates.
+void CollectScriptTokenPositionsFromKernel(
+    const Script& interesting_script,
+    GrowableArray<intptr_t>* token_positions);
 
 }  // namespace kernel
 }  // namespace dart

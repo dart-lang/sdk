@@ -13,7 +13,7 @@ class Foo {
     return x + y + z;
     //         ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+    // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
   // Shadow the 'y' field in various ways
@@ -21,7 +21,7 @@ class Foo {
     return x + this.y + y;
     //              ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+    // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
   shadow_y_local(z) {
@@ -29,7 +29,7 @@ class Foo {
     return x + this.y + y;
     //              ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+    // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
   shadow_y_capturedLocal(z) {
@@ -38,7 +38,7 @@ class Foo {
       return x + this.y + y;
       //              ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+      // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
     return foo();
@@ -49,7 +49,7 @@ class Foo {
       return x + this.y + y;
       //              ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+      // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
     return foo(z);
@@ -61,7 +61,7 @@ class Foo {
       return x + this.y + y;
       //              ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+      // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
     return foo();
@@ -72,7 +72,7 @@ class Foo {
     return this.x + y + x;
     //              ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+    // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
   shadow_x_local(z) {
@@ -80,7 +80,7 @@ class Foo {
     return this.x + y + x;
     //              ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-    // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+    // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
   shadow_x_capturedLocal(z) {
@@ -89,7 +89,7 @@ class Foo {
       return this.x + y + x;
       //              ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-      // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+      // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
     return foo();
@@ -100,7 +100,7 @@ class Foo {
       return this.x + y + x;
       //              ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-      // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+      // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
     return foo(z);
@@ -112,7 +112,7 @@ class Foo {
       return this.x + y + x;
       //              ^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-      // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+      // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
     return foo();
@@ -122,10 +122,10 @@ class Foo {
     return x + this.y + toplevel + this.toplevel;
     //              ^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'y' isn't defined for the class 'Foo'.
+    // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     //                                  ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-    // [cfe] The getter 'toplevel' isn't defined for the class 'Foo'.
+    // [cfe] The getter 'toplevel' isn't defined for the type 'Foo'.
   }
 }
 

@@ -49,7 +49,7 @@ class RemoveDeprecatedNewInCommentReference extends ResolvedCorrectionProducer {
         });
       } else {
         if (element is ClassElement) {
-          if (element.unnamedConstructor2 != null) {
+          if (element.unnamedConstructor != null) {
             await builder.addDartFileEdit(file, (builder) {
               builder.addSimpleInsertion(identifier.end, '.new');
             });

@@ -347,9 +347,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
       case Nullability.nullable:
         sb.write("?");
         break;
-      case Nullability.legacy:
-        sb.write("*");
-        break;
       case Nullability.undetermined:
         sb.write("%");
         break;

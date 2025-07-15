@@ -20,7 +20,7 @@ class SplitVariableDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.SPLIT_VARIABLE_DECLARATION;
+  AssistKind get assistKind => DartAssistKind.splitVariableDeclaration;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -60,7 +60,7 @@ class SplitVariableDeclaration extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       if (variableList.type == null) {
-        var type = variable.declaredElement2!.type;
+        var type = variable.declaredElement!.type;
         if (type is! DynamicType && keyword != null) {
           if (!builder.canWriteType(type)) {
             return;

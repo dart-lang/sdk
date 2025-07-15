@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -13,7 +14,7 @@ typedef NodeLintRegistry = RuleVisitorRegistry;
 
 /// The AST visitor that runs handlers for nodes from the [_registry].
 class AnalysisRuleVisitor implements AstVisitor<void> {
-  final RuleVisitorRegistry _registry;
+  final RuleVisitorRegistryImpl _registry;
 
   /// Whether exceptions should be propagated (by rethrowing them).
   final bool _shouldPropagateExceptions;
@@ -70,18 +71,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _runSubscriptions(node, _registry._forAssignmentExpression);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    _runSubscriptions(node, _registry._forAugmentedExpression);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    _runSubscriptions(node, _registry._forAugmentedInvocation);
     node.visitChildren(this);
   }
 
@@ -1144,8 +1133,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 }
 
-/// The container to register visitors for separate AST node types.
-class RuleVisitorRegistry {
+class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];
   final List<_Subscription<AdjacentStrings>> _forAdjacentStrings = [];
@@ -1157,8 +1145,6 @@ class RuleVisitorRegistry {
   final List<_Subscription<AssignedVariablePattern>>
   _forAssignedVariablePattern = [];
   final List<_Subscription<AssignmentExpression>> _forAssignmentExpression = [];
-  final List<_Subscription<AugmentedExpression>> _forAugmentedExpression = [];
-  final List<_Subscription<AugmentedInvocation>> _forAugmentedInvocation = [];
   final List<_Subscription<AwaitExpression>> _forAwaitExpression = [];
   final List<_Subscription<BinaryExpression>> _forBinaryExpression = [];
   final List<_Subscription<Block>> _forBlock = [];
@@ -1363,33 +1349,40 @@ class RuleVisitorRegistry {
   final List<_Subscription<WithClause>> _forWithClause = [];
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
 
-  RuleVisitorRegistry({required bool enableTiming})
+  RuleVisitorRegistryImpl({required bool enableTiming})
     : _enableTiming = enableTiming;
 
+  @override
   void addAdjacentStrings(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAdjacentStrings.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addAnnotation(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAnnotation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addArgumentList(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forArgumentList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addAsExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAsExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addAssertInitializer(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAssertInitializer.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addAssertStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAssertStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addAssignedVariablePattern(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1399,96 +1392,109 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addAssignmentExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAssignmentExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
-  void addAugmentedExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forAugmentedExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  void addAugmentedInvocation(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forAugmentedInvocation.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
+  @override
   void addAwaitExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forAwaitExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addBinaryExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBinaryExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addBlock(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBlock.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBlockFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addBooleanLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBooleanLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addBreakStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBreakStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addCascadeExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forCascadeExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addCaseClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forCaseClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addCastPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forCastPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addCatchClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forCatchClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addCatchClauseParameter(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forCatchClauseParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addClassDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forClassDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addClassTypeAlias(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forClassTypeAlias.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addComment(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forComment.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addCommentReference(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forCommentReference.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addCompilationUnit(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forCompilationUnit.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addConditionalExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forConditionalExpression.add(
       _Subscription(rule, visitor, _getTimer(rule)),
     );
   }
 
+  @override
   void addConfiguration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forConfiguration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addConstantPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forConstantPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addConstructorDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1498,6 +1504,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addConstructorFieldInitializer(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1507,26 +1514,32 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addConstructorName(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forConstructorName.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addConstructorReference(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forConstructorReference.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addConstructorSelector(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forConstructorSelector.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addContinueStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forContinueStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addDeclaredIdentifier(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forDeclaredIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addDeclaredVariablePattern(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1536,6 +1549,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addDefaultFormalParameter(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1545,10 +1559,12 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forDoStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addDotShorthandConstructorInvocation(
     AnalysisRule rule,
     AstVisitor visitor,
@@ -1558,6 +1574,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addDotShorthandInvocation(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1567,6 +1584,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addDotShorthandPropertyAccess(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1576,28 +1594,34 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addDottedName(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forDottedName.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addDoubleLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forDoubleLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addEnumConstantArguments(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEnumConstantArguments.add(
       _Subscription(rule, visitor, _getTimer(rule)),
     );
   }
 
+  @override
   void addEnumConstantDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1607,14 +1631,17 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addEnumDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEnumDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addExportDirective(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forExportDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addExpressionFunctionBody(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1624,26 +1651,32 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addExpressionStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forExpressionStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addExtendsClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forExtendsClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addExtensionDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forExtensionDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addExtensionOnClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forExtensionOnClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addExtensionOverride(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forExtensionOverride.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addExtensionTypeDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1653,14 +1686,17 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addFieldDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFieldDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addFieldFormalParameter(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFieldFormalParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addForEachPartsWithDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1670,6 +1706,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addForEachPartsWithIdentifier(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1679,6 +1716,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addForEachPartsWithPattern(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1688,14 +1726,17 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addForElement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forForElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addFormalParameterList(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFormalParameterList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addForPartsWithDeclarations(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1705,6 +1746,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addForPartsWithExpression(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1714,18 +1756,22 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addForPartsWithPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forForPartsWithPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addForStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forForStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addFunctionDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFunctionDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addFunctionDeclarationStatement(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1735,10 +1781,12 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFunctionExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addFunctionExpressionInvocation(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1748,14 +1796,17 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addFunctionReference(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFunctionReference.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFunctionTypeAlias.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addFunctionTypedFormalParameter(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1765,54 +1816,66 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addGenericFunctionType(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forGenericFunctionType.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addGenericTypeAlias(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forGenericTypeAlias.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addGuardedPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forGuardedPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addHideCombinator(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forHideCombinator.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addIfElement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forIfElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addIfStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forIfStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addImplementsClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forImplementsClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addImplicitCallReference(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forImplicitCallReference.add(
       _Subscription(rule, visitor, _getTimer(rule)),
     );
   }
 
+  @override
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forImportDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addImportPrefixReference(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forImportPrefixReference.add(
       _Subscription(rule, visitor, _getTimer(rule)),
     );
   }
 
+  @override
   void addIndexExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forIndexExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addInstanceCreationExpression(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1822,10 +1885,12 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forIntegerLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addInterpolationExpression(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1835,106 +1900,132 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addInterpolationString(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forInterpolationString.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addIsExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forIsExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addLabel(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLabel.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addLabeledStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLabeledStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addLibraryDirective(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLibraryDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addLibraryIdentifier(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLibraryIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addListLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forListLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addListPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forListPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addLogicalAndPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLogicalAndPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addLogicalOrPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLogicalOrPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addMapLiteralEntry(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forMapLiteralEntry.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addMapPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forMapPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addMapPatternEntry(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forMapPatternEntry.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addMethodDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forMethodDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addMethodInvocation(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forMethodInvocation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addMixinDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forMixinDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addMixinOnClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forMixinOnClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addNamedExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNamedExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addNamedType(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNamedType.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addNativeClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNativeClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addNativeFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNativeFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addNullAssertPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNullAssertPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addNullCheckPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNullCheckPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addNullLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forNullLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addObjectPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forObjectPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addParenthesizedExpression(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1944,30 +2035,37 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addParenthesizedPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forParenthesizedPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPartDirective(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPartDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPartOfDirective(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPartOfDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPatternAssignment(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPatternAssignment.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPatternField(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPatternField.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPatternFieldName(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPatternFieldName.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPatternVariableDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -1977,6 +2075,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addPatternVariableDeclarationStatement(
     AnalysisRule rule,
     AstVisitor visitor,
@@ -1986,34 +2085,42 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addPostfixExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPostfixExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPrefixedIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPrefixExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPrefixExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPropertyAccess.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addRecordLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRecordLiterals.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addRecordPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRecordPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addRecordTypeAnnotation(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRecordTypeAnnotation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addRedirectingConstructorInvocation(
     AnalysisRule rule,
     AstVisitor visitor,
@@ -2023,10 +2130,12 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRelationalPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addRepresentationConstructorName(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2036,6 +2145,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addRepresentationDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2045,52 +2155,64 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addRestPatternElement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRestPatternElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addRethrowExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRethrowExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addReturnStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forReturnStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addScriptTag(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forScriptTag.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSetOrMapLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSetOrMapLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addShowCombinator(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forShowCombinator.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSimpleFormalParameter(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSimpleFormalParameter.add(
       _Subscription(rule, visitor, _getTimer(rule)),
     );
   }
 
+  @override
   void addSimpleIdentifier(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSimpleIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSimpleStringLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSimpleStringLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSpreadElement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSpreadElement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addStringInterpolation(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forStringInterpolation.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSuperConstructorInvocation(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2100,50 +2222,62 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addSuperExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSuperExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSuperFormalParameter(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSuperFormalParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSwitchCase(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSwitchCase.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSwitchDefault(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSwitchDefault.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSwitchExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSwitchExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSwitchExpressionCase(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSwitchExpressionCase.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSwitchPatternCase(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSwitchPatternCase.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSwitchStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSwitchStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addSymbolLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forSymbolLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addThisExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forThisExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addThrowExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forThrowExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addTopLevelVariableDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2153,30 +2287,37 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addTryStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forTryStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addTypeArgumentList(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forTypeArgumentList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addTypeLiteral(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forTypeLiteral.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addTypeParameter(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forTypeParameter.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addTypeParameterList(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forTypeParameterList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addVariableDeclaration(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forVariableDeclaration.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addVariableDeclarationList(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2186,6 +2327,7 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addVariableDeclarationStatement(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2195,26 +2337,32 @@ class RuleVisitorRegistry {
     );
   }
 
+  @override
   void addWhenClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forWhenClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addWhileStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forWhileStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addWildcardPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forWildcardPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addWithClause(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forWithClause.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void addYieldStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forYieldStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
+  @override
   void afterLibrary(AbstractAnalysisRule rule, void Function() callback) {
     _afterLibrary.add(
       _AfterLibrarySubscription(rule, callback, _getTimer(rule)),

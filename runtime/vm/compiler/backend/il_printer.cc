@@ -12,6 +12,7 @@
 #include "vm/compiler/backend/linearscan.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
+#include "vm/globals.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 

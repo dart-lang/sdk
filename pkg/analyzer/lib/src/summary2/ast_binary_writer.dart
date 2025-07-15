@@ -45,7 +45,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     }
     _writeOptionalNode(arguments);
 
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
   }
 
   @override
@@ -84,26 +84,10 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeByte(binaryToken.index);
 
     _sink.writeElement(node.element);
-    _sink.writeElement(node.readElement2);
+    _sink.writeElement(node.readElement);
     _sink.writeType(node.readType);
-    _sink.writeElement(node.writeElement2);
+    _sink.writeElement(node.writeElement);
     _sink.writeType(node.writeType);
-    _storeExpression(node);
-  }
-
-  @override
-  void visitAugmentedExpression(covariant AugmentedExpressionImpl node) {
-    _writeByte(Tag.AugmentedExpression);
-    _sink.writeFragmentOrMember(node.fragment);
-    _storeExpression(node);
-  }
-
-  @override
-  void visitAugmentedInvocation(covariant AugmentedInvocationImpl node) {
-    _writeByte(Tag.AugmentedInvocation);
-    _writeOptionalNode(node.typeArguments);
-    _writeNode(node.arguments);
-    _sink.writeFragmentOrMember(node.fragment);
     _storeExpression(node);
   }
 
@@ -226,11 +210,14 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+    covariant DotShorthandConstructorInvocationImpl node,
   ) {
     _writeByte(Tag.DotShorthandConstructorInvocation);
     _writeByte(
-      AstBinaryFlags.encode(isConst: node.constKeyword?.type == Keyword.CONST),
+      AstBinaryFlags.encode(
+        isConst: node.constKeyword?.type == Keyword.CONST,
+        isDotShorthand: node.isDotShorthand,
+      ),
     );
     _writeNode(node.constructorName);
     _writeNode(node.argumentList);
@@ -238,8 +225,19 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
+    _writeByte(Tag.DotShorthandInvocation);
+    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
+    _writeNode(node.memberName);
+    _storeInvocationExpression(node);
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(
+    covariant DotShorthandPropertyAccessImpl node,
+  ) {
     _writeByte(Tag.DotShorthandPropertyAccess);
+    _writeByte(AstBinaryFlags.encode(isDotShorthand: node.isDotShorthand));
     _writeNode(node.propertyName);
     _storeExpression(node);
   }
@@ -266,7 +264,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.typeArguments);
     _writeNode(node.argumentList);
 
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
     _sink.writeType(node.extendedType);
 
     // TODO(scheglov): typeArgumentTypes?
@@ -393,7 +391,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitImportPrefixReference(ImportPrefixReference node) {
     _writeByte(Tag.ImportPrefixReference);
     _writeStringReference(node.name.lexeme);
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
   }
 
   @override
@@ -570,7 +568,7 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
 
-    _sink.writeElement(node.element2);
+    _sink.writeElement(node.element);
     _sink.writeType(node.type);
   }
 
@@ -605,9 +603,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _sink.writeElement(node.element);
     if (operatorToken.isIncrementOperator) {
-      _sink.writeElement(node.readElement2);
+      _sink.writeElement(node.readElement);
       _sink.writeType(node.readType);
-      _sink.writeElement(node.writeElement2);
+      _sink.writeElement(node.writeElement);
       _sink.writeType(node.writeType);
     }
     _storeExpression(node);
@@ -635,9 +633,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _sink.writeElement(node.element);
     if (operatorToken.isIncrementOperator) {
-      _sink.writeElement(node.readElement2);
+      _sink.writeElement(node.readElement);
       _sink.writeType(node.readType);
-      _sink.writeElement(node.writeElement2);
+      _sink.writeElement(node.writeElement);
       _sink.writeType(node.writeType);
     }
 
@@ -900,7 +898,8 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void _storeForLoopParts(ForLoopParts node) {}
 
   void _storeFormalParameter(FormalParameterImpl node) {
-    var element = node.declaredFragment!;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     _writeActualType(_sink, element.type);
   }
 
@@ -946,11 +945,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     if (node == null) {
       f();
     } else {
-      var fragment =
+      var typeParameterElements =
           node.typeParameters
-              .map((typeParameter) => typeParameter.declaredFragment!)
+              .map((typeParameter) => typeParameter.declaredFragment!.element)
               .toList();
-      _sink.localElements.withElements(fragment, () {
+      _sink.localElements.withElements(typeParameterElements, () {
         f();
       });
     }

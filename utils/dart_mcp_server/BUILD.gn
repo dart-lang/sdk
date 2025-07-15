@@ -13,12 +13,12 @@ group("dart_mcp_server_aot") {
 }
 
 aot_snapshot("dart_mcp_server_aot_snapshot") {
-  main_dart = "../../third_party/pkg/ai/pkgs/dart_mcp_server/bin/main.dart"
+  main_dart = "dart_mcp_server.dart"
   output = "$root_gen_dir/dart_mcp_server_aot.dart.snapshot"
 }
 
 aot_snapshot("dart_mcp_server_aot_product_snapshot") {
-  main_dart = "../../third_party/pkg/ai/pkgs/dart_mcp_server/bin/main.dart"
+  main_dart = "dart_mcp_server.dart"
   output = "$root_gen_dir/dart_mcp_server_aot_product.dart.snapshot"
 
   # dartaotruntime has dart_product_config applied to it,

@@ -23,7 +23,7 @@ class ConstructorReferenceResolver {
         node.constructorName.type.typeArguments == null) {
       // Only report this if [node] has no explicit type arguments; otherwise
       // the parser has already reported an error.
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         node,
         WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
       );
@@ -32,9 +32,8 @@ class ConstructorReferenceResolver {
     var element = node.constructorName.element;
     if (element != null && !element.isFactory) {
       var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ClassElementImpl2 &&
-          enclosingElement.isAbstract) {
-        _resolver.errorReporter.atNode(
+      if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
+        _resolver.diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode
               .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
@@ -52,11 +51,11 @@ class ConstructorReferenceResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.constructorName.type.element2;
+      var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
         enclosingElement =
-            aliasedType is InterfaceType ? aliasedType.element3 : null;
+            aliasedType is InterfaceType ? aliasedType.element : null;
       }
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
@@ -73,12 +72,16 @@ class ConstructorReferenceResolver {
                       .CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
                   : CompileTimeErrorCode
                       .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
-          _resolver.errorReporter.atNode(node, error, arguments: [name.name]);
+          _resolver.diagnosticReporter.atNode(
+            node,
+            error,
+            arguments: [name.name],
+          );
         } else if (!name.isSynthetic) {
-          _resolver.errorReporter.atNode(
+          _resolver.diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
-            arguments: [enclosingElement.name3!, name.name],
+            arguments: [enclosingElement.name!, name.name],
           );
         }
       }
@@ -92,7 +95,7 @@ class ConstructorReferenceResolver {
   }) {
     var constructorName = node.constructorName;
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: constructorName.type.element2,
+      typeElement: constructorName.type.element,
       constructorName: constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );
@@ -104,7 +107,7 @@ class ConstructorReferenceResolver {
     // Otherwise we'll have a ConstructorElement, and we can skip inference
     // because there's nothing to infer in a non-generic type.
     if (elementToInfer != null &&
-        elementToInfer.typeParameters2.isNotEmpty &&
+        elementToInfer.typeParameters.isNotEmpty &&
         constructorName.type.typeArguments == null) {
       // TODO(leafp): Currently, we may re-infer types here, since we
       // sometimes resolve multiple times.  We should really check that we
@@ -116,7 +119,7 @@ class ConstructorReferenceResolver {
       // Get back to the uninstantiated generic constructor.
       // TODO(jmesserly): should we store this earlier in resolution?
       // Or look it up, instead of jumping backwards through the Member?
-      var rawElement = elementToInfer.element2.baseElement;
+      var rawElement = elementToInfer.element.baseElement;
       var constructorType = elementToInfer.asType;
 
       var inferred =

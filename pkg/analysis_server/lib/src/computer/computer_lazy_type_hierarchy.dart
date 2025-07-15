@@ -81,7 +81,7 @@ class DartLazyTypeHierarchyComputer {
     }
 
     return type is InterfaceType
-        ? TypeHierarchyItem.forElement(type.element3)
+        ? TypeHierarchyItem.forElement(type.element)
         : null;
   }
 
@@ -216,7 +216,7 @@ class TypeHierarchyItem {
   /// Returns the [SourceRange] of the code for [element].
   static SourceRange _codeRangeForElement(Element element) {
     // Non-synthetic elements should always have code locations.
-    var firstFragment = element.nonSynthetic2.firstFragment as FragmentImpl;
+    var firstFragment = element.nonSynthetic.firstFragment as FragmentImpl;
     return SourceRange(firstFragment.codeOffset!, firstFragment.codeLength!);
   }
 
@@ -227,14 +227,14 @@ class TypeHierarchyItem {
 
   /// Returns the [SourceRange] of the name for [element].
   static SourceRange _nameRangeForElement(Element element) {
-    var fragment = element.nonSynthetic2.firstFragment;
+    var fragment = element.nonSynthetic.firstFragment;
 
     // Some non-synthetic items can still have invalid nameOffsets (for example
     // a compilation unit). This should never happen here, but guard against it.
     assert(fragment.nameOffset2 != -1);
     return fragment.nameOffset2 == -1
         ? SourceRange(0, 0)
-        : SourceRange(fragment.nameOffset2 ?? 0, fragment.name2?.length ?? 0);
+        : SourceRange(fragment.nameOffset2 ?? 0, fragment.name?.length ?? 0);
   }
 }
 
@@ -259,28 +259,28 @@ class TypeHierarchyRelatedItem extends TypeHierarchyItem {
 
   static TypeHierarchyRelatedItem? constrainedTo(InterfaceType type) =>
       _forElement(
-        type.element3,
+        type.element,
         relationship: TypeHierarchyItemRelationship.constrainedTo,
       );
 
   static TypeHierarchyRelatedItem? extends_(InterfaceType type) => _forElement(
-    type.element3,
+    type.element,
     relationship: TypeHierarchyItemRelationship.extends_,
   );
 
   static TypeHierarchyRelatedItem? implements(InterfaceType type) =>
       _forElement(
-        type.element3,
+        type.element,
         relationship: TypeHierarchyItemRelationship.implements,
       );
 
   static TypeHierarchyRelatedItem? mixesIn(InterfaceType type) => _forElement(
-    type.element3,
+    type.element,
     relationship: TypeHierarchyItemRelationship.mixesIn,
   );
 
   static TypeHierarchyRelatedItem? unknown(InterfaceType type) => _forElement(
-    type.element3,
+    type.element,
     relationship: TypeHierarchyItemRelationship.unknown,
   );
 

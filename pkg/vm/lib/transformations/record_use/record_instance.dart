@@ -81,15 +81,7 @@ class InstanceRecorder {
     ast.InstanceConstant constant,
   ) => InstanceReference(
     location: expression.location!.recordLocation(_source, exactLocation),
-    instanceConstant: _fieldsFromConstant(constant),
+    instanceConstant: evaluateInstanceConstant(constant),
     loadingUnit: loadingUnitForNode(expression, _loadingUnits).toString(),
   );
-
-  InstanceConstant _fieldsFromConstant(ast.InstanceConstant constant) =>
-      InstanceConstant(
-        fields: constant.fieldValues.map(
-          (key, value) =>
-              MapEntry(key.asField.name.text, evaluateConstant(value)),
-        ),
-      );
 }

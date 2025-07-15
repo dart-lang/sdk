@@ -88,8 +88,8 @@ class BodyInferenceContext {
     if (isGenerator) {
       var requiredClass =
           isAsynchronous
-              ? _typeProvider.streamElement2
-              : _typeProvider.iterableElement2;
+              ? _typeProvider.streamElement
+              : _typeProvider.iterableElement;
       var type = _argumentOf(expressionType, requiredClass);
       if (type != null) {
         _returnTypes.add(type);
@@ -171,7 +171,7 @@ class BodyInferenceContext {
   }
 
   static TypeImpl? _argumentOf(TypeImpl type, InterfaceElement element) {
-    var elementType = type.asInstanceOf2(element);
+    var elementType = type.asInstanceOf(element);
     return elementType?.typeArguments[0];
   }
 
@@ -196,7 +196,7 @@ class BodyInferenceContext {
     if (node.isGenerator && node.isAsynchronous) {
       var elementType = _argumentOf(
         imposedType,
-        typeSystem.typeProvider.streamElement2,
+        typeSystem.typeProvider.streamElement,
       );
       if (elementType != null) {
         return elementType;
@@ -209,7 +209,7 @@ class BodyInferenceContext {
     if (node.isGenerator && node.isSynchronous) {
       var elementType = _argumentOf(
         imposedType,
-        typeSystem.typeProvider.iterableElement2,
+        typeSystem.typeProvider.iterableElement,
       );
       if (elementType != null) {
         return elementType;

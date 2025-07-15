@@ -12,7 +12,7 @@ final _batchSuffix = Platform.isWindows ? '.bat' : '';
 main() {
   final buildDir = path.dirname(Platform.executable);
   final sdkDir = path.dirname(path.dirname(buildDir));
-  final platformDill = path.join(buildDir, 'vm_platform_strong.dill');
+  final platformDill = path.join(buildDir, 'vm_platform.dill');
   final genKernel = path.join(
     sdkDir,
     'pkg',

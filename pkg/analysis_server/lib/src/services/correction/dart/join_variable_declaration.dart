@@ -19,7 +19,7 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.JOIN_VARIABLE_DECLARATION;
+  AssistKind get assistKind => DartAssistKind.joinVariableDeclaration;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -85,7 +85,7 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
     // The declared variable must be the one that is assigned.
     // There must be no initializer.
     var declaredVariable = declaredVariables.single;
-    if (declaredVariable.declaredElement2 != left.element ||
+    if (declaredVariable.declaredElement != left.element ||
         declaredVariable.initializer != null) {
       return;
     }
@@ -149,7 +149,7 @@ class JoinVariableDeclaration extends ResolvedCorrectionProducer {
     }
 
     // The assignment should write into the declared variable.
-    if (assignment.writeElement2 != declaredVariable.declaredElement2) {
+    if (assignment.writeElement != declaredVariable.declaredElement) {
       return;
     }
 

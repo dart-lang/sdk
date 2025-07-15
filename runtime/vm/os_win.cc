@@ -328,10 +328,10 @@ char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
   return buffer;
 }
 
-bool OS::StringToInt64(const char* str, int64_t* value) {
-  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr);
+bool OS::ParseInitialInt64(const char* str, int64_t* value, char** end) {
+  ASSERT(str != nullptr && strlen(str) > 0 && value != nullptr &&
+         end != nullptr);
   int32_t base = 10;
-  char* endptr;
   int i = 0;
   if (str[0] == '-') {
     i = 1;
@@ -346,11 +346,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   if (base == 16) {
     // Unsigned 64-bit hexadecimal integer literals are allowed but
     // immediately interpreted as signed 64-bit integers.
-    *value = static_cast<int64_t>(_strtoui64(str, &endptr, base));
+    *value = static_cast<int64_t>(_strtoui64(str, end, base));
   } else {
-    *value = _strtoi64(str, &endptr, base);
+    *value = _strtoi64(str, end, base);
   }
-  return ((errno == 0) && (endptr != str) && (*endptr == 0));
+  return (errno == 0) && (*end != str);
 }
 
 void OS::RegisterCodeObservers() {}

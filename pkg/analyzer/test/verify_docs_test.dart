@@ -58,7 +58,7 @@ class SnippetTester {
   /// Return `true` if the given error is a diagnostic produced by a lint that
   /// is allowed to occur in documentation.
   bool isAllowedLint(Diagnostic diagnostic) {
-    var errorCode = diagnostic.errorCode;
+    var errorCode = diagnostic.diagnosticCode;
     return errorCode is LintCode &&
         errorCode.name == 'non_constant_identifier_names' &&
         diagnostic.message.contains("'test_");
@@ -160,8 +160,8 @@ $snippet
       await context.applyPendingFileChanges();
       var results = await context.currentSession.getErrors(snippetPath);
       if (results is ErrorsResult) {
-        Iterable<Diagnostic> diagnostics = results.errors.where((error) {
-          DiagnosticCode diagnosticCode = error.errorCode;
+        Iterable<Diagnostic> diagnostics = results.diagnostics.where((error) {
+          DiagnosticCode diagnosticCode = error.diagnosticCode;
           // TODO(brianwilkerson): .
           return diagnosticCode != WarningCode.UNUSED_IMPORT &&
               diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
@@ -199,7 +199,7 @@ $snippet
   }
 
   void writeError(Diagnostic diagnostic, int prefixLength) {
-    output.write(diagnostic.errorCode);
+    output.write(diagnostic.diagnosticCode);
     output.write(' (');
     output.write(diagnostic.offset - prefixLength);
     output.write(', ');

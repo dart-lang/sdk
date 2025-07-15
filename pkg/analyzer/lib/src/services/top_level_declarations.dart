@@ -29,7 +29,7 @@ class TopLevelDeclarations {
       return resultCache![element];
     }
 
-    var declarationFilePath = element.library2?.firstFragment.source.fullName;
+    var declarationFilePath = element.library?.firstFragment.source.fullName;
     if (declarationFilePath == null) {
       return null;
     }
@@ -55,8 +55,8 @@ class TopLevelDeclarations {
       }
 
       var elementLibrary = elementResult.element2;
-      if (_findElement(elementLibrary, element.displayName)?.nonSynthetic2 ==
-          element.nonSynthetic2) {
+      if (_findElement(elementLibrary, element.displayName)?.nonSynthetic ==
+          element.nonSynthetic) {
         resultCache?[element] = elementLibrary;
         return elementLibrary;
       }
@@ -110,7 +110,7 @@ class TopLevelDeclarations {
         libraryElement.exportNamespace.get2(baseName) ??
         libraryElement.exportNamespace.get2('$baseName=');
     if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null) {
         return variable;
       }

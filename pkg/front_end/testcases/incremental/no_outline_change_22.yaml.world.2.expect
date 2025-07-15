@@ -242,7 +242,7 @@ library from "org-dartlang-test:///main.dart" as main {
       }
       return false;
     }
-    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(dart.core::int start, dart.core::int end) → void {
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ dart.collection::_closeGap(dart.core::int start, dart.core::int end) → void {
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       assert(0.{dart.core::num::<=}(start){(dart.core::num) → dart.core::bool});
       assert(start.{dart.core::num::<}(end){(dart.core::num) → dart.core::bool});
@@ -259,7 +259,7 @@ library from "org-dartlang-test:///main.dart" as main {
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((dart.core::int) → dart.core::bool test) → void {
       this.{dart.collection::ListBase::_filter}(test, true){((dart.core::int) → dart.core::bool, dart.core::bool) → void};
     }
-    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((dart.core::int) → dart.core::bool test, dart.core::bool retainMatching) → void {
+    method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ dart.collection::_filter((dart.core::int) → dart.core::bool test, dart.core::bool retainMatching) → void {
       dart.core::List<dart.core::int> retained = dart.core::_GrowableList::•<dart.core::int>(0);
       dart.core::int length = this.{dart.core::List::length}{dart.core::int};
       for (dart.core::int i = 0; i.{dart.core::num::<}(length){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {

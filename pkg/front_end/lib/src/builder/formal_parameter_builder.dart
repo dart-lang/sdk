@@ -22,8 +22,8 @@ import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/wildcard_lowering.dart';
-import '../source/builder_factory.dart';
-import '../source/constructor_declaration.dart';
+import '../source/fragment_factory.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_property_builder.dart';
@@ -192,7 +192,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
     }
   }
 
-  FormalParameterBuilder forPrimaryConstructor(BuilderFactory builderFactory) {
+  FormalParameterBuilder forPrimaryConstructor(FragmentFactory builderFactory) {
     return new FormalParameterBuilder(
         kind,
         modifiers | Modifiers.InitializingFormal,
@@ -235,13 +235,13 @@ class FormalParameterBuilder extends NamedBuilderImpl
 
   void finalizeInitializingFormal(
       DeclarationBuilder declarationBuilder,
-      ConstructorDeclarationBuilder constructorDeclaration,
+      SourceConstructorBuilder constructorBuilder,
       ClassHierarchyBase hierarchy) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
     Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
     if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.hasField) {
       DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
-      fieldType = constructorDeclaration.substituteFieldType(fieldType);
+      fieldType = constructorBuilder.substituteFieldType(fieldType);
       type.registerInferredType(fieldType);
     } else {
       type.registerInferredType(const DynamicType());

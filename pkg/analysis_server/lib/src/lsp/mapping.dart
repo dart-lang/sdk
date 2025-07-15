@@ -35,8 +35,6 @@ import 'package:analyzer/src/dart/analysis/search.dart'
     show DeclarationKind;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/string.dart'
-    show IntExtension;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:collection/collection.dart';
@@ -533,14 +531,13 @@ lsp.Location? fragmentToLocation(
   int? nameLength;
   if (fragment case PropertyAccessorFragmentImpl(
     :var isSynthetic,
-    :var nonSynthetic,
   ) when isSynthetic) {
-    var element = nonSynthetic;
-    nameOffset = element.nameOffset.nullIfNegative;
-    nameLength = element.name2?.length;
+    var element = fragment.element.nonSynthetic;
+    nameOffset = element.firstFragment.nameOffset2;
+    nameLength = element.firstFragment.name?.length;
   } else {
     nameOffset = fragment.nameOffset2;
-    nameLength = fragment.name2?.length;
+    nameLength = fragment.name?.length;
   }
 
   // For unnamed constructors, use the type name as the target location.

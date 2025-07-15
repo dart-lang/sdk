@@ -6,480 +6,490 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 
 /// An enumeration of possible assist kinds.
 abstract final class DartAssistKind {
-  static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = AssistKind(
+  static const addDiagnosticPropertyReference = AssistKind(
     'dart.assist.add.diagnosticPropertyReference',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Add a debug reference to this property',
   );
-  static const ADD_DIGIT_SEPARATORS = AssistKind(
+  static const addDigitSeparators = AssistKind(
     'dart.assist.add.digitSeparators',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Add digit separators',
   );
-  static const ADD_RETURN_TYPE = AssistKind(
+  static const addLate = AssistKind(
+    'dart.assist.add.late',
+    DartAssistKindPriority.default_,
+    "Add 'late' modifier",
+  );
+  static const addReturnType = AssistKind(
     'dart.assist.add.returnType',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Add return type',
   );
-  static const ADD_TYPE_ANNOTATION = AssistKind(
+  static const addTypeAnnotation = AssistKind(
     'dart.assist.add.typeAnnotation',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Add type annotation',
   );
-  static const ASSIGN_TO_LOCAL_VARIABLE = AssistKind(
+  static const assignToLocalVariable = AssistKind(
     'dart.assist.assignToVariable',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Assign value to new local variable',
   );
-  static const CONVERT_CLASS_TO_ENUM = AssistKind(
+  static const convertClassToEnum = AssistKind(
     'dart.assist.convert.classToEnum',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert class to an enum',
   );
-  static const CONVERT_CLASS_TO_MIXIN = AssistKind(
+  static const convertClassToMixin = AssistKind(
     'dart.assist.convert.classToMixin',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert class to a mixin',
   );
-  static const CONVERT_DOCUMENTATION_INTO_BLOCK = AssistKind(
+  static const convertDocumentationIntoBlock = AssistKind(
     'dart.assist.convert.blockComment',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to block documentation comment',
   );
-  static const CONVERT_DOCUMENTATION_INTO_LINE = AssistKind(
+  static const convertDocumentationIntoLine = AssistKind(
     'dart.assist.convert.lineComment',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to line documentation comment',
   );
-  static const CONVERT_INTO_ASYNC_BODY = AssistKind(
+  static const convertFieldFormalToNormal = AssistKind(
+    'dart.assist.convert.fieldFormalToNormal',
+    DartAssistKindPriority.default_,
+    'Convert to a normal parameter',
+  );
+  static const convertIntoAsyncBody = AssistKind(
     'dart.assist.convert.bodyToAsync',
-    DartAssistKindPriority.PRIORITY,
+    DartAssistKindPriority.priority,
     'Convert to async function body',
   );
-  static const CONVERT_INTO_BLOCK_BODY = AssistKind(
+  static const convertIntoBlockBody = AssistKind(
     'dart.assist.convert.bodyToBlock',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to block body',
   );
-  static const CONVERT_INTO_EXPRESSION_BODY = AssistKind(
+  static const convertIntoExpressionBody = AssistKind(
     'dart.assist.convert.bodyToExpression',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to expression body',
   );
-  static const CONVERT_INTO_FINAL_FIELD = AssistKind(
+  static const convertIntoFinalField = AssistKind(
     'dart.assist.convert.getterToFinalField',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to final field',
   );
-  static const CONVERT_INTO_FOR_INDEX = AssistKind(
+  static const convertIntoForIndex = AssistKind(
     'dart.assist.convert.forEachToForIndex',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to for-index loop',
   );
-  static const CONVERT_INTO_GENERIC_FUNCTION_SYNTAX = AssistKind(
+  static const convertIntoGenericFunctionSyntax = AssistKind(
     'dart.assist.convert.toGenericFunctionSyntax',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert into 'Function' syntax",
   );
-  static const CONVERT_INTO_GETTER = AssistKind(
+  static const convertIntoGetter = AssistKind(
     'dart.assist.convert.finalFieldToGetter',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert '{0}' to a getter",
   );
-  static const CONVERT_INTO_IS_NOT = AssistKind(
+  static const convertIntoIsNot = AssistKind(
     'dart.assist.convert.isNot',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to is!',
   );
-  static const CONVERT_INTO_IS_NOT_EMPTY = AssistKind(
+  static const convertIntoIsNotEmpty = AssistKind(
     'dart.assist.convert.isNotEmpty',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert to 'isNotEmpty'",
   );
-  static const CONVERT_PART_OF_TO_URI = AssistKind(
+  static const convertPartOfToUri = AssistKind(
     'dart.assist.convert.partOfToPartUri',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to use a URI',
   );
-  static const CONVERT_TO_DOUBLE_QUOTED_STRING = AssistKind(
+  static const convertToDoubleQuotedString = AssistKind(
     'dart.assist.convert.toDoubleQuotedString',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to double quoted string',
   );
-  static const CONVERT_TO_INITIALIZING_FORMAL = AssistKind(
+  static const convertToInitializingFormal = AssistKind(
     'dart.assist.convert.toInitializingFormal',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to initializing formal parameter',
   );
-  static const CONVERT_TO_FOR_ELEMENT = AssistKind(
+  static const convertToForElement = AssistKind(
     'dart.assist.convert.toForElement',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert to a 'for' element",
   );
-  static const CONVERT_TO_IF_CASE_STATEMENT = AssistKind(
+  static const convertToIfCaseStatement = AssistKind(
     'dart.assist.convert.ifCaseStatement',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert to 'if-case' statement",
   );
-  static const CONVERT_TO_IF_CASE_STATEMENT_CHAIN = AssistKind(
+  static const convertToIfCaseStatementChain = AssistKind(
     'dart.assist.convert.ifCaseStatementChain',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert to 'if-case' statement chain",
   );
-  static const CONVERT_TO_IF_ELEMENT = AssistKind(
+  static const convertToIfElement = AssistKind(
     'dart.assist.convert.toIfElement',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert to an 'if' element",
   );
-  static const CONVERT_TO_INT_LITERAL = AssistKind(
+  static const convertToIntLiteral = AssistKind(
     'dart.assist.convert.toIntLiteral',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to an int literal',
   );
-  static const CONVERT_TO_MAP_LITERAL = AssistKind(
+  static const convertToMapLiteral = AssistKind(
     'dart.assist.convert.toMapLiteral',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to map literal',
   );
-  static const CONVERT_TO_MULTILINE_STRING = AssistKind(
+  static const convertToMultilineString = AssistKind(
     'dart.assist.convert.toMultilineString',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to multiline string',
   );
-  static const CONVERT_TO_NORMAL_PARAMETER = AssistKind(
+  static const convertToNormalParameter = AssistKind(
     'dart.assist.convert.toConstructorNormalParameter',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to normal parameter',
   );
-  static const CONVERT_TO_NULL_AWARE = AssistKind(
+  static const convertToNullAware = AssistKind(
     'dart.assist.convert.toNullAware',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert to use '?.'",
   );
-  static const CONVERT_TO_PACKAGE_IMPORT = AssistKind(
+  static const convertToPackageImport = AssistKind(
     'dart.assist.convert.relativeToPackageImport',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Convert to 'package:' import",
   );
-  static const CONVERT_TO_RELATIVE_IMPORT = AssistKind(
+  static const convertToRelativeImport = AssistKind(
     'dart.assist.convert.packageToRelativeImport',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to a relative import',
   );
-  static const CONVERT_TO_SET_LITERAL = AssistKind(
+  static const convertToSetLiteral = AssistKind(
     'dart.assist.convert.toSetLiteral',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to set literal',
   );
-  static const CONVERT_TO_SINGLE_QUOTED_STRING = AssistKind(
+  static const convertToSingleQuotedString = AssistKind(
     'dart.assist.convert.toSingleQuotedString',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to single quoted string',
   );
-  static const CONVERT_TO_SPREAD = AssistKind(
+  static const convertToSpread = AssistKind(
     'dart.assist.convert.toSpread',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to a spread',
   );
-  static const CONVERT_TO_SUPER_PARAMETERS = AssistKind(
+  static const convertToSuperParameters = AssistKind(
     'dart.assist.convert.toSuperParameters',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to using super parameters',
   );
-  static const CONVERT_TO_SWITCH_EXPRESSION = AssistKind(
+  static const convertToSwitchExpression = AssistKind(
     'dart.assist.convert.switchExpression',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to switch expression',
   );
-  static const DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT = AssistKind(
+  static const destructureLocalVariableAssignment = AssistKind(
     'dart.assist.destructureLocalVariableAssignment',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Destructure variable assignment',
   );
-  static const CONVERT_TO_SWITCH_STATEMENT = AssistKind(
+  static const convertToSwitchStatement = AssistKind(
     'dart.assist.convert.switchStatement',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to switch statement',
   );
-  static const ENCAPSULATE_FIELD = AssistKind(
+  static const encapsulateField = AssistKind(
     'dart.assist.encapsulateField',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Encapsulate field',
   );
-  static const EXCHANGE_OPERANDS = AssistKind(
+  static const exchangeOperands = AssistKind(
     'dart.assist.exchangeOperands',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Exchange operands',
   );
-  static const FLUTTER_CONVERT_TO_CHILDREN = AssistKind(
+  static const flutterConvertToChildren = AssistKind(
     'dart.assist.flutter.convert.childToChildren',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to children:',
   );
-  static const FLUTTER_CONVERT_TO_STATEFUL_WIDGET = AssistKind(
+  static const flutterConvertToStatefulWidget = AssistKind(
     'dart.assist.flutter.convert.toStatefulWidget',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to StatefulWidget',
   );
-  static const FLUTTER_CONVERT_TO_STATELESS_WIDGET = AssistKind(
+  static const flutterConvertToStatelessWidget = AssistKind(
     'dart.assist.flutter.convert.toStatelessWidget',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Convert to StatelessWidget',
   );
-  static const FLUTTER_WRAP_GENERIC = AssistKind(
+  static const flutterWrapGeneric = AssistKind(
     'dart.assist.flutter.wrap.generic',
-    DartAssistKindPriority.FLUTTER_WRAP_GENERAL,
+    DartAssistKindPriority.flutterWrapGeneral,
     'Wrap with widget...',
   );
-  static const FLUTTER_WRAP_BUILDER = AssistKind(
+  static const flutterWrapBuilder = AssistKind(
     'dart.assist.flutter.wrap.builder',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Builder',
   );
-  static const FLUTTER_WRAP_CENTER = AssistKind(
+  static const flutterWrapCenter = AssistKind(
     'dart.assist.flutter.wrap.center',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Center',
   );
-  static const FLUTTER_WRAP_COLUMN = AssistKind(
+  static const flutterWrapColumn = AssistKind(
     'dart.assist.flutter.wrap.column',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Column',
   );
-  static const FLUTTER_WRAP_CONTAINER = AssistKind(
+  static const flutterWrapContainer = AssistKind(
     'dart.assist.flutter.wrap.container',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Container',
   );
-  static const FLUTTER_WRAP_EXPANDED = AssistKind(
+  static const flutterWrapExpanded = AssistKind(
     'dart.assist.flutter.wrap.expanded',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Expanded',
   );
-  static const FLUTTER_WRAP_FLEXIBLE = AssistKind(
+  static const flutterWrapFlexible = AssistKind(
     'dart.assist.flutter.wrap.flexible',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Flexible',
   );
-  static const FLUTTER_WRAP_FUTURE_BUILDER = AssistKind(
+  static const flutterWrapFutureBuilder = AssistKind(
     'dart.assist.flutter.wrap.futureBuilder',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with FutureBuilder',
   );
-  static const FLUTTER_WRAP_PADDING = AssistKind(
+  static const flutterWrapPadding = AssistKind(
     'dart.assist.flutter.wrap.padding',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Padding',
   );
-  static const FLUTTER_WRAP_ROW = AssistKind(
+  static const flutterWrapRow = AssistKind(
     'dart.assist.flutter.wrap.row',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with Row',
   );
-  static const FLUTTER_WRAP_SIZED_BOX = AssistKind(
+  static const flutterWrapSizedBox = AssistKind(
     'dart.assist.flutter.wrap.sizedBox',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with SizedBox',
   );
-  static const FLUTTER_WRAP_STREAM_BUILDER = AssistKind(
+  static const flutterWrapStreamBuilder = AssistKind(
     'dart.assist.flutter.wrap.streamBuilder',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with StreamBuilder',
   );
-  static const FLUTTER_WRAP_VALUE_LISTENABLE_BUILDER = AssistKind(
+  static const flutterWrapValueListenableBuilder = AssistKind(
     'dart.assist.flutter.wrap.valueListenableBuilder',
-    DartAssistKindPriority.FLUTTER_WRAP_SPECIFIC,
+    DartAssistKindPriority.flutterWrapSpecific,
     'Wrap with ValueListenableBuilder',
   );
-  static const FLUTTER_SWAP_WITH_CHILD = AssistKind(
+  static const flutterSwapWithChild = AssistKind(
     'dart.assist.flutter.swap.withChild',
-    DartAssistKindPriority.FLUTTER_SWAP,
+    DartAssistKindPriority.flutterSwap,
     'Swap with child',
   );
-  static const FLUTTER_SWAP_WITH_PARENT = AssistKind(
+  static const flutterSwapWithParent = AssistKind(
     'dart.assist.flutter.swap.withParent',
-    DartAssistKindPriority.FLUTTER_SWAP,
+    DartAssistKindPriority.flutterSwap,
     'Swap with parent',
   );
-  static const FLUTTER_MOVE_DOWN = AssistKind(
+  static const flutterMoveDown = AssistKind(
     'dart.assist.flutter.move.down',
-    DartAssistKindPriority.FLUTTER_MOVE,
+    DartAssistKindPriority.flutterMove,
     'Move widget down',
   );
-  static const FLUTTER_MOVE_UP = AssistKind(
+  static const flutterMoveUp = AssistKind(
     'dart.assist.flutter.move.up',
-    DartAssistKindPriority.FLUTTER_MOVE,
+    DartAssistKindPriority.flutterMove,
     'Move widget up',
   );
-  static const FLUTTER_REMOVE_WIDGET = AssistKind(
+  static const flutterRemoveWidget = AssistKind(
     'dart.assist.flutter.removeWidget',
-    DartAssistKindPriority.FLUTTER_REMOVE,
+    DartAssistKindPriority.flutterRemove,
     'Remove this widget',
   );
-  static const IMPORT_ADD_SHOW = AssistKind(
+  static const importAddShow = AssistKind(
     'dart.assist.add.showCombinator',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Add explicit 'show' combinator",
   );
-  static const INLINE_INVOCATION = AssistKind(
+  static const inlineInvocation = AssistKind(
     'dart.assist.inline',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Inline invocation of '{0}'",
   );
-  static const INVERT_CONDITIONAL_EXPRESSION = AssistKind(
+  static const invertConditionalExpression = AssistKind(
     'dart.assist.invertConditional',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Invert conditional expression',
   );
-  static const INVERT_IF_STATEMENT = AssistKind(
+  static const invertIfStatement = AssistKind(
     'dart.assist.invertIf',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Invert 'if' statement",
   );
-  static const JOIN_ELSE_WITH_IF = AssistKind(
+  static const joinElseWithIf = AssistKind(
     'dart.assist.inlineElseBlock',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Join the 'else' block with inner 'if' statement",
   );
-  static const JOIN_IF_WITH_ELSE = AssistKind(
+  static const joinIfWithElse = AssistKind(
     'dart.assist.inlineEnclosingElseBlock',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Join 'if' statement with outer 'else' block",
   );
-  static const JOIN_IF_WITH_INNER = AssistKind(
+  static const joinIfWithInner = AssistKind(
     'dart.assist.joinWithInnerIf',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Join 'if' statement with inner 'if' statement",
   );
-  static const JOIN_IF_WITH_OUTER = AssistKind(
+  static const joinIfWithOuter = AssistKind(
     'dart.assist.joinWithOuterIf',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Join 'if' statement with outer 'if' statement",
   );
-  static const JOIN_VARIABLE_DECLARATION = AssistKind(
+  static const joinVariableDeclaration = AssistKind(
     'dart.assist.joinVariableDeclaration',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Join variable declaration',
   );
-  static const REMOVE_ASYNC = AssistKind(
+  static const removeAsync = AssistKind(
     'dart.assist.remove.async',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Remove 'async' modifier",
   );
-  static const REMOVE_DIGIT_SEPARATORS = AssistKind(
+  static const removeDigitSeparators = AssistKind(
     'dart.assist.remove.digitSeparators',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Remove digit separators',
   );
-  static const REMOVE_TYPE_ANNOTATION = AssistKind(
+  static const removeTypeAnnotation = AssistKind(
     // TODO(pq): unify w/ fix
     'dart.assist.remove.typeAnnotation',
-    DartAssistKindPriority.PRIORITY,
+    DartAssistKindPriority.priority,
     'Remove type annotation',
   );
-  static const REPLACE_CONDITIONAL_WITH_IF_ELSE = AssistKind(
+  static const replaceConditionalWithIfElse = AssistKind(
     'dart.assist.convert.conditionalToIfElse',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Replace conditional with 'if-else'",
   );
-  static const REPLACE_IF_ELSE_WITH_CONDITIONAL = AssistKind(
+  static const replaceIfElseWithConditional = AssistKind(
     'dart.assist.convert.ifElseToConditional',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Replace 'if-else' with conditional ('c ? x : y')",
   );
-  static const REPLACE_WITH_VAR = AssistKind(
+  static const replaceWithVar = AssistKind(
     'dart.assist.replace.withVar',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     "Replace type annotation with 'var'",
   );
-  static const SHADOW_FIELD = AssistKind(
+  static const shadowField = AssistKind(
     'dart.assist.shadowField',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Create a local variable that shadows the field',
   );
-  static const SORT_CHILD_PROPERTY_LAST = AssistKind(
+  static const sortChildPropertyLast = AssistKind(
     'dart.assist.sort.child.properties.last',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Move child property to end of arguments',
   );
-  static const SPLIT_AND_CONDITION = AssistKind(
+  static const splitAndCondition = AssistKind(
     'dart.assist.splitIfConjunction',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Split && condition',
   );
-  static const SPLIT_VARIABLE_DECLARATION = AssistKind(
+  static const splitVariableDeclaration = AssistKind(
     'dart.assist.splitVariableDeclaration',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Split variable declaration',
   );
-  static const SURROUND_WITH_BLOCK = AssistKind(
+  static const surroundWithBlock = AssistKind(
     'dart.assist.surround.block',
-    DartAssistKindPriority.SURROUND_WITH_BLOCK,
+    DartAssistKindPriority.surroundWithBlock,
     'Surround with block',
   );
-  static const SURROUND_WITH_DO_WHILE = AssistKind(
+  static const surroundWithDoWhile = AssistKind(
     'dart.assist.surround.doWhile',
-    DartAssistKindPriority.SURROUND_WITH_DO_WHILE,
+    DartAssistKindPriority.surroundWithDoWhile,
     "Surround with 'do-while'",
   );
-  static const SURROUND_WITH_FOR = AssistKind(
+  static const surroundWithFor = AssistKind(
     'dart.assist.surround.forEach',
-    DartAssistKindPriority.SURROUND_WITH_FOR,
+    DartAssistKindPriority.surroundWithFor,
     "Surround with 'for'",
   );
-  static const SURROUND_WITH_FOR_IN = AssistKind(
+  static const surroundWithForIn = AssistKind(
     'dart.assist.surround.forIn',
-    DartAssistKindPriority.SURROUND_WITH_FOR_IN,
+    DartAssistKindPriority.surroundWithForIn,
     "Surround with 'for-in'",
   );
-  static const SURROUND_WITH_IF = AssistKind(
+  static const surroundWithIf = AssistKind(
     'dart.assist.surround.if',
-    DartAssistKindPriority.SURROUND_WITH_IF,
+    DartAssistKindPriority.surroundWithIf,
     "Surround with 'if'",
   );
-  static const SURROUND_WITH_SET_STATE = AssistKind(
+  static const surroundWithSetState = AssistKind(
     'dart.assist.surround.setState',
-    DartAssistKindPriority.SURROUND_WITH_SET_STATE,
+    DartAssistKindPriority.surroundWithSetState,
     "Surround with 'setState'",
   );
-  static const SURROUND_WITH_TRY_CATCH = AssistKind(
+  static const surroundWithTryCatch = AssistKind(
     'dart.assist.surround.tryCatch',
-    DartAssistKindPriority.SURROUND_WITH_TRY_CATCH,
+    DartAssistKindPriority.surroundWithTryCatch,
     "Surround with 'try-catch'",
   );
-  static const SURROUND_WITH_TRY_FINALLY = AssistKind(
+  static const surroundWithTryFinally = AssistKind(
     'dart.assist.surround.tryFinally',
-    DartAssistKindPriority.SURROUND_WITH_TRY_FINALLY,
+    DartAssistKindPriority.surroundWithTryFinally,
     "Surround with 'try-finally'",
   );
-  static const SURROUND_WITH_WHILE = AssistKind(
+  static const surroundWithWhile = AssistKind(
     'dart.assist.surround.while',
-    DartAssistKindPriority.SURROUND_WITH_WHILE,
+    DartAssistKindPriority.surroundWithWhile,
     "Surround with 'while'",
   );
-  static const USE_CURLY_BRACES = AssistKind(
+  static const useCurlyBraces = AssistKind(
     'dart.assist.surround.curlyBraces',
-    DartAssistKindPriority.DEFAULT,
+    DartAssistKindPriority.default_,
     'Use curly braces',
   );
 }
 
 /// The priorities associated with various groups of assists.
 abstract final class DartAssistKindPriority {
-  static const int FLUTTER_REMOVE = 25;
-  static const int FLUTTER_MOVE = 26;
-  static const int FLUTTER_SWAP = 27;
-  static const int FLUTTER_WRAP_SPECIFIC = 28;
-  static const int FLUTTER_WRAP_GENERAL = 29;
-  static const int DEFAULT = 30;
-  static const int PRIORITY = 31;
-  static const int SURROUND_WITH_TRY_FINALLY = 31;
-  static const int SURROUND_WITH_TRY_CATCH = 32;
-  static const int SURROUND_WITH_DO_WHILE = 33;
-  static const int SURROUND_WITH_SET_STATE = 33;
-  static const int SURROUND_WITH_FOR = 34;
-  static const int SURROUND_WITH_FOR_IN = 35;
-  static const int SURROUND_WITH_WHILE = 36;
-  static const int SURROUND_WITH_IF = 37;
-  static const int SURROUND_WITH_BLOCK = 38;
+  static const int flutterRemove = 25;
+  static const int flutterMove = 26;
+  static const int flutterSwap = 27;
+  static const int flutterWrapSpecific = 28;
+  static const int flutterWrapGeneral = 29;
+  static const int default_ = 30;
+  static const int priority = 31;
+  static const int surroundWithTryFinally = 31;
+  static const int surroundWithTryCatch = 32;
+  static const int surroundWithDoWhile = 33;
+  static const int surroundWithSetState = 33;
+  static const int surroundWithFor = 34;
+  static const int surroundWithForIn = 35;
+  static const int surroundWithWhile = 36;
+  static const int surroundWithIf = 37;
+  static const int surroundWithBlock = 38;
 }

@@ -834,7 +834,7 @@ CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
 CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: hasFix
 CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
@@ -2675,8 +2675,6 @@ ParserErrorCode.COVARIANT_CONSTRUCTOR:
     are treated the same as members (see `COVARIANT_MEMBER`).
 ParserErrorCode.COVARIANT_MEMBER:
   status: hasFix
-ParserErrorCode.DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
-  status: noFix
 ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
   status: hasFix
 ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
@@ -3409,6 +3407,8 @@ ScannerErrorCode.UNABLE_GET_CONTENT:
   status: noFix
 ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING:
   status: noFix
+ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER:
+  status: hasFix
 ScannerErrorCode.UNSUPPORTED_OPERATOR:
   status: noFix
 ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT:

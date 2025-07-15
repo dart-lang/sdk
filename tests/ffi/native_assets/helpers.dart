@@ -64,7 +64,7 @@ final dartPrecompiledRuntimeUri = buildUriAbsolute.resolve(
   'dartaotruntime$standaloneExtensionExe',
 );
 
-final platformDillUri = buildUriAbsolute.resolve('vm_platform_strong.dill');
+final platformDillUri = buildUriAbsolute.resolve('vm_platform.dill');
 
 final packageConfigUri = sdkUriAbsolute.resolve(
   '.dart_tool/package_config.json',

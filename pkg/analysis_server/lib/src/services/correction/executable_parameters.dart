@@ -37,7 +37,7 @@ class ExecutableParameters {
 
   /// Return the names of the named parameters.
   List<String> get namedNames {
-    return named.map((parameter) => parameter.name3).nonNulls.toList();
+    return named.map((parameter) => parameter.name).nonNulls.toList();
   }
 
   /// Return the [FormalParameterList] of the [executable], or `null` if it
@@ -78,7 +78,7 @@ class ExecutableParameters {
     Element? element;
     // This doesn't handle FunctionExpressionInvocation.
     if (invocation is Annotation) {
-      element = invocation.element2;
+      element = invocation.element;
     } else if (invocation is InstanceCreationExpression) {
       element = invocation.constructorName.element;
     } else if (invocation is MethodInvocation) {

@@ -33,8 +33,7 @@ void main() {
     if (Platform.isWindows) {
       chromedriverPath = '$chromedriverPath.exe';
     }
-    final chromedriverUri =
-        Platform.script.resolveUri(Uri.parse(chromedriverPath));
+    final chromedriverUri = resolveTestRelativePath(chromedriverPath);
     try {
       chromeDriver = await Process.start(chromedriverUri.toFilePath(), [
         '--port=4444',
@@ -58,7 +57,7 @@ void main() {
       final cascade = shelf.Cascade()
           .add(handler.handler)
           .add(_faviconHandler)
-          .add(createStaticHandler(Platform.script.resolve('web').toFilePath(),
+          .add(createStaticHandler(resolveTestRelativePath('web').toFilePath(),
               listDirectories: true, defaultDocument: 'index.html'));
 
       server = await io.serve(cascade.handler, 'localhost', 0);

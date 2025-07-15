@@ -1081,6 +1081,147 @@ workspaces
 ''');
   }
 
+  test_pub_workspace_open_root() async {
+    var pubWorkspace = _setupPubWorkspace();
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(pubWorkspace.workspaceRootPath).path],
+    );
+
+    // We expect only 1 context.
+    expect(collection.contexts, hasLength(1));
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/packages/package1/lib/package1.dart
+        uri: package:package1/package1.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/packages/package2/lib/package2.dart
+        uri: package:package2/package2.dart
+        analysisOptions_1
+        workspacePackage_0_1
+analysisOptions
+  analysisOptions_0: /home/packages/package1/analysis_options.yaml
+  analysisOptions_1: /home/packages/package2/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/packages/package1
+        sdkVersionConstraint: ^3.6.0
+      workspacePackage_0_1: PubPackage
+        root: /home/packages/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_pub_workspace_open_root_and_subfolders_bails_out() async {
+    var pubWorkspace = _setupPubWorkspace();
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(pubWorkspace.package1).path,
+        getFolder(pubWorkspace.workspaceRootPath).path,
+        getFolder(pubWorkspace.package2).path,
+      ],
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+  /home/packages/package1
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/packages/package1/lib/package1.dart
+        uri: package:package1/package1.dart
+        analysisOptions_0
+        workspacePackage_1_0
+  /home/packages/package2
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_2
+    analyzedFiles
+      /home/packages/package2/lib/package2.dart
+        uri: package:package2/package2.dart
+        analysisOptions_1
+        workspacePackage_2_0
+analysisOptions
+  analysisOptions_0: /home/packages/package1/analysis_options.yaml
+  analysisOptions_1: /home/packages/package2/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+  workspace_1: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/packages/package1
+        sdkVersionConstraint: ^3.6.0
+  workspace_2: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_2_0: PubPackage
+        root: /home/packages/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_pub_workspace_open_subfolders() async {
+    var pubWorkspace = _setupPubWorkspace();
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(pubWorkspace.package1).path,
+        getFolder(pubWorkspace.package2).path,
+      ],
+    );
+
+    // We expect only 1 context.
+    expect(collection.contexts, hasLength(1));
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/packages/package1/lib/package1.dart
+        uri: package:package1/package1.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/packages/package2/lib/package2.dart
+        uri: package:package2/package2.dart
+        analysisOptions_1
+        workspacePackage_0_1
+analysisOptions
+  analysisOptions_0: /home/packages/package1/analysis_options.yaml
+  analysisOptions_1: /home/packages/package2/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/packages/package1
+        sdkVersionConstraint: ^3.6.0
+      workspacePackage_0_1: PubPackage
+        root: /home/packages/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
   void _assertCollectionText(
     AnalysisContextCollectionImpl collection,
     String expected,
@@ -1130,6 +1271,63 @@ workspaces
       sink: TreeStringSink(sink: buffer, indent: ''),
     ).write(contextCollection);
     return buffer.toString();
+  }
+
+  ({String workspaceRootPath, String package1, String package2})
+  _setupPubWorkspace() {
+    var workspaceRootPath = '/home';
+    var package1 = '$workspaceRootPath/packages/package1';
+    var package2 = '$workspaceRootPath/packages/package2';
+    var fileInPackage1 = '$package1/lib/package1.dart';
+    var fileInPackage2 = '$package2/lib/package2.dart';
+
+    // Pubspec data mostly copied from https://dart.dev/tools/pub/workspaces.
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - packages/package1
+  - packages/package2
+''');
+    newPubspecYamlFile(package1, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+    newPubspecYamlFile(package2, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    // Package 1 has 1 lint.
+    newAnalysisOptionsYamlFile(package1, '''
+linter:
+  rules:
+    - empty_statements
+''');
+
+    // Package 2 has 0 lints.
+    newAnalysisOptionsYamlFile(package2, '');
+
+    var builder =
+        PackageConfigFileBuilder()
+          ..add(name: 'package1', rootPath: package1)
+          ..add(name: 'package2', rootPath: package2);
+    newPackageConfigJsonFileFromBuilder(workspaceRootPath, builder);
+
+    newFile(fileInPackage1, '');
+    newFile(fileInPackage2, '');
+
+    return (
+      workspaceRootPath: workspaceRootPath,
+      package1: package1,
+      package2: package2,
+    );
   }
 }
 

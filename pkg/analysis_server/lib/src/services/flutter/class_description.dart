@@ -53,7 +53,7 @@ class ClassDescriptionRegistry {
   /// Return `true` if properties should be created for instances of [type].
   bool hasNestedProperties(DartType type) {
     if (type is InterfaceType) {
-      return _isOptedInClass(type.element3);
+      return _isOptedInClass(type.element);
     }
     return false;
   }
@@ -61,7 +61,7 @@ class ClassDescriptionRegistry {
   ClassDescription? _classDescription(ClassElement element) {
     if (!_isOptedInClass(element)) return null;
 
-    var constructor = element.unnamedConstructor2;
+    var constructor = element.unnamedConstructor;
     if (constructor == null) return null;
 
     for (var parameter in constructor.formalParameters) {
@@ -91,6 +91,6 @@ class ClassDescriptionRegistry {
   }
 
   static bool _isClass(ClassElement element, String uri, String name) {
-    return element.name3 == name && element.library2.uri.toString() == uri;
+    return element.name == name && element.library.uri.toString() == uri;
   }
 }

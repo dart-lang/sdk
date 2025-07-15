@@ -70,12 +70,12 @@ class CreateMethod extends ResolvedCorrectionProducer {
         if (missingEquals) {
           _memberName = '==';
           element = classElement.getInheritedMember(
-            Name.forLibrary(classElement.library2, _memberName),
+            Name.forLibrary(classElement.library, _memberName),
           );
         } else {
           _memberName = 'hashCode';
           element = classElement.getInheritedMember(
-            Name.forLibrary(classElement.library2, _memberName),
+            Name.forLibrary(classElement.library, _memberName),
           );
         }
         if (element == null) {
@@ -100,22 +100,11 @@ class CreateMethod extends ResolvedCorrectionProducer {
     CompilationUnitMember? targetNode;
     var target = invocation.realTarget;
     if (target is ExtensionOverride) {
-      targetFragment = target.element2.firstFragment;
-      if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration(targetFragment);
-        if (targetNode == null) {
-          return;
-        }
-      }
+      // This case should be handled by the "Add extension method" quick fix
+      return;
     } else if (target is Identifier && target.element is ExtensionElement) {
-      targetFragment = (target.element as ExtensionElement).firstFragment;
-      if (targetFragment is ExtensionFragment) {
-        targetNode = await getExtensionDeclaration(targetFragment);
-        if (targetNode == null) {
-          return;
-        }
-      }
-      staticModifier = true;
+      // This case should be handled by the "Add extension method" quick fix
+      return;
     } else if (target == null) {
       targetFragment = unit.declaredFragment;
       var enclosingMember = node.thisOrAncestorOfType<ClassMember>();
@@ -125,9 +114,18 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
       var enclosingMemberParent = enclosingMember.parent;
-      if (enclosingMemberParent is CompilationUnitMember) {
+      if (enclosingMemberParent is CompilationUnitMember &&
+          enclosingMemberParent is! ExtensionDeclaration) {
         targetNode = enclosingMemberParent;
-        staticModifier = inStaticContext;
+        staticModifier = switch (enclosingMember) {
+          ConstructorDeclaration(:var factoryKeyword) => factoryKeyword != null,
+          MethodDeclaration(:var isStatic) => isStatic,
+          FieldDeclaration(
+            :var isStatic,
+            fields: VariableDeclarationList(:var isLate),
+          ) =>
+            isStatic || !isLate,
+        };
       }
     } else {
       var targetClassElement = getTargetInterfaceElement(target);
@@ -135,7 +133,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
         return;
       }
       targetFragment = targetClassElement.firstFragment;
-      if (targetClassElement.library2.isInSdk) {
+      if (targetClassElement.library.isInSdk) {
         return;
       }
       // Prepare target ClassDeclaration.

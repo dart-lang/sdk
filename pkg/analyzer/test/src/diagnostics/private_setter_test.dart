@@ -50,11 +50,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::__foo#element
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::__foo
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
+  writeElement2: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -111,11 +111,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_#element
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
+  writeElement2: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -157,11 +157,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::<fragment>::@class::A::@setter::_foo::@parameter::_#element
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/a.dart::<fragment>::@class::A::@setter::_foo#element
+  writeElement2: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int

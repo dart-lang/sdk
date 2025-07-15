@@ -46,7 +46,7 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     if (node is! VariableDeclaration) return;
 
     var nameToken = node.name;
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element is! LocalVariableElement) {
       return;
     }

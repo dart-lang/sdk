@@ -57,8 +57,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@46
-          type: dynamic
+        declaredFragment: isPublic y@46
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       element2: <null>
   rightParenthesis: )
@@ -87,8 +89,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@41
-          type: dynamic
+        declaredFragment: isPublic y@41
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       element2: <null>
   rightParenthesis: )
@@ -170,8 +174,10 @@ RecordPattern
           element2: dart:core::@class::int
           type: int
         name: y
-        declaredElement: y@54
+        declaredFragment: isPublic y@54
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -203,8 +209,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@54
-          type: Object?
+        declaredFragment: isPublic y@54
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -262,8 +270,10 @@ RecordPattern
           element2: dart:core::@class::int
           type: int
         name: y
-        declaredElement: y@49
+        declaredFragment: isPublic y@49
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -292,8 +302,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@49
-          type: Object?
+        declaredFragment: isPublic y@49
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -329,8 +341,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: b
-        declaredElement: hasImplicitType b@47
-          type: Object?
+        declaredFragment: isPublic b@47
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -365,8 +379,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@46
-          type: Object?
+        declaredFragment: isPublic a@46
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -400,8 +416,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@53
-          type: Object?
+        declaredFragment: isPublic a@53
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -435,8 +453,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@60
-          type: Object?
+        declaredFragment: isPublic a@60
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -469,8 +489,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@44
-          type: Object?
+        declaredFragment: isPublic a@44
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -502,8 +524,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@55
-          type: Object?
+        declaredFragment: isPublic a@55
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -561,8 +585,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@69
-          type: int
+        declaredFragment: isPublic a@69
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
     PatternField
@@ -572,16 +598,20 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: b
-        declaredElement: hasImplicitType b@81
-          type: String
+        declaredFragment: isPublic b@81
+          type: null
+          element: hasImplicitType isPublic
+            type: String
         matchedValueType: String
       element2: <null>
     PatternField
       pattern: DeclaredVariablePattern
         keyword: var
         name: c
-        declaredElement: hasImplicitType c@88
-          type: double
+        declaredFragment: isPublic c@88
+          type: null
+          element: hasImplicitType isPublic
+            type: double
         matchedValueType: double
       element2: <null>
   rightParenthesis: )
@@ -616,8 +646,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@58
-          type: Object?
+        declaredFragment: isPublic a@58
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       element2: <null>
   rightParenthesis: )
@@ -649,8 +681,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: y
-        declaredElement: hasImplicitType y@58
-          type: int
+        declaredFragment: isPublic y@58
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -715,8 +749,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: foo
-        declaredElement: hasImplicitType foo@55
-          type: int
+        declaredFragment: isPublic foo@55
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -748,8 +784,10 @@ RecordPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@56
-            type: int
+          declaredFragment: isPublic foo@56
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         asToken: as
         type: NamedType
@@ -787,8 +825,10 @@ RecordPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@56
-            type: int
+          declaredFragment: isPublic foo@56
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: !
         matchedValueType: int?
@@ -822,8 +862,10 @@ RecordPattern
         pattern: DeclaredVariablePattern
           keyword: var
           name: foo
-          declaredElement: hasImplicitType foo@56
-            type: int
+          declaredFragment: isPublic foo@56
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         operator: ?
         matchedValueType: int?
@@ -854,8 +896,10 @@ RecordPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@48
-          type: int
+        declaredFragment: isPublic a@48
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -885,15 +929,19 @@ PatternVariableDeclaration
       PatternField
         pattern: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@33
-            type: int
+          declaredFragment: isPublic a@33
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
         element2: <null>
       PatternField
         pattern: DeclaredVariablePattern
           name: b
-          declaredElement: hasImplicitType b@36
-            type: String
+          declaredFragment: isPublic b@36
+            type: null
+            element: hasImplicitType isPublic
+              type: String
           matchedValueType: String
         element2: <null>
     rightParenthesis: )
@@ -901,7 +949,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int, String)
   patternTypeSchema: (_, _)
 ''');
@@ -935,8 +983,10 @@ PatternVariableDeclaration
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@22
+          declaredFragment: isPublic a@22
             type: int
+            element: isPublic
+              type: int
           matchedValueType: int
         element2: <null>
       PatternField
@@ -946,8 +996,10 @@ PatternVariableDeclaration
             element2: dart:core::@class::String
             type: String
           name: b
-          declaredElement: b@32
+          declaredFragment: isPublic b@32
             type: String
+            element: isPublic
+              type: String
           matchedValueType: String
         element2: <null>
     rightParenthesis: )

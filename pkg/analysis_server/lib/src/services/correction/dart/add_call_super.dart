@@ -39,12 +39,12 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var classElement = classFragment.element;
 
     var name = methodDeclaration.name.lexeme;
-    var nameObj = Name.forLibrary(classElement.library2, name);
+    var nameObj = Name.forLibrary(classElement.library, name);
     var overridden = classElement.getInheritedMember(nameObj);
     if (overridden == null) return;
     var overriddenNamedParameters = overridden.formalParameters
         .where((p) => p.isNamed)
-        .map((p) => p.name3);
+        .map((p) => p.name);
 
     var body = methodDeclaration.body;
     var parameters = methodDeclaration.parameters?.parameters;

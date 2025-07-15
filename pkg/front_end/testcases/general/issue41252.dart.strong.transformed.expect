@@ -9,10 +9,6 @@ library;
 //   static final int X = 0;
 //                    ^
 //
-// pkg/front_end/testcases/general/issue41252.dart:9:26: Error: Can't use 'X' because it is declared more than once.
-//   static final int foo = X + 1;
-//                          ^
-//
 import self as self;
 import "dart:core" as core;
 

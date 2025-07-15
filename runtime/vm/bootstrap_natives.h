@@ -288,14 +288,11 @@ namespace dart {
   V(Profiler_getCurrentTag, 0)                                                 \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
   V(VMService_SendRootServiceMessage, 1)                                       \
-  V(VMService_SendObjectRootServiceMessage, 1)                                 \
   V(VMService_OnStart, 0)                                                      \
   V(VMService_OnExit, 0)                                                       \
   V(VMService_OnServerAddressChange, 1)                                        \
   V(VMService_ListenStream, 2)                                                 \
   V(VMService_CancelStream, 1)                                                 \
-  V(VMService_RequestAssets, 0)                                                \
-  V(VMService_DecodeAssets, 1)                                                 \
   V(VMService_AddUserTagsToStreamableSampleList, 1)                            \
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_createNativeCallableListener, 2)                                       \

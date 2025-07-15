@@ -20,7 +20,7 @@ class C extends core::Object {
     ;
   static factory fact({erroneously-initialized core::int i = null}) → self::C
     ;
-  static factory redirect({core::int i = null}) → self::C /* redirection-target: self::C::gen */
+  static factory redirect({erroneously-initialized core::int i = null}) → self::C /* redirection-target: self::C::gen */
     return new self::C::gen(i: i);
 }
 class D extends core::Object {

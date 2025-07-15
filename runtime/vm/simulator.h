@@ -7,7 +7,7 @@
 
 #include "vm/globals.h"
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 #if defined(TARGET_ARCH_IA32)
 #error Simulator not implemented.
 #elif defined(TARGET_ARCH_X64)
@@ -21,6 +21,6 @@
 #else
 #error Unknown architecture.
 #endif  // defined(TARGET_ARCH_...)
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 
 #endif  // RUNTIME_VM_SIMULATOR_H_

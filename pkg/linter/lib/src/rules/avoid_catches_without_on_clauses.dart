@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -25,10 +26,7 @@ class AvoidCatchesWithoutOnClauses extends LintRule {
       LinterLintCode.avoid_catches_without_on_clauses;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addCatchClause(this, visitor);
   }
@@ -91,7 +89,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
       var target = node.realTarget;
       var targetElement = target is Identifier ? target.element : null;
       if (targetElement is ClassElement &&
-          targetElement.name3 == 'FlutterError') {
+          targetElement.name == 'FlutterError') {
         _checkUseInArgument(node.argumentList);
       }
     } else if (node.methodName.name == 'completeError') {
@@ -139,7 +137,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     if (node.onKeyword != null) return;
-    var caughtException = node.exceptionParameter?.declaredElement2;
+    var caughtException = node.exceptionParameter?.declaredElement;
     if (caughtException == null) return;
 
     var validUseVisitor = _ValidUseVisitor(caughtException);

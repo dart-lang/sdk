@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Information about a constructor element to instantiate.
 ///
@@ -31,12 +30,12 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 /// are the type parameters of the alias.
 class ConstructorElementToInfer {
   /// The type parameters used in [element].
-  final List<TypeParameterElementImpl2> typeParameters2;
+  final List<TypeParameterElementImpl> typeParameters;
 
   /// The element, might be [ConstructorMember].
-  final ConstructorElementMixin2 element2;
+  final ConstructorElementMixin2 element;
 
-  ConstructorElementToInfer(this.typeParameters2, this.element2);
+  ConstructorElementToInfer(this.typeParameters, this.element);
 
   /// Return the equivalent generic function type that we could use to
   /// forward to the constructor, or for a non-generic type simply returns
@@ -47,35 +46,29 @@ class ConstructorElementToInfer {
   FunctionType get asType {
     return typeParameters.isEmpty
         ? element.type
-        : FunctionTypeImpl(
-          typeFormals: typeParameters,
-          parameters: element.parameters.map((f) => f.asElement2).toList(),
+        : FunctionTypeImpl.v2(
+          typeParameters: typeParameters,
+          formalParameters: element.formalParameters,
           returnType: element.returnType,
           nullabilitySuffix: NullabilitySuffix.none,
         );
-  }
-
-  ConstructorElementMixin get element => element2.asElement;
-
-  List<TypeParameterFragmentImpl> get typeParameters {
-    return typeParameters2.map((e) => e.asElement).toList();
   }
 }
 
 class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
     required ResolverVisitor resolver,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required TypeSystemImpl typeSystem,
     required this.dataForTesting,
   }) : _resolver = resolver,
-       _errorReporter = errorReporter,
+       _diagnosticReporter = diagnosticReporter,
        _typeSystem = typeSystem,
        _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
            .isEnabled(Feature.generic_metadata);
@@ -88,28 +81,28 @@ class InvocationInferenceHelper {
     required SimpleIdentifierImpl? constructorName,
     required LibraryElementImpl definingLibrary,
   }) {
-    List<TypeParameterElementImpl2> typeParameters;
+    List<TypeParameterElementImpl> typeParameters;
     ConstructorElementMixin2? rawElement;
 
-    if (typeElement is InterfaceElementImpl2) {
-      typeParameters = typeElement.typeParameters2;
+    if (typeElement is InterfaceElementImpl) {
+      typeParameters = typeElement.typeParameters;
       var constructorIdentifier = constructorName;
       if (constructorIdentifier == null) {
-        rawElement = typeElement.unnamedConstructor2;
+        rawElement = typeElement.unnamedConstructor;
       } else {
         var name = constructorIdentifier.name;
-        rawElement = typeElement.getNamedConstructor2(name);
+        rawElement = typeElement.getNamedConstructor(name);
         if (rawElement != null &&
-            !rawElement.isAccessibleIn2(definingLibrary)) {
+            !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
         }
       }
-    } else if (typeElement is TypeAliasElementImpl2) {
-      typeParameters = typeElement.typeParameters2;
+    } else if (typeElement is TypeAliasElementImpl) {
+      typeParameters = typeElement.typeParameters;
       var aliasedType = typeElement.aliasedType;
       if (aliasedType is InterfaceTypeImpl) {
         var constructorIdentifier = constructorName;
-        rawElement = aliasedType.lookUpConstructor2(
+        rawElement = aliasedType.lookUpConstructor(
           constructorIdentifier?.name,
           definingLibrary,
         );
@@ -137,7 +130,7 @@ class InvocationInferenceHelper {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,
         tearOffType,
-        errorReporter: _errorReporter,
+        diagnosticReporter: _diagnosticReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,

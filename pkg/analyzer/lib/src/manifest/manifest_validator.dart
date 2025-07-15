@@ -414,16 +414,16 @@ class ManifestValidator {
     //  the caller always knows whether it should just return empty?
     if (!checkManifest) return [];
 
-    RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, source);
+    RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
+    DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
 
     var xmlParser = ManifestParser(content, source.uri);
 
     _checkManifestTag(xmlParser, reporter);
-    return recorder.errors;
+    return recorder.diagnostics;
   }
 
-  void _checkManifestTag(ManifestParser parser, ErrorReporter reporter) {
+  void _checkManifestTag(ManifestParser parser, DiagnosticReporter reporter) {
     ParseTagResult parseTagResult;
     while ((parseTagResult = parser.parseXmlTag()).element?.name !=
         manifestTag) {
@@ -468,7 +468,7 @@ class ManifestValidator {
 
   /// Report an error for the given node.
   void _reportErrorForNode(
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
     XmlElement node,
     String? key,
     DiagnosticCode diagnosticCode, [
@@ -485,7 +485,7 @@ class ManifestValidator {
   }
 
   /// Validate the 'activity' tags.
-  void _validateActivity(XmlElement activity, ErrorReporter reporter) {
+  void _validateActivity(XmlElement activity, DiagnosticReporter reporter) {
     var attributes = activity.attributes;
     if (attributes.containsKey(attributeScreenOrientation)) {
       if (unsupportedOrientations.contains(
@@ -514,7 +514,7 @@ class ManifestValidator {
   /// Validate the `uses-feature` tags.
   void _validateFeatures(
     Iterable<XmlElement> features,
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
   ) {
     var unsupported = features.where(
       (element) => unsupportedHardwareFeatures.contains(
@@ -556,7 +556,7 @@ class ManifestValidator {
   void _validatePermissions(
     Iterable<XmlElement> permissions,
     Iterable<XmlElement> features,
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
   ) {
     for (var permission in permissions) {
       if (permission.attributes[androidName]?.value ==
@@ -591,7 +591,7 @@ class ManifestValidator {
   void _validateTouchScreenFeature(
     Iterable<XmlElement> features,
     XmlElement manifest,
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
   ) {
     var feature = features.firstWhereOrNull(
       (element) =>

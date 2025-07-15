@@ -840,24 +840,38 @@ Future testStdioMessage(String tempDirPath, {bool caller = false}) async {
       Platform.script.toFilePath(),
       '--start-stdio-message-test',
     ]);
-    String processStdout = "";
-    String processStderr = "";
-    process.stdout.transform(utf8.decoder).listen((line) {
-      processStdout += line;
-      print('stdout:>$line<');
-    });
-    process.stderr.transform(utf8.decoder).listen((line) {
-      processStderr += line;
-      print('stderr:>$line<');
-    });
+    final processStdout = <String>[];
+    final processStderr = <String>[];
+    process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) {
+          processStdout.add(line);
+          print('stdout:>$line<');
+        });
+    process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) {
+          // Ignore runtime linker errors from Android AOT runtime.
+          // TODO(http://dartbug.com/61028): Once this is addressed we may be
+          // able to restore this test to what it was originally.
+          if (!line.startsWith('WARNING: linker')) {
+            processStderr.add(line);
+            print('stderr:>$line<');
+          }
+        });
     process.stdin.writeln('Caller wrote to stdin');
 
     Expect.equals(0, await process.exitCode);
-    Expect.equals("client sent a message\nHello, server!\n", processStdout);
-    Expect.equals(
-      "client wrote to stderr\nHello, server too!\n",
-      processStderr,
-    );
+    Expect.listEquals([
+      'client sent a message',
+      'Hello, server!',
+    ], processStdout);
+    Expect.listEquals([
+      'client wrote to stderr',
+      'Hello, server too!',
+    ], processStderr);
     return;
   }
 

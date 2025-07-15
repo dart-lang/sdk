@@ -29,7 +29,7 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_ENUM;
+  AssistKind get assistKind => DartAssistKind.convertClassToEnum;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_CLASS_TO_ENUM;
@@ -534,7 +534,7 @@ class _EnumDescription {
     for (var i = 0; i < parameters.length; i++) {
       var element = parameters[i].declaredFragment!.element;
       if (element is FieldFormalParameterElement) {
-        if (element.field2 == indexFieldElement) {
+        if (element.field == indexFieldElement) {
           if (element.isPositional) {
             return _Parameter(i, element);
           } else {
@@ -604,7 +604,7 @@ class _EnumDescription {
               //   class.
               if (fieldElement.isConst &&
                   fieldType is InterfaceType &&
-                  fieldType.element3 == classElement) {
+                  fieldType.element == classElement) {
                 var initializer = field.initializer;
                 if (initializer is InstanceCreationExpression) {
                   var constructorElement = initializer.constructorName.element;
@@ -645,7 +645,7 @@ class _EnumDescription {
             var fieldElement = field.declaredFragment?.element;
             if (fieldElement is FieldElement) {
               var fieldType = fieldElement.type;
-              if (fieldElement.name3 == 'index' && fieldType.isDartCoreInt) {
+              if (fieldElement.name == 'index' && fieldType.isDartCoreInt) {
                 indexField = _Field(fieldElement, field, fieldList, member);
               }
             }
@@ -778,13 +778,13 @@ class _NonEnumVisitor extends _BaseVisitor {
       throw _CannotConvertException('Unresolved');
     }
     if (element != classElement) {
-      if (element.supertype?.element3 == classElement) {
+      if (element.supertype?.element == classElement) {
         throw _CannotConvertException('Class is extended');
       } else if (element.interfaces
-          .map((e) => e.element3)
+          .map((e) => e.element)
           .contains(classElement)) {
         throw _CannotConvertException('Class is implemented');
-      } else if (element.mixins.map((e) => e.element3).contains(classElement)) {
+      } else if (element.mixins.map((e) => e.element).contains(classElement)) {
         // This case won't occur unless there's an error in the source code, but
         // it's easier to check for the condition than it is to check for the
         // diagnostic.

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -26,10 +27,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
       LinterLintCode.avoid_positional_boolean_parameters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
@@ -40,7 +38,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -95,13 +93,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isOverridingMember(Element member) {
-    var classElement = member.thisOrAncestorOfType2<ClassElement>();
+    var classElement = member.thisOrAncestorOfType<ClassElement>();
     if (classElement == null) return false;
 
-    var name = member.name3;
+    var name = member.name;
     if (name == null) return false;
 
-    var libraryUri = classElement.library2.uri;
+    var libraryUri = classElement.library.uri;
     return classElement.getInheritedMember(Name(libraryUri, name)) != null;
   }
 

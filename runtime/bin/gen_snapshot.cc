@@ -691,8 +691,9 @@ static void CreateAndWritePrecompiledSnapshot() {
     if (debugging_info_filename != nullptr) {
       debug_file = OpenFile(debugging_info_filename);
     }
-    result = Dart_CreateAppAOTSnapshotAsBinary(
-        format, StreamingWriteCallback, file, strip, debug_file, identifier);
+    result = Dart_CreateAppAOTSnapshotAsBinary(format, StreamingWriteCallback,
+                                               file, strip, debug_file,
+                                               identifier, filename);
     if (debug_file != nullptr) debug_file->Release();
     if (identifier != nullptr) {
       free(identifier);
@@ -745,7 +746,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
   }
 
   auto isolate_group_data = std::unique_ptr<IsolateGroupData>(
-      new IsolateGroupData(nullptr, nullptr, nullptr, false));
+      new IsolateGroupData(nullptr, nullptr, nullptr, nullptr, false));
   Dart_Isolate isolate;
   char* error = nullptr;
 

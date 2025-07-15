@@ -21,7 +21,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ENCAPSULATE_FIELD;
+  AssistKind get assistKind => DartAssistKind.encapsulateField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -175,7 +175,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       var parameterElement = parameter.declaredFragment?.element;
       if (identifier != null &&
           parameterElement is FieldFormalParameterElement &&
-          parameterElement.field2 == fieldElement) {
+          parameterElement.field == fieldElement) {
         if (parameter.isNamed && parameter is DefaultFormalParameter) {
           var normalParam = parameter.parameter;
           if (normalParam is FieldFormalParameter) {

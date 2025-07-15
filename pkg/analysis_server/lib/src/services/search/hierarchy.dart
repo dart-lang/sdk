@@ -11,7 +11,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
   visitChildren(parent, (element) {
-    if (name == null || element.name3 == name) {
+    if (name == null || element.name == name) {
       children.add(element);
     }
     return false;
@@ -132,9 +132,9 @@ getHierarchyMembersAndParameters(
 
     var superElementsToSearch =
         enclosingElement.allSupertypes
-            .map((superType) => superType.element3)
+            .map((superType) => superType.element)
             .where((interface) {
-              return member2.isPublic || interface.library2 == member2.library2;
+              return member2.isPublic || interface.library == member2.library;
             })
             .toList();
     var searchClasses = [...superElementsToSearch, enclosingElement];
@@ -154,7 +154,7 @@ getHierarchyMembersAndParameters(
     }
     if (member2.isPrivate) {
       subClasses.removeWhere(
-        (subClass) => subClass.library2 != member2.library2,
+        (subClass) => subClass.library != member2.library,
       );
     }
     for (var subClass in subClasses) {
@@ -174,7 +174,7 @@ getHierarchyMembersAndParameters(
         for (var constructor in subClass.constructors) {
           for (var parameter in constructor.formalParameters) {
             if (parameter is FieldFormalParameterElement &&
-                parameter.field2 == member2) {
+                parameter.field == member2) {
               parameters.add(parameter);
             }
           }
@@ -202,7 +202,7 @@ Future<List<FormalParameterElement>> getHierarchyNamedParameters(
         if (hierarchyMethod is MethodElement) {
           for (var hierarchyParameter in hierarchyMethod.formalParameters) {
             if (hierarchyParameter.isNamed &&
-                hierarchyParameter.name3 == element.name3) {
+                hierarchyParameter.name == element.name) {
               hierarchyParameters.add(hierarchyParameter);
               break;
             }
@@ -253,7 +253,7 @@ Future<List<FormalParameterElement>> getHierarchyPositionalParameters(
 ///
 /// Excludes: constructors and synthetic elements.
 List<Element> getMembers(InterfaceElement clazz) {
-  var classElements = [...clazz.allSupertypes.map((e) => e.element3), clazz];
+  var classElements = [...clazz.allSupertypes.map((e) => e.element), clazz];
   var members = <Element>[];
   for (var superClass in classElements) {
     members.addAll(getClassMembers(superClass));
@@ -266,7 +266,7 @@ List<Element> getMembers(InterfaceElement clazz) {
 Element getSyntheticAccessorVariable(Element element) {
   if (element is PropertyAccessorElement) {
     if (element.isSynthetic) {
-      return element.variable3 ?? element;
+      return element.variable ?? element;
     }
   }
   return element;

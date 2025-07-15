@@ -14,8 +14,8 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitCatchClause(CatchClause node) {
-    _addLocalVariable(node, node.exceptionParameter?.declaredElement2);
-    _addLocalVariable(node, node.stackTraceParameter?.declaredElement2);
+    _addLocalVariable(node, node.exceptionParameter?.declaredElement);
+    _addLocalVariable(node, node.stackTraceParameter?.declaredElement);
     node.body.accept(this);
   }
 
@@ -36,7 +36,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     var loop = node.parent;
     for (var variable in node.variables.variables) {
-      _addLocalVariable(loop, variable.declaredElement2);
+      _addLocalVariable(loop, variable.declaredElement);
       variable.initializer?.accept(this);
     }
   }
@@ -71,7 +71,7 @@ class VisibleRangesComputer extends GeneralizingAstVisitor<void> {
     var block = node.parent;
     if (block != null) {
       for (var variable in node.variables.variables) {
-        _addLocalVariable(block, variable.declaredElement2);
+        _addLocalVariable(block, variable.declaredElement);
         variable.initializer?.accept(this);
       }
     }

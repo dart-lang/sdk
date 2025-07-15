@@ -152,7 +152,7 @@ extension BlockExtension on Block {
 extension ClassElementExtension on ClassElement {
   bool get hasImmutableAnnotation {
     var inheritedAndSelfElements = <InterfaceElement>[
-      ...allSupertypes.map((t) => t.element3),
+      ...allSupertypes.map((t) => t.element),
       this,
     ];
 
@@ -164,7 +164,7 @@ extension ClassElementExtension on ClassElement {
   }
 
   bool get hasSubclassInDefiningCompilationUnit {
-    for (var cls in library2.classes) {
+    for (var cls in library.classes) {
       InterfaceType? classType = cls.thisType;
       do {
         classType = classType?.superclass;
@@ -255,9 +255,9 @@ extension ConstructorElementExtension on ConstructorElement {
     required String className,
     required String constructorName,
   }) =>
-      library2.name3 == uri &&
-      enclosingElement.name3 == className &&
-      name3 == constructorName;
+      library.name == uri &&
+      enclosingElement.name == className &&
+      name == constructorName;
 }
 
 extension DartTypeExtension on DartType? {
@@ -279,8 +279,8 @@ extension DartTypeExtension on DartType? {
     }
     if (typeToCheck is InterfaceType) {
       return isAnyInterface(typeToCheck) ||
-          !typeToCheck.element3.isSynthetic &&
-              typeToCheck.element3.allSupertypes.any(isAnyInterface);
+          !typeToCheck.element.isSynthetic &&
+              typeToCheck.element.allSupertypes.any(isAnyInterface);
     } else {
       return false;
     }
@@ -292,7 +292,7 @@ extension DartTypeExtension on DartType? {
       return false;
     }
     bool predicate(InterfaceType i) => i.isSameAs(interface, library);
-    var element = self.element3;
+    var element = self.element;
     return predicate(self) ||
         !element.isSynthetic && element.allSupertypes.any(predicate);
   }
@@ -302,8 +302,8 @@ extension DartTypeExtension on DartType? {
   bool isSameAs(String? interface, String? library) {
     var self = this;
     return self is InterfaceType &&
-        self.element3.name3 == interface &&
-        self.element3.library2.name3 == library;
+        self.element.name == interface &&
+        self.element.library.name == library;
   }
 
   static bool _extendsClass(
@@ -313,16 +313,16 @@ extension DartTypeExtension on DartType? {
     String? library,
   ) =>
       type != null &&
-      seenElements.add(type.element3) &&
+      seenElements.add(type.element) &&
       (type.isSameAs(className, library) ||
           _extendsClass(type.superclass, seenElements, className, library));
 }
 
 extension ElementAnnotationExtension on ElementAnnotation {
   bool get isReflectiveTest => switch (element2) {
-    GetterElement(:var name3, :var library2) =>
-      name3 == 'reflectiveTest' &&
-          library2.uri.toString() ==
+    GetterElement(:var name, :var library) =>
+      name == 'reflectiveTest' &&
+          library.uri.toString() ==
               'package:test_reflective_loader/test_reflective_loader.dart',
     _ => false,
   };
@@ -330,7 +330,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
 
 extension ElementExtension on Element? {
   Element? get canonicalElement2 => switch (this) {
-    PropertyAccessorElement(:var variable3?) => variable3,
+    PropertyAccessorElement(:var variable?) => variable,
     _ => this,
   };
 
@@ -341,13 +341,13 @@ extension ElementExtension on Element? {
       return false;
     }
     return (self as Annotatable).metadata.hasAwaitNotRequired ||
-        (self is PropertyAccessorElement && self.variable3.hasAwaitNotRequired);
+        (self is PropertyAccessorElement && self.variable.hasAwaitNotRequired);
   }
 
   bool get isDartCorePrint {
     var self = this;
     return self is TopLevelFunctionElement &&
-        self.name3 == 'print' &&
+        self.name == 'print' &&
         self.firstFragment.libraryFragment.element.isDartCore;
   }
 
@@ -355,7 +355,7 @@ extension ElementExtension on Element? {
   /// as defined by [InterfaceElement.getInheritedMember].
   ExecutableElement? get overriddenMember {
     var member = switch (this) {
-      FieldElement(:var getter2) => getter2,
+      FieldElement(:var getter) => getter,
       MethodElement method => method,
       PropertyAccessorElement accessor => accessor,
       _ => null,
@@ -387,7 +387,7 @@ extension ExpressionExtension on Expression {
     if (element == null) return false;
     if (element.hasAwaitNotRequired) return true;
 
-    var elementName = element.name3;
+    var elementName = element.name;
     if (elementName == null) return false;
 
     var enclosingElement = element.enclosingElement;
@@ -396,8 +396,8 @@ extension ExpressionExtension on Expression {
     var superTypes = enclosingElement.allSupertypes;
     var superMembers =
         element is MethodElement
-            ? superTypes.map((t) => t.getMethod2(elementName))
-            : superTypes.map((t) => t.getGetter2(elementName));
+            ? superTypes.map((t) => t.getMethod(elementName))
+            : superTypes.map((t) => t.getGetter(elementName));
     return superMembers.any((e) => e.hasAwaitNotRequired);
   }
 }
@@ -543,7 +543,7 @@ extension InterfaceElementExtension on InterfaceElement {
   /// Whether this element has the exact [name] and defined in the file with
   /// the given [uri].
   bool isExactly(String name, Uri uri) =>
-      name3 == name && enclosingElement.uri == uri;
+      this.name == name && enclosingElement.uri == uri;
 }
 
 extension InterfaceTypeExtension on InterfaceType {
@@ -555,7 +555,7 @@ extension InterfaceTypeExtension on InterfaceType {
       Set<InterfaceElement> alreadyVisited,
       List<InterfaceType> interfaceTypes,
     ) {
-      if (type == null || !alreadyVisited.add(type.element3)) {
+      if (type == null || !alreadyVisited.add(type.element)) {
         return;
       }
       interfaceTypes.add(type);
@@ -575,7 +575,7 @@ extension InterfaceTypeExtension on InterfaceType {
 
   GetterElement? getGetter2(String name, {LibraryElement? library}) =>
       getters.firstWhereOrNull(
-        (s) => s.name3 == name && (library == null || (s.library2 == library)),
+        (s) => s.name == name && (library == null || (s.library == library)),
       );
 
   SetterElement? getSetter2(String name) =>
@@ -589,28 +589,28 @@ extension MethodDeclarationExtension on MethodDeclaration {
   bool get isOverride {
     var element = declaredFragment?.element;
 
-    var name = element?.name3;
+    var name = element?.name;
     if (name == null) return false;
 
     var parentElement = element?.enclosingElement;
     if (parentElement is! InterfaceElement) return false;
 
-    var parentLibrary = parentElement.library2;
+    var parentLibrary = parentElement.library;
 
     if (isGetter) {
       // Search supertypes for a getter of the same name.
       return parentElement.allSupertypes.any(
-        (t) => t.lookUpGetter3(name, parentLibrary) != null,
+        (t) => t.lookUpGetter(name, parentLibrary) != null,
       );
     } else if (isSetter) {
       // Search supertypes for a setter of the same name.
       return parentElement.allSupertypes.any(
-        (t) => t.lookUpSetter3(name, parentLibrary) != null,
+        (t) => t.lookUpSetter(name, parentLibrary) != null,
       );
     } else {
       // Search supertypes for a method of the same name.
       return parentElement.allSupertypes.any(
-        (t) => t.lookUpMethod3(name, parentLibrary) != null,
+        (t) => t.lookUpMethod(name, parentLibrary) != null,
       );
     }
   }
@@ -633,7 +633,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
 extension SetterElementExtension on SetterElement {
   /// Return name in a format suitable for string comparison.
   String? get canonicalName {
-    var name = name3;
+    var name = this.name;
     if (name == null) return null;
     // TODO(pq): remove when `name3` consistently does not include a trailing `=`.
     return name.endsWith('=') ? name.substring(0, name.length - 1) : name;

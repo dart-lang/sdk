@@ -240,15 +240,15 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   @override
   List<String> get fixArguments => [_code];
 
-  String get _code => diagnostic.errorCode.name.toLowerCase();
+  String get _code => diagnostic.diagnosticCode.name.toLowerCase();
 
   /// Returns `true` if any of the following is `true`:
   /// - `error.code` is present in the `cannot-ignore` list.
   /// - `error.code` is already ignored in the `errors` list.
   bool get _isCodeUnignorable {
     var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
-        .unignorableNames
-        .contains(diagnostic.errorCode.name);
+        .unignorableDiagnosticCodeNames
+        .contains(diagnostic.diagnosticCode.name);
 
     if (cannotIgnore) {
       return true;
@@ -260,8 +260,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
     // Note: both `ignore` and `false` severity are set to `null` when parsed.
     //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
     return analysisOptions.errorProcessors.any(
-      (element) =>
-          element.severity == null && element.code == diagnostic.errorCode.name,
+      (e) => e.severity == null && e.code == diagnostic.diagnosticCode.name,
     );
   }
 }

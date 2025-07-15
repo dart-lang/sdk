@@ -73,18 +73,18 @@ class InstanceCreationExpressionResolver {
 
     // TODO(kallentu): Support other context types
     if (dotShorthandContextType is InterfaceTypeImpl) {
-      InterfaceElementImpl2? contextElement = dotShorthandContextType.element3;
+      InterfaceElementImpl? contextElement = dotShorthandContextType.element;
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. It's completely unresolved, unlike a
       // rewritten [DotShorthandConstructorInvocation] that resulted from
       // resolving a [DotShorthandInvocation].
       if (node.element == null) {
-        if (contextElement.getNamedConstructor2(node.constructorName.name)
-            case ConstructorElementImpl2 element?
-            when element.isAccessibleIn2(_resolver.definingLibrary)) {
+        if (contextElement.getNamedConstructor(node.constructorName.name)
+            case ConstructorElementImpl element?
+            when element.isAccessibleIn(_resolver.definingLibrary)) {
           node.element = element;
         } else {
-          _resolver.errorReporter.atNode(
+          _resolver.diagnosticReporter.atNode(
             node.constructorName,
             CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
             arguments: [contextType, node.constructorName.name],
@@ -93,16 +93,16 @@ class InstanceCreationExpressionResolver {
       }
 
       var typeArguments = node.typeArguments;
-      if (contextElement is ClassElementImpl2 && contextElement.isAbstract) {
+      if (contextElement is ClassElementImpl && contextElement.isAbstract) {
         var constructorElement = node.element;
         if (constructorElement != null && !constructorElement.isFactory) {
-          _resolver.errorReporter.atNode(
+          _resolver.diagnosticReporter.atNode(
             node,
             CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
           );
         }
       } else if (typeArguments != null) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode
               .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
@@ -113,7 +113,7 @@ class InstanceCreationExpressionResolver {
         );
       }
     } else {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
       );
@@ -134,7 +134,7 @@ class InstanceCreationExpressionResolver {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     _resolver.elementResolver.visitDotShorthandConstructorInvocation(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: dotShorthandContextType.element3,
+      typeElement: dotShorthandContextType.element,
       constructorName: node.constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
@@ -167,7 +167,7 @@ class InstanceCreationExpressionResolver {
     constructorName = node.constructorName;
     _resolver.elementResolver.visitInstanceCreationExpression(node);
     var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: constructorName.type.element2,
+      typeElement: constructorName.type.element,
       constructorName: node.constructorName.name,
       definingLibrary: _resolver.definingLibrary,
     );

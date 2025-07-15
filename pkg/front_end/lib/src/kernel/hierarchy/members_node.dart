@@ -94,7 +94,9 @@ abstract class MembersNodeBuilder {
             declarationBuilder.fileUri,
             context: _inheritedConflictContext(a, b));
       }
-    } else if (a.isStatic != b.isStatic) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (a.isStatic != b.isStatic) {
       ClassMember staticMember;
       ClassMember instanceMember;
       if (a.isStatic) {
@@ -582,7 +584,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         classBuilder.filteredMembersIterator(includeDuplicates: false);
     while (iterator.moveNext()) {
       MemberBuilder memberBuilder = iterator.current;
-      for (ClassMember classMember in memberBuilder.localMembers) {
+      List<ClassMember> localMembers = memberBuilder.localMembers;
+      for (int i = 0; i < localMembers.length; i++) {
+        ClassMember classMember = localMembers[i];
         Name name = classMember.name;
         if (classMember.isAbstract) {
           _hasInterfaces = true;
@@ -599,7 +603,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           userNoSuchMethodMember = classMember;
         }
       }
-      for (ClassMember classMember in memberBuilder.localSetters) {
+      List<ClassMember> localSetters = memberBuilder.localSetters;
+      for (int i = 0; i < localSetters.length; i++) {
+        ClassMember classMember = localSetters[i];
         Name name = classMember.name;
         if (classMember.isAbstract) {
           _hasInterfaces = true;
@@ -630,7 +636,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           if (memberBuilder.isStatic) {
             continue;
           }
-          for (ClassMember classMember in memberBuilder.localMembers) {
+          List<ClassMember> localMembers = memberBuilder.localMembers;
+          for (int i = 0; i < localMembers.length; i++) {
+            ClassMember classMember = localMembers[i];
             Name name = classMember.name;
             if (classMember.isAbstract || classMember.isNoSuchMethodForwarder) {
               _hasInterfaces = true;
@@ -647,7 +655,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
               userNoSuchMethodMember ??= classMember;
             }
           }
-          for (ClassMember classMember in memberBuilder.localSetters) {
+          List<ClassMember> localSetters = memberBuilder.localSetters;
+          for (int i = 0; i < localSetters.length; i++) {
+            ClassMember classMember = localSetters[i];
             Name name = classMember.name;
             if (classMember.isAbstract || classMember.isNoSuchMethodForwarder) {
               _hasInterfaces = true;

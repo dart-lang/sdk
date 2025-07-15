@@ -32,7 +32,7 @@ class BinaryExpressionResolver {
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -68,7 +68,7 @@ class BinaryExpressionResolver {
 
     // Report an error if not already reported by the parser.
     if (operator != TokenType.BANG_EQ_EQ && operator != TokenType.EQ_EQ_EQ) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         node.operator,
         CompileTimeErrorCode.NOT_BINARY_OPERATOR,
         arguments: [operator.lexeme],
@@ -151,7 +151,7 @@ class BinaryExpressionResolver {
               ? WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE
               : WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE;
       var offset = start.offset;
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: end.end - offset,
         diagnosticCode: errorCode,
@@ -160,13 +160,13 @@ class BinaryExpressionResolver {
 
     if (left is SimpleIdentifierImpl && right is NullLiteralImpl) {
       var element = left.element;
-      if (element is PromotableElementImpl2 &&
+      if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(left, element)) {
         reportNullComparison(left, node.operator);
       }
     } else if (right is SimpleIdentifierImpl && left is NullLiteralImpl) {
       var element = right.element;
-      if (element is PromotableElementImpl2 &&
+      if (element is PromotableElementImpl &&
           flowAnalysis.isDefinitelyUnassigned(right, element)) {
         reportNullComparison(node.operator, right);
       }
@@ -321,7 +321,7 @@ class BinaryExpressionResolver {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.formalParameters[0];
-      rightContextType = _typeSystem.refineNumericInvocationContext2(
+      rightContextType = _typeSystem.refineNumericInvocationContext(
         left.staticType,
         node.element,
         contextType,
@@ -397,15 +397,15 @@ class BinaryExpressionResolver {
     ExpressionImpl leftOperand = node.leftOperand;
 
     if (leftOperand is ExtensionOverrideImpl) {
-      var extension = leftOperand.element2;
+      var extension = leftOperand.element;
       var member = extension.getMethod(methodName);
       if (member == null) {
         // Extension overrides can only be used with named extensions so it is
         // safe to assume `extension.name` is non-`null`.
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          arguments: [methodName, extension.name3!],
+          arguments: [methodName, extension.name!],
         );
       }
       node.element = member;
@@ -416,7 +416,7 @@ class BinaryExpressionResolver {
     var leftType = leftOperand.typeOrThrow;
 
     if (identical(leftType, NeverTypeImpl.instance)) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         leftOperand,
         WarningCode.RECEIVER_OF_TYPE_NEVER,
       );
@@ -441,13 +441,13 @@ class BinaryExpressionResolver {
     node.staticInvokeType = result.getter2?.type;
     if (result.needsGetterError) {
       if (leftOperand is SuperExpression) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
           arguments: [methodName, leftType],
         );
       } else {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           node.operator,
           CompileTimeErrorCode.UNDEFINED_OPERATOR,
           arguments: [methodName, leftType],
@@ -460,9 +460,7 @@ class BinaryExpressionResolver {
     var leftOperand = node.leftOperand;
 
     TypeImpl leftType;
-    if (leftOperand is AugmentedExpressionImpl) {
-      leftType = leftOperand.typeOrThrow;
-    } else if (leftOperand is ExtensionOverrideImpl) {
+     if (leftOperand is ExtensionOverrideImpl) {
       leftType = leftOperand.extendedType!;
     } else {
       leftType = leftOperand.typeOrThrow;

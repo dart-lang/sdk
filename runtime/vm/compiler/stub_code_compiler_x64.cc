@@ -79,7 +79,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   const Register kTsanUtilsReg = RAX;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -87,7 +87,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // Save & Restore the volatile CPU registers across the setjmp() call.
   const RegisterSet volatile_registers(
       CallingConventions::kVolatileCpuRegisters & ~(1 << RAX),
-      /*fpu_registers=*/0);
+      /*fpu_register_mask=*/0);
 
   const Register kSavedRspReg = R12;
   COMPILE_ASSERT(IsCalleeSavedRegister(kSavedRspReg));
@@ -149,11 +149,11 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ Bind(&do_native_call);
     __ MoveRegister(kSavedRspReg, RSP);
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
   fun();
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
   if (FLAG_target_thread_sanitizer) {
     __ MoveRegister(RSP, kSavedRspReg);
     __ AddImmediate(RSP, Immediate(kJumpBufferSize));
@@ -161,7 +161,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
     __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
     __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
   }
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 }
 
 // Input parameters:
@@ -2498,21 +2498,7 @@ void StubCodeCompiler::GenerateOptimizedUsageCounterIncrement() {
     __ Breakpoint();
     return;
   }
-  Register ic_reg = RBX;
   Register func_reg = RDI;
-  if (FLAG_trace_optimized_ic_calls) {
-    __ EnterStubFrame();
-    __ pushq(func_reg);  // Preserve
-    __ pushq(ic_reg);    // Preserve.
-    __ pushq(ic_reg);    // Argument.
-    __ pushq(func_reg);  // Argument.
-    __ CallRuntime(kTraceICCallRuntimeEntry, 2);
-    __ popq(RAX);       // Discard argument;
-    __ popq(RAX);       // Discard argument;
-    __ popq(ic_reg);    // Restore.
-    __ popq(func_reg);  // Restore.
-    __ LeaveStubFrame();
-  }
   __ incl(FieldAddress(func_reg, target::Function::usage_counter_offset()));
 }
 
@@ -3687,7 +3673,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ j(ZERO, &miss, Assembler::kNearJump);
 
   const intptr_t entry_length =
-      target::ICData::TestEntryLengthFor(1, /*tracking_exactness=*/false) *
+      target::ICData::TestEntryLengthFor(1, /*exactness_check=*/false) *
       target::kCompressedWordSize;
   __ addq(R13, Immediate(entry_length));  // Next entry.
   __ jmp(&loop);

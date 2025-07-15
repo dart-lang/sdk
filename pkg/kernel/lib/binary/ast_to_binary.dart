@@ -984,26 +984,27 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
       return canonicalName;
     }
 
-    CanonicalName ensureCanonicalNameForNode(TreeNode? parentNode) {
-      if (parentNode is Component) {
-        return parentNode.root;
-      }
-      if (parentNode is NamedNode) {
-        CanonicalName? canonicalName = parentNode.reference.canonicalName;
-        if (canonicalName != null) {
-          return canonicalName;
-        }
-        CanonicalName parentCanonicalName =
-            ensureCanonicalNameForNode(parentNode.parent);
-        parentNode.bindCanonicalNames(parentCanonicalName);
-        return parentNode.reference.canonicalName!;
-      } else {
-        throw new ArgumentError('Missing canonical name for $reference');
-      }
-    }
-
-    ensureCanonicalNameForNode(reference.node);
+    _ensureCanonicalName_forNode(reference.node, reference);
     return reference.canonicalName!;
+  }
+
+  CanonicalName _ensureCanonicalName_forNode(
+      TreeNode? parentNode, Reference reference) {
+    if (parentNode is Component) {
+      return parentNode.root;
+    }
+    if (parentNode is NamedNode) {
+      CanonicalName? canonicalName = parentNode.reference.canonicalName;
+      if (canonicalName != null) {
+        return canonicalName;
+      }
+      CanonicalName parentCanonicalName =
+          _ensureCanonicalName_forNode(parentNode.parent, reference);
+      parentNode.bindCanonicalNames(parentCanonicalName);
+      return parentNode.reference.canonicalName!;
+    } else {
+      throw new ArgumentError('Missing canonical name for $reference');
+    }
   }
 
   void checkCanonicalName(CanonicalName node) {

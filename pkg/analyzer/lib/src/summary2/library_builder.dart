@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart'
     as element_model;
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/summary2/augmentation.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
@@ -28,21 +27,16 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
-  DefiningLinkingUnit({
-    required super.reference,
-    required super.node,
-    required super.element,
-  });
+  DefiningLinkingUnit({required super.node, required super.element});
 }
 
 class ImplicitEnumNodes {
   final EnumFragmentImpl element;
   final ast.NamedTypeImpl valuesTypeNode;
   final ast.VariableDeclarationImpl valuesNode;
-  final ConstFieldFragmentImpl valuesElement;
+  final FieldFragmentImpl valuesElement;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
@@ -67,9 +61,15 @@ class LibraryBuilder {
   final Map<EnumFragmentImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
 
-  final Map<String, FragmentedElementBuilder> elementBuilderGetters = {};
-  final Map<String, FragmentedElementBuilder> elementBuilderSetters = {};
-  final Map<String, FragmentedElementBuilder> elementBuilderVariables = {};
+  /// Top fragments, in the same order as in AST.
+  final Map<LibraryFragmentImpl, List<FragmentImpl>> _topFragments = {};
+
+  /// Key: a parent fragment, e.g. [ClassFragmentImpl].
+  /// Value: fragments of its direct children.
+  ///
+  /// For example `class A { void foo() {} }` has `foo` as child of `A`.
+  final Map<FragmentImpl, List<FragmentImpl>> _parentChildFragments =
+      Map.identity();
 
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
@@ -83,11 +83,11 @@ class LibraryBuilder {
   /// The identifier of the reference used for unnamed fragments.
   int _nextUnnamedId = 0;
 
-  /// The fields that were speculatively created as [ConstFieldFragmentImpl],
-  /// but we want to clear [ConstVariableElement.constantInitializer] for it
+  /// The fields that were speculatively created as [FieldFragmentImpl],
+  /// but we want to clear [VariableFragmentImpl.constantInitializer] for it
   /// if the class will not end up with a `const` constructor. We don't know
   /// at the time when we create them, because of future augmentations.
-  final Set<ConstFieldFragmentImpl> finalInstanceFields = Set.identity();
+  final Set<FieldFragmentImpl> finalInstanceFields = Set.identity();
 
   LibraryBuilder._({
     required this.linker,
@@ -102,7 +102,7 @@ class LibraryBuilder {
     for (var (fragmentIndex, fragment) in element.units.indexed) {
       for (var (exportIndex, exportElement)
           in fragment.libraryExports.indexed) {
-        var exportedLibrary = exportElement.exportedLibrary2;
+        var exportedLibrary = exportElement.exportedLibrary;
         if (exportedLibrary == null) {
           continue;
         }
@@ -137,21 +137,39 @@ class LibraryBuilder {
     }
   }
 
+  void addFragmentChild(FragmentImpl parent, FragmentImpl child) {
+    (_parentChildFragments[parent] ??= []).add(child);
+  }
+
+  void addTopFragment(LibraryFragmentImpl parent, FragmentImpl fragment) {
+    fragment.enclosingElement = parent;
+    (_topFragments[parent] ??= []).add(fragment);
+  }
+
   void buildClassSyntheticConstructors() {
     for (var classFragment in element.topLevelElements) {
       if (classFragment is! ClassFragmentImpl) continue;
       if (classFragment.isMixinApplication) continue;
       if (classFragment.constructors.isNotEmpty) continue;
 
-      var constructor = ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
-        ..isSynthetic = true;
-      var containerRef = classFragment.reference!.getChild('@constructor');
-      var reference = containerRef.getChild('new');
-      reference.element = constructor;
-      constructor.reference = reference;
-      constructor.typeName = classFragment.name2;
+      var fragment = ConstructorFragmentImpl(
+        name: 'new',
+        firstTokenOffset: null,
+      )..isSynthetic = true;
+      fragment.typeName = classFragment.name;
 
-      classFragment.constructors = [constructor].toFixedList();
+      var classElement = classFragment.element;
+      classElement.constructors = [
+        ConstructorElementImpl(
+          name: fragment.name,
+          reference: classElement.reference
+              .getChild('@constructor')
+              .addChild('new'),
+          firstFragment: fragment,
+        ),
+      ];
+
+      classFragment.constructors = [fragment].toFixedList();
     }
   }
 
@@ -164,16 +182,21 @@ class LibraryBuilder {
     );
 
     for (var linkingUnit in units) {
-      var elementBuilder = ElementBuilder(
+      var elementBuilder = FragmentBuilder(
         libraryBuilder: this,
         unitElement: linkingUnit.element,
       );
-      elementBuilder.buildDirectiveElements(linkingUnit.node);
-      elementBuilder.buildDeclarationElements(linkingUnit.node);
+      elementBuilder.buildDirectives(linkingUnit.node);
+      elementBuilder.buildDeclarationFragments(linkingUnit.node);
       if (linkingUnit is DefiningLinkingUnit) {
         elementBuilder.buildLibraryMetadata(linkingUnit.node);
       }
     }
+
+    ElementBuilder(libraryBuilder: this).buildElements(
+      topFragments: _topFragments,
+      parentChildFragments: _parentChildFragments,
+    );
 
     _declareDartCoreDynamicNever();
   }
@@ -184,20 +207,24 @@ class LibraryBuilder {
       enum_.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
-        element.typeSystem.instantiateInterfaceToBounds2(
+        element.typeSystem.instantiateInterfaceToBounds(
           element: enum_.element.asElement2,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );
       enum_.valuesTypeNode.type = valuesType;
       enum_.valuesElement.type = valuesType;
+      enum_.valuesElement.element.type = valuesType;
+      // TODO(scheglov): We repeat this code.
+      enum_.valuesElement.element.getter!.returnType = valuesType;
+      enum_.valuesElement.element.getter!.firstFragment.returnType = valuesType;
     }
   }
 
   void buildEnumSyntheticConstructors() {
     bool hasConstructor(EnumFragmentImpl fragment) {
       for (var constructor in fragment.element.constructors) {
-        if (constructor.isGenerative || constructor.name3 == 'new') {
+        if (constructor.isGenerative || constructor.name == 'new') {
           return true;
         }
       }
@@ -208,18 +235,23 @@ class LibraryBuilder {
       if (enumFragment is! EnumFragmentImpl) continue;
       if (hasConstructor(enumFragment)) continue;
 
-      var constructor =
-          ConstructorFragmentImpl(name2: 'new', nameOffset: -1)
+      var fragment =
+          ConstructorFragmentImpl(name: 'new', firstTokenOffset: null)
             ..isConst = true
             ..isSynthetic = true;
-      var containerRef = enumFragment.reference!.getChild('@constructor');
-      var reference = containerRef.getChild('new');
-      reference.element = constructor;
-      constructor.reference = reference;
-      constructor.typeName = enumFragment.name2;
+      fragment.typeName = enumFragment.name;
+
+      var element = ConstructorElementImpl(
+        name: fragment.name,
+        reference: enumFragment.element.reference
+            .getChild('@constructor')
+            .addChild('new'),
+        firstFragment: fragment,
+      );
+      enumFragment.element.addConstructor(element);
 
       enumFragment.constructors =
-          [...enumFragment.constructors, constructor].toFixedList();
+          [...enumFragment.constructors, fragment].toFixedList();
     }
   }
 
@@ -258,30 +290,34 @@ class LibraryBuilder {
     ).perform();
   }
 
-  void declare(String name, Reference reference) {
-    // If the element name is missing, don't attempt adding it.
-    assert(name.isNotEmpty);
+  void declare(Element element, Reference reference) {
+    if (element.lookupName case var lookupName?) {
+      _declaredReferences[lookupName] = reference;
+    }
+  }
 
-    _declaredReferences[name] = reference;
+  String getReferenceName(String? name) {
+    return name ?? '${_nextUnnamedId++}';
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
-    var withConstConstructors = Set<ClassFragmentImpl>.identity();
-    for (var classFragment in element.topLevelElements) {
-      if (classFragment is! ClassFragmentImpl) continue;
-      if (classFragment.isMixinApplication) continue;
-      if (classFragment.isAugmentation) continue;
-      var hasConst = classFragment.element.constructors.any((e) => e.isConst);
-      if (hasConst) {
-        withConstConstructors.add(classFragment);
+    var hasConstConstructorCache = <InterfaceElement, bool>{};
+
+    bool hasConstConstructor(Element element) {
+      if (element is InterfaceElement) {
+        var result = hasConstConstructorCache[element];
+        if (result == null) {
+          result = element.constructors.any((e) => e.isConst);
+          hasConstConstructorCache[element] = result;
+        }
+        return result;
       }
+      return false;
     }
 
     for (var fieldFragment in finalInstanceFields) {
-      var enclosing = fieldFragment.enclosingElement3;
-      var element = enclosing.ifTypeOrNull<ClassFragmentImpl>()?.element;
-      if (element == null) continue;
-      if (!withConstConstructors.contains(element.firstFragment)) {
+      var enclosingElement = fieldFragment.enclosingFragment.element;
+      if (!hasConstConstructor(enclosingElement)) {
         fieldFragment.constantInitializer = null;
       }
     }
@@ -302,7 +338,7 @@ class LibraryBuilder {
       for (var constructor in interfaceFragment.constructors) {
         for (var parameter in constructor.parameters) {
           if (parameter is FieldFormalParameterFragmentImpl) {
-            parameter.field = element.getField(parameter.name2 ?? '')?.asElement;
+            parameter.field = element.getField(parameter.name ?? '')?.asElement;
           }
         }
       }
@@ -366,10 +402,8 @@ class LibraryBuilder {
     var definedNames = <String, Element>{};
     for (var entry in exportScope.map.entries) {
       var reference = entry.value.reference;
-      var element = linker.elementFactory.elementOfReference(reference);
-      if (element != null) {
-        definedNames[entry.key] = element.asElement2!;
-      }
+      var element = linker.elementFactory.elementOfReference3(reference);
+      definedNames[entry.key] = element;
     }
 
     var namespace = Namespace(definedNames);
@@ -377,7 +411,7 @@ class LibraryBuilder {
 
     var entryPoint = namespace.get2(TopLevelFunctionElement.MAIN_FUNCTION_NAME);
     if (entryPoint is TopLevelFunctionElementImpl) {
-      element.entryPoint2 = entryPoint;
+      element.entryPoint = entryPoint;
     }
   }
 
@@ -586,18 +620,22 @@ class LibraryBuilder {
   }) {
     var fragment = PrefixFragmentImpl(
       enclosingFragment: libraryFragment,
-      name2: unlinkedName?.name,
+      name: unlinkedName?.name,
+      firstTokenOffset: null,
       nameOffset2: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;
 
-    var containerRef = libraryFragment.reference!;
-    var refName = unlinkedName?.name ?? '${_nextUnnamedId++}';
-    var reference = containerRef.getChild('@prefix2').getChild(refName);
-    var element = reference.element2 as PrefixElementImpl2?;
+    var refName = getReferenceName(unlinkedName?.name);
+    var reference = this.reference
+        .getChild('@fragment')
+        .getChild('${libraryFragment.source.uri}')
+        .getChild('@prefix2')
+        .getChild(refName);
+    var element = reference.element as PrefixElementImpl?;
 
     if (element == null) {
-      element = PrefixElementImpl2(
+      element = PrefixElementImpl(
         reference: reference,
         firstFragment: fragment,
       );
@@ -632,18 +670,7 @@ class LibraryBuilder {
           unitElement.isSynthetic = !partFile.exists;
           unitElement.setCodeRange(0, partUnitNode.length);
 
-          var unitReference = reference
-              .getChild('@fragment')
-              .getChild(partFile.uriStr);
-          _bindReference(unitReference, unitElement);
-
-          units.add(
-            LinkingUnit(
-              reference: unitReference,
-              node: partUnitNode,
-              element: unitElement,
-            ),
-          );
+          units.add(LinkingUnit(node: partUnitNode, element: unitElement));
 
           _buildDirectives(kind: includedPart, containerUnit: unitElement);
 
@@ -692,14 +719,10 @@ class LibraryBuilder {
   void _createLoadLibraryReferences() {
     var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
-    var fragmentContainer = units[0].reference.getChild('@function');
-    var fragmentReference = fragmentContainer.addChild(name);
-
     var elementContainer = reference.getChild('@function');
     var elementReference = elementContainer.addChild(name);
 
     element.loadLibraryProvider = LoadLibraryFunctionProvider(
-      fragmentReference: fragmentReference,
       elementReference: elementReference,
     );
   }
@@ -708,12 +731,12 @@ class LibraryBuilder {
   void _declareDartCoreDynamicNever() {
     if (reference.name == 'dart:core') {
       var dynamicRef = reference.getChild('dynamic');
-      dynamicRef.element = DynamicFragmentImpl.instance;
-      declare('dynamic', dynamicRef);
+      dynamicRef.element = DynamicElementImpl.instance;
+      declare(DynamicElementImpl.instance, dynamicRef);
 
       var neverRef = reference.getChild('Never');
-      neverRef.element = NeverFragmentImpl.instance;
-      declare('Never', neverRef);
+      neverRef.element = NeverElementImpl.instance;
+      declare(NeverElementImpl.instance, neverRef);
     }
   }
 
@@ -738,7 +761,7 @@ class LibraryBuilder {
     var nameLength = 0;
     for (var directive in libraryUnitNode.directives) {
       if (directive is ast.LibraryDirectiveImpl) {
-        var nameIdentifier = directive.name2;
+        var nameIdentifier = directive.name;
         if (nameIdentifier != null) {
           name = nameIdentifier.components.map((e) => e.name).join('.');
           nameOffset = nameIdentifier.offset;
@@ -759,9 +782,7 @@ class LibraryBuilder {
     libraryElement.isSynthetic = !libraryFile.exists;
     libraryElement.languageVersion = libraryUnitNode.languageVersion;
     libraryElement.reference = libraryReference;
-    libraryReference.element2 = libraryElement;
-
-    var unitContainerRef = libraryReference.getChild('@fragment');
+    libraryReference.element = libraryElement;
 
     var linkingUnits = <LinkingUnit>[];
     {
@@ -774,15 +795,8 @@ class LibraryBuilder {
       unitElement.isSynthetic = !libraryFile.exists;
       unitElement.setCodeRange(0, libraryUnitNode.length);
 
-      var unitReference = unitContainerRef.getChild(libraryFile.uriStr);
-      _bindReference(unitReference, unitElement);
-
       linkingUnits.add(
-        DefiningLinkingUnit(
-          reference: unitReference,
-          node: libraryUnitNode,
-          element: unitElement,
-        ),
+        DefiningLinkingUnit(node: libraryUnitNode, element: unitElement),
       );
 
       libraryElement.definingCompilationUnit = unitElement;
@@ -802,32 +816,22 @@ class LibraryBuilder {
 
     linker.builders[builder.uri] = builder;
   }
-
-  static void _bindReference(Reference reference, FragmentImpl element) {
-    reference.element = element;
-    element.reference = reference;
-  }
 }
 
 class LinkingUnit {
-  final Reference reference;
   final ast.CompilationUnitImpl node;
   final LibraryFragmentImpl element;
 
-  LinkingUnit({
-    required this.reference,
-    required this.node,
-    required this.element,
-  });
+  LinkingUnit({required this.node, required this.element});
 }
 
-/// This class examines all the [InterfaceElementImpl2]s in a library and
+/// This class examines all the [InterfaceElementImpl]s in a library and
 /// determines which fields are promotable within that library.
 class _FieldPromotability
     extends
         FieldPromotability<
-          InterfaceElementImpl2,
-          FieldElementImpl2,
+          InterfaceElementImpl,
+          FieldElementImpl,
           GetterElementImpl
         > {
   /// The [_libraryBuilder] for the library being analyzed.
@@ -836,33 +840,33 @@ class _FieldPromotability
   final bool enabled;
 
   /// Fields that might be promotable, if not marked unpromotable later.
-  final List<FieldElementImpl2> _potentiallyPromotableFields = [];
+  final List<FieldElementImpl> _potentiallyPromotableFields = [];
 
   _FieldPromotability(this._libraryBuilder, {required this.enabled});
 
   @override
-  Iterable<InterfaceElementImpl2> getSuperclasses(
-    InterfaceElementImpl2 class_, {
+  Iterable<InterfaceElementImpl> getSuperclasses(
+    InterfaceElementImpl class_, {
     required bool ignoreImplements,
   }) {
-    var result = <InterfaceElementImpl2>[];
+    var result = <InterfaceElementImpl>[];
 
     var supertype = class_.supertype;
     if (supertype != null) {
-      result.add(supertype.element3);
+      result.add(supertype.element);
     }
 
     for (var mixin in class_.mixins) {
-      result.add(mixin.element3);
+      result.add(mixin.element);
     }
 
     if (!ignoreImplements) {
       for (var interface in class_.interfaces) {
-        result.add(interface.element3);
+        result.add(interface.element);
       }
-      if (class_ is MixinElementImpl2) {
+      if (class_ is MixinElementImpl) {
         for (var constraint in class_.superclassConstraints) {
-          result.add(constraint.element3);
+          result.add(constraint.element);
         }
       }
     }
@@ -889,8 +893,8 @@ class _FieldPromotability
     // Private representation fields of extension types are always promotable.
     // They also don't affect promotability of any other fields.
     for (var extensionType in element.extensionTypes) {
-      var representation = extensionType.representation2;
-      var representationName = representation.name3;
+      var representation = extensionType.representation;
+      var representationName = representation.name;
       if (representationName != null) {
         if (representationName.startsWith('_')) {
           representation.firstFragment.isPromotable = true;
@@ -903,7 +907,7 @@ class _FieldPromotability
 
     // Set the `isPromotable` bit for each field element that *is* promotable.
     for (var field in _potentiallyPromotableFields) {
-      if (fieldNonPromotabilityInfo[field.name3!] == null) {
+      if (fieldNonPromotabilityInfo[field.name!] == null) {
         field.firstFragment.isPromotable = true;
       }
     }
@@ -921,15 +925,15 @@ class _FieldPromotability
   /// Records all the non-synthetic instance fields and getters of [class_]
   /// into [classInfo].
   void _handleMembers(
-    ClassInfo<InterfaceElementImpl2> classInfo,
-    InterfaceElementImpl2 class_,
+    ClassInfo<InterfaceElementImpl> classInfo,
+    InterfaceElementImpl class_,
   ) {
     for (var field in class_.fields) {
       if (field.isStatic || field.isSynthetic) {
         continue;
       }
 
-      var fieldName = field.name3;
+      var fieldName = field.name;
       if (fieldName != null) {
         var nonPromotabilityReason = addField(
           classInfo,
@@ -950,7 +954,7 @@ class _FieldPromotability
         continue;
       }
 
-      var getterName = getter.name3;
+      var getterName = getter.name;
       if (getterName != null) {
         var nonPromotabilityReason = addGetter(
           classInfo,
@@ -959,7 +963,7 @@ class _FieldPromotability
           isAbstract: getter.isAbstract,
         );
         if (enabled && nonPromotabilityReason == null) {
-          var field = getter.variable3 as FieldElementImpl2;
+          var field = getter.variable as FieldElementImpl;
           _potentiallyPromotableFields.add(field);
         }
       }

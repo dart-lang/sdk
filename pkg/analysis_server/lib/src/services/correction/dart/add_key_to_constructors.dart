@@ -80,7 +80,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       return;
     }
     var className = node.name.lexeme;
-    var constructors = node.declaredFragment!.element.supertype?.constructors2;
+    var constructors = node.declaredFragment!.element.supertype?.constructors;
     if (constructors == null) {
       return;
     }

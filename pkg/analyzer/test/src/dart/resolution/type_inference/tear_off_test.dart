@@ -83,7 +83,7 @@ FunctionReference
           name: C
           element2: <testLibrary>::@class::C
           type: C
-        element: <testLibraryFragment>::@class::C::@constructor::new#element
+        element: <testLibrary>::@class::C::@constructor::new
       argumentList: ArgumentList
         leftParenthesis: (
         rightParenthesis: )
@@ -229,7 +229,7 @@ MethodInvocation
       IntegerLiteral
         literal: 0
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::f::@parameter::x#element
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )

@@ -10,6 +10,7 @@ import 'core_types.dart';
 import 'names.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
+import 'src/non_null.dart';
 
 /// Performs type checking on the kernel IR.
 ///
@@ -202,24 +203,46 @@ class TypeCheckingVisitor
   void visitConstructor(Constructor node) {
     currentReturnType = null;
     currentYieldType = null;
-    node.initializers.forEach(visitInitializer);
-    handleFunctionNode(node.function);
+    if (!node.isErroneous) {
+      node.initializers.forEach(visitInitializer);
+      handleFunctionNode(node.function,
+          // Constructors can't be abstract, but can be external.
+          isPartOfAbstractExternalOrNoSuchMethodForwarderMember:
+              node.isExternal);
+    }
   }
 
   @override
   void visitProcedure(Procedure node) {
     currentReturnType = _getInternalReturnType(node.function);
     currentYieldType = _getYieldType(node.function);
-    handleFunctionNode(node.function);
+    handleFunctionNode(node.function,
+        isPartOfAbstractExternalOrNoSuchMethodForwarderMember:
+            node.isAbstract ||
+                node.isExternal ||
+                node.stubKind == ProcedureStubKind.NoSuchMethodForwarder);
   }
 
-  void handleFunctionNode(FunctionNode node) {
+  void handleFunctionNode(FunctionNode node,
+      {required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMember}) {
     AsyncMarker oldAsyncMarker = currentAsyncMarker;
     currentAsyncMarker = node.asyncMarker;
-    node.positionalParameters
-        .skip(node.requiredParameterCount)
-        .forEach(handleOptionalParameter);
-    node.namedParameters.forEach(handleOptionalParameter);
+    for (int parameterIndex = 0;
+        parameterIndex < node.positionalParameters.length;
+        parameterIndex++) {
+      if (parameterIndex >= node.requiredParameterCount) {
+        handleOptionalParameter(node.positionalParameters[parameterIndex],
+            isPartOfAbstractExternalOrNoSuchMethodForwarderMethod:
+                isPartOfAbstractExternalOrNoSuchMethodForwarderMember);
+      }
+    }
+    for (VariableDeclaration namedParameter in node.namedParameters) {
+      if (!namedParameter.isRequired) {
+        handleOptionalParameter(namedParameter,
+            isPartOfAbstractExternalOrNoSuchMethodForwarderMethod:
+                isPartOfAbstractExternalOrNoSuchMethodForwarderMember);
+      }
+    }
     if (node.body != null) {
       visitStatement(node.body!);
     }
@@ -231,21 +254,21 @@ class TypeCheckingVisitor
     DartType? oldYield = currentYieldType;
     currentReturnType = _getInternalReturnType(node);
     currentYieldType = _getYieldType(node);
-    handleFunctionNode(node);
+    handleFunctionNode(node,
+        // Nested functions can't be abstract.
+        isPartOfAbstractExternalOrNoSuchMethodForwarderMember: false);
     currentReturnType = oldReturn;
     currentYieldType = oldYield;
   }
 
-  void handleOptionalParameter(VariableDeclaration parameter) {
-    // Null literals are always allowed as initializers. In case
-    // [parameter.type] is nullable, they are valid initializers. In case
-    // [parameter.type] is non-nullable, `null` is used as a placeholder to
-    // indicate the absence of the initializer.
+  void handleOptionalParameter(VariableDeclaration parameter,
+      {required bool isPartOfAbstractExternalOrNoSuchMethodForwarderMethod}) {
     Expression? initializer = parameter.initializer;
     if (initializer != null &&
-        !(initializer is ConstantExpression && initializer.type is NullType)) {
+        !parameter.isErroneouslyInitialized &&
+        !isPartOfAbstractExternalOrNoSuchMethodForwarderMethod) {
       // Default parameter values cannot be downcast.
-      checkExpressionNoDowncast(parameter.initializer!, parameter.type);
+      checkExpressionNoDowncast(initializer, parameter.type);
     }
   }
 
@@ -685,8 +708,7 @@ class TypeCheckingVisitor
 
   @override
   DartType visitNullCheck(NullCheck node) {
-    // TODO(johnniwinther): Return `NonNull(visitExpression(types))`.
-    return visitExpression(node.operand);
+    return computeNonNull(visitExpression(node.operand));
   }
 
   @override

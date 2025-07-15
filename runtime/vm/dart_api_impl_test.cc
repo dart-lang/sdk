@@ -8299,8 +8299,7 @@ TEST_CASE(DartAPI_Multiroot_Valid) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(
       sourcefiles_count, sourcefiles, nullptr, /* finalize= */ true,
-      /* incrementally= */ true, /* allow_compile_errors= */ false,
-      "foo:///main.dart",
+      /* incrementally= */ true, "foo:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
   EXPECT_VALID(lib);
@@ -8340,8 +8339,7 @@ TEST_CASE(DartAPI_Multiroot_FailWhenUriIsWrong) {
   int sourcefiles_count = sizeof(sourcefiles) / sizeof(Dart_SourceFile);
   lib = TestCase::LoadTestScriptWithDFE(
       sourcefiles_count, sourcefiles, nullptr, /* finalize= */ true,
-      /* incrementally= */ true, /* allow_compile_errors= */ false,
-      "foo1:///main.dart",
+      /* incrementally= */ true, "foo1:///main.dart",
       /* multiroot_filepaths= */ "/bar,/baz",
       /* multiroot_scheme= */ "foo");
   EXPECT_ERROR(lib,
@@ -10542,8 +10540,9 @@ static void ReportTimelineEvents() {
                            Dart_Timeline_Event_Instant, /*argument_count=*/0,
                            nullptr, nullptr);
 
-  Dart_RecordTimelineEvent("T3", 30, /*timestamp1=*/40, /*flow_id_count=*/0,
-                           nullptr, Dart_Timeline_Event_Duration,
+  Dart_RecordTimelineEvent("T3", 30, /*timestamp1_or_id=*/40,
+                           /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Duration,
                            /*argument_count=*/0, nullptr, nullptr);
 
   Dart_RecordTimelineEvent("T4", 50, 4, /*flow_id_count=*/0, nullptr,
@@ -10593,10 +10592,9 @@ static void ReportTimelineEvents() {
 
 TEST_CASE(DartAPI_TimelineEvents_Serialization) {
   // We do not check the contents of the JSON output here because we have
-  // pkg/vm_service/test/get_perfetto_vm_timeline_rpc_test.dart and
-  // runtime/observatory/tests/get_vm_timeline_rpc_test.dart for that. This test
-  // is used to ensure that assertions in timeline code are checked by debug
-  // tryjobs, and that the sanitizers run on the timeline code.
+  // pkg/vm_service/test/get_perfetto_vm_timeline_rpc_test.dart for that.
+  // This test is used to ensure that assertions in timeline code are checked
+  // by debug tryjobs, and that the sanitizers run on the timeline code.
 
   // Grab embedder stream.
   TimelineStream* stream = Timeline::GetEmbedderStream();

@@ -91,14 +91,26 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
 
   __ EnterStubFrame();
 
+  if (FLAG_experimental_shared_data && is_shared) {
+    // Since initialization of shared fields has to be guarded by
+    // a mutex, do the initialization in the runtime.
+    __ PushObject(NullObject());  // Make room for the result
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kInitializeSharedFieldRuntimeEntry, /*argument_count=*/1);
+    __ PopRegister(kFieldReg);
+    __ PopRegister(kResultReg);
+    __ LeaveStubFrame();
+    __ Ret();
+    return;
+  }
+
   Label throw_since_no_isolate_is_present;
   if (FLAG_experimental_shared_data) {
-    if (!is_shared) {
-      // This stub is also called from mutator thread running without an
-      // isolate and attempts to load value from isolate static field.
-      __ LoadIsolate(kScratchReg);
-      __ BranchIfZero(kScratchReg, &throw_since_no_isolate_is_present);
-    }
+    ASSERT(!is_shared);
+    // This stub is also called from mutator thread running without an
+    // isolate and attempts to load value from isolate static field.
+    __ LoadIsolate(kScratchReg);
+    __ BranchIfZero(kScratchReg, &throw_since_no_isolate_is_present);
   }
 
   __ Comment("Calling initializer function");
@@ -143,20 +155,19 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
   }
 
   if (FLAG_experimental_shared_data) {
-    if (!is_shared) {
+    ASSERT(!is_shared);
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-      // We are jumping over LeaveStubFrame so restore LR state to match one
-      // at the jump point.
-      __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
+    // We are jumping over LeaveStubFrame so restore LR state to match one
+    // at the jump point.
+    __ set_lr_state(compiler::LRState::OnEntry().EnterFrame());
 #endif  // defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-      // Throw FieldAccessError
-      __ Bind(&throw_since_no_isolate_is_present);
-      __ PushObject(NullObject());  // Make room for (unused) result.
-      __ PushRegister(kFieldReg);
-      __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
-                     /*argument_count=*/1);
-      __ Breakpoint();
-    }
+    // Throw FieldAccessError
+    __ Bind(&throw_since_no_isolate_is_present);
+    __ PushObject(NullObject());  // Make room for (unused) result.
+    __ PushRegister(kFieldReg);
+    __ CallRuntime(kStaticFieldAccessedWithoutIsolateErrorRuntimeEntry,
+                   /*argument_count=*/1);
+    __ Breakpoint();
   }
 }
 
@@ -165,15 +176,11 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub() {
 }
 
 void StubCodeCompiler::GenerateInitLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/false);
+  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*is_shared=*/false);
 }
 
 void StubCodeCompiler::GenerateInitSharedLateStaticFieldStub() {
   GenerateInitLateStaticFieldStub(/*is_final=*/false, /*is_shared=*/true);
-}
-
-void StubCodeCompiler::GenerateInitSharedLateFinalStaticFieldStub() {
-  GenerateInitLateStaticFieldStub(/*is_final=*/true, /*shared=*/true);
 }
 
 void StubCodeCompiler::GenerateInitInstanceFieldStub() {
@@ -1365,7 +1372,7 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub() {
     __ Comment("Inline allocation of GrowableList");
     __ TryAllocateObject(kGrowableObjectArrayCid, instance_size, &slow_case,
                          Assembler::kNearJump, AllocateObjectABI::kResultReg,
-                         /*temp_reg=*/AllocateObjectABI::kTagsReg);
+                         /*temp=*/AllocateObjectABI::kTagsReg);
     __ StoreIntoObjectNoBarrier(
         AllocateObjectABI::kResultReg,
         FieldAddress(AllocateObjectABI::kResultReg,
@@ -2731,7 +2738,7 @@ void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
   pc_descriptors_list_->AddDescriptor(
       UntaggedPcDescriptors::kBSSRelocation, pc_offset,
       /*deopt_id=*/DeoptId::kNone,
-      /*root_pos=*/TokenPosition::kNoSource,
+      /*token_pos=*/TokenPosition::kNoSource,
       /*try_index=*/-1,
       /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
 }

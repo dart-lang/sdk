@@ -58,8 +58,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
   // TODO(johnniwinther): Used this instead of [unaliasDeclaration] and
   // [unaliasTypeArguments].
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<StructuralParameterBuilder>? unboundTypeParameters});
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders});
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -188,8 +187,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         hasExplicitTypeArguments: hasExplicitTypeArguments);
   }
 
-  void _ensureUnaliasedType(
-      {required List<StructuralParameterBuilder>? unboundTypeParameters}) {
+  void _ensureUnaliasedType() {
     if (_unaliasedRhsType != null) {
       return;
     }
@@ -212,8 +210,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         List<TypeBuilder>? typeArguments = type.typeArguments;
         TypeBuilder? unaliasedRhsType = rhsTypeDeclaration.unalias(
             typeArguments,
-            usedTypeAliasBuilders: usedTypeAliasBuilders,
-            unboundTypeParameters: unboundTypeParameters);
+            usedTypeAliasBuilders: usedTypeAliasBuilders);
         _unaliasedRhsType = unaliasedRhsType;
         if (typeParameters != null) {
           if (typeArguments == null ||
@@ -229,9 +226,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
               ?.subst(
                   new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
                       typeParameters, typeArguments))
-              .unalias(
-                  usedTypeAliasBuilders: usedTypeAliasBuilders,
-                  unboundTypeParameters: unboundTypeParameters);
+              .unalias(usedTypeAliasBuilders: usedTypeAliasBuilders);
         }
         _typeAliasesUsedInUnaliasing.addAll(usedTypeAliasBuilders);
       // Coverage-ignore(suite): Not run.
@@ -243,9 +238,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
 
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
-      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<StructuralParameterBuilder>? unboundTypeParameters}) {
-    _ensureUnaliasedType(unboundTypeParameters: unboundTypeParameters);
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders}) {
+    _ensureUnaliasedType();
     if (usedTypeAliasBuilders != null) {
       usedTypeAliasBuilders.addAll(_typeAliasesUsedInUnaliasing);
     }
@@ -272,10 +266,12 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                 typeParameter.defaultType!
             ];
           }
+          // We allow creating new type parameters during unaliasing. The type
+          // variables are short-lived and therefore don't need to be bound.
           return unaliasedRhsType!.subst(
               new Map<NominalParameterBuilder, TypeBuilder>.fromIterables(
                   typeParameters, typeArguments),
-              unboundTypeParameters: unboundTypeParameters);
+              typeParameterFactory: new TypeParameterFactory());
         }
       case ExtensionBuilder():
       case BuiltinTypeDeclarationBuilder():
@@ -569,9 +565,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
       {required Map<TypeParameterBuilder, TraversalState>
           typeParametersTraversalState}) {
-    return unalias(typeArguments, unboundTypeParameters: [])!
-        .computeNullability(
-            typeParametersTraversalState: typeParametersTraversalState);
+    return unalias(typeArguments)!.computeNullability(
+        typeParametersTraversalState: typeParametersTraversalState);
   }
 }
 

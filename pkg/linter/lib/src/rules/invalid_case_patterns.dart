@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -28,10 +29,7 @@ class InvalidCasePatterns extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.invalid_case_patterns;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     // This lint rule is only meant for code which does not have 'patterns'
     // enabled.
     if (context.isFeatureEnabled(Feature.patterns)) return;
@@ -91,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 extension on SimpleIdentifier {
   bool isDartCoreIdentifier({required String named}) {
     if (name != named) return false;
-    var library = element?.library2;
+    var library = element?.library;
     return library != null && library.isDartCore;
   }
 }

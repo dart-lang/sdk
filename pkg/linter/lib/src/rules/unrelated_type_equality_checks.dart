@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -26,10 +27,7 @@ class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addBinaryExpression(this, visitor);
     registry.addRelationalPattern(this, visitor);
@@ -95,9 +93,9 @@ extension on DartType {
     // TODO(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
     // See: https://github.com/dart-lang/linter/issues/3868
     if (self is! InterfaceType) return false;
-    var element = self.element3;
-    if (element.name3 != 'Int32' && element.name3 != 'Int64') return false;
-    var uri = element.library2.uri;
+    var element = self.element;
+    if (element.name != 'Int32' && element.name != 'Int64') return false;
+    var uri = element.library.uri;
     if (!uri.isScheme('package')) return false;
     return uri.pathSegments.firstOrNull == 'fixnum';
   }

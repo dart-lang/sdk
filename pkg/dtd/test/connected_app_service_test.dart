@@ -33,7 +33,7 @@ void main() {
         await startDtd();
       });
 
-      group('registerVmService', () {
+      group(ConnectedAppServiceConstants.registerVmService, () {
         test('succeeds', () async {
           final testApp = DartCliAppProcess();
           await testApp.start();
@@ -97,7 +97,7 @@ void main() {
         });
       });
 
-      group('unregisterVmService', () {
+      group(ConnectedAppServiceConstants.unregisterVmService, () {
         test('succeeds', () async {
           final testApp = DartCliAppProcess();
           await testApp.start();
@@ -151,7 +151,9 @@ void main() {
         await startDtd(unrestricted: true);
       });
 
-      test('registerVmService succeeds with invalid secret', () async {
+      test(
+          '${ConnectedAppServiceConstants.registerVmService} succeeds with '
+          'invalid secret', () async {
         final testApp = DartCliAppProcess();
         await testApp.start();
         final response = await client.registerVmService(
@@ -162,7 +164,9 @@ void main() {
         expect(response.value, null);
       });
 
-      test('unregisterVmService succeeds with invalid secret', () async {
+      test(
+          '${ConnectedAppServiceConstants.unregisterVmService} succeeds with '
+          'invalid secret', () async {
         final response = await client.unregisterVmService(
           // The URI does not need to be a real URI to test this case.
           uri: 'some_uri',
@@ -173,7 +177,7 @@ void main() {
       });
     });
 
-    test('getVmServices', () async {
+    test(ConnectedAppServiceConstants.getVmServices, () async {
       await startDtd();
 
       final testApp1 = DartCliAppProcess();

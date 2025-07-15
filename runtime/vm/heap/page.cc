@@ -25,8 +25,9 @@ namespace dart {
 // munmap will noticeably impact performance.
 static constexpr intptr_t kPageCacheCapacity = 128 * kWordSize;
 static Mutex* page_cache_mutex = nullptr;
-static VirtualMemory* page_cache[kPageCacheCapacity] = {nullptr};
-static intptr_t page_cache_size = 0;
+static VirtualMemory* page_cache[2][kPageCacheCapacity] = {{nullptr},
+                                                           {nullptr}};
+static intptr_t page_cache_size[2] = {0, 0};
 
 void Page::Init() {
   ASSERT(page_cache_mutex == nullptr);
@@ -35,10 +36,12 @@ void Page::Init() {
 
 void Page::ClearCache() {
   MutexLocker ml(page_cache_mutex);
-  ASSERT(page_cache_size >= 0);
-  ASSERT(page_cache_size <= kPageCacheCapacity);
-  while (page_cache_size > 0) {
-    delete page_cache[--page_cache_size];
+  for (intptr_t i = 0; i < 2; i++) {
+    ASSERT(page_cache_size[i] >= 0);
+    ASSERT(page_cache_size[i] <= kPageCacheCapacity);
+    while (page_cache_size[i] > 0) {
+      delete page_cache[i][--page_cache_size[i]];
+    }
   }
 }
 
@@ -50,12 +53,19 @@ void Page::Cleanup() {
 
 intptr_t Page::CachedSize() {
   MutexLocker ml(page_cache_mutex);
-  return page_cache_size * kPageSize;
+  intptr_t pages = 0;
+  for (intptr_t i = 0; i < 2; i++) {
+    pages += page_cache_size[i];
+  }
+  return pages * kPageSize;
 }
 
 static bool CanUseCache(uword flags) {
-  return (flags & (Page::kExecutable | Page::kImage | Page::kLarge |
-                   Page::kVMIsolate)) == 0;
+  return (flags & (Page::kImage | Page::kLarge | Page::kVMIsolate)) == 0;
+}
+
+static intptr_t CacheIndex(uword flags) {
+  return (flags & Page::kExecutable) != 0 ? 1 : 0;
 }
 
 Page* Page::Allocate(intptr_t size, uword flags) {
@@ -71,10 +81,11 @@ Page* Page::Allocate(intptr_t size, uword flags) {
     // cached pages are dirty.
     ASSERT(size == kPageSize);
     MutexLocker ml(page_cache_mutex);
-    ASSERT(page_cache_size >= 0);
-    ASSERT(page_cache_size <= kPageCacheCapacity);
-    if (page_cache_size > 0) {
-      memory = page_cache[--page_cache_size];
+    intptr_t index = CacheIndex(flags);
+    ASSERT(page_cache_size[index] >= 0);
+    ASSERT(page_cache_size[index] <= kPageCacheCapacity);
+    if (page_cache_size[index] > 0) {
+      memory = page_cache[index][--page_cache_size[index]];
     }
   }
   if (memory == nullptr) {
@@ -90,15 +101,13 @@ Page* Page::Allocate(intptr_t size, uword flags) {
     MSAN_UNPOISON(memory->address(), size);
 
 #if defined(DEBUG)
+    // Allocation stubs check that the TLAB hasn't been corrupted.
     uword* cursor = reinterpret_cast<uword*>(memory->address());
     uword* end = reinterpret_cast<uword*>(memory->end());
     while (cursor < end) {
       *cursor++ = kAllocationCanary;
     }
 #endif
-  } else {
-    // We don't zap old-gen because we rely on implicit zero-initialization
-    // of large typed data arrays.
   }
 
   Page* result = reinterpret_cast<Page*>(memory->address());
@@ -148,7 +157,8 @@ void Page::Deallocate() {
 
   LSAN_UNREGISTER_ROOT_REGION(this, sizeof(*this));
 
-  if (CanUseCache(flags_)) {
+  const uword flags = flags_;
+  if (CanUseCache(flags)) {
     ASSERT(memory->size() == kPageSize);
 
     // Allow caching up to one new-space worth of pages to avoid the cost unmap
@@ -164,20 +174,28 @@ void Page::Deallocate() {
     limit = Utils::Minimum(limit, kPageCacheCapacity);
 
     MutexLocker ml(page_cache_mutex);
-    ASSERT(page_cache_size >= 0);
-    ASSERT(page_cache_size <= kPageCacheCapacity);
-    if (page_cache_size < limit) {
+    intptr_t index = CacheIndex(flags);
+    ASSERT(page_cache_size[index] >= 0);
+    ASSERT(page_cache_size[index] <= kPageCacheCapacity);
+    if (page_cache_size[index] < limit) {
       intptr_t size = memory->size();
+      if ((flags & kExecutable) != 0 && FLAG_write_protect_code) {
+        // Reset to initial protection.
+        memory->Protect(VirtualMemory::kReadWrite);
+      }
 #if defined(DEBUG)
-      if ((flags_ & kNew) != 0) {
-        memset(memory->address(), Heap::kZapByte, size);
+      if ((flags & kExecutable) != 0) {
+        uword* cursor = reinterpret_cast<uword*>(memory->address());
+        uword* end = reinterpret_cast<uword*>(memory->end());
+        while (cursor < end) {
+          *cursor++ = kBreakInstructionFiller;
+        }
       } else {
-        // We don't zap old-gen because we rely on implicit zero-initialization
-        // of large typed data arrays.
+        memset(memory->address(), Heap::kZapByte, size);
       }
 #endif
       MSAN_POISON(memory->address(), size);
-      page_cache[page_cache_size++] = memory;
+      page_cache[index][page_cache_size[index]++] = memory;
       memory = nullptr;
     }
   }
@@ -293,18 +311,13 @@ void Page::ResetProgressBar() {
 
 void Page::WriteProtect(bool read_only) {
   ASSERT(!is_image());
-
-  VirtualMemory::Protection prot;
-  if (read_only) {
-    if (is_executable()) {
-      prot = VirtualMemory::kReadExecute;
-    } else {
-      prot = VirtualMemory::kReadOnly;
-    }
+  if (is_executable() && read_only) {
+    // Handle making code executable in a special way.
+    memory_->WriteProtectCode();
   } else {
-    prot = VirtualMemory::kReadWrite;
+    memory_->Protect(read_only ? VirtualMemory::kReadOnly
+                               : VirtualMemory::kReadWrite);
   }
-  memory_->Protect(prot);
 }
 
 }  // namespace dart

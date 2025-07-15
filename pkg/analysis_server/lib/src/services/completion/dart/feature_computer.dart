@@ -199,7 +199,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable == null) {
         return protocol.ElementKind.UNKNOWN;
       }
@@ -255,7 +255,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable == null) {
         return protocol.ElementKind.UNKNOWN;
       }
@@ -391,7 +391,7 @@ class FeatureComputer {
     } else if (element is TopLevelVariableElement && element.isConst) {
       return 1.0;
     } else if (element is PropertyAccessorElement && element.isSynthetic) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null && variable.isStatic && variable.isConst) {
         return 1.0;
       }
@@ -478,14 +478,14 @@ class FeatureComputer {
       return -1;
     }
     var minDepth = _inheritanceDistance(
-      subclass.supertype?.element3,
+      subclass.supertype?.element,
       superclass,
       visited,
     );
 
     void visitTypes(List<InterfaceType> types) {
       for (var type in types) {
-        var depth = _inheritanceDistance(type.element3, superclass, visited);
+        var depth = _inheritanceDistance(type.element, superclass, visited);
         if (minDepth < 0 || (depth >= 0 && depth < minDepth)) {
           minDepth = depth;
         }
@@ -555,7 +555,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           }
           if (argument.contains(offset)) {
             if (offset >= argument.name.end) {
-              return argument.element2?.type;
+              return argument.element?.type;
             }
             return null;
           }
@@ -706,11 +706,12 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       } else if (parent is FunctionExpressionImpl) {
         // If the surrounding function has a context type, use it.
         var functionContextType = parent.body.bodyContext?.contextType;
-        if (functionContextType != null) {
+        if (functionContextType != null &&
+            functionContextType is! InvalidType) {
           return functionContextType;
-        } else if (parent.parent is FunctionDeclaration) {
+        } else if (parent.parent case FunctionDeclaration(:var returnType)) {
           // Don't walk up past the function declaration.
-          return null;
+          return returnType?.type;
         }
         return _visitParent(parent);
       }
@@ -1082,7 +1083,14 @@ parent3: ${node.parent?.parent?.parent}
     if (node.returnKeyword.end < offset) {
       var functionBody = node.thisOrAncestorOfType<FunctionBodyImpl>();
       if (functionBody != null) {
-        return functionBody.bodyContext?.contextType;
+        AstNode? invocationParent;
+        if (functionBody.parent?.parent case FunctionExpressionInvocation(
+          :var parent,
+        )) {
+          invocationParent = parent;
+        }
+        return functionBody.bodyContext?.contextType ??
+            invocationParent?.accept(this);
       }
     }
     return null;
@@ -1142,6 +1150,14 @@ parent3: ${node.parent?.parent?.parent}
       }
     }
     return super.visitSwitchCase(node);
+  }
+
+  @override
+  DartType? visitSwitchExpressionCase(SwitchExpressionCase node) {
+    if (node.parent case SwitchExpression(:var parent?)) {
+      return parent.accept(this);
+    }
+    return super.visitSwitchExpressionCase(node);
   }
 
   @override
@@ -1235,9 +1251,9 @@ parent3: ${node.parent?.parent?.parent}
     pattern = pattern.unParenthesized;
     Element? element;
     if (pattern is AssignedVariablePattern) {
-      element = pattern.element2;
+      element = pattern.element;
     } else if (pattern is DeclaredVariablePattern) {
-      element = pattern.declaredElement2;
+      element = pattern.declaredElement;
       // } else if (pattern is RecordPattern) {
       //   pattern.fields.map((e) => _requiredTypeOfPattern(e.pattern)).toList();
     } else if (pattern is ListPattern) {
@@ -1265,9 +1281,9 @@ parent3: ${node.parent?.parent?.parent}
     if (type is! InterfaceType) {
       return null;
     }
-    var declaredElement = field.element2?.library2;
+    var declaredElement = field.element?.library;
     var uri = declaredElement?.uri;
-    var member = type.element3.getInterfaceMember(Name(uri, name));
+    var member = type.element.getInterfaceMember(Name(uri, name));
     if (member is GetterElement) {
       return member.returnType;
     } else if (member is MethodElement) {

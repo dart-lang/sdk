@@ -327,7 +327,7 @@ void f() {
 
     // Check that the lint was run, and reported.
     await resolveTestFile();
-    _assertHasLintReported(result.errors, 'prefer_is_not_empty');
+    _assertHasLintReported(result.diagnostics, 'prefer_is_not_empty');
 
     // Lints don't affect summaries, nothing should be linked.
     _assertNoLinkedCycles();
@@ -347,8 +347,8 @@ void f() {
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
     var matching =
         diagnostics.where((element) {
-          var errorCode = element.errorCode;
-          return errorCode is LintCode && errorCode.name == name;
+          var diagnosticCode = element.diagnosticCode;
+          return diagnosticCode is LintCode && diagnosticCode.name == name;
         }).toList();
     expect(matching, hasLength(1));
   }
@@ -367,7 +367,7 @@ void f() {
     var errorsResult =
         await contextFor(testFile).currentSession.getErrors(testFile.path)
             as ErrorsResult;
-    return errorsResult.errors;
+    return errorsResult.diagnostics;
   }
 }
 

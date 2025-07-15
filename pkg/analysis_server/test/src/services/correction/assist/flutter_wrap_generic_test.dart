@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class FlutterWrapGenericTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_WRAP_GENERIC;
+  AssistKind get kind => DartAssistKind.flutterWrapGeneric;
 
   @override
   void setUp() {
@@ -157,7 +157,7 @@ class FakeFlutter {
 
   Future<void> test_multiLines_eol2() async {
     await resolveTestCode('''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';\r
 class FakeFlutter {\r
   Widget f() {\r
     return Container(\r
@@ -174,7 +174,7 @@ class FakeFlutter {\r
 }\r
 ''');
     await assertHasAssist('''
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart';\r
 class FakeFlutter {\r
   Widget f() {\r
     return Container(\r

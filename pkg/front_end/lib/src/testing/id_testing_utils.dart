@@ -953,13 +953,5 @@ String nullabilityToText(
         default:
           return '%';
       }
-    case Nullability.legacy:
-      switch (typeRepresentation) {
-        case TypeRepresentation.legacy:
-          return '';
-        case TypeRepresentation.explicit:
-        case TypeRepresentation.analyzerNonNullableByDefault:
-          return '*';
-      }
   }
 }

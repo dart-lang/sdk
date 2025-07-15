@@ -31,7 +31,7 @@ extension AstNodeExtension on AstNode {
   /// The [FunctionExpression] that encloses this node directly or `null` if
   /// there is another enclosing executable element.
   FunctionExpression? get enclosingClosure {
-    for (var node in withParents) {
+    for (var node in withAncestors) {
       switch (node) {
         case FunctionExpression(:var parent)
             when parent is! FunctionDeclaration:
@@ -47,7 +47,7 @@ extension AstNodeExtension on AstNode {
 
   /// The [ExecutableElement] of the enclosing executable [AstNode].
   ExecutableElement? get enclosingExecutableElement {
-    for (var node in withParents) {
+    for (var node in withAncestors) {
       if (node is FunctionDeclaration) {
         return node.declaredFragment?.element;
       }
@@ -63,7 +63,7 @@ extension AstNodeExtension on AstNode {
 
   /// The [InstanceElement] of the enclosing executable [AstNode].
   InstanceElement? get enclosingInstanceElement {
-    for (var node in withParents) {
+    for (var node in withAncestors) {
       var element = switch (node) {
         ClassDeclaration(:var declaredFragment?) => declaredFragment.element,
         EnumDeclaration(:var declaredFragment?) => declaredFragment.element,
@@ -85,7 +85,7 @@ extension AstNodeExtension on AstNode {
       enclosingInstanceElement.ifTypeOrNull();
 
   AstNode? get enclosingUnitChild {
-    for (var node in withParents) {
+    for (var node in withAncestors) {
       if (node.parent is CompilationUnit) {
         return node;
       }
@@ -93,16 +93,12 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
-  /// This node and all its parents.
-  Iterable<AstNode> get withParents sync* {
-    var current = this;
-    while (true) {
+  /// This node and all of its ancestors.
+  Iterable<AstNode> get withAncestors sync* {
+    AstNode? current = this;
+    while (current != null) {
       yield current;
-      var parent = current.parent;
-      if (parent == null) {
-        break;
-      }
-      current = parent;
+      current = current.parent;
     }
   }
 
@@ -165,15 +161,15 @@ extension CompilationUnitExtension on CompilationUnit {
 
 extension ExtensionElementExtension on ExtensionElement {
   InterfaceElement? get extendedInterfaceElement =>
-      extendedType.ifTypeOrNull<InterfaceType>()?.element3;
+      extendedType.ifTypeOrNull<InterfaceType>()?.element;
 }
 
 extension VariableDeclarationExtension on VariableDeclaration {
-  FieldElementImpl2 get declaredFieldElement {
-    return declaredFragment!.element as FieldElementImpl2;
+  FieldElementImpl get declaredFieldElement {
+    return declaredFragment!.element as FieldElementImpl;
   }
 
-  TopLevelVariableElementImpl2 get declaredTopLevelVariableElement {
-    return declaredFragment!.element as TopLevelVariableElementImpl2;
+  TopLevelVariableElementImpl get declaredTopLevelVariableElement {
+    return declaredFragment!.element as TopLevelVariableElementImpl;
   }
 }

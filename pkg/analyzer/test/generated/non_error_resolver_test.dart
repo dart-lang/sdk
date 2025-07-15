@@ -704,7 +704,7 @@ class D {}
 mixin E {}
 ''');
     CompilationUnit unit = result.unit;
-    ClassElement classC = unit.declaredFragment!.element.getClass2('C')!;
+    ClassElement classC = unit.declaredFragment!.element.getClass('C')!;
     expect(classC.documentationComment, isNotNull);
   }
 
@@ -2260,7 +2260,7 @@ void main() {
     );
     var z =
         result.unit.declaredFragment!.element.topLevelVariables
-            .where((e) => e.name3 == 'z')
+            .where((e) => e.name == 'z')
             .single;
     assertType(z.type, 'List<String>');
   }
@@ -2317,8 +2317,8 @@ h(bool b) {
       [error(WarningCode.UNUSED_LOCAL_VARIABLE, 104, 1)],
     );
     var parameter = findNode.stringLiteral("'x'").correspondingParameter;
-    expect(parameter!.library2, isNull);
-    expect(parameter.library2?.firstFragment.source, isNull);
+    expect(parameter!.library, isNull);
+    expect(parameter.library?.firstFragment.source, isNull);
   }
 
   test_loadLibraryDefined() async {

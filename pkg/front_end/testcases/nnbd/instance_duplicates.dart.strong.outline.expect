@@ -84,7 +84,7 @@ library;
 //   void set methodAndFieldAndSetter3(int? value) {}
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: Conflicts with setter 'methodAndFieldAndSetter3'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:28:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter3'.
 //   int? methodAndFieldAndSetter3;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:26:12: Context: Conflicting setter 'methodAndFieldAndSetter3'.
@@ -98,7 +98,7 @@ library;
 //   int? methodAndFieldAndSetter3() {}
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: Conflicts with setter 'methodAndFieldAndSetter4'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:31:8: Error: The declaration conflicts with setter 'methodAndFieldAndSetter4'.
 //   int? methodAndFieldAndSetter4;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:30:12: Context: Conflicting setter 'methodAndFieldAndSetter4'.
@@ -203,7 +203,7 @@ library;
 //   final int? fieldAndFinalFieldAndSetter2 = 0;
 //              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: Conflicts with setter 'fieldAndFinalFieldAndSetter3'.
+// pkg/front_end/testcases/nnbd/instance_duplicates.dart:71:8: Error: The declaration conflicts with setter 'fieldAndFinalFieldAndSetter3'.
 //   int? fieldAndFinalFieldAndSetter3;
 //        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // pkg/front_end/testcases/nnbd/instance_duplicates.dart:70:12: Context: Conflicting setter 'fieldAndFinalFieldAndSetter3'.

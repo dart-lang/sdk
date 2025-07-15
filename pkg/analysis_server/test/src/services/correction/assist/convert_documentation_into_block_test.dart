@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertDocumentationIntoBlockTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK;
+  AssistKind get kind => DartAssistKind.convertDocumentationIntoBlock;
 
   Future<void> test_alreadyBlock() async {
     await resolveTestCode('''

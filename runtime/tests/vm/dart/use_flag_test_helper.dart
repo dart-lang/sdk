@@ -8,6 +8,10 @@ import 'dart:ffi';
 
 import 'package:expect/config.dart';
 import 'package:expect/expect.dart';
+import 'package:native_stack_traces/src/elf.dart' show Elf;
+import 'package:native_stack_traces/src/dwarf_container.dart'
+    show DwarfContainer;
+import 'package:native_stack_traces/src/macho.dart' show MachO;
 import 'package:path/path.dart' as path;
 
 final isAOTRuntime = isVmAotConfiguration;
@@ -16,16 +20,16 @@ final sdkDir = path.dirname(path.dirname(buildDir));
 late final platformDill = () {
   final possiblePaths = [
     // No cross compilation.
-    path.join(buildDir, 'vm_platform_strong.dill'),
+    path.join(buildDir, 'vm_platform.dill'),
     // ${MODE}SIMARM_X64 for X64->SIMARM cross compilation.
-    path.join('${buildDir}_X64', 'vm_platform_strong.dill'),
+    path.join('${buildDir}_X64', 'vm_platform.dill'),
   ];
   for (final path in possiblePaths) {
     if (File(path).existsSync()) {
       return path;
     }
   }
-  throw 'Could not find vm_platform_strong.dill for build directory $buildDir';
+  throw 'Could not find vm_platform.dill for build directory $buildDir';
 }();
 final genKernel = path.join(
   sdkDir,
@@ -66,19 +70,23 @@ final checkedInDartVM = path.join(
   'bin',
   'dart' + (Platform.isWindows ? '.exe' : ''),
 );
-// Lazily initialize 'lipo' so that tests that don't use it on platforms
-// that don't have it don't fail.
-late final lipo = () {
+String? llvmTool(String name, {bool verbose = false}) {
   final clangBuildTools = clangBuildToolsDir;
   if (clangBuildTools != null) {
-    final lipoPath = path.join(clangBuildTools, "llvm-lipo");
-    if (File(lipoPath).existsSync()) {
-      return lipoPath;
+    final toolPath = path.join(clangBuildTools, name);
+    if (File(toolPath).existsSync()) {
+      return toolPath;
     }
-    throw 'Could not find lipo binary at $lipoPath';
+    if (verbose) {
+      print('Could not find $name binary at $toolPath');
+    }
+    return null;
   }
-  throw 'Could not find lipo binary';
-}();
+  if (verbose) {
+    print('Could not find $name binary');
+  }
+  return null;
+}
 
 final isSimulator = path.basename(buildDir).contains('SIM');
 
@@ -245,14 +253,20 @@ Future<void> runSilent(String executable, List<String> args) async {
   }
 }
 
-Future<List<String>> runOutput(String executable, List<String> args) async {
+Future<List<String>> runOutput(
+  String executable,
+  List<String> args, {
+  bool ignoreStdErr = false,
+}) async {
   final result = await runHelper(executable, args);
 
   if (result.exitCode != 0) {
     throw 'Command failed with unexpected exit code (was ${result.exitCode})';
   }
   Expect.isTrue(result.stdout.isNotEmpty);
-  Expect.isTrue(result.stderr.isEmpty);
+  if (!ignoreStdErr) {
+    Expect.isTrue(result.stderr.isEmpty);
+  }
 
   return LineSplitter.split(result.stdout).toList(growable: false);
 }
@@ -280,5 +294,75 @@ Future<void> withTempDir(String name, Future<void> fun(String dir)) async {
         Platform.environment[keepTempKey]!.isEmpty) {
       tempDir.deleteSync(recursive: true);
     }
+  }
+}
+
+enum SnapshotType {
+  elf,
+  machoDylib,
+  assembly;
+
+  String get kindString {
+    switch (this) {
+      case elf:
+        return 'app-aot-elf';
+      case machoDylib:
+        return 'app-aot-macho-dylib';
+      case assembly:
+        return 'app-aot-assembly';
+    }
+  }
+
+  String get fileArgumentName {
+    switch (this) {
+      case elf:
+        return 'elf';
+      case machoDylib:
+        return 'macho';
+      case assembly:
+        return 'assembly';
+    }
+  }
+
+  DwarfContainer? fromFile(String filename) {
+    switch (this) {
+      case elf:
+        return Elf.fromFile(filename);
+      case machoDylib:
+        return MachO.fromFile(filename);
+      case assembly:
+        return Elf.fromFile(filename) ?? MachO.fromFile(filename);
+    }
+  }
+
+  @override
+  String toString() => name;
+}
+
+const _commonGenSnapshotArgs = <String>[
+  // Make sure that the runs are deterministic so we can depend on the same
+  // snapshot being generated each time.
+  '--deterministic',
+];
+
+Future<void> createSnapshot(
+  String scriptDill,
+  SnapshotType snapshotType,
+  String finalPath, [
+  List<String> extraArgs = const [],
+]) async {
+  String output = finalPath;
+  if (snapshotType == SnapshotType.assembly) {
+    output = path.withoutExtension(finalPath) + '.S';
+  }
+  await run(genSnapshot, <String>[
+    ..._commonGenSnapshotArgs,
+    ...extraArgs,
+    '--snapshot-kind=${snapshotType.kindString}',
+    '--${snapshotType.fileArgumentName}=$output',
+    scriptDill,
+  ]);
+  if (snapshotType == SnapshotType.assembly) {
+    await assembleSnapshot(output, finalPath);
   }
 }

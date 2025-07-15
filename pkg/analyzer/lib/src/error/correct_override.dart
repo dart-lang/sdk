@@ -34,27 +34,27 @@ class CorrectOverrideHelper {
   }
 
   /// Return `true` if [_thisMember] is a correct override of [superMember].
-  bool isCorrectOverrideOf({required ExecutableElement2OrMember superMember}) {
-    var superType = superMember.type;
+  bool isCorrectOverrideOf({required ExecutableElement superMember}) {
+    var superType = superMember.type as TypeImpl;
     return _typeSystem.isSubtypeOf(_thisTypeForSubtype!, superType);
   }
 
   /// If [_thisMember] is not a correct override of [superMember], report the
   /// error.
   void verify({
-    required ExecutableElement2OrMember superMember,
-    required ErrorReporter errorReporter,
+    required ExecutableElement superMember,
+    required DiagnosticReporter diagnosticReporter,
     required SyntacticEntity errorNode,
     required DiagnosticCode diagnosticCode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
       var member = _thisMember;
-      var memberName = member.name3;
+      var memberName = member.name;
       if (memberName != null) {
-        errorReporter.reportError(
+        diagnosticReporter.reportError(
           _diagnosticFactory.invalidOverride(
-            errorReporter.source,
+            diagnosticReporter.source,
             diagnosticCode,
             errorNode,
             _thisMember,
@@ -101,12 +101,12 @@ class CovariantParametersVerifier {
   final ExecutableElement2OrMember _thisMember;
 
   CovariantParametersVerifier({required ExecutableElement2OrMember thisMember})
-    : _session = thisMember.library2.session as AnalysisSessionImpl,
-      _typeSystem = thisMember.library2.typeSystem as TypeSystemImpl,
+    : _session = thisMember.library.session as AnalysisSessionImpl,
+      _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
       _thisMember = thisMember;
 
   void verify({
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter errorReporter,
     required SyntacticEntity errorEntity,
   }) {
     var superParameters = _superParameters();
@@ -126,10 +126,10 @@ class CovariantParametersVerifier {
             errorEntity,
             CompileTimeErrorCode.INVALID_OVERRIDE,
             arguments: [
-              _thisMember.name3!,
-              _thisMember.enclosingElement!.name3!,
+              _thisMember.name!,
+              _thisMember.enclosingElement!.name!,
               _thisMember.type,
-              superMember.enclosingElement!.name3!,
+              superMember.enclosingElement!.name!,
               superMember.type,
             ],
           );
@@ -140,12 +140,12 @@ class CovariantParametersVerifier {
 
   List<_SuperMember> _superMembers() {
     var classHierarchy = _session.classHierarchy;
-    var classElement = _thisMember.enclosingElement as InterfaceElementImpl2;
+    var classElement = _thisMember.enclosingElement as InterfaceElementImpl;
     var interfaces = classHierarchy.implementedInterfaces(classElement);
 
     var superMembers = <_SuperMember>[];
     for (var interface in interfaces) {
-      var superMember = _correspondingMember(interface.element3, _thisMember);
+      var superMember = _correspondingMember(interface.element, _thisMember);
       if (superMember != null) {
         superMembers.add(_SuperMember(interface, superMember));
       }
@@ -189,9 +189,9 @@ class CovariantParametersVerifier {
     Substitution result = Substitution.fromInterfaceType(superMember.interface);
 
     // If the executable has type parameters, ensure that super uses the same.
-    var thisTypeParameters = _thisMember.typeParameters2;
+    var thisTypeParameters = _thisMember.typeParameters;
     if (thisTypeParameters.isNotEmpty) {
-      var superTypeParameters = superMember.rawElement.typeParameters2;
+      var superTypeParameters = superMember.rawElement.typeParameters;
       if (thisTypeParameters.length == superTypeParameters.length) {
         var typeParametersSubstitution = Substitution.fromPairs2(
           superTypeParameters,
@@ -241,7 +241,7 @@ class CovariantParametersVerifier {
     } else {
       assert(proto.isNamed);
       for (var parameter in parameters) {
-        if (parameter.isNamed && parameter.name3 == proto.name3) {
+        if (parameter.isNamed && parameter.name == proto.name) {
           return parameter;
         }
       }

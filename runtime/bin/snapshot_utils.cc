@@ -12,6 +12,7 @@
 #include "bin/elf_loader.h"
 #include "bin/error_exit.h"
 #include "bin/file.h"
+#include "bin/macho_loader.h"
 #include "bin/platform.h"
 #include "include/dart_api.h"
 #if defined(DART_TARGET_OS_MACOS)
@@ -24,14 +25,14 @@
 
 #define LOG_SECTION_BOUNDARIES false
 
-#if !defined(USING_SIMULATOR)
+#if !defined(DART_INCLUDE_SIMULATOR)
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||            \
     defined(DART_HOST_OS_FUCHSIA)
 #define NATIVE_SHARED_OBJECT_FORMAT_ELF 1
 #elif defined(DART_HOST_OS_MACOS)
 #define NATIVE_SHARED_OBJECT_FORMAT_MACHO 1
 #endif
-#endif  // !defined(USING_SIMULATOR)
+#endif  // !defined(DART_INCLUDE_SIMULATOR)
 
 namespace dart {
 namespace bin {
@@ -154,6 +155,26 @@ static AppSnapshot* TryReadAppSnapshotBlobs(const char* script_name,
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+static DartUtils::MagicNumber ReadMagicNumberAt(File& file, int64_t offset) {
+  // Attempt to read a magic number from the specified offset, even if there
+  // are less than kMaxMagicNumberSize bytes available.
+  const int64_t remaining = file.Length() - offset;
+  if (remaining <= 0) {
+    Syslog::PrintErr("File truncated before or at offset 0x%" Px64 ".\n",
+                     offset);
+    return DartUtils::kUnknownMagicNumber;
+  }
+  if (!file.SetPosition(offset)) {
+    return DartUtils::kUnknownMagicNumber;
+  }
+  uint8_t header[DartUtils::kMaxMagicNumberSize];
+  auto const read_size = Utils::Minimum<int64_t>(remaining, sizeof(header));
+  if (!file.ReadFully(&header, read_size)) {
+    return DartUtils::kUnknownMagicNumber;
+  }
+  return DartUtils::SniffForMagicNumber(header, read_size);
+}
+
 #if defined(DART_PRECOMPILED_RUNTIME)
 class DylibAppSnapshot : public AppSnapshot {
  public:
@@ -194,7 +215,7 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
     DartUtils::MagicNumber magic_number,
     const char* script_name,
     const char** error) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   *error = "running on a simulated architecture";
   return nullptr;
 #else
@@ -256,7 +277,7 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
   return new DylibAppSnapshot(magic_number, library, vm_data_buffer,
                               vm_instructions_buffer, isolate_data_buffer,
                               isolate_instructions_buffer);
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 }
 
 class ElfAppSnapshot : public AppSnapshot {
@@ -293,13 +314,12 @@ class ElfAppSnapshot : public AppSnapshot {
   const uint8_t* isolate_snapshot_instructions_;
 };
 
-static AppSnapshot* TryReadAppSnapshotElf(
-    const char* script_name,
-    uint64_t file_offset,
-    bool force_load_elf_from_memory = false) {
+static AppSnapshot* TryReadAppSnapshotElf(const char* script_name,
+                                          uint64_t file_offset,
+                                          bool force_load_from_memory) {
   const char* error = nullptr;
 #if defined(NATIVE_SHARED_OBJECT_FORMAT_ELF)
-  if (file_offset == 0 && !force_load_elf_from_memory) {
+  if (file_offset == 0 && !force_load_from_memory) {
     // The load as a dynamic library should succeed, since this is a platform
     // that natively understands ELF.
     if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
@@ -314,7 +334,7 @@ static AppSnapshot* TryReadAppSnapshotElf(
                 *isolate_data_buffer = nullptr,
                 *isolate_instructions_buffer = nullptr;
   Dart_LoadedElf* handle = nullptr;
-  if (force_load_elf_from_memory) {
+  if (force_load_from_memory) {
     File* const file =
         File::Open(/*namespc=*/nullptr, script_name, File::kRead);
     if (file == nullptr) return nullptr;
@@ -342,8 +362,128 @@ static AppSnapshot* TryReadAppSnapshotElf(
                             isolate_data_buffer, isolate_instructions_buffer);
 }
 
+class MachODylibAppSnapshot : public AppSnapshot {
+ public:
+  MachODylibAppSnapshot(DartUtils::MagicNumber magic_number,
+                        Dart_LoadedMachODylib* macho,
+                        const uint8_t* vm_snapshot_data,
+                        const uint8_t* vm_snapshot_instructions,
+                        const uint8_t* isolate_snapshot_data,
+                        const uint8_t* isolate_snapshot_instructions)
+      : AppSnapshot{magic_number},
+        macho_(macho),
+        vm_snapshot_data_(vm_snapshot_data),
+        vm_snapshot_instructions_(vm_snapshot_instructions),
+        isolate_snapshot_data_(isolate_snapshot_data),
+        isolate_snapshot_instructions_(isolate_snapshot_instructions) {}
+
+  virtual ~MachODylibAppSnapshot() { Dart_UnloadMachODylib(macho_); }
+
+  void SetBuffers(const uint8_t** vm_data_buffer,
+                  const uint8_t** vm_instructions_buffer,
+                  const uint8_t** isolate_data_buffer,
+                  const uint8_t** isolate_instructions_buffer) {
+    *vm_data_buffer = vm_snapshot_data_;
+    *vm_instructions_buffer = vm_snapshot_instructions_;
+    *isolate_data_buffer = isolate_snapshot_data_;
+    *isolate_instructions_buffer = isolate_snapshot_instructions_;
+  }
+
+ private:
+  Dart_LoadedMachODylib* macho_;
+  const uint8_t* vm_snapshot_data_;
+  const uint8_t* vm_snapshot_instructions_;
+  const uint8_t* isolate_snapshot_data_;
+  const uint8_t* isolate_snapshot_instructions_;
+};
+
+static AppSnapshot* TryReadAppSnapshotMachODylib(
+    DartUtils::MagicNumber magic_number,
+    const char* script_name,
+    uint64_t file_offset,
+    bool force_load_from_memory) {
+  const char* error = nullptr;
+#if defined(NATIVE_SHARED_OBJECT_FORMAT_MACHO)
+  if (file_offset == 0 && !force_load_from_memory) {
+    // The load as a dynamic library should succeed, since this is a platform
+    // that natively understands Mach-O.
+    if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
+            magic_number, script_name, &error)) {
+      return snapshot;
+    }
+    Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
+    return nullptr;
+  }
+#endif
+  const uint8_t *vm_data_buffer = nullptr, *vm_instructions_buffer = nullptr,
+                *isolate_data_buffer = nullptr,
+                *isolate_instructions_buffer = nullptr;
+  Dart_LoadedMachODylib* handle = nullptr;
+  if (force_load_from_memory) {
+    File* const file =
+        File::Open(/*namespc=*/nullptr, script_name, File::kRead);
+    if (file == nullptr) return nullptr;
+    MappedMemory* memory = file->Map(File::kReadOnly, /*position=*/0,
+                                     /*length=*/file->Length());
+    if (memory == nullptr) {
+      Syslog::PrintErr("File mapping failed\n");
+      return nullptr;
+    }
+    const uint8_t* address =
+        reinterpret_cast<const uint8_t*>(memory->address());
+    handle = Dart_LoadMachODylib_Memory(
+        address + file_offset, file->Length(), &error, &vm_data_buffer,
+        &vm_instructions_buffer, &isolate_data_buffer,
+        &isolate_instructions_buffer);
+    delete memory;
+    file->Release();
+  } else {
+    handle =
+        Dart_LoadMachODylib(script_name, file_offset, &error, &vm_data_buffer,
+                            &vm_instructions_buffer, &isolate_data_buffer,
+                            &isolate_instructions_buffer);
+  }
+  if (handle == nullptr) {
+    Syslog::PrintErr("Loading failed: %s\n", error);
+    return nullptr;
+  }
+  return new MachODylibAppSnapshot(magic_number, handle, vm_data_buffer,
+                                   vm_instructions_buffer, isolate_data_buffer,
+                                   isolate_instructions_buffer);
+}
+
+static AppSnapshot* TryReadAppSnapshotAt(const char* script_name,
+                                         File& file,
+                                         int64_t file_offset,
+                                         bool force_load_from_memory = false) {
+  auto const magic_number = ReadMagicNumberAt(file, file_offset);
+  if (magic_number == DartUtils::kAotELFMagicNumber) {
+    return TryReadAppSnapshotElf(script_name, file_offset,
+                                 force_load_from_memory);
+  }
+
+  if (magic_number == DartUtils::kAotMachO32MagicNumber ||
+      magic_number == DartUtils::kAotMachO64MagicNumber) {
+    return TryReadAppSnapshotMachODylib(magic_number, script_name, file_offset,
+                                        force_load_from_memory);
+  }
+
+  if (file_offset == 0) {
+    // This is a non-appended snapshot which is not handled by any of the
+    // non-native loaders, so attempt to load it as a native dynamic library.
+    const char* error = nullptr;
+    if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
+            magic_number, script_name, &error)) {
+      return snapshot;
+    }
+    Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
+  }
+
+  return nullptr;
+}
+
 #if defined(DART_TARGET_OS_MACOS)
-AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
+AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromMachO(
     const char* container_path) {
   // Ensure file is actually MachO-formatted.
   DartUtils::MagicNumber magic_number;
@@ -397,9 +537,7 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromMachO(
       continue;
     }
 
-    // A note with the correct name was found, so we assume that the
-    // file contents for that note contains an ELF snapshot.
-    return TryReadAppSnapshotElf(container_path, note.offset);
+    return TryReadAppSnapshotAt(container_path, *file, note.offset);
   }
 
   return nullptr;
@@ -415,7 +553,7 @@ static const char kSnapshotSectionName[] = "snapshot";
 static_assert(sizeof(kSnapshotSectionName) - 1 <= pe::kCoffSectionNameSize,
               "Section name of snapshot too large");
 
-AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromPE(
+AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromPE(
     const char* container_path) {
   File* const file = File::Open(nullptr, container_path, File::kRead);
   if (file == nullptr) {
@@ -467,23 +605,46 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromPE(
       const intptr_t offset = section_header.file_offset;
       const intptr_t size = section_header.file_size;
 
+      auto const magic_number = ReadMagicNumberAt(*file, offset);
+
       std::unique_ptr<uint8_t[]> snapshot(new uint8_t[size]);
       file->SetPosition(offset);
       file->ReadFully(snapshot.get(), sizeof(uint8_t) * size);
 
-      Dart_LoadedElf* const handle =
-          Dart_LoadELF_Memory(snapshot.get(), size, &error, &vm_data_buffer,
-                              &vm_instructions_buffer, &isolate_data_buffer,
-                              &isolate_instructions_buffer);
+      if (magic_number == DartUtils::kAotELFMagicNumber) {
+        Dart_LoadedElf* const handle =
+            Dart_LoadELF_Memory(snapshot.get(), size, &error, &vm_data_buffer,
+                                &vm_instructions_buffer, &isolate_data_buffer,
+                                &isolate_instructions_buffer);
 
-      if (handle == nullptr) {
-        Syslog::PrintErr("Loading failed: %s\n", error);
-        return nullptr;
+        if (handle == nullptr) {
+          Syslog::PrintErr("Loading failed: %s\n", error);
+          return nullptr;
+        }
+
+        return new ElfAppSnapshot(handle, vm_data_buffer,
+                                  vm_instructions_buffer, isolate_data_buffer,
+                                  isolate_instructions_buffer);
       }
 
-      return new ElfAppSnapshot(handle, vm_data_buffer, vm_instructions_buffer,
-                                isolate_data_buffer,
-                                isolate_instructions_buffer);
+      if (magic_number == DartUtils::kAotMachO32MagicNumber ||
+          magic_number == DartUtils::kAotMachO64MagicNumber) {
+        Dart_LoadedMachODylib* const handle = Dart_LoadMachODylib_Memory(
+            snapshot.get(), size, &error, &vm_data_buffer,
+            &vm_instructions_buffer, &isolate_data_buffer,
+            &isolate_instructions_buffer);
+
+        if (handle == nullptr) {
+          Syslog::PrintErr("Loading failed: %s\n", error);
+          return nullptr;
+        }
+
+        return new MachODylibAppSnapshot(
+            magic_number, handle, vm_data_buffer, vm_instructions_buffer,
+            isolate_data_buffer, isolate_instructions_buffer);
+      }
+
+      return nullptr;
     }
   }
 
@@ -491,15 +652,14 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElfFromPE(
 }
 #endif  // defined(DART_TARGET_OS_WINDOWS)
 
-AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElf(
-    const char* container_path) {
+AppSnapshot* Snapshot::TryReadAppendedAppSnapshot(const char* container_path) {
 #if defined(DART_TARGET_OS_MACOS)
   if (IsMachOFormattedBinary(container_path)) {
-    return TryReadAppendedAppSnapshotElfFromMachO(container_path);
+    return TryReadAppendedAppSnapshotFromMachO(container_path);
   }
 #elif defined(DART_TARGET_OS_WINDOWS)
   if (IsPEFormattedBinary(container_path)) {
-    return TryReadAppendedAppSnapshotElfFromPE(container_path);
+    return TryReadAppendedAppSnapshotFromPE(container_path);
   }
 #endif
 
@@ -509,25 +669,32 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshotElf(
   }
   RefCntReleaseScope<File> rs(file);
 
-  // Check for payload appended at the end of the container file.
-  // If header is found, jump to payload offset.
-  int64_t appended_header[2];
-  if (!file->SetPosition(file->Length() - sizeof(appended_header))) {
-    return nullptr;
-  }
-  if (!file->ReadFully(&appended_header, sizeof(appended_header))) {
-    return nullptr;
-  }
-  // Length is always encoded as Little Endian.
-  const uint64_t appended_offset =
-      Utils::LittleEndianToHost64(appended_header[0]);
-  if (memcmp(&appended_header[1], appjit_magic_number.bytes,
-             appjit_magic_number.length) != 0 ||
-      appended_offset <= 0) {
+  // For other appended snapshots, the header for the appended snapshot
+  // information are two 64-bit integers at the end of the file:
+  //    ...
+  //    snapshot offset (length of snapshot is to appended header)
+  //    DartUtils::kAppJITMagicNumber
+  const int64_t magic_number_offset = file->Length() - kInt64Size;
+  auto const magic_number = ReadMagicNumberAt(*file, magic_number_offset);
+  if (magic_number != DartUtils::kAppJITMagicNumber) {
     return nullptr;
   }
 
-  return TryReadAppSnapshotElf(container_path, appended_offset);
+  const int64_t snapshot_offset_offset = magic_number_offset - kInt64Size;
+  int64_t snapshot_offset;
+  if (!file->SetPosition(snapshot_offset_offset)) {
+    return nullptr;
+  }
+  if (!file->ReadFully(&snapshot_offset, sizeof(snapshot_offset))) {
+    return nullptr;
+  }
+  // The offset is always encoded as Little Endian.
+  snapshot_offset = Utils::LittleEndianToHost64(snapshot_offset);
+  if (snapshot_offset <= 0) {
+    return nullptr;
+  }
+
+  return TryReadAppSnapshotAt(container_path, *file, snapshot_offset);
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
@@ -539,13 +706,7 @@ bool Snapshot::IsMachOFormattedBinary(const char* filename,
   }
   RefCntReleaseScope<File> rs(file);
 
-  uint8_t header[DartUtils::kMaxMagicNumberSize];
-  if (!file->ReadFully(&header, DartUtils::kMaxMagicNumberSize)) {
-    // The file isn't long enough to contain the magic bytes.
-    return false;
-  }
-  DartUtils::MagicNumber magic_number =
-      DartUtils::SniffForMagicNumber(header, sizeof(header));
+  auto const magic_number = ReadMagicNumberAt(*file, /*offset=*/0);
   if (out != nullptr) {
     *out = magic_number;
   }
@@ -605,7 +766,7 @@ bool Snapshot::IsPEFormattedBinary(const char* filename) {
 #endif  // defined(DART_TARGET_OS_WINDOWS)
 
 AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
-                                          bool force_load_elf_from_memory,
+                                          bool force_load_from_memory,
                                           bool decode_uri) {
   CStringUniquePtr decoded_path(nullptr);
   const char* script_name = nullptr;
@@ -629,39 +790,13 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
     return nullptr;
   }
   RefCntReleaseScope<File> rs(file);
-  if ((file->Length() - file->Position()) < DartUtils::kMaxMagicNumberSize) {
-    return nullptr;
-  }
 
-  uint8_t header[DartUtils::kMaxMagicNumberSize];
-  ASSERT(sizeof(header) == DartUtils::kMaxMagicNumberSize);
-  if (!file->ReadFully(&header, DartUtils::kMaxMagicNumberSize)) {
-    return nullptr;
-  }
-  DartUtils::MagicNumber magic_number =
-      DartUtils::SniffForMagicNumber(header, sizeof(header));
+  const intptr_t offset = 0;
 #if defined(DART_PRECOMPILED_RUNTIME)
-  if (!DartUtils::IsAotMagicNumber(magic_number)) {
-    return nullptr;
-  }
-
-  // For testing AOT with the standalone embedder, we also support loading
-  // from a dynamic library to simulate what happens on iOS.
-  const intptr_t file_offset = 0;
-  if (magic_number == DartUtils::kAotELFMagicNumber) {
-    return TryReadAppSnapshotElf(script_name, file_offset,
-                                 force_load_elf_from_memory);
-  } else {
-    // This is not a format for which we have a non-native loader, so
-    // attempt to load it as a native dynamic library.
-    const char* error = nullptr;
-    if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
-            magic_number, script_name, &error)) {
-      return snapshot;
-    }
-    Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
-  }
+  return TryReadAppSnapshotAt(script_name, *file, offset,
+                              force_load_from_memory);
 #else
+  auto const magic_number = ReadMagicNumberAt(*file, offset);
   if (magic_number == DartUtils::kAppJITMagicNumber) {
     // Return the JIT snapshot.
     return TryReadAppSnapshotBlobs(script_name, file);
@@ -810,7 +945,7 @@ void Snapshot::GenerateAppAOTAsAssembly(const char* snapshot_filename) {
               snapshot_filename);
   }
   Dart_Handle result = Dart_CreateAppAOTSnapshotAsAssembly(
-      StreamingWriteCallback, file, /*strip=*/false,
+      StreamingWriteCallback, file, /*stripped=*/false,
       /*debug_callback_data=*/nullptr);
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));

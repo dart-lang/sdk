@@ -3878,23 +3878,113 @@ CompileTimeErrorCode:
   DOT_SHORTHAND_MISSING_CONTEXT:
     experiment: dot-shorthands
     problemMessage: "A dot shorthand can't be used where there is no context type."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a dot shorthand is used where
+      there is no context type.
+
+      #### Example
+
+      The following code produces this diagnostic because there is no context
+      type for the expression `.a`:
+
+      ```dart
+      void f() {
+        var e = [!.a!];
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      #### Common fixes
+
+      If you want to use a dot shorthand, then add a context type, which in this
+      example means adding the explicit type `E` to the local variable:
+
+      ```dart
+      void f() {
+        E e = .a;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      If you don't want to add a context type, then specify the name of the
+      type containing the member being referenced, which in this case is `E`:
+
+      ```dart
+      void f() {
+        var e = E.a;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
   DOT_SHORTHAND_UNDEFINED_GETTER:
     sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
     experiment: dot-shorthands
     problemMessage: "The static getter '{0}' isn't defined for the context type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '{0}'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the static getter
       1: the name of the enclosing type where the getter is being looked for
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a dot shorthand is used to
+      reference a member, but that member doesn't exist.
+
+      #### Example
+
+      The following code produces this diagnostic because the enum `E` doesn't
+      define a static member named `c`:
+
+      ```dart
+      void f() {
+        E e = .[!c!];
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
+
+      #### Common fixes
+
+      If the name is correct, then define a member with that name in the context
+      type, which in this case is the enum `E`:
+
+      ```dart
+      void f() {
+        E e = .c;
+        print(e);
+      }
+
+      enum E {a, b, c}
+      ```
+
+      If the name is not correct, then replace the name with the name of an
+      existing member from the context type, which in this case is the enum `E`:
+
+      ```dart
+      void f() {
+        E e = .b;
+        print(e);
+      }
+
+      enum E {a, b}
+      ```
   DOT_SHORTHAND_UNDEFINED_INVOCATION:
     sharedName: DOT_SHORTHAND_UNDEFINED_MEMBER
     experiment: dot-shorthands
-    problemMessage: "The static method or constructor '{0}' isn't defined for the type '{1}'."
+    problemMessage: "The static method or constructor '{0}' isn't defined for the context type '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '{0}'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the static method or constructor
@@ -11873,7 +11963,7 @@ CompileTimeErrorCode:
       extension type A(void Function(String) f) {}
       ```
   NON_EXHAUSTIVE_SWITCH_EXPRESSION:
-    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    problemMessage: "The type '{0}' isn't exhaustively matched by the switch cases since it doesn't match the pattern '{1}'."
     correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'."
     hasPublishedDocs: true
     comment: |-
@@ -11934,7 +12024,7 @@ CompileTimeErrorCode:
       in the future. You will lose the ability to have the compiler warn you if
       the `switch` needs to be updated to account for newly added types.
   NON_EXHAUSTIVE_SWITCH_STATEMENT:
-    problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
+    problemMessage: "The type '{0}' isn't exhaustively matched by the switch cases since it doesn't match the pattern '{1}'."
     correctionMessage: "Try adding a default case or cases that match '{2}'."
     hasPublishedDocs: true
     comment: |-
@@ -18992,7 +19082,7 @@ FfiCode:
       external void leafCall(Pointer<Uint8> ptr);
 
       void main() {
-        final data = Uint8List(10); 
+        final data = Uint8List(10);
 
         // Correct: Using .address directly as an argument to a leaf call.
         leafCall(data.address);
@@ -21681,11 +21771,6 @@ ParserErrorCode:
     problemMessage: "A constructor can't be declared to be 'covariant'."
     correctionMessage: "Try removing the keyword 'covariant'."
     hasPublishedDocs: false
-  DECLARATION_NAMED_AUGMENTED_INSIDE_AUGMENTATION:
-    experiment: augmentations
-    problemMessage: "The identifier 'augmented' has a special meaning inside augmenting declarations."
-    correctionMessage: "Try using a different name."
-    hasPublishedDocs: false
   DEFAULT_VALUE_IN_FUNCTION_TYPE:
     problemMessage: "Parameters in a function type can't have default values."
     correctionMessage: Try removing the default value.
@@ -22976,6 +23061,58 @@ PubspecWarningCode:
           - pkg/package_1
           - pkg/package_2
       ```
+ScannerErrorCode:
+  EXPECTED_TOKEN:
+    problemMessage: Expected to find '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the token that was expected but not found
+  ILLEGAL_CHARACTER:
+    problemMessage: Illegal character '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the illegal character
+  MISSING_DIGIT:
+    problemMessage: Decimal digit expected.
+    hasPublishedDocs: false
+  MISSING_HEX_DIGIT:
+    problemMessage: Hexadecimal digit expected.
+    hasPublishedDocs: false
+  MISSING_IDENTIFIER:
+    problemMessage: Expected an identifier.
+    hasPublishedDocs: false
+  MISSING_QUOTE:
+    problemMessage: Expected quote (' or ").
+    hasPublishedDocs: false
+  UNABLE_GET_CONTENT:
+    problemMessage: Unable to get content of '{0}'.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the path of the file that cannot be read
+  UNEXPECTED_DOLLAR_IN_STRING:
+    problemMessage: A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
+    hasPublishedDocs: false
+    correctionMessage: Try adding a backslash (\) to escape the '$'.
+  UNEXPECTED_SEPARATOR_IN_NUMBER:
+    problemMessage: Digit separators ('_') in a number literal can only be placed between two digits.
+    hasPublishedDocs: false
+    correctionMessage: Try removing the '_'.
+  UNSUPPORTED_OPERATOR:
+    problemMessage: The '{0}' operator is not supported.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the unsupported operator
+  UNTERMINATED_MULTI_LINE_COMMENT:
+    problemMessage: Unterminated multi-line comment.
+    hasPublishedDocs: false
+    correctionMessage: Try terminating the comment with '*/', or removing any unbalanced occurrences of '/*' (because comments nest in Dart).
+  UNTERMINATED_STRING_LITERAL:
+    problemMessage: Unterminated string literal.
+    hasPublishedDocs: false
 StaticWarningCode:
   DEAD_NULL_AWARE_EXPRESSION:
     problemMessage: "The left operand can't be null, so the right operand is never executed."
@@ -24053,19 +24190,125 @@ WarningCode:
   DOC_IMPORT_CANNOT_BE_DEFERRED:
     problemMessage: "Doc imports can't be deferred."
     correctionMessage: Try removing the 'deferred' keyword.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import uses the
+      `deferred` keyword.
+
+      Documentation imports can't be deferred because deferring them wouldn't
+      impact the size of the compiled code.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has a `deferred` keyword:
+
+      ```dart
+      // ignore:missing_prefix_in_deferred_import
+      /// @docImport 'package:meta/meta.dart' [!deferred!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `deferred` keyword:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
     problemMessage: "Doc imports can't have show or hide combinators."
     correctionMessage: Try removing the combinator.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has one
+      or more `hide` or `show` combinators.
+
+      Using combinators isn't supported for documentation imports.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has a `show` combinator:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' [!show max!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `hide` and `show` combinators:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has one
+      or more `if` clauses.
+
+      Documentation imports aren't configurable.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import has an `if` clause:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' [!if (dart.library.io) 'dart:io'!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the `if` clauses:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DOC_IMPORT_CANNOT_HAVE_PREFIX:
     problemMessage: "Doc imports can't have prefixes."
     correctionMessage: Try removing the prefix.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a documentation import has a
+      prefix.
+
+      Using prefixes isn't supported for documentation imports.
+
+      #### Example
+
+      The following code produces this diagnostic because the documentation
+      import declares a prefix:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart' as [!a!];
+      library;
+      ```
+
+      #### Common fixes
+
+      Remove the prefix:
+
+      ```dart
+      /// @docImport 'package:meta/meta.dart';
+      library;
+      ```
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
@@ -25142,7 +25385,7 @@ WarningCode:
       Remove the reference to the internal declaration.
   INVALID_USE_OF_PROTECTED_MEMBER:
     problemMessage: "The member '{0}' can only be used within instance members of subclasses of '{1}'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where a member annotated with
       `@protected` is used outside of an instance member of a subclass.
@@ -25150,6 +25393,47 @@ WarningCode:
       Parameters:
       0: the name of the member
       1: the name of the defining class
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a getter, setter, field, or
+      method that has been annotated with `@protected` is referenced anywhere
+      other than in the library in which it is declared or in a subclass of the
+      class in which it is declared.
+
+      #### Example
+
+      Given a file `a.dart` that contains the following:
+
+      ```dart
+      %uri="lib/a.dart"
+      import 'package:meta/meta.dart';
+
+      class A {
+        @protected
+        void a() {}
+      }
+      ```
+
+      The following code produces this diagnostic because the method `a` is
+      being invoked in code that isn't in a subclass of `A`:
+
+      ```dart
+      import 'a.dart';
+
+      void b(A a) {
+        a.[!a!]();
+      }
+      ```
+
+      #### Common fixes
+
+      If it's reasonable for the member to be marked as `@protected`, then
+      remove the reference to the protected member, replacing it with some
+      equivalent code.
+
+      If it isn't reasonable for the member to be marked as `@protected`, and
+      you have the ability to do so, remove the annotation.
   INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
     problemMessage: "The member '{0}' can only be used for overriding."
     hasPublishedDocs: true
@@ -25482,12 +25766,55 @@ WarningCode:
   INVALID_REOPEN_ANNOTATION:
     problemMessage: "The annotation '@reopen' can only be applied to a class that opens capabilities that the supertype intentionally disallows."
     correctionMessage: Try removing the '@reopen' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where `@reopen` annotates a class which
       did not reopen any type.
 
       No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `@reopen` annotation has been
+      placed on a class or mixin that does not remove restrictions placed on the
+      superclass.
+
+      #### Example
+
+      The following code produces this diagnostic because the class `B` is
+      annotated with `@reopen` even though it doesn't expand the ability of `A`
+      to be subclassed:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      sealed class A {}
+
+      @[!reopen!]
+      class B extends A {}
+      ```
+
+      #### Common fixes
+
+      If the superclass should be restricted in a way that the subclass would
+      change, then modify the superclass to reflect those restrictions:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      interface class A {}
+
+      @reopen
+      class B extends A {}
+      ```
+
+      If the superclass is correct, then remove the annotation:
+
+      ```dart
+      sealed class A {}
+
+      class B extends A {}
+      ```
   INVALID_SEALED_ANNOTATION:
     removedIn: "3.5"
     problemMessage: "The annotation '@sealed' can only be applied to classes."
@@ -26136,8 +26463,38 @@ WarningCode:
   NON_NULLABLE_EQUALS_PARAMETER:
     problemMessage: "The parameter type of '==' operators should be non-nullable."
     correctionMessage: Try using a non-nullable type.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an override of the operator
+      `==` has a parameter whose type is nullable. The language spec makes it
+      impossible for the argument of the method to be `null`, and the
+      parameter's type should reflect that.
+
+      #### Example
+
+      The following code produces this diagnostic because the implementation of
+      the operator `==` in `C` :
+
+      ```dart
+      class C {
+        @override
+        bool operator [!==!](Object? other) => false;
+      }
+      ```
+
+      #### Common fixes
+
+      Make the parameter type be non-nullable:
+
+      ```dart
+      class C {
+        @override
+        bool operator ==(Object other) => false;
+      }
+      ```
   NULLABLE_TYPE_IN_CATCH_CLAUSE:
     problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
     correctionMessage: Try using a non-nullable type.
@@ -27847,8 +28204,34 @@ WarningCode:
   UNNECESSARY_WILDCARD_PATTERN:
     problemMessage: Unnecessary wildcard pattern.
     correctionMessage: Try removing the wildcard pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a wildcard pattern is used in
+      either an and (`&&`) pattern or an or (`||`) pattern.
+
+      #### Example
+
+      The following code produces this diagnostic because the wildcard pattern
+      (`_`) will always succeed, making it's use in an and pattern unnecessary:
+
+      ```dart
+      void f(Object? x) {
+        if (x case [!_!] && 0) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the use of the wildcard pattern:
+
+      ```dart
+      void f(Object? x) {
+        if (x case 0) {}
+      }
+      ```
   UNREACHABLE_SWITCH_CASE:
     problemMessage: "This case is covered by the previous cases."
     correctionMessage: Try removing the case clause, or restructuring the preceding patterns.

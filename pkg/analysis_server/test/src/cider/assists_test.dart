@@ -56,7 +56,7 @@ void m() {
 }
 ''');
 
-    assertHasAssist(DartAssistKind.ADD_RETURN_TYPE, r'''
+    assertHasAssist(DartAssistKind.addReturnType, r'''
 void m() {
   String f() {
     return '';
@@ -74,7 +74,7 @@ void f() {
 }
 ''');
 
-    assertHasAssist(DartAssistKind.FLUTTER_WRAP_STREAM_BUILDER, r'''
+    assertHasAssist(DartAssistKind.flutterWrapStreamBuilder, r'''
 import 'package:flutter/widgets.dart';
 
 void f() {
@@ -95,7 +95,7 @@ void f() {
 }
 ''');
 
-    assertHasAssist(DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE, r'''
+    assertHasAssist(DartAssistKind.assignToLocalVariable, r'''
 void f() {
   var i = 12345;
 }

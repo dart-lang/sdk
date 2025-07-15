@@ -512,14 +512,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -530,11 +530,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int?
@@ -546,14 +546,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: .
     propertyName: SimpleIdentifier
@@ -564,11 +564,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::x::@parameter::_x#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int
@@ -587,7 +587,7 @@ m(int x, int? y) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::m::@parameter::x#element
+    element: <testLibrary>::@function::m::@formalParameter::x
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -596,7 +596,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::x#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::x
   writeType: int
   element: <null>
   staticType: int
@@ -606,7 +606,7 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
-    element: <testLibraryFragment>::@function::m::@parameter::y#element
+    element: <testLibrary>::@function::m::@formalParameter::y
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
@@ -615,7 +615,7 @@ AssignmentExpression
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::y#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::y
   writeType: int?
   element: <null>
   staticType: int
@@ -656,14 +656,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
@@ -674,11 +674,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -690,14 +690,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A
     operator: .
     propertyName: SimpleIdentifier
@@ -708,11 +708,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::y#element
+  readElement2: <testLibrary>::@class::A::@getter::y
   readType: int?
-  writeElement2: <testLibraryFragment>::@class::A::@setter::y#element
+  writeElement2: <testLibrary>::@class::A::@setter::y
   writeType: int?
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -752,14 +752,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: ?.
     propertyName: SimpleIdentifier
@@ -770,11 +770,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int?
@@ -786,14 +786,14 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::m::@parameter::b#element
+        element: <testLibrary>::@function::m::@formalParameter::b
         staticType: B
       period: .
       identifier: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A?
-      element: <testLibraryFragment>::@class::B::@getter::a#element
+      element: <testLibrary>::@class::B::@getter::a
       staticType: A?
     operator: .
     propertyName: SimpleIdentifier
@@ -804,11 +804,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@class::A::@getter::x#element
+  readElement2: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@class::A::@setter::x#element
+  writeElement2: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -836,16 +836,16 @@ m(int x, int? y) {
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::m::@parameter::x#element
+    element: <testLibrary>::@function::m::@formalParameter::x
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@function::m::@parameter::x#element
+  readElement2: <testLibrary>::@function::m::@formalParameter::x
   readType: int
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::x#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -855,16 +855,16 @@ AssignmentExpression
 AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
-    element: <testLibraryFragment>::@function::m::@parameter::y#element
+    element: <testLibrary>::@function::m::@formalParameter::y
     staticType: null
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@function::m::@parameter::y#element
+  readElement2: <testLibrary>::@function::m::@formalParameter::y
   readType: int?
-  writeElement2: <testLibraryFragment>::@function::m::@parameter::y#element
+  writeElement2: <testLibrary>::@function::m::@formalParameter::y
   writeType: int?
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1248,7 +1248,7 @@ m() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: isEven
-  element: dart:core::<fragment>::@class::int::@getter::isEven#element
+  element: dart:core::@class::int::@getter::isEven
   staticType: bool
 ''');
   }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -26,10 +27,7 @@ class NoDefaultCases extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.no_default_cases;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
@@ -46,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (expressionType is InterfaceType) {
       for (var member in statement.members) {
         if (member is SwitchDefault) {
-          var interfaceElement = expressionType.element3;
+          var interfaceElement = expressionType.element;
           if (interfaceElement is EnumElement ||
               interfaceElement is ClassElement &&
                   interfaceElement.isEnumLikeClass()) {

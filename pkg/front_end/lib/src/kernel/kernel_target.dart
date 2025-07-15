@@ -8,7 +8,8 @@ import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/reference_from_index.dart' show IndexedContainer;
+import 'package:kernel/reference_from_index.dart'
+    show IndexedContainer, IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
@@ -46,6 +47,7 @@ import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uri_translator.dart' show UriTranslator;
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -55,11 +57,11 @@ import '../builder/nullability_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_target.dart' show DillTarget;
-import '../source/class_declaration.dart';
-import '../source/constructor_declaration.dart';
+import '../fragment/constructor/declaration.dart';
 import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
+import '../source/source_declaration_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart'
@@ -899,42 +901,19 @@ class KernelTarget {
           if (memberBuilder.invokeTarget is Constructor) {
             substitutionMap ??=
                 builder.getSubstitutionMap(superclassBuilder.cls);
-            Reference? constructorReference;
-            Reference? tearOffReference;
             if (indexedClass != null) {
               constructorReference = indexedClass
-                  // We use the name of the member builder here since it refers
-                  // to the library of the original declaration when private.
-                  // For instance:
-                  //
-                  //     // lib1:
-                  //     class Super { Super._() }
-                  //     class Subclass extends Class {
-                  //       Subclass() : super._();
-                  //     }
-                  //     // lib2:
-                  //     class Mixin {}
-                  //     class Class = Super with Mixin;
-                  //
-                  // Here `super._()` in `Subclass` targets the forwarding stub
-                  // added to `Class` whose name is `_` private to `lib1`.
                   .lookupConstructorReference(memberBuilder.invokeTarget!.name);
               tearOffReference = indexedClass.lookupGetterReference(
                   new Name(constructorTearOffName(name), indexedClass.library));
             }
             builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
-                builder,
-                builder.cls.mixin,
-                memberBuilder as MemberBuilderImpl,
-                substitutionMap,
-                constructorReference,
-                tearOffReference));
+                builder, builder.cls.mixin, memberBuilder, substitutionMap));
             isConstructorAdded = true;
           }
         }
 
         if (!isConstructorAdded) {
-          // Coverage-ignore-block(suite): Not run.
           builder.addSyntheticConstructor(_makeDefaultConstructor(
               builder, constructorReference, tearOffReference));
         }
@@ -951,13 +930,54 @@ class KernelTarget {
     }
   }
 
-  SyntheticSourceConstructorBuilder _makeMixinApplicationConstructor(
-      SourceClassBuilder classBuilder,
-      Class mixin,
-      MemberBuilder superConstructorBuilder,
-      Map<TypeParameter, DartType> substitutionMap,
-      Reference? constructorReference,
-      Reference? tearOffReference) {
+  SourceConstructorBuilder _makeMixinApplicationConstructor(
+    SourceClassBuilder classBuilder,
+    Class mixin,
+    MemberBuilder superConstructorBuilder,
+    Map<TypeParameter, DartType> substitutionMap,
+  ) {
+    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
+    Constructor superConstructor =
+        superConstructorBuilder.invokeTarget as Constructor;
+    Name name = superConstructor.name;
+
+    IndexedClass? indexedClass = classBuilder.indexedClass;
+
+    // If the name of the super constructor is private, we use the library name
+    // of its enclosing library to ensure that both constructor and tear-off
+    // are private wrt to the original library. Otherwise we use the library
+    // name of the [libraryBuilder], since only the tear-off should be private.
+    //
+    // For instance:
+    //
+    //     // lib1:
+    //     class Super { Super._() }
+    //     class Subclass extends Class {
+    //       Subclass() : super._();
+    //     }
+    //     // lib2:
+    //     class Mixin {}
+    //     class Class = Super with Mixin;
+    //
+    // Here `super._()` in `Subclass` targets the forwarding stub
+    // added to `Class` whose name is `_` private to `lib1`.
+    LibraryName libraryName = name.isPrivate
+        ? superConstructorBuilder.libraryBuilder.libraryName
+        : libraryBuilder.libraryName;
+
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: new ClassName(classBuilder.name),
+        containerType: ContainerType.Class,
+        libraryName: libraryName);
+
+    ConstructorReferences constructorReferences = new ConstructorReferences(
+        name: superConstructorBuilder.name,
+        nameScheme: nameScheme,
+        indexedContainer: indexedClass,
+        loader: loader,
+        declarationBuilder: classBuilder);
+
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
@@ -976,10 +996,7 @@ class KernelTarget {
       return copy;
     }
 
-    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class cls = classBuilder.cls;
-    Constructor superConstructor =
-        superConstructorBuilder.invokeTarget as Constructor;
     bool isConst = superConstructor.isConst;
     if (isConst && mixin.fields.isNotEmpty) {
       for (Field field in mixin.fields) {
@@ -1015,11 +1032,11 @@ class KernelTarget {
     SuperInitializer initializer = new SuperInitializer(
         superConstructor, new Arguments(positional, named: named));
     Constructor constructor = new Constructor(function,
-            name: superConstructor.name,
+            name: name,
             initializers: <Initializer>[initializer],
             isSynthetic: true,
             isConst: isConst,
-            reference: constructorReference,
+            reference: constructorReferences.constructorReference,
             fileUri: cls.fileUri)
           ..fileOffset = cls.fileOffset
         // TODO(johnniwinther): Should we add file end offset to synthesized
@@ -1038,12 +1055,11 @@ class KernelTarget {
     }
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        new MemberName(libraryBuilder.libraryName,
-            constructorTearOffName(superConstructor.name.text)),
+        new MemberName(libraryName, constructorTearOffName(name.text)),
         libraryBuilder,
         cls.fileUri,
         cls.fileOffset,
-        tearOffReference,
+        constructorReferences.tearOffReference,
         forAbstractClassOrEnumOrMixin: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
@@ -1057,18 +1073,30 @@ class KernelTarget {
               libraryBuilder: libraryBuilder);
       registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
-    SyntheticSourceConstructorBuilder constructorBuilder =
-        new SyntheticSourceConstructorBuilder(
-            libraryBuilder, classBuilder, constructor, constructorTearOff,
-            // We pass on the original constructor and the cloned function nodes
-            // to ensure that the default values are computed and cloned for the
-            // outline. It is needed to make the default values a part of the
-            // outline for const constructors, and additionally it is required
-            // for a potential subclass using super initializing parameters that
-            // will required the cloning of the default values.
-            definingConstructor: superConstructorBuilder,
-            delayedDefaultValueCloner: delayedDefaultValueCloner,
-            typeDependency: typeDependency);
+    ConstructorDeclaration declaration = new ForwardingConstructorDeclaration(
+        constructor: constructor,
+        constructorTearOff: constructorTearOff,
+        // We pass on the original constructor and the cloned function nodes
+        // to ensure that the default values are computed and cloned for the
+        // outline. It is needed to make the default values a part of the
+        // outline for const constructors, and additionally it is required
+        // for a potential subclass using super initializing parameters that
+        // will required the cloning of the default values.
+        definingConstructor: superConstructorBuilder,
+        delayedDefaultValueCloner: delayedDefaultValueCloner,
+        typeDependency: typeDependency);
+
+    SourceConstructorBuilder constructorBuilder = new SourceConstructorBuilder(
+        name: superConstructorBuilder.name,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: classBuilder,
+        fileOffset: classBuilder.fileOffset,
+        fileUri: classBuilder.fileUri,
+        constructorReferences: constructorReferences,
+        nameScheme: nameScheme,
+        introductory: declaration,
+        isConst: isConst);
+
     loader.registerConstructorToBeInferred(
         new InferableConstructor(constructor, constructorBuilder));
     return constructorBuilder;
@@ -1104,18 +1132,39 @@ class KernelTarget {
     ticker.logMs("Cloned default values of formals");
   }
 
-  SyntheticSourceConstructorBuilder _makeDefaultConstructor(
+  SourceConstructorBuilder _makeDefaultConstructor(
       SourceClassBuilder classBuilder,
       Reference? constructorReference,
       Reference? tearOffReference) {
     SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
+
+    IndexedClass? indexedClass = classBuilder.indexedClass;
+    LibraryName libraryName = indexedClass != null
+        ? new LibraryName(indexedClass.library.reference)
+        : libraryBuilder.libraryName;
+
+    Name name = new Name('');
+
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: new ClassName(classBuilder.name),
+        containerType: ContainerType.Class,
+        libraryName: libraryName);
+
+    ConstructorReferences constructorReferences = new ConstructorReferences(
+        name: name.text,
+        nameScheme: nameScheme,
+        indexedContainer: indexedClass,
+        loader: loader,
+        declarationBuilder: classBuilder);
+
     Class enclosingClass = classBuilder.cls;
     Constructor constructor = new Constructor(
             new FunctionNode(new EmptyStatement(),
                 returnType: makeConstructorReturnType(enclosingClass)),
-            name: new Name(""),
+            name: name,
             isSynthetic: true,
-            reference: constructorReference,
+            reference: constructorReferences.constructorReference,
             fileUri: enclosingClass.fileUri)
           ..fileOffset = enclosingClass.fileOffset
         // TODO(johnniwinther): Should we add file end offsets to synthesized
@@ -1127,7 +1176,7 @@ class KernelTarget {
         libraryBuilder,
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
-        tearOffReference,
+        constructorReferences.tearOffReference,
         forAbstractClassOrEnumOrMixin:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
@@ -1141,8 +1190,19 @@ class KernelTarget {
               libraryBuilder: libraryBuilder);
       registerDelayedDefaultValueCloner(delayedDefaultValueCloner);
     }
-    return new SyntheticSourceConstructorBuilder(
-        libraryBuilder, classBuilder, constructor, constructorTearOff);
+    ConstructorDeclaration declaration = new DefaultConstructorDeclaration(
+        constructor: constructor, constructorTearOff: constructorTearOff);
+
+    return new SourceConstructorBuilder(
+        name: '',
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: classBuilder,
+        fileOffset: classBuilder.fileOffset,
+        fileUri: classBuilder.fileUri,
+        constructorReferences: constructorReferences,
+        nameScheme: nameScheme,
+        introductory: declaration,
+        isConst: false);
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
@@ -1300,7 +1360,7 @@ class KernelTarget {
     _finishConstructors(extensionTypeDeclaration);
   }
 
-  void _finishConstructors(ClassDeclarationBuilder classDeclaration) {
+  void _finishConstructors(SourceDeclarationBuilder classDeclaration) {
     SourceLibraryBuilder libraryBuilder = classDeclaration.libraryBuilder;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
@@ -1331,15 +1391,15 @@ class KernelTarget {
       }
     }
 
-    Map<ConstructorDeclarationBuilder, Set<SourcePropertyBuilder>>
+    Map<SourceConstructorBuilder, Set<SourcePropertyBuilder>>
         constructorInitializedFields = new Map.identity();
     Set<SourcePropertyBuilder>? initializedFieldBuilders = null;
     Set<SourcePropertyBuilder>? uninitializedInstanceFields;
 
-    Iterator<ConstructorDeclarationBuilder> constructorIterator =
+    Iterator<SourceConstructorBuilder> constructorIterator =
         classDeclaration.filteredConstructorsIterator(includeDuplicates: false);
     while (constructorIterator.moveNext()) {
-      ConstructorDeclarationBuilder constructor = constructorIterator.current;
+      SourceConstructorBuilder constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
@@ -1425,10 +1485,9 @@ class KernelTarget {
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    for (MapEntry<ConstructorDeclarationBuilder,
-            Set<SourcePropertyBuilder>> entry
+    for (MapEntry<SourceConstructorBuilder, Set<SourcePropertyBuilder>> entry
         in constructorInitializedFields.entries) {
-      ConstructorDeclarationBuilder constructorBuilder = entry.key;
+      SourceConstructorBuilder constructorBuilder = entry.key;
       Set<SourcePropertyBuilder> fieldBuilders = entry.value;
       bool hasReportedErrors = false;
       for (SourcePropertyBuilder fieldBuilder

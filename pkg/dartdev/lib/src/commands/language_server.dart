@@ -15,6 +15,9 @@ import '../vm_interop_handler.dart';
 class LanguageServerCommand extends DartdevCommand {
   static const String commandName = 'language-server';
 
+  @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
   static const String commandDescription = '''
 Start Dart's analysis server.
 
@@ -36,7 +39,9 @@ For more information about the server's capabilities and configuration, see:
       includeHelpFlag: false,
       defaultToLsp: true,
     )..addFlag(useAotSnapshotFlag,
-        help: 'Use the AOT analysis server snapshot', hide: true);
+        help: 'Use the AOT analysis server snapshot',
+        defaultsTo: true,
+        hide: true);
   }
 
   @override
@@ -61,6 +66,8 @@ For more information about the server's capabilities and configuration, see:
           useExecProcess: true,
         );
       } else {
+        args = [...args];
+        args.remove('--no-$useAotSnapshotFlag');
         VmInteropHandler.run(
           sdk.analysisServerSnapshot,
           args,

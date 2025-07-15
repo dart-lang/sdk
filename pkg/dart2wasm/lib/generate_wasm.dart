@@ -78,8 +78,16 @@ Future<int> generateWasm(WasmCompilerOptions options,
 
   CompilationResult result =
       await compileToModule(options, relativeSourceMapUrlMapper, (message) {
-    printDiagnosticMessage(message, errorPrinter);
+    if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
   });
+
+  if (result is CompilationDryRunResult) {
+    assert(options.dryRun);
+    if (result is CompilationDryRunError) {
+      return 254;
+    }
+    return 0;
+  }
 
   // If the compilation to wasm failed we use appropriate exit codes recognized
   // by our test infrastructure. We use the same exit codes as the VM does. See:

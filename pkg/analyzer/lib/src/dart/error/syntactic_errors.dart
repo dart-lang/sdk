@@ -4,4 +4,5 @@
 
 export 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show ScannerErrorCode;
+// ignore: deprecated_member_use_from_same_package
 export 'package:analyzer/src/dart/error/syntactic_errors.g.dart';

@@ -24,7 +24,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   SimpleIdentifierResolver(this._resolver);
 
   @override
-  ErrorReporter get errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -57,7 +57,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       if (parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
-      var getter = accessor.variable3?.getter2;
+      var getter = accessor.variable?.getter;
       if (getter != null) {
         functionType = getter.type;
         return functionType.returnType;
@@ -196,7 +196,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
     var enclosingClass = _resolver.enclosingClass;
     if (_isFactoryConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
       );
@@ -205,8 +205,8 @@ class SimpleIdentifierResolver with ScopeHelpers {
       // This error is now reported by the parser.
       element = null;
     } else if (element is PrefixElement && !_isValidAsPrefix(node)) {
-      if (element.name3 case var name?) {
-        errorReporter.atNode(
+      if (element.name case var name?) {
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
           arguments: [name],
@@ -215,14 +215,14 @@ class SimpleIdentifierResolver with ScopeHelpers {
     } else if (element == null) {
       // TODO(brianwilkerson): Recover from this error.
       if (node.name == "await" && _resolver.enclosingFunction != null) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
         );
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,
       )) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
           arguments: [node.name],
@@ -287,9 +287,9 @@ class SimpleIdentifierResolver with ScopeHelpers {
         return;
       }
       staticType = InvalidTypeImpl.instance;
-    } else if (element is DynamicElementImpl2) {
+    } else if (element is DynamicElementImpl) {
       staticType = _typeProvider.typeType;
-    } else if (element is NeverElementImpl2) {
+    } else if (element is NeverElementImpl) {
       staticType = _typeProvider.typeType;
     } else {
       staticType = InvalidTypeImpl.instance;
@@ -332,7 +332,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return;
     }
 
-    _resolver.errorReporter.atNode(
+    _resolver.diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
       arguments: [node.name],

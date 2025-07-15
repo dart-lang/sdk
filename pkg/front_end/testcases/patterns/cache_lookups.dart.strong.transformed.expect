@@ -322,7 +322,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     }
     return false;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _closeGap(core::int start, core::int end) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_closeGap(core::int start, core::int end) → void {
     core::int length = this.{core::List::length}{core::int};
     assert(0.{core::num::<=}(start){(core::num) → core::bool});
     assert(start.{core::num::<}(end){(core::num) → core::bool});
@@ -339,7 +339,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ retainWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → void {
     this.{col::ListBase::_filter}(test, true){((cac::_CustomList&Object&ListMixin::E%) → core::bool, core::bool) → void};
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _filter((cac::_CustomList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ col::_filter((cac::_CustomList&Object&ListMixin::E%) → core::bool test, core::bool retainMatching) → void {
     core::List<cac::_CustomList&Object&ListMixin::E%> retained = core::_GrowableList::•<cac::_CustomList&Object&ListMixin::E%>(0);
     core::int length = this.{core::List::length}{core::int};
     for (core::int i = 0; i.{core::num::<}(length){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {

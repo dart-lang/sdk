@@ -31,7 +31,7 @@ class PrefixExpressionResolver {
       _typePropertyResolver = resolver.typePropertyResolver,
       _assignmentShared = AssignmentExpressionShared(resolver: resolver);
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -102,7 +102,7 @@ class PrefixExpressionResolver {
       operandWriteType,
       strictCasts: _resolver.analysisOptions.strictCasts,
     )) {
-      _resolver.errorReporter.atNode(
+      _resolver.diagnosticReporter.atNode(
         node,
         CompileTimeErrorCode.INVALID_ASSIGNMENT,
         arguments: [type, operandWriteType],
@@ -155,15 +155,15 @@ class PrefixExpressionResolver {
       ExpressionImpl operand = node.operand;
       String methodName = _getPrefixOperator(node);
       if (operand is ExtensionOverrideImpl) {
-        var element = operand.element2;
+        var element = operand.element;
         var member = element.getMethod(methodName);
         if (member == null) {
           // Extension overrides always refer to named extensions, so we can
           // safely assume `element.name` is non-`null`.
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             node.operator,
             CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-            arguments: [methodName, element.name3!],
+            arguments: [methodName, element.name!],
           );
         }
         node.element = member;
@@ -175,7 +175,7 @@ class PrefixExpressionResolver {
         return;
       }
       if (identical(readType, NeverTypeImpl.instance)) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           operand,
           WarningCode.RECEIVER_OF_TYPE_NEVER,
         );
@@ -194,13 +194,13 @@ class PrefixExpressionResolver {
       node.element = result.getter2 as MethodElement?;
       if (result.needsGetterError) {
         if (operand is SuperExpression) {
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             operator,
             CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
             arguments: [methodName, readType],
           );
         } else {
-          _errorReporter.atToken(
+          _diagnosticReporter.atToken(
             operator,
             CompileTimeErrorCode.UNDEFINED_OPERATOR,
             arguments: [methodName, readType],
@@ -237,7 +237,7 @@ class PrefixExpressionResolver {
         }
         if (operand is SimpleIdentifier) {
           var element = operand.element;
-          if (element is PromotableElementImpl2) {
+          if (element is PromotableElementImpl) {
             _resolver.flowAnalysis.flow?.write(
               node,
               element,

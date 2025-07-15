@@ -7,22 +7,22 @@ import 'package:analyzer/error/listener.dart';
 
 import '../scrape.dart';
 
-/// A simple [AnalysisErrorListener] that just collects the reported errors.
-class ErrorListener implements AnalysisErrorListener {
+/// A simple [DiagnosticListener] that just collects the reported diagnostics.
+class SimpleDiagnosticListener implements DiagnosticListener {
   final Scrape _scrape;
-  final bool _printErrors;
-  bool _hadError = false;
+  final bool _printDiagnostics;
+  bool _hadDiagnostic = false;
 
-  ErrorListener(this._scrape, this._printErrors);
+  SimpleDiagnosticListener(this._scrape, this._printDiagnostics);
 
-  bool get hadError => _hadError;
+  bool get hadDiagnostic => _hadDiagnostic;
 
   @override
-  void onError(Diagnostic error) {
-    _hadError = true;
+  void onDiagnostic(Diagnostic diagnostic) {
+    _hadDiagnostic = true;
 
-    if (_printErrors) {
-      _scrape.log(error);
+    if (_printDiagnostics) {
+      _scrape.log(diagnostic);
     }
   }
 }

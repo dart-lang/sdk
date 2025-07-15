@@ -70,7 +70,7 @@ class CreateField extends CreateFieldOrGetter {
     if (targetElement == null) {
       return;
     }
-    if (targetElement.library2.isInSdk) {
+    if (targetElement.library.isInSdk) {
       return;
     }
     // Prepare target `ClassDeclaration`.

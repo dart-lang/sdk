@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddReturnTypeTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.ADD_RETURN_TYPE;
+  AssistKind get kind => DartAssistKind.addReturnType;
 
   Future<void> test_localFunction_block() async {
     await resolveTestCode('''

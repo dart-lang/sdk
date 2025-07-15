@@ -336,7 +336,6 @@ class DillConstructorBuilder extends DillMemberBuilder
   Constructor get invokeTarget => constructor;
 
   @override
-  // Coverage-ignore(suite): Not run.
   Reference get invokeTargetReference => constructor.reference;
 
   @override

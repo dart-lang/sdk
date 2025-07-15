@@ -94,6 +94,171 @@ const int x = 'foo';
     );
   }
 
+  test_dotShorthand_enum_simple() async {
+    await resolveTestCode('''
+enum E { v1, v2 }
+const E x1 = .v1;
+const E x2 = .v2;
+''');
+    assertDartObjectText(_topLevelVar('x1'), r'''
+E
+  _name: String v1
+  index: int 0
+  variable: <testLibrary>::@topLevelVariable::x1
+''');
+    assertDartObjectText(_topLevelVar('x2'), r'''
+E
+  _name: String v2
+  index: int 1
+  variable: <testLibrary>::@topLevelVariable::x2
+''');
+  }
+
+  test_dotShorthand_equalEqual_constructor() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+
+const v = A() == .new();
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
+  test_dotShorthand_equalEqual_constructor_lhsShorthand() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  const A();
+}
+
+const v = .new() == A();
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          36,
+          6,
+        ),
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 37, 3),
+      ],
+    );
+  }
+
+  test_dotShorthand_equalEqual_field() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+  static const A field = A();
+}
+
+const v = A() == .field;
+''');
+    var result = _topLevelVar('v');
+    assertDartObjectText(result, '''
+bool true
+  variable: <testLibrary>::@topLevelVariable::v
+''');
+  }
+
+  test_dotShorthand_equalEqual_method_error() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  static A method() => A();
+}
+
+const v = A() == .method();
+''',
+      [
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 51, 3),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          51,
+          3,
+        ),
+      ],
+    );
+  }
+
+  test_dotShorthand_method_invalid() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  static A method() => A();
+}
+const A a = .method();
+''',
+      [error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 52, 9)],
+    );
+  }
+
+  test_dotShorthand_missingContext_invocation() async {
+    await assertErrorsInCode(
+      '''
+const a = .new();
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          6,
+        ),
+        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 11, 3),
+      ],
+    );
+  }
+
+  test_dotShorthand_missingContext_propertyAccess() async {
+    await assertErrorsInCode(
+      '''
+const a = .id;
+''',
+      [
+        error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 10, 3),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          10,
+          3,
+        ),
+      ],
+    );
+  }
+
+  test_dotShorthand_propertyAccess() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+  static const A field = A();
+}
+
+const A a = .field;
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+A
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_dotShorthand_propertyAccess_enum() async {
+    await assertNoErrorsInCode('''
+enum E { a }
+const E e = .a;
+''');
+    var result = _topLevelVar('e');
+    assertDartObjectText(result, r'''
+E
+  _name: String a
+  index: int 0
+  variable: <testLibrary>::@topLevelVariable::e
+''');
+  }
+
   test_enum_argument_methodInvocation() async {
     await assertErrorsInCode(
       '''
@@ -124,9 +289,9 @@ E
     _name: String v1
     a: int 42
     index: int 0
-    variable: <testLibraryFragment>::@enum::E::@field::v1#element
+    variable: <testLibrary>::@enum::E::@field::v1
   index: int 1
-  variable: <testLibraryFragment>::@enum::E::@field::v2#element
+  variable: <testLibrary>::@enum::E::@field::v2
 ''');
   }
 
@@ -1589,7 +1754,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo#element
+  element: <testLibrary>::@class::C::@constructor::foo
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1606,7 +1771,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new#element
+  element: <testLibrary>::@class::C::@constructor::new
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1898,7 +2063,7 @@ const c = C<int>.foo;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::foo#element
+  element: <testLibrary>::@class::C::@constructor::foo
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -1915,7 +2080,7 @@ const c = C<int>.new;
     var result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 C<int> Function()
-  element: <testLibraryFragment>::@class::C::@constructor::new#element
+  element: <testLibrary>::@class::C::@constructor::new
   typeArguments
     int
   variable: <testLibrary>::@topLevelVariable::c
@@ -3741,7 +3906,7 @@ void Function(int, {int? b})
   element: <testLibrary>::@function::f
   typeArguments
     int
-  variable: <testLibraryFragment>::@class::C::@field::h#element
+  variable: <testLibrary>::@class::C::@field::h
 ''');
   }
 
@@ -5381,15 +5546,15 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
   }) {
     var unit = this.result.unit;
     var source = unit.declaredFragment!.source;
-    var errorListener = GatheringErrorListener();
-    var errorReporter = ErrorReporter(errorListener, source);
+    var errorListener = GatheringDiagnosticListener();
+    var diagnosticReporter = DiagnosticReporter(errorListener, source);
     var constantVisitor = ConstantVisitor(
       ConstantEvaluationEngine(
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
         configuration: ConstantEvaluationConfiguration(),
       ),
       this.result.libraryElement2,
-      errorReporter,
+      diagnosticReporter,
       lexicalEnvironment: lexicalEnvironment,
     );
 
@@ -5406,11 +5571,11 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     return result;
   }
 
-  DartObjectImpl? _evaluationResult(ConstVariableElement element) {
+  DartObjectImpl? _evaluationResult(VariableElementImpl element) {
     var evaluationResult = element.evaluationResult;
     switch (evaluationResult) {
       case null:
-        fail('Not evaluated: ${element.name2}');
+        fail('Not evaluated: ${element.name}');
       case InvalidConstant():
         return null;
       case DartObjectImpl():
@@ -5420,20 +5585,17 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
 
   DartObjectImpl? _field(String variableName) {
     var element = findElement2.field(variableName);
-    var constFragment = element.firstFragment as ConstVariableElement;
-    return _evaluationResult(constFragment);
+    return _evaluationResult(element as VariableElementImpl);
   }
 
   DartObjectImpl? _localVar(String variableName) {
     var element = findElement2.localVar(variableName);
-    var constFragment = element.firstFragment as ConstVariableElement;
-    return _evaluationResult(constFragment);
+    return _evaluationResult(element as VariableElementImpl);
   }
 
   DartObjectImpl? _topLevelVar(String variableName) {
     var element = findElement2.topVar(variableName);
-    var constFragment = element.firstFragment as ConstVariableElement;
-    return _evaluationResult(constFragment);
+    return _evaluationResult(element as VariableElementImpl);
   }
 }
 
@@ -5889,6 +6051,18 @@ bool true
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50045
+  test_bool_fromEnvironment_dartLibraryJsInterop() async {
+    await assertNoErrorsInCode('''
+const a = bool.fromEnvironment('dart.library.js_interop');
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+<unknown> bool
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  /// See https://github.com/dart-lang/sdk/issues/50045
   test_bool_fromEnvironment_dartLibraryJsUtil() async {
     await assertNoErrorsInCode('''
 const a = bool.fromEnvironment('dart.library.js_util');
@@ -6108,6 +6282,200 @@ bool false
       '''
 bool true
 ''',
+    );
+  }
+
+  test_dotShorthand_assertInitializer_assertIsNot_false() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  const A() : assert(0 is! int);
+}
+
+const A a = .new();
+''',
+      [
+        error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 9),
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          58,
+          6,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              24,
+              17,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_dotShorthand_assertInitializer_assertIsNot_true() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A() : assert(0 is! String);
+}
+
+const A a = .new();
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+A
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_dotShorthand_assertInitializer_enum_false() async {
+    await assertErrorsInCode(
+      '''
+enum E { a, b }
+class A {
+  const A(E e) : assert(e != .a);
+}
+const A a = .new(.a);
+''',
+      [
+        error(
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          74,
+          8,
+          contextMessages: [
+            ExpectedContextMessage(
+              testFile,
+              43,
+              15,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here.",
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  test_dotShorthand_assertInitializer_enum_true() async {
+    await assertNoErrorsInCode('''
+enum E { a, b }
+class A {
+  const A(E e) : assert(e != .a);
+}
+const A a = .new(.b);
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+A
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_dotShorthand_assertInitializer_simpleInSuperInitializer_true() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  const A(): assert(1 is int);
+}
+class B extends A {
+  const B() : super();
+}
+const B b = .new();
+''',
+      [error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 30, 8)],
+    );
+    var result = _topLevelVar('b');
+    assertDartObjectText(result, '''
+B
+  (super): A
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_dotShorthand_bool_fromEnvironment() async {
+    await assertNoErrorsInCode('''
+const bool a = .fromEnvironment('a');
+const bool b = .fromEnvironment('b', defaultValue: true);
+''');
+    assertDartObjectText(_topLevelVar('a'), '''
+bool false
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+    assertDartObjectText(
+      _evaluateConstant('a', declaredVariables: {'a': 'true'}),
+      '''
+bool true
+''',
+    );
+
+    var bResult = _evaluateConstant(
+      'b',
+      declaredVariables: {'b': 'bbb'},
+      lexicalEnvironment: {
+        'defaultValue': DartObjectImpl(
+          typeSystem,
+          typeProvider.boolType,
+          BoolState(true),
+        ),
+      },
+    );
+    assertDartObjectText(bResult, '''
+bool true
+''');
+  }
+
+  test_dotShorthand_bool_hasEnvironment() async {
+    await assertNoErrorsInCode('''
+const bool a = .hasEnvironment('a');
+''');
+    assertDartObjectText(_topLevelVar('a'), '''
+bool false
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+    assertDartObjectText(
+      _evaluateConstant('a', declaredVariables: {'a': '42'}),
+      '''
+bool true
+''',
+    );
+  }
+
+  test_dotShorthand_constantArgument_issue60963() async {
+    await assertNoErrorsInCode('''
+class A {
+  const A();
+}
+extension type const B(A a) {}
+
+const B b = .new(A());
+''');
+    var result = _topLevelVar('b');
+    assertDartObjectText(result, '''
+A
+  variable: <testLibrary>::@topLevelVariable::b
+''');
+  }
+
+  test_dotShorthand_nonConstantArgument_issue60963() async {
+    await assertErrorsInCode(
+      '''
+class A {
+  int cannotBeConst;
+  A(): cannotBeConst = 0;
+}
+extension type const B(A a) {}
+
+const B b = .new(A());
+''',
+      [
+        error(CompileTimeErrorCode.CONST_WITH_NON_CONST, 108, 3),
+        error(
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          108,
+          3,
+        ),
+      ],
     );
   }
 

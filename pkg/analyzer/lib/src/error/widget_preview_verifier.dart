@@ -27,9 +27,9 @@ import 'package:analyzer/src/utilities/extensions/flutter.dart';
 ///  - Are statically accessible (e.g., no instance methods)
 ///  - Have explicit implementations (e.g., not abstract or external)
 class WidgetPreviewVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  WidgetPreviewVerifier(this._errorReporter);
+  WidgetPreviewVerifier(this._diagnosticReporter);
 
   /// Check is [node] is a Widget Preview application and verify its
   /// correctness.
@@ -64,14 +64,14 @@ class WidgetPreviewVerifier {
     };
 
     if (!isValidApplication) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.name,
         WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION,
       );
     }
 
     var visitor = _InvalidWidgetPreviewArgumentDetectorVisitor(
-      errorReporter: _errorReporter,
+      errorReporter: _diagnosticReporter,
     );
     node.arguments!.accept(visitor);
   }
@@ -205,7 +205,7 @@ class WidgetPreviewVerifier {
 }
 
 class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter errorReporter;
 
   NamedExpression? rootArgument;
   _InvalidWidgetPreviewArgumentDetectorVisitor({required this.errorReporter});

@@ -24,6 +24,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -72,7 +73,7 @@ abstract class MethodDeclaration {
       ProblemReporting problemReporting,
       SourceMethodBuilder builder,
       MethodEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters);
+      TypeParameterFactory typeParameterFactory);
 
   void ensureTypes(
       ClassMembersBuilder membersBuilder,
@@ -191,9 +192,9 @@ class MethodDeclarationImpl
       ProblemReporting problemReporting,
       SourceMethodBuilder builder,
       MethodEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+      TypeParameterFactory typeParameterFactory) {
     _encoding = encodingStrategy.createMethodEncoding(
-        builder, _fragment, unboundNominalParameters);
+        builder, _fragment, typeParameterFactory);
     _fragment.typeParameterNameSpace.addTypeParameters(
         problemReporting, _encoding.clonedAndDeclaredTypeParameters,
         ownerName: _fragment.name, allowNameConflict: true);

@@ -65,6 +65,7 @@ class FixDataGenerator extends YamlCompletionGenerator {
     'constructor': EmptyProducer(),
     'enum': EmptyProducer(),
     'extension': EmptyProducer(),
+    'extensionType': EmptyProducer(),
     'field': EmptyProducer(),
     'function': EmptyProducer(),
     'getter': EmptyProducer(),
@@ -76,6 +77,7 @@ class FixDataGenerator extends YamlCompletionGenerator {
     'inClass': EmptyProducer(),
     'inEnum': EmptyProducer(),
     'inExtension': EmptyProducer(),
+    'inExtensionType': EmptyProducer(),
     'inMixin': EmptyProducer(),
   });
 

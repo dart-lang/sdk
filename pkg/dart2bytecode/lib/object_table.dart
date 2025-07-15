@@ -71,8 +71,6 @@ String objectKindToString(ObjectKind kind) =>
 
 String nullabilityToString(Nullability nullability) {
   switch (nullability) {
-    case Nullability.legacy:
-      return '*';
     case Nullability.nullable:
       return '?';
     case Nullability.undetermined:
@@ -649,6 +647,9 @@ class _GenericTypeHandle extends _TypeHandle {
 
   _GenericTypeHandle(this.class_, this.typeArgs, Nullability nullability)
       : super(TypeTag.kGenericType, nullability);
+
+  @override
+  bool get isCacheable => typeArgs?.isCacheable ?? true;
 
   @override
   void writeContents(BufferedWriter writer) {

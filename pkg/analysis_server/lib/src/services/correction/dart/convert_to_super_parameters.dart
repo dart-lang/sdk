@@ -26,7 +26,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SUPER_PARAMETERS;
+  AssistKind get assistKind => DartAssistKind.convertToSuperParameters;
 
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_SUPER_PARAMETERS;
@@ -81,7 +81,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
         var parameter = _parameterFor(parameterMap, argument.expression);
         if (parameter != null &&
             parameter.isNamed &&
-            parameter.element.name3 == argument.name.label.name &&
+            parameter.element.name == argument.name.label.name &&
             !referencedParameters.contains(parameter.element)) {
           var data = _dataForParameter(
             parameter,

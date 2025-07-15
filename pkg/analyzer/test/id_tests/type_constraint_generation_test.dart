@@ -94,9 +94,9 @@ class _TypeConstraintGenerationDataInterpreter
         var name =
             actualData[i].typeParameter
                 .unwrapTypeParameterViewAsTypeParameterStructure<
-                  TypeParameterElementImpl2
+                  TypeParameterElementImpl
                 >()
-                .name3;
+                .name;
         if (actualData[i].isUpper) {
           sb.write("$name <: ");
           sb.write(actualData[i].constraint.getDisplayString());

@@ -31,7 +31,7 @@ class AssignmentExpressionResolver {
       _typePropertyResolver = resolver.typePropertyResolver,
       _assignmentShared = AssignmentExpressionShared(resolver: resolver);
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -105,7 +105,7 @@ class AssignmentExpressionResolver {
     );
 
     if (flow != null) {
-      if (writeElement2 is PromotableElementImpl2) {
+      if (writeElement2 is PromotableElementImpl) {
         flow.write(
           node,
           writeElement2,
@@ -150,7 +150,7 @@ class AssignmentExpressionResolver {
         rightType,
         strictCasts: strictCasts,
       )) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           right,
           CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
         );
@@ -158,7 +158,7 @@ class AssignmentExpressionResolver {
       }
     }
 
-    _errorReporter.atNode(
+    _diagnosticReporter.atNode(
       right,
       CompileTimeErrorCode.INVALID_ASSIGNMENT,
       arguments: [rightType, writeType],
@@ -182,12 +182,12 @@ class AssignmentExpressionResolver {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         methodName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -214,7 +214,7 @@ class AssignmentExpressionResolver {
         if (method != null) {
           var parameters = method.formalParameters;
           if (parameters.isNotEmpty) {
-            return _typeSystem.refineNumericInvocationContext2(
+            return _typeSystem.refineNumericInvocationContext(
               leftType,
               method,
               leftType,
@@ -240,7 +240,7 @@ class AssignmentExpressionResolver {
     // Example: `y += 0`, is not allowed.
     if (operatorType != TokenType.EQ) {
       if (leftType is VoidType) {
-        _errorReporter.atToken(
+        _diagnosticReporter.atToken(
           operator,
           CompileTimeErrorCode.USE_OF_VOID_RESULT,
         );
@@ -272,7 +272,7 @@ class AssignmentExpressionResolver {
     );
     node.element = result.getter2 as MethodElement2OrMember?;
     if (result.needsGetterError) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         operator,
         CompileTimeErrorCode.UNDEFINED_OPERATOR,
         arguments: [methodName, leftType],
@@ -377,7 +377,7 @@ class AssignmentExpressionShared {
   AssignmentExpressionShared({required ResolverVisitor resolver})
     : _resolver = resolver;
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _errorReporter => _resolver.diagnosticReporter;
 
   void checkFinalAlreadyAssigned(
     Expression left, {
@@ -390,7 +390,7 @@ class AssignmentExpressionShared {
 
     if (left is SimpleIdentifier) {
       var element = left.element;
-      if (element is PromotableElementImpl2) {
+      if (element is PromotableElementImpl) {
         var assigned = flowAnalysis.isDefinitelyAssigned(left, element);
         var unassigned = flowAnalysis.isDefinitelyUnassigned(left, element);
 
@@ -407,7 +407,7 @@ class AssignmentExpressionShared {
               _errorReporter.atNode(
                 left,
                 CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-                arguments: [element.name3!],
+                arguments: [element.name!],
               );
             }
           }

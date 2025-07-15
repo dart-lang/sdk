@@ -39,7 +39,7 @@ library;
 //   const AbstractClass.id();
 //         ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/many_errors.dart:29:27: Error: The getter 'b' isn't defined for the class 'B'.
+// pkg/front_end/testcases/general/many_errors.dart:29:27: Error: The getter 'b' isn't defined for the type 'B'.
 //  - 'B' is from 'pkg/front_end/testcases/general/many_errors.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
 //   (new C().b ??= new B()).b;
@@ -87,7 +87,7 @@ external foo(String x) {
 }
 static method m() → dynamic {
   invalid-expression "The class 'AbstractClass' is abstract and can't be instantiated.";
-  invalid-expression "pkg/front_end/testcases/general/many_errors.dart:29:27: Error: The getter 'b' isn't defined for the class 'B'.
+  invalid-expression "pkg/front_end/testcases/general/many_errors.dart:29:27: Error: The getter 'b' isn't defined for the type 'B'.
  - 'B' is from 'pkg/front_end/testcases/general/many_errors.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
   (new C().b ??= new B()).b;

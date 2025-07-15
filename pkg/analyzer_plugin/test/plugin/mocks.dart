@@ -113,7 +113,7 @@ class MockChannel implements PluginCommunicationChannel {
 
 class MockResolvedUnitResult implements ResolvedUnitResult {
   @override
-  final List<Diagnostic> errors;
+  final List<Diagnostic> diagnostics;
 
   @override
   final LineInfo lineInfo;
@@ -123,7 +123,7 @@ class MockResolvedUnitResult implements ResolvedUnitResult {
 
   MockResolvedUnitResult(
       {List<Diagnostic>? errors, LineInfo? lineInfo, String? path})
-      : errors = errors ?? [],
+      : diagnostics = errors ?? [],
         lineInfo = lineInfo ?? LineInfo([0]),
         path = path ?? '';
 

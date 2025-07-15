@@ -113,23 +113,26 @@ class SchedulerTrackingListener extends MessageSchedulerListener {
 
   @override
   void cancelActiveMessage(ScheduledMessage message) {
-    var messageData = _messageDataMap.remove(message);
+    var messageData = _messageDataMap[message];
     if (messageData == null) {
       return;
     }
     messageData.completeTime = _now;
     messageData.wasCancelled = true;
-    _activeMessageCount--;
-    _reportMessageData(messageData);
+    // Don't decrement counts or report message data yet because
+    // cancelled messages still complete and call messageCompleted().
   }
 
   @override
   void cancelPendingMessage(ScheduledMessage message) {
-    var messageData = _messageDataMap.remove(message)!;
+    var messageData = _messageDataMap[message];
+    if (messageData == null) {
+      return;
+    }
     messageData.completeTime = _now;
     messageData.wasCancelled = true;
-    _pendingMessageCount--;
-    _reportMessageData(messageData);
+    // Don't decrement counts or report message data yet because
+    // cancelled messages still complete and call messageCompleted().
   }
 
   /// Report that the loop that processes messages has stopped running.
@@ -146,6 +149,16 @@ class SchedulerTrackingListener extends MessageSchedulerListener {
     messageData.completeTime = _now;
     _activeMessageCount--;
     _reportMessageData(messageData);
+  }
+
+  @override
+  void pauseProcessingMessages(int newPauseCount) {
+    // TODO(dantup): Consider tracking the pause start time if newPauseCount=1.
+  }
+
+  @override
+  void resumeProcessingMessages(int newPauseCount) {
+    // TODO(dantup): Consider recording the pause duration if newPauseCount=0.
   }
 
   @override

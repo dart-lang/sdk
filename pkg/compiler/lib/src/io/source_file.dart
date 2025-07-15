@@ -112,56 +112,66 @@ abstract class SourceFile implements api.Input<Uint8List>, LocationProvider {
   }) {
     colorize ??= (text) => text;
 
-    kernel.Location startLocation = kernelSource.getLocation(uri, start);
-    kernel.Location endLocation = kernelSource.getLocation(uri, end);
-    int lineStart = startLocation.line - 1;
-    int columnStart = startLocation.column - 1;
-    int lineEnd = endLocation.line - 1;
-    int columnEnd = endLocation.column - 1;
-
     StringBuffer buf = StringBuffer('$filename:');
-    if (start != end || start != 0) {
-      // Line/column info is relevant.
-      buf.write('${lineStart + 1}:${columnStart + 1}:');
-    }
-    buf.write('\n$message\n');
+    bool wroteMessage = false;
+    try {
+      kernel.Location startLocation = kernelSource.getLocation(uri, start);
+      kernel.Location endLocation = kernelSource.getLocation(uri, end);
+      int lineStart = startLocation.line - 1;
+      int columnStart = startLocation.column - 1;
+      int lineEnd = endLocation.line - 1;
+      int columnEnd = endLocation.column - 1;
 
-    if (start != end && includeSourceLine) {
-      if (lineStart == lineEnd) {
-        String textLine = kernelSource.getTextLine(startLocation.line)!;
+      if (start != end || start != 0) {
+        // Line/column info is relevant.
+        buf.write('${lineStart + 1}:${columnStart + 1}:');
+      }
+      buf.write('\n$message\n');
+      wroteMessage = true;
 
-        int toColumn = min(columnStart + (end - start), textLine.length);
-        buf.write(textLine.substring(0, columnStart));
-        buf.write(colorize(textLine.substring(columnStart, toColumn)));
-        buf.writeln(textLine.substring(toColumn));
+      if (start != end && includeSourceLine) {
+        if (lineStart == lineEnd) {
+          String textLine = kernelSource.getTextLine(startLocation.line)!;
 
-        int i = 0;
-        for (; i < columnStart; i++) {
-          buf.write(' ');
-        }
+          int toColumn = min(columnStart + (end - start), textLine.length);
+          buf.write(textLine.substring(0, columnStart));
+          buf.write(colorize(textLine.substring(columnStart, toColumn)));
+          buf.writeln(textLine.substring(toColumn));
 
-        for (; i < toColumn; i++) {
-          buf.write(colorize('^'));
-        }
-      } else {
-        for (int line = lineStart; line <= lineEnd; line++) {
-          String textLine = kernelSource.getTextLine(line + 1)!;
-          if (line == lineStart) {
-            if (columnStart > textLine.length) {
-              columnStart = textLine.length;
+          int i = 0;
+          for (; i < columnStart; i++) {
+            buf.write(' ');
+          }
+
+          for (; i < toColumn; i++) {
+            buf.write(colorize('^'));
+          }
+        } else {
+          for (int line = lineStart; line <= lineEnd; line++) {
+            String textLine = kernelSource.getTextLine(line + 1)!;
+            if (line == lineStart) {
+              if (columnStart > textLine.length) {
+                columnStart = textLine.length;
+              }
+              buf.write(textLine.substring(0, columnStart));
+              buf.writeln(colorize(textLine.substring(columnStart)));
+            } else if (line == lineEnd) {
+              if (columnEnd > textLine.length) {
+                columnEnd = textLine.length;
+              }
+              buf.write(colorize(textLine.substring(0, columnEnd)));
+              buf.writeln(textLine.substring(columnEnd));
+            } else {
+              buf.writeln(colorize(textLine));
             }
-            buf.write(textLine.substring(0, columnStart));
-            buf.writeln(colorize(textLine.substring(columnStart)));
-          } else if (line == lineEnd) {
-            if (columnEnd > textLine.length) {
-              columnEnd = textLine.length;
-            }
-            buf.write(colorize(textLine.substring(0, columnEnd)));
-            buf.writeln(textLine.substring(columnEnd));
-          } else {
-            buf.writeln(colorize(textLine));
           }
         }
+      }
+    } catch (e) {
+      if (!wroteMessage) {
+        buf.write('+$start');
+        buf.write('\n$message\n');
+        buf.write('$e\n');
       }
     }
 
@@ -186,7 +196,7 @@ class Utf8BytesSourceFile extends SourceFile {
 
   @override
   String slowText() {
-    return utf8.decoder.convert(content);
+    return utf8.decode(content, allowMalformed: true);
   }
 
   @override

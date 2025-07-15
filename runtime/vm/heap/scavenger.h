@@ -281,7 +281,6 @@ class Scavenger {
   void IterateIsolateRoots(ObjectPointerVisitor* visitor);
   void IterateStoreBuffers(ScavengerVisitor* visitor);
   void IterateRememberedCards(ScavengerVisitor* visitor);
-  void IterateObjectIdTable(ObjectPointerVisitor* visitor);
   void IterateRoots(ScavengerVisitor* visitor);
   void IterateWeak();
   void MournWeakHandles();

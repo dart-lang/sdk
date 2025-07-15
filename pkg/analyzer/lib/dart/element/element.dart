@@ -57,7 +57,6 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart' show Name;
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:meta/meta.dart';
@@ -136,9 +135,6 @@ typedef PatternVariableElement2 = PatternVariableElement;
 
 @Deprecated('Use PrefixElement instead')
 typedef PrefixElement2 = PrefixElement;
-
-@Deprecated('Use PromotableElement instead')
-typedef PromotableElement2 = PromotableElement;
 
 @Deprecated('Use PropertyAccessorElement instead')
 typedef PropertyAccessorElement2 = PropertyAccessorElement;
@@ -422,6 +418,13 @@ abstract class ConstructorElement
   ///
   /// The name of the unnamed constructor is `new`.
   @override
+  String? get name;
+
+  /// The name of this constructor.
+  ///
+  /// The name of the unnamed constructor is `new`.
+  @Deprecated('Use name instead')
+  @override
   String? get name3;
 
   /// The constructor to which this constructor is redirecting.
@@ -429,6 +432,14 @@ abstract class ConstructorElement
   /// Returns `null` if this constructor does not redirect to another
   /// constructor or if the library containing this constructor has not yet been
   /// resolved.
+  ConstructorElement? get redirectedConstructor;
+
+  /// The constructor to which this constructor is redirecting.
+  ///
+  /// Returns `null` if this constructor does not redirect to another
+  /// constructor or if the library containing this constructor has not yet been
+  /// resolved.
+  @Deprecated('Use redirectedConstructor instead')
   ConstructorElement? get redirectedConstructor2;
 
   @override
@@ -437,6 +448,12 @@ abstract class ConstructorElement
   /// The constructor of the superclass that this constructor invokes, or
   /// `null` if this constructor redirects to another constructor, or if the
   /// library containing this constructor has not yet been resolved.
+  ConstructorElement? get superConstructor;
+
+  /// The constructor of the superclass that this constructor invokes, or
+  /// `null` if this constructor redirects to another constructor, or if the
+  /// library containing this constructor has not yet been resolved.
+  @Deprecated('Use superConstructor instead')
   ConstructorElement? get superConstructor2;
 }
 
@@ -450,6 +467,10 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   InstanceFragment? get enclosingFragment;
 
+  @override
+  String get name;
+
+  @Deprecated('Use name instead')
   @override
   String get name2;
 
@@ -471,7 +492,7 @@ abstract class ConstructorFragment implements ExecutableFragment {
   /// The offset of the `.` before the name.
   ///
   /// It is `null` if the fragment is synthetic, or does not specify an
-  /// explicit name, even if [name2] is `new` in this case.
+  /// explicit name, even if [name] is `new` in this case.
   int? get periodOffset;
 
   @override
@@ -580,6 +601,13 @@ abstract class Element {
   ///
   /// There is no guarantee of the order in which the children will be returned.
   /// In particular, they are not guaranteed to be in lexical order.
+  List<Element> get children;
+
+  /// The children of this element.
+  ///
+  /// There is no guarantee of the order in which the children will be returned.
+  /// In particular, they are not guaranteed to be in lexical order.
+  @Deprecated('Use children instead')
   List<Element> get children2;
 
   /// The display name of this element, or an empty string if the element does
@@ -643,13 +671,21 @@ abstract class Element {
   /// This will be the element itself if it's a library element. This will be
   /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
   /// in a single library.
+  LibraryElement? get library;
+
+  /// Library that contains this element.
+  ///
+  /// This will be the element itself if it's a library element. This will be
+  /// `null` if this element is a [MultiplyDefinedElement] that isn't contained
+  /// in a single library.
+  @Deprecated('Use library instead')
   LibraryElement? get library2;
 
   /// The name to use for lookup in maps.
   ///
-  /// It is usually the same as [name3], with a few special cases.
+  /// It is usually the same as [name], with a few special cases.
   ///
-  /// Just like [name3], it can be `null` if the element does not have
+  /// Just like [name], it can be `null` if the element does not have
   /// a name, for example an unnamed extension, or because of parser recovery.
   ///
   /// For a [SetterElement] the result has `=` at the end.
@@ -662,7 +698,15 @@ abstract class Element {
   ///
   /// Returns `null` if this element doesn't have a name.
   ///
-  /// See [Fragment.name2] for details.
+  /// See [Fragment.name] for details.
+  String? get name;
+
+  /// The name of this element.
+  ///
+  /// Returns `null` if this element doesn't have a name.
+  ///
+  /// See [Fragment.name] for details.
+  @Deprecated('Use name instead')
   String? get name3;
 
   /// The non-synthetic element that caused this element to be created.
@@ -673,6 +717,17 @@ abstract class Element {
   /// element is returned. For example, for a synthetic getter of a
   /// non-synthetic field the field is returned; for a synthetic constructor
   /// the enclosing class is returned.
+  Element get nonSynthetic;
+
+  /// The non-synthetic element that caused this element to be created.
+  ///
+  /// If this element is not synthetic, then the element itself is returned.
+  ///
+  /// If this element is synthetic, then the corresponding non-synthetic
+  /// element is returned. For example, for a synthetic getter of a
+  /// non-synthetic field the field is returned; for a synthetic constructor
+  /// the enclosing class is returned.
+  @Deprecated('Use nonSynthetic instead')
   Element get nonSynthetic2;
 
   /// The analysis session in which this element is defined.
@@ -682,6 +737,13 @@ abstract class Element {
   ///
   /// Returns the value returned by the visitor as a result of visiting this
   /// element.
+  T? accept<T>(ElementVisitor2<T> visitor);
+
+  /// Uses the given [visitor] to visit this element.
+  ///
+  /// Returns the value returned by the visitor as a result of visiting this
+  /// element.
+  @Deprecated('Use accept instead')
   T? accept2<T>(ElementVisitor2<T> visitor);
 
   /// The presentation of this element as it should appear when presented to
@@ -697,12 +759,35 @@ abstract class Element {
   ///
   /// Clients should not depend on the content of the returned value as it will
   /// be changed if doing so would improve the UX.
+  String displayString({bool multiline = false, bool preferTypeAlias = false});
+
+  /// The presentation of this element as it should appear when presented to
+  /// users.
+  ///
+  /// If [multiline] is `true`, then the string may be wrapped over multiple
+  /// lines with newlines to improve formatting. For example, function
+  /// signatures may be formatted as if they had trailing commas.
+  ///
+  /// If [preferTypeAlias] is `true` and the element represents a type defined
+  /// by a type alias, then the name of the type alias will be used in the
+  /// returned string rather than the name of the type being aliased.
+  ///
+  /// Clients should not depend on the content of the returned value as it will
+  /// be changed if doing so would improve the UX.
+  @Deprecated('Use displayString instead')
   String displayString2({bool multiline = false, bool preferTypeAlias = false});
 
   /// Returns a display name for the given element that includes the path to the
   /// compilation unit in which the type is defined. If [shortName] is `null`
   /// then [displayName] will be used as the name of this element. Otherwise
   /// the provided name will be used.
+  String getExtendedDisplayName({String? shortName});
+
+  /// Returns a display name for the given element that includes the path to the
+  /// compilation unit in which the type is defined. If [shortName] is `null`
+  /// then [displayName] will be used as the name of this element. Otherwise
+  /// the provided name will be used.
+  @Deprecated('Use getExtendedDisplayName instead')
   String getExtendedDisplayName2({String? shortName});
 
   /// Whether the element, assuming that it is within scope, is accessible to
@@ -713,29 +798,59 @@ abstract class Element {
   /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
   /// declared in <i>L</i> or if <i>m</i> is public.
   /// </blockquote>
+  bool isAccessibleIn(LibraryElement library);
+
+  /// Whether the element, assuming that it is within scope, is accessible to
+  /// code in the given [library].
+  ///
+  /// This is defined by the Dart Language Specification in section 6.2:
+  /// <blockquote>
+  /// A declaration <i>m</i> is accessible to a library <i>L</i> if <i>m</i> is
+  /// declared in <i>L</i> or if <i>m</i> is public.
+  /// </blockquote>
+  @Deprecated('Use isAccessibleIn instead')
   bool isAccessibleIn2(LibraryElement library);
 
   /// Returns either this element or the most immediate ancestor of this element
   /// for which the [predicate] returns `true`.
   ///
   /// Returns `null` if there is no such element.
+  Element? thisOrAncestorMatching(bool Function(Element) predicate);
+
+  /// Returns either this element or the most immediate ancestor of this element
+  /// for which the [predicate] returns `true`.
+  ///
+  /// Returns `null` if there is no such element.
+  @Deprecated('Use thisOrAncestorMatching instead')
   Element? thisOrAncestorMatching2(bool Function(Element) predicate);
 
   /// Returns either this element or the most immediate ancestor of this element
   /// that has the given type.
   ///
   /// Returns `null` if there is no such element.
+  E? thisOrAncestorOfType<E extends Element>();
+
+  /// Returns either this element or the most immediate ancestor of this element
+  /// that has the given type.
+  ///
+  /// Returns `null` if there is no such element.
+  @Deprecated('Use thisOrAncestorOfType instead')
   E? thisOrAncestorOfType2<E extends Element>();
 
   /// Uses the given [visitor] to visit all of the children of this element.
   /// There is no guarantee of the order in which the children will be visited.
+  void visitChildren<T>(ElementVisitor2<T> visitor);
+
+  /// Uses the given [visitor] to visit all of the children of this element.
+  /// There is no guarantee of the order in which the children will be visited.
+  @Deprecated('Use visitChildren instead')
   void visitChildren2<T>(ElementVisitor2<T> visitor);
 }
 
 /// A single annotation associated with an element.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ElementAnnotation implements ConstantEvaluationTarget {
+abstract class ElementAnnotation {
   /// The errors that were produced while computing a value for this
   /// annotation, or `null` if no value has been computed.
   ///
@@ -867,6 +982,9 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Whether the annotation marks the associated member as being a widget
   /// factory.
   bool get isWidgetFactory;
+
+  /// The library fragment that contains this annotation.
+  LibraryFragment get libraryFragment;
 
   /// Returns a representation of the value of this annotation, forcing the
   /// value to be computed if it had not previously been computed, or `null`
@@ -1143,6 +1261,10 @@ abstract class ElementVisitor2<R> {
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumElement implements InterfaceElement {
   /// The constants defined by the enum.
+  List<FieldElement> get constants;
+
+  /// The constants defined by the enum.
+  @Deprecated('Use constants instead')
   List<FieldElement> get constants2;
 
   @override
@@ -1295,9 +1417,17 @@ abstract class ExtensionTypeElement implements InterfaceElement {
   List<ExtensionTypeFragment> get fragments;
 
   /// The primary constructor of this extension.
+  ConstructorElement get primaryConstructor;
+
+  /// The primary constructor of this extension.
+  @Deprecated('Use primaryConstructor instead')
   ConstructorElement get primaryConstructor2;
 
   /// The representation of this extension.
+  FieldElement get representation;
+
+  /// The representation of this extension.
+  @Deprecated('Use representation instead')
   FieldElement get representation2;
 
   /// The extension type erasure, obtained by recursively replacing every
@@ -1320,9 +1450,18 @@ abstract class ExtensionTypeFragment implements InterfaceFragment {
   @override
   ExtensionTypeFragment? get previousFragment;
 
+  /// The primary constructor of this extension.
+  ConstructorFragment get primaryConstructor;
+
+  /// The primary constructor of this extension.
+  @Deprecated('Use primaryConstructor instead')
   ConstructorFragment get primaryConstructor2;
 
   /// The representation of this extension.
+  FieldFragment get representation;
+
+  /// The representation of this extension.
+  @Deprecated('Use representation instead')
   FieldFragment get representation2;
 }
 
@@ -1372,6 +1511,12 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   /// The field element associated with this field formal parameter.
   ///
   /// Returns `null` if the parameter references a field that doesn't exist.
+  FieldElement? get field;
+
+  /// The field element associated with this field formal parameter.
+  ///
+  /// Returns `null` if the parameter references a field that doesn't exist.
+  @Deprecated('Use field instead')
   FieldElement? get field2;
 
   @override
@@ -1422,11 +1567,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements
-        PromotableElement,
-        Annotatable,
-        HasSinceSdkVersion,
-        LocalElement {
+    implements VariableElement, Annotatable, HasSinceSdkVersion, LocalElement {
   @override
   FormalParameterElement get baseElement;
 
@@ -1513,10 +1654,22 @@ abstract class FormalParameterElement
   ///
   /// A parameter will only define type parameters if it is a function typed
   /// parameter.
+  List<TypeParameterElement> get typeParameters;
+
+  /// The type parameters defined by this parameter.
+  ///
+  /// A parameter will only define type parameters if it is a function typed
+  /// parameter.
+  @Deprecated('Use typeParameters instead')
   List<TypeParameterElement> get typeParameters2;
 
   /// Appends the type, name and possibly the default value of this parameter
   /// to the given [buffer].
+  void appendToWithoutDelimiters(StringBuffer buffer);
+
+  /// Appends the type, name and possibly the default value of this parameter
+  /// to the given [buffer].
+  @Deprecated('Use appendToWithoutDelimiters instead')
   void appendToWithoutDelimiters2(StringBuffer buffer);
 }
 
@@ -1525,7 +1678,7 @@ abstract class FormalParameterElement
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements PromotableFragment, Annotatable, LocalFragment {
+    implements VariableFragment, Annotatable, LocalFragment {
   @override
   FormalParameterElement get element;
 
@@ -1559,6 +1712,13 @@ abstract class Fragment {
   ///
   /// There is no guarantee of the order in which the children will be returned.
   /// In particular, they are not guaranteed to be in lexical order.
+  List<Fragment> get children;
+
+  /// The children of this fragment.
+  ///
+  /// There is no guarantee of the order in which the children will be returned.
+  /// In particular, they are not guaranteed to be in lexical order.
+  @Deprecated('Use children instead')
   List<Fragment> get children3;
 
   /// The element composed from this fragment and possibly other fragments.
@@ -1600,9 +1760,37 @@ abstract class Fragment {
   /// For a [SetterFragment] this is the identifier, without `=` at the end.
   ///
   /// For both unary and binary `-` operator this is `-`.
+  String? get name;
+
+  /// The name of the fragment.
+  ///
+  /// Never empty.
+  ///
+  /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
+  /// then the name is `null`.
+  ///
+  /// For an unnamed [ConstructorFragment] the name is `new`, but [nameOffset2]
+  /// is `null`. If there is an explicit `ClassName.new`, the name is also
+  /// `new`, and [nameOffset2] is not `null`. For a synthetic default unnamed
+  /// [ConstructorElement] there is always a synthetic [ConstructorFragment]
+  /// with the name `new`, and [nameOffset2] is `null`.
+  ///
+  /// If the fragment declaration node does not have the name specified, and
+  /// the parser inserted a synthetic token, then the name is `null`, and
+  /// [nameOffset2] is `null`.
+  ///
+  /// For a synthetic [GetterFragment] or [SetterFragment] the name is the
+  /// name of the corresponding non-synthetic [PropertyInducingFragment],
+  /// which is usually not `null`, but could be. And `nameOffset2` is `null`
+  /// for such synthetic fragments.
+  ///
+  /// For a [SetterFragment] this is the identifier, without `=` at the end.
+  ///
+  /// For both unary and binary `-` operator this is `-`.
+  @Deprecated('Use name instead')
   String? get name2;
 
-  /// The offset of the [name2] of this element.
+  /// The offset of the [name] of this element.
   ///
   /// If a fragment, e.g. an [ExtensionFragment], does not have a name,
   /// then the name offset is `null`.
@@ -1722,6 +1910,11 @@ abstract class GetterElement implements PropertyAccessorElement {
 
   /// The setter that corresponds to (has the same name as) this getter, or
   /// `null` if there is no corresponding setter.
+  SetterElement? get correspondingSetter;
+
+  /// The setter that corresponds to (has the same name as) this getter, or
+  /// `null` if there is no corresponding setter.
+  @Deprecated('Use correspondingSetter instead')
   SetterElement? get correspondingSetter2;
 
   @override
@@ -2102,6 +2295,13 @@ abstract class InterfaceElement implements InstanceElement {
   ///
   /// If the class does not declare any constructors, a synthetic default
   /// constructor will be returned.
+  ConstructorElement? get unnamedConstructor;
+
+  /// The unnamed constructor declared directly in this class.
+  ///
+  /// If the class does not declare any constructors, a synthetic default
+  /// constructor will be returned.
+  @Deprecated('Use unnamedConstructor instead')
   ConstructorElement? get unnamedConstructor2;
 
   /// Returns the most specific member with the given [name] that this type
@@ -2140,6 +2340,10 @@ abstract class InterfaceElement implements InstanceElement {
   ExecutableElement? getInterfaceMember(Name name);
 
   /// Returns the constructor from [constructors] that has the given [name].
+  ConstructorElement? getNamedConstructor(String name);
+
+  /// Returns the constructor from [constructors] that has the given [name].
+  @Deprecated('Use getNamedConstructor instead')
   ConstructorElement? getNamedConstructor2(String name);
 
   /// Returns all members of mixins, superclasses, and interfaces that a member
@@ -2321,6 +2525,10 @@ abstract class LabelElement implements Element {
   List<LabelFragment> get fragments;
 
   @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElement get library2;
 }
 
@@ -2355,6 +2563,15 @@ abstract class LibraryElement
   ///
   /// The entry point is defined to be a zero, one, or two argument top-level
   /// function whose name is `main`.
+  TopLevelFunctionElement? get entryPoint;
+
+  /// The entry point for this library.
+  ///
+  /// Returns `null` if this library doesn't have an entry point.
+  ///
+  /// The entry point is defined to be a zero, one, or two argument top-level
+  /// function whose name is `main`.
+  @Deprecated('Use entryPoint instead')
   TopLevelFunctionElement? get entryPoint2;
 
   /// The enums defined in this library.
@@ -2369,6 +2586,15 @@ abstract class LibraryElement
   /// returned. In particular, they are not guaranteed to be in lexical order.
   // TODO(brianwilkerson): Consider removing this from the public API. It isn't
   //  clear that it's useful, given that it ignores hide and show clauses.
+  List<LibraryElement> get exportedLibraries;
+
+  /// The libraries that are exported from this library.
+  ///
+  /// There is no guarantee of the order in which the libraries will be
+  /// returned. In particular, they are not guaranteed to be in lexical order.
+  // TODO(brianwilkerson): Consider removing this from the public API. It isn't
+  //  clear that it's useful, given that it ignores hide and show clauses.
+  @Deprecated('Use exportedLibraries instead')
   List<LibraryElement> get exportedLibraries2;
 
   /// The export [Namespace] of this library.
@@ -2426,6 +2652,10 @@ abstract class LibraryElement
   LibraryLanguageVersion get languageVersion;
 
   @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElement get library2;
 
   /// The element representing the synthetic function `loadLibrary`.
@@ -2433,6 +2663,14 @@ abstract class LibraryElement
   /// Technically the function is implicitly defined for this library only if
   /// the library is imported using a deferred import, but the element is always
   /// defined for performance reasons.
+  TopLevelFunctionElement get loadLibraryFunction;
+
+  /// The element representing the synthetic function `loadLibrary`.
+  ///
+  /// Technically the function is implicitly defined for this library only if
+  /// the library is imported using a deferred import, but the element is always
+  /// defined for performance reasons.
+  @Deprecated('Use loadLibraryFunction instead')
   TopLevelFunctionElement get loadLibraryFunction2;
 
   /// The mixins defined in this library.
@@ -2485,9 +2723,17 @@ abstract class LibraryElement
   Uri get uri;
 
   /// Returns the class defined in this library that has the given [name].
+  ClassElement? getClass(String name);
+
+  /// Returns the class defined in this library that has the given [name].
+  @Deprecated('Use getClass instead')
   ClassElement? getClass2(String name);
 
   /// Returns the enum defined in this library that has the given [name].
+  EnumElement? getEnum(String name);
+
+  /// Returns the enum defined in this library that has the given [name].
+  @Deprecated('Use getEnum instead')
   EnumElement? getEnum2(String name);
 
   /// Returns the extension defined in this library that has the given [name].
@@ -2501,6 +2747,10 @@ abstract class LibraryElement
   GetterElement? getGetter(String name);
 
   /// Returns the mixin defined in this library that has the given [name].
+  MixinElement? getMixin(String name);
+
+  /// Returns the mixin defined in this library that has the given [name].
+  @Deprecated('Use getMixin instead')
   MixinElement? getMixin2(String name);
 
   /// Returns the setter defined in this library that has the given [name].
@@ -2527,6 +2777,10 @@ abstract class LibraryExport implements ElementDirective {
   List<NamespaceCombinator> get combinators;
 
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  LibraryElement? get exportedLibrary;
+
+  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  @Deprecated('Use exportedLibrary instead')
   LibraryElement? get exportedLibrary2;
 
   /// The offset of the `export` keyword.
@@ -2536,6 +2790,10 @@ abstract class LibraryExport implements ElementDirective {
 /// The portion of a [LibraryElement] coming from a single compilation unit.
 abstract class LibraryFragment implements Fragment {
   /// The extension elements accessible within this fragment.
+  List<ExtensionElement> get accessibleExtensions;
+
+  /// The extension elements accessible within this fragment.
+  @Deprecated('Use accessibleExtensions instead')
   List<ExtensionElement> get accessibleExtensions2;
 
   /// The fragments of the classes declared in this fragment.
@@ -2566,6 +2824,13 @@ abstract class LibraryFragment implements Fragment {
   ///
   /// This includes all of the libraries that are imported using a prefix, and
   /// those that are imported without a prefix.
+  List<LibraryElement> get importedLibraries;
+
+  /// The libraries that are imported by this unit.
+  ///
+  /// This includes all of the libraries that are imported using a prefix, and
+  /// those that are imported without a prefix.
+  @Deprecated('Use importedLibraries instead')
   List<LibraryElement> get importedLibraries2;
 
   /// The libraries exported by this unit.
@@ -2628,6 +2893,10 @@ abstract class LibraryImport implements ElementDirective {
   List<NamespaceCombinator> get combinators;
 
   /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  LibraryElement? get importedLibrary;
+
+  /// The [LibraryElement], if [uri] is a [DirectiveUriWithLibrary].
+  @Deprecated('Use importedLibrary instead')
   LibraryElement? get importedLibrary2;
 
   /// The offset of the `import` keyword.
@@ -2716,7 +2985,7 @@ abstract class LocalFunctionFragment
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement
-    implements PromotableElement, LocalElement, Annotatable {
+    implements VariableElement, LocalElement, Annotatable {
   @override
   LocalVariableElement get baseElement;
 
@@ -2725,9 +2994,6 @@ abstract class LocalVariableElement
 
   @override
   List<LocalVariableFragment> get fragments;
-
-  /// Whether the variable has an initializer at declaration.
-  bool get hasInitializer;
 }
 
 /// The portion of a [LocalVariableElement] contributed by a single
@@ -2735,12 +3001,9 @@ abstract class LocalVariableElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableFragment
-    implements PromotableFragment, LocalFragment {
+    implements VariableFragment, LocalFragment {
   @override
   LocalVariableElement get element;
-
-  /// Whether the variable has an initializer at declaration.
-  bool get hasInitializer;
 
   /// The offset of the name in this element.
   int get nameOffset;
@@ -2936,6 +3199,11 @@ abstract class MixinElement implements InterfaceElement {
 
   /// Whether the element, assuming that it is within scope, is
   /// implementable to classes, mixins, and enums in the given [library].
+  bool isImplementableIn(LibraryElement library);
+
+  /// Whether the element, assuming that it is within scope, is
+  /// implementable to classes, mixins, and enums in the given [library].
+  @Deprecated('Use isImplementableIn instead')
   bool isImplementableIn2(LibraryElement library);
 }
 
@@ -3036,6 +3304,11 @@ abstract class PatternVariableElement implements LocalVariableElement {
 
   /// The variable in which this variable joins with other pattern variables
   /// with the same name, in a logical-or pattern, or shared case scope.
+  JoinPatternVariableElement? get join;
+
+  /// The variable in which this variable joins with other pattern variables
+  /// with the same name, in a logical-or pattern, or shared case scope.
+  @Deprecated('Use join instead')
   JoinPatternVariableElement? get join2;
 }
 
@@ -3081,6 +3354,10 @@ abstract class PrefixElement implements Element {
   List<LibraryImport> get imports;
 
   @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElement get library2;
 
   /// The name lookup scope for this import prefix.
@@ -3111,32 +3388,6 @@ abstract class PrefixFragment implements Fragment {
   PrefixFragment? get previousFragment;
 }
 
-/// A variable that might be subject to type promotion.  This might be a local
-/// variable or a parameter.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PromotableElement implements VariableElement {
-  @override
-  PromotableFragment get firstFragment;
-
-  @override
-  List<PromotableFragment> get fragments;
-}
-
-/// The portion of a [PromotableElement] contributed by a single declaration.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PromotableFragment implements VariableFragment {
-  @override
-  PromotableElement get element;
-
-  @override
-  PromotableFragment? get nextFragment;
-
-  @override
-  PromotableFragment? get previousFragment;
-}
-
 /// A getter or a setter.
 ///
 /// Property accessors can either be defined explicitly or they can be induced
@@ -3165,6 +3416,13 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
   /// associated with it will be synthetic.
+  PropertyInducingElement? get variable;
+
+  /// The field or top-level variable associated with this getter.
+  ///
+  /// If this getter was explicitly defined (is not synthetic) then the variable
+  /// associated with it will be synthetic.
+  @Deprecated('Use variable instead')
   PropertyInducingElement? get variable3;
 }
 
@@ -3180,12 +3438,6 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 
   @override
   PropertyAccessorFragment? get previousFragment;
-
-  /// The field or top-level variable associated with this property accessors.
-  ///
-  /// If this property accessor was explicitly defined (is not synthetic) then
-  /// the variable associated with it will be synthetic.
-  PropertyInducingFragment? get variable3;
 }
 
 /// A variable that has an associated getter and possibly a setter. Note that
@@ -3217,11 +3469,22 @@ abstract class PropertyInducingElement
   ///
   /// If this variable was explicitly defined (is not synthetic) then the
   /// getter associated with it will be synthetic.
+  GetterElement? get getter;
+
+  /// The getter associated with this variable.
+  ///
+  /// If this variable was explicitly defined (is not synthetic) then the
+  /// getter associated with it will be synthetic.
+  @Deprecated('Use getter instead')
   GetterElement? get getter2;
 
   /// Whether any fragment of this variable has an initializer at declaration.
   bool get hasInitializer;
 
+  @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
   @override
   LibraryElement get library2;
 
@@ -3235,6 +3498,19 @@ abstract class PropertyInducingElement
   /// that does not have a corresponding setter. If this variable was
   /// explicitly defined (is not synthetic) then the setter associated with
   /// it will be synthetic.
+  SetterElement? get setter;
+
+  /// The setter associated with this variable.
+  ///
+  /// Returns `null` if the variable is effectively `final` and therefore does
+  /// not have a setter associated with it.
+  ///
+  /// This can happen either because the variable is explicitly defined as
+  /// being `final` or because the variable is induced by an explicit getter
+  /// that does not have a corresponding setter. If this variable was
+  /// explicitly defined (is not synthetic) then the setter associated with
+  /// it will be synthetic.
+  @Deprecated('Use setter instead')
   SetterElement? get setter2;
 }
 
@@ -3246,12 +3522,6 @@ abstract class PropertyInducingFragment
     implements VariableFragment, Annotatable {
   @override
   PropertyInducingElement get element;
-
-  /// The getter associated with this variable.
-  ///
-  /// If this variable was explicitly defined (is not synthetic) then the
-  /// getter associated with it will be synthetic.
-  GetterFragment? get getter2;
 
   /// Whether the variable has an initializer at declaration.
   bool get hasInitializer;
@@ -3277,18 +3547,6 @@ abstract class PropertyInducingFragment
 
   @override
   PropertyInducingFragment? get previousFragment;
-
-  /// The setter associated with this variable.
-  ///
-  /// Returns `null` if the variable is effectively `final` and therefore
-  /// doesn't have a setter associated with it.
-  ///
-  /// This can happen either because the variable is explicitly defined as
-  /// being `final` or because the variable is induced by an explicit getter
-  /// that does not have a corresponding setter. If this variable was
-  /// explicitly defined (is not synthetic) then the setter associated with
-  /// it will be synthetic.
-  SetterFragment? get setter2;
 }
 
 /// A setter.
@@ -3303,6 +3561,11 @@ abstract class SetterElement implements PropertyAccessorElement {
 
   /// The getter that corresponds to (has the same name as) this setter, or
   /// `null` if there is no corresponding getter.
+  GetterElement? get correspondingGetter;
+
+  /// The getter that corresponds to (has the same name as) this setter, or
+  /// `null` if there is no corresponding getter.
+  @Deprecated('Use correspondingGetter instead')
   GetterElement? get correspondingGetter2;
 
   @override
@@ -3362,6 +3625,15 @@ abstract class SuperFormalParameterElement implements FormalParameterElement {
   ///
   /// Can be `null` for erroneous code - not existing super-constructor,
   /// no corresponding parameter in the super-constructor.
+  FormalParameterElement? get superConstructorParameter;
+
+  /// The associated super-constructor parameter, from the super-constructor
+  /// that is referenced by the implicit or explicit super-constructor
+  /// invocation.
+  ///
+  /// Can be `null` for erroneous code - not existing super-constructor,
+  /// no corresponding parameter in the super-constructor.
+  @Deprecated('Use superConstructorParameter instead')
   FormalParameterElement? get superConstructorParameter2;
 }
 
@@ -3469,6 +3741,13 @@ abstract class TypeAliasElement
   /// For example, it could be [GenericFunctionTypeElement].
   ///
   /// If there is no structure, return `null`.
+  Element? get aliasedElement;
+
+  /// If the aliased type has structure, return the corresponding element.
+  /// For example, it could be [GenericFunctionTypeElement].
+  ///
+  /// If there is no structure, return `null`.
+  @Deprecated('Use aliasedElement instead')
   Element? get aliasedElement2;
 
   /// The aliased type.
@@ -3618,12 +3897,23 @@ abstract class TypeParameterizedElement implements Element, Annotatable {
   bool get isSimplyBounded;
 
   @override
+  LibraryElement get library;
+
+  @Deprecated('Use library instead')
+  @override
   LibraryElement get library2;
 
   /// The type parameters declared by this element directly.
   ///
   /// This does not include type parameters that are declared by any enclosing
   /// elements.
+  List<TypeParameterElement> get typeParameters;
+
+  /// The type parameters declared by this element directly.
+  ///
+  /// This does not include type parameters that are declared by any enclosing
+  /// elements.
+  @Deprecated('Use typeParameters instead')
   List<TypeParameterElement> get typeParameters2;
 }
 
@@ -3659,6 +3949,14 @@ abstract class VariableElement implements Element {
   ///
   /// Is `null` if this variable is not a constant, or does not have the
   /// initializer or the default value specified.
+  ConstantInitializer? get constantInitializer;
+
+  /// The constant initializer for this constant variable, or the default
+  /// value for this formal parameter.
+  ///
+  /// Is `null` if this variable is not a constant, or does not have the
+  /// initializer or the default value specified.
+  @Deprecated('Use constantInitializer instead')
   ConstantInitializer? get constantInitializer2;
 
   @override

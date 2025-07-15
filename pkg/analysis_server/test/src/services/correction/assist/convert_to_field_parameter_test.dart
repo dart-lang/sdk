@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertToFieldParameterTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_TO_INITIALIZING_FORMAL;
+  AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 
   Future<void> test_additionalUse() async {
     await resolveTestCode('''

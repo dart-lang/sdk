@@ -95,8 +95,8 @@ void main() {
       stdoutMessages,
       containsAll([
         {
-          'stream': 'Service',
-          'kind': 'ServiceRegistered',
+          'stream': CoreDtdServiceConstants.servicesStreamId,
+          'kind': CoreDtdServiceConstants.serviceRegisteredKind,
           'data': {
             'service': 'ExampleServer',
             'method': 'getServerState',
@@ -109,8 +109,8 @@ void main() {
           'uptime': const Duration(minutes: 45).inMilliseconds,
         },
         {
-          'stream': 'Service',
-          'kind': 'ServiceUnregistered',
+          'stream': CoreDtdServiceConstants.servicesStreamId,
+          'kind': CoreDtdServiceConstants.serviceUnregisteredKind,
           'data': {
             'service': 'ExampleServer',
             'method': 'getServerState',

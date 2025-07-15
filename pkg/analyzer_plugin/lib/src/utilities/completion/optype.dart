@@ -222,9 +222,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       if (name != null) {
         constructor = name.element;
       } else {
-        var classElem = parent.constructorName.type.element2;
+        var classElem = parent.constructorName.type.element;
         if (classElem is ClassElement) {
-          constructor = classElem.unnamedConstructor2;
+          constructor = classElem.unnamedConstructor;
         }
       }
       if (constructor is ConstructorElement) {
@@ -249,7 +249,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     } else if (parent is RedirectingConstructorInvocation) {
       parameters = parent.element?.formalParameters;
     } else if (parent is Annotation) {
-      var constructor = parent.element2;
+      var constructor = parent.element;
       if (constructor is ConstructorElement) {
         parameters = constructor.formalParameters;
       } else if (constructor == null) {
@@ -602,6 +602,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
+  }
+
+  @override
+  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    optype.completionLocation = 'DotShorthandPropertyAccess_propertyName';
+    optype.includeReturnValueSuggestions = true;
   }
 
   @override
@@ -1201,9 +1207,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         var parameters = element.formalParameters;
         var parameterElement = parameters.firstWhereOrNull((e) {
           if (e is FieldFormalParameterElement) {
-            return e.field2?.name3 == node.name.label.name;
+            return e.field?.name == node.name.label.name;
           }
-          return e.isNamed && e.name3 == node.name.label.name;
+          return e.isNamed && e.name == node.name.label.name;
         });
         // Suggest tear-offs.
         if (parameterElement?.type is FunctionType) {

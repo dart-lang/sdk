@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -19,10 +20,7 @@ class NoopPrimitiveOperations extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.noop_primitive_operations;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addAdjacentStrings(this, visitor);
     registry.addInterpolationExpression(this, visitor);
@@ -33,7 +31,7 @@ class NoopPrimitiveOperations extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
   _Visitor(this.rule, this.context);
 
   @override

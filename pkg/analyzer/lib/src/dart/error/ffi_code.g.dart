@@ -16,9 +16,15 @@
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 /// @docImport 'package:analyzer/src/error/inference_error.dart';
+@Deprecated(
+  // This library is deprecated to prevent it from being accidentally imported
+  // It should only be imported by the corresponding non-code-generated library
+  // (which suppresses the deprecation warning using an "ignore" comment).
+  'Use package:analyzer/src/dart/error/ffi_code.dart instead',
+)
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class FfiCode extends DiagnosticCode {
   ///  No parameters.

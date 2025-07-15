@@ -21,7 +21,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
   /// The result of parsing the [content].
   late YamlNode node;
 
-  /// The error to be fixed.
+  /// The diagnostic to be fixed.
   late Diagnostic diagnostic;
 
   /// Return the kind of fixes being tested by this test class.

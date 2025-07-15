@@ -99,13 +99,13 @@ class ElementResolver {
   /// declaration.
   bool get isInConstConstructor {
     var function = _resolver.enclosingFunction;
-    if (function is ConstructorElementImpl2) {
+    if (function is ConstructorElementImpl) {
       return function.isConst;
     }
     return false;
   }
 
-  ErrorReporter get _errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
@@ -127,13 +127,13 @@ class ElementResolver {
     if (redirectedNode != null) {
       // set redirected factory constructor
       var redirectedElement = redirectedNode.element;
-      element.redirectedConstructor2 = redirectedElement;
+      element.redirectedConstructor = redirectedElement;
     } else {
       // set redirected generative constructor
       for (ConstructorInitializer initializer in node.initializers) {
         if (initializer is RedirectingConstructorInvocationImpl) {
           var redirectedElement = initializer.element;
-          element.redirectedConstructor2 = redirectedElement;
+          element.redirectedConstructor = redirectedElement;
         }
       }
     }
@@ -152,9 +152,9 @@ class ElementResolver {
       ConstructorElementMixin2? constructor;
       var name = node.name;
       if (name == null) {
-        constructor = type.lookUpConstructor2(null, _definingLibrary);
+        constructor = type.lookUpConstructor(null, _definingLibrary);
       } else {
-        constructor = type.lookUpConstructor2(name.name, _definingLibrary);
+        constructor = type.lookUpConstructor(name.name, _definingLibrary);
         name.element = constructor;
       }
       node.element = constructor;
@@ -175,7 +175,7 @@ class ElementResolver {
       invokedConstructor,
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -211,7 +211,7 @@ class ElementResolver {
       // The element is null when the URI is invalid
       // TODO(brianwilkerson): Figure out whether the element can ever be
       // something other than an ExportElement
-      _resolveCombinators(exportElement.exportedLibrary2, node.combinators);
+      _resolveCombinators(exportElement.exportedLibrary, node.combinators);
       _resolveAnnotations(node.metadata);
     }
   }
@@ -265,7 +265,7 @@ class ElementResolver {
     var importElement = node.libraryImport;
     if (importElement != null) {
       // The element is null when the URI is invalid
-      var library = importElement.importedLibrary2;
+      var library = importElement.importedLibrary;
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
@@ -283,7 +283,7 @@ class ElementResolver {
       invokedConstructor,
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -340,16 +340,16 @@ class ElementResolver {
     covariant RedirectingConstructorInvocationImpl node,
   ) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl2) {
+    if (enclosingClass is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
-    ConstructorElementImpl2? element;
+    ConstructorElementImpl? element;
     var name = node.constructorName;
     if (name == null) {
-      element = enclosingClass.unnamedConstructor2;
+      element = enclosingClass.unnamedConstructor;
     } else {
-      element = enclosingClass.getNamedConstructor2(name.name);
+      element = enclosingClass.getNamedConstructor(name.name);
     }
     if (element == null) {
       // TODO(brianwilkerson): Report this error and decide what element to
@@ -363,7 +363,7 @@ class ElementResolver {
     var argumentList = node.argumentList;
     var parameters = _resolveArgumentsToFunction(argumentList, element);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -379,7 +379,7 @@ class ElementResolver {
     covariant SuperConstructorInvocationImpl node,
   ) {
     var enclosingClass = _resolver.enclosingClass;
-    if (enclosingClass is! InterfaceElementImpl2) {
+    if (enclosingClass is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
     }
@@ -390,16 +390,16 @@ class ElementResolver {
     }
     var name = node.constructorName;
     var superName = name?.name;
-    var element = superType.lookUpConstructor2(superName, _definingLibrary);
-    if (element == null || !element.isAccessibleIn2(_definingLibrary)) {
+    var element = superType.lookUpConstructor(superName, _definingLibrary);
+    if (element == null || !element.isAccessibleIn(_definingLibrary)) {
       if (name != null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
           arguments: [superType, name.name],
         );
       } else {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
           arguments: [superType],
@@ -412,7 +412,7 @@ class ElementResolver {
           !element.enclosingElement.constructors.every(
             (constructor) => constructor.isFactory,
           )) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
           arguments: [element],
@@ -440,7 +440,7 @@ class ElementResolver {
       enclosingConstructor: node.thisOrAncestorOfType<ConstructorDeclaration>(),
     );
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 = parameters;
+      argumentList.correspondingStaticParameters = parameters;
     }
   }
 
@@ -449,14 +449,17 @@ class ElementResolver {
     switch (context) {
       case SuperContext.annotation:
       case SuperContext.static:
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
         );
       case SuperContext.extension:
-        _errorReporter.atNode(node, CompileTimeErrorCode.SUPER_IN_EXTENSION);
+        _diagnosticReporter.atNode(
+          node,
+          CompileTimeErrorCode.SUPER_IN_EXTENSION,
+        );
       case SuperContext.extensionType:
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           node,
           CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE,
         );
@@ -491,7 +494,7 @@ class ElementResolver {
     return ResolverVisitor.resolveArgumentsToParameters(
       argumentList: argumentList,
       formalParameters: executableElement.formalParameters,
-      errorReporter: _errorReporter,
+      diagnosticReporter: _diagnosticReporter,
       enclosingConstructor: enclosingConstructor,
     );
   }
@@ -527,7 +530,7 @@ class ElementResolver {
           // Ensure that the name always resolves to a top-level variable
           // rather than a getter or setter
           if (element is PropertyAccessorElement) {
-            name.element = element.variable3;
+            name.element = element.variable;
           } else {
             name.element = element;
           }
@@ -548,7 +551,7 @@ class ElementResolver {
       var elementAnnotation =
           annotation.elementAnnotation as ElementAnnotationImpl?;
       if (elementAnnotation != null) {
-        elementAnnotation.element2 = annotation.element2;
+        elementAnnotation.element2 = annotation.element;
       }
     }
   }

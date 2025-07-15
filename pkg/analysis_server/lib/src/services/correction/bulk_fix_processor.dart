@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/errors.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -32,7 +31,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
@@ -157,9 +156,7 @@ class BulkFixProcessor {
   static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
   static final Set<String> _diagnosticCodes =
-      errorCodeValues
-          .map((DiagnosticCode code) => code.name.toLowerCase())
-          .toSet();
+      diagnosticCodeValues.map((code) => code.name.toLowerCase()).toSet();
 
   static final Set<String> _lintCodes =
       Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
@@ -263,7 +260,7 @@ class BulkFixProcessor {
           continue;
         }
 
-        if (!await _hasFixableErrors(context, path)) {
+        if (!await _hasFixableDiagnostics(context, path)) {
           continue;
         }
 
@@ -273,19 +270,19 @@ class BulkFixProcessor {
           break;
         }
         if (parsedLibrary is ParsedLibraryResult) {
-          var errorListener = RecordingErrorListener();
+          var diagnosticListener = RecordingDiagnosticListener();
           var contextUnits = <RuleContextUnit>[];
 
           for (var parsedUnit in parsedLibrary.units) {
-            var errorReporter = ErrorReporter(
-              errorListener,
+            var diagnosticReporter = DiagnosticReporter(
+              diagnosticListener,
               StringSource(parsedUnit.content, null),
             );
             contextUnits.add(
               RuleContextUnit(
                 file: parsedUnit.file,
                 content: parsedUnit.content,
-                errorReporter: errorReporter,
+                diagnosticReporter: diagnosticReporter,
                 unit: parsedUnit.unit,
               ),
             );
@@ -295,7 +292,7 @@ class BulkFixProcessor {
           }
           await _fixErrorsInParsedLibrary(
             parsedLibrary,
-            errorListener.errors,
+            diagnosticListener.diagnostics,
             stopAfterFirst: false,
           );
           if (isCancelled) {
@@ -503,7 +500,7 @@ class BulkFixProcessor {
           continue;
         }
 
-        if (!await _hasFixableErrors(context, path)) {
+        if (!await _hasFixableDiagnostics(context, path)) {
           continue;
         }
 
@@ -535,7 +532,7 @@ class BulkFixProcessor {
     RuleContextUnit currentUnit,
     List<RuleContextUnit> allUnits,
   ) {
-    var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
+    var nodeRegistry = RuleVisitorRegistryImpl(enableTiming: false);
     // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
     // wrong.
     var context = RuleContextWithParsedResults(allUnits, currentUnit);
@@ -544,7 +541,7 @@ class BulkFixProcessor {
             .map((name) => Registry.ruleRegistry.getRule(name))
             .nonNulls;
     for (var lintRule in lintRules) {
-      lintRule.reporter = currentUnit.errorReporter;
+      lintRule.reporter = currentUnit.diagnosticReporter;
       lintRule.registerNodeProcessors(nodeRegistry, context);
     }
 
@@ -559,16 +556,16 @@ class BulkFixProcessor {
     AnalysisOptions analysisOptions,
     List<Diagnostic> originalDiagnostics,
   ) sync* {
-    var errors = originalDiagnostics.toList();
-    errors.sort((a, b) => a.offset.compareTo(b.offset));
-    for (var error in errors) {
+    var diagnostics = originalDiagnostics.toList();
+    diagnostics.sort((a, b) => a.offset.compareTo(b.offset));
+    for (var diagnostic in diagnostics) {
       if (_codes != null &&
-          !_codes.contains(error.errorCode.name.toLowerCase())) {
+          !_codes.contains(diagnostic.diagnosticCode.name.toLowerCase())) {
         continue;
       }
-      var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+      var processor = ErrorProcessor.getProcessor(analysisOptions, diagnostic);
       if (processor == null || processor.severity != null) {
-        yield error;
+        yield diagnostic;
       }
     }
   }
@@ -629,9 +626,17 @@ class BulkFixProcessor {
     //
     // Attempt to apply the fixes that aren't related to directives.
     //
-    for (var error in _filterDiagnostics(analysisOptions, unitResult.errors)) {
-      var context = fixContext(error);
-      await _fixSingleDiagnostic(context, libraryResult, unitResult, error);
+    for (var diagnostic in _filterDiagnostics(
+      analysisOptions,
+      unitResult.diagnostics,
+    )) {
+      var context = fixContext(diagnostic);
+      await _fixSingleDiagnostic(
+        context,
+        libraryResult,
+        unitResult,
+        diagnostic,
+      );
       if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
         return;
       }
@@ -649,17 +654,17 @@ class BulkFixProcessor {
     var unusedImportDiagnostics = <Diagnostic>[];
     for (var diagnostic in _filterDiagnostics(
       analysisOptions,
-      unitResult.errors,
+      unitResult.diagnostics,
     )) {
-      var errorCode = diagnostic.errorCode;
-      if (errorCode is LintCode) {
-        if (DirectivesOrdering.allCodes.contains(errorCode)) {
+      var diagnosticCode = diagnostic.diagnosticCode;
+      if (diagnosticCode is LintCode) {
+        if (DirectivesOrdering.allCodes.contains(diagnosticCode)) {
           directivesOrderingError = diagnostic;
           break;
         }
-      } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
-          errorCode == HintCode.UNNECESSARY_IMPORT ||
-          errorCode == WarningCode.UNUSED_IMPORT) {
+      } else if (diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
+          diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
+          diagnosticCode == WarningCode.UNUSED_IMPORT) {
         unusedImportDiagnostics.add(diagnostic);
       }
     }
@@ -670,18 +675,18 @@ class BulkFixProcessor {
       await _generateFix(
         context,
         OrganizeImports(context: context),
-        directivesOrderingError.errorCode.name,
+        directivesOrderingError.diagnosticCode.name,
       );
       if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
         return;
       }
     } else {
-      for (var error in unusedImportDiagnostics) {
-        var context = correctionContext(error);
+      for (var diagnostic in unusedImportDiagnostics) {
+        var context = correctionContext(diagnostic);
         await _generateFix(
           context,
           RemoveUnusedImport(context: context),
-          error.errorCode.name,
+          diagnostic.diagnosticCode.name,
         );
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
@@ -726,17 +731,18 @@ class BulkFixProcessor {
       selectionLength: diagnostic.length,
     );
 
-    var errorCode = diagnostic.errorCode;
-    var codeName = errorCode.name;
+    var diagnosticCode = diagnostic.diagnosticCode;
+    var codeName = diagnosticCode.name;
     try {
-      if (errorCode is LintCode) {
-        var generators = registeredFixGenerators.lintProducers[errorCode] ?? [];
+      if (diagnosticCode is LintCode) {
+        var generators =
+            registeredFixGenerators.lintProducers[diagnosticCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
         }
         var multiGenerators =
-            registeredFixGenerators.lintMultiProducers[errorCode];
+            registeredFixGenerators.lintMultiProducers[diagnosticCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator(context: context);
@@ -747,12 +753,12 @@ class BulkFixProcessor {
         }
       } else {
         var generators =
-            registeredFixGenerators.nonLintProducers[errorCode] ?? [];
+            registeredFixGenerators.nonLintProducers[diagnosticCode] ?? [];
         await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
         }
-        var multiGenerators = nonLintMultiProducerMap[errorCode];
+        var multiGenerators = nonLintMultiProducerMap[diagnosticCode];
         if (multiGenerators != null) {
           for (var multiGenerator in multiGenerators) {
             var multiProducer = multiGenerator(context: context);
@@ -790,12 +796,12 @@ class BulkFixProcessor {
       selectionLength: diagnostic.length,
     );
 
-    var errorCode = diagnostic.errorCode;
-    var codeName = errorCode.name;
+    var diagnosticCode = diagnostic.diagnosticCode;
+    var codeName = diagnosticCode.name;
     try {
-      if (errorCode is LintCode) {
+      if (diagnosticCode is LintCode) {
         var generators =
-            registeredFixGenerators.parseLintProducers[errorCode] ?? [];
+            registeredFixGenerators.parseLintProducers[diagnosticCode] ?? [];
         await _bulkApply(generators, codeName, context, parsedOnly: true);
         if (isCancelled) {
           return;
@@ -822,7 +828,7 @@ class BulkFixProcessor {
         }
         var unitResult =
             context.currentSession.getParsedUnit(path) as ParsedUnitResult;
-        if (unitResult.errors.isNotEmpty) {
+        if (unitResult.diagnostics.isNotEmpty) {
           continue;
         }
 
@@ -869,8 +875,11 @@ class BulkFixProcessor {
     }
   }
 
-  /// Returns whether [path] has any errors that might be fixable.
-  Future<bool> _hasFixableErrors(AnalysisContext context, String path) async {
+  /// Returns whether [path] has any diagnostics that might be fixable.
+  Future<bool> _hasFixableDiagnostics(
+    AnalysisContext context,
+    String path,
+  ) async {
     var errorsResult = await context.currentSession.getErrors(path);
     if (errorsResult is! ErrorsResult) {
       return false;
@@ -878,11 +887,10 @@ class BulkFixProcessor {
 
     var analysisOptions = errorsResult.session.analysisContext
         .getAnalysisOptionsForFile(errorsResult.file);
-    var filteredErrors = _filterDiagnostics(
+    return _filterDiagnostics(
       analysisOptions,
-      errorsResult.errors,
-    );
-    return filteredErrors.any(_isFixableError);
+      errorsResult.diagnostics,
+    ).any((d) => d.isFixable);
   }
 
   Future<BulkFixRequestResult> _organizeDirectives(
@@ -898,18 +906,18 @@ class BulkFixProcessor {
         var unitResult =
             context.currentSession.getParsedUnit(path) as ParsedUnitResult;
         var code = unitResult.content;
-        var errors = unitResult.errors;
+        var diagnostics = unitResult.diagnostics;
         // Check if there are scan/parse errors in the file.
-        var hasParseErrors = errors.any(
-          (error) =>
-              error.errorCode is ScannerErrorCode ||
-              error.errorCode is ParserErrorCode,
+        var hasParseErrors = diagnostics.any(
+          (d) =>
+              d.diagnosticCode is ScannerErrorCode ||
+              d.diagnosticCode is ParserErrorCode,
         );
         if (hasParseErrors) {
           // Cannot process files with parse errors.
           continue;
         }
-        var sorter = ImportOrganizer(code, unitResult.unit, errors);
+        var sorter = ImportOrganizer(code, unitResult.unit, diagnostics);
         var edits = sorter.organize();
         await builder.addDartFileEdit(path, (builder) {
           for (var edit in edits) {
@@ -998,22 +1006,6 @@ class BulkFixProcessor {
           ) ||
           BulkFixProcessor.nonLintMultiProducerMap.containsKey(diagnosticCode);
     });
-  }
-
-  /// Returns whether [diagnostic] is something that might be fixable.
-  static bool _isFixableError(Diagnostic diagnostic) {
-    var errorCode = diagnostic.errorCode;
-
-    // Special cases that can be bulk fixed by this class but not by
-    // FixProcessor.
-    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
-        errorCode == HintCode.UNNECESSARY_IMPORT ||
-        errorCode == WarningCode.UNUSED_IMPORT ||
-        (DirectivesOrdering.allCodes.contains(errorCode))) {
-      return true;
-    }
-
-    return _canBulkFix(errorCode);
   }
 }
 
@@ -1147,6 +1139,22 @@ class IterativeBulkFixProcessor {
 class _PubspecDeps {
   final Set<String> packages = <String>{};
   final Set<String> devPackages = <String>{};
+}
+
+extension on Diagnostic {
+  /// Returns whether this diagnostic is something that might be fixable.
+  bool get isFixable {
+    // Special cases that can be bulk fixed by this class but not by
+    // FixProcessor.
+    if (diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
+        diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
+        diagnosticCode == WarningCode.UNUSED_IMPORT ||
+        (DirectivesOrdering.allCodes.contains(diagnosticCode))) {
+      return true;
+    }
+
+    return BulkFixProcessor._canBulkFix(diagnosticCode);
+  }
 }
 
 extension on int {

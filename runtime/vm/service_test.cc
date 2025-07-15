@@ -91,16 +91,16 @@ static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
       Api::UnwrapGrowableObjectArrayHandle(zone, expr_val);
   const Array& result = Array::Handle(Array::MakeFixedLength(value));
   GrowableObjectArray& growable = GrowableObjectArray::Handle();
-  growable ^= result.At(4);
-  // Append dummy isolate id to parameter values.
-  growable.Add(dummy_isolate_id);
-  Array& array = Array::Handle(Array::MakeFixedLength(growable));
-  result.SetAt(4, array);
   growable ^= result.At(5);
   // Append dummy isolate id to parameter values.
   growable.Add(dummy_isolate_id);
-  array = Array::MakeFixedLength(growable);
+  Array& array = Array::Handle(Array::MakeFixedLength(growable));
   result.SetAt(5, array);
+  growable ^= result.At(6);
+  // Append dummy isolate id to parameter values.
+  growable.Add(dummy_isolate_id);
+  array = Array::MakeFixedLength(growable);
+  result.SetAt(6, array);
   return result.ptr();
 }
 
@@ -278,7 +278,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
 
   // Request an invalid code object.
   service_msg =
-      Eval(lib, "[0, port, '0', 'getObject', ['objectId'], ['code/0']]");
+      Eval(lib, "[0, port, '0', 'getObject', false, ['objectId'], ['code/0']]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
@@ -286,7 +286,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   // The following test checks that a code object can be found only
   // at compile_timestamp()-code.EntryPoint().
   service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', "
+                      "[0, port, '0', 'getObject', false, "
                       "['objectId'], ['code/%" Px64 "-%" Px "']]",
                       compile_timestamp, entry);
   HandleIsolateMessage(isolate, service_msg);
@@ -306,7 +306,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   // Expect this to fail because the address is not the entry point.
   uintptr_t address = entry + 16;
   service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', "
+                      "[0, port, '0', 'getObject', false, "
                       "['objectId'], ['code/%" Px64 "-%" Px "']]",
                       compile_timestamp, address);
   HandleIsolateMessage(isolate, service_msg);
@@ -317,7 +317,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   // Expect this to fail because the timestamp is wrong.
   address = entry;
   service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', "
+                      "[0, port, '0', 'getObject', false, "
                       "['objectId'], ['code/%" Px64 "-%" Px "']]",
                       compile_timestamp - 1, address);
   HandleIsolateMessage(isolate, service_msg);
@@ -327,7 +327,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
   // Request native code at address. Expect the null code object back.
   address = last;
   service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', "
+                      "[0, port, '0', 'getObject', false, "
                       "['objectId'], ['code/native-%" Px "']]",
                       address);
   HandleIsolateMessage(isolate, service_msg);
@@ -337,7 +337,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Code) {
 
   // Request malformed native code.
   service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', ['objectId'], "
+                      "[0, port, '0', 'getObject', false, ['objectId'], "
                       "['code/native%" Px "']]",
                       address);
   HandleIsolateMessage(isolate, service_msg);
@@ -405,7 +405,7 @@ ISOLATE_UNIT_TEST_CASE(Service_PcDescriptors) {
 
   // Fetch object.
   service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', "
+                      "[0, port, '0', 'getObject', false, "
                       "['objectId'], ['%s']]",
                       id);
   HandleIsolateMessage(isolate, service_msg);
@@ -477,7 +477,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
 
   // Fetch object.
   service_msg = EvalF(lib,
-                      "[0, port, '0', 'getObject', "
+                      "[0, port, '0', 'getObject', false, "
                       "['objectId'], ['%s']]",
                       id);
   HandleIsolateMessage(isolate, service_msg);
@@ -538,7 +538,8 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   Array& service_msg = Array::Handle();
 
   // Get persistent handles.
-  service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
+  service_msg =
+      Eval(lib, "[0, port, '0', '_getPersistentHandles', false, [], []]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Look for a heart beat.
@@ -555,7 +556,8 @@ ISOLATE_UNIT_TEST_CASE(Service_PersistentHandles) {
   }
 
   // Get persistent handles (again).
-  service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
+  service_msg =
+      Eval(lib, "[0, port, '0', '_getPersistentHandles', false, [], []]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"type\":\"_PersistentHandles\"", handler.msg());
@@ -620,12 +622,12 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderRootHandler) {
   }
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, '\"', 'alpha', [], []]");
+  service_msg = Eval(lib, "[0, port, '\"', 'alpha', false, [], []]");
   HandleRootMessage(service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"\\\"\"}",
                handler.msg());
-  service_msg = Eval(lib, "[0, port, 1, 'beta', [], []]");
+  service_msg = Eval(lib, "[0, port, 1, 'beta', false, [], []]");
   HandleRootMessage(service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}", handler.msg());
@@ -668,12 +670,12 @@ ISOLATE_UNIT_TEST_CASE(Service_EmbedderIsolateHandler) {
 
   Isolate* isolate = thread->isolate();
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
+  service_msg = Eval(lib, "[0, port, '0', 'alpha', false, [], []]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"0\"}",
                handler.msg());
-  service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
+  service_msg = Eval(lib, "[0, port, '0', 'beta', false, [], []]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":\"0\"}",
@@ -725,7 +727,7 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
   }
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, '0', 'getCpuSamples', [], []]");
+  service_msg = Eval(lib, "[0, port, '0', 'getCpuSamples', false, [], []]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Expect profile

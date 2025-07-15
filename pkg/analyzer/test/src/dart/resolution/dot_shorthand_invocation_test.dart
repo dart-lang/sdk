@@ -60,6 +60,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -101,10 +102,11 @@ DotShorthandInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::member::@parameter::x#element
+          baseElement: <testLibrary>::@class::C::@method::member::@formalParameter::x
           substitution: {U: int}
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C<dynamic> Function(int)
   staticType: C<dynamic>
   typeArgumentTypes
@@ -139,9 +141,10 @@ DotShorthandInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::member::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function(int)
   staticType: C
 ''');
@@ -170,8 +173,9 @@ FunctionExpressionInvocation
     period: .
     propertyName: SimpleIdentifier
       token: id1
-      element: <testLibraryFragment>::@class::C::@getter::id1#element
+      element: <testLibrary>::@class::C::@getter::id1
       staticType: C
+    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -228,8 +232,9 @@ FunctionExpressionInvocation
     period: .
     propertyName: SimpleIdentifier
       token: id1
-      element: <testLibraryFragment>::@class::C::@getter::id1#element
+      element: <testLibrary>::@class::C::@getter::id1
       staticType: C
+    isDotShorthand: false
     staticType: C
   argumentList: ArgumentList
     leftParenthesis: (
@@ -266,6 +271,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -297,6 +303,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -330,10 +337,11 @@ DotShorthandInvocation
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@method::member::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@method::member::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  isDotShorthand: true
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticInvokeType: C Function(int)
   staticType: C
 ''');
@@ -363,6 +371,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: List<C> Function()
   staticType: List<C>
 ''');
@@ -447,6 +456,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -479,6 +489,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -511,6 +522,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C Function()
   staticType: C
 ''');
@@ -550,6 +562,7 @@ DotShorthandInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: CMixin Function()
   staticType: CMixin
 ''');
@@ -586,7 +599,7 @@ DotShorthandInvocation
         constructorName: SimpleIdentifier
           token: new
           element: ConstructorMember
-            baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+            baseElement: <testLibrary>::@class::C::@constructor::new
             substitution: {T: C<dynamic>}
           staticType: null
         argumentList: ArgumentList
@@ -601,17 +614,20 @@ DotShorthandInvocation
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
+              isDotShorthand: true
               correspondingParameter: FieldFormalParameterMember
-                baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+                baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
                 substitution: {T: C<dynamic>}
               staticInvokeType: C<int> Function()
               staticType: C<int>
           rightParenthesis: )
+        isDotShorthand: true
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::memberType::@parameter::u#element
+          baseElement: <testLibrary>::@class::C::@method::memberType::@formalParameter::u
           substitution: {U: C<C<dynamic>>, V: dynamic}
         staticType: C<C<dynamic>>
     rightParenthesis: )
+  isDotShorthand: true
   staticInvokeType: C<C<C<dynamic>>> Function(C<C<dynamic>>)
   staticType: C<C<C<dynamic>>>
   typeArgumentTypes
@@ -706,6 +722,7 @@ DotShorthandInvocation
       SimpleStringLiteral
         literal: "String"
     rightParenthesis: )
+  isDotShorthand: false
   staticInvokeType: C<String> Function(String)
   staticType: C<String>
   typeArgumentTypes

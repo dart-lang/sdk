@@ -40,7 +40,7 @@ main() {
   i_num.i_num;
   //    ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'i_num' isn't defined for the class 'Iterable<num>'.
+  // [cfe] The getter 'i_num' isn't defined for the type 'Iterable<num>'.
 
   Expect.equals("Iterable<int>.i_num", ii.i_num);
   Expect.equals("List<num>.i_num", ln.i_num);

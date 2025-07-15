@@ -40,9 +40,9 @@ class Scanner {
   /// The offset of the first character from the reader.
   final int _readerOffset;
 
-  /// The error listener that will be informed of any errors that are found
-  /// during the scan.
-  final AnalysisErrorListener _errorListener;
+  /// The diagnostic listener that will be informed of any diagnostics that are
+  /// found during the scan.
+  final DiagnosticOrErrorListener _diagnosticListener;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
@@ -60,22 +60,22 @@ class Scanner {
 
   /// Initialize a newly created scanner to scan characters from the given
   /// [source]. The given character [reader] will be used to read the characters
-  /// in the source. The given [_errorListener] will be informed of any errors
+  /// in the source. The given [_diagnosticListener] will be informed of any errors
   /// that are found.
   factory Scanner(
     Source source,
     CharacterReader reader,
-    AnalysisErrorListener errorListener,
+    DiagnosticOrErrorListener diagnosticListener,
   ) => Scanner.fasta(
     source,
-    errorListener,
+    diagnosticListener,
     contents: reader.getContents(),
     offset: reader.offset,
   );
 
   factory Scanner.fasta(
     Source source,
-    AnalysisErrorListener errorListener, {
+    DiagnosticOrErrorListener diagnosticListener, {
     String? contents,
     int offset = -1,
   }) {
@@ -83,7 +83,7 @@ class Scanner {
       source,
       contents ?? source.contents.data,
       offset,
-      errorListener,
+      diagnosticListener,
     );
   }
 
@@ -91,7 +91,7 @@ class Scanner {
     this.source,
     this._contents,
     this._readerOffset,
-    this._errorListener,
+    this._diagnosticListener,
   );
 
   /// The features associated with this scanner.
@@ -128,12 +128,12 @@ class Scanner {
     int offset,
     List<Object?>? arguments,
   ) {
-    _errorListener.onError(
+    _diagnosticListener.onDiagnostic(
       Diagnostic.tmp(
         source: source,
         offset: offset,
         length: 1,
-        errorCode: errorCode,
+        diagnosticCode: errorCode,
         arguments: arguments ?? const [],
       ),
     );
@@ -201,12 +201,12 @@ class Scanner {
 
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
-      _errorListener.onError(
+      _diagnosticListener.onDiagnostic(
         Diagnostic.tmp(
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,
-          errorCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+          diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
           arguments: [latestVersion.major, latestVersion.minor],
         ),
       );

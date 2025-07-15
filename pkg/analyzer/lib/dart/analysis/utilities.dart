@@ -83,8 +83,8 @@ ParseStringResult parseString({
   featureSet ??= FeatureSet.latestLanguageVersion();
   var source = StringSource(content, path ?? '');
   var reader = CharSequenceReader(content);
-  var errorCollector = RecordingErrorListener();
-  var scanner = Scanner(source, reader, errorCollector)..configureFeatures(
+  var diagnosticCollector = RecordingDiagnosticListener();
+  var scanner = Scanner(source, reader, diagnosticCollector)..configureFeatures(
     featureSetForOverriding: featureSet,
     featureSet: featureSet,
   );
@@ -96,7 +96,7 @@ ParseStringResult parseString({
   var lineInfo = LineInfo(scanner.lineStarts);
   var parser = Parser(
     source,
-    errorCollector,
+    diagnosticCollector,
     featureSet: scanner.featureSet,
     languageVersion: languageVersion,
     lineInfo: lineInfo,
@@ -105,14 +105,14 @@ ParseStringResult parseString({
   ParseStringResult result = ParseStringResultImpl(
     content,
     unit,
-    errorCollector.errors,
+    diagnosticCollector.diagnostics,
   );
   if (throwIfDiagnostics && result.errors.isNotEmpty) {
     var buffer = StringBuffer();
     for (var error in result.errors) {
       var location = lineInfo.getLocation(error.offset);
       buffer.writeln(
-        '  ${error.errorCode.name}: ${error.message} - '
+        '  ${error.diagnosticCode.name}: ${error.message} - '
         '${location.lineNumber}:${location.columnNumber}',
       );
     }

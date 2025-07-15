@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -39,10 +40,7 @@ class UseSuperParameters extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isFeatureEnabled(Feature.super_parameters)) return;
 
     var visitor = _Visitor(this, context);
@@ -63,7 +61,7 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  final LinterContext context;
+  final RuleContext context;
   final MultiAnalysisRule rule;
 
   _Visitor(this.rule, this.context);
@@ -210,7 +208,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var arguments = superInvocation.argumentList.arguments;
     for (var argument in arguments) {
       if (argument is NamedExpression &&
-          argument.name.label.name == parameterElement.name3) {
+          argument.name.label.name == parameterElement.name) {
         var expression = argument.expression;
         if (expression is SimpleIdentifier &&
             expression.element == parameterElement) {
@@ -242,8 +240,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     FormalParameterElement thisParameter,
   ) {
     for (var superParameter in superConstructor.formalParameters) {
-      if (superParameter.isNamed &&
-          superParameter.name3 == thisParameter.name3) {
+      if (superParameter.isNamed && superParameter.name == thisParameter.name) {
         return superParameter;
       }
     }

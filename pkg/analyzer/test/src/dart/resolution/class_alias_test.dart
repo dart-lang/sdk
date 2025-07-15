@@ -58,7 +58,7 @@ ClassTypeAlias
         element2: <testLibrary>::@class::C
         type: C
   semicolon: ;
-  declaredElement: <testLibraryFragment>::@class::X
+  declaredElement: <testLibraryFragment> X@46
 ''');
   }
 

@@ -15,7 +15,7 @@ import 'package:kernel/target/targets.dart' show Target;
 import 'package:kernel/type_algebra.dart'
     show Substitution, containsTypeParameter;
 import 'package:kernel/type_environment.dart'
-    show StatefulStaticTypeContext, SubtypeCheckMode, TypeEnvironment;
+    show StatefulStaticTypeContext, TypeEnvironment;
 
 import 'package:vm/transformations/pragma.dart';
 
@@ -649,7 +649,13 @@ class BytecodeGenerator extends RecursiveVisitor {
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions && member.fileOffset != TreeNode.noOffset) {
       flags |= FunctionDeclaration.hasSourcePositionsFlag;
-      position = (member as dynamic).startFileOffset;
+      if (member is Constructor) {
+        position = member.startFileOffset;
+      } else if (member is Procedure) {
+        position = member.fileStartOffset;
+      } else {
+        throw 'Unexpected ${member.runtimeType} $member';
+      }
       endPosition = member.fileEndOffset;
     }
     final Annotations annotations = getFunctionAnnotations(member);
@@ -775,7 +781,11 @@ class BytecodeGenerator extends RecursiveVisitor {
           _genConstructorInitializers(node);
         }
         if (node.isExternal) {
-          _genNoSuchMethodForExternal(node);
+          if (getExternalName(coreTypes, node) != null) {
+            _genExternalCall(node);
+          } else {
+            _genNoSuchMethodForExternal(node);
+          }
         } else {
           _generateNode(node.function?.body);
           // BytecodeAssembler eliminates this bytecode if it is unreachable.
@@ -844,6 +854,31 @@ class BytecodeGenerator extends RecursiveVisitor {
     // Otherwise, setters for static fields can be omitted
     // and fields can be accessed directly.
     return false;
+  }
+
+  void _genExternalCall(Member node) {
+    final function = node.function!;
+
+    if (locals.hasFactoryTypeArgsVar) {
+      asm.emitPush(locals.getVarIndexInFrame(locals.factoryTypeArgsVar));
+    } else if (locals.hasFunctionTypeArgsVar) {
+      asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
+    }
+    if (locals.hasReceiver) {
+      asm.emitPush(locals.getVarIndexInFrame(locals.receiverVar));
+    }
+    for (var param in function.positionalParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+    // Native methods access their parameters by indices, so
+    // native wrappers should pass arguments in the original declaration
+    // order instead of sorted order.
+    for (var param in locals.originalNamedParameters) {
+      asm.emitPush(locals.getVarIndexInFrame(param));
+    }
+
+    final externalCallCpIndex = cp.addExternalCall();
+    asm.emitExternalCall(externalCallCpIndex);
   }
 
   LibraryIndex get libraryIndex => coreTypes.index;
@@ -2094,8 +2129,9 @@ class BytecodeGenerator extends RecursiveVisitor {
       final targetTypeParameters = forwardingTarget.function!.typeParameters;
       assert(host.typeParameters.length == targetTypeParameters.length);
       for (int i = 0; i < targetTypeParameters.length; ++i) {
-        map[targetTypeParameters[i]] =
-            new TypeParameterType(host.typeParameters[i], Nullability.legacy);
+        map[targetTypeParameters[i]] = new TypeParameterType(
+            host.typeParameters[i],
+            host.typeParameters[i].computeNullabilityFromBound());
       }
     }
     return Substitution.fromMap(map);
@@ -2281,7 +2317,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     final DartType bound = (forwardingTypeParameterBounds != null)
         ? forwardingTypeParameterBounds[typeParam]!
         : typeParam.bound;
-    final DartType type = new TypeParameterType(typeParam, Nullability.legacy);
+    final DartType type = new TypeParameterType(
+        typeParam, typeParam.computeNullabilityFromBound());
     _genPushInstantiatorAndFunctionTypeArguments([type, bound]);
     asm.emitPushConstant(cp.addType(type));
     asm.emitPushConstant(cp.addType(bound));
@@ -2316,9 +2353,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitPushConstant(
         name != null ? cp.addName(name) : cp.addString(message!));
     bool isIntOk = typeEnvironment.isSubtypeOf(
-        typeEnvironment.coreTypes.intNonNullableRawType,
-        type,
-        SubtypeCheckMode.ignoringNullabilities);
+        typeEnvironment.coreTypes.intNonNullableRawType, type);
     int subtypeTestCacheCpIndex = cp.addSubtypeTestCache();
     asm.emitAssertAssignable(isIntOk ? 1 : 0, subtypeTestCacheCpIndex);
   }

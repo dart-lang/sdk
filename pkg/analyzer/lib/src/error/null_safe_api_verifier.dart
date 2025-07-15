@@ -7,7 +7,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /// Verifies usages of `Future.value` and `Completer.complete` when null-safety
 /// is enabled.
@@ -18,10 +18,10 @@ import 'package:analyzer/src/error/codes.g.dart';
 ///
 /// This verifier detects and reports those scenarios.
 class NullSafeApiVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
 
-  NullSafeApiVerifier(this._errorReporter, this._typeSystem);
+  NullSafeApiVerifier(this._diagnosticReporter, this._typeSystem);
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
@@ -30,7 +30,7 @@ class NullSafeApiVerifier {
     if (constructor == null) return;
 
     var type = constructor.returnType;
-    var isFutureValue = type.isDartAsyncFuture && constructor.name3 == 'value';
+    var isFutureValue = type.isDartAsyncFuture && constructor.name == 'value';
 
     if (isFutureValue) {
       _checkTypes(
@@ -48,10 +48,10 @@ class NullSafeApiVerifier {
     var targetType = node.realTarget?.staticType;
     if (targetType is! InterfaceTypeImpl) return;
 
-    var targetClass = targetType.element3;
+    var targetClass = targetType.element;
 
-    if (targetClass.library2.isDartAsync == true &&
-        targetClass.name3 == 'Completer' &&
+    if (targetClass.library.isDartAsync == true &&
+        targetClass.name == 'Completer' &&
         node.methodName.name == 'complete') {
       _checkTypes(
         node,
@@ -81,7 +81,7 @@ class NullSafeApiVerifier {
     var argumentIsNull = argument == null || _typeSystem.isNull(argumentType!);
 
     if (argumentIsNull) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         argument ?? node,
         WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE,
         arguments: [memberName, type.getDisplayString()],

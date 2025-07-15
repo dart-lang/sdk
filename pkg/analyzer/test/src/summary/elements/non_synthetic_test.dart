@@ -27,56 +27,56 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @6
           element: <testLibrary>::@class::C
           fields
-            hasInitializer foo @16
-              reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
-              getter2: <testLibraryFragment>::@class::C::@getter::foo
-              setter2: <testLibraryFragment>::@class::C::@setter::foo
+            #F2 hasInitializer foo @16
+              element: <testLibrary>::@class::C::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@class::C::@getter::foo
-              element: <testLibraryFragment>::@class::C::@getter::foo#element
+            #F4 synthetic foo
+              element: <testLibrary>::@class::C::@getter::foo
+              returnType: int
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@class::C::@setter::foo
-              element: <testLibraryFragment>::@class::C::@setter::foo#element
+            #F5 synthetic foo
+              element: <testLibrary>::@class::C::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::_foo#element
+                #F6 _foo
+                  element: <testLibrary>::@class::C::@setter::foo::@formalParameter::_foo
   classes
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          reference: <testLibrary>::@class::C::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@class::C::@getter::foo#element
-          setter: <testLibraryFragment>::@class::C::@setter::foo#element
+          getter: <testLibrary>::@class::C::@getter::foo
+          setter: <testLibrary>::@class::C::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::C::@getter::foo
+          firstFragment: #F4
           returnType: int
+          variable: <testLibrary>::@class::C::@field::foo
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@class::C::@setter::foo
+          firstFragment: #F5
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional _foo
+              firstFragment: #F6
               type: int
           returnType: void
 ''');
@@ -93,42 +93,42 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @6
           element: <testLibrary>::@class::C
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
-              getter2: <testLibraryFragment>::@class::C::@getter::foo
+            #F2 synthetic foo
+              element: <testLibrary>::@class::C::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            get foo @20
-              reference: <testLibraryFragment>::@class::C::@getter::foo
-              element: <testLibraryFragment>::@class::C::@getter::foo#element
+            #F4 foo @20
+              element: <testLibrary>::@class::C::@getter::foo
+              returnType: int
   classes
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          reference: <testLibrary>::@class::C::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@class::C::@getter::foo#element
+          getter: <testLibrary>::@class::C::@getter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@class::C::@getter::foo
+        foo
+          reference: <testLibrary>::@class::C::@getter::foo
+          firstFragment: #F4
           returnType: int
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -143,46 +143,45 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class C @6
-          reference: <testLibraryFragment>::@class::C
+        #F1 class C @6
           element: <testLibrary>::@class::C
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@class::C::@field::foo
-              element: <testLibraryFragment>::@class::C::@field::foo#element
-              setter2: <testLibraryFragment>::@class::C::@setter::foo
+            #F2 synthetic foo
+              element: <testLibrary>::@class::C::@field::foo
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            set foo @16
-              reference: <testLibraryFragment>::@class::C::@setter::foo
-              element: <testLibraryFragment>::@class::C::@setter::foo#element
+            #F4 foo @16
+              element: <testLibrary>::@class::C::@setter::foo
               formalParameters
-                value @24
-                  element: <testLibraryFragment>::@class::C::@setter::foo::@parameter::value#element
+                #F5 value @24
+                  element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F1
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@class::C::@field::foo
+          reference: <testLibrary>::@class::C::@field::foo
+          firstFragment: #F2
           type: int
-          setter: <testLibraryFragment>::@class::C::@setter::foo#element
+          setter: <testLibrary>::@class::C::@setter::foo
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@class::C::@setter::foo
+        foo
+          reference: <testLibrary>::@class::C::@setter::foo
+          firstFragment: #F4
           formalParameters
-            requiredPositional value
+            #E0 requiredPositional value
+              firstFragment: #F5
               type: int
           returnType: void
 ''');
@@ -199,16 +198,14 @@ enum E {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        enum E @5
-          reference: <testLibraryFragment>::@enum::E
+        #F1 enum E @5
           element: <testLibrary>::@enum::E
           fields
-            hasInitializer a @11
-              reference: <testLibraryFragment>::@enum::E::@field::a
-              element: <testLibraryFragment>::@enum::E::@field::a#element
+            #F2 hasInitializer a @11
+              element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -216,15 +213,13 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: <testLibraryFragment>::@enum::E::@getter::a
-            hasInitializer b @14
-              reference: <testLibraryFragment>::@enum::E::@field::b
-              element: <testLibraryFragment>::@enum::E::@field::b#element
+            #F3 hasInitializer b @14
+              element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -232,85 +227,91 @@ library
                       name: E @-1
                       element2: <testLibrary>::@enum::E
                       type: E
-                    element: <testLibraryFragment>::@enum::E::@constructor::new#element
+                    element: <testLibrary>::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-              getter2: <testLibraryFragment>::@enum::E::@getter::b
-            synthetic values
-              reference: <testLibraryFragment>::@enum::E::@field::values
-              element: <testLibraryFragment>::@enum::E::@field::values#element
+            #F4 synthetic values
+              element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
                     SimpleIdentifier
                       token: a @-1
-                      element: <testLibraryFragment>::@enum::E::@getter::a#element
+                      element: <testLibrary>::@enum::E::@getter::a
                       staticType: E
                     SimpleIdentifier
                       token: b @-1
-                      element: <testLibraryFragment>::@enum::E::@getter::b#element
+                      element: <testLibrary>::@enum::E::@getter::b
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-              getter2: <testLibraryFragment>::@enum::E::@getter::values
           constructors
-            synthetic const new
-              reference: <testLibraryFragment>::@enum::E::@constructor::new
-              element: <testLibraryFragment>::@enum::E::@constructor::new#element
+            #F5 synthetic const new
+              element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            synthetic get a
-              reference: <testLibraryFragment>::@enum::E::@getter::a
-              element: <testLibraryFragment>::@enum::E::@getter::a#element
-            synthetic get b
-              reference: <testLibraryFragment>::@enum::E::@getter::b
-              element: <testLibraryFragment>::@enum::E::@getter::b#element
-            synthetic get values
-              reference: <testLibraryFragment>::@enum::E::@getter::values
-              element: <testLibraryFragment>::@enum::E::@getter::values#element
+            #F6 synthetic a
+              element: <testLibrary>::@enum::E::@getter::a
+              returnType: E
+            #F7 synthetic b
+              element: <testLibrary>::@enum::E::@getter::b
+              returnType: E
+            #F8 synthetic values
+              element: <testLibrary>::@enum::E::@getter::values
+              returnType: List<E>
   enums
     enum E
       reference: <testLibrary>::@enum::E
-      firstFragment: <testLibraryFragment>::@enum::E
+      firstFragment: #F1
       supertype: Enum
       fields
         static const enumConstant hasInitializer a
-          firstFragment: <testLibraryFragment>::@enum::E::@field::a
+          reference: <testLibrary>::@enum::E::@field::a
+          firstFragment: #F2
           type: E
           constantInitializer
-            fragment: <testLibraryFragment>::@enum::E::@field::a
+            fragment: #F2
             expression: expression_0
-          getter: <testLibraryFragment>::@enum::E::@getter::a#element
+          getter: <testLibrary>::@enum::E::@getter::a
         static const enumConstant hasInitializer b
-          firstFragment: <testLibraryFragment>::@enum::E::@field::b
+          reference: <testLibrary>::@enum::E::@field::b
+          firstFragment: #F3
           type: E
           constantInitializer
-            fragment: <testLibraryFragment>::@enum::E::@field::b
+            fragment: #F3
             expression: expression_1
-          getter: <testLibraryFragment>::@enum::E::@getter::b#element
+          getter: <testLibrary>::@enum::E::@getter::b
         synthetic static const values
-          firstFragment: <testLibraryFragment>::@enum::E::@field::values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F4
           type: List<E>
           constantInitializer
-            fragment: <testLibraryFragment>::@enum::E::@field::values
+            fragment: #F4
             expression: expression_2
-          getter: <testLibraryFragment>::@enum::E::@getter::values#element
+          getter: <testLibrary>::@enum::E::@getter::values
       constructors
         synthetic const new
-          firstFragment: <testLibraryFragment>::@enum::E::@constructor::new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
       getters
-        synthetic static get a
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::a
+        synthetic static a
+          reference: <testLibrary>::@enum::E::@getter::a
+          firstFragment: #F6
           returnType: E
-        synthetic static get b
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::b
+          variable: <testLibrary>::@enum::E::@field::a
+        synthetic static b
+          reference: <testLibrary>::@enum::E::@getter::b
+          firstFragment: #F7
           returnType: E
-        synthetic static get values
-          firstFragment: <testLibraryFragment>::@enum::E::@getter::values
+          variable: <testLibrary>::@enum::E::@field::b
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F8
           returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
 ''');
   }
 
@@ -325,50 +326,50 @@ mixin M {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            hasInitializer foo @16
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
-              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
-              setter2: <testLibraryFragment>::@mixin::M::@setter::foo
+            #F2 hasInitializer foo @16
+              element: <testLibrary>::@mixin::M::@field::foo
           getters
-            synthetic get foo
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              element: <testLibraryFragment>::@mixin::M::@getter::foo#element
+            #F3 synthetic foo
+              element: <testLibrary>::@mixin::M::@getter::foo
+              returnType: int
           setters
-            synthetic set foo
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              element: <testLibraryFragment>::@mixin::M::@setter::foo#element
+            #F4 synthetic foo
+              element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                _foo
-                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::_foo#element
+                #F5 _foo
+                  element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_foo
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         hasInitializer foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
-          setter: <testLibraryFragment>::@mixin::M::@setter::foo#element
+          getter: <testLibrary>::@mixin::M::@getter::foo
+          setter: <testLibrary>::@mixin::M::@setter::foo
       getters
-        synthetic get foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+        synthetic foo
+          reference: <testLibrary>::@mixin::M::@getter::foo
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@mixin::M::@field::foo
       setters
-        synthetic set foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
+        synthetic foo
+          reference: <testLibrary>::@mixin::M::@setter::foo
+          firstFragment: #F4
           formalParameters
-            requiredPositional _foo
+            #E0 requiredPositional _foo
+              firstFragment: #F5
               type: int
           returnType: void
 ''');
@@ -385,36 +386,36 @@ mixin M {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
-              getter2: <testLibraryFragment>::@mixin::M::@getter::foo
+            #F2 synthetic foo
+              element: <testLibrary>::@mixin::M::@field::foo
           getters
-            get foo @20
-              reference: <testLibraryFragment>::@mixin::M::@getter::foo
-              element: <testLibraryFragment>::@mixin::M::@getter::foo#element
+            #F3 foo @20
+              element: <testLibrary>::@mixin::M::@getter::foo
+              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          getter: <testLibraryFragment>::@mixin::M::@getter::foo#element
+          getter: <testLibrary>::@mixin::M::@getter::foo
       getters
-        get foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@getter::foo
+        foo
+          reference: <testLibrary>::@mixin::M::@getter::foo
+          firstFragment: #F3
           returnType: int
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -429,40 +430,39 @@ mixin M {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        mixin M @6
-          reference: <testLibraryFragment>::@mixin::M
+        #F1 mixin M @6
           element: <testLibrary>::@mixin::M
           fields
-            synthetic foo
-              reference: <testLibraryFragment>::@mixin::M::@field::foo
-              element: <testLibraryFragment>::@mixin::M::@field::foo#element
-              setter2: <testLibraryFragment>::@mixin::M::@setter::foo
+            #F2 synthetic foo
+              element: <testLibrary>::@mixin::M::@field::foo
           setters
-            set foo @16
-              reference: <testLibraryFragment>::@mixin::M::@setter::foo
-              element: <testLibraryFragment>::@mixin::M::@setter::foo#element
+            #F3 foo @16
+              element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                value @24
-                  element: <testLibraryFragment>::@mixin::M::@setter::foo::@parameter::value#element
+                #F4 value @24
+                  element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::value
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
-      firstFragment: <testLibraryFragment>::@mixin::M
+      firstFragment: #F1
       superclassConstraints
         Object
       fields
         synthetic foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@field::foo
+          reference: <testLibrary>::@mixin::M::@field::foo
+          firstFragment: #F2
           type: int
-          setter: <testLibraryFragment>::@mixin::M::@setter::foo#element
+          setter: <testLibrary>::@mixin::M::@setter::foo
       setters
-        set foo
-          firstFragment: <testLibraryFragment>::@mixin::M::@setter::foo
+        foo
+          reference: <testLibrary>::@mixin::M::@setter::foo
+          firstFragment: #F3
           formalParameters
-            requiredPositional value
+            #E0 requiredPositional value
+              firstFragment: #F4
               type: int
           returnType: void
 ''');
@@ -477,27 +477,27 @@ int get foo => 0;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo (offset=-1)
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F1 synthetic foo (offset=8)
           element: <testLibrary>::@topLevelVariable::foo
-          getter2: <testLibraryFragment>::@getter::foo
       getters
-        get foo @8
-          reference: <testLibraryFragment>::@getter::foo
-          element: <testLibraryFragment>::@getter::foo#element
+        #F2 foo @8
+          element: <testLibrary>::@getter::foo
+          returnType: int
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F1
       type: int
-      getter: <testLibraryFragment>::@getter::foo#element
+      getter: <testLibrary>::@getter::foo
   getters
-    static get foo
-      firstFragment: <testLibraryFragment>::@getter::foo
+    static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
       returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -511,41 +511,41 @@ set foo(int value) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo (offset=-1)
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F1 synthetic foo (offset=8)
           element: <testLibrary>::@topLevelVariable::foo
-          getter2: <testLibraryFragment>::@getter::foo
-          setter2: <testLibraryFragment>::@setter::foo
       getters
-        get foo @8
-          reference: <testLibraryFragment>::@getter::foo
-          element: <testLibraryFragment>::@getter::foo#element
+        #F2 foo @8
+          element: <testLibrary>::@getter::foo
+          returnType: int
       setters
-        set foo @22
-          reference: <testLibraryFragment>::@setter::foo
-          element: <testLibraryFragment>::@setter::foo#element
+        #F3 foo @22
+          element: <testLibrary>::@setter::foo
           formalParameters
-            value @30
-              element: <testLibraryFragment>::@setter::foo::@parameter::value#element
+            #F4 value @30
+              element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F1
       type: int
-      getter: <testLibraryFragment>::@getter::foo#element
-      setter: <testLibraryFragment>::@setter::foo#element
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
   getters
-    static get foo
-      firstFragment: <testLibraryFragment>::@getter::foo
+    static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
       returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
   setters
-    static set foo
-      firstFragment: <testLibraryFragment>::@setter::foo
+    static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
       formalParameters
-        requiredPositional value
+        #E0 requiredPositional value
+          firstFragment: #F4
           type: int
       returnType: void
 ''');
@@ -560,31 +560,30 @@ set foo(int value) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        synthetic foo (offset=-1)
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F1 synthetic foo (offset=4)
           element: <testLibrary>::@topLevelVariable::foo
-          setter2: <testLibraryFragment>::@setter::foo
       setters
-        set foo @4
-          reference: <testLibraryFragment>::@setter::foo
-          element: <testLibraryFragment>::@setter::foo#element
+        #F2 foo @4
+          element: <testLibrary>::@setter::foo
           formalParameters
-            value @12
-              element: <testLibraryFragment>::@setter::foo::@parameter::value#element
+            #F3 value @12
+              element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
     synthetic foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F1
       type: int
-      setter: <testLibraryFragment>::@setter::foo#element
+      setter: <testLibrary>::@setter::foo
   setters
-    static set foo
-      firstFragment: <testLibraryFragment>::@setter::foo
+    static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F2
       formalParameters
-        requiredPositional value
+        #E0 requiredPositional value
+          firstFragment: #F3
           type: int
       returnType: void
 ''');
@@ -599,41 +598,41 @@ int foo = 0;
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        hasInitializer foo @4
-          reference: <testLibraryFragment>::@topLevelVariable::foo
+        #F1 hasInitializer foo @4
           element: <testLibrary>::@topLevelVariable::foo
-          getter2: <testLibraryFragment>::@getter::foo
-          setter2: <testLibraryFragment>::@setter::foo
       getters
-        synthetic get foo
-          reference: <testLibraryFragment>::@getter::foo
-          element: <testLibraryFragment>::@getter::foo#element
+        #F2 synthetic foo
+          element: <testLibrary>::@getter::foo
+          returnType: int
       setters
-        synthetic set foo
-          reference: <testLibraryFragment>::@setter::foo
-          element: <testLibraryFragment>::@setter::foo#element
+        #F3 synthetic foo
+          element: <testLibrary>::@setter::foo
           formalParameters
-            _foo
-              element: <testLibraryFragment>::@setter::foo::@parameter::_foo#element
+            #F4 _foo
+              element: <testLibrary>::@setter::foo::@formalParameter::_foo
   topLevelVariables
     hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
-      firstFragment: <testLibraryFragment>::@topLevelVariable::foo
+      firstFragment: #F1
       type: int
-      getter: <testLibraryFragment>::@getter::foo#element
-      setter: <testLibraryFragment>::@setter::foo#element
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
   getters
-    synthetic static get foo
-      firstFragment: <testLibraryFragment>::@getter::foo
+    synthetic static foo
+      reference: <testLibrary>::@getter::foo
+      firstFragment: #F2
       returnType: int
+      variable: <testLibrary>::@topLevelVariable::foo
   setters
-    synthetic static set foo
-      firstFragment: <testLibraryFragment>::@setter::foo
+    synthetic static foo
+      reference: <testLibrary>::@setter::foo
+      firstFragment: #F3
       formalParameters
-        requiredPositional _foo
+        #E0 requiredPositional _foo
+          firstFragment: #F4
           type: int
       returnType: void
 ''');

@@ -16,6 +16,7 @@ void main() {
     defineReflectiveTests(RenameClassTest);
     defineReflectiveTests(RenameConstructorTest);
     defineReflectiveTests(RenameExtensionTest);
+    defineReflectiveTests(RenameExtensionTypeTest);
     defineReflectiveTests(RenameFieldTest);
     defineReflectiveTests(RenameGetterTest);
     defineReflectiveTests(RenameSetterTest);
@@ -741,6 +742,115 @@ var s = New.empty;
   Future<void> test_staticField_removed_prefixed() async {
     setPackageContent('''
 extension New on String {
+  static String empty = '';
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri' as p;
+
+var s = p.Old.empty;
+''');
+    await assertHasFix('''
+import '$importUri' as p;
+
+var s = p.New.empty;
+''');
+  }
+}
+
+@reflectiveTest
+class RenameExtensionTypeTest extends _AbstractRenameTest {
+  @override
+  String get _kind => 'extensionType';
+
+  Future<void> test_override_deprecated() async {
+    setPackageContent('''
+@deprecated
+extension type Old(String _) implements String {
+  int get double => length * 2;
+}
+extension type New(String _) implements String {
+  int get double => length * 2;
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+var l = Old('a').double;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var l = New('a').double;
+''');
+  }
+
+  Future<void> test_override_removed() async {
+    setPackageContent('''
+extension type New(String _) implements String {
+  int get double => length * 2;
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+var l = Old('a').double;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var l = New('a').double;
+''');
+  }
+
+  Future<void> test_staticField_deprecated() async {
+    setPackageContent('''
+@deprecated
+extension type Old(String _) implements String {
+  static String empty = '';
+}
+extension type New(String _) implements String {
+  static String empty = '';
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+var s = Old.empty;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var s = New.empty;
+''');
+  }
+
+  Future<void> test_staticField_removed() async {
+    setPackageContent('''
+extension type New(String _) implements String {
+  static String empty = '';
+}
+''');
+    setPackageData(_rename(['Old'], 'New'));
+    await resolveTestCode('''
+import '$importUri';
+
+var s = Old.empty;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+var s = New.empty;
+''');
+  }
+
+  Future<void> test_staticField_removed_prefixed() async {
+    setPackageContent('''
+extension type New(String _) implements String {
   static String empty = '';
 }
 ''');
@@ -1695,7 +1805,7 @@ abstract class _AbstractRenameTest extends DataDrivenFixProcessorTest {
     date: DateTime.now(),
     element: ElementDescriptor(
       libraryUris: [Uri.parse(importUri)],
-      kind: ElementKindUtilities.fromName(_kind)!,
+      kind: ElementKind.fromName(_kind)!,
       isStatic: isStatic,
       components: components,
     ),

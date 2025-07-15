@@ -14,7 +14,7 @@ prebuilt_dart_action("bootstrap_gen_kernel") {
     "$_dart_root/runtime/vm:vm_platform",
   ]
   gen_kernel_script = "$_dart_root/pkg/vm/bin/gen_kernel.dart"
-  platform_dill = "$root_out_dir/vm_platform_strong.dill"
+  platform_dill = "$root_out_dir/vm_platform.dill"
   package_config = rebase_path("$_dart_root/.dart_tool/package_config.json")
 
   inputs = [

@@ -30,7 +30,7 @@ const int b = a as int;
 AsExpression
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: num
   asOperator: as
   type: NamedType
@@ -86,7 +86,7 @@ AsExpression
   asOperator: as
   type: NamedType
     name: T
-    element2: T@8
+    element2: #E0 T
     type: T
   staticType: T
 ''');
@@ -109,7 +109,7 @@ AsExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {

@@ -22,7 +22,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ADD_RETURN_TYPE;
+  AssistKind get assistKind => DartAssistKind.addReturnType;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_RETURN_TYPE;
@@ -99,18 +99,18 @@ class AddReturnType extends ResolvedCorrectionProducer {
 
     if (body.isAsynchronous) {
       if (body.isGenerator) {
-        return typeProvider.streamElement2.instantiate(
+        return typeProvider.streamElement.instantiate(
           typeArguments: [baseType],
           nullabilitySuffix: baseType.nullabilitySuffix,
         );
       } else {
-        return typeProvider.futureElement2.instantiate(
+        return typeProvider.futureElement.instantiate(
           typeArguments: [baseType],
           nullabilitySuffix: baseType.nullabilitySuffix,
         );
       }
     } else if (body.isGenerator) {
-      return typeProvider.iterableElement2.instantiate(
+      return typeProvider.iterableElement.instantiate(
         typeArguments: [baseType],
         nullabilitySuffix: baseType.nullabilitySuffix,
       );

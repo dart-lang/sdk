@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -25,10 +26,7 @@ class LibraryPrivateTypesInPublicApi extends LintRule {
       LinterLintCode.library_private_types_in_public_api;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -137,7 +135,7 @@ class Validator extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element is FieldFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element3.name3)) {
+      if (type is InterfaceType && isPrivateName(type.element.name)) {
         rule.reportAtToken(node.name);
       }
     }
@@ -216,7 +214,7 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (element != null && isPrivate(element)) {
       rule.reportAtToken(node.name);
     }
@@ -249,7 +247,7 @@ class Validator extends SimpleAstVisitor<void> {
     var element = node.declaredFragment?.element;
     if (element is SuperFormalParameterElement) {
       var type = element.type;
-      if (type is InterfaceType && isPrivateName(type.element3.name3)) {
+      if (type is InterfaceType && isPrivateName(type.element.name)) {
         rule.reportAtToken(node.name);
       }
     }
@@ -281,7 +279,7 @@ class Validator extends SimpleAstVisitor<void> {
 
   /// Return `true` if the given [element] is private or is defined in a private
   /// library.
-  static bool isPrivate(Element element) => isPrivateName(element.name3);
+  static bool isPrivate(Element element) => isPrivateName(element.name);
 
   static bool isPrivateName(String? name) =>
       name != null && Identifier.isPrivateName(name);

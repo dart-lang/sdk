@@ -12,6 +12,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../kernel/type_algorithms.dart';
 import '../source/source_loader.dart';
+import '../source/type_parameter_factory.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
@@ -95,7 +96,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
       ClassHierarchyBase? hierarchy) {
     DartType aliasedType =
         _buildAliasedInternal(libraryBuilder, typeUse, hierarchy);
-    return unaliasing.unalias(aliasedType, legacyEraseAliases: false);
+    return unaliasing.unalias(aliasedType);
   }
 
   @override
@@ -196,7 +197,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
       Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralParameterBuilder> unboundTypeParameters,
+      TypeParameterFactory typeParameterFactory,
       {Variance variance = Variance.covariant}) {
     Map<TypeParameterBuilder, TypeBuilder> oldUpperSubstitution = {};
     for (MapEntry<TypeParameterBuilder, TypeBuilder> entry
@@ -216,7 +217,7 @@ class SynthesizedTypeBuilder extends FixedTypeBuilder {
       }
     }
     return _applySubstitution(_typeBuilder.substituteRange(
-        oldUpperSubstitution, oldLowerSubstitution, unboundTypeParameters));
+        oldUpperSubstitution, oldLowerSubstitution, typeParameterFactory));
   }
 
   @override

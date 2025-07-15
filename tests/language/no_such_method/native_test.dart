@@ -18,7 +18,7 @@ expectNSME(Object? d) {
   try {
     d.noSuchMethod(invocation);
   } on NoSuchMethodError catch (e) {
-    Expect.isTrue(e.toString().contains('foobar'));
+    Expect.equals(#foobar, invocation.memberName);
   }
 }
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,10 +20,7 @@ class MatchingSuperParameters extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.matching_super_parameters;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -56,8 +54,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                 .declaredFragment
                 ?.element
                 .supertype
-                ?.element3
-                .unnamedConstructor2;
+                ?.element
+                .unnamedConstructor;
       }
     }
     if (superConstructor is! ConstructorElement) return;
@@ -72,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < positionalSuperParameters.length; i++) {
       var superParameter = positionalSuperParameters[i];
       var superParameterName = superParameter.name.lexeme;
-      var parameterOfSuperName = positionalParametersOfSuper[i].name3;
+      var parameterOfSuperName = positionalParametersOfSuper[i].name;
       if (parameterOfSuperName != null &&
           superParameterName != parameterOfSuperName) {
         rule.reportAtNode(

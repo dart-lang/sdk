@@ -2781,6 +2781,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
   }
 
   @override
+  void visitEmbeddedGlobalGet(HEmbeddedGlobalGet node) {
+    push(_emitter.generateEmbeddedGlobalAccess(node.name));
+  }
+
+  @override
   void visitCreate(HCreate node) {
     js.Expression jsClassReference = _emitter.constructorAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);

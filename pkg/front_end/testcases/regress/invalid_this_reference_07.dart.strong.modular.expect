@@ -11,7 +11,7 @@ library;
 //   var foo = this();
 //             ^^^^
 //
-// pkg/front_end/testcases/regress/invalid_this_reference_07.dart:17:13: Error: The method 'call' isn't defined for the class 'FooClass'.
+// pkg/front_end/testcases/regress/invalid_this_reference_07.dart:17:13: Error: The method 'call' isn't defined for the type 'FooClass'.
 //  - 'FooClass' is from 'pkg/front_end/testcases/regress/invalid_this_reference_07.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'call'.
 //   var foo = this();
@@ -21,7 +21,7 @@ import self as self;
 import "dart:core" as core;
 
 class FooClass extends core::Object {
-  field dynamic foo = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_07.dart:17:13: Error: The method 'call' isn't defined for the class 'FooClass'.
+  field dynamic foo = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_07.dart:17:13: Error: The method 'call' isn't defined for the type 'FooClass'.
  - 'FooClass' is from 'pkg/front_end/testcases/regress/invalid_this_reference_07.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'call'.
   var foo = this();

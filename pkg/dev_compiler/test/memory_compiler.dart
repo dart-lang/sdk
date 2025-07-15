@@ -19,7 +19,11 @@ class MemoryCompilerResult {
   final List<fe.DiagnosticMessage> errors;
 
   MemoryCompilerResult(
-      this.ddcResult, this.compiler, this.program, this.errors);
+    this.ddcResult,
+    this.compiler,
+    this.program,
+    this.errors,
+  );
 }
 
 /// Result of compiling using [componentFromMemory].
@@ -45,9 +49,11 @@ Uri memoryDirectory = Uri.parse('memory://');
 /// be absolute, using [baseUri] (defaulted to [memoryDirectory]) to refer to a
 /// file from [memoryFiles].
 Future<MemoryComponentResult> componentFromMemory(
-    Map<String, String> memoryFiles, Uri entryPoint,
-    {Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags = const {},
-    Uri? baseUri}) async {
+  Map<String, String> memoryFiles,
+  Uri entryPoint, {
+  Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags = const {},
+  Uri? baseUri,
+}) async {
   baseUri ??= memoryDirectory;
   var errors = <fe.DiagnosticMessage>[];
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
@@ -64,19 +70,21 @@ Future<MemoryComponentResult> componentFromMemory(
         .writeAsStringSync(entry.value);
   }
   var compilerState = fe.initializeCompiler(
-      null,
-      false,
-      sourcePathToUri(getSdkPath()),
-      sourcePathToUri(defaultSdkSummaryPath),
-      null,
-      sourcePathToUri(defaultLibrarySpecPath),
-      [],
-      DevCompilerTarget(TargetFlags(trackWidgetCreation: false)),
-      fileSystem: fe.HybridFileSystem(memoryFileSystem),
-      environmentDefines: {},
-      explicitExperimentalFlags: explicitExperimentalFlags);
-  var result =
-      await fe.compile(compilerState, [entryPoint], diagnosticMessageHandler);
+    null,
+    false,
+    sourcePathToUri(getSdkPath()),
+    sourcePathToUri(defaultSdkSummaryPath),
+    null,
+    sourcePathToUri(defaultLibrarySpecPath),
+    [],
+    DevCompilerTarget(TargetFlags(trackWidgetCreation: false)),
+    fileSystem: fe.HybridFileSystem(memoryFileSystem),
+    environmentDefines: {},
+    explicitExperimentalFlags: explicitExperimentalFlags,
+  );
+  var result = await fe.compile(compilerState, [
+    entryPoint,
+  ], diagnosticMessageHandler);
   if (result == null) {
     throw 'Memory compilation failed';
   }
@@ -90,11 +98,13 @@ Future<MemoryComponentResult> componentFromMemory(
 /// be absolute, using [baseUri] (defaulted to [memoryDirectory]) to refer to a
 /// file from [memoryFiles].
 Future<MemoryComponentResult> incrementalComponentFromMemory(
-    Map<String, String> memoryFiles, Uri entryPoint,
-    {Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags = const {},
-    Uri? baseUri,
-    fe.InitializedCompilerState? initialCompilerState,
-    Uri? packageConfigUri}) async {
+  Map<String, String> memoryFiles,
+  Uri entryPoint, {
+  Map<fe.ExperimentalFlag, bool> explicitExperimentalFlags = const {},
+  Uri? baseUri,
+  fe.InitializedCompilerState? initialCompilerState,
+  Uri? packageConfigUri,
+}) async {
   baseUri ??= memoryDirectory;
   var errors = <fe.DiagnosticMessage>[];
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
@@ -111,35 +121,39 @@ Future<MemoryComponentResult> incrementalComponentFromMemory(
         .writeAsStringSync(entry.value);
   }
   var inputDigests = {
-    sourcePathToUri(defaultSdkSummaryPath): const [0]
+    sourcePathToUri(defaultSdkSummaryPath): const [0],
   };
   var compilerState = await fe.initializeIncrementalCompiler(
-      initialCompilerState,
-      {},
-      [],
-      false,
-      sourcePathToUri(getSdkPath()),
-      sourcePathToUri(defaultSdkSummaryPath),
-      packageConfigUri,
-      sourcePathToUri(defaultLibrarySpecPath),
-      [],
-      inputDigests,
-      DevCompilerTarget(TargetFlags(trackWidgetCreation: false)),
-      fileSystem: fe.HybridFileSystem(memoryFileSystem),
-      environmentDefines: {},
-      explicitExperimentalFlags: explicitExperimentalFlags);
+    initialCompilerState,
+    {},
+    [],
+    false,
+    sourcePathToUri(getSdkPath()),
+    sourcePathToUri(defaultSdkSummaryPath),
+    packageConfigUri,
+    sourcePathToUri(defaultLibrarySpecPath),
+    [],
+    inputDigests,
+    DevCompilerTarget(TargetFlags(trackWidgetCreation: false)),
+    fileSystem: fe.HybridFileSystem(memoryFileSystem),
+    environmentDefines: {},
+    explicitExperimentalFlags: explicitExperimentalFlags,
+  );
   var incrementalCompiler = compilerState.incrementalCompiler!;
   compilerState.options.onDiagnostic = diagnosticMessageHandler;
-  var incrementalCompilerResult = await incrementalCompiler
-      .computeDelta(entryPoints: [entryPoint], fullComponent: false);
+  var incrementalCompilerResult = await incrementalCompiler.computeDelta(
+    entryPoints: [entryPoint],
+    fullComponent: false,
+  );
   var cachedSdkInput =
       compilerState.workerInputCache![sourcePathToUri(defaultSdkSummaryPath)];
   var result = fe.DdcResult(
-      incrementalCompilerResult.component,
-      cachedSdkInput?.component,
-      [],
-      incrementalCompilerResult.classHierarchy,
-      incrementalCompilerResult.neededDillLibraries);
+    incrementalCompilerResult.component,
+    cachedSdkInput?.component,
+    [],
+    incrementalCompilerResult.classHierarchy,
+    incrementalCompilerResult.neededDillLibraries,
+  );
   return MemoryComponentResult(result, errors, compilerState);
 }
 
@@ -149,9 +163,11 @@ Future<MemoryComponentResult> incrementalComponentFromMemory(
 /// be absolute, using [memoryDirectory] as a base uri to refer to a file from
 /// [memoryFiles].
 Future<MemoryCompilerResult> compileFromMemory(
-    Map<String, String> memoryFiles, Uri entryPoint,
-    {Map<fe.ExperimentalFlag, bool>? explicitExperimentalFlags,
-    Uri? baseUri}) async {
+  Map<String, String> memoryFiles,
+  Uri entryPoint, {
+  Map<fe.ExperimentalFlag, bool>? explicitExperimentalFlags,
+  Uri? baseUri,
+}) async {
   baseUri ??= memoryDirectory;
   var MemoryComponentResult(ddcResult: result, :errors) =
       await componentFromMemory(memoryFiles, entryPoint, baseUri: baseUri);

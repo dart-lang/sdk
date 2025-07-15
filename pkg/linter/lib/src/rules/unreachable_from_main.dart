@@ -4,6 +4,7 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -30,10 +31,7 @@ class UnreachableFromMain extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -41,7 +39,7 @@ class UnreachableFromMain extends LintRule {
 
 /// This gathers all declarations which we may wish to report on.
 class _DeclarationGatherer {
-  final LinterContext linterContext;
+  final RuleContext linterContext;
 
   /// All declarations which we may wish to report on.
   final Set<Declaration> declarations = {};
@@ -114,7 +112,7 @@ class _DeclarationGatherer {
           for (var field in member.fields.variables) {
             var element = field.declaredFragment?.element;
             if (element is FieldElement && element.isPublic) {
-              if (!isOverride(element.getter2)) {
+              if (!isOverride(element.getter)) {
                 declarations.add(field);
               }
             }
@@ -153,7 +151,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    var e = node.element2;
+    var e = node.element;
     if (e != null) {
       _addDeclaration(e);
     }
@@ -192,7 +190,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
           // The class is instantiated through the use of mirrors in
           // 'test_reflective_loader'.
           var unnamedConstructor = element.constructors.firstWhereOrNull(
-            (constructor) => constructor.name3 == 'new',
+            (constructor) => constructor.name == 'new',
           );
           if (unnamedConstructor != null) {
             _addDeclaration(unnamedConstructor);
@@ -235,7 +233,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var e = node.element;
     if (e != null && _patternLevel == 0) {
       _addDeclaration(e);
-      var type = node.type.element2;
+      var type = node.type.element;
       if (type != null) {
         _addDeclaration(type);
       }
@@ -266,7 +264,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -280,7 +278,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     node.type?.alias != null ||
         // Any reference to an extension type marks it as reachable, since
         // casting can be used to instantiate the type.
-        node.type?.element3 is ExtensionTypeElement ||
+        node.type?.element is ExtensionTypeElement ||
         nodeIsInTypeArgument ||
         // A reference to any type in an external variable declaration marks
         // that type as reachable, since the external implementation can
@@ -305,7 +303,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    var e = node.element2;
+    var e = node.element;
     if (e != null) {
       _addDeclaration(e);
     }
@@ -374,7 +372,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   /// or static method on a public top-level element.
   void _addDeclaration(Element element) {
     // First add the enclosing top-level declaration.
-    var enclosingTopLevelElement = element.thisOrAncestorMatching2(
+    var enclosingTopLevelElement = element.thisOrAncestorMatching(
       (a) => a.enclosingElement == null || a.enclosingElement is LibraryElement,
     );
     var enclosingTopLevelDeclaration = declarationMap[enclosingTopLevelElement];
@@ -406,8 +404,8 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var classElement = class_.declaredFragment?.element;
     var supertype = classElement?.supertype;
     if (supertype != null) {
-      var unnamedConstructor = supertype.constructors2.firstWhereOrNull(
-        (e) => e.name3 == 'new',
+      var unnamedConstructor = supertype.constructors.firstWhereOrNull(
+        (e) => e.name == 'new',
       );
       if (unnamedConstructor != null) {
         _addDeclaration(unnamedConstructor);
@@ -420,7 +418,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.element2;
+    var element = node.element;
     if (element == null) {
       return;
     }
@@ -438,11 +436,11 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _visitCompoundAssignmentExpression(CompoundAssignmentExpression node) {
-    var readElement = node.readElement2;
+    var readElement = node.readElement;
     if (readElement != null) {
       _addDeclaration(readElement);
     }
-    var writeElement = node.writeElement2;
+    var writeElement = node.writeElement;
     if (writeElement != null) {
       _addDeclaration(writeElement);
     }
@@ -451,7 +449,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -472,14 +470,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (element != null) {
         declarationByElement[element] = declaration;
         if (element is TopLevelVariableElement) {
-          var getter = element.getter2;
+          var getter = element.getter;
           if (getter != null) declarationByElement[getter] = declaration;
-          var setter = element.setter2;
+          var setter = element.setter;
           if (setter != null) declarationByElement[setter] = declaration;
         } else if (element is FieldElement) {
-          var getter = element.getter2;
+          var getter = element.getter;
           if (getter != null) declarationByElement[getter] = declaration;
-          var setter = element.setter2;
+          var setter = element.setter;
           if (setter != null) declarationByElement[setter] = declaration;
         }
       }
@@ -600,8 +598,8 @@ extension on ElementAnnotation {
   bool get isWidgetPreview {
     var element2 = this.element2;
     return element2 is ConstructorElement &&
-        element2.enclosingElement.name3 == 'Preview' &&
-        element2.library2.uri == _flutterWidgetPreviewLibraryUri;
+        element2.enclosingElement.name == 'Preview' &&
+        element2.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -630,9 +628,9 @@ extension on Element {
           metadata.hasWidgetPreview,
     _ => false,
   };
-  bool get isPragma => (library2?.isDartCore ?? false) && name3 == 'pragma';
+  bool get isPragma => (library?.isDartCore ?? false) && name == 'pragma';
   bool get isWidgetPreview =>
-      (library2?.isWidgetPreviews ?? false) && name3 == 'Preview';
+      (library?.isWidgetPreviews ?? false) && name == 'Preview';
 }
 
 extension on Annotation {
@@ -642,7 +640,7 @@ extension on Annotation {
       // Dunno what this is.
       return false;
     }
-    return type is InterfaceType && type.element3.isPragma;
+    return type is InterfaceType && type.element.isPragma;
   }
 
   bool get isWidgetPreview {
@@ -651,7 +649,7 @@ extension on Annotation {
       // Dunno what this is.
       return false;
     }
-    return type is InterfaceType && type.element3.isWidgetPreview;
+    return type is InterfaceType && type.element.isWidgetPreview;
   }
 
   DartType? get _elementType {

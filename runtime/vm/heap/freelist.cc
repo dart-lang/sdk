@@ -172,8 +172,8 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         }
         previous->set_next(current->next());
         if (target_is_protected) {
-          VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
-                                 kWordSize, VirtualMemory::kReadExecute);
+          VirtualMemory::WriteProtectCode(
+              reinterpret_cast<void*>(target_address), kWordSize);
         }
       }
       SplitElementAfterAndEnqueue(current, size, is_protected);
@@ -266,12 +266,11 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
     if (!VirtualMemory::InSamePage(
             remainder_address - 1,
             remainder_address + remainder_header_size - 1)) {
-      VirtualMemory::Protect(
+      VirtualMemory::WriteProtectCode(
           reinterpret_cast<void*>(
               Utils::RoundUp(remainder_address, VirtualMemory::PageSize())),
           remainder_address + remainder_header_size -
-              Utils::RoundUp(remainder_address, VirtualMemory::PageSize()),
-          VirtualMemory::kReadExecute);
+              Utils::RoundUp(remainder_address, VirtualMemory::PageSize()));
     }
   }
 }

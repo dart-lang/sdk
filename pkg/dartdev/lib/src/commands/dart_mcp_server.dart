@@ -4,6 +4,10 @@
 
 import 'dart:async';
 
+import 'package:args/args.dart';
+import 'package:dart_mcp_server/arg_parser.dart' as dart_mcp_server;
+import 'package:dartdev/src/utils.dart';
+
 import '../core.dart';
 import '../sdk.dart';
 import '../vm_interop_handler.dart';
@@ -12,46 +16,45 @@ class DartMCPServerCommand extends DartdevCommand {
   static const String cmdName = 'mcp-server';
 
   static const String cmdDescription = '''
-A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter development.
+A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter development.''';
 
-EXPERIMENTAL: This tool may change dramatically or disappear at any time.''';
-
-  static const _forceRootsFallbackFlag = 'force-roots-fallback';
   static const _experimentFlag = 'experimental-mcp-server';
+
+  @override
+  ArgParser createArgParser() => dart_mcp_server.createArgParser(
+      usageLineLength: dartdevUsageLineLength, includeHelp: false);
 
   DartMCPServerCommand({bool verbose = false})
       : super(cmdName, cmdDescription, verbose, hidden: true) {
-    argParser
-      ..addFlag(
-        _forceRootsFallbackFlag,
-        negatable: true,
+    argParser.addFlag(_experimentFlag,
+        // This flag is no longer required but we are leaving it in for
+        // backwards compatibility.
+        hide: true,
         defaultsTo: false,
-        help:
-            'Forces a behavior for project roots which uses MCP tools instead '
-            'of the native MCP roots. This can be helpful for clients like '
-            'Cursor which claim to have roots support but do not actually '
-            'support it.',
-      )
-      ..addFlag(_experimentFlag,
-          defaultsTo: false,
-          help: 'A required flag in order to use this command. Passing this '
-              'flag is an acknowledgement that you understand it is an '
-              'experimental feature with no stability guarantees.');
+        help: 'A required flag in order to use this command. Passing this '
+            'flag is an acknowledgement that you understand it is an '
+            'experimental feature with no stability guarantees.');
   }
 
   @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
+  @override
   Future<int> run() async {
-    final args = argResults!;
-    if (!args.flag(_experimentFlag)) {
-      log.stderr('Missing required flag --$_experimentFlag\n\n$usage');
-      return 64;
+    final parsedArgs = argResults!;
+
+    // Strip out the experiment flag before forwarding on the args, this flag
+    // isn't supported by the actual binary.
+    final forwardedArgs = argResults!.arguments.toList();
+    if (parsedArgs.wasParsed(_experimentFlag)) {
+      forwardedArgs.removeWhere((arg) => arg.endsWith(_experimentFlag));
     }
     try {
       VmInteropHandler.run(
         sdk.dartAotRuntime,
         [
           sdk.dartMCPServerAotSnapshot,
-          if (args.flag(_forceRootsFallbackFlag)) '--$_forceRootsFallbackFlag'
+          ...forwardedArgs,
         ],
         useExecProcess: true,
       );

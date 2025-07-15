@@ -8,7 +8,9 @@ import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
 
 void runTests(
-    ExpressionEvaluationTestDriver driver, SetupCompilerOptions setup) {
+  ExpressionEvaluationTestDriver driver,
+  SetupCompilerOptions setup,
+) {
   group('Asserts', () {
     const source = r'''
       void main() {
@@ -33,30 +35,35 @@ void runTests(
       group('enabled |', () {
         test('dart.web.assertions_enabled is set', () async {
           await driver.checkInFrame(
-              breakpointId: 'bp', expression: 'b', expectedResult: 'true');
+            breakpointId: 'bp',
+            expression: 'b',
+            expectedResult: 'true',
+          );
         });
 
         test('assert errors in the source code', () async {
           await driver.checkInFrame(
-              breakpointId: 'bp',
-              expression: 'myAssert()',
-              expectedError: allOf(
-                contains('Error: Assertion failed:'),
-                contains('test.dart:8:16'),
-                contains('false'),
-                contains('is not true'),
-              ));
+            breakpointId: 'bp',
+            expression: 'myAssert()',
+            expectedError: allOf(
+              contains('Error: Assertion failed:'),
+              contains('test.dart:8:16'),
+              contains('false'),
+              contains('is not true'),
+            ),
+          );
         });
         test('assert errors in evaluated expression', () async {
           await driver.checkInFrame(
-              breakpointId: 'bp',
-              expression: '() { assert(false); return 0; } ()',
-              expectedError: allOf(
-                contains('Error: Assertion failed:'),
-                contains('org-dartlang-debug:synthetic_debug_expression:1:13'),
-                contains('false'),
-                contains('is not true'),
-              ));
+            breakpointId: 'bp',
+            expression: '() { assert(false); return 0; } ()',
+            expectedError: allOf(
+              contains('Error: Assertion failed:'),
+              contains('org-dartlang-debug:synthetic_debug_expression:1:13'),
+              contains('false'),
+              contains('is not true'),
+            ),
+          );
         });
       });
     }
@@ -65,21 +72,26 @@ void runTests(
       group('disabled |', () {
         test('dart.web.assertions_enabled is not set', () async {
           await driver.checkInFrame(
-              breakpointId: 'bp', expression: 'b', expectedResult: 'false');
+            breakpointId: 'bp',
+            expression: 'b',
+            expectedResult: 'false',
+          );
         });
 
         test('no assert errors in the source code', () async {
           await driver.checkInFrame(
-              breakpointId: 'bp',
-              expression: 'myAssert()',
-              expectedResult: '0');
+            breakpointId: 'bp',
+            expression: 'myAssert()',
+            expectedResult: '0',
+          );
         });
 
         test('no assert errors in evaluated expression', () async {
           await driver.checkInFrame(
-              breakpointId: 'bp',
-              expression: '() { assert(false); return 0; } ()',
-              expectedResult: '0');
+            breakpointId: 'bp',
+            expression: '() { assert(false); return 0; } ()',
+            expectedResult: '0',
+          );
         });
       });
     }

@@ -129,9 +129,9 @@ Constant evaluateConstant(ast.Constant constant) => switch (constant) {
   ast.ListConstant() => ListConstant(
     constant.entries.map(evaluateConstant).toList(),
   ),
+  ast.InstanceConstant() => evaluateInstanceConstant(constant),
   // The following are not supported, but theoretically could be, so they
   // are listed explicitly here.
-  ast.InstanceConstant() => _unsupported('InstanceConstant'),
   ast.AuxiliaryConstant() => _unsupported('AuxiliaryConstant'),
   ast.SetConstant() => _unsupported('SetConstant'),
   ast.RecordConstant() => _unsupported('RecordConstant'),
@@ -150,6 +150,14 @@ Constant evaluateLiteral(ast.BasicLiteral expression) => switch (expression) {
   ast.DoubleLiteral() => _unsupported('DoubleLiteral'),
   ast.BasicLiteral() => _unsupported(expression.runtimeType.toString()),
 };
+
+InstanceConstant evaluateInstanceConstant(ast.InstanceConstant constant) =>
+    InstanceConstant(
+      fields: constant.fieldValues.map(
+        (key, value) =>
+            MapEntry(key.asField.name.text, evaluateConstant(value)),
+      ),
+    );
 
 Never _unsupported(String constantType) =>
     throw UnsupportedError('$constantType is not supported for recording.');

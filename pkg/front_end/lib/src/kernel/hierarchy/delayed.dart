@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../../base/messages.dart';
 import '../../builder/declaration_builders.dart';
@@ -116,8 +115,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       // Don't report a problem as something else is wrong that has already
       // been reported.
     } else {
-      bool isValid = types.isSubtypeOf(
-          getterType, setterType, SubtypeCheckMode.withNullabilities);
+      bool isValid = types.isSubtypeOf(getterType, setterType);
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
           libraryBuilder.addProblem(

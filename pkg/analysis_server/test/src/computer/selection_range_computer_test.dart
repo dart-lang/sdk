@@ -164,6 +164,27 @@ final foo = Foo("^test");
     ]);
   }
 
+  Future<void> test_constructorCall_dotShorthand() async {
+    var content = '''
+class A {}
+void f() {
+  A a = .^new();
+}
+''';
+
+    var regions = await _computeSelectionRanges(content);
+    _expectRegions(regions, [
+      'new',
+      '.new()',
+      'a = .new()',
+      'A a = .new()',
+      'A a = .new();',
+      '{\n  A a = .new();\n}',
+      '() {\n  A a = .new();\n}',
+      'void f() {\n  A a = .new();\n}',
+    ]);
+  }
+
   Future<void> test_extensionType() async {
     var content = '''
 extension type E<T>(int it) {
@@ -262,6 +283,29 @@ augment class Foo {
       '{\n    print((1 + 2) * 3);\n  }',
       'augment void f() {\n    print((1 + 2) * 3);\n  }',
       'augment class Foo {\n  augment void f() {\n    print((1 + 2) * 3);\n  }\n}',
+    ]);
+  }
+
+  Future<void> test_method_dotShorthand() async {
+    var content = '''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .me^thod();
+}
+''';
+
+    var regions = await _computeSelectionRanges(content);
+    _expectRegions(regions, [
+      'method',
+      '.method()',
+      'a = .method()',
+      'A a = .method()',
+      'A a = .method();',
+      '{\n  A a = .method();\n}',
+      '() {\n  A a = .method();\n}',
+      'void f() {\n  A a = .method();\n}',
     ]);
   }
 
@@ -481,6 +525,27 @@ class Circle {
           '  Square(length: var l) => l * l,\n'
           '  Circle(radius: var r) => math.pi * r * r\n'
           '};',
+    ]);
+  }
+
+  Future<void> test_propertyAccess_dotShorthand() async {
+    var content = '''
+enum A { a }
+void f() {
+  A a = .^a;
+}
+''';
+
+    var regions = await _computeSelectionRanges(content);
+    _expectRegions(regions, [
+      'a',
+      '.a',
+      'a = .a',
+      'A a = .a',
+      'A a = .a;',
+      '{\n  A a = .a;\n}',
+      '() {\n  A a = .a;\n}',
+      'void f() {\n  A a = .a;\n}',
     ]);
   }
 

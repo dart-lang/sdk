@@ -25,7 +25,6 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -67,7 +66,7 @@ import 'package:meta/meta.dart';
 
 /// This function is used to test recording requirements during analysis.
 ///
-/// Some [ElementImpl2] APIs are not trivial, or maybe even impossible, to
+/// Some [ElementImpl] APIs are not trivial, or maybe even impossible, to
 /// trigger. For example because this API is not used during normal resolution
 /// of Dart code, but can be used by a linter rule.
 @visibleForTesting
@@ -110,7 +109,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 469;
+  static const int DATA_VERSION = 494;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -130,11 +129,6 @@ class AnalysisDriver {
   ///
   /// It can be shared with other [AnalysisDriver]s.
   final ByteStore _byteStore;
-
-  /// The cache of deserialized data read from SummaryDataReader.
-  ///
-  /// It can be shared with other [AnalysisDriver]s.
-  final InfoDeclarationStore _infoDeclarationStore;
 
   final LinkedBundleProvider linkedBundleProvider;
 
@@ -305,7 +299,6 @@ class AnalysisDriver {
     AnalysisOptionsMap? analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
-    InfoDeclarationStore? infoDeclarationStore,
     this.enableIndex = false,
     this.shouldReportInconsistentAnalysisException = true,
     SummaryDataStore? externalSummaries,
@@ -319,8 +312,6 @@ class AnalysisDriver {
        _fileContentCache =
            fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-       _infoDeclarationStore =
-           infoDeclarationStore ?? NoOpInfoDeclarationStore(),
        _logger = logger,
        _packages = packages,
        linkedBundleProvider =
@@ -407,7 +398,6 @@ class AnalysisDriver {
       logger: _logger,
       byteStore: _byteStore,
       eventsController: _scheduler.eventsController,
-      infoDeclarationStore: _infoDeclarationStore,
       analysisOptionsMap: analysisOptionsMap,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
@@ -574,9 +564,7 @@ class AnalysisDriver {
     addFile(file.path);
   }
 
-  void afterPerformWork() {
-    _fsState.parsedFileStateCache.clear();
-  }
+  void afterPerformWork() {}
 
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
@@ -606,9 +594,7 @@ class AnalysisDriver {
     required List<Uri> uriList,
     PackageBundleSdk? packageBundleSdk,
   }) async {
-    var elementFactory = libraryContext.elementFactory;
-
-    var bundleWriter = BundleWriter(elementFactory.dynamicRef);
+    var bundleWriter = BundleWriter();
     var packageBundleBuilder = PackageBundleBuilder();
 
     for (var uri in uriList) {
@@ -896,7 +882,7 @@ class AnalysisDriver {
     if (_pendingFileChanges.isEmpty) {
       var rootReference = libraryContext.elementFactory.rootReference;
       var reference = rootReference.getChild('$uriObj');
-      var element = reference.element2;
+      var element = reference.element;
       if (element is LibraryElementImpl) {
         return LibraryElementResultImpl(element);
       }
@@ -1153,16 +1139,16 @@ class AnalysisDriver {
     _applyPendingFileChanges();
 
     var file = _fsState.getFileForPath(path);
-    RecordingErrorListener listener = RecordingErrorListener();
+    RecordingDiagnosticListener listener = RecordingDiagnosticListener();
     CompilationUnit unit = file.parse(
-      errorListener: listener,
+      diagnosticListener: listener,
       performance: OperationPerformanceImpl('<root>'),
     );
     return ParsedUnitResultImpl(
       session: currentSession,
       fileState: file,
       unit: unit,
-      errors: listener.errors,
+      diagnostics: listener.diagnostics,
     );
   }
 
@@ -1421,7 +1407,7 @@ class AnalysisDriver {
             unitFile.path,
             _createErrorsResultImpl(
               file: unitFile,
-              diagnostics: unitResult.errors,
+              diagnostics: unitResult.diagnostics,
             ),
           );
 
@@ -1434,9 +1420,9 @@ class AnalysisDriver {
             var unitBytes =
                 AnalysisDriverResolvedUnitBuilder(
                   errors:
-                      unitResult.errors.map((error) {
-                        return ErrorEncoding.encode(error);
-                      }).toList(),
+                      unitResult.diagnostics
+                          .map((d) => ErrorEncoding.encode(d))
+                          .toList(),
                   index: index,
                 ).toBuffer();
             _byteStore.putGet(unitKey, unitBytes);
@@ -1451,7 +1437,7 @@ class AnalysisDriver {
             _priorityResults[unitFile.path] = resolvedUnit;
           }
 
-          _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.errors);
+          _updateHasErrorOrWarningFlag(unitFile, resolvedUnit.diagnostics);
         }
 
         if (withFineDependencies && requirements != null) {
@@ -1587,9 +1573,9 @@ class AnalysisDriver {
       events.GetErrorsFromBytes(file: file, library: library),
     );
     var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    var errors = _getDiagnosticsFromSerialized(file, unit.errors);
-    _updateHasErrorOrWarningFlag(file, errors);
-    var result = _createErrorsResultImpl(file: file, diagnostics: errors);
+    var diagnostics = _getDiagnosticsFromSerialized(file, unit.errors);
+    _updateHasErrorOrWarningFlag(file, diagnostics);
+    var result = _createErrorsResultImpl(file: file, diagnostics: diagnostics);
     return result;
   }
 
@@ -1605,7 +1591,7 @@ class AnalysisDriver {
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
-      errors: diagnostics,
+      diagnostics: diagnostics,
       analysisOptions: file.analysisOptions,
     );
   }
@@ -1649,7 +1635,7 @@ class AnalysisDriver {
       session: currentSession,
       fileState: file,
       unit: unitResult.unit,
-      errors: unitResult.errors,
+      diagnostics: unitResult.diagnostics,
     );
   }
 
@@ -1698,9 +1684,9 @@ class AnalysisDriver {
   ) {
     List<Diagnostic> diagnostics = <Diagnostic>[];
     for (AnalysisDriverUnitError error in serialized) {
-      var analysisError = ErrorEncoding.decode(file.source, error);
-      if (analysisError != null) {
-        diagnostics.add(analysisError);
+      var diagnostic = ErrorEncoding.decode(file.source, error);
+      if (diagnostic != null) {
+        diagnostics.add(diagnostic);
       }
     }
     return diagnostics;
@@ -1971,12 +1957,12 @@ class AnalysisDriver {
       uri: file.uri,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
-      errors: [
+      diagnostics: [
         Diagnostic.tmp(
           source: file.source,
           offset: 0,
           length: 0,
-          errorCode: CompileTimeErrorCode.MISSING_DART_LIBRARY,
+          diagnosticCode: CompileTimeErrorCode.MISSING_DART_LIBRARY,
           arguments: [missingUri],
         ),
       ],
@@ -2350,7 +2336,7 @@ class AnalysisDriver {
     List<Diagnostic> diagnostics,
   ) {
     for (var diagnostic in diagnostics) {
-      var severity = diagnostic.errorCode.severity;
+      var severity = diagnostic.diagnosticCode.severity;
       if (severity == DiagnosticSeverity.ERROR) {
         file.hasErrorOrWarning = true;
         return;
@@ -2709,7 +2695,7 @@ class ErrorEncoding {
       source: source,
       offset: error.offset,
       length: error.length,
-      errorCode: diagnosticCode,
+      diagnosticCode: diagnosticCode,
       message: error.message,
       correctionMessage: error.correction.isEmpty ? null : error.correction,
       contextMessages: contextMessages,
@@ -2733,7 +2719,7 @@ class ErrorEncoding {
     return AnalysisDriverUnitErrorBuilder(
       offset: diagnostic.offset,
       length: diagnostic.length,
-      uniqueName: diagnostic.errorCode.uniqueName,
+      uniqueName: diagnostic.diagnosticCode.uniqueName,
       message: diagnostic.message,
       correction: diagnostic.correctionMessage ?? '',
       contextMessages: contextMessages,

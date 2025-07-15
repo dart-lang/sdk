@@ -10,7 +10,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:path/path.dart' as path;
 
 Element convertElement(engine.Element element) {
@@ -205,9 +204,9 @@ String? getParametersString(engine.Element element) {
 String? _getTypeParametersString(engine.Element element) {
   List<engine.TypeParameterElement>? typeParameters;
   if (element is engine.InterfaceElement) {
-    typeParameters = element.typeParameters2;
+    typeParameters = element.typeParameters;
   } else if (element is engine.TypeAliasElement) {
-    typeParameters = element.typeParameters2;
+    typeParameters = element.typeParameters;
   }
   if (typeParameters == null || typeParameters.isEmpty) {
     return null;

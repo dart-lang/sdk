@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -102,13 +103,13 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
       sourceUrl: sourceUri,
       resourceProvider: resourceProvider,
     );
-    var listener = RecordingErrorListener();
+    var listener = RecordingDiagnosticListener();
     var file = resourceProvider.getFile(path);
-    var reporter = ErrorReporter(listener, FileSource(file, sourceUri));
+    var reporter = DiagnosticReporter(listener, FileSource(file, sourceUri));
     for (var entry in pubspecRules.entries) {
       entry.key.reporter = reporter;
       pubspecAst.accept(entry.value);
     }
-    return [...listener.errors];
+    return [...listener.diagnostics];
   }
 }

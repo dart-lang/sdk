@@ -90,13 +90,13 @@ abstract class _A&Object&ListMixin = core::Object with col::ListBase<core::int> 
     return super.{col::ListBase::addAll}(iterable);
   synthetic mixin-super-stub method remove(core::Object? element) → core::bool
     return super.{col::ListBase::remove}(element);
-  synthetic mixin-super-stub method _closeGap(core::int start, core::int end) → void
+  synthetic mixin-super-stub method col::_closeGap(core::int start, core::int end) → void
     return super.{col::ListBase::_closeGap}(start, end);
   synthetic mixin-super-stub method removeWhere((core::int) → core::bool test) → void
     return super.{col::ListBase::removeWhere}(test);
   synthetic mixin-super-stub method retainWhere((core::int) → core::bool test) → void
     return super.{col::ListBase::retainWhere}(test);
-  synthetic mixin-super-stub method _filter((core::int) → core::bool test, core::bool retainMatching) → void
+  synthetic mixin-super-stub method col::_filter((core::int) → core::bool test, core::bool retainMatching) → void
     return super.{col::ListBase::_filter}(test, retainMatching);
   synthetic mixin-super-stub method clear() → void
     return super.{col::ListBase::clear}();

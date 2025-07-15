@@ -17,7 +17,7 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 class LiteralElementVerifier {
   final TypeProvider typeProvider;
   final TypeSystemImpl typeSystem;
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final FeatureSet featureSet;
   final ErrorVerifier _errorVerifier;
 
@@ -32,7 +32,7 @@ class LiteralElementVerifier {
   LiteralElementVerifier(
     this.typeProvider,
     this.typeSystem,
-    this.errorReporter,
+    this._diagnosticReporter,
     this._errorVerifier, {
     this.forList = false,
     this.forSet = false,
@@ -77,7 +77,7 @@ class LiteralElementVerifier {
         (forList: true, assignableWhenNullable: true) =>
           CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY,
       };
-      errorReporter.atNode(
+      _diagnosticReporter.atNode(
         errorNode,
         errorCode,
         arguments: [type, elementType],
@@ -97,7 +97,10 @@ class LiteralElementVerifier {
           }
           _checkAssignableToElementType(element.typeOrThrow, element);
         } else {
-          errorReporter.atNode(element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
+          _diagnosticReporter.atNode(
+            element,
+            CompileTimeErrorCode.EXPRESSION_IN_MAP,
+          );
         }
       case ForElementImpl():
         _verifyElement(element.body);
@@ -108,7 +111,7 @@ class LiteralElementVerifier {
         if (forMap) {
           _verifyMapLiteralEntry(element);
         } else {
-          errorReporter.atNode(
+          _diagnosticReporter.atNode(
             element,
             CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP,
           );
@@ -132,7 +135,10 @@ class LiteralElementVerifier {
             element,
           );
         } else {
-          errorReporter.atNode(element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
+          _diagnosticReporter.atNode(
+            element,
+            CompileTimeErrorCode.EXPRESSION_IN_MAP,
+          );
         }
       case null:
         break;
@@ -171,13 +177,13 @@ class LiteralElementVerifier {
             typeSystem.makeNullable(mapKeyType),
             strictCasts: _strictCasts,
           )) {
-        errorReporter.atNode(
+        _diagnosticReporter.atNode(
           entry.key,
           CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY,
           arguments: [keyType, mapKeyType],
         );
       } else {
-        errorReporter.atNode(
+        _diagnosticReporter.atNode(
           entry.key,
           CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
           arguments: [keyType, mapKeyType],
@@ -202,13 +208,13 @@ class LiteralElementVerifier {
             typeSystem.makeNullable(mapValueType),
             strictCasts: _strictCasts,
           )) {
-        errorReporter.atNode(
+        _diagnosticReporter.atNode(
           entry.value,
           CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY,
           arguments: [valueType, mapValueType],
         );
       } else {
-        errorReporter.atNode(
+        _diagnosticReporter.atNode(
           entry.value,
           CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
           arguments: [valueType, mapValueType],
@@ -223,7 +229,7 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
         );
@@ -239,19 +245,19 @@ class LiteralElementVerifier {
       if (isNullAware) {
         return;
       }
-      errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
       );
       return;
     }
 
-    var iterableType = expressionType.asInstanceOf2(
-      typeProvider.iterableElement2,
+    var iterableType = expressionType.asInstanceOf(
+      typeProvider.iterableElement,
     );
 
     if (iterableType == null) {
-      return errorReporter.atNode(
+      return _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.NOT_ITERABLE_SPREAD,
       );
@@ -276,7 +282,7 @@ class LiteralElementVerifier {
         expression,
       );
       if (implicitCallMethod == null) {
-        errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           errorCode,
           arguments: [iterableElementType, elementType],
@@ -287,7 +293,7 @@ class LiteralElementVerifier {
           var typeArguments = typeSystem.inferFunctionTypeInstantiation(
             elementType as FunctionTypeImpl,
             tearoffType,
-            errorReporter: errorReporter,
+            diagnosticReporter: _diagnosticReporter,
             errorNode: expression,
             genericMetadataIsEnabled: true,
             inferenceUsingBoundsIsEnabled: featureSet.isEnabled(
@@ -309,7 +315,7 @@ class LiteralElementVerifier {
           elementType,
           strictCasts: _strictCasts,
         )) {
-          errorReporter.atNode(
+          _diagnosticReporter.atNode(
             expression,
             errorCode,
             arguments: [iterableElementType, elementType],
@@ -325,7 +331,10 @@ class LiteralElementVerifier {
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
-        errorReporter.atNode(expression, CompileTimeErrorCode.NOT_MAP_SPREAD);
+        _diagnosticReporter.atNode(
+          expression,
+          CompileTimeErrorCode.NOT_MAP_SPREAD,
+        );
       }
       return;
     }
@@ -338,17 +347,17 @@ class LiteralElementVerifier {
       if (isNullAware) {
         return;
       }
-      errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD,
       );
       return;
     }
 
-    var mapType = expressionType.asInstanceOf2(typeProvider.mapElement2);
+    var mapType = expressionType.asInstanceOf(typeProvider.mapElement);
 
     if (mapType == null) {
-      return errorReporter.atNode(
+      return _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.NOT_MAP_SPREAD,
       );
@@ -361,7 +370,7 @@ class LiteralElementVerifier {
       mapKeyType!,
       strictCasts: _strictCasts,
     )) {
-      errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
         arguments: [keyType, mapKeyType],
@@ -375,7 +384,7 @@ class LiteralElementVerifier {
       mapValueType!,
       strictCasts: _strictCasts,
     )) {
-      errorReporter.atNode(
+      _diagnosticReporter.atNode(
         expression,
         CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
         arguments: [valueType, mapValueType],

@@ -9,34 +9,29 @@ import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:ffi/ffi.dart';
 
-class WorkItem {
-  int i;
+void doWork(int i, SendPort results) {
   int result = 0;
-
-  WorkItem(this.i);
-
-  doWork(SendPort results) {
-    // Calculate fibonacci number i.
-    if (i < 3) {
-      result = 1;
-    } else {
-      int pp = 1;
-      int p = 1;
-      int j = 3;
-      while (j <= i) {
-        result = pp + p;
-        pp = p;
-        p = result;
-        j++;
-      }
+  // Calculate fibonacci number i.
+  if (i < 3) {
+    result = 1;
+  } else {
+    int pp = 1;
+    int p = 1;
+    int j = 3;
+    while (j <= i) {
+      result = pp + p;
+      pp = p;
+      p = result;
+      j++;
     }
-    results.send(<int>[i, result]);
   }
+  results.send(<int>[i, result]);
 }
 
 class SharedState {
@@ -48,7 +43,7 @@ int totalWorkItems = 10000;
 int numberOfWorkers = 8;
 
 @pragma('vm:shared')
-late List<WorkItem> workItems;
+late Uint16List workItems;
 @pragma('vm:shared')
 late int lastProcessed;
 @pragma('vm:shared')
@@ -61,7 +56,9 @@ late var results = <int, int>{};
 void init() {
   SharedState.totalProcessed = 0;
   lastProcessed = 0;
-  workItems = List<WorkItem>.generate(totalWorkItems, (i) => WorkItem(i + 1));
+  workItems = Uint16List.fromList(
+    List<int>.generate(totalWorkItems, (i) => i + 1),
+  );
   mutex = Mutex();
 }
 
@@ -92,7 +89,7 @@ void main(List<String> args) async {
         if (mine >= workItems.length) {
           break;
         }
-        workItems[mine].doWork(sendPort);
+        doWork(workItems[mine], sendPort);
         countProcessed++;
         mutex.runLocked(() => SharedState.totalProcessed++);
         await Future.delayed(Duration(seconds: 0));

@@ -44,12 +44,12 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
 
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var enumElement = expressionType.element3;
+      var enumElement = expressionType.element;
       if (enumElement is EnumElement) {
-        enumName = enumElement.name3;
+        enumName = enumElement.name;
         for (var field in enumElement.fields) {
           if (field.isEnumConstant) {
-            unhandledEnumCases.addIfNotNull(field.name3);
+            unhandledEnumCases.addIfNotNull(field.name);
           }
         }
         prefix = _importPrefix(enumElement);
@@ -68,7 +68,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
         if (expression is Identifier) {
           var element = expression.element;
           if (element is GetterElement) {
-            unhandledEnumCases.remove(element.name3);
+            unhandledEnumCases.remove(element.name);
           }
         } else if (expression is NullLiteral) {
           unhandledNullValue = false;

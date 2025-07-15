@@ -537,8 +537,8 @@ class A {}
 const class B {}
 ''');
     var result = await resolveFile(testFile);
-    var error = result.errors.single;
-    expect(range.error(error), SourceRange(11, 5));
+    var diagnostic = result.diagnostics.single;
+    expect(range.diagnostic(diagnostic), SourceRange(11, 5));
   }
 
   Future<void> test_node() async {

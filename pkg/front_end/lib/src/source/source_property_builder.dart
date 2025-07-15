@@ -834,36 +834,39 @@ class SetterClassMember implements ClassMember {
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';
 }
 
-abstract class PropertyReferences {
-  Reference? get fieldReference;
-  Reference? get getterReference;
-  Reference? get setterReference;
-
-  void registerReference(SourceLoader loader, SourcePropertyBuilder builder);
-
-  factory PropertyReferences(
-      String name, NameScheme nameScheme, IndexedContainer? indexedContainer,
-      {required bool fieldIsLateWithLowering}) = _PropertyReferences;
-}
-
-class _PropertyReferences implements PropertyReferences {
+/// [Reference]s used for the [Member] nodes created for a property.
+class PropertyReferences {
   Reference? _fieldReference;
   Reference? _getterReference;
   Reference? _setterReference;
 
-  _PropertyReferences._(
-      this._fieldReference, this._getterReference, this._setterReference);
+  /// Creates a [PropertyReferences] object preloaded with the
+  /// [preExistingFieldReference], [preExistingGetterReference] and
+  /// [preExistingSetterReference].
+  ///
+  /// For initial/one-off compilations these are `null`, but for subsequent
+  /// compilations during an incremental compilation, these are the references
+  /// used for the same field, getter, and setter in the previous compilation.
+  PropertyReferences._(
+      {required Reference? preExistingFieldReference,
+      required Reference? preExistingGetterReference,
+      required Reference? preExistingSetterReference})
+      : _fieldReference = preExistingFieldReference,
+        _getterReference = preExistingGetterReference,
+        _setterReference = preExistingSetterReference;
 
-  factory _PropertyReferences(
+  /// Creates a [PropertyReferences] object preloaded with the pre-existing
+  /// references from [indexedContainer], if available.
+  factory PropertyReferences(
       String name, NameScheme nameScheme, IndexedContainer? indexedContainer,
       {required bool fieldIsLateWithLowering}) {
-    Reference? getterReference;
-    Reference? setterReference;
-    Reference? fieldReference;
+    Reference? preExistingGetterReference;
+    Reference? preExistingSetterReference;
+    Reference? preExistingFieldReference;
     if (indexedContainer != null) {
       Name getterNameToLookup =
           nameScheme.getProcedureMemberName(ProcedureKind.Getter, name).name;
-      getterReference =
+      preExistingGetterReference =
           indexedContainer.lookupGetterReference(getterNameToLookup);
 
       Name setterNameToLookup =
@@ -871,10 +874,10 @@ class _PropertyReferences implements PropertyReferences {
       if ((nameScheme.isExtensionMember || nameScheme.isExtensionTypeMember) &&
           nameScheme.isInstanceMember) {
         // Extension (type) instance setters are encoded as methods.
-        setterReference =
+        preExistingSetterReference =
             indexedContainer.lookupGetterReference(setterNameToLookup);
       } else {
-        setterReference =
+        preExistingSetterReference =
             indexedContainer.lookupSetterReference(setterNameToLookup);
       }
 
@@ -882,14 +885,21 @@ class _PropertyReferences implements PropertyReferences {
           .getFieldMemberName(FieldNameType.Field, name,
               isSynthesized: fieldIsLateWithLowering)
           .name;
-      fieldReference = indexedContainer.lookupFieldReference(fieldNameToLookup);
+      preExistingFieldReference =
+          indexedContainer.lookupFieldReference(fieldNameToLookup);
     }
 
-    return new _PropertyReferences._(
-        fieldReference, getterReference, setterReference);
+    return new PropertyReferences._(
+        preExistingFieldReference: preExistingFieldReference,
+        preExistingGetterReference: preExistingGetterReference,
+        preExistingSetterReference: preExistingSetterReference);
   }
 
-  @override
+  /// Registers that [builder] is created for the pre-existing references
+  /// provided in [PropertyReferences._].
+  ///
+  /// This must be called before [fieldReference], [getterReference] and
+  /// [setterReference] are accessed.
   void registerReference(SourceLoader loader, SourcePropertyBuilder builder) {
     if (_fieldReference != null) {
       loader.buildersCreatedWithReferences[_fieldReference!] = builder;
@@ -902,12 +912,15 @@ class _PropertyReferences implements PropertyReferences {
     }
   }
 
-  @override
+  /// The [Reference] used to refer to the field aspect of the [Field] node
+  /// created for this property.
   Reference get fieldReference => _fieldReference ??= new Reference();
 
-  @override
+  /// The [Reference] used to refer to the getter aspect of the [Member] node(s)
+  /// created for this property.
   Reference get getterReference => _getterReference ??= new Reference();
 
-  @override
+  /// The [Reference] used to refer to the setter aspect of the [Member] node(s)
+  /// created for this property.
   Reference get setterReference => _setterReference ??= new Reference();
 }

@@ -30,11 +30,14 @@ import 'dart:math' as Math;
 
 import 'dart:typed_data';
 
-@Native('ArrayBuffer')
-final class NativeByteBuffer extends JavaScriptObject
+// An empty `@Native` annotation allows this type to be treated as a native type
+// but without a corresponding value. dart2js only treats classes as native if
+// they contain this annotation or a parent class is native. This works around
+// that limitation.
+@Native('')
+abstract final class NativeByteBuffer extends JavaScriptObject
     implements ByteBuffer, TrustedGetRuntimeType {
-  @JSName('byteLength')
-  int get lengthInBytes native;
+  int get lengthInBytes => JS('', '#.byteLength', this);
 
   Type get runtimeType => ByteBuffer;
 
@@ -106,6 +109,45 @@ final class NativeByteBuffer extends JavaScriptObject
   NativeByteData asByteData([int offsetInBytes = 0, int? length]) {
     return NativeByteData.view(this, offsetInBytes, length);
   }
+}
+
+@Native('ArrayBuffer')
+final class NativeArrayBuffer extends NativeByteBuffer {}
+
+// Interface class that's exposed through `dart:html` to replace the previous
+// `@Native` `SharedArrayBuffer` class that existed there. Marked as `interface`
+// so that classes that implemented it before from `dart:html` still work.
+abstract interface class SharedArrayBuffer extends JavaScriptObject {
+  factory SharedArrayBuffer([int? length]) {
+    if (length != null) {
+      return NativeSharedArrayBuffer._create1(length);
+    }
+    return NativeSharedArrayBuffer._create2();
+  }
+
+  int? get byteLength;
+
+  SharedArrayBuffer slice([int? begin, int? end]);
+}
+
+@Native('SharedArrayBuffer')
+final class NativeSharedArrayBuffer extends NativeByteBuffer
+    implements SharedArrayBuffer {
+  static NativeSharedArrayBuffer _create1(int length) => JS(
+    'returns:NativeSharedArrayBuffer;effects:none;depends:none;new:true',
+    'new SharedArrayBuffer(#)',
+    length,
+  );
+  static NativeSharedArrayBuffer _create2() => JS(
+    'returns:NativeSharedArrayBuffer;effects:none;depends:none;new:true',
+    'new SharedArrayBuffer()',
+  );
+
+  @override
+  int? get byteLength native;
+
+  @override
+  SharedArrayBuffer slice([int? begin, int? end]) native;
 }
 
 /// A fixed-length list of Float32x4 numbers that is viewable as a

@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/tools.dart';
-import 'package:path/path.dart' as path;
 
 import 'api.dart';
 import 'codegen_dart.dart';
@@ -27,10 +26,10 @@ const Map<String, String> specialElementFlags = {
 
 GeneratedFile target(bool responseRequiresRequestTime,
     CodegenUriConverterKind clientUriConverterKind) {
-  return GeneratedFile('lib/protocol/protocol_generated.dart',
-      (String pkgPath) async {
-    var visitor = CodegenProtocolVisitor(path.basename(pkgPath),
-        responseRequiresRequestTime, clientUriConverterKind, readApi(pkgPath));
+  return GeneratedFile('analyzer_plugin/lib/protocol/protocol_generated.dart',
+      (pkgRoot) async {
+    var visitor = CodegenProtocolVisitor('analyzer_plugin',
+        responseRequiresRequestTime, clientUriConverterKind, readApi(pkgRoot));
     return visitor.collectCode(visitor.visitApi);
   });
 }

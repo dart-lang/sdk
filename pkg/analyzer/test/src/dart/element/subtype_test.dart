@@ -2637,7 +2637,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_multi_futureOr_typeParameter() {
-    TypeParameterElementImpl2 E;
+    TypeParameterElementImpl E;
 
     E = typeParameter('E', bound: objectNone);
     isSubtype(
@@ -2737,8 +2737,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_multi_futureOr_typeParameter_promotion() {
-    TypeParameterElementImpl2 S;
-    TypeParameterElementImpl2 T;
+    TypeParameterElementImpl S;
+    TypeParameterElementImpl T;
 
     T = typeParameter('T', bound: objectNone);
     isSubtype(
@@ -3034,7 +3034,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_multi_typeParameter_promotion() {
-    TypeParameterElementImpl2 T;
+    TypeParameterElementImpl T;
 
     T = typeParameter('T', bound: intNone);
     isSubtype(

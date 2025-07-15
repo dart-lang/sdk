@@ -57,6 +57,7 @@ class TransformSetParser {
   static const String _expressionKey = 'expression';
   static const String _extendsKey = 'extends';
   static const String _extensionKey = 'extension';
+  static const String _extensionTypeKey = 'extensionType';
   static const String _fieldKey = 'field';
   static const String _functionKey = 'function';
   static const String _getterKey = 'getter';
@@ -64,6 +65,7 @@ class TransformSetParser {
   static const String _inClassKey = 'inClass';
   static const String _inEnumKey = 'inEnum';
   static const String _inExtensionKey = 'inExtension';
+  static const String _inExtensionTypeKey = 'inExtensionType';
   static const String _indexKey = 'index';
   static const String _inMixinKey = 'inMixin';
   static const String _kindKey = 'kind';
@@ -92,12 +94,27 @@ class TransformSetParser {
   /// A table mapping top-level keys for member elements to the list of keys for
   /// the possible containers of that element.
   static const Map<String, Set<String>> _containerKeyMap = {
-    _constructorKey: {_inClassKey},
+    _constructorKey: {_inClassKey, _inExtensionTypeKey},
     _constantKey: {_inEnumKey},
-    _fieldKey: {_inClassKey, _inExtensionKey, _inMixinKey},
-    _getterKey: {_inClassKey, _inExtensionKey, _inMixinKey},
-    _methodKey: {_inClassKey, _inExtensionKey, _inMixinKey},
-    _setterKey: {_inClassKey, _inExtensionKey, _inMixinKey},
+    _fieldKey: {_inClassKey, _inExtensionKey, _inExtensionTypeKey, _inMixinKey},
+    _getterKey: {
+      _inClassKey,
+      _inExtensionKey,
+      _inExtensionTypeKey,
+      _inMixinKey,
+    },
+    _methodKey: {
+      _inClassKey,
+      _inExtensionKey,
+      _inExtensionTypeKey,
+      _inMixinKey,
+    },
+    _setterKey: {
+      _inClassKey,
+      _inExtensionKey,
+      _inExtensionTypeKey,
+      _inMixinKey,
+    },
   };
 
   static const String _addParameterKind = 'addParameter';
@@ -138,8 +155,8 @@ class TransformSetParser {
   /// includes removing support for keys and adding a new required key.
   static const int currentVersion = 1;
 
-  /// The error reporter to which diagnostics will be reported.
-  final ErrorReporter errorReporter;
+  /// The diagnostic reporter to which diagnostics will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The name of the package from which the data file being translated was
   /// found, or `null` for the SDK.
@@ -159,8 +176,8 @@ class TransformSetParser {
   List<ParameterModification>? _parameterModifications;
 
   /// Initialize a newly created parser to report diagnostics to the
-  /// [errorReporter].
-  TransformSetParser(this.errorReporter, this.packageName);
+  /// [_diagnosticReporter].
+  TransformSetParser(this._diagnosticReporter, this.packageName);
 
   /// Return the result of parsing the file [content] into a transform set, or
   /// `null` if the content does not represent a valid transform set.
@@ -192,7 +209,7 @@ class TransformSetParser {
       }
       var endIndex = template.indexOf(_closeComponent, variableStart + 2);
       if (endIndex < 0) {
-        errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: templateOffset + variableStart,
           length: 2,
           diagnosticCode: TransformSetErrorCode.missingTemplateEnd,
@@ -204,7 +221,7 @@ class TransformSetParser {
         var name = template.substring(variableStart + 2, endIndex).trim();
         var generator = variableScope.lookup(name);
         if (generator == null) {
-          errorReporter.atOffset(
+          _diagnosticReporter.atOffset(
             offset: templateOffset + template.indexOf(name, variableStart),
             length: name.length,
             diagnosticCode: TransformSetErrorCode.undefinedVariable,
@@ -258,7 +275,7 @@ class TransformSetParser {
       var span = e.span;
       var offset = span?.start.offset ?? 0;
       var length = span?.length ?? 0;
-      errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: offset,
         length: length,
         diagnosticCode: TransformSetErrorCode.yamlSyntaxError,
@@ -277,7 +294,7 @@ class TransformSetParser {
     List<String> arguments = const [],
   ]) {
     var span = node.span;
-    errorReporter.atOffset(
+    _diagnosticReporter.atOffset(
       offset: span.start.offset,
       length: span.length,
       diagnosticCode: code,
@@ -670,7 +687,7 @@ class TransformSetParser {
       return null;
     }
     var accessors = CodeFragmentParser(
-      errorReporter,
+      _diagnosticReporter,
     ).parseAccessors(value, _offsetOfString(valueNode));
     if (accessors == null) {
       // The error has already been reported.
@@ -718,7 +735,7 @@ class TransformSetParser {
         );
         if (requiredIfNode is YamlScalar && requiredIfText != null) {
           requiredIfCondition = CodeFragmentParser(
-            errorReporter,
+            _diagnosticReporter,
             scope: variableScope,
           ).parseCondition(requiredIfText, _offsetOfString(requiredIfNode));
           if (requiredIfCondition == null) {
@@ -780,7 +797,7 @@ class TransformSetParser {
           expressionText != null &&
           changes != null) {
         var expression = CodeFragmentParser(
-          errorReporter,
+          _diagnosticReporter,
           scope: transformVariableScope,
         ).parseCondition(expressionText, _offsetOfString(expressionNode));
         if (expression != null) {
@@ -844,12 +861,13 @@ class TransformSetParser {
       var elementPair = _singleKey(
         map: node,
         translators: {
-          {
+          const {
             _classKey,
             _constantKey,
             _constructorKey,
             _enumKey,
             _extensionKey,
+            _extensionTypeKey,
             _fieldKey,
             _functionKey,
             _getterKey,
@@ -946,7 +964,7 @@ class TransformSetParser {
       }
       return ElementDescriptor(
         libraryUris: uris,
-        kind: ElementKindUtilities.fromName(elementKey)!,
+        kind: ElementKind.fromName(elementKey)!,
         isStatic: isStatic,
         components: components,
       );
@@ -1160,13 +1178,12 @@ class TransformSetParser {
     bool? replaceTarget;
     var replaceTargetNode = node.valueAt(_replaceTarget);
     replaceTarget =
-        replaceTargetNode == null
-            ? false
-            : _translateBool(
-                  replaceTargetNode,
-                  ErrorContext(key: _replaceTarget, parentNode: node),
-                ) ??
-                false;
+        replaceTargetNode != null &&
+        (_translateBool(
+              replaceTargetNode,
+              ErrorContext(key: _replaceTarget, parentNode: node),
+            ) ??
+            false);
     var argumentsNode = node.valueAt(_arguments);
     var argumentList =
         argumentsNode == null
@@ -1473,6 +1490,14 @@ class TransformSetParser {
       ElementKind.fieldKind,
       ElementKind.setterKind,
       ElementKind.variableKind,
+    });
+    // Type declarations can replace each other.
+    addSet({
+      ElementKind.classKind,
+      ElementKind.enumKind,
+      ElementKind.extensionTypeKind,
+      ElementKind.mixinKind,
+      ElementKind.typedefKind,
     });
     return types;
   }

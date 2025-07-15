@@ -10,13 +10,13 @@ import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 
 Future<void> main() async {
-  await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
+  await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);
 }
 
 final allTargets = [
   GeneratedFile(
-    'lib/src/wolf/ir/ir.g.dart',
-    (pkgPath) async => _IrGenerator().run(),
+    'analyzer/lib/src/wolf/ir/ir.g.dart',
+    (pkgRoot) async => _IrGenerator().run(),
   ),
 ];
 

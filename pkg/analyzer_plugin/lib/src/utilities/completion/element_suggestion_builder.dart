@@ -36,7 +36,7 @@ mixin ElementSuggestionBuilder {
   void addSuggestion(Element element,
       {String? prefix, int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
-      if (element.library2 != containingLibrary) {
+      if (element.library != containingLibrary) {
         return;
       }
     }
@@ -56,7 +56,7 @@ mixin ElementSuggestionBuilder {
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
       if (element.isSynthetic && element is PropertyAccessorElement) {
-        var cacheKey = element.name3;
+        var cacheKey = element.name;
         if (cacheKey != null) {
           var existingSuggestion = _syntheticMap[cacheKey];
 

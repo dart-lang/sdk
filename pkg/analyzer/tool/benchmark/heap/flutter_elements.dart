@@ -101,10 +101,10 @@ Future<void> _analyzeFiles(AnalysisContextCollectionImpl collection) async {
         var errorsResult = await analysisSession.getErrors(filePath);
         if (errorsResult is ErrorsResult) {
           var errors =
-              errorsResult.errors
+              errorsResult.diagnostics
                   .where(
                     (element) =>
-                        element.errorCode.type ==
+                        element.diagnosticCode.type ==
                         DiagnosticType.COMPILE_TIME_ERROR,
                   )
                   .toList();
@@ -249,7 +249,7 @@ Future<void> _getAvailableLibraries(
       // }
       var result = await analysisDriver.getLibraryByUri(file.uriStr);
       if (result is LibraryElementResult) {
-        result.element2.accept2(_AllElementVisitor());
+        result.element2.accept(_AllElementVisitor());
       }
     }
   }

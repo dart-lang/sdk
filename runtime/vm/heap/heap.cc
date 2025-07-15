@@ -21,6 +21,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/object_graph.h"
 #include "vm/object_set.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
@@ -40,6 +41,13 @@ DEFINE_FLAG(bool,
             disable_heap_verification,
             false,
             "Explicitly disable heap verification.");
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+DEFINE_FLAG(charp,
+            heap_snapshot_on_oom,
+            nullptr,
+            "Write a heap snapshot after encountering an Out of Memory error. "
+            "Best used with a reduced --old_gen_heap_size");
+#endif
 
 Heap::Heap(IsolateGroup* isolate_group,
            bool is_vm_isolate,
@@ -153,7 +161,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
       return addr;
     }
     // Wait for all of the concurrent tasks to finish before giving up.
-    WaitForSweeperTasksAtSafepoint(thread);
+    WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, is_exec);
     if (addr != 0) {
       return addr;
@@ -165,7 +173,7 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
     }
     // Before throwing an out-of-memory error try a synchronous GC.
     CollectOldSpaceGarbage(thread, GCType::kMarkCompact, GCReason::kOldSpace);
-    WaitForSweeperTasksAtSafepoint(thread);
+    WaitForSweeperTasks(thread);
     addr = old_space_.TryAllocate(size, is_exec, PageSpace::kForceGrowth);
     if (addr != 0) {
       return addr;
@@ -184,6 +192,20 @@ uword Heap::AllocateOld(Thread* thread, intptr_t size, bool is_exec) {
   OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
                size);
   isolate_group_->set_has_seen_oom(true);
+#if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)
+  if (FLAG_heap_snapshot_on_oom != nullptr) {
+    bool successful = false;
+    {
+      FileHeapSnapshotWriter file_writer(thread, FLAG_heap_snapshot_on_oom,
+                                         &successful);
+      HeapSnapshotWriter writer(thread, &file_writer);
+      writer.Write();
+    }
+    if (!successful) {
+      OS::PrintErr("Failed to write heapsnapshot\n");
+    }
+  }
+#endif
   return 0;
 }
 
@@ -669,20 +691,14 @@ void Heap::WaitForMarkerTasks(Thread* thread) {
 }
 
 void Heap::WaitForSweeperTasks(Thread* thread) {
-  ASSERT(!thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
   while ((old_space_.phase() == PageSpace::kSweepingLarge) ||
          (old_space_.phase() == PageSpace::kSweepingRegular)) {
-    ml.WaitWithSafepointCheck(thread);
-  }
-}
-
-void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
-  ASSERT(thread->OwnsGCSafepoint());
-  MonitorLocker ml(old_space_.tasks_lock());
-  while ((old_space_.phase() == PageSpace::kSweepingLarge) ||
-         (old_space_.phase() == PageSpace::kSweepingRegular)) {
-    ml.Wait();
+    if (thread->OwnsSafepoint()) {
+      ml.Wait();
+    } else {
+      ml.WaitWithSafepointCheck(thread);
+    }
   }
 }
 

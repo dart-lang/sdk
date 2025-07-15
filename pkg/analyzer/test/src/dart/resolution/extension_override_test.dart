@@ -39,7 +39,7 @@ FunctionExpressionInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -88,7 +88,7 @@ FunctionExpressionInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -139,7 +139,7 @@ FunctionExpressionInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -195,7 +195,7 @@ FunctionExpressionInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -239,7 +239,7 @@ PropertyAccess
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -248,7 +248,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: g
-    element: <testLibraryFragment>::@extension::E::@getter::g#element
+    element: <testLibrary>::@extension::E::@getter::g
     staticType: int
   staticType: int
 ''');
@@ -279,7 +279,7 @@ FunctionExpressionInvocation
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: <testLibrary>::@extension::E
@@ -288,7 +288,7 @@ FunctionExpressionInvocation
     operator: .
     propertyName: SimpleIdentifier
       token: g
-      element: <testLibraryFragment>::@extension::E::@getter::g#element
+      element: <testLibrary>::@extension::E::@getter::g
       staticType: double Function(int)
     staticType: double Function(int)
   argumentList: ArgumentList
@@ -296,7 +296,7 @@ FunctionExpressionInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: root::@parameter::#element
+        correspondingParameter: <null-name>@null
         staticType: int
     rightParenthesis: )
   element: <null>
@@ -335,7 +335,7 @@ PropertyAccess
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -346,7 +346,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: g
-    element: <testLibraryFragment>::@extension::E::@getter::g#element
+    element: <testLibrary>::@extension::E::@getter::g
     staticType: int
   staticType: int
 ''');
@@ -381,7 +381,7 @@ PropertyAccess
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -390,7 +390,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: g
-    element: package:test/lib.dart::<fragment>::@extension::E::@getter::g#element
+    element: package:test/lib.dart::@extension::E::@getter::g
     staticType: int
   staticType: int
 ''');
@@ -433,7 +433,7 @@ PropertyAccess
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -444,7 +444,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: g
-    element: package:test/lib.dart::<fragment>::@extension::E::@getter::g#element
+    element: package:test/lib.dart::@extension::E::@getter::g
     staticType: int
   staticType: int
 ''');
@@ -471,7 +471,7 @@ IndexExpression
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -481,7 +481,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@extension::E::@method::[]
@@ -511,7 +511,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: int?
         rightParenthesis: )
       element2: <testLibrary>::@extension::E
@@ -521,7 +521,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -529,7 +529,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -562,7 +562,7 @@ MethodInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -611,7 +611,7 @@ MethodInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -661,7 +661,7 @@ MethodInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -717,7 +717,7 @@ MethodInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -760,7 +760,7 @@ MethodInvocation
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -801,7 +801,7 @@ BinaryExpression
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -810,7 +810,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::offset#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
   element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -848,7 +848,7 @@ BinaryExpression
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -859,7 +859,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::+::@parameter::offset#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::+::@formalParameter::offset
     staticType: int
   element: <testLibrary>::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -944,7 +944,7 @@ BinaryExpression
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -953,7 +953,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    correspondingParameter: package:test/lib.dart::<fragment>::@extension::E::@method::+::@parameter::offset#element
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int
   element: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -998,7 +998,7 @@ BinaryExpression
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
     element2: package:test/lib.dart::@extension::E
@@ -1009,7 +1009,7 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
-    correspondingParameter: package:test/lib.dart::<fragment>::@extension::E::@method::+::@parameter::offset#element
+    correspondingParameter: package:test/lib.dart::@extension::E::@method::+::@formalParameter::offset
     staticType: int
   element: package:test/lib.dart::@extension::E::@method::+
   staticInvokeType: void Function(int)
@@ -1035,8 +1035,8 @@ void test(C? c) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: c
-  correspondingParameter: <testLibraryFragment>::@extension::E::@method::g::@parameter::d#element
-  element: <testLibraryFragment>::@function::test::@parameter::c#element
+  correspondingParameter: <testLibrary>::@extension::E::@method::g::@formalParameter::d
+  element: <testLibrary>::@function::test::@formalParameter::c
   staticType: C
 ''');
   }
@@ -1063,7 +1063,7 @@ PropertyAccess
         SimpleIdentifier
           token: a
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
     element2: <testLibrary>::@extension::E
@@ -1072,7 +1072,7 @@ PropertyAccess
   operator: ?.
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@extension::E::@getter::foo#element
+    element: <testLibrary>::@extension::E::@getter::foo
     staticType: int
   staticType: int?
 ''');
@@ -1113,7 +1113,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: <testLibrary>::@extension::E
@@ -1128,11 +1128,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::s::@parameter::x#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::s#element
+  writeElement2: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1170,7 +1170,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: <testLibrary>::@extension::E
@@ -1187,11 +1187,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@extension::E::@setter::s::@parameter::x#element
+    correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::s#element
+  writeElement2: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1228,7 +1228,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: package:test/lib.dart::@extension::E
@@ -1243,11 +1243,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/lib.dart::<fragment>::@extension::E::@setter::s::@parameter::x#element
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
+  writeElement2: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1292,7 +1292,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: package:test/lib.dart::@extension::E
@@ -1309,11 +1309,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/lib.dart::<fragment>::@extension::E::@setter::s::@parameter::x#element
+    correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
+  writeElement2: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1344,7 +1344,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: <testLibrary>::@extension::E
@@ -1359,11 +1359,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@extension::E::@getter::s#element
+  readElement2: <testLibrary>::@extension::E::@getter::s
   readType: int
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::s#element
+  writeElement2: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1402,7 +1402,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: <testLibrary>::@extension::E
@@ -1419,11 +1419,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibraryFragment>::@extension::E::@getter::s#element
+  readElement2: <testLibrary>::@extension::E::@getter::s
   readType: int
-  writeElement2: <testLibraryFragment>::@extension::E::@setter::s#element
+  writeElement2: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1461,7 +1461,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: package:test/lib.dart::@extension::E
@@ -1476,11 +1476,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: package:test/lib.dart::<fragment>::@extension::E::@getter::s#element
+  readElement2: package:test/lib.dart::@extension::E::@getter::s
   readType: int
-  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
+  writeElement2: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1526,7 +1526,7 @@ AssignmentExpression
           SimpleIdentifier
             token: a
             correspondingParameter: <null>
-            element: <testLibraryFragment>::@function::f::@parameter::a#element
+            element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
       element2: package:test/lib.dart::@extension::E
@@ -1543,11 +1543,11 @@ AssignmentExpression
   operator: +=
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: package:test/lib.dart::<fragment>::@extension::E::@getter::s#element
+  readElement2: package:test/lib.dart::@extension::E::@getter::s
   readType: int
-  writeElement2: package:test/lib.dart::<fragment>::@extension::E::@setter::s#element
+  writeElement2: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1576,7 +1576,7 @@ PropertyAccess
         SimpleIdentifier
           token: c
           correspondingParameter: <null>
-          element: <testLibraryFragment>::@function::f::@parameter::c#element
+          element: <testLibrary>::@function::f::@formalParameter::c
           staticType: C
       rightParenthesis: )
     element2: <testLibrary>::@extension::E

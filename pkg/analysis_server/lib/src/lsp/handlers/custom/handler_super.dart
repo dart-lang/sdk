@@ -50,7 +50,7 @@ class SuperHandler
         return success(null);
       }
 
-      var element = ElementLocator.locate2(node);
+      var element = ElementLocator.locate(node);
       if (element == null) {
         return success(null);
       }
@@ -88,11 +88,11 @@ class _SuperComputer {
     // For super classes, we use the first fragment (the original declaration).
     // This differs from methods/getters because we jump to the end of the
     // augmentation chain for those.
-    return element.supertype?.element3.firstFragment;
+    return element.supertype?.element.firstFragment;
   }
 
   Fragment? _findSuperConstructor(ConstructorElement element) {
-    return _lastFragment(element.superConstructor2);
+    return _lastFragment(element.superConstructor);
   }
 
   Fragment? _findSuperMember(Element element) {
@@ -112,12 +112,12 @@ class _SuperComputer {
       return null;
     }
 
-    var interfaceElement = element.thisOrAncestorOfType2<InterfaceElement>();
+    var interfaceElement = element.thisOrAncestorOfType<InterfaceElement>();
     if (interfaceElement == null) {
       return null;
     }
 
-    var member = inheritanceManager.getInherited4(interfaceElement, name);
+    var member = inheritanceManager.getInherited(interfaceElement, name);
     return _lastFragment(member);
   }
 

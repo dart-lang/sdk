@@ -99,14 +99,14 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
       return false;
     }
 
-    var methodName = method.declaredFragment!.name2;
+    var methodName = method.declaredFragment!.name;
     if (methodName == null) {
       return false;
     }
 
     var classElement = clazz.declaredFragment!.element;
     var overriddenList = classElement.getOverridden(
-      Name.forLibrary(classElement.library2, methodName),
+      Name.forLibrary(classElement.library, methodName),
     );
 
     if (overriddenList == null) {

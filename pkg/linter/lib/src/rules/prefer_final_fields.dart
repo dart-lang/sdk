@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -21,10 +22,7 @@ class PreferFinalFields extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_fields;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -38,7 +36,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
     if (enclosingElement is! InterfaceElement) return false;
 
     return enclosingElement.getOverridden(
-          Name.forLibrary(field.library2, '${field.name3!}='),
+          Name.forLibrary(field.library, '${field.name!}='),
         ) !=
         null;
   }
@@ -54,6 +52,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
     for (var variable in node.fields.variables) {
       var element = variable.declaredFragment?.element;
       if (element is FieldElement &&
+          element.name != null &&
           element.isPrivate &&
           !overridesField(element)) {
         fields[element] = variable;
@@ -93,7 +92,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
   }
 
   void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
-    var element = assignment.writeElement2?.canonicalElement2;
+    var element = assignment.writeElement?.canonicalElement2;
     element = element?.baseElement;
 
     if (element is FieldElement) {
@@ -105,7 +104,7 @@ class _FieldMutationFinder extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   _Visitor(this.rule, this.context);
 
@@ -163,6 +162,6 @@ extension on VariableElement {
   bool isSetInParameter(FormalParameter parameter) {
     var formalField = parameter.declaredFragment?.element;
     return formalField is FieldFormalParameterElement &&
-        formalField.field2 == this;
+        formalField.field == this;
   }
 }

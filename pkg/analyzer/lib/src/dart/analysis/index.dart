@@ -30,7 +30,7 @@ Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
 
     var parameterName = node.name;
     return executable.baseElement.formalParameters.where((parameter) {
-      return parameter.isNamed && parameter.name3 == parameterName;
+      return parameter.isNamed && parameter.name == parameterName;
     }).first;
   }
 
@@ -73,7 +73,7 @@ Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
 
     var parameterName = node.name;
     return executable.baseElement.formalParameters.where((parameter) {
-      return parameter.isNamed && parameter.name3 == parameterName;
+      return parameter.isNamed && parameter.name == parameterName;
     }).first;
   }
 
@@ -123,7 +123,7 @@ class ElementNameComponents {
   factory ElementNameComponents(Element element) {
     String? parameterName;
     if (element.firstFragment case FormalParameterFragment fragment) {
-      parameterName = fragment.name2;
+      parameterName = fragment.name;
       element = fragment.enclosingFragment!.element;
     }
 
@@ -177,22 +177,22 @@ class IndexElementInfo {
         kind = IndexSyntheticElementKind.constructor;
         element = element.enclosingElement!;
       } else if (element is TopLevelFunctionElement &&
-          element.name3 == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
+          element.name == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
         kind = IndexSyntheticElementKind.loadLibrary;
-        element = element.library2;
+        element = element.library;
       } else if (elementKind == ElementKind.FIELD) {
         var field = element as FieldElement;
         kind = IndexSyntheticElementKind.field;
-        element = (field.getter2 ?? field.setter2)!;
+        element = (field.getter ?? field.setter)!;
       } else if (elementKind == ElementKind.GETTER ||
           elementKind == ElementKind.SETTER) {
         var accessor = element as PropertyAccessorElement;
         var enclosing = element.enclosingElement;
         bool isEnumGetter = enclosing is EnumElement;
-        if (isEnumGetter && accessor.name3 == 'index') {
+        if (isEnumGetter && accessor.name == 'index') {
           kind = IndexSyntheticElementKind.enumIndex;
           element = enclosing;
-        } else if (isEnumGetter && accessor.name3 == 'values') {
+        } else if (isEnumGetter && accessor.name == 'values') {
           kind = IndexSyntheticElementKind.enumValues;
           element = enclosing;
         } else {
@@ -200,20 +200,20 @@ class IndexElementInfo {
               accessor is GetterElement
                   ? IndexSyntheticElementKind.getter
                   : IndexSyntheticElementKind.setter;
-          if (accessor.variable3 case var variable?) {
+          if (accessor.variable case var variable?) {
             element = variable;
           }
         }
       } else if (element is MethodElement) {
         var enclosing = element.enclosingElement;
         bool isEnumMethod = enclosing is EnumElement;
-        if (isEnumMethod && element.name3 == 'toString') {
+        if (isEnumMethod && element.name == 'toString') {
           kind = IndexSyntheticElementKind.enumToString;
           element = enclosing;
         }
       } else if (element is TopLevelVariableElement) {
         kind = IndexSyntheticElementKind.topLevelVariable;
-        element = (element.getter2 ?? element.setter2)!;
+        element = (element.getter ?? element.setter)!;
       } else {
         throw ArgumentError(
           'Unsupported synthetic element ${element.runtimeType}',
@@ -374,20 +374,20 @@ class _IndexAssembler {
 
   /// Adds a prefix (or empty string for unprefixed) for an element.
   void addPrefixForElement(Element element, {PrefixElement? prefix}) {
-    if (element is MultiplyDefinedElementImpl2 ||
+    if (element is MultiplyDefinedElementImpl ||
         // TODO(brianwilkerson): The last two conditions are here because the
         //  elements for `dynamic` and `Never` are singletons and hence don't have
         //  a parent element for which we can find an `_ElementInfo`. This means
         //  that any reference to either type via a prefix can't be stored in the
         //  index. The solution is to make those elements be normal (not unique)
         //  elements.
-        element is DynamicElementImpl2 ||
-        element is NeverElementImpl2) {
+        element is DynamicElementImpl ||
+        element is NeverElementImpl) {
       return;
     }
 
     _ElementInfo elementInfo = _getElementInfo(element);
-    elementInfo.importPrefixes.add(prefix?.name3 ?? '');
+    elementInfo.importPrefixes.add(prefix?.name ?? '');
   }
 
   void addSubtype(String name, List<String> members, List<String> supertypes) {
@@ -694,7 +694,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record a relation between a super [namedType] and its [Element].
   void recordSuperType(NamedType namedType, IndexRelationKind kind) {
     var isQualified = namedType.importPrefix != null;
-    var element = namedType.element2;
+    var element = namedType.element;
     recordRelation(element, kind, namedType.name, isQualified);
   }
 
@@ -719,7 +719,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
-      var objectElement = declaredElement.supertype?.element3;
+      var objectElement = declaredElement.supertype?.element;
       recordRelationOffset(
         objectElement,
         IndexRelationKind.IS_EXTENDED_BY,
@@ -734,10 +734,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // implicitly invokes the default super constructor. Associate the
     // invocation with the name of the class.
     var defaultConstructor = declaredElement.constructors.singleOrNull;
-    if (defaultConstructor is ConstructorElementImpl2 &&
+    if (defaultConstructor is ConstructorElementImpl &&
         defaultConstructor.isSynthetic) {
       defaultConstructor.isDefaultConstructor;
-      var superConstructor = defaultConstructor.superConstructor2;
+      var superConstructor = defaultConstructor.superConstructor;
       if (superConstructor != null) {
         recordRelation(
           superConstructor,
@@ -806,7 +806,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // invocation, it implicitly invokes the unnamed constructor.
     if (node.initializers.none((e) => e is SuperConstructorInvocation)) {
       var element = node.declaredFragment!.element;
-      var superConstructor = element.superConstructor2;
+      var superConstructor = element.superConstructor;
       if (superConstructor != null) {
         var offset = node.returnType.offset;
         var end = (node.name ?? node.returnType).end;
@@ -897,7 +897,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    var constructorElement = node.constructorElement2;
+    var constructorElement = node.constructorElement;
     if (constructorElement != null) {
       int offset;
       int length;
@@ -940,7 +940,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitExportDirective(covariant ExportDirectiveImpl node) {
     if (node.libraryExport case var libraryExport?) {
-      if (libraryExport.exportedLibrary2 case var exportedLibrary?) {
+      if (libraryExport.exportedLibrary case var exportedLibrary?) {
         assembler.addLibraryFragmentReference(
           target: exportedLibrary.firstFragment,
           uriOffset: node.uri.offset,
@@ -978,7 +978,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
       name: node.name,
-      element: node.element2,
+      element: node.element,
     );
 
     node.typeArguments?.accept(this);
@@ -1002,7 +1002,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     var element = node.declaredFragment!.element;
-    var field = element.field2;
+    var field = element.field;
     if (field != null) {
       recordRelation(field, IndexRelationKind.IS_WRITTEN_BY, node.name, true);
     }
@@ -1021,7 +1021,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     if (node.libraryImport case var libraryImport?) {
-      if (libraryImport.importedLibrary2 case var importedLibrary?) {
+      if (libraryImport.importedLibrary case var importedLibrary?) {
         assembler.addLibraryFragmentReference(
           target: importedLibrary.firstFragment,
           uriOffset: node.uri.offset,
@@ -1035,7 +1035,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element is MethodElement) {
       Token operator = node.leftBracket;
       recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
@@ -1086,7 +1086,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     _recordImportPrefixedElement(
       importPrefix: node.importPrefix,
       name: node.name,
-      element: node.element2,
+      element: node.element,
     );
 
     node.typeArguments?.accept(this);
@@ -1122,7 +1122,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         length = 0;
       }
       recordRelationOffset(
-        node.element2,
+        node.element,
         IndexRelationKind.IS_REFERENCED_BY,
         offset,
         length,
@@ -1189,7 +1189,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       return;
     }
 
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element is FormalParameterElementImpl) {
       element = declaredParameterElement(node, element);
     }
@@ -1260,8 +1260,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitSuperFormalParameter(SuperFormalParameter node) {
     var element = node.declaredFragment!.element;
-    if (element is SuperFormalParameterElementImpl2) {
-      var superParameter = element.superConstructorParameter2;
+    if (element is SuperFormalParameterElementImpl) {
+      var superParameter = element.superConstructorParameter;
       if (superParameter != null) {
         recordRelation(
           superParameter,
@@ -1296,14 +1296,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
     List<String> members = [];
 
     String getInterfaceElementId(InterfaceElement element) {
-      var libraryUri = element.library2.uri;
+      var libraryUri = element.library.uri;
       var libraryFragment = element.firstFragment.libraryFragment;
       var libraryFragmentUri = libraryFragment.source.uri;
-      return '$libraryUri;$libraryFragmentUri;${element.name3}';
+      return '$libraryUri;$libraryFragmentUri;${element.name}';
     }
 
     void addSupertype(NamedType? type) {
-      var element = type?.element2;
+      var element = type?.element;
       if (element is InterfaceElement) {
         String id = getInterfaceElementId(element);
         supertypes.add(id);
@@ -1377,9 +1377,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     ConstructorElement? constructor,
   ) {
     var seenConstructors = <ConstructorElement?>{};
-    while (constructor is ConstructorElementImpl2 && constructor.isSynthetic) {
+    while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement;
-      if (enclosing is ClassElementImpl2 && enclosing.isMixinApplication) {
+      if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
         var superInvocation =
             constructor.firstFragment.constantInitializers
                 .whereType<SuperConstructorInvocation>()
@@ -1418,10 +1418,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     if (importPrefix != null) {
-      var prefixElement = importPrefix.element2;
+      var prefixElement = importPrefix.element;
       if (prefixElement is PrefixElement) {
         recordRelationToken(
-          importPrefix.element2,
+          importPrefix.element,
           IndexRelationKind.IS_REFERENCED_BY,
           importPrefix.name,
           isQualified: false,
@@ -1452,7 +1452,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     visitedElements.add(ancestor);
     if (includeThis) {
       var offset = descendant.firstFragment.nameOffset2;
-      var length = descendant.name3?.length;
+      var length = descendant.name?.length;
       if (offset != null && length != null) {
         assembler.addElementRelation(
           ancestor,
@@ -1468,7 +1468,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       if (superType != null) {
         _recordIsAncestorOf(
           descendant,
-          superType.element3,
+          superType.element,
           true,
           visitedElements,
         );
@@ -1477,20 +1477,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
     for (InterfaceType mixinType in ancestor.mixins) {
       _recordIsAncestorOf(
         descendant,
-        mixinType.element3,
+        mixinType.element,
         true,
         visitedElements,
       );
     }
     if (ancestor is MixinElement) {
       for (InterfaceType type in ancestor.superclassConstraints) {
-        _recordIsAncestorOf(descendant, type.element3, true, visitedElements);
+        _recordIsAncestorOf(descendant, type.element, true, visitedElements);
       }
     }
     for (InterfaceType implementedType in ancestor.interfaces) {
       _recordIsAncestorOf(
         descendant,
-        implementedType.element3,
+        implementedType.element,
         true,
         visitedElements,
       );

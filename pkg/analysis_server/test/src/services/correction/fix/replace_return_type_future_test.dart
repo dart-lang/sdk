@@ -139,7 +139,7 @@ import 'dart:async';
 Future<List<int>> f() async {}
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
       },
     );
@@ -165,7 +165,7 @@ import 'dart:async' as al;
 al.Future<int> f() async {}
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
       },
     );
@@ -195,7 +195,7 @@ import 'dart:async';
 Future<int> f() async {}
 ''',
       errorFilter: (error) {
-        return error.errorCode ==
+        return error.diagnosticCode ==
             CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE;
       },
     );

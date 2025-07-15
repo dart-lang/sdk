@@ -76,6 +76,7 @@ mixin SourceMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   int buildBodyNodes(BuildNodesCallback f) {
     return 0;
   }

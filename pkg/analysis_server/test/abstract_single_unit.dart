@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -73,14 +73,14 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     }
     if (verifyNoTestUnitErrors) {
       expect(
-        unitResult.errors.where((error) {
-          return error.errorCode != WarningCode.DEAD_CODE &&
-              error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
-              error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
-              error.errorCode != WarningCode.UNUSED_ELEMENT &&
-              error.errorCode != WarningCode.UNUSED_FIELD &&
-              error.errorCode != WarningCode.UNUSED_IMPORT &&
-              error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;
+        unitResult.diagnostics.where((d) {
+          return d.diagnosticCode != WarningCode.DEAD_CODE &&
+              d.diagnosticCode != WarningCode.UNUSED_CATCH_CLAUSE &&
+              d.diagnosticCode != WarningCode.UNUSED_CATCH_STACK &&
+              d.diagnosticCode != WarningCode.UNUSED_ELEMENT &&
+              d.diagnosticCode != WarningCode.UNUSED_FIELD &&
+              d.diagnosticCode != WarningCode.UNUSED_IMPORT &&
+              d.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE;
         }),
         isEmpty,
       );

@@ -334,9 +334,11 @@ var b = bar();
     var allFixes = await getCodeActions(testFileUri, range: code.range.range);
 
     // Expect only the single-fix, there should be no apply-all.
-    expect(allFixes, hasLength(1));
+    expect(allFixes, hasLength(2));
     var fixTitle = allFixes.first.map((f) => f.title, (f) => f.title);
     expect(fixTitle, equals("Create function 'foo'"));
+    var fixTitle2 = allFixes.last.map((f) => f.title, (f) => f.title);
+    expect(fixTitle2, equals("Create class 'foo'"));
   }
 
   Future<void> test_fixAll_notWhenSingle() async {
@@ -432,8 +434,8 @@ void main() {
       containsAllInOrder([
         // Non-ignore fixes (order doesn't matter here, but this is what
         // server produces).
-        'quickfix.create.class',
-        'quickfix.create.mixin',
+        'quickfix.create.class.uppercase',
+        'quickfix.create.mixin.uppercase',
         'quickfix.create.localVariable',
         'quickfix.remove.unusedLocalVariable',
         // Ignore fixes last, with line sorted above file.
@@ -609,7 +611,7 @@ var a = [Test, Test, Te[!!]st];
         findCodeActionLiteral(
           codeActions,
           title: "Create class 'Test'",
-          kind: CodeActionKind('quickfix.create.class'),
+          kind: CodeActionKind('quickfix.create.class.uppercase'),
         )!;
 
     expect(createClassAction.diagnostics, hasLength(3));
@@ -631,7 +633,7 @@ var a = [Test, Test, Te[!!]st];
         findCodeActionLiteral(
           codeActions,
           title: "Create class 'Test'",
-          kind: CodeActionKind('quickfix.create.class'),
+          kind: CodeActionKind('quickfix.create.class.uppercase'),
         )!;
 
     expect(createClassActions.diagnostics, hasLength(3));

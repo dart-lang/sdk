@@ -60,10 +60,10 @@ class InterfaceLeastUpperBoundHelper {
       return type1.withNullability(nullability);
     }
 
-    if (type1.element3 == type2.element3) {
+    if (type1.element == type2.element) {
       var args1 = type1.typeArguments;
       var args2 = type2.typeArguments;
-      var params = type1.element3.typeParameters2;
+      var params = type1.element.typeParameters;
       assert(args1.length == args2.length);
       assert(args1.length == params.length);
 
@@ -95,7 +95,7 @@ class InterfaceLeastUpperBoundHelper {
       }
 
       return InterfaceTypeImpl(
-        element: type1.element3,
+        element: type1.element,
         typeArguments: args,
         nullabilitySuffix: nullability,
       );
@@ -125,7 +125,7 @@ class InterfaceLeastUpperBoundHelper {
       return;
     }
 
-    if (type.element3 is ExtensionTypeElement) {
+    if (type.element is ExtensionTypeElement) {
       set.add(typeSystem.objectQuestion);
     }
 
@@ -206,7 +206,7 @@ class InterfaceLeastUpperBoundHelper {
     InterfaceType type,
     Set<InterfaceElement> visitedElements,
   ) {
-    var element = type.element3;
+    var element = type.element;
     // recursion
     if (visitedElements.contains(element)) {
       return 0;
@@ -330,7 +330,7 @@ class LeastUpperBoundHelper {
   LeastUpperBoundHelper(this._typeSystem);
 
   InterfaceTypeImpl get _interfaceTypeFunctionNone {
-    return _typeSystem.typeProvider.functionType.element3.instantiateImpl(
+    return _typeSystem.typeProvider.functionType.element.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -415,7 +415,7 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
-      var B1a = _typeSystem.greatestClosure(B1, [X1.element3]);
+      var B1a = _typeSystem.greatestClosure(B1, [X1.element]);
       return getLeastUpperBound(B1a, T2);
     }
 
@@ -432,7 +432,7 @@ class LeastUpperBoundHelper {
       }
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
-      var B2a = _typeSystem.greatestClosure(B2, [X2.element3]);
+      var B2a = _typeSystem.greatestClosure(B2, [X2.element]);
       return getLeastUpperBound(T1, B2a);
     }
 
@@ -538,7 +538,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(B1a, T2)
       //   where B1a is the greatest closure of B1 with respect to X1
       var bound = _typeParameterBound(T1);
-      var closure = _typeSystem.greatestClosure(bound, [T1.element3]);
+      var closure = _typeSystem.greatestClosure(bound, [T1.element]);
       return getLeastUpperBound(closure, T2);
     }
 
@@ -556,7 +556,7 @@ class LeastUpperBoundHelper {
       // otherwise UP(T1, B2a)
       //   where B2a is the greatest closure of B2 with respect to X2
       var bound = _typeParameterBound(T2);
-      var closure = _typeSystem.greatestClosure(bound, [T2.element3]);
+      var closure = _typeSystem.greatestClosure(bound, [T2.element]);
       return getLeastUpperBound(T1, closure);
     }
 
@@ -639,7 +639,7 @@ class LeastUpperBoundHelper {
 
     // The bounds of type parameters must be equal.
     // Otherwise the result is `Function`.
-    var fresh = _typeSystem.relateTypeParameters2(
+    var fresh = _typeSystem.relateTypeParameters(
       f.typeParameters,
       g.typeParameters,
     );
@@ -681,8 +681,8 @@ class LeastUpperBoundHelper {
         }
       } else if (fParameter.isNamed) {
         if (gParameter.isNamed) {
-          var fName = fParameter.name3;
-          var gName = gParameter.name3;
+          var fName = fParameter.name;
+          var gName = gParameter.name;
           if (fName == null || gName == null) {
             return _interfaceTypeFunctionNone;
           }
@@ -848,7 +848,7 @@ class LeastUpperBoundHelper {
 
   /// Return the promoted or declared bound of the type parameter.
   TypeImpl _typeParameterBound(TypeParameterTypeImpl type) {
-    var bound = type.promotedBound ?? type.element3.bound;
+    var bound = type.promotedBound ?? type.element.bound;
     if (bound != null) {
       return bound;
     }

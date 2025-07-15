@@ -9,69 +9,113 @@ import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
+const codesFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/error/codes.g.dart',
+  preferredImportUri: 'package:analyzer/src/error/codes.dart',
+);
+
 /// Information about all the classes derived from `DiagnosticCode` that are
 /// code-generated based on the contents of the analyzer and front end
 /// `messages.yaml` files.
 const List<ErrorClassInfo> errorClasses = [
   ErrorClassInfo(
-    filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+    file: optionCodesFile,
     name: 'AnalysisOptionsErrorCode',
     type: 'COMPILE_TIME_ERROR',
     severity: 'ERROR',
   ),
   ErrorClassInfo(
-    filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+    file: optionCodesFile,
     name: 'AnalysisOptionsWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
   ErrorClassInfo(
-    filePath: 'lib/src/error/codes.g.dart',
+    file: codesFile,
     name: 'CompileTimeErrorCode',
     type: 'COMPILE_TIME_ERROR',
   ),
   ErrorClassInfo(
-    filePath: 'lib/src/error/codes.g.dart',
+    file: scannerErrorFile,
+    name: 'ScannerErrorCode',
+    type: 'SYNTACTIC_ERROR',
+  ),
+  ErrorClassInfo(
+    file: codesFile,
     name: 'StaticWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
   ErrorClassInfo(
-    filePath: 'lib/src/error/codes.g.dart',
+    file: codesFile,
     name: 'WarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
   ErrorClassInfo(
-    filePath: 'lib/src/dart/error/ffi_code.g.dart',
+    file: ffiCodesFile,
     name: 'FfiCode',
     type: 'COMPILE_TIME_ERROR',
   ),
+  ErrorClassInfo(file: hintCodesFile, name: 'HintCode', type: 'HINT'),
   ErrorClassInfo(
-    filePath: 'lib/src/dart/error/hint_codes.g.dart',
-    name: 'HintCode',
-    type: 'HINT',
-  ),
-  ErrorClassInfo(
-    filePath: 'lib/src/dart/error/syntactic_errors.g.dart',
+    file: syntacticErrorsFile,
     name: 'ParserErrorCode',
     type: 'SYNTACTIC_ERROR',
     severity: 'ERROR',
     includeCfeMessages: true,
   ),
   ErrorClassInfo(
-    filePath: 'lib/src/manifest/manifest_warning_code.g.dart',
+    file: manifestWarningCodeFile,
     name: 'ManifestWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
   ErrorClassInfo(
-    filePath: 'lib/src/pubspec/pubspec_warning_code.g.dart',
+    file: pubspecWarningCodeFile,
     name: 'PubspecWarningCode',
     type: 'STATIC_WARNING',
     severity: 'WARNING',
   ),
 ];
+
+const ffiCodesFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/dart/error/ffi_code.g.dart',
+  preferredImportUri: 'package:analyzer/src/dart/error/ffi_code.dart',
+);
+
+const hintCodesFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
+  preferredImportUri: 'package:analyzer/src/dart/error/hint_codes.dart',
+);
+
+const manifestWarningCodeFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
+  preferredImportUri:
+      'package:analyzer/src/manifest/manifest_warning_code.dart',
+);
+
+const optionCodesFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/analysis_options/error/option_codes.g.dart',
+  preferredImportUri:
+      'package:analyzer/src/analysis_options/error/option_codes.dart',
+);
+
+const pubspecWarningCodeFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
+  preferredImportUri: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
+);
+
+const scannerErrorFile = GeneratedErrorCodeFile(
+  path: '_fe_analyzer_shared/lib/src/scanner/errors.g.dart',
+  preferredImportUri: 'package:_fe_analyzer_shared/src/scanner/errors.dart',
+  shouldUseExplicitConst: true,
+);
+
+const syntacticErrorsFile = GeneratedErrorCodeFile(
+  path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
+  preferredImportUri: 'package:analyzer/src/dart/error/syntactic_errors.dart',
+);
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
 final Map<String, Map<String, AnalyzerErrorCodeInfo>> analyzerMessages =
@@ -296,7 +340,8 @@ class AliasErrorCodeInfo extends AnalyzerErrorCodeInfo {
   String get aliasForFilePath =>
       errorClasses
           .firstWhere((element) => element.name == aliasForClass)
-          .filePath;
+          .file
+          .path;
 }
 
 /// In-memory representation of error code information obtained from the
@@ -409,9 +454,8 @@ class ErrorClassInfo {
   /// for this class.
   final List<String> extraImports;
 
-  /// The file path (relative to the root of `pkg/analyzer`) of the generated
-  /// file containing this class.
-  final String filePath;
+  /// The generated file containing this class.
+  final GeneratedErrorCodeFile file;
 
   /// True if this class should contain error messages extracted from the front
   /// end's `messages.yaml` file.
@@ -435,7 +479,7 @@ class ErrorClassInfo {
 
   const ErrorClassInfo({
     this.extraImports = const [],
-    required this.filePath,
+    required this.file,
     this.includeCfeMessages = false,
     required this.name,
     this.severity,
@@ -561,8 +605,10 @@ abstract class ErrorCodeInfo {
     String className,
     String diagnosticCode, {
     String? sharedNameReference,
+    required bool useExplicitConst,
   }) {
     var out = StringBuffer();
+    if (useExplicitConst) out.writeln('const ');
     out.writeln('$className(');
     out.writeln(
       '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
@@ -575,13 +621,13 @@ abstract class ErrorCodeInfo {
       maxWidth: maxWidth,
       firstLineWidth: maxWidth + 4,
     );
-    out.writeln('${messageLines.map(json.encode).join('\n')},');
+    out.writeln('${messageLines.map(_encodeString).join('\n')},');
     var correctionMessage = this.correctionMessage;
     if (correctionMessage is String) {
       out.write('correctionMessage: ');
       var code = convertTemplate(placeholderToIndexMap, correctionMessage);
       var codeLines = _splitText(code, maxWidth: maxWidth);
-      out.writeln('${codeLines.map(json.encode).join('\n')},');
+      out.writeln('${codeLines.map(_encodeString).join('\n')},');
     }
     if (hasPublishedDocs ?? false) {
       out.writeln('hasPublishedDocs:true,');
@@ -619,6 +665,13 @@ abstract class ErrorCodeInfo {
     if (comment != null) 'comment': comment,
     if (documentation != null) 'documentation': documentation,
   };
+
+  String _encodeString(String s) {
+    // JSON encoding gives us mostly what we need.
+    var jsonEncoded = json.encode(s);
+    // But we also need to escape `$`.
+    return jsonEncoded.replaceAll(r'$', r'\$');
+  }
 }
 
 /// In-memory representation of error code information obtained from the front
@@ -663,4 +716,28 @@ class FrontEndErrorCodeInfo extends ErrorCodeInfo {
       return analyzerCode;
     }
   }
+}
+
+/// Representation of a single file containing generated error codes.
+class GeneratedErrorCodeFile {
+  /// The file path (relative to the SDK's `pkg` directory) of the generated
+  /// file.
+  final String path;
+
+  /// The URI that should be imported instead of importing the generated file
+  /// directly.
+  ///
+  /// The generated file will include a deprecation warning to tell users which
+  /// file they should import.
+  final String preferredImportUri;
+
+  /// Whether the generated file should use the `const` keyword when generating
+  /// constructor invocations.
+  final bool shouldUseExplicitConst;
+
+  const GeneratedErrorCodeFile({
+    required this.path,
+    required this.preferredImportUri,
+    this.shouldUseExplicitConst = false,
+  });
 }

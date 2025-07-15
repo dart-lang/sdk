@@ -33,11 +33,7 @@ void f(C c) {
   c.s = '';
 }
 ''');
-    await assertHasFix('''
-class C {
-  late final String s;
-}
-''', target: '$testPackageLibPath/a.dart');
+    await assertNoFix();
   }
 
   Future<void> test_changeInPart() async {
@@ -55,13 +51,58 @@ void f(C c) {
   c.s = '';
 }
 ''');
-    await assertHasFix('''
-part 'test.dart';
+    await assertNoFix();
+  }
 
-class C {
-  late final String s;
+  Future<void> test_final_implicitThis() async {
+    await resolveTestCode('''
+class A {
+  final int v;
+  final bool isEven = v.isEven;
+  A(this.v);
 }
-''', target: '$testPackageLibPath/a.dart');
+''');
+    await assertHasFix('''
+class A {
+  final int v;
+  late final bool isEven = v.isEven;
+  A(this.v);
+}
+''');
+  }
+
+  Future<void> test_type_implicitThis() async {
+    await resolveTestCode('''
+class A {
+  final int v;
+  bool isEven = v.isEven;
+  A(this.v);
+}
+''');
+    await assertHasFix('''
+class A {
+  final int v;
+  late bool isEven = v.isEven;
+  A(this.v);
+}
+''');
+  }
+
+  Future<void> test_var_implicitThis() async {
+    await resolveTestCode('''
+class A {
+  final int v;
+  var isEven = v.isEven;
+  A(this.v);
+}
+''');
+    await assertHasFix('''
+class A {
+  final int v;
+  late var isEven = v.isEven;
+  A(this.v);
+}
+''');
   }
 
   Future<void> test_withFinal() async {
@@ -97,7 +138,7 @@ class C {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+              error.diagnosticCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
     );
   }
 
@@ -136,7 +177,7 @@ void f(C c) {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+              error.diagnosticCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
     );
   }
 
@@ -160,7 +201,7 @@ class C {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+              error.diagnosticCode == CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
     );
   }
 

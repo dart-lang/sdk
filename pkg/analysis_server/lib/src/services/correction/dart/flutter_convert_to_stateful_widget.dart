@@ -25,8 +25,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind =>
-      DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET;
+  AssistKind get assistKind => DartAssistKind.flutterConvertToStatefulWidget;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -81,12 +80,12 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
             nodesToMove.add(member);
             elementsToMove.add(fieldElement);
 
-            var getter = fieldElement.getter2;
+            var getter = fieldElement.getter;
             if (getter != null) {
               elementsToMove.add(getter);
             }
 
-            var setter = fieldElement.setter2;
+            var setter = fieldElement.setter;
             if (setter != null) {
               elementsToMove.add(setter);
             }
@@ -279,7 +278,7 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredFragment?.element;
     if (element is FieldFormalParameterElement) {
-      var field = element.field2;
+      var field = element.field;
       if (field != null) {
         fieldsAssignedInConstructors.add(field);
       }
@@ -297,9 +296,9 @@ class _FieldFinder extends RecursiveAstVisitor<void> {
       }
     }
     if (node.inSetterContext()) {
-      var element = node.writeOrReadElement2;
+      var element = node.writeOrReadElement;
       if (element is SetterElement) {
-        var field = element.variable3;
+        var field = element.variable;
         if (field is FieldElement) {
           fieldsAssignedInConstructors.add(field);
         }

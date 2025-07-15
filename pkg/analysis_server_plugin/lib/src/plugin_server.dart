@@ -318,14 +318,14 @@ class PluginServer {
     if (unitResult is! ResolvedUnitResult) {
       return const [];
     }
-    var listener = RecordingErrorListener();
-    var errorReporter = ErrorReporter(
+    var listener = RecordingDiagnosticListener();
+    var diagnosticReporter = DiagnosticReporter(
         listener, unitResult.libraryElement2.firstFragment.source);
 
     var currentUnit = RuleContextUnit(
       file: unitResult.file,
       content: unitResult.content,
-      errorReporter: errorReporter,
+      diagnosticReporter: diagnosticReporter,
       unit: unitResult.unit,
     );
     var allUnits = [
@@ -333,14 +333,14 @@ class PluginServer {
         RuleContextUnit(
           file: unitResult.file,
           content: unitResult.content,
-          errorReporter: errorReporter,
+          diagnosticReporter: diagnosticReporter,
           unit: unitResult.unit,
         ),
     ];
 
     // TODO(srawlins): Enable timing similar to what the linter package's
     // `benchhmark.dart` script does.
-    var nodeRegistry = RuleVisitorRegistry(enableTiming: false);
+    var nodeRegistry = RuleVisitorRegistryImpl(enableTiming: false);
 
     var context = RuleContextWithResolvedResults(
       allUnits,
@@ -360,7 +360,7 @@ class PluginServer {
       var rules =
           Registry.ruleRegistry.enabled(configuration.diagnosticConfigs);
       for (var rule in rules) {
-        rule.reporter = errorReporter;
+        rule.reporter = diagnosticReporter;
         // TODO(srawlins): Enable timing similar to what the linter package's
         // `benchhmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
@@ -378,8 +378,8 @@ class PluginServer {
         AnalysisRuleVisitor(nodeRegistry, shouldPropagateExceptions: true));
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
-    var diagnostics = listener.errors.where((e) {
-      var pluginName = pluginCodeMapping[e.errorCode.name];
+    var diagnostics = listener.diagnostics.where((e) {
+      var pluginName = pluginCodeMapping[e.diagnosticCode.name];
       if (pluginName == null) {
         // If [e] is somehow not mapped, something is wrong; but don't mark it
         // as ignored.
@@ -399,7 +399,7 @@ class PluginServer {
             protocol.AnalysisErrorType.STATIC_WARNING,
             _locationFor(currentUnit.unit, path, diagnostic),
             diagnostic.message,
-            diagnostic.errorCode.name,
+            diagnostic.diagnosticCode.name,
             correction: diagnostic.correctionMessage,
             // TODO(srawlins): Use a valid value here.
             hasFix: true,

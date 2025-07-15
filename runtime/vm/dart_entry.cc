@@ -4,6 +4,8 @@
 
 #include "vm/dart_entry.h"
 
+#include <array>
+
 #include "platform/safe_stack.h"
 #include "vm/class_finalizer.h"
 #include "vm/debugger.h"
@@ -103,16 +105,21 @@ static ObjectPtr InvokeDartCode(uword entry_point,
   DartEntryScope dart_entry_scope(thread);
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
-#if defined(USING_SIMULATOR)
-  auto invoke = [&](uword entry_point, uword arguments_descriptor,
-                    uword arguments, Thread* thread) -> uword {
-    return Simulator::Current()->Call(stub, entry_point, arguments_descriptor,
-                                      arguments,
-                                      reinterpret_cast<int64_t>(thread));
-  };
-#else
-  auto invoke = reinterpret_cast<invokestub>(stub);
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    auto invoke = [&](uword entry_point, uword arguments_descriptor,
+                      uword arguments, Thread* thread) -> uword {
+      return Simulator::Current()->Call(stub, entry_point, arguments_descriptor,
+                                        arguments,
+                                        reinterpret_cast<int64_t>(thread));
+    };
+    uword result =
+        invoke(entry_point, static_cast<uword>(arguments_descriptor.ptr()),
+               static_cast<uword>(arguments.ptr()), thread);
+    return static_cast<ObjectPtr>(result);
+  }
 #endif
+  auto invoke = reinterpret_cast<invokestub>(stub);
   uword result =
       invoke(entry_point, static_cast<uword>(arguments_descriptor.ptr()),
              static_cast<uword>(arguments.ptr()), thread);
@@ -453,10 +460,32 @@ const char* ArgumentsDescriptor::ToCString() const {
   return buf.buffer();
 }
 
+intptr_t ArgumentsDescriptor::CacheIndexFor(intptr_t type_args_len,
+                                            intptr_t num_arguments) {
+  static constexpr auto kOffsetTo = []() {
+    std::array<intptr_t, kMaxTypeArgsForCachedDescriptor + 1> offset = {0};
+    for (intptr_t i = 1; i <= kMaxTypeArgsForCachedDescriptor; i++) {
+      offset[i] =
+          offset[i - 1] + (kMaxNumArgumentsForCachedDescriptor[i - 1] + 1);
+    }
+    return offset;
+  }();
+
+  return kOffsetTo[type_args_len] + num_arguments;
+}
+
+bool ArgumentsDescriptor::CanUseCachedDescriptor(intptr_t type_args_len,
+                                                 intptr_t num_arguments) {
+  return (type_args_len <= kMaxTypeArgsForCachedDescriptor) &&
+         (num_arguments <= kMaxNumArgumentsForCachedDescriptor[type_args_len]);
+}
+
 bool ArgumentsDescriptor::IsCached() const {
+  const intptr_t num_type_arguments = TypeArgsLen();
   const intptr_t num_arguments = Count();
-  return (num_arguments < kCachedDescriptorCount) &&
-         (array_.ptr() == cached_args_descriptors_[num_arguments]);
+  return CanUseCachedDescriptor(num_type_arguments, num_arguments) &&
+         (array_.ptr() == cached_args_descriptors_[CacheIndexFor(
+                              num_type_arguments, num_arguments)]);
 }
 
 ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
@@ -536,9 +565,10 @@ ArrayPtr ArgumentsDescriptor::New(intptr_t type_args_len,
   ASSERT(type_args_len >= 0);
   ASSERT(num_arguments >= 0);
 
-  if ((type_args_len == 0) && (num_arguments < kCachedDescriptorCount) &&
-      (num_arguments == size_arguments)) {
-    return cached_args_descriptors_[num_arguments];
+  if (num_arguments == size_arguments &&
+      CanUseCachedDescriptor(type_args_len, num_arguments)) {
+    return cached_args_descriptors_[CacheIndexFor(type_args_len,
+                                                  num_arguments)];
   }
   return NewNonCached(type_args_len, num_arguments, size_arguments, true,
                       space);
@@ -585,10 +615,18 @@ ArrayPtr ArgumentsDescriptor::NewNonCached(intptr_t type_args_len,
 }
 
 void ArgumentsDescriptor::Init() {
-  for (int i = 0; i < kCachedDescriptorCount; i++) {
-    cached_args_descriptors_[i] =
-        NewNonCached(/*type_args_len=*/0, i, i, false, Heap::kOld);
+  intptr_t cache_index = 0;
+  for (intptr_t type_args_len = 0;
+       type_args_len <= kMaxTypeArgsForCachedDescriptor; type_args_len++) {
+    for (intptr_t num_arguments = 0;
+         num_arguments <= kMaxNumArgumentsForCachedDescriptor[type_args_len];
+         num_arguments++) {
+      cached_args_descriptors_[cache_index++] =
+          NewNonCached(type_args_len, num_arguments, num_arguments,
+                       /*canonicalize=*/false, Heap::kOld);
+    }
   }
+  ASSERT(cache_index == kCachedDescriptorCount);
 }
 
 void ArgumentsDescriptor::Cleanup() {

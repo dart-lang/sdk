@@ -286,10 +286,10 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   LocalVariableElement? _localVariableElement() {
     var node = this.node;
     if (node is DeclaredVariablePattern) {
-      return node.declaredElement2;
+      return node.declaredElement;
     } else if (node is VariableDeclaration) {
       if (node.name == token) {
-        return node.declaredElement2;
+        return node.declaredElement;
       }
     }
     return null;

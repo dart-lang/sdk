@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,10 +22,7 @@ class AvoidImplementingValueTypes extends LintRule {
       LinterLintCode.avoid_implementing_value_types;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
@@ -47,7 +45,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var interface in implementsClause.interfaces) {
       var interfaceType = interface.type;
       if (interfaceType is InterfaceType &&
-          _overridesEquals(interfaceType.element3)) {
+          _overridesEquals(interfaceType.element)) {
         rule.reportAtNode(interface);
       }
     }
@@ -55,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _overridesEquals(InterfaceElement element) {
     var member = element.getInterfaceMember(equalsName);
-    var definingLibrary = member?.enclosingElement?.library2;
+    var definingLibrary = member?.enclosingElement?.library;
     return definingLibrary != null && !definingLibrary.isDartCore;
   }
 }

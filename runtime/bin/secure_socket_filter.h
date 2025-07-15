@@ -115,14 +115,13 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
     return certificate_trust_state_.get();
   }
   Dart_Port reply_port() const { return reply_port_; }
-  Dart_Port trust_evaluate_reply_port() const {
-    return trust_evaluate_reply_port_;
-  }
+  static Dart_Port TrustEvaluateReplyPort();
 
  private:
   static const intptr_t kInternalBIOSize;
   static bool library_initialized_;
   static Mutex* mutex_;  // To protect library initialization.
+  static Dart_Port trust_evaluate_reply_port_;
 
   SSL* ssl_;
   BIO* socket_side_;
@@ -143,7 +142,6 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
   char* hostname_;
 
   Dart_Port reply_port_ = ILLEGAL_PORT;
-  Dart_Port trust_evaluate_reply_port_ = ILLEGAL_PORT;
   Dart_Port key_log_port_ = ILLEGAL_PORT;
 
   static bool IsBufferEncrypted(int i) {

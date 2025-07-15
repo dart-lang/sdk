@@ -5,8 +5,6 @@
 // Formatting can break multitests, so don't format them.
 // dart format off
 
-// dart2jsOptions=--strong
-
 import '32997b_lib.dart' deferred as b; //# 01: compile-time error
 
 main() async {

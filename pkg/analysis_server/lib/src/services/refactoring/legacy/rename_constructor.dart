@@ -135,7 +135,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   void _analyzePossibleConflicts(RefactoringStatus result) {
     var parentClass = element.enclosingElement;
     // Check if the "newName" is the name of the enclosing class.
-    if (parentClass.name3 == newName) {
+    if (parentClass.name == newName) {
       result.addError(
         'The constructor should not have the same name '
         'as the name of the enclosing class.',
@@ -158,7 +158,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var fragment = element.firstFragment;
     var offset = fragment.periodOffset;
     if (offset != null) {
-      var name = fragment.name2;
+      var name = fragment.name;
       var nameEnd = fragment.nameOffset2! + name.length;
       return range.startOffsetEndOffset(offset, nameEnd);
     } else {
@@ -216,7 +216,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       resolvedUnit: resolvedUnit,
       session: sessionHelper.session,
       (builder) => builder.writeConstructorDeclaration(
-        classElement.name3!,
+        classElement.name!,
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),

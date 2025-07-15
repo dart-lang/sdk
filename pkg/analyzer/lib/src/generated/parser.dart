@@ -30,13 +30,13 @@ class Parser {
 
   Parser(
     Source source,
-    AnalysisErrorListener errorListener, {
+    DiagnosticOrErrorListener diagnosticListener, {
     required FeatureSet featureSet,
     bool allowNativeClause = true,
     required LibraryLanguageVersion languageVersion,
     required LineInfo lineInfo,
   }) : astBuilder = AstBuilder(
-         ErrorReporter(errorListener, source),
+         DiagnosticReporter(diagnosticListener, source),
          source.uri,
          true,
          featureSet,

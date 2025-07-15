@@ -115,7 +115,7 @@ class TransformSetManager {
     try {
       var content = file.readAsStringSync();
       var parser = TransformSetParser(
-        ErrorReporter(AnalysisErrorListener.NULL_LISTENER, FileSource(file)),
+        DiagnosticReporter(DiagnosticListener.nullListener, FileSource(file)),
         packageName,
       );
       return parser.parse(content);

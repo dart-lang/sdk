@@ -22,7 +22,7 @@ import '../use_flag_test_helper.dart';
 
 void main(List<String> args) async {
   if (Platform.isAndroid) {
-    return; // No vm_platform_strong.dill easily available.
+    return; // No vm_platform.dill easily available.
   }
 
   asyncStart();

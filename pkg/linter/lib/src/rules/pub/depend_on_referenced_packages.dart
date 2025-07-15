@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/workspace/pub.dart'; // ignore: implementation_imports
 
 import '../../analyzer.dart';
 import '../../ast.dart';
@@ -20,10 +22,7 @@ class DependOnReferencedPackages extends LintRule {
       LinterLintCode.depend_on_referenced_packages;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     // Only lint if we have a pubspec.
     var package = context.package;
     if (package is! PubPackage) return;

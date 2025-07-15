@@ -206,7 +206,7 @@ void f(List<String> list) {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode.name ==
+              error.diagnosticCode.name ==
               LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -235,7 +235,7 @@ void f(List<String> list) {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode.name ==
+              error.diagnosticCode.name ==
               LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -268,7 +268,7 @@ void f(core.List<core.Set<core.String>> list) {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode.name ==
+              error.diagnosticCode.name ==
               LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -317,7 +317,7 @@ void f(List<String> list) {
     await assertNoFix(
       errorFilter:
           (error) =>
-              error.errorCode.name ==
+              error.diagnosticCode.name ==
               LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -366,7 +366,7 @@ void f(List<String> list) {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode.name ==
+              error.diagnosticCode.name ==
               LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -393,7 +393,7 @@ void f(List<String> list) {
 ''',
       errorFilter:
           (error) =>
-              error.errorCode.name ==
+              error.diagnosticCode.name ==
               LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -407,7 +407,7 @@ void f(List<String> list) {
     await assertNoFix(
       errorFilter:
           (error) =>
-              error.errorCode.name ==
+              error.diagnosticCode.name ==
               LintNames.avoid_function_literals_in_foreach_calls,
     );
   }
@@ -487,7 +487,7 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT,
+      errorFilter: (error) => error.diagnosticCode.type == DiagnosticType.LINT,
     );
   }
 
@@ -498,7 +498,7 @@ void f(List<int> list) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT,
+      errorFilter: (error) => error.diagnosticCode.type == DiagnosticType.LINT,
     );
   }
 
@@ -509,7 +509,7 @@ void f(List<int> list, bool b) {
 }
 ''');
     await assertNoFix(
-      errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT,
+      errorFilter: (error) => error.diagnosticCode.type == DiagnosticType.LINT,
     );
   }
 
@@ -525,6 +525,6 @@ void f(List<int> list) {
     <int>{x};
   }
 }
-''', errorFilter: (error) => error.errorCode.type == DiagnosticType.LINT);
+''', errorFilter: (error) => error.diagnosticCode.type == DiagnosticType.LINT);
   }
 }

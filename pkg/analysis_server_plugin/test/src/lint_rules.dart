@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/linter_visitor.dart';
 
 class NoBoolsRule extends AnalysisRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
@@ -18,7 +19,7 @@ class NoBoolsRule extends AnalysisRule {
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
     var visitor = _NoBoolsVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }
@@ -35,7 +36,7 @@ class NoDoublesRule extends AnalysisRule {
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
     var visitor = _NoDoublesVisitor(this);
     registry.addDoubleLiteral(this, visitor);
   }
@@ -55,8 +56,7 @@ class NoDoublesWarningRule extends AnalysisRule {
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _NoDoublesVisitor(this);
     registry.addDoubleLiteral(this, visitor);
   }

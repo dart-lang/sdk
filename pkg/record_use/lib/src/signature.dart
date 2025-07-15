@@ -9,6 +9,10 @@ import 'constant.dart';
 import 'helper.dart'; // Assuming helper.dart contains the deepEquals function
 
 /// Represents the signature of a Dart method, categorizing its parameters.
+///
+/// This is a stop-gap due to https://github.com/dart-lang/sdk/issues/60597,
+/// and this code should be removed once that bug is fixed.
+// TODO(mosum): Delete this code
 class Signature {
   /// List of required positional parameter names.
   final List<String> positionalParameters;
@@ -41,7 +45,8 @@ class Signature {
       ...namedParameters,
       ...namedOptionalParameters,
     ];
-    if (call.positionalArguments.length != names.length) {
+    if (call.positionalArguments.length + call.namedArguments.length !=
+        names.length) {
       throw FormatException(
         '''
 Invalid number of arguments - $names vs ${call.positionalArguments} and ${call.namedArguments}''',

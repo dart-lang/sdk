@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterConvertToStatelessWidgetTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_CONVERT_TO_STATELESS_WIDGET;
+  AssistKind get kind => DartAssistKind.flutterConvertToStatelessWidget;
 
   @override
   void setUp() {

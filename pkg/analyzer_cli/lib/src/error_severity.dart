@@ -23,7 +23,7 @@ DiagnosticSeverity? computeSeverity(
     return processor.severity;
   }
 
-  return diagnostic.errorCode.severity;
+  return diagnostic.diagnosticCode.severity;
 }
 
 /// Check various configuration options to get a desired severity for this
@@ -39,7 +39,7 @@ DiagnosticSeverity? determineProcessedSeverity(
     analysisOptions,
   );
   // Skip TODOs categorically unless escalated to ERROR or HINT (#26215).
-  if (diagnostic.errorCode.type == DiagnosticType.TODO &&
+  if (diagnostic.diagnosticCode.type == DiagnosticType.TODO &&
       severity == DiagnosticSeverity.INFO) {
     return null;
   }

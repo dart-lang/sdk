@@ -31,7 +31,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     : applicability = CorrectionApplicability.acrossSingleFile;
 
   @override
-  AssistKind get assistKind => DartAssistKind.USE_CURLY_BRACES;
+  AssistKind get assistKind => DartAssistKind.useCurlyBraces;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_CURLY_BRACES;

@@ -10,7 +10,8 @@ import "dart:async";
 import "dart:io";
 
 import 'package:native_stack_traces/native_stack_traces.dart';
-import 'package:native_stack_traces/src/macho.dart';
+import 'package:native_stack_traces/src/macho.dart'
+    show emptyMachOForArchitecture, MachO;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -31,9 +32,7 @@ Future<void> main() async {
     runNonDwarf,
     [
       runElf,
-      // Only generate Mach-O on MacOS, since there is no MachOLoader
-      // to run the binary on platforms where that isn't the native format.
-      if (Platform.isMacOS) runMachODylib,
+      runMachODylib,
       // Don't run assembly on Windows since DLLs don't contain DWARF.
       if (!Platform.isWindows) runAssembly,
     ],
@@ -193,6 +192,7 @@ Future<DwarfAssemblyState?> runAssembly(
 
     print("Generating multi-arch assembly debugging information");
     final singleArchSnapshotPath = path.join(tempDir, "ub-single");
+    final lipo = llvmTool('llvm-lipo', verbose: true)!;
     await run(lipo, <String>[
       debugSnapshotPath,
       '-create',
@@ -281,6 +281,7 @@ Future<DwarfMachOState> runMachODylib(String tempDir, String scriptDill) async {
 
     print("Generating multi-arch Mach-O debugging information");
     final singleArchSnapshotPath = path.join(tempDir, "ub-single");
+    final lipo = llvmTool('llvm-lipo', verbose: true)!;
     await run(lipo, <String>[
       debugInfoPath,
       '-create',

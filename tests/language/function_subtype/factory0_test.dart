@@ -23,5 +23,8 @@ void method(String s) {}
 
 void main() {
   Expect.isNotNull(new C<String>(method));
-  Expect.throws(() => new C<bool>(method), (error) => error == 'not Foo<bool>');
+  Expect.throws(
+    () => new C<bool>(method),
+    (error) => error == 'not Foo<$bool>',
+  );
 }

@@ -27,10 +27,10 @@ import 'package:analyzer/dart/element/element.dart'
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:args/args.dart';
 
@@ -260,8 +260,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   /// The relevance data being collected.
   final RelevanceData data;
-
-  InheritanceManager3 inheritanceManager = InheritanceManager3();
 
   /// The library containing the compilation unit being visited.
   late LibraryElement enclosingLibrary;
@@ -529,7 +527,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     enclosingLibrary = node.declaredFragment!.element;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
-    inheritanceManager = InheritanceManager3();
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
     var hasPrefix = false;
@@ -1132,9 +1129,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var element = fragment.element;
     var enclosingElement = element.enclosingElement;
     if (!element.isStatic && enclosingElement is InterfaceElement) {
-      var overriddenMembers = inheritanceManager.getOverridden4(
-        enclosingElement,
-        Name(fragment.libraryFragment.source.uri, element.name3!),
+      var overriddenMembers = enclosingElement.getOverridden(
+        Name(fragment.libraryFragment.source.uri, element.name!),
       );
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -1629,7 +1625,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// 3: class member
   /// 4+: local function
   int _depth(Element element) {
-    if (element.library2 != enclosingLibrary) {
+    if (element.library != enclosingLibrary) {
       return 0;
     }
     var depth = 0;
@@ -1691,7 +1687,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element2!;
+        element = parent.element!;
       }
     }
     return convertElementToElementKind(element);
@@ -1805,15 +1801,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       return;
     }
     if (targetType is InterfaceType) {
-      var targetClass = targetType.element3;
-      var extension = member.thisOrAncestorOfType2<ExtensionElement>();
+      var targetClass = targetType.element;
+      var extension = member.thisOrAncestorOfType<ExtensionElement>();
       if (extension != null) {
         _recordDistance('member (extension)', 0);
         return;
       }
       // TODO(brianwilkerson): It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
-      var memberClass = member.thisOrAncestorOfType2<InterfaceElement>();
+      var memberClass = member.thisOrAncestorOfType<InterfaceElement>();
       if (memberClass != null) {
         /// Return the distance between the [targetClass] and the [memberClass]
         /// along the superclass chain. This includes all of the implicit
@@ -1827,12 +1823,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
             }
             for (var mixin in currentClass.mixins.reversed) {
               depth++;
-              if (mixin.element3 == memberClass) {
+              if (mixin.element == memberClass) {
                 return depth;
               }
             }
             depth++;
-            currentClass = currentClass.supertype?.element3;
+            currentClass = currentClass.supertype?.element;
           }
           return -1;
         }
@@ -1844,7 +1840,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           InterfaceElement? currentClass = targetClass;
           while (currentClass != null) {
             depth += currentClass.mixins.length + 1;
-            currentClass = currentClass.supertype?.element3;
+            currentClass = currentClass.supertype?.element;
           }
           return depth;
         }
@@ -1882,14 +1878,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     for (var param in override.formalParameters) {
       if (param.isPositional) {
         positionalInOverride.add(param);
-      } else if (param.name3 case var name?) {
+      } else if (param.name case var name?) {
         namedInOverride[name] = param;
       }
     }
     for (var param in overridden.formalParameters) {
       if (param.isPositional) {
         positionalInOverridden.add(param);
-      } else if (param.name3 case var name?) {
+      } else if (param.name case var name?) {
         namedInOverridden[name] = param;
       }
     }
@@ -2076,16 +2072,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           argumentType is InterfaceType &&
           parameterType is InterfaceType) {
         int distance;
-        if (parameterType.element3 == typeProvider.futureOrElement2) {
+        if (parameterType.element == typeProvider.futureOrElement) {
           var typeArgument = parameterType.typeArguments[0];
           distance = featureComputer.inheritanceDistance(
-            argumentType.element3,
-            typeProvider.futureElement2,
+            argumentType.element,
+            typeProvider.futureElement,
           );
           if (typeArgument is InterfaceType) {
             var argDistance = featureComputer.inheritanceDistance(
-              argumentType.element3,
-              typeArgument.element3,
+              argumentType.element,
+              typeArgument.element,
             );
             if (distance < 0 || (argDistance >= 0 && argDistance < distance)) {
               distance = argDistance;
@@ -2093,8 +2089,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           }
         } else {
           distance = featureComputer.inheritanceDistance(
-            argumentType.element3,
-            parameterType.element3,
+            argumentType.element,
+            parameterType.element,
           );
         }
         data.recordDistance('Subtype of context type ($descriptor)', distance);
@@ -2224,13 +2220,11 @@ class RelevanceMetricsComputer {
               print('');
             }
             continue;
-          } else if (hasError(resolvedUnitResult)) {
+          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
             if (verbose) {
               print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors.where(
-                (e) => e.severity == Severity.error,
-              )) {
-                print('  ${error.toString()}');
+              for (var diagnostic in resolvedUnitResult.diagnostics.errors) {
+                print('  ${diagnostic.toString()}');
               }
               print('');
             } else {
@@ -2457,16 +2451,6 @@ class RelevanceMetricsComputer {
     sink.writeln('Token stream analysis');
     var table = _convertColumnsToRows([firstColumn, secondColumn]).toList();
     sink.writeTable(table);
-  }
-
-  /// Return `true` if the [result] contains an error.
-  static bool hasError(ResolvedUnitResult result) {
-    for (var error in result.errors) {
-      if (error.severity == Severity.error) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

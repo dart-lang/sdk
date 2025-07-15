@@ -25,7 +25,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
-import '../../source/type_parameter_scope_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 import 'body_builder_context.dart';
 import 'encoding.dart';
@@ -70,7 +70,7 @@ abstract class SetterDeclaration {
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters);
+      TypeParameterFactory typeParameterFactory);
 
   void ensureSetterTypes(
       {required SourceLibraryBuilder libraryBuilder,
@@ -219,12 +219,12 @@ class RegularSetterDeclaration
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {
+      TypeParameterFactory typeParameterFactory) {
     _fragment.builder = builder;
-    createNominalParameterBuilders(
-        _fragment.declaredTypeParameters, unboundNominalParameters);
+    typeParameterFactory
+        .createNominalParameterBuilders(_fragment.declaredTypeParameters);
     _encoding = encodingStrategy.createSetterEncoding(
-        builder, _fragment, unboundNominalParameters);
+        builder, _fragment, typeParameterFactory);
     _fragment.typeParameterNameSpace.addTypeParameters(
         problemReporting, _encoding.clonedAndDeclaredTypeParameters,
         ownerName: _fragment.name, allowNameConflict: true);
@@ -255,7 +255,7 @@ class RegularSetterDeclaration
   @override
   Iterable<Reference> getExportedSetterReferences(
           PropertyReferences references) =>
-      [references.setterReference!];
+      [references.setterReference];
 
   @override
   VariableDeclaration getFormalParameter(int index) {

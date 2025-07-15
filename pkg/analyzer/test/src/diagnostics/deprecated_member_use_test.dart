@@ -4,6 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -430,6 +431,125 @@ int g(Object s) =>
     );
   }
 
+  test_dotShorthandConstructorInvocation_deprecatedClass_deprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  @deprecated
+  A();
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A a = .new();
+}
+''',
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+        error(HintCode.DEPRECATED_MEMBER_USE, 50, 3),
+      ],
+    );
+  }
+
+  test_dotShorthandConstructorInvocation_deprecatedClass_undeprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  A();
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A a = .new();
+}
+''',
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      ],
+    );
+  }
+
+  test_dotShorthandConstructorInvocation_deprecatedClass_undeprecatedNamedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+@deprecated
+class A {
+  A.a();
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A a = .a();
+}
+''',
+      [
+        error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+      ],
+    );
+  }
+
+  test_dotShorthandConstructorInvocation_namedConstructor() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class A {
+  @deprecated
+  A.named(int i) {}
+}
+''',
+      code: r'''
+f() {
+  A a = .named(1);
+}
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+        error(
+          HintCode.DEPRECATED_MEMBER_USE,
+          44,
+          5,
+          messageContains: ["'A.named' is deprecated and shouldn't be used."],
+        ),
+      ],
+    );
+  }
+
+  test_dotShorthandConstructorInvocation_undeprecatedClass_deprecatedConstructor() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @deprecated
+  A();
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A a = .new();
+}
+''',
+      [
+        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+        error(HintCode.DEPRECATED_MEMBER_USE, 50, 3),
+      ],
+    );
+  }
+
   test_export() async {
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 @deprecated
@@ -565,6 +685,31 @@ import 'package:aaa/a.dart';
           28,
           messageContains: ['package:aaa/a.dart'],
         ),
+      ],
+    );
+  }
+
+  test_incorrectlyNestedNamedParameterDeclaration() async {
+    // This is a regression test; previously this code would cause an analyzer
+    // crash in DeprecatedMemberUseVerifier.
+    await assertErrorsInCode(
+      r'''
+class C {
+  final String x;
+  final bool y;
+
+  const C({
+    required this.x,
+    {this.y = false}
+  });
+}
+
+const z = C(x: '');
+''',
+      [
+        error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 53, 1),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 82, 1),
+        error(ParserErrorCode.EXPECTED_TOKEN, 82, 1),
       ],
     );
   }
@@ -1209,6 +1354,28 @@ import 'package:aaa/a.dart';
 @deprecated
 class B = Object with A;
 ''');
+  }
+
+  test_namedParameterMissingName() async {
+    // This is a regression test; previously this code would cause an analyzer
+    // crash in DeprecatedMemberUseVerifier.
+    await assertErrorsInCode(
+      r'''
+class C {
+  const C({this.});
+}
+var z = C(x: '');
+''',
+      [
+        error(
+          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          21,
+          5,
+        ),
+        error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1),
+        error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 42, 1),
+      ],
+    );
   }
 
   test_operator() async {

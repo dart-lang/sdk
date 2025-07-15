@@ -40,7 +40,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         buffer.write(', ');
       }
       offset = buffer.length;
-      var name = param.name3 ?? '';
+      var name = param.name ?? '';
       buffer.write(name);
       ranges.addAll([offset, name.length]);
     }
@@ -50,7 +50,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         if (buffer.isNotEmpty) {
           buffer.write(', ');
         }
-        var name = param.name3 ?? '';
+        var name = param.name ?? '';
         buffer.write('$name: ');
         offset = buffer.length;
         buffer.write(name);
@@ -107,7 +107,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     suggestion.returnType = getReturnTypeString(element);
     if (element is ExecutableElement && element is! PropertyAccessorElement) {
       suggestion.parameterNames = element.formalParameters
-          .map((parameter) => parameter.name3 ?? '')
+          .map((parameter) => parameter.name ?? '')
           .toList();
       suggestion.parameterTypes = element.formalParameters.map((parameter) {
         return parameter.type.getDisplayString();
@@ -139,7 +139,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       var type = element.type;
       return type.getDisplayString();
     } else if (element is TypeAliasElement) {
-      var aliasedElement = element.aliasedElement2;
+      var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
         var returnType = aliasedElement.returnType;
         return returnType.getDisplayString();

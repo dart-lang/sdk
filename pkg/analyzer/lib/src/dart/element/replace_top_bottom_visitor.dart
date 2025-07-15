@@ -69,10 +69,10 @@ class ReplaceTopBottomVisitor {
     InstantiatedTypeAliasElementImpl alias,
     Variance variance,
   ) {
-    var aliasElement = alias.element2;
+    var aliasElement = alias.element;
     var aliasArguments = alias.typeArguments;
 
-    var typeParameters = aliasElement.typeParameters2;
+    var typeParameters = aliasElement.typeParameters;
     assert(typeParameters.length == aliasArguments.length);
 
     var newTypeArguments = <TypeImpl>[];
@@ -90,7 +90,7 @@ class ReplaceTopBottomVisitor {
   }
 
   InterfaceTypeImpl _interfaceType(InterfaceTypeImpl type, Variance variance) {
-    var typeParameters = type.element3.typeParameters2;
+    var typeParameters = type.element.typeParameters;
     if (typeParameters.isEmpty) {
       return type;
     }
@@ -105,7 +105,7 @@ class ReplaceTopBottomVisitor {
     }
 
     return InterfaceTypeImpl(
-      element: type.element3,
+      element: type.element,
       nullabilitySuffix: type.nullabilitySuffix,
       typeArguments: newTypeArguments,
     );

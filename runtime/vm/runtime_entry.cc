@@ -8,6 +8,7 @@
 
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
+#include "vm/bootstrap.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler/api/deopt_id.h"
@@ -123,18 +124,21 @@ uword RuntimeEntry::GetEntryPoint() const {
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(function());
-#if defined(USING_SIMULATOR)
-  // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
-  // in registers (maximum 2 double arguments for leaf float runtime calls).
-  ASSERT(argument_count() >= 0);
-  ASSERT(!is_leaf() || (!is_float() && (argument_count() <= 4)) ||
-         (argument_count() <= 2));
-  Simulator::CallKind call_kind =
-      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
-                              : Simulator::kLeafRuntimeCall)
-                : Simulator::kRuntimeCall;
-  entry =
-      Simulator::RedirectExternalReference(entry, call_kind, argument_count());
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    // Redirection to leaf runtime calls supports a maximum of 4 arguments
+    // passed in registers (maximum 2 double arguments for leaf float runtime
+    // calls).
+    ASSERT(argument_count() >= 0);
+    ASSERT(!is_leaf() || (!is_float() && (argument_count() <= 4)) ||
+           (argument_count() <= 2));
+    Simulator::CallKind call_kind =
+        is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
+                                : Simulator::kLeafRuntimeCall)
+                  : Simulator::kRuntimeCall;
+    entry = Simulator::RedirectExternalReference(entry, call_kind,
+                                                 argument_count());
+  }
 #endif
   return entry;
 }
@@ -150,14 +154,14 @@ uword RuntimeEntry::GetEntryPoint() const {
   } while (0)
 #endif
 
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
 #define CHECK_SIMULATOR_STACK_OVERFLOW()                                       \
-  if (!OSThread::Current()->HasStackHeadroom()) {                              \
+  if (FLAG_use_simulator && !OSThread::Current()->HasStackHeadroom()) {        \
     Exceptions::ThrowStackOverflow();                                          \
   }
 #else
 #define CHECK_SIMULATOR_STACK_OVERFLOW()
-#endif  // defined(USING_SIMULATOR)
+#endif  // defined(DART_INCLUDE_SIMULATOR)
 
 void OnEveryRuntimeEntryCall(Thread* thread,
                              const char* runtime_call_name,
@@ -1133,6 +1137,57 @@ DEFINE_RUNTIME_ENTRY(ResolveCallFunction, 2) {
       Resolver::ResolveDynamicForReceiverClass(cls, Symbols::call(), args_desc,
                                                /*allow_add=*/false));
   arguments.SetReturn(call_function);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
+// Resolve external method call from the interpreter.
+// Arg0: function.
+// Arg1: pool index to store resolved trampoline and native function.
+DEFINE_RUNTIME_ENTRY(ResolveExternalCall, 2) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const intptr_t pool_index =
+      Smi::CheckedHandle(zone, arguments.ArgAt(1)).Value();
+
+  const Class& cls = Class::Handle(zone, function.Owner());
+  const Library& library = Library::Handle(zone, cls.library());
+
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstrapResolver(resolver);
+
+  const String& native_name = String::Handle(zone, function.native_name());
+  ASSERT(!native_name.IsNull());
+
+  const intptr_t num_params =
+      NativeArguments::ParameterCountForResolution(function);
+  bool is_auto_scope = true;
+  const NativeFunction target_function = NativeEntry::ResolveNative(
+      library, native_name, num_params, &is_auto_scope);
+  if (target_function == nullptr) {
+    const auto& error = Error::Handle(LanguageError::NewFormatted(
+        Error::Handle(),  // No previous error.
+        Script::Handle(function.script()), function.token_pos(),
+        Report::AtLocation, Report::kError, Heap::kOld,
+        "native function '%s' (%" Pd " arguments) cannot be found",
+        native_name.ToCString(), num_params));
+    Exceptions::PropagateError(error);
+  }
+
+  NativeFunctionWrapper trampoline;
+  if (is_bootstrap_native) {
+    trampoline = NativeEntry::BootstrapNativeCallWrapper;
+  } else if (is_auto_scope) {
+    trampoline = NativeEntry::AutoScopeNativeCallWrapper;
+  } else {
+    trampoline = NativeEntry::NoScopeNativeCallWrapper;
+  }
+
+  const auto& bytecode = Bytecode::Handle(zone, function.GetBytecode());
+  const auto& pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  pool.SetRawValueAt(pool_index, reinterpret_cast<uword>(trampoline));
+  pool.SetRawValueAt(pool_index + 1, reinterpret_cast<uword>(target_function));
 #else
   UNREACHABLE();
 #endif  // defined(DART_DYNAMIC_MODULES)
@@ -3486,16 +3541,17 @@ static void HandleOSRRequest(Thread* thread) {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
-#if defined(USING_SIMULATOR)
-  uword stack_pos = Simulator::Current()->get_sp();
-  // If simulator was never called it may return 0 as a value of SPREG.
-  if (stack_pos == 0) {
-    // Use any reasonable value which would not be treated
-    // as stack overflow.
-    stack_pos = thread->saved_stack_limit();
-  }
-#else
   uword stack_pos = OSThread::GetCurrentStackPointer();
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    stack_pos = Simulator::Current()->get_sp();
+    // If simulator was never called it may return 0 as a value of SPREG.
+    if (stack_pos == 0) {
+      // Use any reasonable value which would not be treated
+      // as stack overflow.
+      stack_pos = thread->saved_stack_limit();
+    }
+  }
 #endif
   // Always clear the stack overflow flags.  They are meant for this
   // particular stack overflow runtime call and are not meant to
@@ -3568,19 +3624,6 @@ DEFINE_RUNTIME_ENTRY(InterruptOrStackOverflow, 0) {
 #else
   ASSERT((stack_overflow_flags & Thread::kOsrRequest) == 0);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-}
-
-DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
-  const ICData& ic_data = ICData::CheckedHandle(zone, arguments.ArgAt(0));
-  const Function& function = Function::CheckedHandle(zone, arguments.ArgAt(1));
-  DartFrameIterator iterator(thread,
-                             StackFrameIterator::kNoCrossThreadIteration);
-  StackFrame* frame = iterator.NextFrame();
-  ASSERT(frame != nullptr);
-  OS::PrintErr(
-      "IC call @%#" Px ": ICData: %#" Px " cnt:%" Pd " nchecks: %" Pd " %s\n",
-      frame->pc(), static_cast<uword>(ic_data.ptr()), function.usage_counter(),
-      ic_data.NumberOfChecks(), function.ToFullyQualifiedCString());
 }
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -4229,6 +4272,20 @@ DEFINE_RUNTIME_ENTRY(InitStaticField, 1) {
   arguments.SetReturn(result);
 }
 
+DEFINE_RUNTIME_ENTRY(ThrowIfValueCantBeShared, 2) {
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  const Object& value = Field::CheckedHandle(zone, arguments.ArgAt(1));
+
+  auto& message = String::Handle(zone);
+  message = String::NewFormatted(
+      "Attempt to place "
+      "non-trivially-shareable value %s in the shared field: %s",
+      value.ToCString(), field.ToCString());
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, message);
+  Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+}
+
 DEFINE_RUNTIME_ENTRY(StaticFieldAccessedWithoutIsolateError, 1) {
   const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
   Exceptions::ThrowStaticFieldAccessedWithoutIsolate(
@@ -4393,9 +4450,11 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
 uword RuntimeEntry::InterpretCallEntry() {
 #if defined(DART_DYNAMIC_MODULES)
   uword entry = reinterpret_cast<uword>(InterpretCall);
-#if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry,
-                                               Simulator::kLeafRuntimeCall, 5);
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    entry = Simulator::RedirectExternalReference(
+        entry, Simulator::kLeafRuntimeCall, 5);
+  }
 #endif
   return entry;
 #else
@@ -4736,6 +4795,21 @@ extern "C" void DLRT_PropagateError(Dart_Handle handle) {
 DEFINE_LEAF_RUNTIME_ENTRY(PropagateError,
                           /*argument_count=*/1,
                           DLRT_PropagateError);
+
+DEFINE_RUNTIME_ENTRY(InitializeSharedField, 1) {
+  SafepointWriteRwLocker locker(
+      thread, thread->isolate_group()->shared_field_initializer_rwlock());
+  const Field& field = Field::CheckedHandle(zone, arguments.ArgAt(0));
+  Object& result = Object::Handle(zone, field.StaticValue());
+  if (result.ptr() == Object::sentinel().ptr()) {
+    // Haven't lost a race to set the initial value.
+    result = field.InitializeStatic();
+    ThrowIfError(result);
+    result = field.StaticValue();
+    ASSERT(result.ptr() != Object::sentinel().ptr());
+  }
+  arguments.SetReturn(result);
+}
 
 #if !defined(USING_MEMORY_SANITIZER)
 extern "C" void __msan_unpoison(const volatile void*, size_t) {

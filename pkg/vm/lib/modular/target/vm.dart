@@ -174,6 +174,7 @@ class VmTarget extends Target {
     ChangedStructureNotifier? changedStructureNotifier,
   }) {
     deeply_immutable.validateLibraries(
+      component,
       libraries,
       coreTypes,
       diagnosticReporter,

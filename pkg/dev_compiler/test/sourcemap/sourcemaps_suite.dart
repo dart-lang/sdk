@@ -14,7 +14,9 @@ import 'common.dart';
 import 'ddc_common.dart';
 
 Future<ChainContext> createContext(
-    Chain suite, Map<String, String> environment) async {
+  Chain suite,
+  Map<String, String> environment,
+) async {
   return SourceMapContext(environment);
 }
 
@@ -48,8 +50,12 @@ class DevCompilerRunner implements CompilerRunner {
   final String moduleFormat;
   final bool canary;
 
-  const DevCompilerRunner(this.context,
-      {this.debugging = false, this.moduleFormat = 'es6', this.canary = false});
+  const DevCompilerRunner(
+    this.context, {
+    this.debugging = false,
+    this.moduleFormat = 'es6',
+    this.canary = false,
+  });
 
   @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
@@ -60,14 +66,15 @@ class DevCompilerRunner implements CompilerRunner {
     } else {
       assert(moduleFormat == 'ddc' && canary);
       sdkJsFile = findInOutDir('gen/utils/ddc/canary/sdk/ddc/dart_sdk.js').uri;
-      ddcModuleLoaderFile =
-          findInOutDir('dart-sdk/lib/dev_compiler/ddc/ddc_module_loader.js')
-              .uri;
+      ddcModuleLoaderFile = findInOutDir(
+        'dart-sdk/lib/dev_compiler/ddc/ddc_module_loader.js',
+      ).uri;
     }
 
     var ddcSdkSummary = findInOutDir('ddc_outline.dill');
-    var packageConfigPath =
-        sdkRoot!.uri.resolve('.dart_tool/package_config.json').toFilePath();
+    var packageConfigPath = sdkRoot!.uri
+        .resolve('.dart_tool/package_config.json')
+        .toFilePath();
     var args = <String>[
       '--batch',
       '--packages=$packageConfigPath',
@@ -76,13 +83,15 @@ class DevCompilerRunner implements CompilerRunner {
       '--dart-sdk-summary=${ddcSdkSummary.path}',
       '-o',
       outputFile.toFilePath(),
-      inputFile.toFilePath()
+      inputFile.toFilePath(),
     ];
 
     var succeeded = false;
     try {
-      var result = await compile(ParsedArguments.from(args),
-          compilerState: context.compilerState);
+      var result = await compile(
+        ParsedArguments.from(args),
+        compilerState: context.compilerState,
+      );
       context.compilerState =
           result.compilerState as fe.InitializedCompilerState?;
       succeeded = result.success;
@@ -101,27 +110,35 @@ class DevCompilerRunner implements CompilerRunner {
     }
 
     var jsContent = File.fromUri(outputFile).readAsStringSync();
-    File.fromUri(outputFile).writeAsStringSync(jsContent.replaceFirst(
-        "from 'dart_sdk.js'", "from '${uriPathForwardSlashed(sdkJsFile)}'"));
+    File.fromUri(outputFile).writeAsStringSync(
+      jsContent.replaceFirst(
+        "from 'dart_sdk.js'",
+        "from '${uriPathForwardSlashed(sdkJsFile)}'",
+      ),
+    );
 
     if (debugging) {
       createHtmlWrapper(
-          inputFile: inputFile,
-          sdkJsFile: sdkJsFile,
-          outputFile: outputFile,
-          jsContent: jsContent,
-          outputFilename: outputFile.pathSegments.last,
-          moduleFormat: moduleFormat,
-          canary: canary);
+        inputFile: inputFile,
+        sdkJsFile: sdkJsFile,
+        outputFile: outputFile,
+        jsContent: jsContent,
+        outputFilename: outputFile.pathSegments.last,
+        moduleFormat: moduleFormat,
+        canary: canary,
+      );
     }
 
-    File.fromUri(outWrapperFile).writeAsStringSync(getWrapperContent(
+    File.fromUri(outWrapperFile).writeAsStringSync(
+      getWrapperContent(
         sdkJsFile: sdkJsFile,
         ddcModuleLoaderFile: ddcModuleLoaderFile,
         inputFile: inputFile,
         outputFile: outputFile,
         moduleFormat: moduleFormat,
-        canary: canary));
+        canary: canary,
+      ),
+    );
   }
 }
 

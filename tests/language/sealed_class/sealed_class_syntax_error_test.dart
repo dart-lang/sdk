@@ -51,7 +51,6 @@ sealed sealed class SealedDuplicateClass {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sealed' isn't a type.
-// [cfe] Can't use 'sealed' because it is declared more than once.
 //     ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -61,7 +60,6 @@ class SealedVariable {
     sealed var x = 2;
 //  ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] Can't use 'sealed' because it is declared more than once.
 // [cfe] Expected ';' after this.
     return x;
   }

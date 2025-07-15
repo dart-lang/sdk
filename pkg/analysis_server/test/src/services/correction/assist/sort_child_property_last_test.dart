@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class SortChildPropertyLastTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
+  AssistKind get kind => DartAssistKind.sortChildPropertyLast;
 
   @override
   void setUp() {

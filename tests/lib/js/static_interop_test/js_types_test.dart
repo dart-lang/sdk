@@ -55,6 +55,16 @@ extension on JSArrayBuffer {
   external int get byteLength;
 }
 
+@JS('SharedArrayBuffer')
+external JSAny? get _sharedArrayBufferConstructor;
+
+bool supportsSharedArrayBuffer = _sharedArrayBufferConstructor != null;
+
+@JS('SharedArrayBuffer')
+extension type JSSharedArrayBuffer._(JSObject _) implements JSObject {
+  external JSSharedArrayBuffer(int length);
+}
+
 @JS()
 external JSDataView dat;
 
@@ -79,6 +89,11 @@ external JSInt8Array ai8;
 
 @JS()
 external JSUint8Array au8;
+
+@JS('Uint8Array')
+extension type JSUint8ArrayShared._(JSUint8Array _) implements JSUint8Array {
+  external JSUint8ArrayShared(JSSharedArrayBuffer buf);
+}
 
 @JS()
 external JSUint8ClampedArray ac8;
@@ -285,6 +300,16 @@ void syncTests() {
   buf = JSArrayBuffer(5);
   Expect.equals(5, buf.byteLength);
   buf = JSArrayBuffer(5, {'maxByteLength': 12}.jsify() as JSObject);
+  // TODO(https://github.com/dart-lang/sdk/issues/61043): Support this in the
+  // test runner.
+  if (supportsSharedArrayBuffer) {
+    final sharedArrayBuffer = JSSharedArrayBuffer(4);
+    final sharedByteBuffer = JSUint8ArrayShared(
+      sharedArrayBuffer,
+    ).toDart.buffer;
+    // Not a `JSArrayBuffer`.
+    Expect.throws(() => sharedByteBuffer.toJS);
+  }
 
   // [DataView] <-> [ByteData]
   final datBuf = Uint8List.fromList([0, 255, 0, 255]).buffer.toJS;
@@ -658,6 +683,7 @@ Future<void> asyncTests() async {
       Expect.fail('Expected rejected promise to throw.');
     } catch (e) {
       Expect.isTrue(e is NullRejectionException);
+      Expect.equals(rejectWithNull, !(e as NullRejectionException).isUndefined);
     }
   }
 

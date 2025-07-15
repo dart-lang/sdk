@@ -40,15 +40,17 @@ final class CorrectionUtils {
       return endOfLine;
     }
 
-    if (_buffer.contains('\r\n')) {
+    var indexOfNewline = _buffer.indexOf('\n');
+    if (indexOfNewline < 0) {
+      // No `\n` (and thus no `\r\n` either) found.
+      return Platform.lineTerminator;
+    }
+
+    if (indexOfNewline > 0 &&
+        _buffer.codeUnitAt(indexOfNewline - 1) == 13 /* \r */) {
       return _endOfLine = '\r\n';
     }
-
-    if (_buffer.contains('\n')) {
-      return _endOfLine = '\n';
-    }
-
-    return Platform.lineTerminator;
+    return _endOfLine = '\n';
   }
 
   String get oneIndent => _oneIndent;
@@ -299,8 +301,11 @@ final class CorrectionUtils {
       for (var lineRange in lineRanges) {
         if (lineOffset > lineRange.offset && lineOffset < lineRange.end) {
           inString = true;
+          break;
         }
-        if (lineOffset > lineRange.end) {
+        // We can skip the rest if this line ends before the end of this range
+        // because subsequent ranges are after it.
+        if (lineOffset < lineRange.end) {
           break;
         }
       }
@@ -440,7 +445,7 @@ class TokenUtils {
       var scanner = Scanner(
         _SourceMock(),
         CharSequenceReader(s),
-        AnalysisErrorListener.NULL_LISTENER,
+        DiagnosticListener.nullListener,
       )..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,

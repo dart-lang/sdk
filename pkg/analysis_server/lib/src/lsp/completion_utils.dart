@@ -27,7 +27,7 @@ import 'package:path/path.dart' as path;
 
 /// Computes completion string, text to display and imports, if any for
 /// an [OverrideSuggestion].
-Future<OverrideData?> createOverrideSuggestionData(
+Future<TypeImportData?> createOverrideSuggestionData(
   OverrideSuggestion suggestion,
   DartCompletionRequest request,
 ) async {
@@ -86,7 +86,7 @@ Future<OverrideData?> createOverrideSuggestionData(
   if (suggestion.skipAt) {
     displayText = 'override $displayText';
   }
-  return OverrideData(
+  return TypeImportData(
     completion,
     displayText,
     overrideImports,
@@ -95,9 +95,77 @@ Future<OverrideData?> createOverrideSuggestionData(
   );
 }
 
+/// Computes completion string, text to display and imports, if any for
+/// an [TypedSuggestion].
+Future<TypeImportData?> createTypedSuggestionData(
+  TypedSuggestion suggestion,
+  DartCompletionRequest request,
+) async {
+  // No keyword or type annotation means that we don't need to do anything.
+  if (!suggestion.addTypeAnnotation && suggestion.keyword == null) {
+    return null;
+  }
+  var typeImports = <Uri>{};
+  var builder = ChangeBuilder(session: request.analysisSession);
+  await builder.addDartFileEdit(request.path, createEditsForImports: false, (
+    builder,
+  ) {
+    builder.addReplacement(suggestion.replacementRange, (builder) {
+      if (suggestion.keyword case var keyword?) {
+        builder.write(keyword.lexeme);
+        builder.write(' ');
+      }
+      if (suggestion.addTypeAnnotation) {
+        builder.writeType(suggestion.type, shouldWriteDynamic: true);
+        builder.write(' ');
+      }
+      if (suggestion is SetStateMethodSuggestion &&
+          (suggestion.addTypeAnnotation || suggestion.keyword != null)) {
+        builder.write('setState');
+      } else {
+        builder.write(suggestion.completion);
+      }
+    });
+    typeImports.addAll(builder.requiredImports);
+  });
+
+  var fileEdits = builder.sourceChange.edits;
+  if (fileEdits.length != 1) {
+    return null;
+  }
+
+  var sourceEdits = fileEdits.first.edits;
+  if (sourceEdits.length != 1) {
+    return null;
+  }
+
+  var replacement = sourceEdits.first.replacement;
+  var completion = replacement.trim();
+  if (completion.isEmpty) {
+    return null;
+  }
+
+  var selectionRange = builder.selectionRange;
+
+  int? selectionOffset;
+  if (selectionRange != null) {
+    var offsetDelta =
+        suggestion.replacementRange.offset + replacement.indexOf(completion);
+    selectionOffset = selectionRange.offset - offsetDelta;
+  }
+
+  return TypeImportData(
+    completion,
+    suggestion.completion,
+    typeImports,
+    selectionOffset,
+    selectionRange?.length,
+  );
+}
+
 // TODO(keertip): Move over completions for plugins and snippets to use
 // this function.
-Future<lsp.CompletionItem?> toLspCompletionItem(
+lsp.CompletionItem? toLspCompletionItem(
   LspClientCapabilities capabilities,
   server.LineInfo lineInfo,
   CandidateSuggestion suggestion, {
@@ -113,7 +181,7 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
   required bool completeFunctionCalls,
   lsp.CompletionItemResolutionInfo? resolutionData,
   required DartCompletionRequest request,
-}) async {
+}) {
   // isCallable is used to suffix the label with parens so it's clear the item
   // is callable.
   //
@@ -268,9 +336,11 @@ Future<lsp.CompletionItem?> toLspCompletionItem(
 
   if (suggestion is SuggestionData) {
     selectionOffset = (suggestion as SuggestionData).selectionOffset;
-  } else if (suggestion case OverrideSuggestion(:var data?)) {
-    selectionOffset = data.selectionOffset;
-    selectionLength = data.selectionLength;
+  } else if (suggestion case TypedSuggestion(
+    data: TypeImportData(:var selectionOffset?, :var selectionLength?),
+  )) {
+    selectionOffset = selectionOffset;
+    selectionLength = selectionLength;
   }
 
   var insertTextInfo = buildInsertText(
@@ -652,16 +722,15 @@ String _getDisplayText(
   CandidateSuggestion suggestion,
   DartCompletionRequest request,
 ) {
-  if (suggestion is SuggestionData) {
-    return (suggestion as SuggestionData).displayText;
-  }
-  if (suggestion is FunctionCall) {
-    return 'call()';
-  }
-  if (suggestion is OverrideSuggestion) {
-    return suggestion.data?.displayText ?? suggestion.completion;
-  }
-  return suggestion.completion;
+  return switch (suggestion) {
+    SuggestionData(:var displayText) => displayText,
+    FunctionCall() => 'call()',
+    OverrideSuggestion(:var data, :var completion) =>
+      data?.displayText ?? completion,
+    TypedSuggestion(:var data, :var completion) =>
+      data?.displayText ?? completion,
+    _ => suggestion.completion,
+  };
 }
 
 /// If the [element] has a documentation comment, return it.
@@ -688,6 +757,7 @@ String? _getDocumentation(
   DartCompletionRequest request,
   DocumentationPreference includeDocumentation,
 ) {
+  if (includeDocumentation == DocumentationPreference.none) return null;
   var docs = _getDocsFromComputer(element, request);
 
   var doc = removeDartDocDelimiters(docs?.full);

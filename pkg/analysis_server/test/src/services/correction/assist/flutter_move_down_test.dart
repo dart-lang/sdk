@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterMoveDownTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_MOVE_DOWN;
+  AssistKind get kind => DartAssistKind.flutterMoveDown;
 
   @override
   void setUp() {

@@ -2,19 +2,19 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/undefined.dart:12:5: Error: The getter 'y' isn't defined for the class 'C'.
+// pkg/front_end/testcases/general/undefined.dart:12:5: Error: The getter 'y' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
 //   c.y;
 //     ^
 //
-// pkg/front_end/testcases/general/undefined.dart:14:5: Error: The method 'g' isn't defined for the class 'C'.
+// pkg/front_end/testcases/general/undefined.dart:14:5: Error: The method 'g' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'g'.
 //   c.g();
 //     ^
 //
-// pkg/front_end/testcases/general/undefined.dart:16:5: Error: The setter 'y' isn't defined for the class 'C'.
+// pkg/front_end/testcases/general/undefined.dart:16:5: Error: The setter 'y' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
 //   c.y = null;
@@ -32,19 +32,19 @@ class C extends core::Object {
 }
 static method test(self::C c) → void {
   c.{self::C::x}{dynamic};
-  invalid-expression "pkg/front_end/testcases/general/undefined.dart:12:5: Error: The getter 'y' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/general/undefined.dart:12:5: Error: The getter 'y' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'y'.
   c.y;
     ^" in c{<unresolved>}.y;
   c.{self::C::f}(){() → void};
-  invalid-expression "pkg/front_end/testcases/general/undefined.dart:14:5: Error: The method 'g' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/general/undefined.dart:14:5: Error: The method 'g' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'g'.
   c.g();
     ^" in c{<unresolved>}.g();
   c.{self::C::x} = null;
-  invalid-expression "pkg/front_end/testcases/general/undefined.dart:16:5: Error: The setter 'y' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/general/undefined.dart:16:5: Error: The setter 'y' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/general/undefined.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'y'.
   c.y = null;

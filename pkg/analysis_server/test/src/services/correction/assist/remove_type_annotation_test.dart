@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveTypeAnnotationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
+  AssistKind get kind => DartAssistKind.removeTypeAnnotation;
 
   Future<void> test_classField() async {
     await resolveTestCode('''

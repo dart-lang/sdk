@@ -35,7 +35,7 @@ Element? _getContainer(Element element) {
     ElementKind.MIXIN,
     ElementKind.SETTER,
   };
-  return element.thisOrAncestorMatching2(
+  return element.thisOrAncestorMatching(
     (ancestor) => containerKinds.contains(ancestor.kind),
   );
 }
@@ -135,15 +135,26 @@ class CallHierarchyItem {
     element = _nonSynthetic(element);
     var fragment = element.firstFragment as FragmentImpl;
 
-    // Compilation units will return -1 for nameOffset which is not valid, so
-    // use 0:0.
-    return fragment.nameOffset == -1
-        ? SourceRange(0, 0)
-        : SourceRange(fragment.nameOffset, fragment.nameLength);
+    var nameOffset = fragment.nameOffset2;
+    var nameEnd = fragment.nameEnd;
+    if (nameOffset != null && nameEnd != null) {
+      return SourceRange(nameOffset, nameEnd - nameOffset);
+    }
+
+    // For unnamed constructors, use the type name.
+    if (fragment is ConstructorFragmentImpl) {
+      var typeNameOffset = fragment.typeNameOffset;
+      var typeName = fragment.typeName;
+      if (typeName != null && typeNameOffset != null) {
+        return SourceRange(typeNameOffset, typeName.length);
+      }
+    }
+
+    return SourceRange(0, 0);
   }
 
   static Element _nonSynthetic(Element element) {
-    element = element.nonSynthetic2;
+    element = element.nonSynthetic;
     if (element.isSynthetic) {
       element = element.enclosingElement ?? element;
     }
@@ -226,7 +237,7 @@ class DartCallHierarchyComputer {
         element is InterfaceElement &&
         target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
-      element = element.unnamedConstructor2;
+      element = element.unnamedConstructor;
     }
 
     // We only find incoming calls to executable elements.
@@ -377,7 +388,7 @@ class DartCallHierarchyComputer {
       node = node.propertyName;
     }
 
-    var element = ElementLocator.locate2(node);
+    var element = ElementLocator.locate(node);
 
     // Don't consider synthetic getter/setter for a field to be executable
     // since they don't contain any executable code.

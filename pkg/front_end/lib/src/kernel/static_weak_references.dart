@@ -29,7 +29,9 @@ class StaticWeakReferences {
 
   static bool isAnnotatedWithWeakReferencePragma(
       Annotatable node, CoreTypes coreTypes) {
-    for (Expression annotation in node.annotations) {
+    List<Expression> annotations = node.annotations;
+    for (int i = 0; i < annotations.length; i++) {
+      Expression annotation = annotations[i];
       if (annotation is ConstantExpression) {
         Constant constant = annotation.constant;
         if (constant is InstanceConstant) {

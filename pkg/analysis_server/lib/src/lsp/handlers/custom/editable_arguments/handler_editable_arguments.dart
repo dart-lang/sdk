@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/lint/constants.dart';
 
 /// Information about the values for a parameter/argument.
 typedef _Values = ({DartObject? parameterValue, DartObject? argumentValue});
@@ -147,7 +146,7 @@ class EditableArgumentsHandler
     Expression? argumentExpression,
   ) {
     var parameterValue = parameter.computeConstantValue();
-    var argumentValue = argumentExpression?.computeConstantValue().value;
+    var argumentValue = argumentExpression?.computeConstantValue()?.value;
 
     return (parameterValue: parameterValue, argumentValue: argumentValue);
   }
@@ -201,11 +200,11 @@ class EditableArgumentsHandler
       type = 'string';
       value = values.argumentValue?.toStringValue();
       defaultValue = values.parameterValue?.toStringValue();
-    } else if (parameter.type case InterfaceType(:EnumElement element3)) {
+    } else if (parameter.type case InterfaceType(:EnumElement element)) {
       type = 'enum';
-      options = getQualifiedEnumConstantNames(element3);
-      value = values.argumentValue?.toEnumStringValue(element3);
-      defaultValue = values.parameterValue?.toEnumStringValue(element3);
+      options = getQualifiedEnumConstantNames(element);
+      value = values.argumentValue?.toEnumStringValue(element);
+      defaultValue = values.parameterValue?.toEnumStringValue(element);
     } else {
       // TODO(dantup): Determine which parameters we don't include (such as
       //  Widgets) and which we include just without values.
@@ -253,14 +252,14 @@ class EditableArgumentsHandler
 }
 
 extension on DartObject? {
-  Object? toEnumStringValue(EnumElement element3) {
+  Object? toEnumStringValue(EnumElement element) {
     var valueObject = this;
     if (valueObject?.type case InterfaceType(
-      element3: EnumElement valueElement,
-    ) when element3 == valueElement) {
+      element: EnumElement valueElement,
+    ) when element == valueElement) {
       var index = valueObject?.getField('index')?.toIntValue();
       if (index != null) {
-        var enumConstant = element3.constants2.elementAtOrNull(index);
+        var enumConstant = element.constants.elementAtOrNull(index);
         if (enumConstant != null) {
           return EditableArgumentsMixin.getQualifiedEnumConstantName(
             enumConstant,

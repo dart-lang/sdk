@@ -106,12 +106,12 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       // Find the parameter we're editing the argument for.
       var parameterName = params.edit.name;
       var parameter = parameters.firstWhereOrNull(
-        (p) => p.name3 == parameterName,
+        (p) => p.name == parameterName,
       );
       if (parameter == null) {
         return error(
           ServerErrorCodes.EditArgumentInvalidParameter,
-          "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name3).join(', ')}",
+          "The parameter '$parameterName' was not found in this invocation. The available parameters are ${parameters.map((p) => p.name).join(', ')}",
         );
       }
 
@@ -210,9 +210,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         ),
       );
     } else if (parameter.type case InterfaceType(
-      :EnumElement element3,
+      :EnumElement element,
     ) when value is String?) {
-      var allowedValues = getQualifiedEnumConstantNames(element3);
+      var allowedValues = getQualifiedEnumConstantNames(element);
       if (allowedValues.contains(value)) {
         return success(value.toString());
       } else {
@@ -392,7 +392,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
     }
 
-    var parameterName = parameter.name3;
+    var parameterName = parameter.name;
     var argumentNamePrefix =
         parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
     var argumentCode = '$argumentNamePrefix$newValueCode';

@@ -61,10 +61,10 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@34
       type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@34
     type: Stream<int> Function()
 ''');
   }
@@ -107,10 +107,10 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@34
       type: Stream<int> Function()
     staticType: Stream<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@34
     type: Stream<int> Function()
 ''');
   }
@@ -127,7 +127,7 @@ void bar([int foo = foo + 1]) {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: foo
-  element: <testLibraryFragment>::@getter::foo#element
+  element: <testLibrary>::@getter::foo
   staticType: int
 ''');
   }
@@ -153,7 +153,7 @@ NamedType
     assertResolvedNodeText(node_2, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@function::bar::@parameter::a#element
+  element: <testLibrary>::@function::bar::@formalParameter::a
   staticType: a
 ''');
   }
@@ -185,12 +185,12 @@ FunctionDeclaration
               arguments
                 NamedType
                   name: T
-                  element2: T@7
+                  element2: #E0 T
                   type: T
               rightBracket: >
             element2: dart:core::@class::List
             type: List<T>
-          declaredElement: T@7
+          declaredElement: <testLibraryFragment> T@7
             defaultType: List<dynamic>
       rightBracket: >
     parameters: FormalParameterList
@@ -200,10 +200,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::m
+    declaredElement: <testLibraryFragment> m@5
       type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
-  declaredElement: <testLibraryFragment>::@function::m
+  declaredElement: <testLibraryFragment> m@5
     type: void Function<T extends List<T>>()
 ''');
   }
@@ -232,7 +232,7 @@ FunctionDeclaration
             name: num
             element2: dart:core::@class::num
             type: num
-          declaredElement: T@7
+          declaredElement: <testLibraryFragment> T@7
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
@@ -242,10 +242,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::m
+    declaredElement: <testLibraryFragment> m@5
       type: void Function<T extends num>()
     staticType: void Function<T extends num>()
-  declaredElement: <testLibraryFragment>::@function::m
+  declaredElement: <testLibraryFragment> m@5
     type: void Function<T extends num>()
 ''');
   }
@@ -282,12 +282,12 @@ FunctionDeclaration
               arguments
                 NamedType
                   name: T
-                  element2: T@20
+                  element2: #E0 T
                   type: T
               rightBracket: >
             element2: dart:core::@class::List
             type: List<T>
-          declaredElement: T@20
+          declaredElement: <testLibraryFragment> T@20
             defaultType: List<dynamic>
       rightBracket: >
     parameters: FormalParameterList
@@ -297,10 +297,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: m@18
+    declaredElement: <testLibraryFragment> m@18
       type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
-  declaredElement: m@18
+  declaredElement: <testLibraryFragment> m@18
     type: void Function<T extends List<T>>()
 ''');
   }
@@ -334,7 +334,7 @@ FunctionDeclaration
             name: num
             element2: dart:core::@class::num
             type: num
-          declaredElement: T@20
+          declaredElement: <testLibraryFragment> T@20
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
@@ -344,10 +344,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: m@18
+    declaredElement: <testLibraryFragment> m@18
       type: void Function<T extends num>()
     staticType: void Function<T extends num>()
-  declaredElement: m@18
+  declaredElement: <testLibraryFragment> m@18
     type: void Function<T extends num>()
 ''');
   }
@@ -378,7 +378,7 @@ FunctionDeclaration
           element2: dart:core::@class::double
           type: double
         name: a
-        declaredElement: <testLibraryFragment>::@getter::foo::@formalParameter::a
+        declaredElement: <testLibraryFragment> a@19
           type: double
       rightParenthesis: )
     body: ExpressionFunctionBody
@@ -387,10 +387,10 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@getter::foo
+    declaredElement: <testLibraryFragment> foo@8
       type: int Function(double)
     staticType: int Function(double)
-  declaredElement: <testLibraryFragment>::@getter::foo
+  declaredElement: <testLibraryFragment> foo@8
     type: int Function(double)
 ''');
   }
@@ -438,10 +438,10 @@ FunctionDeclaration
               staticType: int
             semicolon: ;
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@14
       type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@14
     type: Iterable<int> Function()
 ''');
   }
@@ -482,10 +482,10 @@ FunctionDeclaration
         literal: 0
         staticType: int
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@14
       type: Iterable<int> Function()
     staticType: Iterable<int> Function()
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@14
     type: Iterable<int> Function()
 ''');
   }
@@ -510,10 +510,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::_
+    declaredElement: <testLibraryFragment> _@0
       type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: <testLibraryFragment>::@function::_
+  declaredElement: <testLibraryFragment> _@0
     type: dynamic Function()
 ''');
   }
@@ -541,10 +541,10 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment>::@function::_
+    declaredElement: <testLibraryFragment> _@44
       type: dynamic Function()
     staticType: dynamic Function()
-  declaredElement: <testLibraryFragment>::@function::_
+  declaredElement: <testLibraryFragment> _@44
     type: dynamic Function()
 ''');
   }
@@ -579,7 +579,7 @@ TypeParameter
       typeParameters
         TypeParameter
           name: _
-          declaredElement: _@31
+          declaredElement: <testLibraryFragment> _@31
             defaultType: null
       rightBracket: >
     parameters: FormalParameterList
@@ -589,14 +589,14 @@ TypeParameter
           name: _
           element2: <null>
           type: InvalidType
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: InvalidType
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
           element2: <null>
           type: InvalidType
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: InvalidType
       rightParenthesis: )
     declaredElement: GenericFunctionTypeElement
@@ -610,7 +610,7 @@ TypeParameter
       returnType: void
       type: void Function<_>(InvalidType, InvalidType)
     type: void Function<_>(InvalidType, InvalidType)
-  declaredElement: _@7
+  declaredElement: <testLibraryFragment> _@7
     defaultType: void Function<_>(InvalidType, InvalidType)
 ''');
   }

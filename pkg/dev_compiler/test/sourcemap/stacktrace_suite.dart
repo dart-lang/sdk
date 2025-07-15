@@ -10,7 +10,9 @@ import 'ddc_common.dart';
 import 'sourcemaps_suite.dart';
 
 Future<ChainContext> _createContext(
-    Chain suite, Map<String, String> environment) async {
+  Chain suite,
+  Map<String, String> environment,
+) async {
   return StackTraceContext(moduleFormat: 'es6', canary: false);
 }
 
@@ -32,10 +34,15 @@ class StackTraceContext extends ChainContextWithCleanupHelper
       const Setup(),
       const SetCwdToSdkRoot(),
       TestStackTrace(
-          DevCompilerRunner(this,
-              debugging: false, moduleFormat: moduleFormat, canary: canary),
-          'ddc',
-          ['ddc']),
+        DevCompilerRunner(
+          this,
+          debugging: false,
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
+        'ddc',
+        ['ddc'],
+      ),
     ];
   }
 }

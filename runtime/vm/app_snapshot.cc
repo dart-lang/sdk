@@ -248,6 +248,7 @@ class DeserializationCluster : public ZoneAllocated {
 
   const char* name() const { return name_; }
   bool is_canonical() const { return is_canonical_; }
+  bool is_immutable() const { return is_immutable_; }
 
  protected:
   void ReadAllocFixedSize(Deserializer* deserializer, intptr_t instance_size);
@@ -3624,8 +3625,6 @@ class RODataSerializationCluster
             is_canonical,
             is_canonical && IsStringClassId(cid),
             ImageWriter::TagObjectTypeAsReadOnly(zone, type)),
-        zone_(zone),
-        cid_(cid),
         type_(type) {}
   ~RODataSerializationCluster() {}
 
@@ -3675,8 +3674,6 @@ class RODataSerializationCluster
   }
 
  private:
-  Zone* zone_;
-  const intptr_t cid_;
   const char* const type_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME && !DART_COMPRESSED_POINTERS
@@ -3721,9 +3718,6 @@ class RODataDeserializationCluster
       VerifyCanonicalSet(d, refs,
                          WeakArray::Handle(object_store->symbol_table()));
       object_store->set_symbol_table(table_);
-      if (d->isolate_group() == Dart::vm_isolate_group()) {
-        Symbols::InitFromSnapshot(d->isolate_group());
-      }
     } else if (!is_root_unit_ && is_canonical()) {
       FATAL("Cannot recanonicalize RO objects.");
     }
@@ -4559,8 +4553,9 @@ class AbstractInstanceDeserializationCluster : public DeserializationCluster {
  protected:
   explicit AbstractInstanceDeserializationCluster(const char* name,
                                                   bool is_canonical,
+                                                  bool is_immutable,
                                                   bool is_root_unit)
-      : DeserializationCluster(name, is_canonical),
+      : DeserializationCluster(name, is_canonical, is_immutable),
         is_root_unit_(is_root_unit) {}
 
   const bool is_root_unit_;
@@ -4591,9 +4586,9 @@ class InstanceDeserializationCluster
                                           bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Instance",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit),
-        cid_(cid),
-        is_immutable_(is_immutable) {}
+        cid_(cid) {}
   ~InstanceDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -4651,7 +4646,6 @@ class InstanceDeserializationCluster
 
  private:
   const intptr_t cid_;
-  const bool is_immutable_;
   intptr_t next_field_offset_in_words_;
   intptr_t instance_size_in_words_;
 };
@@ -5251,9 +5245,12 @@ class ClosureSerializationCluster : public SerializationCluster {
 class ClosureDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit ClosureDeserializationCluster(bool is_canonical, bool is_root_unit)
+  explicit ClosureDeserializationCluster(bool is_canonical,
+                                         bool is_immutable,
+                                         bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Closure",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit) {}
   ~ClosureDeserializationCluster() {}
 
@@ -5346,9 +5343,12 @@ class MintSerializationCluster : public SerializationCluster {
 class MintDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit MintDeserializationCluster(bool is_canonical, bool is_root_unit)
+  explicit MintDeserializationCluster(bool is_canonical,
+                                      bool is_immutable,
+                                      bool is_root_unit)
       : AbstractInstanceDeserializationCluster("int",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit) {}
   ~MintDeserializationCluster() {}
 
@@ -5415,10 +5415,15 @@ class DoubleSerializationCluster : public SerializationCluster {
 class DoubleDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit DoubleDeserializationCluster(bool is_canonical, bool is_root_unit)
+  explicit DoubleDeserializationCluster(bool is_canonical,
+                                        bool is_immutable,
+                                        bool is_root_unit)
       : AbstractInstanceDeserializationCluster("double",
                                                is_canonical,
-                                               is_root_unit) {}
+                                               is_immutable,
+                                               is_root_unit) {
+    ASSERT(Object::ShouldHaveImmutabilityBitSet(kDoubleCid));
+  }
   ~DoubleDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
@@ -5485,9 +5490,11 @@ class Simd128DeserializationCluster
  public:
   explicit Simd128DeserializationCluster(intptr_t cid,
                                          bool is_canonical,
+                                         bool is_immutable,
                                          bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Simd128",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~Simd128DeserializationCluster() {}
@@ -5630,9 +5637,12 @@ class RecordSerializationCluster : public SerializationCluster {
 class RecordDeserializationCluster
     : public AbstractInstanceDeserializationCluster {
  public:
-  explicit RecordDeserializationCluster(bool is_canonical, bool is_root_unit)
+  explicit RecordDeserializationCluster(bool is_canonical,
+                                        bool is_immutable,
+                                        bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Record",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit) {}
   ~RecordDeserializationCluster() {}
 
@@ -6265,9 +6275,11 @@ class MapDeserializationCluster
  public:
   explicit MapDeserializationCluster(intptr_t cid,
                                      bool is_canonical,
+                                     bool is_immutable,
                                      bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Map",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~MapDeserializationCluster() {}
@@ -6340,9 +6352,11 @@ class SetDeserializationCluster
  public:
   explicit SetDeserializationCluster(intptr_t cid,
                                      bool is_canonical,
+                                     bool is_immutable,
                                      bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Set",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~SetDeserializationCluster() {}
@@ -6480,9 +6494,11 @@ class ArrayDeserializationCluster
  public:
   explicit ArrayDeserializationCluster(intptr_t cid,
                                        bool is_canonical,
+                                       bool is_immutable,
                                        bool is_root_unit)
       : AbstractInstanceDeserializationCluster("Array",
                                                is_canonical,
+                                               is_immutable,
                                                is_root_unit),
         cid_(cid) {}
   ~ArrayDeserializationCluster() {}
@@ -6771,9 +6787,6 @@ class StringDeserializationCluster
       VerifyCanonicalSet(d, refs,
                          WeakArray::Handle(object_store->symbol_table()));
       object_store->set_symbol_table(table_);
-      if (d->isolate_group() == Dart::vm_isolate_group()) {
-        Symbols::InitFromSnapshot(d->isolate_group());
-      }
 #if defined(DEBUG)
       Symbols::New(Thread::Current(), ":some:new:symbol:");
       ASSERT(object_store->symbol_table() == table_.ptr());  // Did not rehash.
@@ -6805,10 +6818,10 @@ class FakeSerializationCluster : public SerializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class VMSerializationRoots : public SerializationRoots {
  public:
-  explicit VMSerializationRoots(const WeakArray& symbols,
-                                bool should_write_symbols)
-      : symbols_(symbols),
-        should_write_symbols_(should_write_symbols),
+  explicit VMSerializationRoots(const WeakArray& symbol_table,
+                                bool should_write_symbol_table)
+      : symbol_table_(symbol_table),
+        should_write_symbol_table_(should_write_symbol_table),
         zone_(Thread::Current()->zone()) {}
 
   void AddBaseObjects(Serializer* s) {
@@ -6882,11 +6895,11 @@ class VMSerializationRoots : public SerializationRoots {
   }
 
   void PushRoots(Serializer* s) {
-    if (should_write_symbols_) {
-      s->Push(symbols_.ptr());
+    if (should_write_symbol_table_) {
+      s->Push(symbol_table_.ptr());
     } else {
-      for (intptr_t i = 0; i < symbols_.Length(); i++) {
-        s->Push(symbols_.At(i));
+      for (intptr_t i = 0; i < symbol_table_.Length(); i++) {
+        s->Push(symbol_table_.At(i));
       }
     }
     if (Snapshot::IncludesCode(s->kind())) {
@@ -6897,8 +6910,12 @@ class VMSerializationRoots : public SerializationRoots {
   }
 
   void WriteRoots(Serializer* s) {
-    s->WriteRootRef(should_write_symbols_ ? symbols_.ptr() : Object::null(),
-                    "symbol-table");
+    for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
+      s->WriteRootRef(Symbols::Symbol(i).ptr(), "<symbol>");
+    }
+    s->WriteRootRef(
+        should_write_symbol_table_ ? symbol_table_.ptr() : Object::null(),
+        "symbol-table");
     if (Snapshot::IncludesCode(s->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
         s->WriteRootRef(StubCode::EntryAt(i).ptr(),
@@ -6906,26 +6923,28 @@ class VMSerializationRoots : public SerializationRoots {
       }
     }
 
-    if (!should_write_symbols_ && s->profile_writer() != nullptr) {
+    if (!should_write_symbol_table_ && s->profile_writer() != nullptr) {
       // If writing V8 snapshot profile create an artificial node representing
       // VM isolate symbol table.
-      ASSERT(!s->IsReachable(symbols_.ptr()));
-      s->AssignArtificialRef(symbols_.ptr());
-      const auto& symbols_snapshot_id = s->GetProfileId(symbols_.ptr());
-      s->profile_writer()->SetObjectTypeAndName(symbols_snapshot_id, "Symbols",
-                                                "vm_symbols");
-      s->profile_writer()->AddRoot(symbols_snapshot_id);
-      for (intptr_t i = 0; i < symbols_.Length(); i++) {
+      ASSERT(!s->IsReachable(symbol_table_.ptr()));
+      s->AssignArtificialRef(symbol_table_.ptr());
+      const auto& symbol_table_snapshot_id =
+          s->GetProfileId(symbol_table_.ptr());
+      s->profile_writer()->SetObjectTypeAndName(symbol_table_snapshot_id,
+                                                "Symbols", "vm_symbols");
+      s->profile_writer()->AddRoot(symbol_table_snapshot_id);
+      for (intptr_t i = 0; i < symbol_table_.Length(); i++) {
         s->profile_writer()->AttributeReferenceTo(
-            symbols_snapshot_id, V8SnapshotProfileWriter::Reference::Element(i),
-            s->GetProfileId(symbols_.At(i)));
+            symbol_table_snapshot_id,
+            V8SnapshotProfileWriter::Reference::Element(i),
+            s->GetProfileId(symbol_table_.At(i)));
       }
     }
   }
 
  private:
-  const WeakArray& symbols_;
-  const bool should_write_symbols_;
+  const WeakArray& symbol_table_;
+  const bool should_write_symbol_table_;
   Zone* zone_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -6988,10 +7007,16 @@ class VMDeserializationRoots : public DeserializationRoots {
   }
 
   void ReadRoots(Deserializer* d) override {
+    for (intptr_t i = 1; i < Symbols::kMaxPredefinedId; i++) {
+      String* symbol = String::ReadOnlyHandle();
+      *symbol ^= d->ReadRef();
+      Symbols::InitSymbol(i, symbol);
+    }
     symbol_table_ ^= d->ReadRef();
     if (!symbol_table_.IsNull()) {
       d->isolate_group()->object_store()->set_symbol_table(symbol_table_);
     }
+    Symbols::InitFromSnapshot(d->isolate_group());
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
         Code* code = Code::ReadOnlyHandle();
@@ -7007,10 +7032,6 @@ class VMDeserializationRoots : public DeserializationRoots {
     // allocations (e.g., FinalizeVMIsolate) before allocating new pages.
     d->heap()->old_space()->ReleaseBumpAllocation();
 
-    if (!symbol_table_.IsNull()) {
-      Symbols::InitFromSnapshot(d->isolate_group());
-    }
-
     Object::set_vm_isolate_snapshot_object_table(refs);
   }
 
@@ -7019,20 +7040,6 @@ class VMDeserializationRoots : public DeserializationRoots {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static const char* const kObjectStoreFieldNames[] = {
-#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
-    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD,
-                            DECLARE_OBJECT_STORE_FIELD)
-#undef DECLARE_OBJECT_STORE_FIELD
-};
-
 class ProgramSerializationRoots : public SerializationRoots {
  public:
 #define RESET_ROOT_LIST(V)                                                     \
@@ -7138,8 +7145,19 @@ class ProgramSerializationRoots : public SerializationRoots {
   void WriteRoots(Serializer* s) {
     ObjectPtr* from = object_store_->from();
     ObjectPtr* to = object_store_->to_snapshot(s->kind());
+    // A strtab is smaller than an array of strings.
+    static const char* const names = ""
+#define EMIT_FIELD_NAME(type, name) #name "_\0"
+        OBJECT_STORE_FIELD_LIST(
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+            EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+        ;  // NOLINT
+    const char* name = names;
     for (ObjectPtr* p = from; p <= to; p++) {
-      s->WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
+      s->WriteRootRef(*p, name);
+      name += strlen(name) + 1;
     }
 
     FieldTable* initial_field_table =
@@ -9124,25 +9142,25 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z)
           TypeParameterDeserializationCluster(is_canonical, !is_non_root_unit_);
     case kClosureCid:
-      return new (Z)
-          ClosureDeserializationCluster(is_canonical, !is_non_root_unit_);
+      return new (Z) ClosureDeserializationCluster(is_canonical, is_immutable,
+                                                   !is_non_root_unit_);
     case kMintCid:
-      return new (Z)
-          MintDeserializationCluster(is_canonical, !is_non_root_unit_);
+      return new (Z) MintDeserializationCluster(is_canonical, is_immutable,
+                                                !is_non_root_unit_);
     case kDoubleCid:
-      return new (Z)
-          DoubleDeserializationCluster(is_canonical, !is_non_root_unit_);
+      return new (Z) DoubleDeserializationCluster(is_canonical, is_immutable,
+                                                  !is_non_root_unit_);
     case kInt32x4Cid:
     case kFloat32x4Cid:
     case kFloat64x2Cid:
-      return new (Z)
-          Simd128DeserializationCluster(cid, is_canonical, !is_non_root_unit_);
+      return new (Z) Simd128DeserializationCluster(
+          cid, is_canonical, is_immutable, !is_non_root_unit_);
     case kGrowableObjectArrayCid:
       ASSERT(!is_canonical);
       return new (Z) GrowableObjectArrayDeserializationCluster();
     case kRecordCid:
-      return new (Z)
-          RecordDeserializationCluster(is_canonical, !is_non_root_unit_);
+      return new (Z) RecordDeserializationCluster(is_canonical, is_immutable,
+                                                  !is_non_root_unit_);
     case kStackTraceCid:
       ASSERT(!is_canonical);
       return new (Z) StackTraceDeserializationCluster();
@@ -9156,20 +9174,20 @@ DeserializationCluster* Deserializer::ReadCluster() {
       // We do not have mutable hash maps in snapshots.
       UNREACHABLE();
     case kConstMapCid:
-      return new (Z) MapDeserializationCluster(kConstMapCid, is_canonical,
-                                               !is_non_root_unit_);
+      return new (Z) MapDeserializationCluster(
+          kConstMapCid, is_canonical, is_immutable, !is_non_root_unit_);
     case kSetCid:
       // We do not have mutable hash sets in snapshots.
       UNREACHABLE();
     case kConstSetCid:
-      return new (Z) SetDeserializationCluster(kConstSetCid, is_canonical,
-                                               !is_non_root_unit_);
+      return new (Z) SetDeserializationCluster(
+          kConstSetCid, is_canonical, is_immutable, !is_non_root_unit_);
     case kArrayCid:
-      return new (Z) ArrayDeserializationCluster(kArrayCid, is_canonical,
-                                                 !is_non_root_unit_);
+      return new (Z) ArrayDeserializationCluster(
+          kArrayCid, is_canonical, is_immutable, !is_non_root_unit_);
     case kImmutableArrayCid:
       return new (Z) ArrayDeserializationCluster(
-          kImmutableArrayCid, is_canonical, !is_non_root_unit_);
+          kImmutableArrayCid, is_canonical, is_immutable, !is_non_root_unit_);
     case kWeakArrayCid:
       return new (Z) WeakArrayDeserializationCluster();
     case kStringCid:
@@ -9685,7 +9703,7 @@ ZoneGrowableArray<Object*>* FullSnapshotWriter::WriteVMSnapshot() {
   VMSerializationRoots roots(
       WeakArray::Handle(
           Dart::vm_isolate_group()->object_store()->symbol_table()),
-      /*should_write_symbols=*/!Snapshot::IncludesStringsInROData(kind_));
+      /*should_write_symbol_table=*/!Snapshot::IncludesStringsInROData(kind_));
   ZoneGrowableArray<Object*>* objects = serializer.Serialize(&roots);
   serializer.FillHeader(serializer.kind());
   clustered_vm_size_ = serializer.bytes_written();

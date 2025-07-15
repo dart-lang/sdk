@@ -7,5 +7,5 @@ Build-Depends: python3:native
 
 Package: dart
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${misc:Depends}, libc6 (>= 2.31)
 Description: Dart SDK

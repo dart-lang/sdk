@@ -43,8 +43,10 @@ MapPattern
           element2: dart:core::@class::String
           type: String
         name: a
-        declaredElement: a@47
+        declaredFragment: isPublic a@47
           type: String
+          element: isPublic
+            type: String
         matchedValueType: dynamic
   rightBracket: }
   matchedValueType: dynamic
@@ -77,8 +79,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@44
-          type: dynamic
+        declaredFragment: isPublic a@44
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
   rightBracket: }
   matchedValueType: dynamic
@@ -123,8 +127,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@57
-          type: String
+        declaredFragment: isPublic a@57
+          type: null
+          element: hasImplicitType isPublic
+            type: String
         matchedValueType: String
   rightBracket: }
   matchedValueType: dynamic
@@ -280,8 +286,10 @@ MapPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: rest
-        declaredElement: hasImplicitType rest@57
-          type: dynamic
+        declaredFragment: isPublic rest@57
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
   rightBracket: }
   matchedValueType: Map<int, String>
@@ -311,8 +319,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@50
-          type: String
+        declaredFragment: isPublic a@50
+          type: null
+          element: hasImplicitType isPublic
+            type: String
         matchedValueType: String
   rightBracket: }
   matchedValueType: Map<int, String>
@@ -354,8 +364,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@62
-          type: int
+        declaredFragment: isPublic a@62
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
   rightBracket: }
   matchedValueType: Map<bool, num>
@@ -434,8 +446,10 @@ MapPattern
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@43
+        declaredFragment: isPublic a@43
           type: int
+          element: isPublic
+            type: int
         matchedValueType: Object?
   rightBracket: }
   matchedValueType: Object
@@ -465,8 +479,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@43
-          type: Object?
+        declaredFragment: isPublic a@43
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
   rightBracket: }
   matchedValueType: Object
@@ -547,8 +563,10 @@ MapPattern
       value: DeclaredVariablePattern
         keyword: var
         name: a
-        declaredElement: hasImplicitType a@54
-          type: int
+        declaredFragment: isPublic a@54
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
   rightBracket: }
   matchedValueType: Object
@@ -574,7 +592,7 @@ MapPattern
       key: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: a
-          element: <testLibraryFragment>::@function::f::@parameter::a#element
+          element: <testLibrary>::@function::f::@formalParameter::a
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -617,8 +635,10 @@ PatternVariableDeclaration
         separator: :
         value: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@40
-            type: int
+          declaredFragment: isPublic a@40
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
     rightBracket: }
     matchedValueType: Map<bool, int>
@@ -626,7 +646,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Map<bool, int>
   patternTypeSchema: Map<_, _>
 ''');
@@ -669,8 +689,10 @@ PatternVariableDeclaration
         separator: :
         value: DeclaredVariablePattern
           name: a
-          declaredElement: hasImplicitType a@35
-            type: int
+          declaredFragment: isPublic a@35
+            type: null
+            element: hasImplicitType isPublic
+              type: int
           matchedValueType: int
     rightBracket: }
     matchedValueType: Map<bool, int>
@@ -721,8 +743,10 @@ PatternVariableDeclaration
             element2: dart:core::@class::int
             type: int
           name: a
-          declaredElement: a@28
+          declaredFragment: isPublic a@28
             type: int
+            element: isPublic
+              type: int
           matchedValueType: int
     rightBracket: }
     matchedValueType: Map<Object?, int>

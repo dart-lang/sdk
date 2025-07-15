@@ -2235,6 +2235,8 @@ void Precompiler::DropFunctions() {
       function.ClearCode();
       // Wrap the owner of the code object in case the code object will be
       // serialized but the function object will not.
+      // If you are changing this code you might want to adjust
+      // SnapshotAnalyzer::DumpCode which looks at owners.
       owner = code.owner();
       owner = WeakSerializationReference::New(
           owner, Smi::Handle(Smi::New(owner.GetClassId())));

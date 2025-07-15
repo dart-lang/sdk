@@ -31,7 +31,7 @@ String _relative(String file) {
 
 /// Returns the given diagnostic's severity.
 DiagnosticSeverity _severityIdentity(Diagnostic diagnostic) =>
-    diagnostic.errorCode.severity;
+    diagnostic.diagnosticCode.severity;
 
 /// Returns desired severity for the given [diagnostic] (or `null` if it's to be
 /// suppressed).
@@ -206,16 +206,16 @@ abstract class ErrorFormatter {
     var diagnostics = <Diagnostic>[];
     var diagnosticToLine = <Diagnostic, ErrorsResult>{};
     for (var result in results) {
-      for (var error in result.errors) {
-        if (_computeSeverity(error) != null) {
-          diagnostics.add(error);
-          diagnosticToLine[error] = result;
+      for (var diagnostic in result.diagnostics) {
+        if (_computeSeverity(diagnostic) != null) {
+          diagnostics.add(diagnostic);
+          diagnosticToLine[diagnostic] = result;
         }
       }
     }
 
-    for (var error in diagnostics) {
-      await formatDiagnostic(diagnosticToLine, error);
+    for (var diagnostic in diagnostics) {
+      await formatDiagnostic(diagnosticToLine, diagnostic);
     }
   }
 
@@ -301,9 +301,9 @@ class HumanErrorFormatter extends ErrorFormatter {
     // Get display name; translate INFOs into LINTS and HINTS.
     var errorType = severity.displayName;
     if (severity == DiagnosticSeverity.INFO) {
-      if (error.errorCode.type == DiagnosticType.HINT ||
-          error.errorCode.type == DiagnosticType.LINT) {
-        errorType = error.errorCode.type.displayName;
+      if (error.diagnosticCode.type == DiagnosticType.HINT ||
+          error.diagnosticCode.type == DiagnosticType.LINT) {
+        errorType = error.diagnosticCode.type.displayName;
       }
     }
 
@@ -350,9 +350,9 @@ class HumanErrorFormatter extends ErrorFormatter {
         column: location.columnNumber,
         message: error.message,
         contextMessages: contextMessages,
-        errorCode: error.errorCode.name.toLowerCase(),
+        errorCode: error.diagnosticCode.name.toLowerCase(),
         correction: error.correctionMessage,
-        url: error.errorCode.url,
+        url: error.diagnosticCode.url,
       ),
     );
   }
@@ -413,7 +413,7 @@ class JsonErrorFormatter extends ErrorFormatter {
 
     var diagnostics = <Map<String, dynamic>>[];
     for (var result in results) {
-      var errors = result.errors;
+      var errors = result.diagnostics;
       var lineInfo = result.lineInfo;
       for (var error in errors) {
         var severity = _computeSeverity(error);
@@ -432,13 +432,13 @@ class JsonErrorFormatter extends ErrorFormatter {
             'message': contextMessage.messageText(includeUrl: true),
           });
         }
-        var errorCode = error.errorCode;
+        var diagnosticCode = error.diagnosticCode;
         var problemMessage = error.problemMessage;
-        var url = error.errorCode.url;
+        var url = error.diagnosticCode.url;
         diagnostics.add({
-          'code': errorCode.name.toLowerCase(),
+          'code': diagnosticCode.name.toLowerCase(),
           'severity': severity.name,
-          'type': errorCode.type.name,
+          'type': diagnosticCode.type.name,
           'location': location(
             problemMessage.filePath,
             problemMessage.offset,
@@ -493,17 +493,17 @@ class MachineErrorFormatter extends ErrorFormatter {
       stats.errorCount++;
     } else if (severity == DiagnosticSeverity.WARNING) {
       stats.warnCount++;
-    } else if (error.errorCode.type == DiagnosticType.HINT) {
+    } else if (error.diagnosticCode.type == DiagnosticType.HINT) {
       stats.hintCount++;
-    } else if (error.errorCode.type == DiagnosticType.LINT) {
+    } else if (error.diagnosticCode.type == DiagnosticType.LINT) {
       stats.lintCount++;
     }
 
     out.write(severity);
     out.write('|');
-    out.write(error.errorCode.type);
+    out.write(error.diagnosticCode.type);
     out.write('|');
-    out.write(error.errorCode.name);
+    out.write(error.diagnosticCode.name);
     out.write('|');
     out.write(_escapeForMachineMode(source.fullName));
     out.write('|');

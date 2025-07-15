@@ -277,7 +277,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {ExecutableElement? methodBeingCopied,
       bool includeDefaultValues = true,
       bool requiredTypes = false}) {
-    var parameterNames = parameters.map((e) => e.name3).nonNulls.toSet();
+    var parameterNames = parameters.map((e) => e.name).nonNulls.toSet();
 
     write('(');
     var sawNamed = false;
@@ -300,13 +300,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         }
       }
       // Parameter.
-      var name = parameter.name3;
+      var name = parameter.name;
       if (name == null || name == '') {
         name = _generateUniqueName(parameterNames, 'p');
         parameterNames.add(name);
       }
       var groupPrefix =
-          methodBeingCopied != null ? '${methodBeingCopied.name3}:' : '';
+          methodBeingCopied != null ? '${methodBeingCopied.name}:' : '';
       writeFormalParameter(name,
           isCovariant: parameter.isCovariant,
           isRequiredNamed: parameter.isRequiredNamed,
@@ -591,7 +591,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         writeln();
         write(prefix2);
         selectAllIfSetSelection(
-            () => write('super.$memberName = ${parameters[0].name3};'));
+            () => write('super.$memberName = ${parameters[0].name};'));
       } else {
         if (setSelection) selectHere();
       }
@@ -823,7 +823,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeTypeParameter(TypeParameterElement typeParameter,
       {ExecutableElement? methodBeingCopied}) {
-    write(typeParameter.name3 ?? '');
+    write(typeParameter.name ?? '');
     if (typeParameter.bound != null) {
       write(' extends ');
       _writeType(typeParameter.bound, methodBeingCopied: methodBeingCopied);
@@ -1024,7 +1024,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         return namedType.name.lexeme;
       }
       // `new prefix.ClassName()`.
-      if (importPrefix.element2 is PrefixElement) {
+      if (importPrefix.element is PrefixElement) {
         return namedType.name.lexeme;
       }
       // `new ClassName.constructorName()`.
@@ -1140,7 +1140,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       } else if (expectedType.isDartCoreString) {
         _addSingleCharacterName(excluded, res, $s);
       } else if (expectedType is InterfaceType) {
-        var className = expectedType.element3.name3;
+        var className = expectedType.element.name;
         _addAll(excluded, res, _getCamelWordCombinations(className));
       }
     }
@@ -1155,7 +1155,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   DartType? _getVisibleType(DartType? type,
       {ExecutableElement? methodBeingCopied}) {
     if (type is InterfaceType) {
-      var element = type.element3;
+      var element = type.element;
       if (element.isPrivate &&
           !_dartFileEditBuilder._isDefinedLocally(element)) {
         return null;
@@ -1164,7 +1164,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     if (type is TypeParameterType) {
       _initializeEnclosingElements();
-      var element = type.element3;
+      var element = type.element;
       var enclosing = element.enclosingElement;
       while (enclosing is GenericFunctionTypeElement ||
           enclosing is FormalParameterElement) {
@@ -1212,7 +1212,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     var import = _dartFileEditBuilder._getImportElement(element);
     if (import == null) {
-      var library = element.library2?.uri;
+      var library = element.library?.uri;
       if (library != null) {
         import = _dartFileEditBuilder._importLibrary(library);
       }
@@ -1220,7 +1220,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (import == null) {
       return;
     }
-    import._ensureShown(element.name3!);
+    import._ensureShown(element.name!);
     var prefix = import.prefix;
     if (prefix.isNotEmpty) {
       write('$prefix.');
@@ -1238,10 +1238,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(', ');
       }
       if (parameters[i].isNamed) {
-        write(parameters[i].name3 ?? '');
+        write(parameters[i].name ?? '');
         write(': ');
       }
-      write(parameters[i].name3 ?? '');
+      write(parameters[i].name ?? '');
     }
     write(isOperator ? ';' : ');');
   }
@@ -1279,7 +1279,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     var alias = type.alias;
     if (alias != null) {
       _writeTypeElementArguments(
-        element: alias.element2,
+        element: alias.element,
         typeArguments: alias.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
@@ -1308,7 +1308,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
     if (type is InterfaceType) {
       _writeTypeElementArguments(
-        element: type.element3,
+        element: type.element,
         typeArguments: type.typeArguments,
         methodBeingCopied: methodBeingCopied,
       );
@@ -1323,7 +1323,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is TypeParameterType) {
-      write(type.element3.name3!);
+      write(type.element.name!);
       _writeTypeNullability(type);
       return true;
     }
@@ -1649,7 +1649,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     var existingImport = _getImportElement(element);
-    var name = element.name3;
+    var name = element.name;
     if (existingImport != null && name != null) {
       existingImport._ensureShown(name);
       return;
@@ -1661,14 +1661,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         await TopLevelDeclarations(resolvedUnit)
             .publiclyExporting(element, resultCache: resultCache) ??
         // Fall back to the element's library if we didn't find a better one.
-        element.library2;
+        element.library;
 
     var uriToImport = libraryToImport?.uri;
     if (uriToImport != null) {
       var newImport = elementLibrariesToImport[element] = _importLibrary(
         uriToImport,
         isExplicitImport: false,
-        showName: element.name3,
+        showName: element.name,
       );
 
       // It's possible this new import can satisfy other pending element's
@@ -1703,9 +1703,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     for (var import
         in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
-        var importPrefix = import.prefix2?.element.name3;
+        var importPrefix = import.prefix2?.element.name;
         if (import.hasCombinator) {
           if (importPrefix == null && showName != null) {
             _handleCombinators(import, showName);
@@ -1760,7 +1760,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     // Existing import.
     for (var import
         in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
         return true;
       }
@@ -2322,8 +2322,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       var definedNames = import.namespace.definedNames2;
       var importedElement = definedNames[lookupName];
       if (importedElement != null &&
-          importedElement.library2?.uri == element.library2?.uri) {
-        var importedLibrary = import.importedLibrary2;
+          importedElement.library?.uri == element.library?.uri) {
+        var importedLibrary = import.importedLibrary;
         if (importedLibrary != null) {
           return _LibraryImport(
             uriText: importedLibrary.uri.toString(),
@@ -2338,7 +2338,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
                 if (combinator is HideElementCombinator)
                   combinator.hiddenNames.toList(),
             ],
-            prefix: import.prefix2?.name2 ?? '',
+            prefix: import.prefix2?.name ?? '',
           );
         }
       }
@@ -2351,7 +2351,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return [
       for (var import
           in resolvedUnit.libraryElement2.firstFragment.libraryImports2)
-        if (import.importedLibrary2?.uri == uri) import,
+        if (import.importedLibrary?.uri == uri) import,
     ];
   }
 
@@ -2475,11 +2475,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // the URI and prefix we care about.
       for (var element
           in resolvedUnit.libraryElement2.firstFragment.libraryImports2) {
-        var library = element.importedLibrary2;
+        var library = element.importedLibrary;
         if (library == null) {
           continue;
         }
-        if ((element.prefix2?.element.name3 ?? '') != (prefix ?? '')) {
+        if ((element.prefix2?.element.name ?? '') != (prefix ?? '')) {
           // Imports need to have the same prefix to be replaced.
           continue;
         }
@@ -2517,7 +2517,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   /// Returns whether the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
-    return element.library2 == resolvedUnit.libraryElement2;
+    return element.library == resolvedUnit.libraryElement2;
   }
 
   /// Removes any pending imports (for [Element]s) that are no longer necessary

@@ -58,7 +58,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('Annotation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -104,7 +104,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement2('element2', node.element2);
+        _writeElement2('element2', node.element);
         _writePatternMatchedValueType(node);
       }
     });
@@ -116,31 +116,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
-      _writeElement2('readElement2', node.readElement2);
+      _writeElement2('readElement2', node.readElement);
       _writeType('readType', node.readType);
-      _writeElement2('writeElement2', node.writeElement2);
+      _writeElement2('writeElement2', node.writeElement);
       _writeType('writeType', node.writeType);
       _writeElement2('element', node.element);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitAugmentedExpression(AugmentedExpression node) {
-    _sink.writeln('AugmentedExpression');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fragment', node.fragment);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitAugmentedInvocation(AugmentedInvocation node) {
-    _sink.writeln('AugmentedInvocation');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fragment', node.fragment);
       _writeType('staticType', node.staticType);
     });
   }
@@ -432,16 +412,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        var fragment = node.declaredFragment;
-        if (fragment != null) {
-          _sink.writeWithIndent('declaredElement: ');
-          _sink.writeIf(fragment.hasImplicitType, 'hasImplicitType ');
-          _sink.writeIf(fragment.isFinal, 'isFinal ');
-          _sink.writeln('${fragment.name2 ?? ''}@${fragment.nameOffset}');
-          _sink.withIndent(() {
-            _writeType('type', fragment.type);
-          });
-        }
+        _writeDeclaredFragment(node.declaredFragment);
         _writePatternMatchedValueType(node);
       }
     });
@@ -467,21 +438,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+    covariant DotShorthandConstructorInvocationImpl node,
   ) {
     _sink.writeln('DotShorthandConstructorInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeln('DotShorthandInvocation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticInvokeType', node.staticInvokeType);
       _writeType('staticType', node.staticType);
@@ -490,10 +463,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+  void visitDotShorthandPropertyAccess(
+    covariant DotShorthandPropertyAccessImpl node,
+  ) {
     _sink.writeln('DotShorthandPropertyAccess');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _sink.writelnWithIndent('isDotShorthand: ${node.isDotShorthand}');
       _writeParameterElement(node);
       _writeType('staticType', node.staticType);
     });
@@ -541,7 +517,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
-        _writeElement2('constructorElement2', node.constructorElement2);
+        _writeElement2('constructorElement2', node.constructorElement);
         _writeDeclaredFragment(node.declaredFragment);
       }
     });
@@ -613,7 +589,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('ExtensionOverride');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
       _writeType('extendedType', node.extendedType);
       _writeType('staticType', node.staticType);
       _writeTypeList('typeArgumentTypes', node.typeArgumentTypes);
@@ -882,7 +858,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('ImportPrefixReference');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -964,7 +940,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('LibraryDirective');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -1104,7 +1080,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('NamedType');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
       _writeType('type', node.type);
     });
   }
@@ -1207,7 +1183,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('PatternField');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
     });
   }
 
@@ -1247,9 +1223,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       if (node.operator.type.isIncrementOperator) {
-        _writeElement2('readElement2', node.readElement2);
+        _writeElement2('readElement2', node.readElement);
         _writeType('readType', node.readType);
-        _writeElement2('writeElement2', node.writeElement2);
+        _writeElement2('writeElement2', node.writeElement);
         _writeType('writeType', node.writeType);
       }
       _writeElement2('element', node.element);
@@ -1275,9 +1251,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeParameterElement(node);
       if (node.operator.type.isIncrementOperator) {
-        _writeElement2('readElement2', node.readElement2);
+        _writeElement2('readElement2', node.readElement);
         _writeType('readType', node.readType);
-        _writeElement2('writeElement2', node.writeElement2);
+        _writeElement2('writeElement2', node.writeElement);
         _writeType('writeType', node.writeType);
       }
       _writeElement2('element', node.element);
@@ -1368,7 +1344,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('RelationalPattern');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeElement2('element2', node.element2);
+      _writeElement2('element2', node.element);
       _writePatternMatchedValueType(node);
     });
   }
@@ -1760,17 +1736,7 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeDeclaredFragment(Fragment? fragment) {
     if (_withResolution) {
       if (fragment is LocalVariableFragmentImpl) {
-        _sink.writeWithIndent('declaredElement:');
-        _sink.writeIf(fragment.hasImplicitType, ' hasImplicitType');
-        _sink.writeIf(fragment.isConst, ' isConst');
-        _sink.writeIf(fragment.isFinal, ' isFinal');
-        _sink.writeIf(fragment.isLate, ' isLate');
-        // TODO(scheglov): This crashes.
-        // _writeIf(element.hasInitializer, ' hasInitializer');
-        _sink.writeln(' ${fragment.name2 ?? ''}@${fragment.nameOffset}');
-        _sink.withIndent(() {
-          _writeType('type', fragment.type);
-        });
+        _writeDeclaredLocalVariableFragment(fragment);
       } else if (fragment is TypeParameterFragmentImpl) {
         _writeFragment('declaredElement', fragment);
         _sink.withIndent(() {
@@ -1789,6 +1755,42 @@ Expected parent: (${parent.runtimeType}) $parent
         }
       }
     }
+  }
+
+  void _writeDeclaredLocalVariableFragment(LocalVariableFragmentImpl fragment) {
+    _sink.writeIndentedLine(() {
+      _sink.write('declaredFragment: ');
+      _sink.writeIf(fragment.isConst, 'isConst ');
+      _sink.writeIf(fragment.isFinal, 'isFinal ');
+      _sink.writeIf(fragment.isLate, 'isLate ');
+      _sink.writeIf(fragment.isPrivate, 'isPrivate ');
+      _sink.writeIf(fragment.isPublic, 'isPublic ');
+      _sink.writeIf(fragment.isStatic, 'isStatic ');
+      _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
+      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset2}');
+    });
+
+    _sink.withIndent(() {
+      _writeType('type', fragment.type2);
+
+      var element = fragment.element;
+      _sink.writeIndentedLine(() {
+        _sink.write('element:');
+        _sink.writeIf(element.hasImplicitType, ' hasImplicitType');
+        _sink.writeIf(element.isConst, ' isConst');
+        _sink.writeIf(element.isFinal, ' isFinal');
+        _sink.writeIf(element.isLate, ' isLate');
+        _sink.writeIf(element.isPrivate, ' isPrivate');
+        _sink.writeIf(element.isPublic, ' isPublic');
+        _sink.writeIf(element.isStatic, ' isStatic');
+        _sink.writeIf(element.isSynthetic, ' isSynthetic');
+        expect(element.firstFragment, same(fragment));
+        expect(element.fragments, hasLength(1));
+      });
+      _sink.withIndent(() {
+        _writeType('type', element.type);
+      });
+    });
   }
 
   void _writeDocDirectiveTag(DocDirectiveTag docDirective) {
@@ -1938,7 +1940,7 @@ Expected parent: (${parent.runtimeType}) $parent
     _sink.writelnWithIndent('parameters');
     _sink.withIndent(() {
       for (var parameter in parameters) {
-        var name = parameter.name2;
+        var name = parameter.name;
         _sink.writelnWithIndent(name ?? '<empty>');
         _sink.withIndent(() {
           _writeParameterKind(parameter);

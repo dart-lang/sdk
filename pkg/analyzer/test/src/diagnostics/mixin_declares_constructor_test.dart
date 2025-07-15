@@ -32,7 +32,7 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 
@@ -53,7 +53,7 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 
@@ -74,7 +74,7 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 
@@ -95,7 +95,7 @@ MixinDeclaration
   name: M
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment>::@mixin::M
+  declaredElement: <testLibraryFragment> M@6
 ''');
   }
 }

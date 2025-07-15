@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -25,10 +26,7 @@ class PreferFinalLocals extends LintRule {
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addPatternVariableDeclaration(this, visitor);
@@ -41,7 +39,7 @@ class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element != null) {
       declaredElements.add(element);
     }
@@ -55,8 +53,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
-      var element = pattern.declaredElement2;
-      if (element == null || function.isPotentiallyMutatedInScope2(element)) {
+      var element = pattern.declaredElement;
+      if (element == null || function.isPotentiallyMutatedInScope(element)) {
         return true;
       }
     }
@@ -130,10 +128,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (variable.equals == null || variable.initializer == null) {
         return;
       }
-      var declaredElement = variable.declaredElement2;
+      var declaredElement = variable.declaredElement;
       if (declaredElement != null &&
           (declaredElement.isWildcardVariable ||
-              function.isPotentiallyMutatedInScope2(declaredElement))) {
+              function.isPotentiallyMutatedInScope(declaredElement))) {
         return;
       }
     }
@@ -185,7 +183,7 @@ extension on AstNode {
     accept(declaredVariableVisitor);
     var declaredElements = declaredVariableVisitor.declaredElements;
     for (var element in declaredElements) {
-      if (function.isPotentiallyMutatedInScope2(element)) {
+      if (function.isPotentiallyMutatedInScope(element)) {
         return true;
       }
     }

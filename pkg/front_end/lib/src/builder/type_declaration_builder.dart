@@ -70,9 +70,6 @@ abstract class TypeDeclarationBuilderImpl extends NamedBuilderImpl
   String get fullNameForErrors => name;
 
   @override
-  int get typeParametersCount => 0;
-
-  @override
   NamedBuilder get getable => this;
 
   @override

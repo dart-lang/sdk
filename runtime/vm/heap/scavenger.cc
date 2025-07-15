@@ -320,6 +320,7 @@ class ScavengerVisitor : public ObjectPointerVisitor,
   }
 
   void ProcessWeak() {
+    page_space_->ReleaseLock(freelist_);
     if (!scavenger_->abort_) {
       ASSERT(!HasWork());
 
@@ -334,7 +335,6 @@ class ScavengerVisitor : public ObjectPointerVisitor,
       MournFinalizerEntries();
       scavenger_->IterateWeak();
     }
-    page_space_->ReleaseLock(freelist_);
     thread_ = nullptr;
   }
 
@@ -1015,7 +1015,7 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   heap_->isolate_group()->FlushMarkingStacks();
 
   if (FLAG_verify_store_buffer) {
-    heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
+    heap_->WaitForSweeperTasks(Thread::Current());
     VerifyStoreBuffers("Verifying remembered set before Scavenge");
   }
 
@@ -1118,7 +1118,7 @@ void Scavenger::Epilogue(SemiSpace* from) {
     // are very rare.
     heap_->isolate_group()->ReleaseStoreBuffers();
 
-    heap_->WaitForSweeperTasksAtSafepoint(Thread::Current());
+    heap_->WaitForSweeperTasks(Thread::Current());
     VerifyStoreBuffers("Verifying remembered set after Scavenge");
   }
 
@@ -1192,32 +1192,21 @@ void Scavenger::IterateRememberedCards(ScavengerVisitor* visitor) {
   heap_->old_space()->VisitRememberedCards(visitor);
 }
 
-void Scavenger::IterateObjectIdTable(ObjectPointerVisitor* visitor) {
-#ifndef PRODUCT
-  TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "IterateObjectIdTable");
-  heap_->isolate_group()->VisitPointersInAllServiceIdZones(*visitor);
-#endif  // !PRODUCT
-}
-
 enum RootSlices {
   kIsolate = 0,
-  kObjectIdRing,
-  kNumRootSlices,
+  kNumFixedRootSlices = 1,
 };
 
 void Scavenger::IterateRoots(ScavengerVisitor* visitor) {
   for (;;) {
     intptr_t slice = root_slices_started_.fetch_add(1);
-    if (slice >= kNumRootSlices) {
+    if (slice >= kNumFixedRootSlices) {
       break;  // No more slices.
     }
-
     switch (slice) {
       case kIsolate:
+        // TODO(gc): Split this by isolate?
         IterateIsolateRoots(visitor);
-        break;
-      case kObjectIdRing:
-        IterateObjectIdTable(visitor);
         break;
       default:
         UNREACHABLE();
@@ -1854,7 +1843,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   }
 
   if (FLAG_verify_before_gc) {
-    heap_->WaitForSweeperTasksAtSafepoint(thread);
+    heap_->WaitForSweeperTasks(thread);
     heap_->VerifyGC("Verifying before Scavenge",
                     thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
@@ -1928,7 +1917,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   heap_->old_space()->ResumeConcurrentMarking();
 
   if (FLAG_verify_after_gc) {
-    heap_->WaitForSweeperTasksAtSafepoint(thread);
+    heap_->WaitForSweeperTasks(thread);
     heap_->VerifyGC("Verifying after Scavenge...",
                     thread->is_marking() ? kAllowMarked : kForbidMarked);
   }
@@ -2030,7 +2019,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
 
   // Reverse the partial forwarding from the aborted scavenge. This also
   // rebuilds the remembered set.
-  heap_->WaitForSweeperTasksAtSafepoint(thread);
+  heap_->WaitForSweeperTasks(thread);
   Become::FollowForwardingPointers(thread);
 
   heap_->old_space()->ResetProgressBars();

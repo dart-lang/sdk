@@ -125,7 +125,7 @@ class _ElementRecorder {
   ) {
     if (referencedElement is PropertyAccessorElement) {
       if (referencedElement.isSynthetic) {
-        var variable = referencedElement.variable3;
+        var variable = referencedElement.variable;
         if (variable == null) {
           return;
         }
@@ -183,15 +183,15 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   _ReferenceFinder(this.unit, this.recorder) {
     for (var import in unit.libraryElement2.firstFragment.libraryImports2) {
       _importsByPrefix
-          .putIfAbsent(import.prefix2?.element.name3 ?? '', () => {})
+          .putIfAbsent(import.prefix2?.element.name ?? '', () => {})
           .add(import);
     }
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _recordReference(node.writeElement2, node, node.leftHandSide);
-    _recordReference(node.readElement2, node, node.leftHandSide);
+    _recordReference(node.writeElement, node, node.leftHandSide);
+    _recordReference(node.readElement, node, node.leftHandSide);
     super.visitAssignmentExpression(node);
   }
 
@@ -274,21 +274,21 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _recordReference(node.element2, node, node);
+    _recordReference(node.element, node, node);
     super.visitNamedType(node);
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    _recordReference(node.writeElement2, node, node.operand);
-    _recordReference(node.readElement2, node, node.operand);
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
     super.visitPostfixExpression(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    _recordReference(node.writeElement2, node, node.operand);
-    _recordReference(node.readElement2, node, node.operand);
+    _recordReference(node.writeElement, node, node.operand);
+    _recordReference(node.readElement, node, node.operand);
     super.visitPrefixExpression(node);
   }
 
@@ -312,10 +312,10 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   /// Finds the [LibraryImport] that is used to import [element] for use
   /// in [node].
   LibraryImport? _getImportForElement(AstNode? node, Element element) {
-    var prefix = _getPrefixFromExpression(node)?.name3;
+    var prefix = _getPrefixFromExpression(node)?.name;
 
     var lookupName = () {
-      var name = element.name3;
+      var name = element.name;
       if (name == null) {
         return null;
       }
@@ -352,7 +352,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
                     // allowed), use the imports own prefix when checking for the
                     // element.
                     import.namespace.getPrefixed2(
-                      import.prefix2?.element.name3 ?? '',
+                      import.prefix2?.element.name ?? '',
                       lookupName,
                     ) ==
                     element,
@@ -388,7 +388,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
         }
       }
     } else if (node is NamedType) {
-      return node.importPrefix?.element2.ifTypeOrNull();
+      return node.importPrefix?.element.ifTypeOrNull();
     }
     return null;
   }

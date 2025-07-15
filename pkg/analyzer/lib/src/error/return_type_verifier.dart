@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 class ReturnTypeVerifier {
   final TypeProviderImpl _typeProvider;
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final bool _strictCasts;
 
   late EnclosingExecutableContext enclosingExecutable;
@@ -26,11 +26,11 @@ class ReturnTypeVerifier {
   ReturnTypeVerifier({
     required TypeProviderImpl typeProvider,
     required TypeSystemImpl typeSystem,
-    required ErrorReporter errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required bool strictCasts,
   }) : _typeProvider = typeProvider,
        _typeSystem = typeSystem,
-       _errorReporter = errorReporter,
+       _diagnosticReporter = diagnosticReporter,
        _strictCasts = strictCasts;
 
   DartType get _flattenedReturnType {
@@ -56,7 +56,7 @@ class ReturnTypeVerifier {
 
     if (enclosingExecutable.isGenerativeConstructor) {
       if (expression != null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
         );
@@ -82,10 +82,10 @@ class ReturnTypeVerifier {
       return;
     }
 
-    void checkElement(ClassElementImpl2 expectedElement, DiagnosticCode code) {
+    void checkElement(ClassElementImpl expectedElement, DiagnosticCode code) {
       void reportError() {
         enclosingExecutable.hasLegalReturnType = false;
-        _errorReporter.atNode(returnType, code);
+        _diagnosticReporter.atNode(returnType, code);
       }
 
       // It is a compile-time error if the declared return type of
@@ -106,18 +106,18 @@ class ReturnTypeVerifier {
     if (enclosingExecutable.isAsynchronous) {
       if (enclosingExecutable.isGenerator) {
         checkElement(
-          _typeProvider.streamElement2,
+          _typeProvider.streamElement,
           CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
         );
       } else {
         checkElement(
-          _typeProvider.futureElement2,
+          _typeProvider.futureElement,
           CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE,
         );
       }
     } else if (enclosingExecutable.isGenerator) {
       checkElement(
-        _typeProvider.iterableElement2,
+        _typeProvider.iterableElement,
         CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
       );
     }
@@ -147,13 +147,13 @@ class ReturnTypeVerifier {
 
     void reportTypeError() {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
           arguments: [S, T],
         );
       } else if (enclosingExecutable.isClosure) {
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
           arguments: [S, T],
@@ -163,7 +163,7 @@ class ReturnTypeVerifier {
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
           arguments: [S, T, enclosingExecutable.displayName!],
@@ -173,7 +173,7 @@ class ReturnTypeVerifier {
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
           arguments: [S, T, enclosingExecutable.displayName!],
@@ -183,7 +183,7 @@ class ReturnTypeVerifier {
         // there is no enclosing element, in which case the `if` test above
         // would have failed.  So it's safe to assume that
         // `enclosingExecutable.displayName` is non-`null`.
-        _errorReporter.atNode(
+        _diagnosticReporter.atNode(
           expression,
           CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
           arguments: [S, T, enclosingExecutable.displayName!],
@@ -221,7 +221,7 @@ class ReturnTypeVerifier {
             S,
             strictCasts: _strictCasts,
           )) {
-            _errorReporter.atNode(
+            _diagnosticReporter.atNode(
               expression,
               CompileTimeErrorCode
                   .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
@@ -285,13 +285,13 @@ class ReturnTypeVerifier {
       }
     }
 
-    _errorReporter.atToken(
+    _diagnosticReporter.atToken(
       statement.returnKeyword,
       CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
     );
   }
 
-  bool _isLegalReturnType(ClassElementImpl2 expectedElement) {
+  bool _isLegalReturnType(ClassElementImpl expectedElement) {
     var returnType = enclosingExecutable.returnType;
     //
     // When checking an async/sync*/async* method, we know the exact type

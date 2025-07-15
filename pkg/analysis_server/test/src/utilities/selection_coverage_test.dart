@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -76,8 +75,8 @@ class SelectionCoverageTest {
         var implementsClause = declaration.implementsClause;
         if (implementsClause != null) {
           for (var type in implementsClause.interfaces) {
-            var element = type.type?.element3;
-            if (element is ClassElement && element.name3 == interfaceName) {
+            var element = type.type?.element;
+            if (element is ClassElement && element.name == interfaceName) {
               data.instantiableInterfaces.add(element);
             }
           }
@@ -98,7 +97,7 @@ class SelectionCoverageTest {
         var implementsClause = declaration.implementsClause;
         if (implementsClause != null) {
           for (var supertype in implementsClause.interfaces) {
-            var supertypeElement = supertype.type?.element3;
+            var supertypeElement = supertype.type?.element;
             if (supertypeElement is ClassElement) {
               data.supertypes
                   .putIfAbsent(subtypeElement, () => [])
@@ -144,7 +143,7 @@ class SelectionCoverageTest {
                     .declaredFragment
                     ?.element
                     .type
-                    .element3;
+                    .element;
             if (visitedClass is ClassElement) {
               var visitor = VisitMethodVisitor();
               member.body.accept(visitor);
@@ -209,12 +208,11 @@ class SelectionCoverageTest {
     var astImplData = processAstImpl(astImplResult as ResolvedUnitResult);
     var selectionData = processSelection(selectionResult as ResolvedUnitResult);
     var visitedLists = selectionData.visitedLists;
-    var inheritanceManager = InheritanceManager3();
 
     var buffer = StringBuffer();
     for (var interface in astImplData.instantiableInterfaces) {
-      if (interface.name3 == 'Comment' ||
-          interface.name3 == 'VariableDeclaration') {
+      if (interface.name == 'Comment' ||
+          interface.name == 'VariableDeclaration') {
         // The class `Comment` has references, but we don't support selecting a
         // portion of a comment in order to operate on it.
         //
@@ -230,13 +228,13 @@ class SelectionCoverageTest {
       }
       var visitedNodeLists = visitedLists[interface];
       if (visitedNodeLists == null) {
-        var interfaceName = interface.name3;
+        var interfaceName = interface.name;
         buffer.writeln('Missing implementation of visit$interfaceName:');
         buffer.writeln();
         buffer.writeln('@override');
         buffer.writeln('void visit$interfaceName($interfaceName node) {');
         for (var nodeList in declaredNodeLists) {
-          buffer.writeln('  _fromList(node.${nodeList.name3});');
+          buffer.writeln('  _fromList(node.${nodeList.name});');
         }
         buffer.writeln('}');
         buffer.writeln();
@@ -244,19 +242,20 @@ class SelectionCoverageTest {
         var unvisitedNodeLists = {...declaredNodeLists};
         for (var visitedNodeList in visitedNodeLists) {
           unvisitedNodeLists.remove(visitedNodeList);
-          var overridden = inheritanceManager.getOverridden4(
-            visitedNodeList.enclosingElement as InterfaceElement,
-            Name(visitedNodeList.library2.uri, visitedNodeList.name3!),
+          var enclosingElement =
+              visitedNodeList.enclosingElement as InterfaceElement;
+          var overridden = enclosingElement.getOverridden(
+            Name(visitedNodeList.library.uri, visitedNodeList.name!),
           );
           if (overridden != null) {
             unvisitedNodeLists.removeAll(overridden);
           }
         }
         if (unvisitedNodeLists.isNotEmpty) {
-          buffer.writeln('Missing lines in visit${interface.name3}:');
+          buffer.writeln('Missing lines in visit${interface.name}:');
           buffer.writeln();
           for (var nodeList in unvisitedNodeLists) {
-            buffer.writeln('  _fromList(node.${nodeList.name3});');
+            buffer.writeln('  _fromList(node.${nodeList.name});');
           }
           buffer.writeln();
         }

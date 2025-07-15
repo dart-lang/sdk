@@ -37,13 +37,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::y#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -81,7 +81,7 @@ MethodInvocation
           label: SimpleIdentifier
             token: x
             element: ParameterMember
-              baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+              baseElement: <testLibrary>::@function::foo::@formalParameter::x
               substitution: {T: int}
             staticType: null
           colon: :
@@ -89,7 +89,7 @@ MethodInvocation
           literal: 1
           staticType: int
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
     rightParenthesis: )
   staticInvokeType: void Function({required int x, required int y})
@@ -130,7 +130,7 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
     rightParenthesis: )
@@ -166,13 +166,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::y#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
       IntegerLiteral
@@ -212,13 +212,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::x#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::x
           substitution: {T: int}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::foo::@parameter::y#element
+          baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
       NamedExpression

@@ -15,15 +15,13 @@ import 'package:vm/modular/target/vm.dart';
 import 'package:vm/kernel_front_end.dart';
 
 main() async {
-  Uri sdkSummary = sdkRootFile(
-    Platform.executable,
-  ).resolve('vm_platform_strong.dill');
+  Uri sdkSummary = sdkRootFile(Platform.executable).resolve('vm_platform.dill');
   if (!await File.fromUri(sdkSummary).exists()) {
     // If we run from the <build-dir>/dart-sdk/bin folder, we need to navigate two
     // levels up.
     sdkSummary = sdkRootFile(
       Platform.executable,
-    ).resolve('../../vm_platform_strong.dill');
+    ).resolve('../../vm_platform.dill');
   }
 
   // Tests are run in the root directory of the sdk checkout.

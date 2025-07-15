@@ -89,7 +89,7 @@ VM_UNIT_TEST_CASE(FreeVirtualMemory) {
   }
 }
 
-#if !defined(DART_TARGET_OS_FUCHSIA)
+#if defined(DART_HOST_OS_MACOS)
 // TODO(https://dartbug.com/52579): Reenable on Fuchsia.
 
 static int testFunction(int x) {
@@ -109,16 +109,7 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
       reinterpret_cast<void*>(page_start), 2 * page_size);
   EXPECT_NE(nullptr, vm);
 
-#if defined(DART_HOST_OS_MACOS) && !defined(DART_PRECOMPILED_RUNTIME)
-  // If we are not going to use vm_remap then we need to pass
-  // is_executable=true so that pages get allocated with MAP_JIT flag if
-  // necessary. Otherwise OS will kill us with a codesigning violation if
-  // hardened runtime is enabled.
-  const bool is_executable = true;
-#else
   const bool is_executable = false;
-#endif
-
   VirtualMemory* vm2 = VirtualMemory::AllocateAligned(
       vm->size(), kPageSize, is_executable,
       /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
@@ -134,6 +125,6 @@ VM_UNIT_TEST_CASE(DuplicateRXVirtualMemory) {
   delete vm2;
 }
 
-#endif  // !defined(DART_TARGET_OS_FUCHSIA)
+#endif  // defined(DART_HOST_OS_MACOS)
 
 }  // namespace dart

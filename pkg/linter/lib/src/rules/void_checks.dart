@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -20,10 +21,7 @@ class VoidChecks extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.void_checks;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addAssignedVariablePattern(this, visitor);
     registry.addAssignmentExpression(this, visitor);
@@ -38,7 +36,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, LinterContext context) : typeSystem = context.typeSystem;
+  _Visitor(this.rule, RuleContext context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingFutureOrVoid(DartType type) {
     if (type is DynamicType) return true;
@@ -70,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     var valueType = node.matchedValueType;
-    var element = node.element2;
+    var element = node.element;
     if (element is! VariableElement) return;
     _check(element.type, valueType, node);
   }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -24,10 +25,7 @@ class UseNullAwareElements extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.use_null_aware_elements;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isFeatureEnabled(Feature.null_aware_elements)) return;
     var visitor = _Visitor(this);
     registry.addIfElement(this, visitor);
@@ -57,13 +55,13 @@ class _Visitor extends SimpleAstVisitor<void> {
           nullCheckTarget = leftOperand.canonicalElement;
         }
       } else if (node.caseClause?.guardedPattern.pattern case NullCheckPattern(
-        pattern: DeclaredVariablePattern(:var declaredElement2),
+        pattern: DeclaredVariablePattern(:var declaredElement),
       )) {
         // Case of pattern null checks of the form `if (x case var y?) y`.
-        nullCheckTarget = declaredElement2;
+        nullCheckTarget = declaredElement;
       }
 
-      if (nullCheckTarget is PromotableElementImpl2) {
+      if (nullCheckTarget is PromotableElementImpl) {
         if (thenElement is SimpleIdentifier &&
             nullCheckTarget == thenElement.canonicalElement) {
           // List and set elements, such as the following:

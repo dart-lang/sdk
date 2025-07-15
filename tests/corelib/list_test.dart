@@ -7,8 +7,10 @@
 
 import "dart:collection";
 import "dart:typed_data";
-import "package:expect/expect.dart";
+
 import "package:expect/config.dart";
+import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 void main() {
   // Typed lists - fixed length and can only contain integers.
@@ -60,9 +62,11 @@ void testErrors() {
       list[list.length];
     } on RangeError catch (err, s) {
       Expect.isTrue(err is RangeError, "$name[$index]");
-      Expect.equals(list.length, err.invalidValue, "$name[$index] value");
-      Expect.equals(list.length - 1, err.end, "$name[$index] end");
-      Expect.equals(0, err.start, "$name[$index] start");
+      if (preciseErrorsWithDetails) {
+        Expect.equals(list.length, err.invalidValue, "$name[$index] value");
+        Expect.equals(list.length - 1, err.end, "$name[$index] end");
+        Expect.equals(0, err.start, "$name[$index] start");
+      }
     }
   }
 

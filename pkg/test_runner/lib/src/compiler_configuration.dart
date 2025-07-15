@@ -1251,8 +1251,10 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     if (_configuration.useQemu) {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
-      arguments.insertAll(0, config.arguments);
       executable = config.executable;
+      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
+        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
+      }
     }
     var command = CompilationCommand('app_jit', tempDir,
         bootstrapDependencies(), executable, arguments, environmentOverrides,
@@ -1409,15 +1411,17 @@ abstract mixin class VMKernelCompilerMixin {
   String tempAssemblyFile(String tempDir) =>
       Path('$tempDir/out.S').toNativePath();
   String tempAOTFile(String tempDir) {
-    switch (_configuration.system) {
-      case System.android:
-      case System.fuchsia:
-      case System.linux:
-        return Path('$tempDir/libout.so').toNativePath();
-      case System.mac:
-        return Path('$tempDir/libout.dylib').toNativePath();
-      case System.win:
-        return Path('$tempDir/out.dll').toNativePath();
+    if (_configuration.genSnapshotFormat == GenSnapshotFormat.assembly) {
+      switch (_configuration.system) {
+        case System.android:
+        case System.fuchsia:
+        case System.linux:
+          return Path('$tempDir/libout.so').toNativePath();
+        case System.mac:
+          return Path('$tempDir/libout.dylib').toNativePath();
+        case System.win:
+          return Path('$tempDir/out.dll').toNativePath();
+      }
     }
     return Path('$tempDir/out.aotsnapshot').toNativePath();
   }
@@ -1432,7 +1436,7 @@ abstract mixin class VMKernelCompilerMixin {
       kernelBinariesFolder += '/dart-sdk/lib/_internal';
     }
 
-    var vmPlatform = '$kernelBinariesFolder/vm_platform_strong.dill';
+    var vmPlatform = '$kernelBinariesFolder/vm_platform.dill';
 
     var dillFile = tempKernelFile(tempDir);
 
@@ -1481,7 +1485,7 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
       dillDir = buildDirectory.resolve("dart-sdk/lib/_internal/");
     }
 
-    var platformDill = dillDir.resolve("vm_platform_strong.dill");
+    var platformDill = dillDir.resolve("vm_platform.dill");
 
     var vmExecutable = buildDirectory
         .resolve(configuration.useSdk ? "dart-sdk/bin/dart" : "dart");
@@ -1571,8 +1575,13 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
 class BytecodeCompilerConfiguration extends CompilerConfiguration {
   BytecodeCompilerConfiguration(super.configuration) : super._subclass();
 
+  bool get _isAot => _configuration.runtime == Runtime.dartPrecompiled;
+
   @override
   String computeCompilerPath() => dartAotRuntime();
+
+  @override
+  bool get hasCompiler => _isAot;
 
   @override
   bool get runRuntimeDespiteMissingCompileTimeError => true;
@@ -1586,8 +1595,8 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       : '${_configuration.buildDirectory}/gen/dart2bytecode.dart.snapshot';
 
   String platformKernelFile() => _useSdk
-      ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform_strong.dill'
-      : '${_configuration.buildDirectory}/vm_platform_strong.dill';
+      ? '${_configuration.buildDirectory}/dart-sdk/lib/_internal/vm_platform.dill'
+      : '${_configuration.buildDirectory}/vm_platform.dill';
 
   String tempBytecodeFile(String tempDir) =>
       Path('$tempDir/out.bytecode').toNativePath();
@@ -1613,6 +1622,7 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
           arguments.contains('--enable-asserts') ||
           arguments.contains('--enable_asserts'))
         '--enable-asserts',
+      if (!isProductMode) '--bytecode-options=source-positions',
     ];
 
     return CompilationCommand(
@@ -1653,23 +1663,20 @@ class BytecodeCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact? artifact) {
-    var filename = artifact!.filename;
-
     return [
       if (_enableAsserts) '--enable_asserts',
       ...vmOptions,
       ...testFile.sharedOptions,
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
-      ..._replaceDartFiles(
-          originalArguments,
-          (_configuration.runtime == Runtime.dartPrecompiled)
-              ? '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'
-              : Platform.script
-                  .resolve(
-                      '../../../pkg/dynamic_modules/bin/dynamic_module_runner.dart')
-                  .toFilePath()),
-      filename,
+      if (_isAot) ...[
+        ..._replaceDartFiles(originalArguments,
+            '${_configuration.buildDirectory}/dynamic_module_runner.snapshot'),
+        artifact!.filename,
+      ] else ...[
+        '--interpreter',
+        ...originalArguments,
+      ],
       ...testFile.dartOptions
     ];
   }

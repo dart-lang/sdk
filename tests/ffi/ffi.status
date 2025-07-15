@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+function_callbacks_structs_by_value_native_callable_generated_test: Pass, Slow # https://dartbug.com/61038
 function_callbacks_structs_by_value_test: Pass, Slow # https://dartbug.com/47304 https://dartbug.com/45007
 function_structs_by_value_generated_args_leaf_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
 function_structs_by_value_generated_args_test: Pass, Slow # https://dartbug.com/47303 https://dartbug.com/45007
@@ -57,6 +58,7 @@ function_callbacks_structs_by_value_generated_test/*: Skip # Test harness doesn'
 function_callbacks_structs_by_value_native_callable_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_subtype_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 isolate_group_shared_callback_test: Skip # gen_snapshot requires experimental-shared-data flag
+isolate_group_shared_init_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_shared_send_test: Skip # gen_snapshot requires experimental-shared-data flag
 native_assets/*: Skip # Source not available in the emulator
 run_isolate_group_run_test: Skip # gen_snapshot requires experimental-shared-data flag

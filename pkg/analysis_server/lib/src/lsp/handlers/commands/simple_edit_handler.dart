@@ -23,9 +23,9 @@ abstract class SimpleEditCommandHandler<S extends AnalysisServer>
 
   bool hasScanParseErrors(List<engine.Diagnostic> diagnostics) {
     return diagnostics.any(
-      (error) =>
-          error.errorCode is engine.ScannerErrorCode ||
-          error.errorCode is engine.ParserErrorCode,
+      (d) =>
+          d.diagnosticCode is engine.ScannerErrorCode ||
+          d.diagnosticCode is engine.ParserErrorCode,
     );
   }
 

@@ -339,7 +339,7 @@ class DocumentationValidator {
     buffer.writeln('    $problem');
     for (Diagnostic diagnostic in diagnostics) {
       buffer.write('      ');
-      buffer.write(diagnostic.errorCode);
+      buffer.write(diagnostic.diagnosticCode);
       buffer.write(' (');
       buffer.write(diagnostic.offset);
       buffer.write(', ');
@@ -424,7 +424,7 @@ class DocumentationValidator {
     _SnippetTest test = _SnippetTest(snippet);
     test.setUp();
     await test.resolveTestFile();
-    List<Diagnostic> diagnostics = test.result.errors;
+    List<Diagnostic> diagnostics = test.result.diagnostics;
     int errorCount = diagnostics.length;
     if (snippet.offset < 0) {
       if (errorCount > 0) {
@@ -438,10 +438,10 @@ class DocumentationValidator {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
         Diagnostic diagnostic = diagnostics[0];
-        if (diagnostic.errorCode.name != codeName) {
+        if (diagnostic.diagnosticCode.name != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '
-            'found ${diagnostic.errorCode} ($section $index).',
+            'found ${diagnostic.diagnosticCode} ($section $index).',
           );
         }
         if (diagnostic.offset != snippet.offset) {
@@ -484,7 +484,7 @@ class VerifyDiagnosticsTest {
     // _all_ codes with the same name are also marked that way.
     var nameToCodeMap = <String, List<DiagnosticCode>>{};
     var nameToPublishedMap = <String, bool>{};
-    for (var code in errorCodeValues) {
+    for (var code in diagnosticCodeValues) {
       var name = code.name;
       nameToCodeMap.putIfAbsent(name, () => []).add(code);
       nameToPublishedMap[name] =

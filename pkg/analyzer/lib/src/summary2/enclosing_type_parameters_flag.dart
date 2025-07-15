@@ -15,19 +15,19 @@ class EnclosingTypeParameterReferenceFlag {
   void perform() {
     for (var builder in _linker.builders.values) {
       var library = builder.element;
-      for (var topElement in library.children2) {
+      for (var topElement in library.children) {
         switch (topElement) {
-          case InstanceElementImpl2():
+          case InstanceElementImpl():
             for (var field in topElement.fields) {
               if (!field.isSynthetic || field.isEnumValues) {
                 var result = _hasTypeParameterReference(topElement, field.type);
                 field.firstFragment.hasEnclosingTypeParameterReference = result;
                 field
-                    .getter2
+                    .getter
                     ?.firstFragment
                     .hasEnclosingTypeParameterReference = result;
                 field
-                    .setter2
+                    .setter
                     ?.firstFragment
                     .hasEnclosingTypeParameterReference = result;
               }
@@ -43,7 +43,7 @@ class EnclosingTypeParameterReferenceFlag {
                 propertyAccessor
                     .firstFragment
                     .hasEnclosingTypeParameterReference = result;
-                if (propertyAccessor.variable3 case FieldElementImpl2 field) {
+                if (propertyAccessor.variable case FieldElementImpl field) {
                   field.firstFragment.hasEnclosingTypeParameterReference =
                       result;
                 }
@@ -54,21 +54,21 @@ class EnclosingTypeParameterReferenceFlag {
               method.firstFragment.hasEnclosingTypeParameterReference =
                   _hasTypeParameterReference(topElement, method.type);
             }
-          case PropertyAccessorElementImpl2():
+          case PropertyAccessorElementImpl():
             // Top-level accessors don't have type parameters.
             if (!topElement.isSynthetic) {
               topElement.firstFragment.hasEnclosingTypeParameterReference =
                   false;
             }
-          case TopLevelVariableElementImpl2():
+          case TopLevelVariableElementImpl():
             // Top-level variables dont have type parameters.
             if (!topElement.isSynthetic) {
               topElement
-                  .getter2
+                  .getter
                   ?.firstFragment
                   .hasEnclosingTypeParameterReference = false;
               topElement
-                  .setter2
+                  .setter
                   ?.firstFragment
                   .hasEnclosingTypeParameterReference = false;
             }
@@ -78,7 +78,7 @@ class EnclosingTypeParameterReferenceFlag {
   }
 
   static bool _hasTypeParameterReference(
-    InstanceElementImpl2 instanceElement,
+    InstanceElementImpl instanceElement,
     DartType type,
   ) {
     var visitor = _ReferencesTypeParameterVisitor(instanceElement);
@@ -88,7 +88,7 @@ class EnclosingTypeParameterReferenceFlag {
 }
 
 class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
-  final InstanceElementImpl2 instanceElement;
+  final InstanceElementImpl instanceElement;
   bool result = false;
 
   _ReferencesTypeParameterVisitor(this.instanceElement)
@@ -96,7 +96,7 @@ class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {
-    if (type.element3.enclosingElement == instanceElement) {
+    if (type.element.enclosingElement == instanceElement) {
       result = true;
     }
     return true;

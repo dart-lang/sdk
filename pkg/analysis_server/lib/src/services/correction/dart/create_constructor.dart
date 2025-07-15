@@ -86,7 +86,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     // prepare target ClassDeclaration
-    var targetElement = targetType.element3;
+    var targetElement = targetType.element;
     var targetFragment = targetElement.firstFragment;
     var targetResult = await sessionHelper.getFragmentDeclaration(
       targetFragment,
@@ -178,7 +178,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     var targetElement = constructorElement.enclosingElement;
     var targetFragment = (targetElement as ClassElement).firstFragment;
 
-    var targetElementName = targetElement.name3;
+    var targetElementName = targetElement.name;
     if (targetElementName == null) {
       return;
     }

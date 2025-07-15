@@ -27,7 +27,7 @@ List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
       var types = typeGroups.putIfAbsent(displayName, () => []);
       types.add(_TypeToConvert(i, argument, displayName));
     } else if (argument is Element) {
-      var displayName = argument.displayString2();
+      var displayName = argument.displayString();
       var types = typeGroups.putIfAbsent(displayName, () => []);
       types.add(_ElementToConvert(i, argument, displayName));
     }
@@ -48,7 +48,7 @@ List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
     var nameToElementMap = <String, Set<Element>>{};
     for (var typeToConvert in typeGroup) {
       for (var element in typeToConvert.allElements) {
-        var name = element.name3;
+        var name = element.name;
         name ??= element is ExtensionElement ? unnamedExtension : unnamed;
 
         var elements = nameToElementMap.putIfAbsent(name, () => {});
@@ -61,7 +61,7 @@ List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
       // context messages, remove the extra text added to the buffer.
       StringBuffer? buffer;
       for (var element in typeToConvert.allElements) {
-        var name = element.name3;
+        var name = element.name;
         name ??= element is ExtensionElement ? unnamedExtension : unnamed;
         var sourcePath = element.firstFragment.libraryFragment!.source.fullName;
         if (nameToElementMap[name]!.length > 1) {
@@ -76,7 +76,7 @@ List<DiagnosticMessage> convertTypeNames(List<Object?>? arguments) {
         messages.add(
           DiagnosticMessageImpl(
             filePath: sourcePath,
-            length: element.name3?.length ?? 0,
+            length: element.name?.length ?? 0,
             message: '$name is defined in $sourcePath',
             offset: element.firstFragment.nameOffset2 ?? -1,
             url: null,
@@ -150,7 +150,7 @@ class _TypeToConvert implements _ToConvert {
           addElementsFrom(parameter.type);
         }
       } else if (type is InterfaceType) {
-        if (elements.add(type.element3)) {
+        if (elements.add(type.element)) {
           for (var typeArgument in type.typeArguments) {
             addElementsFrom(typeArgument);
           }
@@ -160,7 +160,7 @@ class _TypeToConvert implements _ToConvert {
 
     addElementsFrom(_type);
     return elements.where((element) {
-      var name = element.name3;
+      var name = element.name;
       return name != null && name.isNotEmpty;
     });
   }();

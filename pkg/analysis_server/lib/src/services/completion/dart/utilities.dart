@@ -182,7 +182,7 @@ DefaultArgument? getDefaultStringParameterValue(
     var params = type.formalParameters.indexed
         .map((r) {
           var (index, parameter) = r;
-          var name = parameter.name3 ?? 'p${index + 1}';
+          var name = parameter.name ?? 'p${index + 1}';
           return '${getTypeString(parameter.type)}$name';
         })
         .join(', ');
@@ -222,7 +222,7 @@ InterfaceType instantiateInstanceElement(
   InterfaceElement element,
   NeverType neverType,
 ) {
-  var typeParameters = element.typeParameters2;
+  var typeParameters = element.typeParameters;
   var typeArguments = const <DartType>[];
   if (typeParameters.isNotEmpty) {
     typeArguments = List.filled(typeParameters.length, neverType);

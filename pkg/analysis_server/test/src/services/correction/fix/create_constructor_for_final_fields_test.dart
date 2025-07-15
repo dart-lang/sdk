@@ -211,7 +211,8 @@ class Test {
 }
 ''',
       errorFilter: (error) {
-        return error.errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED &&
+        return error.diagnosticCode ==
+                CompileTimeErrorCode.FINAL_NOT_INITIALIZED &&
             error.message.contains("'_a'");
       },
     );

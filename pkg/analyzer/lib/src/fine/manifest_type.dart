@@ -82,7 +82,7 @@ class ManifestFunctionNamedFormalParameter
     return element.isNamed &&
         element.isRequired == isRequired &&
         type.match(context, element.type) &&
-        element.name3 == name;
+        element.name == name;
   }
 
   void write(BufferedSink sink) {
@@ -165,7 +165,7 @@ final class ManifestFunctionType extends ManifestType {
               return ManifestFunctionNamedFormalParameter._(
                 isRequired: element.isRequired,
                 type: element.type.encode(context),
-                name: element.name3!,
+                name: element.name!,
               );
             }).toFixedList(),
         nullabilitySuffix: type.nullabilitySuffix,
@@ -289,7 +289,7 @@ final class ManifestInterfaceType extends ManifestType {
     InterfaceType type,
   ) {
     return ManifestInterfaceType._(
-      element: ManifestElement.encode(context, type.element3),
+      element: ManifestElement.encode(context, type.element),
       arguments: type.typeArguments.encode(context),
       nullabilitySuffix: type.nullabilitySuffix,
     );
@@ -326,7 +326,7 @@ final class ManifestInterfaceType extends ManifestType {
       return false;
     }
 
-    if (!element.match(context, type.element3)) {
+    if (!element.match(context, type.element)) {
       return false;
     }
 
@@ -634,7 +634,7 @@ final class ManifestTypeParameterType extends ManifestType {
     TypeParameterTypeImpl type,
   ) {
     return ManifestTypeParameterType._(
-      index: context.indexOfTypeParameter(type.element3),
+      index: context.indexOfTypeParameter(type.element),
       nullabilitySuffix: type.nullabilitySuffix,
     );
   }
@@ -665,7 +665,7 @@ final class ManifestTypeParameterType extends ManifestType {
       return false;
     }
 
-    var elementIndex = context.indexOfTypeParameter(type.element3);
+    var elementIndex = context.indexOfTypeParameter(type.element);
     if (elementIndex != index) {
       return false;
     }

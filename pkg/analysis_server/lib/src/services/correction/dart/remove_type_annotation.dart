@@ -27,7 +27,7 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.REMOVE_TYPE_ANNOTATION;
+  AssistKind get assistKind => DartAssistKind.removeTypeAnnotation;
 
   @override
   FixKind get fixKind => DartFixKind.REMOVE_TYPE_ANNOTATION;
@@ -41,7 +41,7 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       return _varAndType(builder);
     }
 
-    for (var node in this.node.withParents) {
+    for (var node in this.node.withAncestors) {
       if (node is DeclaredIdentifier) {
         return _removeFromDeclaredIdentifier(builder, node);
       }

@@ -329,8 +329,7 @@ class AstPrinter {
             Uri uri = type.classNode.enclosingLibrary.importUri;
             return uri.isScheme('dart') &&
                 uri.path == 'core' &&
-                (type.nullability == Nullability.legacy ||
-                    type.nullability == Nullability.nullable);
+                type.nullability == Nullability.nullable;
           }
           return false;
         }
@@ -367,8 +366,7 @@ class AstPrinter {
             Uri uri = type.classNode.enclosingLibrary.importUri;
             return uri.isScheme('dart') &&
                 uri.path == 'core' &&
-                (type.nullability == Nullability.legacy ||
-                    type.nullability == Nullability.nullable);
+                type.nullability == Nullability.nullable;
           }
           return false;
         }

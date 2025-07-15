@@ -1,0 +1,8 @@
+name: tests_ffi
+description: FFI tests
+
+environment:
+  sdk: ^3.8.0
+
+resolution: workspace
+publish_to: none

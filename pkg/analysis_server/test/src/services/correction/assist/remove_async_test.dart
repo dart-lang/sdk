@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class RemoveAsyncTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.REMOVE_ASYNC;
+  AssistKind get kind => DartAssistKind.removeAsync;
 
   Future<void> test_closure() async {
     await resolveTestCode('''

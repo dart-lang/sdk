@@ -178,7 +178,7 @@ class ManifestNode {
 }
 
 class _ElementCollector extends ThrowingAstVisitor<void> {
-  final int Function(TypeParameterElementImpl2) indexOfTypeParameter;
+  final int Function(TypeParameterElementImpl) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
   final Map<Element, int> map = Map.identity();
   final List<int> elementIndexList = [];
@@ -196,7 +196,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     node.visitChildren(this);
-    _addElement(node.element2);
+    _addElement(node.element);
   }
 
   @override
@@ -296,7 +296,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     node.visitChildren(this);
-    _addElement(node.element2);
+    _addElement(node.element);
   }
 
   @override
@@ -381,13 +381,13 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
       case null:
         kind = ManifestAstElementKind.null_;
         rawIndex = 0;
-      case DynamicElementImpl2():
+      case DynamicElementImpl():
         kind = ManifestAstElementKind.dynamic_;
         rawIndex = 0;
       case FormalParameterElementImpl():
         kind = ManifestAstElementKind.formalParameter;
         rawIndex = indexOfFormalParameter(element);
-      case TypeParameterElementImpl2():
+      case TypeParameterElementImpl():
         kind = ManifestAstElementKind.typeParameter;
         rawIndex = indexOfTypeParameter(element);
       case PrefixElement():
@@ -405,7 +405,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
     // evaluation we will access the corresponding constant variable for
     // its initializer. So, we also depend on the variable.
     if (element is GetterElementImpl) {
-      _addElement(element.variable3!);
+      _addElement(element.variable!);
     }
   }
 }

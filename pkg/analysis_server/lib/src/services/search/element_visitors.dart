@@ -14,7 +14,7 @@ Fragment? findFragmentByNameOffset(LibraryFragment fragment, int nameOffset) {
 /// Uses [processor] to visit all of the children of [element].
 /// If [processor] returns `true`, then children of a child are visited too.
 void visitChildren(Element element, BoolElementProcessor processor) {
-  element.visitChildren2(_ElementVisitorAdapter(processor));
+  element.visitChildren(_ElementVisitorAdapter(processor));
 }
 
 /// An [Element] processor function type.
@@ -31,7 +31,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   void visitElement(Element element) {
     var visitChildren = processor(element);
     if (visitChildren == true) {
-      element.visitChildren2(this);
+      element.visitChildren(this);
     }
   }
 }
@@ -48,7 +48,7 @@ class _FragmentByNameOffsetVisitor {
     if (fragment.nameOffset2 == nameOffset) {
       return fragment;
     }
-    for (var child in fragment.children3) {
+    for (var child in fragment.children) {
       var result = _searchIn(child);
       if (result != null) {
         return result;

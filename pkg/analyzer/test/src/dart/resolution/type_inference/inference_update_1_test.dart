@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,15 +20,16 @@ class HorizontalInferenceDisabledTest extends PubPackageResolutionTest
     with HorizontalInferenceTestCases {
   @override
   String get testPackageLanguageVersion => '2.17';
+
+  @override
+  bool get _isEnabled => false;
 }
 
 @reflectiveTest
 class HorizontalInferenceEnabledTest extends PubPackageResolutionTest
     with HorizontalInferenceTestCases {
   @override
-  List<String> get experiments {
-    return [...super.experiments, Feature.inference_update_1.enableString];
-  }
+  bool get _isEnabled => true;
 
   test_record_field_named() async {
     // A round of horizontal inference should occur between the first argument
@@ -61,8 +61,7 @@ test() {
 }
 
 mixin HorizontalInferenceTestCases on PubPackageResolutionTest {
-  bool get _isEnabled =>
-      experiments.contains(Feature.inference_update_1.enableString);
+  bool get _isEnabled;
 
   test_closure_passed_to_dynamic() async {
     await assertNoErrorsInCode('''
@@ -94,7 +93,7 @@ example(List<int> list) {
       assertType(findElement2.localVar('a').type, 'int');
       assertType(findElement2.parameter('x').type, 'int');
       assertType(findElement2.parameter('y').type, 'int');
-      expect(findNode.binary('x + y').element!.enclosingElement!.name3, 'num');
+      expect(findNode.binary('x + y').element!.enclosingElement!.name, 'num');
     } else {
       await assertErrorsInCode(code, [
         error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
@@ -185,7 +184,7 @@ test(List<int> list) {
     );
     assertType(findElement2.parameter('y').type, 'int');
     expect(
-      findNode.binary('+ y').element?.enclosingElement!.name3,
+      findNode.binary('+ y').element?.enclosingElement!.name,
       _isEnabled ? 'num' : null,
     );
   }
@@ -411,7 +410,7 @@ test(List<int> list) {
     assertType(findElement2.localVar('a').type, 'int?');
     assertType(findElement2.parameter('x').type, 'int?');
     assertType(findElement2.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').element!.enclosingElement!.name3, 'num');
+    expect(findNode.binary('+ y').element!.enclosingElement!.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_explicit_parameter_type_named() async {
@@ -429,7 +428,7 @@ test() {
     assertType(findElement2.localVar('a').type, 'int?');
     assertType(findElement2.parameter('x').type, 'int?');
     assertType(findElement2.parameter('y').type, 'int');
-    expect(findNode.binary('+ y').element!.enclosingElement!.name3, 'num');
+    expect(findNode.binary('+ y').element!.enclosingElement!.name, 'num');
   }
 
   test_horizontal_inference_unnecessary_due_to_no_dependency() async {

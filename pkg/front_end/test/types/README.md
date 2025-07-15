@@ -17,7 +17,7 @@ To collect new data for a benchmark, follow these steps:
 `pkg/compiler/lib/src/dart2js.dart`.
 
 2. Modify `pkg/kernel/lib/src/types.dart` as described in the method
-`SubtypeTester._collect_performNullabilityAwareSubtypeCheck`.
+`SubtypeTester._collect_performSubtypeCheck`.
 
 3. Compile the program using CFE, for example:
 

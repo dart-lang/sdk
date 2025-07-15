@@ -12,7 +12,7 @@ library;
 //   set D(v) {} //# 02: compile-time error
 //       ^
 //
-// pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the class 'C'.
+// pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the type 'C'.
 //  - 'C' is from 'pkg/front_end/testcases/regress/issue_34225.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
 //   c.C = 5;
@@ -35,7 +35,7 @@ class D extends core::Object {
 }
 static method main() → dynamic {
   self::C c = new self::C::•();
-  invalid-expression "pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the class 'C'.
+  invalid-expression "pkg/front_end/testcases/regress/issue_34225.dart:15:5: Error: The setter 'C' isn't defined for the type 'C'.
  - 'C' is from 'pkg/front_end/testcases/regress/issue_34225.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'C'.
   c.C = 5;

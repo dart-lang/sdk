@@ -15,7 +15,6 @@ import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
 import '../../../dds.dart';
-import '../../rpc_error_codes.dart';
 import '../base_debug_adapter.dart';
 import '../isolate_manager.dart';
 import '../logging.dart';
@@ -1148,26 +1147,34 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     } else if (result is vm.Sentinel) {
       throw DebugAdapterException(result.valueAsString ?? '<collected>');
     } else if (result is vm.InstanceRef && thread != null) {
-      final resultString = await _converter.convertVmInstanceRefToDisplayString(
+      final variable = await _converter.convertVmResponseToVariable(
         thread,
         result,
+        name: null,
+        evaluateName: expression,
         allowCallingToString:
             evaluateToStringInDebugViews || shouldExpandTruncatedValues,
-        format: format,
         allowTruncatedValue: !shouldExpandTruncatedValues,
+        format: format,
       );
-
-      final variablesReference = _converter.isSimpleKind(result.kind)
-          ? 0
-          : thread.storeData(VariableData(result, format));
 
       // Store the expression that gets this object as we may need it to
       // compute evaluateNames for child objects later.
       storeEvaluateName(result, expression);
 
       sendResponse(EvaluateResponseBody(
-        result: resultString,
-        variablesReference: variablesReference,
+        // EvaluateResponse is mostly the same as a Variable response but
+        // do not share a class, so copy all fields off manually (this allows
+        // us to have a single implementation of building these fields for
+        // an instance instead of duplicating logic here).
+        result: variable.value,
+        variablesReference: variable.variablesReference,
+        indexedVariables: variable.indexedVariables,
+        namedVariables: variable.namedVariables,
+        memoryReference: variable.memoryReference,
+        presentationHint: variable.presentationHint,
+        type: variable.type,
+        valueLocationReference: variable.valueLocationReference,
       ));
     } else {
       throw DebugAdapterException(
@@ -1570,26 +1577,70 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         : name!;
 
     // Use a completer to track when the response is sent, so any events related
-    // to these breakpoints are not sent before the client has the IDs.
+    // to new breakpoints will not be sent to the client before the response
+    // here which provides the IDs to the client.
     final completer = Completer<void>();
 
-    final clientBreakpoints = breakpoints
-        .map((bp) => ClientBreakpoint(bp, completer.future))
-        .toList();
-    await isolateManager.setBreakpoints(uri, clientBreakpoints);
+    // Map the provided breakpoints onto either new or existing instances of
+    // [ClientBreakpoint] that we use to track the clients breakpoints
+    // internally.
+    final clientBreakpoints = breakpoints.map((bp) {
+      return
+          // First try to match an existing breakpoint so we can avoid deleting
+          // and re-creating all breakpoints if a new one is added to a file.
+          isolateManager.findExistingClientBreakpoint(uri, bp) ??
+              ClientBreakpoint(bp, completer.future);
+    }).toList();
 
-    sendResponse(SetBreakpointsResponseBody(
+    // Any breakpoints that are not in our new set will need to be removed from
+    // the VM.
+    //
+    // Because multiple client breakpoints may resolve to the same VM breakpoint
+    // we must exclude any that still remain in one of the kept breakpoints.
+    final referencedVmBreakpoints =
+        clientBreakpoints.map((bp) => bp.forThread.values).toSet();
+    final breakpointsToRemove = isolateManager.clientBreakpointsByUri[uri]
+        ?.toSet()
+        // Remove any we're reusing.
+        .difference(clientBreakpoints.toSet())
+        // Remove any that map to VM breakpoints that are still referenced
+        // because we'll want to keep them.
+        .where((clientBreakpoint) => clientBreakpoint.forThread.values
+            .none(referencedVmBreakpoints.contains));
+
+    // Store this new set of breakpoints as the current set for this URI.
+    isolateManager.recordLatestClientBreakpoints(uri, clientBreakpoints);
+
+    // Prepare the response with the existing values before we start updating.
+    final breakpointResponse = SetBreakpointsResponseBody(
       breakpoints: clientBreakpoints
-          // Send breakpoints back as unverified and with our generated IDs so we
-          // can update them with a 'breakpoint' event when we get the
-          // 'BreakpointAdded'/'BreakpointResolved' events from the VM.
           .map((bp) => Breakpoint(
               id: bp.id,
-              verified: false,
-              message: 'Breakpoint has not yet been resolved',
-              reason: 'pending'))
+              verified: bp.verified,
+              line: bp.verified ? bp.resolvedLine : null,
+              column: bp.verified ? bp.resolvedColumn : null,
+              message: bp.verified ? null : bp.verifiedMessage,
+              reason: bp.verified ? null : bp.verifiedReason))
           .toList(),
-    ));
+    );
+
+    // Update the breakpoints for all existing threads.
+    await Future.wait(isolateManager.threads.map((thread) async {
+      // Remove the deleted breakpoints.
+      if (breakpointsToRemove != null) {
+        await Future.wait(breakpointsToRemove.map((clientBreakpoint) =>
+            isolateManager.removeBreakpoint(clientBreakpoint, thread)));
+      }
+
+      // Add the new breakpoints.
+      await Future.wait(clientBreakpoints.map((clientBreakpoint) async {
+        if (!clientBreakpoint.isKnownToVm) {
+          await isolateManager.addBreakpoint(clientBreakpoint, thread, uri);
+        }
+      }));
+    }));
+
+    sendResponse(breakpointResponse);
     completer.complete();
   }
 
@@ -2830,8 +2881,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       // outside of the DAP (eg. closing the simulator) so it's possible our
       // requests will fail in this way before we've handled any event to set
       // `isTerminating`.
-      if (e.code == RpcErrorCodes.kServiceDisappeared ||
-          e.code == RpcErrorCodes.kConnectionDisposed) {
+      if (e.isServiceDisposedError) {
         return null;
       }
 
@@ -2843,15 +2893,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       if (e.code == json_rpc_errors.SERVER_ERROR) {
         // Ignore all server errors during shutdown.
         if (isTerminating) {
-          return null;
-        }
-
-        // Always ignore "client is closed" and "closed with pending request"
-        // errors because these can always occur during shutdown if we were
-        // just starting to send (or had just sent) a request.
-        if (e.message.contains("The client is closed") ||
-            e.message.contains("The client closed with pending request") ||
-            e.message.contains("Service connection disposed")) {
           return null;
         }
       }

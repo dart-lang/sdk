@@ -99,8 +99,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     // update declarations
     for (var renameElement in _validator.elements) {
       if (renameElement.isSynthetic && renameElement is FieldElement) {
-        processor.addDeclarationEdit(renameElement.getter2);
-        processor.addDeclarationEdit(renameElement.setter2);
+        processor.addDeclarationEdit(renameElement.getter);
+        processor.addDeclarationEdit(renameElement.setter);
       } else {
         processor.addDeclarationEdit(renameElement);
         if (!newName.startsWith('_')) {
@@ -109,7 +109,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
             for (var constructor in interfaceElement.constructors) {
               for (var parameter in constructor.formalParameters) {
                 if (parameter is FieldFormalParameterElement &&
-                    parameter.field2 == renameElement) {
+                    parameter.field == renameElement) {
                   await searchEngine
                       .searchReferences(parameter)
                       .then(processor.addReferenceEdits);
@@ -131,7 +131,7 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           continue;
         }
         // check the element being renamed is accessible
-        if (!element.isAccessibleIn2(reference.libraryElement)) {
+        if (!element.isAccessibleIn(reference.libraryElement)) {
           continue;
         }
         // add edit
@@ -230,7 +230,7 @@ class _BaseClassMemberValidator {
     this.name,
   );
 
-  LibraryElement get library => interfaceElement.library2;
+  LibraryElement get library => interfaceElement.library;
 
   void _checkClassAlreadyDeclares() {
     // check if there is a member with "newName" in the same ClassElement
@@ -253,7 +253,7 @@ class _BaseClassMemberValidator {
     required Set<InterfaceElement> subClasses,
   }) async {
     var superClasses =
-        interfaceElement.allSupertypes.map((e) => e.element3).toSet();
+        interfaceElement.allSupertypes.map((e) => e.element).toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -314,7 +314,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
       OperationPerformanceImpl('<root>'),
     );
     // check shadowing of class names
-    if (interfaceElement.name3 == name) {
+    if (interfaceElement.name == name) {
       result.addError(
         'Created ${elementKind.displayName} has the same name as the '
         "declaring ${interfaceElement.kind.displayName} '$name'.",
@@ -362,21 +362,21 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
     if (node.parent case AssignmentExpression(
-      :var writeElement2,
+      :var writeElement,
       :var leftHandSide,
     ) when node == leftHandSide) {
-      element = writeElement2;
+      element = writeElement;
     }
     if (element is! PropertyAccessorElement) {
       return;
     }
-    if (element.name3 != name) {
+    if (element.name != name) {
       return;
     }
     if (element is! GetterElement && element is! SetterElement) {
       return;
     }
-    if (element.variable3 case TopLevelVariableElement variable) {
+    if (element.variable case TopLevelVariableElement variable) {
       elements.add(variable);
     }
     super.visitSimpleIdentifier(node);
@@ -440,7 +440,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     for (var element in elements) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement is InterfaceElement &&
-          enclosingElement.name3 == name) {
+          enclosingElement.name == name) {
         result.addError(
           'Renamed ${elementKind.displayName} has the same name as the '
           "declaring ${enclosingElement.kind.displayName} '$name'.",
@@ -556,7 +556,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     }
     for (var reference in references) {
       var refElement = reference.element;
-      var refLibrary = refElement.library2!;
+      var refLibrary = refElement.library!;
       if (refLibrary != library) {
         var message = format(
           "Renamed {0} will be invisible in '{1}'.",

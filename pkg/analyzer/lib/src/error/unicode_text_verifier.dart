@@ -9,8 +9,8 @@ import 'package:analyzer/src/error/codes.dart';
 /// A verifier that checks for unsafe Unicode text.
 /// See: https://nvd.nist.gov/vuln/detail/CVE-2021-22567
 class UnicodeTextVerifier {
-  final ErrorReporter errorReporter;
-  UnicodeTextVerifier(this.errorReporter);
+  final DiagnosticReporter _diagnosticReporter;
+  UnicodeTextVerifier(this._diagnosticReporter);
 
   void verify(CompilationUnit unit, String source) {
     for (var offset = 0; offset < source.length; ++offset) {
@@ -28,7 +28,7 @@ class UnicodeTextVerifier {
                 ? WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL
                 : WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT;
         var code = codeUnit.toRadixString(16).toUpperCase();
-        errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: offset,
           length: 1,
           diagnosticCode: errorCode,

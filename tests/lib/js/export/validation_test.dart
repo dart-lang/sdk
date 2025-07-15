@@ -229,6 +229,41 @@ class GenericSome<U> {
   U useClassParam(U u) => u;
 }
 
+@JSExport()
+class ExportUnexportableMembers {
+  //  ^
+  // [web] Class 'ExportUnexportableMembers' has no exportable members in the class or the inheritance chain.
+  @JSExport()
+  ExportUnexportableMembers();
+  // [error column 3]
+  // [web] Member '<unnamed>' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  factory ExportUnexportableMembers.named() => ExportUnexportableMembers();
+  //      ^
+  // [web] Member 'named' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static int staticField = 0;
+  //         ^
+  // [web] Member 'staticField' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static int get staticGetSet => 0;
+  //             ^
+  // [web] Member 'staticGetSet' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static set staticGetSet(int _) {}
+  //         ^
+  // [web] Member 'staticGetSet' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+
+  @JSExport()
+  static int staticMethod() => 0;
+  //         ^
+  // [web] Member 'staticMethod' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+}
+
 void testClassWithGenerics() {
   createDartExport(GenericAll());
   createDartExport(GenericSome());

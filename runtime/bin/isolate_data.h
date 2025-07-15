@@ -36,12 +36,20 @@ class Loader;
 class IsolateGroupData {
  public:
   IsolateGroupData(const char* url,
+                   const char* asset_resolution_base,
                    const char* packages_file,
                    AppSnapshot* app_snapshot,
                    bool isolate_run_app_snapshot);
   ~IsolateGroupData();
 
   char* script_url;
+
+  // Base path for resolving assets with a relative path.
+  //
+  // This must be an absolute path pointing to a real file (not a symlink).
+  //
+  // May be nullptr.
+  char* asset_resolution_base;
 
   const std::shared_ptr<uint8_t>& kernel_buffer() const {
     return kernel_buffer_;

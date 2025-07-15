@@ -59,7 +59,7 @@ final class AnalysisOptionsBuilder {
 
   FormatterOptions formatterOptions = FormatterOptions();
 
-  Set<String> unignorableNames = {};
+  Set<String> unignorableDiagnosticCodeNames = {};
 
   List<PluginConfiguration> pluginConfigurations = [];
 
@@ -81,7 +81,7 @@ final class AnalysisOptionsBuilder {
       chromeOsManifestChecks: chromeOsManifestChecks,
       codeStyleOptions: codeStyleOptions,
       formatterOptions: formatterOptions,
-      unignorableNames: unignorableNames,
+      unignorableDiagnosticCodeNames: unignorableDiagnosticCodeNames,
     );
   }
 
@@ -302,30 +302,32 @@ final class AnalysisOptionsBuilder {
     var stringValues = cannotIgnore.whereType<String>().toSet();
     for (var severity in AnalysisOptionsFile.severities) {
       if (stringValues.contains(severity)) {
-        // [severity] is a marker denoting all error codes with severity
+        // [severity] is a marker denoting all diagnostic codes with severity
         // equal to [severity].
         stringValues.remove(severity);
-        // Replace name like 'error' with error codes with this named
+        // Replace name like 'error' with diagnostic codes with this named
         // severity.
-        for (var e in errorCodeValues) {
+        for (var d in diagnosticCodeValues) {
           // If the severity of [error] is also changed in this options file
           // to be [severity], we add [error] to the un-ignorable list.
           var processors = errorProcessors.where(
-            (processor) => processor.code == e.name,
+            (processor) => processor.code == d.name,
           );
           if (processors.isNotEmpty &&
               processors.first.severity?.displayName == severity) {
-            unignorableNames.add(e.name);
+            unignorableDiagnosticCodeNames.add(d.name);
             continue;
           }
           // Otherwise, add [error] if its default severity is [severity].
-          if (e.severity.displayName == severity) {
-            unignorableNames.add(e.name);
+          if (d.severity.displayName == severity) {
+            unignorableDiagnosticCodeNames.add(d.name);
           }
         }
       }
     }
-    unignorableNames.addAll(stringValues.map((name) => name.toUpperCase()));
+    unignorableDiagnosticCodeNames.addAll(
+      stringValues.map((name) => name.toUpperCase()),
+    );
   }
 }
 
@@ -402,10 +404,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final FormatterOptions formatterOptions;
 
-  /// The set of "un-ignorable" error names, as parsed from an analysis options
-  /// file.
-  // TODO(srawlins): Rename to `unignorableCodes`. 'Names' is ambiguous.
-  final Set<String> unignorableNames;
+  /// The set of "un-ignorable" diagnostic names, as parsed from an analysis
+  /// options file.
+  final Set<String> unignorableDiagnosticCodeNames;
 
   /// Returns a newly instantiated [AnalysisOptionsImpl].
   ///
@@ -514,7 +515,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.chromeOsManifestChecks,
     required this.codeStyleOptions,
     required this.formatterOptions,
-    required this.unignorableNames,
+    required this.unignorableDiagnosticCodeNames,
   }) : _contextFeatures = contextFeatures {
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
   }

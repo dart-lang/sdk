@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -40,7 +41,7 @@ const Set<String> _sdkWebLibraries = {
 bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
   if (type is TypeParameterType) return _isJsInteropType(type.bound, kind);
   if (type is InterfaceType) {
-    var element = type.element3;
+    var element = type.element;
     var dartJsInteropTypeKind =
         kind == _InteropTypeKind.dartJsInteropType ||
         kind == _InteropTypeKind.any;
@@ -51,7 +52,7 @@ bool _isJsInteropType(DartType type, _InteropTypeKind kind) {
       if (dartJsInteropTypeKind && element.isFromLibrary(_dartJsInteropUri)) {
         return true;
       } else if (userJsInteropTypeKind) {
-        var representationType = element.representation2.type;
+        var representationType = element.representation.type;
         return _isJsInteropType(
               representationType,
               _InteropTypeKind.dartJsInteropType,
@@ -82,7 +83,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
     return _isWasmIncompatibleJsInterop(type.bound);
   }
   if (type is! InterfaceType) return false;
-  var element = type.element3;
+  var element = type.element;
   // `hasJS` only checks for the `dart:_js_annotations` definition, which is
   // what we want here.
   if (element.metadata.hasJS) return true;
@@ -101,7 +102,7 @@ bool _isWasmIncompatibleJsInterop(DartType type) {
 ///
 /// Returns null if `type` is not a `dart:js_interop` `@staticInterop` class.
 DartType? _jsTypeForStaticInterop(InterfaceType type) {
-  var element = type.element3;
+  var element = type.element;
   if (element is! ClassElement) return null;
   var metadata = element.metadata;
   var hasJS = false;
@@ -111,18 +112,18 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
     var annotationElement = annotation.element2;
     if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
-        annotationElement.enclosingElement.name3 == 'JS') {
+        annotationElement.enclosingElement.name == 'JS') {
       hasJS = true;
-      dartJsInterop = annotationElement.library2;
+      dartJsInterop = annotationElement.library;
     } else if (annotationElement is GetterElement &&
         annotationElement.isFromLibrary(_dartJsAnnotationsUri) &&
-        annotationElement.name3 == 'staticInterop') {
+        annotationElement.name == 'staticInterop') {
       hasStaticInterop = true;
     }
   }
   return (hasJS && hasStaticInterop && dartJsInterop != null)
       ? dartJsInterop.extensionTypes
-          .singleWhere((extType) => extType.name3 == 'JSObject')
+          .singleWhere((extType) => extType.name == 'JSObject')
           // Nullability is ignored in this lint, so just return `thisType`.
           .thisType
       : null;
@@ -152,7 +153,7 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
         : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
       // Nullability and generics on interop types are ignored for this lint. In
       // order to just compare the interfaces themselves, we use `thisType`.
-      return type.element3.thisType;
+      return type.element.thisType;
     } else {
       // TODO(scheglov): remove this cast
       var jsType = _jsTypeForStaticInterop(type) as TypeImpl?;
@@ -228,10 +229,7 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addIsExpression(this, visitor);
     registry.addAsExpression(this, visitor);
@@ -448,5 +446,5 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on Element {
   /// Returns whether this is from the Dart library at [uri].
-  bool isFromLibrary(String uri) => library2?.uri.toString() == uri;
+  bool isFromLibrary(String uri) => library?.uri.toString() == uri;
 }

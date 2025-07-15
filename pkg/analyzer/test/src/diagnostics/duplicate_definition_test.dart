@@ -274,6 +274,26 @@ augment class C {
     );
   }
 
+  test_instance_getter_getter_setter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int? get b => null;
+  int? get b => 0;
+  void set b(int? value) {}
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          43,
+          1,
+          contextMessages: [message(testFile, 21, 1)],
+        ),
+      ],
+    );
+  }
+
   test_instance_getter_method() async {
     await assertErrorsInCode(
       r'''
@@ -300,6 +320,46 @@ class C {
   set foo(_) {}
 }
 ''');
+  }
+
+  test_instance_getter_setter_getter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int? get b => null;
+  void set b(int? value) {}
+  int? get b => 0;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          71,
+          1,
+          contextMessages: [message(testFile, 21, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_instance_getter_setter_setter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int? get b => null;
+  void set b(int? value) {}
+  void set b(int? value) {}
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          71,
+          1,
+          contextMessages: [message(testFile, 43, 1)],
+        ),
+      ],
+    );
   }
 
   test_instance_method_getter() async {
@@ -463,6 +523,46 @@ class C {
 ''');
   }
 
+  test_instance_setter_getter_getter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void set b(int? value) {}
+  int? get b => null;
+  int? get b => 0;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          71,
+          1,
+          contextMessages: [message(testFile, 49, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_instance_setter_getter_setter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void set b(int? value) {}
+  int? get b => null;
+  void set b(int? value) {}
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          71,
+          1,
+          contextMessages: [message(testFile, 21, 1)],
+        ),
+      ],
+    );
+  }
+
   test_instance_setter_method() async {
     await assertErrorsInCode(
       r'''
@@ -535,6 +635,26 @@ augment class C {
   augment void set foo(_) {}
 }
 ''');
+  }
+
+  test_instance_setter_setter_getter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void set b(int? value) {}
+  void set b(int? value) {}
+  int? get b => null;
+}
+''',
+      [
+        error(
+          CompileTimeErrorCode.DUPLICATE_DEFINITION,
+          49,
+          1,
+          contextMessages: [message(testFile, 21, 1)],
+        ),
+      ],
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -4753,8 +4873,8 @@ class A {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
-      ..addAll(aResult.errors)
+    GatheringDiagnosticListener()
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4786,13 +4906,13 @@ class A {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
-      ..addAll(aResult.errors)
+    GatheringDiagnosticListener()
+      ..addAll(aResult.diagnostics)
       ..assertNoErrors();
 
     var bResult = await resolveFile(b);
-    GatheringErrorListener()
-      ..addAll(bResult.errors)
+    GatheringDiagnosticListener()
+      ..addAll(bResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4837,8 +4957,8 @@ extension A on int {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
-      ..addAll(aResult.errors)
+    GatheringDiagnosticListener()
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4883,8 +5003,8 @@ extension type A(int it) {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
-      ..addAll(aResult.errors)
+    GatheringDiagnosticListener()
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,
@@ -4950,8 +5070,8 @@ mixin A {}
     await resolveFile(lib);
 
     var aResult = await resolveFile(a);
-    GatheringErrorListener()
-      ..addAll(aResult.errors)
+    GatheringDiagnosticListener()
+      ..addAll(aResult.diagnostics)
       ..assertErrors([
         error(
           CompileTimeErrorCode.DUPLICATE_DEFINITION,

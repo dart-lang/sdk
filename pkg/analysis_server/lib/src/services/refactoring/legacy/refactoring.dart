@@ -455,7 +455,7 @@ abstract class RenameRefactoring implements Refactoring {
     var session = resolvedUnit.session;
     var sessionHelper = AnalysisSessionHelper(session);
     if (element is PropertyAccessorElement) {
-      element = element.variable3;
+      element = element.variable;
       if (element == null) {
         return null;
       }
@@ -469,7 +469,7 @@ abstract class RenameRefactoring implements Refactoring {
     }
     var enclosingElement = element.enclosingElement;
     if (element is PrefixElement) {
-      enclosingElement = element.library2;
+      enclosingElement = element.library;
     }
     if (enclosingElement is LibraryElement) {
       return RenameUnitMemberRefactoringImpl(
@@ -492,14 +492,14 @@ abstract class RenameRefactoring implements Refactoring {
     if (element is LibraryElement) {
       return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
     }
-    if (enclosingElement?.thisOrAncestorOfType2<InterfaceElement>()
+    if (enclosingElement?.thisOrAncestorOfType<InterfaceElement>()
         case var enclosingElement?) {
-      if (element case FieldFormalParameterElement(:var field2?)) {
+      if (element case FieldFormalParameterElement(:var field?)) {
         return RenameClassMemberRefactoringImpl(
           workspace,
           sessionHelper,
           enclosingElement,
-          field2,
+          field,
         );
       }
     }
@@ -616,7 +616,7 @@ abstract class RenameRefactoring implements Refactoring {
     // Rename the class when on `new` in an instance creation.
     if (node is InstanceCreationExpression) {
       var namedType = node.constructorName.type;
-      element = namedType.element2;
+      element = namedType.element;
       offset = namedType.name.offset;
       length = namedType.name.length;
     }

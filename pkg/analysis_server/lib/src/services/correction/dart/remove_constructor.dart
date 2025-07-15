@@ -48,16 +48,13 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
   }
 
   ConstructorDeclaration? _findConstructor() {
-    var errorOffset = this.errorOffset;
-    if (errorOffset == null) {
-      return null;
-    }
-
-    var invalidNodes = (unit as CompilationUnitImpl).invalidNodes;
-    for (var constructor in invalidNodes) {
-      if (constructor is ConstructorDeclarationImpl) {
-        if (range.node(constructor).contains(errorOffset)) {
-          return constructor;
+    if (diagnosticOffset case var diagnosticOffset?) {
+      var invalidNodes = (unit as CompilationUnitImpl).invalidNodes;
+      for (var constructor in invalidNodes) {
+        if (constructor is ConstructorDeclarationImpl) {
+          if (range.node(constructor).contains(diagnosticOffset)) {
+            return constructor;
+          }
         }
       }
     }

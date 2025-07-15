@@ -115,7 +115,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
-    if (element.library2?.isInSdk == true) {
+    if (element.library?.isInSdk == true) {
       var message = format(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
         getElementKindName(element),
@@ -163,7 +163,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
 
   static String _getOldName(Element element) {
     if (element is ConstructorElement) {
-      var name = element.name3;
+      var name = element.name;
       if (name == null || name == 'new') {
         return '';
       }

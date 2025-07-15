@@ -14,7 +14,6 @@ import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:meta/meta.dart';
 
@@ -63,7 +62,7 @@ class LinkedElementFactory {
   @visibleForTesting
   List<Uri> get uriListWithLibraryElements {
     return rootReference.children
-        .map((reference) => reference.element2)
+        .map((reference) => reference.element)
         .whereType<LibraryElementImpl>()
         .map((e) => e.uri)
         .toList();
@@ -90,17 +89,7 @@ class LinkedElementFactory {
     var exportedNames = <String, Element>{};
 
     for (var exportedReference in exportedReferences) {
-      var fragment = elementOfReference(exportedReference.reference);
-      // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/41212
-      if (fragment == null) {
-        throw StateError(
-          '[No element]'
-          '[uri: $uri]'
-          '[exportedReferences: $exportedReferences]'
-          '[exportedReference: $exportedReference]',
-        );
-      }
-      var element = fragment.asElement2!;
+      var element = elementOfReference3(exportedReference.reference);
       exportedNames[element.lookupName!] = element;
     }
 
@@ -156,7 +145,7 @@ class LinkedElementFactory {
     // During linking we create libraries when typeProvider is not ready.
     // Update these libraries now, when typeProvider is ready.
     for (var reference in rootReference.children) {
-      var libraryElement = reference.element2 as LibraryElementImpl?;
+      var libraryElement = reference.element as LibraryElementImpl?;
       if (libraryElement != null && !libraryElement.hasTypeProviderSystemSet) {
         setLibraryTypeSystem(libraryElement);
       }
@@ -169,43 +158,8 @@ class LinkedElementFactory {
     }
   }
 
-  // TODO(scheglov): Why would this method return `null`?
-  FragmentImpl? elementOfReference(Reference reference) {
+  ElementImpl elementOfReference3(Reference reference) {
     if (reference.element case var element?) {
-      return element;
-    }
-    if (reference.parent == null) {
-      return null;
-    }
-
-    if (reference.isLibrary) {
-      var uri = uriCache.parse(reference.name);
-      createLibraryElementForReading(uri);
-      return null;
-    }
-
-    var parentRef = reference.parentNotContainer;
-    var parentElement = elementOfReference(parentRef);
-
-    // Only classes delay creating children.
-    if (parentElement is ClassFragmentImpl) {
-      parentElement.linkedData?.readMembers(parentElement);
-    }
-
-    var element = reference.element;
-    if (element == null) {
-      throw StateError('Expected existing element: $reference');
-    }
-    return element;
-  }
-
-  // TODO(scheglov): Why would this method return `null`?
-  Element? elementOfReference2(Reference reference) {
-    return elementOfReference(reference)?.asElement2;
-  }
-
-  Element elementOfReference3(Reference reference) {
-    if (reference.element2 case var element?) {
       return element;
     }
 
@@ -218,30 +172,23 @@ class LinkedElementFactory {
     var parentElement = elementOfReference3(parentRef);
 
     // Only classes delay creating children.
-    if (parentElement is ClassElementImpl2) {
+    if (parentElement is ClassElementImpl) {
       var firstFragment = parentElement.firstFragment;
-      firstFragment.linkedData?.readMembers(firstFragment);
+      // TODO(scheglov): directly ask to read all?
+      firstFragment.constructors;
+      parentElement.constructors;
     }
 
-    var element = reference.element2;
+    var element = reference.element;
     if (element == null) {
       throw StateError('Expected existing element: $reference');
     }
     return element;
   }
 
-  bool hasLibrary(Uri uri) {
-    // We already have the element, linked or read.
-    if (rootReference['$uri']?.element is LibraryElementImpl) {
-      return true;
-    }
-    // No element yet, but we know how to read it.
-    return _libraryReaders[uri] != null;
-  }
-
   LibraryElementImpl? libraryOfUri(Uri uri) {
     var reference = rootReference.getChild('$uri');
-    if (reference.element2 case LibraryElementImpl element) {
+    if (reference.element case LibraryElementImpl element) {
       return element;
     }
     return createLibraryElementForReading(uri);
@@ -302,7 +249,7 @@ class LinkedElementFactory {
   void replaceAnalysisSession(AnalysisSessionImpl newSession) {
     analysisSession = newSession;
     for (var libraryReference in rootReference.children) {
-      var libraryElement = libraryReference.element2;
+      var libraryElement = libraryReference.element;
       if (libraryElement is LibraryElementImpl) {
         libraryElement.session = newSession;
       }
@@ -322,5 +269,5 @@ class LinkedElementFactory {
     libraryElement.hasTypeProviderSystemSet = true;
   }
 
-  void _disposeLibrary(FragmentImpl? libraryElement) {}
+  void _disposeLibrary(ElementImpl? libraryElement) {}
 }

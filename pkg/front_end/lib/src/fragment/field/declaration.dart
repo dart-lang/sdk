@@ -32,6 +32,7 @@ import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/type_parameter_factory.dart';
 import '../../type_inference/inference_helper.dart';
 import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_inferrer.dart';
@@ -667,14 +668,14 @@ class RegularFieldDeclaration
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {}
+      TypeParameterFactory typeParameterFactory) {}
 
   @override
   void createSetterEncoding(
       ProblemReporting problemReporting,
       SourcePropertyBuilder builder,
       PropertyEncodingStrategy encodingStrategy,
-      List<NominalParameterBuilder> unboundNominalParameters) {}
+      TypeParameterFactory typeParameterFactory) {}
 
   @override
   void ensureGetterTypes(
@@ -693,13 +694,13 @@ class RegularFieldDeclaration
   @override
   Iterable<Reference> getExportedGetterReferences(
       PropertyReferences references) {
-    return [references.getterReference!];
+    return [references.getterReference];
   }
 
   @override
   Iterable<Reference> getExportedSetterReferences(
       PropertyReferences references) {
-    return hasSetter ? [references.setterReference!] : const [];
+    return hasSetter ? [references.setterReference] : const [];
   }
 }
 

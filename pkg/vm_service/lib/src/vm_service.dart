@@ -40,7 +40,7 @@ String decodeBase64(String str) => utf8.decode(base64.decode(str));
 bool _isNullInstance(Map json) =>
     ((json['type'] == '@Instance') && (json['kind'] == 'Null'));
 
-Object? createServiceObject(dynamic json, List<String> expectedTypes) {
+Object? createServiceObject(Object? json, List<String> expectedTypes) {
   if (json == null) return null;
 
   if (json is List) {
@@ -75,7 +75,7 @@ Object? createServiceObject(dynamic json, List<String> expectedTypes) {
 }
 
 dynamic _createSpecificObject(
-    dynamic json, dynamic Function(Map<String, dynamic> map) creator) {
+    Object? json, dynamic Function(Map<String, dynamic> map) creator) {
   if (json == null) return null;
 
   if (json is List) {
@@ -88,6 +88,16 @@ dynamic _createSpecificObject(
     // Handle simple types.
     return json;
   }
+}
+
+/// Returns a list of `T` using [createServiceObject] if [json] is non-`null`,
+/// and `null` otherwise.
+List<T>? _createServiceObjectListOrNull<T>(
+    Object? json, List<String> expectedTypes) {
+  if (json == null) return null;
+  final serviceObject = createServiceObject(json, expectedTypes) as List?;
+  if (serviceObject == null) return [];
+  return List<T>.from(serviceObject);
 }
 
 Future<T> extensionCallHelper<T>(
@@ -1971,8 +1981,8 @@ class VmService {
     _services[service] = cb;
   }
 
-  void _processMessage(dynamic message) {
-    // Expect a String, an int[], or a ByteData.
+  void _processMessage(Object? message) {
+    // Expect a String, a List<int>, or a ByteData.
     if (message is String) {
       _processMessageStr(message);
     } else if (message is Uint8List) {
@@ -1995,7 +2005,7 @@ class VmService {
     final dataLength = bytes.lengthInBytes - dataOffset;
     final decoder = (const Utf8Decoder()).fuse(const JsonDecoder());
     final map = decoder.convert(Uint8List.view(
-        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as dynamic;
+        bytes.buffer, bytes.offsetInBytes + metaOffset, metaLength)) as Map;
     final data = ByteData.view(
         bytes.buffer, bytes.offsetInBytes + dataOffset, dataLength);
     if (map['method'] == 'streamNotify') {
@@ -2033,8 +2043,8 @@ class VmService {
     final request = _outstandingRequests.remove(json['id']);
     if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
-    } else if (json['error'] != null) {
-      request.completeError(RPCError.parse(request.method, json['error']));
+    } else if (json['error'] case Map error) {
+      request.completeError(RPCError.parse(request.method, error));
     } else {
       final result = json['result'] as Map<String, dynamic>;
       final type = result['type'];
@@ -2049,7 +2059,7 @@ class VmService {
     }
   }
 
-  Future _processRequest(Map<String, dynamic> json) async {
+  Future<void> _processRequest(Map<String, dynamic> json) async {
     final result = await _routeRequest(
         json['method'], json['params'] ?? <String, dynamic>{});
     if (_disposed) {
@@ -2058,12 +2068,12 @@ class VmService {
     }
     result['id'] = json['id'];
     result['jsonrpc'] = '2.0';
-    String message = jsonEncode(result);
+    final message = jsonEncode(result);
     _onSend.add(message);
     _writeMessage(message);
   }
 
-  Future _processNotification(Map<String, dynamic> json) async {
+  Future<void> _processNotification(Map<String, dynamic> json) async {
     final method = json['method'];
     final params = json['params'] ?? <String, dynamic>{};
     if (method == 'streamNotify') {
@@ -2086,7 +2096,7 @@ class VmService {
     try {
       return await service(params);
     } catch (e, st) {
-      RPCError error = RPCError.withDetails(
+      final error = RPCError.withDetails(
         method,
         RPCErrorKind.kServerError.code,
         '$e',
@@ -2097,7 +2107,7 @@ class VmService {
   }
 }
 
-typedef DisposeHandler = Future Function();
+typedef DisposeHandler = Future<void> Function();
 
 // These error codes must be kept in sync with those in vm/json_stream.h and
 // vmservice.dart.
@@ -2204,7 +2214,7 @@ enum RPCErrorKind {
 }
 
 class RPCError implements Exception {
-  static RPCError parse(String callingMethod, dynamic json) {
+  static RPCError parse(String callingMethod, Map json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
   }
 
@@ -2411,6 +2421,9 @@ abstract class EventKind {
 
   /// Event from dart:developer.log.
   static const String kLogging = 'Logging';
+
+  /// A timer fired significantly later than expected.
+  static const String kTimerSignificantlyOverdue = 'TimerSignificantlyOverdue';
 
   /// A block of timeline events has been completed.
   ///
@@ -2657,22 +2670,19 @@ class AllocationProfile extends Response {
     this.dateLastServiceGC,
   });
 
-  AllocationProfile._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    members = List<ClassHeapStats>.from(
-        createServiceObject(json['members'], const ['ClassHeapStats'])
-                as List? ??
-            []);
-    memoryUsage =
-        createServiceObject(json['memoryUsage'], const ['MemoryUsage'])
-            as MemoryUsage?;
-    dateLastAccumulatorReset = json['dateLastAccumulatorReset'] is String
-        ? int.parse(json['dateLastAccumulatorReset'])
-        : json['dateLastAccumulatorReset'];
-    dateLastServiceGC = json['dateLastServiceGC'] is String
-        ? int.parse(json['dateLastServiceGC'])
-        : json['dateLastServiceGC'];
-  }
+  AllocationProfile._fromJson(super.json)
+      : members = _createServiceObjectListOrNull<ClassHeapStats>(
+            json['members'], const ['ClassHeapStats']),
+        memoryUsage =
+            createServiceObject(json['memoryUsage'], const ['MemoryUsage'])
+                as MemoryUsage?,
+        dateLastAccumulatorReset = json['dateLastAccumulatorReset'] is String
+            ? int.parse(json['dateLastAccumulatorReset'])
+            : json['dateLastAccumulatorReset'],
+        dateLastServiceGC = json['dateLastServiceGC'] is String
+            ? int.parse(json['dateLastServiceGC'])
+            : json['dateLastServiceGC'],
+        super._fromJson();
 
   @override
   String get type => 'AllocationProfile';
@@ -2721,14 +2731,12 @@ class BoundField {
     this.value,
   });
 
-  BoundField._fromJson(Map<String, dynamic> json) {
-    decl = createServiceObject(json['decl'], const ['FieldRef']) as FieldRef?;
-    name =
-        createServiceObject(json['name'], const ['String', 'int']) as dynamic;
-    value =
-        createServiceObject(json['value'], const ['InstanceRef', 'Sentinel'])
-            as dynamic;
-  }
+  BoundField._fromJson(Map<String, dynamic> json)
+      : decl =
+            createServiceObject(json['decl'], const ['FieldRef']) as FieldRef?,
+        name = createServiceObject(json['name'], const ['String', 'int']),
+        value = createServiceObject(
+            json['value'], const ['InstanceRef', 'Sentinel']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'decl': decl?.toJson(),
@@ -2774,14 +2782,14 @@ class BoundVariable extends Response {
     this.scopeEndTokenPos,
   });
 
-  BoundVariable._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    value = createServiceObject(json['value'],
-        const ['InstanceRef', 'TypeArgumentsRef', 'Sentinel']) as dynamic;
-    declarationTokenPos = json['declarationTokenPos'] ?? -1;
-    scopeStartTokenPos = json['scopeStartTokenPos'] ?? -1;
-    scopeEndTokenPos = json['scopeEndTokenPos'] ?? -1;
-  }
+  BoundVariable._fromJson(super.json)
+      : name = json['name'] ?? '',
+        value = createServiceObject(json['value'],
+            const ['InstanceRef', 'TypeArgumentsRef', 'Sentinel']),
+        declarationTokenPos = json['declarationTokenPos'] ?? -1,
+        scopeStartTokenPos = json['scopeStartTokenPos'] ?? -1,
+        scopeEndTokenPos = json['scopeEndTokenPos'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => 'BoundVariable';
@@ -2842,14 +2850,14 @@ class Breakpoint extends Obj {
           id: id,
         );
 
-  Breakpoint._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    breakpointNumber = json['breakpointNumber'] ?? -1;
-    enabled = json['enabled'] ?? false;
-    resolved = json['resolved'] ?? false;
-    isSyntheticAsyncContinuation = json['isSyntheticAsyncContinuation'];
-    location = createServiceObject(json['location'],
-        const ['SourceLocation', 'UnresolvedSourceLocation']) as dynamic;
-  }
+  Breakpoint._fromJson(super.json)
+      : breakpointNumber = json['breakpointNumber'] ?? -1,
+        enabled = json['enabled'] ?? false,
+        resolved = json['resolved'] ?? false,
+        isSyntheticAsyncContinuation = json['isSyntheticAsyncContinuation'],
+        location = createServiceObject(json['location'],
+            const ['SourceLocation', 'UnresolvedSourceLocation']),
+        super._fromJson();
 
   @override
   String get type => 'Breakpoint';
@@ -2910,18 +2918,16 @@ class ClassRef extends ObjRef {
           id: id,
         );
 
-  ClassRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-    library = createServiceObject(json['library'], const ['LibraryRef'])
-        as LibraryRef?;
-    typeParameters = json['typeParameters'] == null
-        ? null
-        : List<InstanceRef>.from(
-            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
-                as List);
-  }
+  ClassRef._fromJson(super.json)
+      : name = json['name'] ?? '',
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        library = createServiceObject(json['library'], const ['LibraryRef'])
+            as LibraryRef?,
+        typeParameters = _createServiceObjectListOrNull<InstanceRef>(
+            json['typeParameters'], const ['InstanceRef']),
+        super._fromJson();
 
   @override
   String get type => '@Class';
@@ -3059,45 +3065,41 @@ class Class extends Obj implements ClassRef {
           id: id,
         );
 
-  Class._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-    library = createServiceObject(json['library'], const ['LibraryRef'])
-        as LibraryRef?;
-    typeParameters = json['typeParameters'] == null
-        ? null
-        : List<InstanceRef>.from(
-            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
-                as List);
-    error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
-    isAbstract = json['abstract'] ?? false;
-    isConst = json['const'] ?? false;
-    isSealed = json['isSealed'] ?? false;
-    isMixinClass = json['isMixinClass'] ?? false;
-    isBaseClass = json['isBaseClass'] ?? false;
-    isInterfaceClass = json['isInterfaceClass'] ?? false;
-    isFinal = json['isFinal'] ?? false;
-    traceAllocations = json['traceAllocations'] ?? false;
-    superClass =
-        createServiceObject(json['super'], const ['ClassRef']) as ClassRef?;
-    superType = createServiceObject(json['superType'], const ['InstanceRef'])
-        as InstanceRef?;
-    interfaces = List<InstanceRef>.from(
-        createServiceObject(json['interfaces'], const ['InstanceRef'])
-                as List? ??
-            []);
-    mixin = createServiceObject(json['mixin'], const ['InstanceRef'])
-        as InstanceRef?;
-    fields = List<FieldRef>.from(
-        createServiceObject(json['fields'], const ['FieldRef']) as List? ?? []);
-    functions = List<FuncRef>.from(
-        createServiceObject(json['functions'], const ['FuncRef']) as List? ??
-            []);
-    subclasses = List<ClassRef>.from(
-        createServiceObject(json['subclasses'], const ['ClassRef']) as List? ??
-            []);
-  }
+  Class._fromJson(super.json)
+      : name = json['name'] ?? '',
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        library = createServiceObject(json['library'], const ['LibraryRef'])
+            as LibraryRef?,
+        typeParameters = _createServiceObjectListOrNull<InstanceRef>(
+            json['typeParameters'], const ['InstanceRef']),
+        error =
+            createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?,
+        isAbstract = json['abstract'] ?? false,
+        isConst = json['const'] ?? false,
+        isSealed = json['isSealed'] ?? false,
+        isMixinClass = json['isMixinClass'] ?? false,
+        isBaseClass = json['isBaseClass'] ?? false,
+        isInterfaceClass = json['isInterfaceClass'] ?? false,
+        isFinal = json['isFinal'] ?? false,
+        traceAllocations = json['traceAllocations'] ?? false,
+        superClass =
+            createServiceObject(json['super'], const ['ClassRef']) as ClassRef?,
+        superType =
+            createServiceObject(json['superType'], const ['InstanceRef'])
+                as InstanceRef?,
+        interfaces = _createServiceObjectListOrNull<InstanceRef>(
+            json['interfaces'], const ['InstanceRef']),
+        mixin = createServiceObject(json['mixin'], const ['InstanceRef'])
+            as InstanceRef?,
+        fields = _createServiceObjectListOrNull<FieldRef>(
+            json['fields'], const ['FieldRef']),
+        functions = _createServiceObjectListOrNull<FuncRef>(
+            json['functions'], const ['FuncRef']),
+        subclasses = _createServiceObjectListOrNull<ClassRef>(
+            json['subclasses'], const ['ClassRef']),
+        super._fromJson();
 
   @override
   String get type => 'Class';
@@ -3171,14 +3173,14 @@ class ClassHeapStats extends Response {
     this.instancesCurrent,
   });
 
-  ClassHeapStats._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    classRef =
-        createServiceObject(json['class'], const ['ClassRef']) as ClassRef?;
-    accumulatedSize = json['accumulatedSize'] ?? -1;
-    bytesCurrent = json['bytesCurrent'] ?? -1;
-    instancesAccumulated = json['instancesAccumulated'] ?? -1;
-    instancesCurrent = json['instancesCurrent'] ?? -1;
-  }
+  ClassHeapStats._fromJson(super.json)
+      : classRef =
+            createServiceObject(json['class'], const ['ClassRef']) as ClassRef?,
+        accumulatedSize = json['accumulatedSize'] ?? -1,
+        bytesCurrent = json['bytesCurrent'] ?? -1,
+        instancesAccumulated = json['instancesAccumulated'] ?? -1,
+        instancesCurrent = json['instancesCurrent'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => 'ClassHeapStats';
@@ -3209,11 +3211,10 @@ class ClassList extends Response {
     this.classes,
   });
 
-  ClassList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    classes = List<ClassRef>.from(
-        createServiceObject(json['classes'], const ['ClassRef']) as List? ??
-            []);
-  }
+  ClassList._fromJson(super.json)
+      : classes = _createServiceObjectListOrNull<ClassRef>(
+            json['classes'], const ['ClassRef']),
+        super._fromJson();
 
   @override
   String get type => 'ClassList';
@@ -3254,12 +3255,12 @@ class CodeRef extends ObjRef {
           id: id,
         );
 
-  CodeRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    kind = json['kind'] ?? '';
-    function = createServiceObject(
-        json['function'], const ['FuncRef', 'NativeFunction']) as dynamic;
-  }
+  CodeRef._fromJson(super.json)
+      : name = json['name'] ?? '',
+        kind = json['kind'] ?? '',
+        function = createServiceObject(
+            json['function'], const ['FuncRef', 'NativeFunction']),
+        super._fromJson();
 
   @override
   String get type => '@Code';
@@ -3313,12 +3314,12 @@ class Code extends Obj implements CodeRef {
           id: id,
         );
 
-  Code._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    kind = json['kind'] ?? '';
-    function = createServiceObject(
-        json['function'], const ['FuncRef', 'NativeFunction']) as dynamic;
-  }
+  Code._fromJson(super.json)
+      : name = json['name'] ?? '',
+        kind = json['kind'] ?? '',
+        function = createServiceObject(
+            json['function'], const ['FuncRef', 'NativeFunction']),
+        super._fromJson();
 
   @override
   String get type => 'Code';
@@ -3357,9 +3358,9 @@ class ContextRef extends ObjRef {
           id: id,
         );
 
-  ContextRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    length = json['length'] ?? -1;
-  }
+  ContextRef._fromJson(super.json)
+      : length = json['length'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => '@Context';
@@ -3407,15 +3408,13 @@ class Context extends Obj implements ContextRef {
           id: id,
         );
 
-  Context._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    length = json['length'] ?? -1;
-    parent = createServiceObject(json['parent'], const ['ContextRef'])
-        as ContextRef?;
-    variables = List<ContextElement>.from(
-        createServiceObject(json['variables'], const ['ContextElement'])
-                as List? ??
-            []);
-  }
+  Context._fromJson(super.json)
+      : length = json['length'] ?? -1,
+        parent = createServiceObject(json['parent'], const ['ContextRef'])
+            as ContextRef?,
+        variables = _createServiceObjectListOrNull<ContextElement>(
+            json['variables'], const ['ContextElement']),
+        super._fromJson();
 
   @override
   String get type => 'Context';
@@ -3451,11 +3450,9 @@ class ContextElement {
     this.value,
   });
 
-  ContextElement._fromJson(Map<String, dynamic> json) {
-    value =
-        createServiceObject(json['value'], const ['InstanceRef', 'Sentinel'])
-            as dynamic;
-  }
+  ContextElement._fromJson(Map<String, dynamic> json)
+      : value = createServiceObject(
+            json['value'], const ['InstanceRef', 'Sentinel']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'value': value?.toJson(),
@@ -3509,21 +3506,18 @@ class CpuSamples extends Response {
     this.samples,
   });
 
-  CpuSamples._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    samplePeriod = json['samplePeriod'] ?? -1;
-    maxStackDepth = json['maxStackDepth'] ?? -1;
-    sampleCount = json['sampleCount'] ?? -1;
-    timeOriginMicros = json['timeOriginMicros'] ?? -1;
-    timeExtentMicros = json['timeExtentMicros'] ?? -1;
-    pid = json['pid'] ?? -1;
-    functions = List<ProfileFunction>.from(
-        createServiceObject(json['functions'], const ['ProfileFunction'])
-                as List? ??
-            []);
-    samples = List<CpuSample>.from(
-        createServiceObject(json['samples'], const ['CpuSample']) as List? ??
-            []);
-  }
+  CpuSamples._fromJson(super.json)
+      : samplePeriod = json['samplePeriod'] ?? -1,
+        maxStackDepth = json['maxStackDepth'] ?? -1,
+        sampleCount = json['sampleCount'] ?? -1,
+        timeOriginMicros = json['timeOriginMicros'] ?? -1,
+        timeExtentMicros = json['timeExtentMicros'] ?? -1,
+        pid = json['pid'] ?? -1,
+        functions = _createServiceObjectListOrNull<ProfileFunction>(
+            json['functions'], const ['ProfileFunction']),
+        samples = _createServiceObjectListOrNull<CpuSample>(
+            json['samples'], const ['CpuSample']),
+        super._fromJson();
 
   @override
   String get type => 'CpuSamples';
@@ -3590,20 +3584,17 @@ class CpuSamplesEvent {
     this.samples,
   });
 
-  CpuSamplesEvent._fromJson(Map<String, dynamic> json) {
-    samplePeriod = json['samplePeriod'] ?? -1;
-    maxStackDepth = json['maxStackDepth'] ?? -1;
-    sampleCount = json['sampleCount'] ?? -1;
-    timeOriginMicros = json['timeOriginMicros'] ?? -1;
-    timeExtentMicros = json['timeExtentMicros'] ?? -1;
-    pid = json['pid'] ?? -1;
-    functions = List<dynamic>.from(
-        createServiceObject(json['functions'], const ['dynamic']) as List? ??
-            []);
-    samples = List<CpuSample>.from(
-        createServiceObject(json['samples'], const ['CpuSample']) as List? ??
-            []);
-  }
+  CpuSamplesEvent._fromJson(Map<String, dynamic> json)
+      : samplePeriod = json['samplePeriod'] ?? -1,
+        maxStackDepth = json['maxStackDepth'] ?? -1,
+        sampleCount = json['sampleCount'] ?? -1,
+        timeOriginMicros = json['timeOriginMicros'] ?? -1,
+        timeExtentMicros = json['timeExtentMicros'] ?? -1,
+        pid = json['pid'] ?? -1,
+        functions = _createServiceObjectListOrNull<dynamic>(
+            json['functions'], const ['dynamic']),
+        samples = _createServiceObjectListOrNull<CpuSample>(
+            json['samples'], const ['CpuSample']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'samplePeriod': samplePeriod ?? -1,
@@ -3681,16 +3672,15 @@ class CpuSample {
     this.classId,
   });
 
-  CpuSample._fromJson(Map<String, dynamic> json) {
-    tid = json['tid'] ?? -1;
-    timestamp = json['timestamp'] ?? -1;
-    vmTag = json['vmTag'];
-    userTag = json['userTag'];
-    truncated = json['truncated'];
-    stack = List<int>.from(json['stack']);
-    identityHashCode = json['identityHashCode'];
-    classId = json['classId'];
-  }
+  CpuSample._fromJson(Map<String, dynamic> json)
+      : tid = json['tid'] ?? -1,
+        timestamp = json['timestamp'] ?? -1,
+        vmTag = json['vmTag'],
+        userTag = json['userTag'],
+        truncated = json['truncated'],
+        stack = List<int>.from(json['stack']),
+        identityHashCode = json['identityHashCode'],
+        classId = json['classId'];
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'tid': tid ?? -1,
@@ -3728,10 +3718,10 @@ class ErrorRef extends ObjRef {
           id: id,
         );
 
-  ErrorRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    kind = json['kind'] ?? '';
-    message = json['message'] ?? '';
-  }
+  ErrorRef._fromJson(super.json)
+      : kind = json['kind'] ?? '',
+        message = json['message'] ?? '',
+        super._fromJson();
 
   @override
   String get type => '@Error';
@@ -3788,14 +3778,16 @@ class Error extends Obj implements ErrorRef {
           id: id,
         );
 
-  Error._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    kind = json['kind'] ?? '';
-    message = json['message'] ?? '';
-    exception = createServiceObject(json['exception'], const ['InstanceRef'])
-        as InstanceRef?;
-    stacktrace = createServiceObject(json['stacktrace'], const ['InstanceRef'])
-        as InstanceRef?;
-  }
+  Error._fromJson(super.json)
+      : kind = json['kind'] ?? '',
+        message = json['message'] ?? '',
+        exception =
+            createServiceObject(json['exception'], const ['InstanceRef'])
+                as InstanceRef?,
+        stacktrace =
+            createServiceObject(json['stacktrace'], const ['InstanceRef'])
+                as InstanceRef?,
+        super._fromJson();
 
   @override
   String get type => 'Error';
@@ -4093,58 +4085,57 @@ class Event extends Response {
     this.data,
   });
 
-  Event._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    kind = json['kind'] ?? '';
-    isolateGroup =
-        createServiceObject(json['isolateGroup'], const ['IsolateGroupRef'])
-            as IsolateGroupRef?;
-    isolate = createServiceObject(json['isolate'], const ['IsolateRef'])
-        as IsolateRef?;
-    vm = createServiceObject(json['vm'], const ['VMRef']) as VMRef?;
-    timestamp = json['timestamp'] ?? -1;
-    breakpoint = createServiceObject(json['breakpoint'], const ['Breakpoint'])
-        as Breakpoint?;
-    pauseBreakpoints = json['pauseBreakpoints'] == null
-        ? null
-        : List<Breakpoint>.from(
-            createServiceObject(json['pauseBreakpoints'], const ['Breakpoint'])!
-                as List);
-    topFrame = createServiceObject(json['topFrame'], const ['Frame']) as Frame?;
-    exception = createServiceObject(json['exception'], const ['InstanceRef'])
-        as InstanceRef?;
-    bytes = json['bytes'];
-    inspectee = createServiceObject(json['inspectee'], const ['InstanceRef'])
-        as InstanceRef?;
-    gcType = json['gcType'];
-    extensionRPC = json['extensionRPC'];
-    extensionKind = json['extensionKind'];
-    extensionData = ExtensionData.parse(json['extensionData']);
-    timelineEvents = json['timelineEvents'] == null
-        ? null
-        : List<TimelineEvent>.from(createServiceObject(
-            json['timelineEvents'], const ['TimelineEvent'])! as List);
-    updatedStreams = json['updatedStreams'] == null
-        ? null
-        : List<String>.from(json['updatedStreams']);
-    atAsyncSuspension = json['atAsyncSuspension'];
-    status = json['status'];
-    reloadFailureReason = json['reloadFailureReason'];
-    logRecord = createServiceObject(json['logRecord'], const ['LogRecord'])
-        as LogRecord?;
-    details = json['details'];
-    service = json['service'];
-    method = json['method'];
-    alias = json['alias'];
-    flag = json['flag'];
-    newValue = json['newValue'];
-    last = json['last'];
-    updatedTag = json['updatedTag'];
-    previousTag = json['previousTag'];
-    cpuSamples =
-        createServiceObject(json['cpuSamples'], const ['CpuSamplesEvent'])
-            as CpuSamplesEvent?;
-    data = json['data'];
-  }
+  Event._fromJson(super.json)
+      : kind = json['kind'] ?? '',
+        isolateGroup =
+            createServiceObject(json['isolateGroup'], const ['IsolateGroupRef'])
+                as IsolateGroupRef?,
+        isolate = createServiceObject(json['isolate'], const ['IsolateRef'])
+            as IsolateRef?,
+        vm = createServiceObject(json['vm'], const ['VMRef']) as VMRef?,
+        timestamp = json['timestamp'] ?? -1,
+        breakpoint =
+            createServiceObject(json['breakpoint'], const ['Breakpoint'])
+                as Breakpoint?,
+        pauseBreakpoints = _createServiceObjectListOrNull<Breakpoint>(
+            json['pauseBreakpoints'], const ['Breakpoint']),
+        topFrame =
+            createServiceObject(json['topFrame'], const ['Frame']) as Frame?,
+        exception =
+            createServiceObject(json['exception'], const ['InstanceRef'])
+                as InstanceRef?,
+        bytes = json['bytes'],
+        inspectee =
+            createServiceObject(json['inspectee'], const ['InstanceRef'])
+                as InstanceRef?,
+        gcType = json['gcType'],
+        extensionRPC = json['extensionRPC'],
+        extensionKind = json['extensionKind'],
+        extensionData = ExtensionData.parse(json['extensionData']),
+        timelineEvents = _createServiceObjectListOrNull<TimelineEvent>(
+            json['timelineEvents'], const ['TimelineEvent']),
+        updatedStreams = json['updatedStreams'] == null
+            ? null
+            : List<String>.from(json['updatedStreams']),
+        atAsyncSuspension = json['atAsyncSuspension'],
+        status = json['status'],
+        reloadFailureReason = json['reloadFailureReason'],
+        logRecord = createServiceObject(json['logRecord'], const ['LogRecord'])
+            as LogRecord?,
+        details = json['details'],
+        service = json['service'],
+        method = json['method'],
+        alias = json['alias'],
+        flag = json['flag'],
+        newValue = json['newValue'],
+        last = json['last'],
+        updatedTag = json['updatedTag'],
+        previousTag = json['previousTag'],
+        cpuSamples =
+            createServiceObject(json['cpuSamples'], const ['CpuSamplesEvent'])
+                as CpuSamplesEvent?,
+        data = json['data'],
+        super._fromJson();
 
   @override
   String get type => 'Event';
@@ -4259,18 +4250,19 @@ class FieldRef extends ObjRef {
           id: id,
         );
 
-  FieldRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    owner = createServiceObject(json['owner'], const ['ObjRef']) as ObjRef?;
-    declaredType =
-        createServiceObject(json['declaredType'], const ['InstanceRef'])
-            as InstanceRef?;
-    isConst = json['const'] ?? false;
-    isFinal = json['final'] ?? false;
-    isStatic = json['static'] ?? false;
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-  }
+  FieldRef._fromJson(super.json)
+      : name = json['name'] ?? '',
+        owner = createServiceObject(json['owner'], const ['ObjRef']) as ObjRef?,
+        declaredType =
+            createServiceObject(json['declaredType'], const ['InstanceRef'])
+                as InstanceRef?,
+        isConst = json['const'] ?? false,
+        isFinal = json['final'] ?? false,
+        isStatic = json['static'] ?? false,
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        super._fromJson();
 
   @override
   String get type => '@Field';
@@ -4365,20 +4357,21 @@ class Field extends Obj implements FieldRef {
           id: id,
         );
 
-  Field._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    owner = createServiceObject(json['owner'], const ['ObjRef']) as ObjRef?;
-    declaredType =
-        createServiceObject(json['declaredType'], const ['InstanceRef'])
-            as InstanceRef?;
-    isConst = json['const'] ?? false;
-    isFinal = json['final'] ?? false;
-    isStatic = json['static'] ?? false;
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-    staticValue = createServiceObject(
-        json['staticValue'], const ['InstanceRef', 'Sentinel']) as dynamic;
-  }
+  Field._fromJson(super.json)
+      : name = json['name'] ?? '',
+        owner = createServiceObject(json['owner'], const ['ObjRef']) as ObjRef?,
+        declaredType =
+            createServiceObject(json['declaredType'], const ['InstanceRef'])
+                as InstanceRef?,
+        isConst = json['const'] ?? false,
+        isFinal = json['final'] ?? false,
+        isStatic = json['static'] ?? false,
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        staticValue = createServiceObject(
+            json['staticValue'], const ['InstanceRef', 'Sentinel']),
+        super._fromJson();
 
   @override
   String get type => 'Field';
@@ -4438,12 +4431,11 @@ class Flag {
     this.valueAsString,
   });
 
-  Flag._fromJson(Map<String, dynamic> json) {
-    name = json['name'] ?? '';
-    comment = json['comment'] ?? '';
-    modified = json['modified'] ?? false;
-    valueAsString = json['valueAsString'];
-  }
+  Flag._fromJson(Map<String, dynamic> json)
+      : name = json['name'] ?? '',
+        comment = json['comment'] ?? '',
+        modified = json['modified'] ?? false,
+        valueAsString = json['valueAsString'];
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'name': name ?? '',
@@ -4470,10 +4462,10 @@ class FlagList extends Response {
     this.flags,
   });
 
-  FlagList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    flags = List<Flag>.from(
-        createServiceObject(json['flags'], const ['Flag']) as List? ?? []);
-  }
+  FlagList._fromJson(super.json)
+      : flags =
+            _createServiceObjectListOrNull<Flag>(json['flags'], const ['Flag']),
+        super._fromJson();
 
   @override
   String get type => 'FlagList';
@@ -4518,20 +4510,18 @@ class Frame extends Response {
     this.kind,
   });
 
-  Frame._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    index = json['index'] ?? -1;
-    function =
-        createServiceObject(json['function'], const ['FuncRef']) as FuncRef?;
-    code = createServiceObject(json['code'], const ['CodeRef']) as CodeRef?;
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-    vars = json['vars'] == null
-        ? null
-        : List<BoundVariable>.from(
-            createServiceObject(json['vars'], const ['BoundVariable'])!
-                as List);
-    kind = json['kind'];
-  }
+  Frame._fromJson(super.json)
+      : index = json['index'] ?? -1,
+        function = createServiceObject(json['function'], const ['FuncRef'])
+            as FuncRef?,
+        code = createServiceObject(json['code'], const ['CodeRef']) as CodeRef?,
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        vars = _createServiceObjectListOrNull<BoundVariable>(
+            json['vars'], const ['BoundVariable']),
+        kind = json['kind'],
+        super._fromJson();
 
   @override
   String get type => 'Frame';
@@ -4612,19 +4602,20 @@ class FuncRef extends ObjRef {
           id: id,
         );
 
-  FuncRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    owner = createServiceObject(
-        json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']) as dynamic;
-    isStatic = json['static'] ?? false;
-    isConst = json['const'] ?? false;
-    implicit = json['implicit'] ?? false;
-    isAbstract = json['abstract'] ?? false;
-    isGetter = json['isGetter'] ?? false;
-    isSetter = json['isSetter'] ?? false;
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-  }
+  FuncRef._fromJson(super.json)
+      : name = json['name'] ?? '',
+        owner = createServiceObject(
+            json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']),
+        isStatic = json['static'] ?? false,
+        isConst = json['const'] ?? false,
+        implicit = json['implicit'] ?? false,
+        isAbstract = json['abstract'] ?? false,
+        isGetter = json['isGetter'] ?? false,
+        isSetter = json['isSetter'] ?? false,
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        super._fromJson();
 
   @override
   String get type => '@Function';
@@ -4731,22 +4722,24 @@ class Func extends Obj implements FuncRef {
           id: id,
         );
 
-  Func._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    owner = createServiceObject(
-        json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']) as dynamic;
-    isStatic = json['static'] ?? false;
-    isConst = json['const'] ?? false;
-    implicit = json['implicit'] ?? false;
-    isAbstract = json['abstract'] ?? false;
-    isGetter = json['isGetter'] ?? false;
-    isSetter = json['isSetter'] ?? false;
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-    signature = createServiceObject(json['signature'], const ['InstanceRef'])
-        as InstanceRef?;
-    code = createServiceObject(json['code'], const ['CodeRef']) as CodeRef?;
-  }
+  Func._fromJson(super.json)
+      : name = json['name'] ?? '',
+        owner = createServiceObject(
+            json['owner'], const ['LibraryRef', 'ClassRef', 'FuncRef']),
+        isStatic = json['static'] ?? false,
+        isConst = json['const'] ?? false,
+        implicit = json['implicit'] ?? false,
+        isAbstract = json['abstract'] ?? false,
+        isGetter = json['isGetter'] ?? false,
+        isSetter = json['isSetter'] ?? false,
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        signature =
+            createServiceObject(json['signature'], const ['InstanceRef'])
+                as InstanceRef?,
+        code = createServiceObject(json['code'], const ['CodeRef']) as CodeRef?,
+        super._fromJson();
 
   @override
   String get type => 'Function';
@@ -4796,11 +4789,11 @@ class IdZone extends Response {
     this.idAssignmentPolicy,
   });
 
-  IdZone._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? '';
-    backingBufferKind = json['backingBufferKind'] ?? '';
-    idAssignmentPolicy = json['idAssignmentPolicy'] ?? '';
-  }
+  IdZone._fromJson(super.json)
+      : id = json['id'] ?? '',
+        backingBufferKind = json['backingBufferKind'] ?? '',
+        idAssignmentPolicy = json['idAssignmentPolicy'] ?? '',
+        super._fromJson();
 
   @override
   String get type => 'IdZone';
@@ -5017,50 +5010,44 @@ class InstanceRef extends ObjRef {
           id: id,
         );
 
-  InstanceRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    kind = json['kind'] ?? '';
-    identityHashCode = json['identityHashCode'] ?? -1;
-    classRef =
-        createServiceObject(json['class'], const ['ClassRef']) as ClassRef?;
-    valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
-    length = json['length'];
-    name = json['name'];
-    typeClass =
-        createServiceObject(json['typeClass'], const ['ClassRef']) as ClassRef?;
-    parameterizedClass =
-        createServiceObject(json['parameterizedClass'], const ['ClassRef'])
-            as ClassRef?;
-    returnType = createServiceObject(json['returnType'], const ['InstanceRef'])
-        as InstanceRef?;
-    parameters = json['parameters'] == null
-        ? null
-        : List<Parameter>.from(
-            createServiceObject(json['parameters'], const ['Parameter'])!
-                as List);
-    typeParameters = json['typeParameters'] == null
-        ? null
-        : List<InstanceRef>.from(
-            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
-                as List);
-    pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
-        as InstanceRef?;
-    closureFunction =
-        createServiceObject(json['closureFunction'], const ['FuncRef'])
-            as FuncRef?;
-    closureContext =
-        createServiceObject(json['closureContext'], const ['ContextRef'])
-            as ContextRef?;
-    closureReceiver =
-        createServiceObject(json['closureReceiver'], const ['InstanceRef'])
-            as InstanceRef?;
-    portId = json['portId'];
-    allocationLocation =
-        createServiceObject(json['allocationLocation'], const ['InstanceRef'])
-            as InstanceRef?;
-    debugName = json['debugName'];
-    label = json['label'];
-  }
+  InstanceRef._fromJson(super.json)
+      : kind = json['kind'] ?? '',
+        identityHashCode = json['identityHashCode'] ?? -1,
+        classRef =
+            createServiceObject(json['class'], const ['ClassRef']) as ClassRef?,
+        valueAsString = json['valueAsString'],
+        valueAsStringIsTruncated = json['valueAsStringIsTruncated'],
+        length = json['length'],
+        name = json['name'],
+        typeClass = createServiceObject(json['typeClass'], const ['ClassRef'])
+            as ClassRef?,
+        parameterizedClass =
+            createServiceObject(json['parameterizedClass'], const ['ClassRef'])
+                as ClassRef?,
+        returnType =
+            createServiceObject(json['returnType'], const ['InstanceRef'])
+                as InstanceRef?,
+        parameters = _createServiceObjectListOrNull<Parameter>(
+            json['parameters'], const ['Parameter']),
+        typeParameters = _createServiceObjectListOrNull<InstanceRef>(
+            json['typeParameters'], const ['InstanceRef']),
+        pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
+            as InstanceRef?,
+        closureFunction =
+            createServiceObject(json['closureFunction'], const ['FuncRef'])
+                as FuncRef?,
+        closureContext =
+            createServiceObject(json['closureContext'], const ['ContextRef'])
+                as ContextRef?,
+        closureReceiver =
+            createServiceObject(json['closureReceiver'], const ['InstanceRef'])
+                as InstanceRef?,
+        portId = json['portId'],
+        allocationLocation = createServiceObject(
+            json['allocationLocation'], const ['InstanceRef']) as InstanceRef?,
+        debugName = json['debugName'],
+        label = json['label'],
+        super._fromJson();
 
   @override
   String get type => '@Instance';
@@ -5563,96 +5550,90 @@ class Instance extends Obj implements InstanceRef {
           classRef: classRef,
         );
 
-  Instance._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    kind = json['kind'] ?? '';
-    identityHashCode = json['identityHashCode'] ?? -1;
-    classRef =
-        createServiceObject(json['class'], const ['ClassRef']) as ClassRef?;
-    valueAsString = json['valueAsString'];
-    valueAsStringIsTruncated = json['valueAsStringIsTruncated'];
-    length = json['length'];
-    offset = json['offset'];
-    count = json['count'];
-    name = json['name'];
-    typeClass =
-        createServiceObject(json['typeClass'], const ['ClassRef']) as ClassRef?;
-    parameterizedClass =
-        createServiceObject(json['parameterizedClass'], const ['ClassRef'])
-            as ClassRef?;
-    returnType = createServiceObject(json['returnType'], const ['InstanceRef'])
-        as InstanceRef?;
-    parameters = json['parameters'] == null
-        ? null
-        : List<Parameter>.from(
-            createServiceObject(json['parameters'], const ['Parameter'])!
-                as List);
-    typeParameters = json['typeParameters'] == null
-        ? null
-        : List<InstanceRef>.from(
-            createServiceObject(json['typeParameters'], const ['InstanceRef'])!
-                as List);
-    fields = json['fields'] == null
-        ? null
-        : List<BoundField>.from(
-            createServiceObject(json['fields'], const ['BoundField'])! as List);
-    elements = json['elements'] == null
-        ? null
-        : List<dynamic>.from(
-            createServiceObject(json['elements'], const ['dynamic'])! as List);
-    associations = json['associations'] == null
-        ? null
-        : List<MapAssociation>.from(
-            _createSpecificObject(json['associations'], MapAssociation.parse));
-    bytes = json['bytes'];
-    mirrorReferent =
-        createServiceObject(json['mirrorReferent'], const ['ObjRef'])
-            as ObjRef?;
-    pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
-        as InstanceRef?;
-    closureFunction =
-        createServiceObject(json['closureFunction'], const ['FuncRef'])
-            as FuncRef?;
-    closureContext =
-        createServiceObject(json['closureContext'], const ['ContextRef'])
-            as ContextRef?;
-    closureReceiver =
-        createServiceObject(json['closureReceiver'], const ['InstanceRef'])
-            as InstanceRef?;
-    isCaseSensitive = json['isCaseSensitive'];
-    isMultiLine = json['isMultiLine'];
-    propertyKey =
-        createServiceObject(json['propertyKey'], const ['ObjRef']) as ObjRef?;
-    propertyValue =
-        createServiceObject(json['propertyValue'], const ['ObjRef']) as ObjRef?;
-    target = createServiceObject(json['target'], const ['ObjRef']) as ObjRef?;
-    typeArguments =
-        createServiceObject(json['typeArguments'], const ['TypeArgumentsRef'])
-            as TypeArgumentsRef?;
-    parameterIndex = json['parameterIndex'];
-    targetType = createServiceObject(json['targetType'], const ['InstanceRef'])
-        as InstanceRef?;
-    bound = createServiceObject(json['bound'], const ['InstanceRef'])
-        as InstanceRef?;
-    portId = json['portId'];
-    allocationLocation =
-        createServiceObject(json['allocationLocation'], const ['InstanceRef'])
-            as InstanceRef?;
-    debugName = json['debugName'];
-    label = json['label'];
-    callback = createServiceObject(json['callback'], const ['InstanceRef'])
-        as InstanceRef?;
-    callbackAddress =
-        createServiceObject(json['callbackAddress'], const ['InstanceRef'])
-            as InstanceRef?;
-    allEntries = createServiceObject(json['allEntries'], const ['InstanceRef'])
-        as InstanceRef?;
-    value = createServiceObject(json['value'], const ['InstanceRef'])
-        as InstanceRef?;
-    token = createServiceObject(json['token'], const ['InstanceRef'])
-        as InstanceRef?;
-    detach = createServiceObject(json['detach'], const ['InstanceRef'])
-        as InstanceRef?;
-  }
+  Instance._fromJson(super.json)
+      : kind = json['kind'] ?? '',
+        identityHashCode = json['identityHashCode'] ?? -1,
+        classRef =
+            createServiceObject(json['class'], const ['ClassRef']) as ClassRef?,
+        valueAsString = json['valueAsString'],
+        valueAsStringIsTruncated = json['valueAsStringIsTruncated'],
+        length = json['length'],
+        offset = json['offset'],
+        count = json['count'],
+        name = json['name'],
+        typeClass = createServiceObject(json['typeClass'], const ['ClassRef'])
+            as ClassRef?,
+        parameterizedClass =
+            createServiceObject(json['parameterizedClass'], const ['ClassRef'])
+                as ClassRef?,
+        returnType =
+            createServiceObject(json['returnType'], const ['InstanceRef'])
+                as InstanceRef?,
+        parameters = _createServiceObjectListOrNull<Parameter>(
+            json['parameters'], const ['Parameter']),
+        typeParameters = _createServiceObjectListOrNull<InstanceRef>(
+            json['typeParameters'], const ['InstanceRef']),
+        fields = _createServiceObjectListOrNull<BoundField>(
+            json['fields'], const ['BoundField']),
+        elements = _createServiceObjectListOrNull<dynamic>(
+            json['elements'], const ['dynamic']),
+        associations = json['associations'] == null
+            ? null
+            : List<MapAssociation>.from(_createSpecificObject(
+                json['associations'], MapAssociation.parse)),
+        bytes = json['bytes'],
+        mirrorReferent =
+            createServiceObject(json['mirrorReferent'], const ['ObjRef'])
+                as ObjRef?,
+        pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
+            as InstanceRef?,
+        closureFunction =
+            createServiceObject(json['closureFunction'], const ['FuncRef'])
+                as FuncRef?,
+        closureContext =
+            createServiceObject(json['closureContext'], const ['ContextRef'])
+                as ContextRef?,
+        closureReceiver =
+            createServiceObject(json['closureReceiver'], const ['InstanceRef'])
+                as InstanceRef?,
+        isCaseSensitive = json['isCaseSensitive'],
+        isMultiLine = json['isMultiLine'],
+        propertyKey = createServiceObject(json['propertyKey'], const ['ObjRef'])
+            as ObjRef?,
+        propertyValue =
+            createServiceObject(json['propertyValue'], const ['ObjRef'])
+                as ObjRef?,
+        target =
+            createServiceObject(json['target'], const ['ObjRef']) as ObjRef?,
+        typeArguments = createServiceObject(
+                json['typeArguments'], const ['TypeArgumentsRef'])
+            as TypeArgumentsRef?,
+        parameterIndex = json['parameterIndex'],
+        targetType =
+            createServiceObject(json['targetType'], const ['InstanceRef'])
+                as InstanceRef?,
+        bound = createServiceObject(json['bound'], const ['InstanceRef'])
+            as InstanceRef?,
+        portId = json['portId'],
+        allocationLocation = createServiceObject(
+            json['allocationLocation'], const ['InstanceRef']) as InstanceRef?,
+        debugName = json['debugName'],
+        label = json['label'],
+        callback = createServiceObject(json['callback'], const ['InstanceRef'])
+            as InstanceRef?,
+        callbackAddress =
+            createServiceObject(json['callbackAddress'], const ['InstanceRef'])
+                as InstanceRef?,
+        allEntries =
+            createServiceObject(json['allEntries'], const ['InstanceRef'])
+                as InstanceRef?,
+        value = createServiceObject(json['value'], const ['InstanceRef'])
+            as InstanceRef?,
+        token = createServiceObject(json['token'], const ['InstanceRef'])
+            as InstanceRef?,
+        detach = createServiceObject(json['detach'], const ['InstanceRef'])
+            as InstanceRef?,
+        super._fromJson();
 
   @override
   String get type => 'Instance';
@@ -5774,13 +5755,13 @@ class IsolateRef extends Response {
     this.isolateGroupId,
   });
 
-  IsolateRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? '';
-    number = json['number'] ?? '';
-    name = json['name'] ?? '';
-    isSystemIsolate = json['isSystemIsolate'] ?? false;
-    isolateGroupId = json['isolateGroupId'] ?? '';
-  }
+  IsolateRef._fromJson(super.json)
+      : id = json['id'] ?? '',
+        number = json['number'] ?? '',
+        name = json['name'] ?? '',
+        isSystemIsolate = json['isSystemIsolate'] ?? false,
+        isolateGroupId = json['isolateGroupId'] ?? '',
+        super._fromJson();
 
   @override
   String get type => '@Isolate';
@@ -5901,37 +5882,32 @@ class Isolate extends Response implements IsolateRef {
     this.extensionRPCs,
   });
 
-  Isolate._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? '';
-    number = json['number'] ?? '';
-    name = json['name'] ?? '';
-    isSystemIsolate = json['isSystemIsolate'] ?? false;
-    isolateGroupId = json['isolateGroupId'] ?? '';
-    isolateFlags = List<IsolateFlag>.from(
-        createServiceObject(json['isolateFlags'], const ['IsolateFlag'])
-                as List? ??
-            []);
-    startTime = json['startTime'] ?? -1;
-    runnable = json['runnable'] ?? false;
-    livePorts = json['livePorts'] ?? -1;
-    pauseOnExit = json['pauseOnExit'] ?? false;
-    pauseEvent =
-        createServiceObject(json['pauseEvent'], const ['Event']) as Event?;
-    rootLib = createServiceObject(json['rootLib'], const ['LibraryRef'])
-        as LibraryRef?;
-    libraries = List<LibraryRef>.from(
-        createServiceObject(json['libraries'], const ['LibraryRef']) as List? ??
-            []);
-    breakpoints = List<Breakpoint>.from(
-        createServiceObject(json['breakpoints'], const ['Breakpoint'])
-                as List? ??
-            []);
-    error = createServiceObject(json['error'], const ['Error']) as Error?;
-    exceptionPauseMode = json['exceptionPauseMode'] ?? '';
-    extensionRPCs = json['extensionRPCs'] == null
-        ? null
-        : List<String>.from(json['extensionRPCs']);
-  }
+  Isolate._fromJson(super.json)
+      : id = json['id'] ?? '',
+        number = json['number'] ?? '',
+        name = json['name'] ?? '',
+        isSystemIsolate = json['isSystemIsolate'] ?? false,
+        isolateGroupId = json['isolateGroupId'] ?? '',
+        isolateFlags = _createServiceObjectListOrNull<IsolateFlag>(
+            json['isolateFlags'], const ['IsolateFlag']),
+        startTime = json['startTime'] ?? -1,
+        runnable = json['runnable'] ?? false,
+        livePorts = json['livePorts'] ?? -1,
+        pauseOnExit = json['pauseOnExit'] ?? false,
+        pauseEvent =
+            createServiceObject(json['pauseEvent'], const ['Event']) as Event?,
+        rootLib = createServiceObject(json['rootLib'], const ['LibraryRef'])
+            as LibraryRef?,
+        libraries = _createServiceObjectListOrNull<LibraryRef>(
+            json['libraries'], const ['LibraryRef']),
+        breakpoints = _createServiceObjectListOrNull<Breakpoint>(
+            json['breakpoints'], const ['Breakpoint']),
+        error = createServiceObject(json['error'], const ['Error']) as Error?,
+        exceptionPauseMode = json['exceptionPauseMode'] ?? '',
+        extensionRPCs = json['extensionRPCs'] == null
+            ? null
+            : List<String>.from(json['extensionRPCs']),
+        super._fromJson();
 
   @override
   String get type => 'Isolate';
@@ -5986,10 +5962,9 @@ class IsolateFlag {
     this.valueAsString,
   });
 
-  IsolateFlag._fromJson(Map<String, dynamic> json) {
-    name = json['name'] ?? '';
-    valueAsString = json['valueAsString'] ?? '';
-  }
+  IsolateFlag._fromJson(Map<String, dynamic> json)
+      : name = json['name'] ?? '',
+        valueAsString = json['valueAsString'] ?? '';
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'name': name ?? '',
@@ -6027,12 +6002,12 @@ class IsolateGroupRef extends Response {
     this.isSystemIsolateGroup,
   });
 
-  IsolateGroupRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? '';
-    number = json['number'] ?? '';
-    name = json['name'] ?? '';
-    isSystemIsolateGroup = json['isSystemIsolateGroup'] ?? false;
-  }
+  IsolateGroupRef._fromJson(super.json)
+      : id = json['id'] ?? '',
+        number = json['number'] ?? '',
+        name = json['name'] ?? '',
+        isSystemIsolateGroup = json['isSystemIsolateGroup'] ?? false,
+        super._fromJson();
 
   @override
   String get type => '@IsolateGroup';
@@ -6091,15 +6066,14 @@ class IsolateGroup extends Response implements IsolateGroupRef {
     this.isolates,
   });
 
-  IsolateGroup._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? '';
-    number = json['number'] ?? '';
-    name = json['name'] ?? '';
-    isSystemIsolateGroup = json['isSystemIsolateGroup'] ?? false;
-    isolates = List<IsolateRef>.from(
-        createServiceObject(json['isolates'], const ['IsolateRef']) as List? ??
-            []);
-  }
+  IsolateGroup._fromJson(super.json)
+      : id = json['id'] ?? '',
+        number = json['number'] ?? '',
+        name = json['name'] ?? '',
+        isSystemIsolateGroup = json['isSystemIsolateGroup'] ?? false,
+        isolates = _createServiceObjectListOrNull<IsolateRef>(
+            json['isolates'], const ['IsolateRef']),
+        super._fromJson();
 
   @override
   String get type => 'IsolateGroup';
@@ -6138,13 +6112,10 @@ class InboundReferences extends Response {
     this.references,
   });
 
-  InboundReferences._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    references = List<InboundReference>.from(
-        createServiceObject(json['references'], const ['InboundReference'])
-                as List? ??
-            []);
-  }
+  InboundReferences._fromJson(super.json)
+      : references = _createServiceObjectListOrNull<InboundReference>(
+            json['references'], const ['InboundReference']),
+        super._fromJson();
 
   @override
   String get type => 'InboundReferences';
@@ -6192,12 +6163,12 @@ class InboundReference {
     this.parentField,
   });
 
-  InboundReference._fromJson(Map<String, dynamic> json) {
-    source = createServiceObject(json['source'], const ['ObjRef']) as ObjRef?;
-    parentListIndex = json['parentListIndex'];
-    parentField = createServiceObject(
-        json['parentField'], const ['FieldRef', 'String', 'int']) as dynamic;
-  }
+  InboundReference._fromJson(Map<String, dynamic> json)
+      : source =
+            createServiceObject(json['source'], const ['ObjRef']) as ObjRef?,
+        parentListIndex = json['parentListIndex'],
+        parentField = createServiceObject(
+            json['parentField'], const ['FieldRef', 'String', 'int']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'source': source?.toJson(),
@@ -6230,12 +6201,12 @@ class InstanceSet extends Response {
     this.instances,
   });
 
-  InstanceSet._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    totalCount = json['totalCount'] ?? -1;
-    instances = List<ObjRef>.from(createServiceObject(
-            (json['instances'] ?? json['samples']!) as List, const ['ObjRef'])!
-        as List);
-  }
+  InstanceSet._fromJson(super.json)
+      : totalCount = json['totalCount'] ?? -1,
+        instances = List<ObjRef>.from(createServiceObject(
+            (json['instances'] ?? json['samples']!) as List,
+            const ['ObjRef'])! as List),
+        super._fromJson();
 
   @override
   String get type => 'InstanceSet';
@@ -6271,10 +6242,10 @@ class LibraryRef extends ObjRef {
           id: id,
         );
 
-  LibraryRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    uri = json['uri'] ?? '';
-  }
+  LibraryRef._fromJson(super.json)
+      : name = json['name'] ?? '',
+        uri = json['uri'] ?? '',
+        super._fromJson();
 
   @override
   String get type => '@Library';
@@ -6344,25 +6315,21 @@ class Library extends Obj implements LibraryRef {
           id: id,
         );
 
-  Library._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    uri = json['uri'] ?? '';
-    debuggable = json['debuggable'] ?? false;
-    dependencies = List<LibraryDependency>.from(
-        _createSpecificObject(json['dependencies']!, LibraryDependency.parse));
-    scripts = List<ScriptRef>.from(
-        createServiceObject(json['scripts'], const ['ScriptRef']) as List? ??
-            []);
-    variables = List<FieldRef>.from(
-        createServiceObject(json['variables'], const ['FieldRef']) as List? ??
-            []);
-    functions = List<FuncRef>.from(
-        createServiceObject(json['functions'], const ['FuncRef']) as List? ??
-            []);
-    classes = List<ClassRef>.from(
-        createServiceObject(json['classes'], const ['ClassRef']) as List? ??
-            []);
-  }
+  Library._fromJson(super.json)
+      : name = json['name'] ?? '',
+        uri = json['uri'] ?? '',
+        debuggable = json['debuggable'] ?? false,
+        dependencies = List<LibraryDependency>.from(_createSpecificObject(
+            json['dependencies']!, LibraryDependency.parse)),
+        scripts = _createServiceObjectListOrNull<ScriptRef>(
+            json['scripts'], const ['ScriptRef']),
+        variables = _createServiceObjectListOrNull<FieldRef>(
+            json['variables'], const ['FieldRef']),
+        functions = _createServiceObjectListOrNull<FuncRef>(
+            json['functions'], const ['FuncRef']),
+        classes = _createServiceObjectListOrNull<ClassRef>(
+            json['classes'], const ['ClassRef']),
+        super._fromJson();
 
   @override
   String get type => 'Library';
@@ -6425,15 +6392,14 @@ class LibraryDependency {
     this.hides,
   });
 
-  LibraryDependency._fromJson(Map<String, dynamic> json) {
-    isImport = json['isImport'] ?? false;
-    isDeferred = json['isDeferred'] ?? false;
-    prefix = json['prefix'] ?? '';
-    target = createServiceObject(json['target'], const ['LibraryRef'])
-        as LibraryRef?;
-    shows = json['shows'] == null ? null : List<String>.from(json['shows']);
-    hides = json['hides'] == null ? null : List<String>.from(json['hides']);
-  }
+  LibraryDependency._fromJson(Map<String, dynamic> json)
+      : isImport = json['isImport'] ?? false,
+        isDeferred = json['isDeferred'] ?? false,
+        prefix = json['prefix'] ?? '',
+        target = createServiceObject(json['target'], const ['LibraryRef'])
+            as LibraryRef?,
+        shows = json['shows'] == null ? null : List<String>.from(json['shows']),
+        hides = json['hides'] == null ? null : List<String>.from(json['hides']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'isImport': isImport ?? false,
@@ -6494,21 +6460,23 @@ class LogRecord extends Response {
     this.stackTrace,
   });
 
-  LogRecord._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    message = createServiceObject(json['message'], const ['InstanceRef'])
-        as InstanceRef?;
-    time = json['time'] ?? -1;
-    level = json['level'] ?? -1;
-    sequenceNumber = json['sequenceNumber'] ?? -1;
-    loggerName = createServiceObject(json['loggerName'], const ['InstanceRef'])
-        as InstanceRef?;
-    zone = createServiceObject(json['zone'], const ['InstanceRef'])
-        as InstanceRef?;
-    error = createServiceObject(json['error'], const ['InstanceRef'])
-        as InstanceRef?;
-    stackTrace = createServiceObject(json['stackTrace'], const ['InstanceRef'])
-        as InstanceRef?;
-  }
+  LogRecord._fromJson(super.json)
+      : message = createServiceObject(json['message'], const ['InstanceRef'])
+            as InstanceRef?,
+        time = json['time'] ?? -1,
+        level = json['level'] ?? -1,
+        sequenceNumber = json['sequenceNumber'] ?? -1,
+        loggerName =
+            createServiceObject(json['loggerName'], const ['InstanceRef'])
+                as InstanceRef?,
+        zone = createServiceObject(json['zone'], const ['InstanceRef'])
+            as InstanceRef?,
+        error = createServiceObject(json['error'], const ['InstanceRef'])
+            as InstanceRef?,
+        stackTrace =
+            createServiceObject(json['stackTrace'], const ['InstanceRef'])
+                as InstanceRef?,
+        super._fromJson();
 
   @override
   String get type => 'LogRecord';
@@ -6547,13 +6515,11 @@ class MapAssociation {
     this.value,
   });
 
-  MapAssociation._fromJson(Map<String, dynamic> json) {
-    key = createServiceObject(json['key'], const ['InstanceRef', 'Sentinel'])
-        as dynamic;
-    value =
-        createServiceObject(json['value'], const ['InstanceRef', 'Sentinel'])
-            as dynamic;
-  }
+  MapAssociation._fromJson(Map<String, dynamic> json)
+      : key =
+            createServiceObject(json['key'], const ['InstanceRef', 'Sentinel']),
+        value = createServiceObject(
+            json['value'], const ['InstanceRef', 'Sentinel']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'key': key?.toJson(),
@@ -6592,11 +6558,11 @@ class MemoryUsage extends Response {
     this.heapUsage,
   });
 
-  MemoryUsage._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    externalUsage = json['externalUsage'] ?? -1;
-    heapCapacity = json['heapCapacity'] ?? -1;
-    heapUsage = json['heapUsage'] ?? -1;
-  }
+  MemoryUsage._fromJson(super.json)
+      : externalUsage = json['externalUsage'] ?? -1,
+        heapCapacity = json['heapCapacity'] ?? -1,
+        heapUsage = json['heapUsage'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => 'MemoryUsage';
@@ -6652,16 +6618,17 @@ class Message extends Response {
     this.location,
   });
 
-  Message._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    index = json['index'] ?? -1;
-    name = json['name'] ?? '';
-    messageObjectId = json['messageObjectId'] ?? '';
-    size = json['size'] ?? -1;
-    handler =
-        createServiceObject(json['handler'], const ['FuncRef']) as FuncRef?;
-    location = createServiceObject(json['location'], const ['SourceLocation'])
-        as SourceLocation?;
-  }
+  Message._fromJson(super.json)
+      : index = json['index'] ?? -1,
+        name = json['name'] ?? '',
+        messageObjectId = json['messageObjectId'] ?? '',
+        size = json['size'] ?? -1,
+        handler =
+            createServiceObject(json['handler'], const ['FuncRef']) as FuncRef?,
+        location =
+            createServiceObject(json['location'], const ['SourceLocation'])
+                as SourceLocation?,
+        super._fromJson();
 
   @override
   String get type => 'Message';
@@ -6704,10 +6671,10 @@ class Microtask extends Response {
     this.stackTrace,
   });
 
-  Microtask._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? -1;
-    stackTrace = json['stackTrace'] ?? '';
-  }
+  Microtask._fromJson(super.json)
+      : id = json['id'] ?? -1,
+        stackTrace = json['stackTrace'] ?? '',
+        super._fromJson();
 
   @override
   String get type => 'Microtask';
@@ -6742,9 +6709,8 @@ class NativeFunction {
     this.name,
   });
 
-  NativeFunction._fromJson(Map<String, dynamic> json) {
-    name = json['name'] ?? '';
-  }
+  NativeFunction._fromJson(Map<String, dynamic> json)
+      : name = json['name'] ?? '';
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'name': name ?? '',
@@ -6780,9 +6746,9 @@ class NullValRef extends InstanceRef {
           ),
         );
 
-  NullValRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    valueAsString = json['valueAsString'] ?? '';
-  }
+  NullValRef._fromJson(super.json)
+      : valueAsString = json['valueAsString'] ?? '',
+        super._fromJson();
 
   @override
   String get type => '@Null';
@@ -6832,9 +6798,9 @@ class NullVal extends Instance implements NullValRef {
           ),
         );
 
-  NullVal._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    valueAsString = json['valueAsString'] ?? '';
-  }
+  NullVal._fromJson(super.json)
+      : valueAsString = json['valueAsString'] ?? '',
+        super._fromJson();
 
   @override
   String get type => 'Null';
@@ -6878,10 +6844,10 @@ class ObjRef extends Response {
     this.fixedId,
   });
 
-  ObjRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? '';
-    fixedId = json['fixedId'];
-  }
+  ObjRef._fromJson(super.json)
+      : id = json['id'] ?? '',
+        fixedId = json['fixedId'],
+        super._fromJson();
 
   @override
   String get type => '@Object';
@@ -6950,13 +6916,13 @@ class Obj extends Response implements ObjRef {
     this.size,
   });
 
-  Obj._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    id = json['id'] ?? '';
-    fixedId = json['fixedId'];
-    classRef =
-        createServiceObject(json['class'], const ['ClassRef']) as ClassRef?;
-    size = json['size'];
-  }
+  Obj._fromJson(super.json)
+      : id = json['id'] ?? '',
+        fixedId = json['fixedId'],
+        classRef =
+            createServiceObject(json['class'], const ['ClassRef']) as ClassRef?,
+        size = json['size'],
+        super._fromJson();
 
   @override
   String get type => 'Object';
@@ -7008,14 +6974,13 @@ class Parameter {
     this.required,
   });
 
-  Parameter._fromJson(Map<String, dynamic> json) {
-    parameterType =
-        createServiceObject(json['parameterType'], const ['InstanceRef'])
-            as InstanceRef?;
-    fixed = json['fixed'] ?? false;
-    name = json['name'];
-    required = json['required'];
-  }
+  Parameter._fromJson(Map<String, dynamic> json)
+      : parameterType =
+            createServiceObject(json['parameterType'], const ['InstanceRef'])
+                as InstanceRef?,
+        fixed = json['fixed'] ?? false,
+        name = json['name'],
+        required = json['required'];
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'parameterType': parameterType?.toJson(),
@@ -7067,16 +7032,15 @@ class PerfettoCpuSamples extends Response {
     this.samples,
   });
 
-  PerfettoCpuSamples._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    samplePeriod = json['samplePeriod'] ?? -1;
-    maxStackDepth = json['maxStackDepth'] ?? -1;
-    sampleCount = json['sampleCount'] ?? -1;
-    timeOriginMicros = json['timeOriginMicros'] ?? -1;
-    timeExtentMicros = json['timeExtentMicros'] ?? -1;
-    pid = json['pid'] ?? -1;
-    samples = json['samples'] ?? '';
-  }
+  PerfettoCpuSamples._fromJson(super.json)
+      : samplePeriod = json['samplePeriod'] ?? -1,
+        maxStackDepth = json['maxStackDepth'] ?? -1,
+        sampleCount = json['sampleCount'] ?? -1,
+        timeOriginMicros = json['timeOriginMicros'] ?? -1,
+        timeExtentMicros = json['timeExtentMicros'] ?? -1,
+        pid = json['pid'] ?? -1,
+        samples = json['samples'] ?? '',
+        super._fromJson();
 
   @override
   String get type => 'PerfettoCpuSamples';
@@ -7120,12 +7084,11 @@ class PerfettoTimeline extends Response {
     this.timeExtentMicros,
   });
 
-  PerfettoTimeline._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    trace = json['trace'] ?? '';
-    timeOriginMicros = json['timeOriginMicros'] ?? -1;
-    timeExtentMicros = json['timeExtentMicros'] ?? -1;
-  }
+  PerfettoTimeline._fromJson(super.json)
+      : trace = json['trace'] ?? '',
+        timeOriginMicros = json['timeOriginMicros'] ?? -1,
+        timeExtentMicros = json['timeExtentMicros'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => 'PerfettoTimeline';
@@ -7156,11 +7119,10 @@ class PortList extends Response {
     this.ports,
   });
 
-  PortList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    ports = List<InstanceRef>.from(
-        createServiceObject(json['ports'], const ['InstanceRef']) as List? ??
-            []);
-  }
+  PortList._fromJson(super.json)
+      : ports = _createServiceObjectListOrNull<InstanceRef>(
+            json['ports'], const ['InstanceRef']),
+        super._fromJson();
 
   @override
   String get type => 'PortList';
@@ -7207,14 +7169,12 @@ class ProfileFunction {
     this.function,
   });
 
-  ProfileFunction._fromJson(Map<String, dynamic> json) {
-    kind = json['kind'] ?? '';
-    inclusiveTicks = json['inclusiveTicks'] ?? -1;
-    exclusiveTicks = json['exclusiveTicks'] ?? -1;
-    resolvedUrl = json['resolvedUrl'] ?? '';
-    function =
-        createServiceObject(json['function'], const ['dynamic']) as dynamic;
-  }
+  ProfileFunction._fromJson(Map<String, dynamic> json)
+      : kind = json['kind'] ?? '',
+        inclusiveTicks = json['inclusiveTicks'] ?? -1,
+        exclusiveTicks = json['exclusiveTicks'] ?? -1,
+        resolvedUrl = json['resolvedUrl'] ?? '',
+        function = createServiceObject(json['function'], const ['dynamic']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'kind': kind ?? '',
@@ -7245,11 +7205,10 @@ class ProtocolList extends Response {
     this.protocols,
   });
 
-  ProtocolList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    protocols = List<Protocol>.from(
-        createServiceObject(json['protocols'], const ['Protocol']) as List? ??
-            []);
-  }
+  ProtocolList._fromJson(super.json)
+      : protocols = _createServiceObjectListOrNull<Protocol>(
+            json['protocols'], const ['Protocol']),
+        super._fromJson();
 
   @override
   String get type => 'ProtocolList';
@@ -7284,11 +7243,10 @@ class Protocol {
     this.minor,
   });
 
-  Protocol._fromJson(Map<String, dynamic> json) {
-    protocolName = json['protocolName'] ?? '';
-    major = json['major'] ?? -1;
-    minor = json['minor'] ?? -1;
-  }
+  Protocol._fromJson(Map<String, dynamic> json)
+      : protocolName = json['protocolName'] ?? '',
+        major = json['major'] ?? -1,
+        minor = json['minor'] ?? -1;
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'protocolName': protocolName ?? '',
@@ -7312,11 +7270,10 @@ class ProcessMemoryUsage extends Response {
     this.root,
   });
 
-  ProcessMemoryUsage._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    root = createServiceObject(json['root'], const ['ProcessMemoryItem'])
-        as ProcessMemoryItem?;
-  }
+  ProcessMemoryUsage._fromJson(super.json)
+      : root = createServiceObject(json['root'], const ['ProcessMemoryItem'])
+            as ProcessMemoryItem?,
+        super._fromJson();
 
   @override
   String get type => 'ProcessMemoryUsage';
@@ -7355,15 +7312,12 @@ class ProcessMemoryItem {
     this.children,
   });
 
-  ProcessMemoryItem._fromJson(Map<String, dynamic> json) {
-    name = json['name'] ?? '';
-    description = json['description'] ?? '';
-    size = json['size'] ?? -1;
-    children = List<ProcessMemoryItem>.from(
-        createServiceObject(json['children'], const ['ProcessMemoryItem'])
-                as List? ??
-            []);
-  }
+  ProcessMemoryItem._fromJson(Map<String, dynamic> json)
+      : name = json['name'] ?? '',
+        description = json['description'] ?? '',
+        size = json['size'] ?? -1,
+        children = _createServiceObjectListOrNull<ProcessMemoryItem>(
+            json['children'], const ['ProcessMemoryItem']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'name': name ?? '',
@@ -7399,13 +7353,11 @@ class QueuedMicrotasks extends Response {
     this.microtasks,
   });
 
-  QueuedMicrotasks._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    timestamp = json['timestamp'] ?? -1;
-    microtasks = List<Microtask>.from(
-        createServiceObject(json['microtasks'], const ['Microtask']) as List? ??
-            []);
-  }
+  QueuedMicrotasks._fromJson(super.json)
+      : timestamp = json['timestamp'] ?? -1,
+        microtasks = _createServiceObjectListOrNull<Microtask>(
+            json['microtasks'], const ['Microtask']),
+        super._fromJson();
 
   @override
   String get type => 'QueuedMicrotasks';
@@ -7433,9 +7385,9 @@ class ReloadReport extends Response {
     this.success,
   });
 
-  ReloadReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    success = json['success'] ?? false;
-  }
+  ReloadReport._fromJson(super.json)
+      : success = json['success'] ?? false,
+        super._fromJson();
 
   @override
   String get type => 'ReloadReport';
@@ -7484,15 +7436,14 @@ class RetainingObject {
     this.parentField,
   });
 
-  RetainingObject._fromJson(Map<String, dynamic> json) {
-    value = createServiceObject(json['value'], const ['ObjRef']) as ObjRef?;
-    parentListIndex = json['parentListIndex'];
-    parentMapKey =
-        createServiceObject(json['parentMapKey'], const ['ObjRef']) as ObjRef?;
-    parentField =
-        createServiceObject(json['parentField'], const ['String', 'int'])
-            as dynamic;
-  }
+  RetainingObject._fromJson(Map<String, dynamic> json)
+      : value = createServiceObject(json['value'], const ['ObjRef']) as ObjRef?,
+        parentListIndex = json['parentListIndex'],
+        parentMapKey =
+            createServiceObject(json['parentMapKey'], const ['ObjRef'])
+                as ObjRef?,
+        parentField =
+            createServiceObject(json['parentField'], const ['String', 'int']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'value': value?.toJson(),
@@ -7530,14 +7481,12 @@ class RetainingPath extends Response {
     this.elements,
   });
 
-  RetainingPath._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    length = json['length'] ?? -1;
-    gcRootType = json['gcRootType'] ?? '';
-    elements = List<RetainingObject>.from(
-        createServiceObject(json['elements'], const ['RetainingObject'])
-                as List? ??
-            []);
-  }
+  RetainingPath._fromJson(super.json)
+      : length = json['length'] ?? -1,
+        gcRootType = json['gcRootType'] ?? '',
+        elements = _createServiceObjectListOrNull<RetainingObject>(
+            json['elements'], const ['RetainingObject']),
+        super._fromJson();
 
   @override
   String get type => 'RetainingPath';
@@ -7598,10 +7547,10 @@ class Sentinel extends Response {
     this.valueAsString,
   });
 
-  Sentinel._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    kind = json['kind'] ?? '';
-    valueAsString = json['valueAsString'] ?? '';
-  }
+  Sentinel._fromJson(super.json)
+      : kind = json['kind'] ?? '',
+        valueAsString = json['valueAsString'] ?? '',
+        super._fromJson();
 
   @override
   String get type => 'Sentinel';
@@ -7632,9 +7581,9 @@ class ScriptRef extends ObjRef {
           id: id,
         );
 
-  ScriptRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    uri = json['uri'] ?? '';
-  }
+  ScriptRef._fromJson(super.json)
+      : uri = json['uri'] ?? '',
+        super._fromJson();
 
   @override
   String get type => '@Script';
@@ -7724,17 +7673,18 @@ class Script extends Obj implements ScriptRef {
           id: id,
         );
 
-  Script._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    uri = json['uri'] ?? '';
-    library = createServiceObject(json['library'], const ['LibraryRef'])
-        as LibraryRef?;
-    lineOffset = json['lineOffset'];
-    columnOffset = json['columnOffset'];
-    source = json['source'];
-    tokenPosTable = json['tokenPosTable'] == null
-        ? null
-        : List<List<int>>.from(
-            json['tokenPosTable']!.map((dynamic list) => List<int>.from(list)));
+  Script._fromJson(super.json)
+      : uri = json['uri'] ?? '',
+        library = createServiceObject(json['library'], const ['LibraryRef'])
+            as LibraryRef?,
+        lineOffset = json['lineOffset'],
+        columnOffset = json['columnOffset'],
+        source = json['source'],
+        tokenPosTable = json['tokenPosTable'] == null
+            ? null
+            : List<List<int>>.from(json['tokenPosTable']!
+                .map((dynamic list) => List<int>.from(list))),
+        super._fromJson() {
     _parseTokenPosTable();
   }
 
@@ -7805,11 +7755,10 @@ class ScriptList extends Response {
     this.scripts,
   });
 
-  ScriptList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    scripts = List<ScriptRef>.from(
-        createServiceObject(json['scripts'], const ['ScriptRef']) as List? ??
-            []);
-  }
+  ScriptList._fromJson(super.json)
+      : scripts = _createServiceObjectListOrNull<ScriptRef>(
+            json['scripts'], const ['ScriptRef']),
+        super._fromJson();
 
   @override
   String get type => 'ScriptList';
@@ -7858,14 +7807,14 @@ class SourceLocation extends Response {
     this.column,
   });
 
-  SourceLocation._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    script =
-        createServiceObject(json['script'], const ['ScriptRef']) as ScriptRef?;
-    tokenPos = json['tokenPos'] ?? -1;
-    endTokenPos = json['endTokenPos'];
-    line = json['line'];
-    column = json['column'];
-  }
+  SourceLocation._fromJson(super.json)
+      : script = createServiceObject(json['script'], const ['ScriptRef'])
+            as ScriptRef?,
+        tokenPos = json['tokenPos'] ?? -1,
+        endTokenPos = json['endTokenPos'],
+        line = json['line'],
+        column = json['column'],
+        super._fromJson();
 
   @override
   String get type => 'SourceLocation';
@@ -7909,13 +7858,12 @@ class SourceReport extends Response {
     this.scripts,
   });
 
-  SourceReport._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    ranges = List<SourceReportRange>.from(
-        _createSpecificObject(json['ranges']!, SourceReportRange.parse));
-    scripts = List<ScriptRef>.from(
-        createServiceObject(json['scripts'], const ['ScriptRef']) as List? ??
-            []);
-  }
+  SourceReport._fromJson(super.json)
+      : ranges = List<SourceReportRange>.from(
+            _createSpecificObject(json['ranges']!, SourceReportRange.parse)),
+        scripts = _createServiceObjectListOrNull<ScriptRef>(
+            json['scripts'], const ['ScriptRef']),
+        super._fromJson();
 
   @override
   String get type => 'SourceReport';
@@ -7953,10 +7901,9 @@ class SourceReportCoverage {
     this.misses,
   });
 
-  SourceReportCoverage._fromJson(Map<String, dynamic> json) {
-    hits = List<int>.from(json['hits']);
-    misses = List<int>.from(json['misses']);
-  }
+  SourceReportCoverage._fromJson(Map<String, dynamic> json)
+      : hits = List<int>.from(json['hits']),
+        misses = List<int>.from(json['misses']);
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'hits': hits?.map((f) => f).toList(),
@@ -8023,21 +7970,21 @@ class SourceReportRange {
     this.branchCoverage,
   });
 
-  SourceReportRange._fromJson(Map<String, dynamic> json) {
-    scriptIndex = json['scriptIndex'] ?? -1;
-    startPos = json['startPos'] ?? -1;
-    endPos = json['endPos'] ?? -1;
-    compiled = json['compiled'] ?? false;
-    error = createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?;
-    coverage =
-        _createSpecificObject(json['coverage'], SourceReportCoverage.parse);
-    possibleBreakpoints = json['possibleBreakpoints'] == null
-        ? null
-        : List<int>.from(json['possibleBreakpoints']);
-    branchCoverage = createServiceObject(
-            json['branchCoverage'], const ['SourceReportCoverage'])
-        as SourceReportCoverage?;
-  }
+  SourceReportRange._fromJson(Map<String, dynamic> json)
+      : scriptIndex = json['scriptIndex'] ?? -1,
+        startPos = json['startPos'] ?? -1,
+        endPos = json['endPos'] ?? -1,
+        compiled = json['compiled'] ?? false,
+        error =
+            createServiceObject(json['error'], const ['ErrorRef']) as ErrorRef?,
+        coverage =
+            _createSpecificObject(json['coverage'], SourceReportCoverage.parse),
+        possibleBreakpoints = json['possibleBreakpoints'] == null
+            ? null
+            : List<int>.from(json['possibleBreakpoints']),
+        branchCoverage = createServiceObject(
+                json['branchCoverage'], const ['SourceReportCoverage'])
+            as SourceReportCoverage?;
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'scriptIndex': scriptIndex ?? -1,
@@ -8113,24 +8060,17 @@ class Stack extends Response {
     this.awaiterFrames,
   });
 
-  Stack._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    frames = List<Frame>.from(
-        createServiceObject(json['frames'], const ['Frame']) as List? ?? []);
-    asyncCausalFrames = json['asyncCausalFrames'] == null
-        ? null
-        : List<Frame>.from(
-            createServiceObject(json['asyncCausalFrames'], const ['Frame'])!
-                as List);
-    awaiterFrames = json['awaiterFrames'] == null
-        ? null
-        : List<Frame>.from(
-            createServiceObject(json['awaiterFrames'], const ['Frame'])!
-                as List);
-    messages = List<Message>.from(
-        createServiceObject(json['messages'], const ['Message']) as List? ??
-            []);
-    truncated = json['truncated'] ?? false;
-  }
+  Stack._fromJson(super.json)
+      : frames = _createServiceObjectListOrNull<Frame>(
+            json['frames'], const ['Frame']),
+        asyncCausalFrames = _createServiceObjectListOrNull<Frame>(
+            json['asyncCausalFrames'], const ['Frame']),
+        awaiterFrames = _createServiceObjectListOrNull<Frame>(
+            json['awaiterFrames'], const ['Frame']),
+        messages = _createServiceObjectListOrNull<Message>(
+            json['messages'], const ['Message']),
+        truncated = json['truncated'] ?? false,
+        super._fromJson();
 
   @override
   String get type => 'Stack';
@@ -8198,14 +8138,12 @@ class Timeline extends Response {
     this.timeExtentMicros,
   });
 
-  Timeline._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    traceEvents = List<TimelineEvent>.from(
-        createServiceObject(json['traceEvents'], const ['TimelineEvent'])
-                as List? ??
-            []);
-    timeOriginMicros = json['timeOriginMicros'] ?? -1;
-    timeExtentMicros = json['timeExtentMicros'] ?? -1;
-  }
+  Timeline._fromJson(super.json)
+      : traceEvents = _createServiceObjectListOrNull<TimelineEvent>(
+            json['traceEvents'], const ['TimelineEvent']),
+        timeOriginMicros = json['timeOriginMicros'] ?? -1,
+        timeExtentMicros = json['timeExtentMicros'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => 'Timeline';
@@ -8266,11 +8204,11 @@ class TimelineFlags extends Response {
     this.recordedStreams,
   });
 
-  TimelineFlags._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    recorderName = json['recorderName'] ?? '';
-    availableStreams = List<String>.from(json['availableStreams']);
-    recordedStreams = List<String>.from(json['recordedStreams']);
-  }
+  TimelineFlags._fromJson(super.json)
+      : recorderName = json['recorderName'] ?? '',
+        availableStreams = List<String>.from(json['availableStreams']),
+        recordedStreams = List<String>.from(json['recordedStreams']),
+        super._fromJson();
 
   @override
   String get type => 'TimelineFlags';
@@ -8300,9 +8238,9 @@ class Timestamp extends Response {
     this.timestamp,
   });
 
-  Timestamp._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    timestamp = json['timestamp'] ?? -1;
-  }
+  Timestamp._fromJson(super.json)
+      : timestamp = json['timestamp'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => 'Timestamp';
@@ -8332,10 +8270,9 @@ class TypeArgumentsRef extends ObjRef {
           id: id,
         );
 
-  TypeArgumentsRef._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    name = json['name'] ?? '';
-  }
+  TypeArgumentsRef._fromJson(super.json)
+      : name = json['name'] ?? '',
+        super._fromJson();
 
   @override
   String get type => '@TypeArguments';
@@ -8381,12 +8318,11 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
           id: id,
         );
 
-  TypeArguments._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    types = List<InstanceRef>.from(
-        createServiceObject(json['types'], const ['InstanceRef']) as List? ??
-            []);
-  }
+  TypeArguments._fromJson(super.json)
+      : name = json['name'] ?? '',
+        types = _createServiceObjectListOrNull<InstanceRef>(
+            json['types'], const ['InstanceRef']),
+        super._fromJson();
 
   @override
   String get type => 'TypeArguments';
@@ -8466,14 +8402,15 @@ class TypeParameters extends Obj implements TypeParametersRef {
           id: id,
         );
 
-  TypeParameters._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    names = createServiceObject(json['names'], const ['InstanceRef'])
-        as InstanceRef?;
-    bounds = createServiceObject(json['bounds'], const ['TypeArgumentsRef'])
-        as TypeArgumentsRef?;
-    defaults = createServiceObject(json['defaults'], const ['TypeArgumentsRef'])
-        as TypeArgumentsRef?;
-  }
+  TypeParameters._fromJson(super.json)
+      : names = createServiceObject(json['names'], const ['InstanceRef'])
+            as InstanceRef?,
+        bounds = createServiceObject(json['bounds'], const ['TypeArgumentsRef'])
+            as TypeArgumentsRef?,
+        defaults =
+            createServiceObject(json['defaults'], const ['TypeArgumentsRef'])
+                as TypeArgumentsRef?,
+        super._fromJson();
 
   @override
   String get type => 'TypeParameters';
@@ -8544,15 +8481,14 @@ class UnresolvedSourceLocation extends Response {
     this.column,
   });
 
-  UnresolvedSourceLocation._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json) {
-    script =
-        createServiceObject(json['script'], const ['ScriptRef']) as ScriptRef?;
-    scriptUri = json['scriptUri'];
-    tokenPos = json['tokenPos'];
-    line = json['line'];
-    column = json['column'];
-  }
+  UnresolvedSourceLocation._fromJson(super.json)
+      : script = createServiceObject(json['script'], const ['ScriptRef'])
+            as ScriptRef?,
+        scriptUri = json['scriptUri'],
+        tokenPos = json['tokenPos'],
+        line = json['line'],
+        column = json['column'],
+        super._fromJson();
 
   @override
   String get type => 'UnresolvedSourceLocation';
@@ -8582,9 +8518,9 @@ class UriList extends Response {
     this.uris,
   });
 
-  UriList._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    uris = List<String?>.from(json['uris']);
-  }
+  UriList._fromJson(super.json)
+      : uris = List<String?>.from(json['uris']),
+        super._fromJson();
 
   @override
   String get type => 'UriList';
@@ -8617,10 +8553,10 @@ class Version extends Response {
     this.minor,
   });
 
-  Version._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    major = json['major'] ?? -1;
-    minor = json['minor'] ?? -1;
-  }
+  Version._fromJson(super.json)
+      : major = json['major'] ?? -1,
+        minor = json['minor'] ?? -1,
+        super._fromJson();
 
   @override
   String get type => 'Version';
@@ -8648,9 +8584,9 @@ class VMRef extends Response {
     this.name,
   });
 
-  VMRef._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-  }
+  VMRef._fromJson(super.json)
+      : name = json['name'] ?? '',
+        super._fromJson();
 
   @override
   String get type => '@VM';
@@ -8723,30 +8659,24 @@ class VM extends Response implements VMRef {
     this.systemIsolateGroups,
   });
 
-  VM._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
-    name = json['name'] ?? '';
-    architectureBits = json['architectureBits'] ?? -1;
-    hostCPU = json['hostCPU'] ?? '';
-    operatingSystem = json['operatingSystem'] ?? '';
-    targetCPU = json['targetCPU'] ?? '';
-    version = json['version'] ?? '';
-    pid = json['pid'] ?? -1;
-    startTime = json['startTime'] ?? -1;
-    isolates = List<IsolateRef>.from(
-        createServiceObject(json['isolates'], const ['IsolateRef']) as List? ??
-            []);
-    isolateGroups = List<IsolateGroupRef>.from(
-        createServiceObject(json['isolateGroups'], const ['IsolateGroupRef'])
-                as List? ??
-            []);
-    systemIsolates = List<IsolateRef>.from(
-        createServiceObject(json['systemIsolates'], const ['IsolateRef'])
-                as List? ??
-            []);
-    systemIsolateGroups = List<IsolateGroupRef>.from(createServiceObject(
-            json['systemIsolateGroups'], const ['IsolateGroupRef']) as List? ??
-        []);
-  }
+  VM._fromJson(super.json)
+      : name = json['name'] ?? '',
+        architectureBits = json['architectureBits'] ?? -1,
+        hostCPU = json['hostCPU'] ?? '',
+        operatingSystem = json['operatingSystem'] ?? '',
+        targetCPU = json['targetCPU'] ?? '',
+        version = json['version'] ?? '',
+        pid = json['pid'] ?? -1,
+        startTime = json['startTime'] ?? -1,
+        isolates = _createServiceObjectListOrNull<IsolateRef>(
+            json['isolates'], const ['IsolateRef']),
+        isolateGroups = _createServiceObjectListOrNull<IsolateGroupRef>(
+            json['isolateGroups'], const ['IsolateGroupRef']),
+        systemIsolates = _createServiceObjectListOrNull<IsolateRef>(
+            json['systemIsolates'], const ['IsolateRef']),
+        systemIsolateGroups = _createServiceObjectListOrNull<IsolateGroupRef>(
+            json['systemIsolateGroups'], const ['IsolateGroupRef']),
+        super._fromJson();
 
   @override
   String get type => 'VM';

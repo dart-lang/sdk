@@ -130,6 +130,92 @@ class Monitor {
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
 
+class ReentrantMonitor {
+ public:
+  using WaitResult = ConditionVariable::WaitResult;
+  static constexpr WaitResult kNotified = ConditionVariable::kNotified;
+  static constexpr WaitResult kTimedOut = ConditionVariable::kTimedOut;
+
+  static constexpr int64_t kNoTimeout = ConditionVariable::kNoTimeout;
+
+  ReentrantMonitor() {}
+  ~ReentrantMonitor() {}
+
+  bool IsOwnedByCurrentThread() const {
+    return owner_ == platform::GetCurrentThreadId();
+  }
+
+  bool TryEnter() {
+    bool entered = false;
+    if (IsOwnedByCurrentThread()) {
+      entered = true;
+    } else {
+      entered = mutex_.TryLock();
+      if (entered) {
+        owner_ = platform::GetCurrentThreadId();
+      }
+    }
+    if (entered) {
+      ++depth_;
+      ASSERT(owner_ == platform::GetCurrentThreadId());
+    }
+    return entered;
+  }
+
+  void Enter() {
+    ASSERT(depth_ >= 0);
+    if (!IsOwnedByCurrentThread()) {
+      mutex_.Lock();
+      owner_ = platform::GetCurrentThreadId();
+    }
+    ASSERT(owner_ == platform::GetCurrentThreadId());
+    ++depth_;
+  }
+
+  void Exit() {
+    ASSERT(depth_ > 0);
+    ASSERT(owner_ == platform::GetCurrentThreadId());
+    if (--depth_ == 0) {
+      owner_ = platform::kInvalidThreadId;
+      mutex_.Unlock();
+    }
+  }
+
+  WaitResult Wait(int64_t timeout_millis) {
+    ASSERT(IsOwnedByCurrentThread() && depth_ == 1);
+    --depth_;
+    owner_ = platform::kInvalidThreadId;
+    WaitResult result = cv_.Wait(&mutex_, timeout_millis);
+    owner_ = platform::GetCurrentThreadId();
+    ++depth_;
+    return result;
+  }
+
+  WaitResult WaitMicros(int64_t timeout_micros) {
+    ASSERT(IsOwnedByCurrentThread() && depth_ == 1);
+    --depth_;
+    owner_ = platform::kInvalidThreadId;
+    WaitResult result = cv_.WaitMicros(&mutex_, timeout_micros);
+    owner_ = platform::GetCurrentThreadId();
+    ++depth_;
+    return result;
+  }
+
+  // Notify waiting threads.
+  void Notify() { cv_.Notify(); }
+
+  void NotifyAll() { cv_.NotifyAll(); }
+
+ private:
+  Mutex mutex_;  // OS-specific data.
+  ConditionVariable cv_;
+
+  intptr_t depth_ = 0;
+  platform::ThreadId owner_ = platform::kInvalidThreadId;
+
+  DISALLOW_COPY_AND_ASSIGN(ReentrantMonitor);
+};
+
 }  // namespace dart
 
 #endif  // RUNTIME_PLATFORM_SYNCHRONIZATION_H_

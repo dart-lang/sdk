@@ -228,7 +228,7 @@ void f({@a}) {}
 ''');
     var f = findElement2.topFunction('f').firstFragment;
     var fragment = f.formalParameters.single;
-    expect(fragment.name2, isNull);
+    expect(fragment.name, isNull);
     expect(fragment.element.isNamed, isTrue);
 
     var result = await getFragmentDeclaration(fragment);
@@ -242,7 +242,7 @@ void f(@a) {}
 ''');
     var f = findElement2.topFunction('f').firstFragment;
     var fragment = f.formalParameters.single;
-    expect(fragment.name2, isNull);
+    expect(fragment.name, isNull);
     expect(fragment.element.isPositional, isTrue);
 
     var result = await getFragmentDeclaration(fragment);
@@ -277,7 +277,7 @@ void foo() {}
 typedef F = void Function();
 ''');
     var typeAlias = findElement2.typeAlias('F');
-    var fragment = typeAlias.aliasedElement2!.firstFragment;
+    var fragment = typeAlias.aliasedElement!.firstFragment;
     var result = await getFragmentDeclaration(fragment);
     expect(result, isNull);
   }
@@ -408,7 +408,7 @@ class GetElementDeclarationParsedTest extends PubPackageResolutionTest
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
     Fragment fragment,
   ) async {
-    var library = fragment.element.library2!;
+    var library = fragment.element.library!;
     var path = library.firstFragment.source.fullName;
     var file = getFile(path);
     var parsedLibrary = await _getParsedLibrary(file);
@@ -428,7 +428,7 @@ class GetElementDeclarationResolvedTest extends PubPackageResolutionTest
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
     Fragment fragment,
   ) async {
-    var library = fragment.element.library2!;
+    var library = fragment.element.library!;
     var path = library.firstFragment.source.fullName;
     var file = getFile(path);
     var resolvedLibrary = await _getResolvedLibrary(file);

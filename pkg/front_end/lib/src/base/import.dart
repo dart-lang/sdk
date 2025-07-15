@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/library_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../source/source_library_builder.dart';

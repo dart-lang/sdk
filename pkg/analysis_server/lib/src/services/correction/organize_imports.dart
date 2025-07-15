@@ -24,7 +24,7 @@ class ImportOrganizer {
 
   final CompilationUnit unit;
 
-  final List<Diagnostic> errors;
+  final List<Diagnostic> diagnostics;
 
   final bool removeUnused;
 
@@ -37,13 +37,13 @@ class ImportOrganizer {
   ImportOrganizer(
     this.initialCode,
     this.unit,
-    this.errors, {
+    this.diagnostics, {
     this.removeUnused = true,
   }) : code = initialCode {
     endOfLine = getEOL(code);
-    hasUnresolvedIdentifierError = errors.any((error) {
-      return error.errorCode.isUnresolvedIdentifier;
-    });
+    hasUnresolvedIdentifierError = diagnostics.any(
+      (d) => d.diagnosticCode.isUnresolvedIdentifier,
+    );
   }
 
   /// Return the [SourceEdit]s that organize imports in the [unit].
@@ -64,11 +64,11 @@ class ImportOrganizer {
   }
 
   bool _isUnusedImport(UriBasedDirective directive) {
-    for (var error in errors) {
-      if ((error.errorCode == WarningCode.DUPLICATE_IMPORT ||
-              error.errorCode == WarningCode.UNUSED_IMPORT ||
-              error.errorCode == HintCode.UNNECESSARY_IMPORT) &&
-          directive.uri.offset == error.offset) {
+    for (var diagnostic in diagnostics) {
+      if ((diagnostic.diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
+              diagnostic.diagnosticCode == WarningCode.UNUSED_IMPORT ||
+              diagnostic.diagnosticCode == HintCode.UNNECESSARY_IMPORT) &&
+          directive.uri.offset == diagnostic.offset) {
         return true;
       }
     }
@@ -76,9 +76,9 @@ class ImportOrganizer {
   }
 
   bool _isUnusedShowName(SimpleIdentifier name) {
-    for (var error in errors) {
-      if ((error.errorCode == WarningCode.UNUSED_SHOWN_NAME) &&
-          name.offset == error.offset) {
+    for (var diagnostic in diagnostics) {
+      if ((diagnostic.diagnosticCode == WarningCode.UNUSED_SHOWN_NAME) &&
+          name.offset == diagnostic.offset) {
         return true;
       }
     }

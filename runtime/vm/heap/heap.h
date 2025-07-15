@@ -119,7 +119,6 @@ class Heap {
   void StartConcurrentMarking(Thread* thread, GCReason reason);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
-  void WaitForSweeperTasksAtSafepoint(Thread* thread);
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.

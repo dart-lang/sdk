@@ -14,7 +14,7 @@ final String stdinPipePath = '/dev/fd/0';
 
 startProcess(Directory dir, String fname, String script, String result) async {
   File file = new File(join(dir.path, fname));
-  file.writeAsString(script);
+  file.writeAsStringSync(script);
   StringBuffer output = new StringBuffer();
   Process process = await Process.start(
     Platform.executable,
@@ -24,28 +24,17 @@ startProcess(Directory dir, String fname, String script, String result) async {
       ..add('--verbosity=warning')
       ..add(file.path),
   );
-  bool stdinWriteFailed = false;
   process.stdout.transform(utf8.decoder).listen(output.write);
   process.stderr.transform(utf8.decoder).listen((data) {
-    if (!stdinWriteFailed) {
-      Expect.fail(data);
-      process.kill();
-    }
+    // No stderr data expected (the subprocess will catch exceptions and print
+    // them to stdout).
+    Expect.fail(data);
   });
-  process.stdin.done.catchError((e) {
-    // If the write to stdin fails, then give up. We can't test the thing we
-    // wanted to test.
-    stdinWriteFailed = true;
-    process.kill();
-  });
-  await process.stdin.flush();
   await process.stdin.close();
 
   int status = await process.exitCode;
-  if (!stdinWriteFailed) {
-    Expect.equals(0, status);
-    Expect.contains(result, output.toString());
-  }
+  Expect.equals(0, status);
+  Expect.contains(result, output.toString());
 }
 
 main() async {

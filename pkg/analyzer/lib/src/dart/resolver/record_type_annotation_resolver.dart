@@ -13,19 +13,19 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /// Helper for resolving [RecordTypeAnnotation]s.
 class RecordTypeAnnotationResolver {
   final TypeProviderImpl typeProvider;
-  final ErrorReporter errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
   final LibraryElement libraryElement;
 
   RecordTypeAnnotationResolver({
     required this.typeProvider,
-    required this.errorReporter,
+    required DiagnosticReporter diagnosticReporter,
     required this.libraryElement,
-  });
+  }) : _diagnosticReporter = diagnosticReporter;
 
   bool get isWildCardVariablesEnabled =>
       libraryElement.featureSet.isEnabled(Feature.wildcard_variables);
@@ -47,9 +47,9 @@ class RecordTypeAnnotationResolver {
 
         var previousField = usedNames[name];
         if (previousField != null) {
-          errorReporter.reportError(
+          _diagnosticReporter.reportError(
             DiagnosticFactory().duplicateFieldDefinitionInType(
-              errorReporter.source,
+              _diagnosticReporter.source,
               field,
               previousField,
             ),
@@ -72,7 +72,7 @@ class RecordTypeAnnotationResolver {
         if (name.startsWith('_')) {
           // Positional record fields named `_` are legal w/ wildcards.
           if (!isPositionalWildCard(field, name)) {
-            errorReporter.atToken(
+            _diagnosticReporter.atToken(
               nameToken,
               CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE,
             );
@@ -82,7 +82,7 @@ class RecordTypeAnnotationResolver {
           if (index != null) {
             if (index < positionalCount &&
                 positionalFields.indexOf(field) != index) {
-              errorReporter.atToken(
+              _diagnosticReporter.atToken(
                 nameToken,
                 CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL,
               );
@@ -90,7 +90,7 @@ class RecordTypeAnnotationResolver {
           } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
             name,
           )) {
-            errorReporter.atToken(
+            _diagnosticReporter.atToken(
               nameToken,
               CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT,
             );

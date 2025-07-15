@@ -40,7 +40,10 @@ class Compile extends Step<Data, Data, ChainContext> {
 
     data.outDir = await Directory.systemTemp.createTemp('ddc_step_test');
     data.code = AnnotatedCode.fromText(
-        File(inputFile).readAsStringSync(), commentStart, commentEnd);
+      File(inputFile).readAsStringSync(),
+      commentStart,
+      commentEnd,
+    );
     data.testFileName = 'test.dart';
     var outDirUri = data.outDir.uri;
     var testFile = outDirUri.resolve(data.testFileName);
@@ -70,12 +73,16 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     data.outDir = await Directory.systemTemp.createTemp('stacktrace-test');
     var code = await File.fromUri(data.uri).readAsString();
     var test = processTestCode(code, knownMarkers);
-    await testStackTrace(test, marker, _compile,
-        jsPreambles: _getPreambles,
-        useJsMethodNamesOnAbsence: true,
-        jsNameConverter: _convertName,
-        forcedTmpDir: data.outDir,
-        verbose: true);
+    await testStackTrace(
+      test,
+      marker,
+      _compile,
+      jsPreambles: _getPreambles,
+      useJsMethodNamesOnAbsence: true,
+      jsNameConverter: _convertName,
+      forcedTmpDir: data.outDir,
+      verbose: true,
+    );
     return pass(data);
   }
 
@@ -89,7 +96,7 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
     return [
       '--module',
       _getWrapperPathFromDirectoryFile(Uri.file(input)).toFilePath(),
-      '--'
+      '--',
     ];
   }
 
@@ -130,13 +137,14 @@ Directory getDdcDir() {
   return _cachedDdcDir ??= search();
 }
 
-String getWrapperContent(
-    {required Uri sdkJsFile,
-    required Uri? ddcModuleLoaderFile,
-    required Uri inputFile,
-    required Uri outputFile,
-    required String moduleFormat,
-    required bool canary}) {
+String getWrapperContent({
+  required Uri sdkJsFile,
+  required Uri? ddcModuleLoaderFile,
+  required Uri inputFile,
+  required Uri outputFile,
+  required String moduleFormat,
+  required bool canary,
+}) {
   assert(sdkJsFile.isAbsolute);
   var imports = '';
   String mainClosure;
@@ -144,14 +152,16 @@ String getWrapperContent(
     var inputPath = inputFile.path;
     inputPath = inputPath.substring(0, inputPath.lastIndexOf('.'));
     final inputFileNameNoExt = pathToJSIdentifier(inputPath);
-    imports = '''
+    imports =
+        '''
     import { dart, _isolate_helper } from '${uriPathForwardSlashed(sdkJsFile)}';
     import { $inputFileNameNoExt } from '${outputFile.pathSegments.last}';
     ''';
     mainClosure = '$inputFileNameNoExt.main';
   } else {
     assert(moduleFormat == 'ddc' && canary);
-    imports = '''
+    imports =
+        '''
       load('${uriPathForwardSlashed(ddcModuleLoaderFile!)}');
       load('${uriPathForwardSlashed(sdkJsFile)}');
       load('${uriPathForwardSlashed(outputFile)}');
@@ -185,46 +195,56 @@ String getWrapperContent(
     ''';
 }
 
-void createHtmlWrapper(
-    {required Uri inputFile,
-    required Uri sdkJsFile,
-    required Uri outputFile,
-    required String jsContent,
-    required String outputFilename,
-    required String moduleFormat,
-    required bool canary}) {
+void createHtmlWrapper({
+  required Uri inputFile,
+  required Uri sdkJsFile,
+  required Uri outputFile,
+  required String jsContent,
+  required String outputFilename,
+  required String moduleFormat,
+  required bool canary,
+}) {
   // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
   var sdkRootPath = sdkRoot!.path;
   var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRootPath));
   var jsRootDart = '/root_dart/${sdkFile.uri}';
   File.fromUri(outputFile.resolve('$outputFilename.html.js')).writeAsStringSync(
-      jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));
-  File.fromUri(outputFile.resolve('$outputFilename.html.html'))
-      .writeAsStringSync(getWrapperHtmlContent(
-          inputFile: inputFile,
-          jsRootDart: jsRootDart,
-          outFileRootBuild: '/root_build/$outputFilename.html.js',
-          moduleFormat: moduleFormat,
-          canary: canary));
+    jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"),
+  );
+  File.fromUri(
+    outputFile.resolve('$outputFilename.html.html'),
+  ).writeAsStringSync(
+    getWrapperHtmlContent(
+      inputFile: inputFile,
+      jsRootDart: jsRootDart,
+      outFileRootBuild: '/root_build/$outputFilename.html.js',
+      moduleFormat: moduleFormat,
+      canary: canary,
+    ),
+  );
 
-  print('You should now be able to run\n\n'
-      'dart $sdkRootPath/pkg/test_runner/bin/http_server.dart -p 39550 '
-      '--network 127.0.0.1 '
-      '--build-directory=${outputFile.resolve('.').toFilePath()}'
-      '\n\nand go to\n\n'
-      'http://127.0.0.1:39550/root_build/$outputFilename.html.html'
-      '\n\nto step through via the browser.');
+  print(
+    'You should now be able to run\n\n'
+    'dart $sdkRootPath/pkg/test_runner/bin/http_server.dart -p 39550 '
+    '--network 127.0.0.1 '
+    '--build-directory=${outputFile.resolve('.').toFilePath()}'
+    '\n\nand go to\n\n'
+    'http://127.0.0.1:39550/root_build/$outputFilename.html.html'
+    '\n\nto step through via the browser.',
+  );
 }
 
-String getWrapperHtmlContent(
-    {required Uri inputFile,
-    required String jsRootDart,
-    required String outFileRootBuild,
-    required String moduleFormat,
-    required bool canary}) {
+String getWrapperHtmlContent({
+  required Uri inputFile,
+  required String jsRootDart,
+  required String outFileRootBuild,
+  required String moduleFormat,
+  required bool canary,
+}) {
   String callMain;
   if (moduleFormat == 'es6') {
-    callMain = '''
+    callMain =
+        '''
       import { dart, _isolate_helper } from '$jsRootDart';
       import { test } from '$outFileRootBuild';
       let main = test.main;
@@ -253,9 +273,11 @@ String getWrapperHtmlContent(
 Uri selfUri = currentMirrorSystem()
     .findLibrary(#dev_compiler.test.sourcemap.ddc_common)
     .uri;
-String d8Preambles = File.fromUri(selfUri.resolve(
-        '../../../../sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js'))
-    .readAsStringSync();
+String d8Preambles = File.fromUri(
+  selfUri.resolve(
+    '../../../../sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js',
+  ),
+).readAsStringSync();
 
 /// Transforms a path to a valid JS identifier.
 ///
@@ -266,11 +288,13 @@ String pathToJSIdentifier(String path) {
   if (path.startsWith('/') || path.startsWith('\\')) {
     path = path.substring(1, path.length);
   }
-  return _toJSIdentifier(path
-      .replaceAll('\\', '__')
-      .replaceAll('/', '__')
-      .replaceAll('..', '__')
-      .replaceAll('-', '_'));
+  return _toJSIdentifier(
+    path
+        .replaceAll('\\', '__')
+        .replaceAll('/', '__')
+        .replaceAll('..', '__')
+        .replaceAll('-', '_'),
+  );
 }
 
 /// Escape [name] to make it into a valid identifier.

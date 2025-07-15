@@ -36,11 +36,11 @@ extension on C {
       f(this.dProp);
       //     ^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-      // [cfe] The getter 'dProp' isn't defined for the class 'C'.
+      // [cfe] The getter 'dProp' isn't defined for the type 'C'.
       f(dProp);
       //^^^^^
       // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
-      // [cfe] The getter 'dProp' isn't defined for the class 'C'.
+      // [cfe] The getter 'dProp' isn't defined for the type 'C'.
     }
   }
 }

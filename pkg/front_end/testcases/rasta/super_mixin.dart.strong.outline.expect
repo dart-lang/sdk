@@ -49,7 +49,7 @@ class C2<V extends core::Object? = dynamic> = self::Super<self::C2::V%> with mix
     return super.{mix::Mixin::h}();
   synthetic mixin-super-stub method l() → dynamic
     return super.{mix::Mixin::l}();
-  synthetic mixin-super-stub method _privateMethod() → dynamic
+  synthetic mixin-super-stub method mix::_privateMethod() → dynamic
     return super.{mix::Mixin::_privateMethod}();
   synthetic mixin-super-stub method publicMethod() → dynamic
     return super.{mix::Mixin::publicMethod}();
@@ -82,7 +82,7 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
     return super.{mix::Mixin::h}();
   synthetic mixin-super-stub method l() → dynamic
     return super.{mix::Mixin::l}();
-  synthetic mixin-super-stub method _privateMethod() → dynamic
+  synthetic mixin-super-stub method mix::_privateMethod() → dynamic
     return super.{mix::Mixin::_privateMethod}();
   synthetic mixin-super-stub method publicMethod() → dynamic
     return super.{mix::Mixin::publicMethod}();
@@ -115,7 +115,7 @@ abstract class _C&Super&Mixin<V extends core::Object? = dynamic> = self::Super<s
     return super.{mix::Mixin::h}();
   synthetic mixin-super-stub method l() → dynamic
     return super.{mix::Mixin::l}();
-  synthetic mixin-super-stub method _privateMethod() → dynamic
+  synthetic mixin-super-stub method mix::_privateMethod() → dynamic
     return super.{mix::Mixin::_privateMethod}();
   synthetic mixin-super-stub method publicMethod() → dynamic
     return super.{mix::Mixin::publicMethod}();
@@ -148,7 +148,7 @@ abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> /*
     return super.{mix::Mixin::h}();
   synthetic mixin-super-stub method l() → dynamic
     return super.{mix::Mixin::l}();
-  synthetic mixin-super-stub method _privateMethod() → dynamic
+  synthetic mixin-super-stub method mix::_privateMethod() → dynamic
     return super.{mix::Mixin::_privateMethod}();
   synthetic mixin-super-stub method publicMethod() → dynamic
     return super.{mix::Mixin::publicMethod}();

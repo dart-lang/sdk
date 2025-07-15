@@ -34,7 +34,7 @@ f() {
     // The name _A is private to the library it's defined in, so this is a type
     // mismatch. Furthermore, the error message should mention both _A and the
     // filenames so the user can figure out what's going on.
-    String message = result.errors[0].message;
+    String message = result.diagnostics[0].message;
     expect(message.contains("_A"), isTrue);
   }
 

@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart' // ignore: implementation_imports
-    show TypeParameterElementImpl2;
+    show TypeParameterElementImpl;
 import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -28,10 +29,7 @@ class UnsafeVariance extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unsafe_variance;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addMethodDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -49,11 +47,11 @@ class _UnsafeVarianceChecker extends VarianceChecker {
     TypeAnnotation typeAnnotation,
   ) {
     if (staticType is TypeParameterType) {
-      var typeParameterElement = staticType.element3;
+      var typeParameterElement = staticType.element;
       if (!owningDeclarationSupportsVariance(typeParameterElement)) {
         return;
       }
-      if (typeParameterElement is TypeParameterElementImpl2) {
+      if (typeParameterElement is TypeParameterElementImpl) {
         if (typeParameterElement.firstFragment.isLegacyCovariant &&
             variance != Variance.out) {
           rule.reportAtNode(typeAnnotation);
@@ -86,7 +84,7 @@ class _UnsafeVarianceChecker extends VarianceChecker {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
   final VarianceChecker checker;
 
   _Visitor(this.rule, this.context) : checker = _UnsafeVarianceChecker(rule);

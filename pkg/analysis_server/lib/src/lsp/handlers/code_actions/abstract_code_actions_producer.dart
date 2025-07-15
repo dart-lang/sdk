@@ -245,7 +245,7 @@ abstract class AbstractCodeActionsProducer
       lineInfo: lineInfo,
       isLibrary: true,
       isPart: false,
-      errors: diagnostics,
+      diagnostics: diagnostics,
       analysisOptions: analysisOptions,
     );
   }

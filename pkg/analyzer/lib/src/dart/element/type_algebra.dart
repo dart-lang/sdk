@@ -22,10 +22,10 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 ///
 /// The returned object contains the fresh type parameter list as well as a
 /// mapping to be used for replacing other types to use the new type parameters.
-FreshTypeParameters getFreshTypeParameters2(
+FreshTypeParameters getFreshTypeParameters(
   List<TypeParameterElement> typeParameters,
 ) {
-  var freshParameters = List<TypeParameterElementImpl2>.generate(
+  var freshParameters = List<TypeParameterElementImpl>.generate(
     typeParameters.length,
     (i) => typeParameters[i].freshCopy(),
     growable: false,
@@ -34,17 +34,17 @@ FreshTypeParameters getFreshTypeParameters2(
   var map = <TypeParameterElement, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
     map[typeParameters[i]] = TypeParameterTypeImpl(
-      element3: freshParameters[i],
+      element: freshParameters[i],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  var substitution = Substitution.fromMap2(map);
+  var substitution = Substitution.fromMap(map);
 
   for (int i = 0; i < typeParameters.length; ++i) {
     // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
     // variance is added to the interface.
-    var typeParameter = typeParameters[i] as TypeParameterElementImpl2;
+    var typeParameter = typeParameters[i] as TypeParameterElementImpl;
     if (!typeParameter.isLegacyCovariant) {
       freshParameters[i].firstFragment.variance = typeParameter.variance;
     }
@@ -64,9 +64,9 @@ FreshTypeParameters getFreshTypeParameters2(
 /// the [newTypeParameters] in the formal parameters and return type.
 FunctionTypeImpl replaceTypeParameters(
   FunctionTypeImpl type,
-  List<TypeParameterElementImpl2> newTypeParameters,
+  List<TypeParameterElementImpl> newTypeParameters,
 ) {
-  assert(newTypeParameters.length == type.typeFormals.length);
+  assert(newTypeParameters.length == type.typeParameters.length);
   if (newTypeParameters.isEmpty) {
     return type;
   }
@@ -75,7 +75,10 @@ FunctionTypeImpl replaceTypeParameters(
       newTypeParameters
           .map((e) => e.instantiate(nullabilitySuffix: NullabilitySuffix.none))
           .toList();
-  var substitution = Substitution.fromPairs(type.typeFormals, typeArguments);
+  var substitution = Substitution.fromPairs2(
+    type.typeParameters,
+    typeArguments,
+  );
 
   FormalParameterElementMixin transformParameter(
     FormalParameterElementMixin p,
@@ -101,14 +104,14 @@ FunctionTypeImpl replaceTypeParameters(
 /// In particular, if no type parameters were substituted, this is guaranteed
 /// to return the [type] instance (not a copy), so the caller may use
 /// [identical] to efficiently check if a distinct type was created.
-DartType substitute2(
+DartType substitute(
   DartType type,
   Map<TypeParameterElement, DartType> substitution,
 ) {
   if (substitution.isEmpty) {
     return type;
   }
-  return Substitution.fromMap2(substitution).substituteType(type);
+  return Substitution.fromMap(substitution).substituteType(type);
 }
 
 ///  1. Substituting T=X! into T! yields X!
@@ -123,7 +126,7 @@ NullabilitySuffix uniteNullabilities(NullabilitySuffix a, NullabilitySuffix b) {
 }
 
 class FreshTypeParameters {
-  final List<TypeParameterElementImpl2> freshTypeParameters;
+  final List<TypeParameterElementImpl> freshTypeParameters;
   final Substitution substitution;
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
@@ -195,11 +198,11 @@ abstract class Substitution {
     if (type.typeArguments.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return fromPairs2(type.element3.typeParameters2, type.typeArguments);
+    return fromPairs2(type.element.typeParameters, type.typeArguments);
   }
 
   /// Substitutes each parameter to the type it maps to in [map].
-  static MapSubstitution fromMap2(Map<TypeParameterElement, DartType> map) {
+  static MapSubstitution fromMap(Map<TypeParameterElement, DartType> map) {
     if (map.isEmpty) {
       return _NullSubstitution.instance;
     }
@@ -225,7 +228,7 @@ abstract class Substitution {
     if (parameters.isEmpty) {
       return _NullSubstitution.instance;
     }
-    return fromMap2(
+    return fromMap(
       Map<TypeParameterElement, DartType>.fromIterables(parameters, types),
     );
   }
@@ -250,18 +253,18 @@ class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   _FreshTypeParametersSubstitutor(_TypeSubstitutor super.outer);
 
   @override
-  List<TypeParameterElementImpl2> freshTypeParameters(
-    List<TypeParameterElementImpl2> elements,
+  List<TypeParameterElementImpl> freshTypeParameters(
+    List<TypeParameterElementImpl> elements,
   ) {
     if (elements.isEmpty) {
-      return const <TypeParameterElementImpl2>[];
+      return const <TypeParameterElementImpl>[];
     }
 
     var freshElements = List.generate(elements.length, (index) {
       var element = elements[index];
       var freshElement = TypeParameterFragmentImpl(
-        name2: element.name3,
-        nameOffset: -1,
+        name: element.name,
+        firstTokenOffset: null,
       );
       var freshType = freshElement.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
@@ -317,7 +320,7 @@ class _NullSubstitution extends MapSubstitution {
   @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return TypeParameterTypeImpl(
-      element3: parameter as TypeParameterElementImpl2,
+      element: parameter as TypeParameterElementImpl,
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
@@ -340,8 +343,8 @@ class _TopSubstitutor extends _TypeSubstitutor {
   }
 
   @override
-  List<TypeParameterElementImpl2> freshTypeParameters(
-    List<TypeParameterElementImpl2> parameters,
+  List<TypeParameterElementImpl> freshTypeParameters(
+    List<TypeParameterElementImpl> parameters,
   ) {
     throw 'Create a fresh environment first';
   }
@@ -381,8 +384,8 @@ abstract class _TypeSubstitutor
     target.useCounter++;
   }
 
-  List<TypeParameterElementImpl2> freshTypeParameters(
-    List<TypeParameterElementImpl2> elements,
+  List<TypeParameterElementImpl> freshTypeParameters(
+    List<TypeParameterElementImpl> elements,
   );
 
   DartType? getSubstitute(TypeParameterElement parameter) {
@@ -480,7 +483,7 @@ abstract class _TypeSubstitutor
       typeParameters =
           inner
               .freshTypeParameters(typeParameters)
-              .cast<TypeParameterElementImpl2>()
+              .cast<TypeParameterElementImpl>()
               .toFixedList();
     }
 
@@ -521,7 +524,7 @@ abstract class _TypeSubstitutor
     }
 
     return InterfaceTypeImpl(
-      element: type.element3,
+      element: type.element,
       typeArguments: typeArguments,
       nullabilitySuffix: type.nullabilitySuffix,
       alias: alias,
@@ -546,7 +549,7 @@ abstract class _TypeSubstitutor
     return NamedTypeBuilder(
       linker: type.linker,
       typeSystem: type.typeSystem,
-      element3: type.element3,
+      element: type.element,
       arguments: arguments,
       nullabilitySuffix: type.nullabilitySuffix,
     );
@@ -593,7 +596,7 @@ abstract class _TypeSubstitutor
 
   @override
   TypeImpl visitTypeParameterType(covariant TypeParameterTypeImpl type) {
-    var argument = getSubstitute(type.element3);
+    var argument = getSubstitute(type.element);
     if (argument == null) {
       return type;
     }
@@ -617,7 +620,7 @@ abstract class _TypeSubstitutor
       return null;
     }
     return InstantiatedTypeAliasElementImpl(
-      element2: alias.element2,
+      element: alias.element,
       typeArguments: _mapList(alias.typeArguments),
     );
   }

@@ -18,7 +18,7 @@ class B extends A {
   foo() => (super == null) + 4;
   //                       ^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-  // [cfe] The operator '+' isn't defined for the class 'bool'.
+  // [cfe] The operator '+' isn't defined for the type 'bool'.
 }
 
 main() {

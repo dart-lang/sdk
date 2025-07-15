@@ -11,11 +11,13 @@ import 'package:kernel/kernel.dart' hide Pattern;
 import 'constants.dart';
 
 Never throwUnsupportedInvalidType(InvalidType type) => throw UnsupportedError(
-    'Unsupported invalid type $type (${type.runtimeType}).');
+  'Unsupported invalid type $type (${type.runtimeType}).',
+);
 
 Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
     throw UnsupportedError(
-        'Unsupported auxiliary type $type (${type.runtimeType}).');
+      'Unsupported auxiliary type $type (${type.runtimeType}).',
+    );
 
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
@@ -56,7 +58,8 @@ String getLocalClassName(Class node) => escapeIdentifier(node.name);
 
 /// Returns the escaped name for the type parameter [node].
 String getTypeParameterName(
-    /* TypeParameter | StructuralParameter */ Object node) {
+  /* TypeParameter | StructuralParameter */ Object node,
+) {
   assert(node is TypeParameter || node is StructuralParameter);
   if (node is TypeParameter) {
     return escapeIdentifier(node.name!);
@@ -108,7 +111,10 @@ Expression? findAnnotation(TreeNode node, bool Function(Expression) test) {
 /// Returns true if [value] represents an annotation for class [className] in
 /// "dart:" library [libraryName].
 bool isBuiltinAnnotation(
-    Expression value, String libraryName, String className) {
+  Expression value,
+  String libraryName,
+  String className,
+) {
   var c = getAnnotationClass(value);
   if (c != null && c.name == className) {
     var uri = c.enclosingLibrary.importUri;
@@ -599,8 +605,10 @@ class BasicInlineTester extends TreeVisitorDefault<bool> {
     // The variable is an argument of the function to be inlined. Verify it
     // appears in an order consistent with the order the arguments appeared
     // in the call.
-    final location =
-        _expectedArgumentOrder!.indexOf(node.variable, _nextArgIndex);
+    final location = _expectedArgumentOrder!.indexOf(
+      node.variable,
+      _nextArgIndex,
+    );
     // Either the variable isn't one of the expected arguments at all, or it is
     // appearing out of the expected order.
     if (location == -1) return false;

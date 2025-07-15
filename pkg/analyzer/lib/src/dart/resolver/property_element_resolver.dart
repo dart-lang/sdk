@@ -31,7 +31,7 @@ class PropertyElementResolver with ScopeHelpers {
   PropertyElementResolver(this._resolver);
 
   @override
-  ErrorReporter get errorReporter => _resolver.errorReporter;
+  DiagnosticReporter get diagnosticReporter => _resolver.diagnosticReporter;
 
   LibraryElementImpl get _definingLibrary => _resolver.definingLibrary;
 
@@ -61,16 +61,16 @@ class PropertyElementResolver with ScopeHelpers {
     if (context is InterfaceTypeImpl) {
       var identifier = node.propertyName;
       // Find constructor tearoffs.
-      var element = context.lookUpConstructor2(
+      var element = context.lookUpConstructor(
         identifier.name,
         _definingLibrary,
       );
       if (element != null) {
         if (!element.isFactory) {
           var enclosingElement = element.enclosingElement;
-          if (enclosingElement is ClassElementImpl2 &&
+          if (enclosingElement is ClassElementImpl &&
               enclosingElement.isAbstract) {
-            _resolver.errorReporter.atNode(
+            _resolver.diagnosticReporter.atNode(
               node,
               CompileTimeErrorCode
                   .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
@@ -81,12 +81,12 @@ class PropertyElementResolver with ScopeHelpers {
         // Infer type parameters.
         var elementToInfer = _resolver.inferenceHelper
             .constructorElementToInfer(
-              typeElement: context.element3,
+              typeElement: context.element,
               constructorName: identifier,
               definingLibrary: _resolver.definingLibrary,
             );
         if (elementToInfer != null &&
-            elementToInfer.typeParameters2.isNotEmpty) {
+            elementToInfer.typeParameters.isNotEmpty) {
           var inferred =
               _resolver.inferenceHelper.inferTearOff(
                     node,
@@ -97,7 +97,7 @@ class PropertyElementResolver with ScopeHelpers {
                   as FunctionType;
           var inferredType = inferred.returnType;
           var constructorElement = ConstructorMember.from2(
-            elementToInfer.element2.baseElement,
+            elementToInfer.element.baseElement,
             inferredType as InterfaceType,
           );
           node.propertyName.element = constructorElement.baseElement;
@@ -114,7 +114,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       // Didn't find any constructor tearoffs, look for static getters.
-      var contextElement = context.element3;
+      var contextElement = context.element;
       return _resolveTargetInterfaceElement(
         typeReference: contextElement,
         isCascaded: false,
@@ -125,7 +125,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    errorReporter.atNode(
+    diagnosticReporter.atNode(
       node,
       CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
     );
@@ -151,7 +151,7 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]', target.element2.name3!],
+          ['[]', target.element.name!],
         );
       }
 
@@ -163,7 +163,7 @@ class PropertyElementResolver with ScopeHelpers {
         _reportUnresolvedIndex(
           node,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR,
-          ['[]=', target.element2.name3!],
+          ['[]=', target.element.name!],
         );
       }
 
@@ -186,7 +186,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (identical(targetType, NeverTypeImpl.instance)) {
       // TODO(scheglov): Report directly in TypePropertyResolver?
-      errorReporter.atNode(target, WarningCode.RECEIVER_OF_TYPE_NEVER);
+      diagnosticReporter.atNode(target, WarningCode.RECEIVER_OF_TYPE_NEVER);
       return PropertyElementResolverResult();
     }
 
@@ -379,7 +379,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElementRequested = writeLookup?.requested;
       writeElementRecovery = writeLookup?.recovery;
 
-      AssignmentVerifier(errorReporter).verify(
+      AssignmentVerifier(diagnosticReporter).verify(
         node: node,
         requested: writeElementRequested,
         recovery: writeElementRecovery,
@@ -405,7 +405,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element.isStatic) return false;
 
-    errorReporter.atNode(
+    diagnosticReporter.atNode(
       identifier,
       CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
       arguments: [identifier.name],
@@ -420,15 +420,15 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     if (element != null && element.isStatic) {
       if (target is ExtensionOverride) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
         );
       } else {
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
-            enclosingElement.name3 == null) {
-          _resolver.errorReporter.atNode(
+            enclosingElement.name == null) {
+          _resolver.diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode
                 .INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION,
@@ -438,13 +438,13 @@ class PropertyElementResolver with ScopeHelpers {
           // It is safe to assume that `enclosingElement.name` is non-`null`
           // because it can only be `null` for extensions, and we handle that
           // case above.
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
             arguments: [
               propertyName.name,
               element.kind.displayName,
-              enclosingElement!.name3!,
+              enclosingElement!.name!,
               enclosingElement is MixinElement
                   ? 'mixin'
                   : enclosingElement.kind.displayName,
@@ -456,7 +456,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   bool _isAccessible(ExecutableElement element) {
-    return element.isAccessibleIn2(_definingLibrary);
+    return element.isAccessibleIn(_definingLibrary);
   }
 
   void _reportUnresolvedIndex(
@@ -469,7 +469,7 @@ class PropertyElementResolver with ScopeHelpers {
     var offset = leftBracket.offset;
     var length = rightBracket.end - offset;
 
-    errorReporter.atOffset(
+    diagnosticReporter.atOffset(
       offset: offset,
       length: length,
       diagnosticCode: diagnosticCode,
@@ -506,7 +506,7 @@ class PropertyElementResolver with ScopeHelpers {
         var aliasedType = targetElement.aliasedType;
         if (aliasedType is InterfaceType) {
           return _resolveTargetInterfaceElement(
-            typeReference: aliasedType.element3,
+            typeReference: aliasedType.element,
             isCascaded: isCascaded,
             propertyName: propertyName,
             hasRead: hasRead,
@@ -542,7 +542,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (targetType is VoidType) {
-      errorReporter.atNode(
+      diagnosticReporter.atNode(
         propertyName,
         CompileTimeErrorCode.USE_OF_VOID_RESULT,
       );
@@ -558,13 +558,13 @@ class PropertyElementResolver with ScopeHelpers {
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
       if (hasRead) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE,
           arguments: [propertyName.name, target.type.qualifiedName],
         );
       } else {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE,
           arguments: [propertyName.name, target.type.qualifiedName],
@@ -607,7 +607,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       _checkForStaticMember(target, propertyName, result.getter2);
       if (result.needsGetterError) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_GETTER,
           arguments: [propertyName.name, targetType],
@@ -628,7 +628,7 @@ class PropertyElementResolver with ScopeHelpers {
           nameErrorEntity: propertyName,
         );
 
-        AssignmentVerifier(errorReporter).verify(
+        AssignmentVerifier(diagnosticReporter).verify(
           node: propertyName,
           requested: null,
           recovery: readResult.getter2,
@@ -667,10 +667,10 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `extension.name` is non-`null`.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-          arguments: [memberName, extension.name3!],
+          arguments: [memberName, extension.name!],
         );
       } else {
         getType = readElement.returnType;
@@ -687,10 +687,10 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-          arguments: [memberName, extension.name3!],
+          arguments: [memberName, extension.name!],
         );
       } else {
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
@@ -717,13 +717,13 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     if (target.parent is CascadeExpression) {
       // Report this error and recover by treating it like a non-cascade.
-      errorReporter.atToken(
+      diagnosticReporter.atToken(
         target.name,
         CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE,
       );
     }
 
-    var element = target.element2;
+    var element = target.element;
     var memberName = propertyName.name;
 
     var result = _extensionResolver.getOverrideMember(target, memberName);
@@ -736,10 +736,10 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER,
-          arguments: [memberName, element.name3!],
+          arguments: [memberName, element.name!],
         );
       } else {
         getType = readElement.returnType;
@@ -754,10 +754,10 @@ class PropertyElementResolver with ScopeHelpers {
         // This method is only called for extension overrides, and extension
         // overrides can only refer to named extensions.  So it is safe to
         // assume that `element.name` is non-`null`.
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           propertyName,
           CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER,
-          arguments: [memberName, element.name3!],
+          arguments: [memberName, element.name!],
         );
       }
       _checkForStaticMember(target, propertyName, writeElement);
@@ -779,7 +779,7 @@ class PropertyElementResolver with ScopeHelpers {
     bool resolvingDotShorthand = false,
   }) {
     if (isCascaded) {
-      typeReference = _resolver.typeProvider.typeType.element3;
+      typeReference = _resolver.typeProvider.typeType.element;
     }
 
     ExecutableElement? readElement;
@@ -808,20 +808,20 @@ class PropertyElementResolver with ScopeHelpers {
         if (resolvingDotShorthand) {
           // We didn't resolve to any static getter or static field using the
           // context type.
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER,
-            arguments: [propertyName.name, typeReference.name3!],
+            arguments: [propertyName.name, typeReference.name!],
           );
         } else {
           var code =
               typeReference is EnumElement
                   ? CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT
                   : CompileTimeErrorCode.UNDEFINED_GETTER;
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             code,
-            arguments: [propertyName.name, typeReference.name3!],
+            arguments: [propertyName.name, typeReference.name!],
           );
         }
       }
@@ -833,7 +833,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = typeReference.getSetter(propertyName.name);
       if (writeElement != null) {
         if (!_isAccessible(writeElement)) {
-          errorReporter.atNode(
+          diagnosticReporter.atNode(
             propertyName,
             CompileTimeErrorCode.PRIVATE_SETTER,
             arguments: [propertyName.name],
@@ -846,7 +846,7 @@ class PropertyElementResolver with ScopeHelpers {
       } else {
         // Recovery, try to use getter.
         writeElementRecovery = typeReference.getGetter(propertyName.name);
-        AssignmentVerifier(errorReporter).verify(
+        AssignmentVerifier(diagnosticReporter).verify(
           node: propertyName,
           requested: null,
           recovery: writeElementRecovery,
@@ -889,13 +889,13 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
       if (!forAnnotation &&
           !_resolver.libraryFragment.shouldIgnoreUndefined(
-            prefix: target.name3,
+            prefix: target.name,
             name: identifier.name,
           )) {
-        errorReporter.atNode(
+        diagnosticReporter.atNode(
           identifier,
           CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME,
-          arguments: [identifier.name, target.name3!],
+          arguments: [identifier.name, target.name!],
         );
       }
     }
@@ -926,8 +926,8 @@ class PropertyElementResolver with ScopeHelpers {
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
         var name = Name(_definingLibrary.source.uri, propertyName.name);
-        readElement = _resolver.inheritance.getMember4(
-          targetType.element3,
+        readElement = _resolver.inheritance.getMember(
+          targetType.element,
           name,
           forSuper: true,
         );
@@ -938,18 +938,18 @@ class PropertyElementResolver with ScopeHelpers {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry simply looking for an inherited member.
-          readElement = _resolver.inheritance.getInherited4(
-            targetType.element3,
+          readElement = _resolver.inheritance.getInherited(
+            targetType.element,
             name,
           );
           if (readElement != null) {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
               arguments: [readElement.kind.displayName, propertyName.name],
             );
           } else {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.UNDEFINED_SUPER_GETTER,
               arguments: [propertyName.name, targetType],
@@ -972,7 +972,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       if (hasWrite) {
-        writeElement = targetType.lookUpSetter3(
+        writeElement = targetType.lookUpSetter(
           propertyName.name,
           _definingLibrary,
           concrete: true,
@@ -985,19 +985,19 @@ class PropertyElementResolver with ScopeHelpers {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry without the "concrete" requirement.
-          writeElement = targetType.lookUpSetter3(
+          writeElement = targetType.lookUpSetter(
             propertyName.name,
             _definingLibrary,
             inherited: true,
           );
           if (writeElement != null) {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
               arguments: [writeElement.kind.displayName, propertyName.name],
             );
           } else {
-            errorReporter.atNode(
+            diagnosticReporter.atNode(
               propertyName,
               CompileTimeErrorCode.UNDEFINED_SUPER_SETTER,
               arguments: [propertyName.name, targetType],

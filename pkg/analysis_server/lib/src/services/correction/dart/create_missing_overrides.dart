@@ -101,7 +101,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
               }
               builder.writeType(element.returnType, required: true);
               builder.write(' ');
-              builder.write(element.name3 ?? '');
+              builder.write(element.name ?? '');
               builder.write(';');
             }
           }

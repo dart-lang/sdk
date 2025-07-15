@@ -44,8 +44,8 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
     var classElement = classDeclaration.declaredFragment!.element;
     var superType = classElement.supertype;
-    var superElement = superType?.element3;
-    var superUnnamedConstructor = superElement?.unnamedConstructor2;
+    var superElement = superType?.element;
+    var superUnnamedConstructor = superElement?.unnamedConstructor;
     if (superUnnamedConstructor == null) return;
 
     var superParameters = superUnnamedConstructor.formalParameters;
@@ -54,7 +54,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
     var superPositionalParameters = <FormalParameterElement>[];
     for (var superParameter in superParameters) {
       if (superParameter.isRequired) {
-        var name = superParameter.name3;
+        var name = superParameter.name;
         if (superParameter.isNamed) {
           if (!parameters.any((parameter) => parameter.name?.lexeme == name)) {
             missingNamedParameters.add(superParameter);
@@ -72,7 +72,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       if (parameter.isRequiredPositional) {
         if (parameter is! SuperFormalParameter ||
             i >= superPositionalParameters.length ||
-            parameter.name.lexeme != superPositionalParameters[i].name3) {
+            parameter.name.lexeme != superPositionalParameters[i].name) {
           arePositionalOrdered = false;
         }
         lastPositionalParameter = parameter;

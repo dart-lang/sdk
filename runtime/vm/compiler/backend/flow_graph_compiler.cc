@@ -1991,7 +1991,7 @@ const CallTargets* FlowGraphCompiler::ResolveCallTargetsForReceiverCid(
   if (!LookupMethodFor(cid, selector, args_desc, &fn)) return nullptr;
 
   CallTargets* targets = new (zone) CallTargets(zone);
-  targets->Add(new (zone) TargetInfo(cid, cid, &fn, /* count = */ 1,
+  targets->Add(new (zone) TargetInfo(cid, cid, &fn, /*count_arg=*/1,
                                      StaticTypeExactnessState::NotTracking()));
 
   return targets;
@@ -3282,6 +3282,17 @@ void LateInitializationErrorSlowPath::EmitSharedStubCall(
 void FieldAccessErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   __ PushObject(Field::ZoneHandle(OriginalField()));
+}
+
+void ThrowIfValueCantBeSharedSlowPath::PushArgumentsForRuntimeCall(
+    FlowGraphCompiler* compiler) {
+  __ PushObject(Field::ZoneHandle(OriginalField()));
+  __ PushRegister(value());
+}
+
+void ThrowIfValueCantBeSharedSlowPath::EmitNativeCode(
+    FlowGraphCompiler* compiler) {
+  ThrowErrorSlowPathCode::EmitNativeCode(compiler);
 }
 
 void FlowGraphCompiler::EmitNativeMove(

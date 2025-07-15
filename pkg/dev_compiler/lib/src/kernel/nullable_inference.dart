@@ -43,7 +43,7 @@ class NullableInference extends ExpressionVisitor<bool>
   final _variableInference = _NullableVariableInference();
 
   NullableInference(this.jsTypeRep, this._staticTypeContext, {Options? options})
-      : coreTypes = jsTypeRep.coreTypes {
+    : coreTypes = jsTypeRep.coreTypes {
     _variableInference._nullInference = this;
   }
 
@@ -126,12 +126,20 @@ class NullableInference extends ExpressionVisitor<bool>
   @override
   bool visitInstanceInvocation(InstanceInvocation node) =>
       _invocationIsNullable(
-          node.interfaceTarget, node.name.text, node, node.receiver);
+        node.interfaceTarget,
+        node.name.text,
+        node,
+        node.receiver,
+      );
 
   @override
   bool visitInstanceGetterInvocation(InstanceGetterInvocation node) =>
       _invocationIsNullable(
-          node.interfaceTarget, node.name.text, node, node.receiver);
+        node.interfaceTarget,
+        node.name.text,
+        node,
+        node.receiver,
+      );
 
   @override
   bool visitDynamicInvocation(DynamicInvocation node) =>
@@ -156,8 +164,11 @@ class NullableInference extends ExpressionVisitor<bool>
       _invocationIsNullable(node.interfaceTarget, node.name.text, node);
 
   bool _invocationIsNullable(
-      Member? target, String name, InvocationExpression node,
-      [Expression? receiver]) {
+    Member? target,
+    String name,
+    InvocationExpression node, [
+    Expression? receiver,
+  ]) {
     // TODO(jmesserly): this is not a valid assumption for user-defined equality
     // but it is added to match the behavior of the Analyzer backend.
     // https://github.com/dart-lang/sdk/issues/31854
@@ -191,11 +202,14 @@ class NullableInference extends ExpressionVisitor<bool>
       // implementation class in dart:_interceptors, for example `JSString`.
       //
       // This allows us to find the `@notNull` annotation if it exists.
-      var implClass = jsTypeRep
-          .getImplementationClass(coreTypes.nonNullableRawType(targetClass));
+      var implClass = jsTypeRep.getImplementationClass(
+        coreTypes.nonNullableRawType(targetClass),
+      );
       if (implClass != null) {
-        var member =
-            jsTypeRep.hierarchy.getDispatchTarget(implClass, target.name);
+        var member = jsTypeRep.hierarchy.getDispatchTarget(
+          implClass,
+          target.name,
+        );
         if (member != null) target = member;
       }
     }
@@ -250,8 +264,8 @@ class NullableInference extends ExpressionVisitor<bool>
   @override
   bool visitAsExpression(AsExpression node) =>
       _staticallyNonNullable(node.getStaticType(_staticTypeContext))
-          ? false
-          : isNullable(node.operand);
+      ? false
+      : isNullable(node.operand);
 
   @override
   bool visitSymbolLiteral(SymbolLiteral node) => false;
@@ -305,7 +319,10 @@ class NullableInference extends ExpressionVisitor<bool>
       _isInternalAnnotationField(value, 'nullCheck', '_NullCheck');
 
   bool _isInternalAnnotationField(
-      Expression node, String fieldName, String className) {
+    Expression node,
+    String fieldName,
+    String className,
+  ) {
     if (node is ConstantExpression) {
       var constant = node.constant;
       return constant is InstanceConstant &&

@@ -266,11 +266,22 @@ String typeof(WasmExternRef? object) =>
 String stringify(WasmExternRef? object) =>
     JSStringImpl.fromRefUnchecked(JS<WasmExternRef?>("o => String(o)", object));
 
-void promiseThen(
+/// `Promise.then` call where [failureFunc] can be a JS function that expects
+/// two arguments, the first being the error, and the second being whether the
+/// error was undefined.
+///
+/// The second argument is needed as dart2wasm implicitly converts all JS
+/// `undefined`s to Dart `null` when boxing JS values.
+void promiseThenWithIsUndefined(
   WasmExternRef? promise,
   WasmExternRef? successFunc,
   WasmExternRef? failureFunc,
-) => JS<void>("(p, s, f) => p.then(s, f)", promise, successFunc, failureFunc);
+) => JS<void>(
+  "(p, s, f) => p.then(s, (e) => f(e, e === undefined))",
+  promise,
+  successFunc,
+  failureFunc,
+);
 
 // Currently, `allowInterop` returns a Function type. This is unfortunate for
 // Dart2wasm because it means arbitrary Dart functions can flow to JS util
@@ -426,7 +437,7 @@ bool isWasmGCStruct(WasmExternRef? ref) => ref.internalize()?.isObject ?? false;
 /// The values within this class should correspond to the values returned by
 /// [externRefType] and should be updated if that function is updated. Constants
 /// are preferred over enums for performance.
-class ExternRefType {
+abstract final class ExternRefType {
   static const int null_ = 0;
   static const int undefined = 1;
   static const int boolean = 2;
@@ -444,7 +455,8 @@ class ExternRefType {
   static const int float64Array = 14;
   static const int dataView = 15;
   static const int arrayBuffer = 16;
-  static const int unknown = 17;
+  static const int sharedArrayBuffer = 17;
+  static const int unknown = 18;
 }
 
 /// Returns an integer representing the type of [ref] that corresponds to one of
@@ -475,7 +487,12 @@ int externRefType(WasmExternRef? ref) {
       if (o instanceof DataView) return 15;
     }
     if (o instanceof ArrayBuffer) return 16;
-    return 17;
+    // Feature check for `SharedArrayBuffer` before doing a type-check.
+    if (globalThis.SharedArrayBuffer !== undefined &&
+        o instanceof SharedArrayBuffer) {
+        return 17;
+    }
+    return 18;
   }
   ''', ref).toIntUnsigned();
   return val;
@@ -513,9 +530,8 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
     ExternRefType.float64Array => js_types.JSFloat64ArrayImpl.fromRefUnchecked(
       ref,
     ),
-    ExternRefType.arrayBuffer => js_types.JSArrayBufferImpl.fromRefUnchecked(
-      ref,
-    ),
+    ExternRefType.arrayBuffer || ExternRefType.sharedArrayBuffer =>
+      js_types.JSArrayBufferImpl.fromRefUnchecked(ref),
     ExternRefType.dataView => js_types.JSDataViewImpl.fromRefUnchecked(ref),
     ExternRefType.unknown =>
       isJSWrappedDartFunction(ref)

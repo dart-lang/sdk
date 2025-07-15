@@ -65,7 +65,7 @@ class OverrideHelper {
   /// Checks if the [element] has the `@nonVirtual` annotation.
   bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is GetterElement && element.isSynthetic) {
-      var variable = element.variable3;
+      var variable = element.variable;
       if (variable != null && variable.metadata.hasNonVirtual) {
         return true;
       }
@@ -77,7 +77,7 @@ class OverrideHelper {
   /// yet declared in the class.
   List<Name> _namesToOverride(InterfaceElement interfaceElement) {
     var namesToOverride = <Name>[];
-    var libraryUri = interfaceElement.library2.uri;
+    var libraryUri = interfaceElement.library.uri;
     var memberNames = interfaceElement.interfaceMembers.keys;
     for (var name in memberNames) {
       if (name.isAccessibleFor(libraryUri)) {

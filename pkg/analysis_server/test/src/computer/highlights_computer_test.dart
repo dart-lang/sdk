@@ -115,9 +115,9 @@ void f() {
     var result = await getResolvedUnit(file);
 
     if (hasErrors) {
-      expect(result.errors, isNotEmpty);
+      expect(result.diagnostics, isNotEmpty);
     } else {
-      expect(result.errors, isEmpty);
+      expect(result.diagnostics, isEmpty);
     }
 
     var computer = DartUnitHighlightsComputer(result.unit);

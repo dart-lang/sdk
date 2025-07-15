@@ -121,6 +121,17 @@ $typing
 """;
   var typingAtOffset = mainFileTypingContent.indexOf(typing) + typing.length;
 
+  var typingError = 'getFooBarBaz';
+  var mainFileTypingErrorContent = """
+import '${getFilenameFor(1)}';
+
+void main(List<String> arguments) {
+  arguments.$typingError();
+}
+""";
+  var typingErrorAtOffset =
+      mainFileTypingErrorContent.indexOf(typingError) + typingError.length;
+
   if (includePlugin) {
     String executableToUse = extractDartParamOrDefault(args);
     void pubGetIn(String dir) {
@@ -196,6 +207,8 @@ analyzer:
     mainFile: FileContentPair(mainFileUri, mainFileContent),
     mainFileTypingContent: mainFileTypingContent,
     typingAtOffset: typingAtOffset,
+    mainFileTypingErrorContent: mainFileTypingErrorContent,
+    typingErrorAtOffset: typingErrorAtOffset,
     orderedFileCopies: orderedFileCopies,
     numFiles: numFiles,
   );
@@ -243,6 +256,8 @@ class RunDetails {
   final FileContentPair mainFile;
   final String mainFileTypingContent;
   final int typingAtOffset;
+  final String mainFileTypingErrorContent;
+  final int typingErrorAtOffset;
   final List<FileContentPair> orderedFileCopies;
   final int numFiles;
 
@@ -251,6 +266,8 @@ class RunDetails {
     required this.mainFile,
     required this.mainFileTypingContent,
     required this.typingAtOffset,
+    required this.mainFileTypingErrorContent,
+    required this.typingErrorAtOffset,
     required this.orderedFileCopies,
     required this.numFiles,
   });

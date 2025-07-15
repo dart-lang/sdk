@@ -50,7 +50,7 @@ var z = 33;
           source: source,
           offset: 10,
           length: 3,
-          errorCode: code,
+          diagnosticCode: code,
         );
 
         info = DiagnosticInfo([error], lineInfo);

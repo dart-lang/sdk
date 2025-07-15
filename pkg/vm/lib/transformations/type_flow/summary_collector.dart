@@ -16,7 +16,7 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart'
-    show StaticTypeContext, SubtypeCheckMode, TypeEnvironment;
+    show StaticTypeContext, TypeEnvironment;
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'calls.dart';
@@ -1597,9 +1597,8 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
   }
 
-  // Tests subtypes ignoring any nullabilities.
-  bool _isSubtype(DartType subtype, DartType supertype) => _environment
-      .isSubtypeOf(subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
+  bool _isSubtype(DartType subtype, DartType supertype) =>
+      _environment.isSubtypeOf(subtype, supertype);
 
   static final Name _equalsName = new Name('==');
   final _cachedHasOverriddenEquals = <Class, bool>{};

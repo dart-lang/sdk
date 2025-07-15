@@ -118,11 +118,6 @@ class NativeEntry : public AllStatic {
   static void LinkNativeCall(Dart_NativeArguments args);
 
  private:
-  static void NoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,
-                                                   Dart_NativeFunction func);
-  static void AutoScopeNativeCallWrapperNoStackCheck(Dart_NativeArguments args,
-                                                     Dart_NativeFunction func);
-
   static void MaybePropagateError(NativeArguments* arguments);
 };
 

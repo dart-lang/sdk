@@ -18,7 +18,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 class FunctionTypeBuilder extends TypeBuilder {
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
-  final List<TypeParameterElementImpl2> typeParameters;
+  final List<TypeParameterElementImpl> typeParameters;
   final List<FormalParameterElementImpl> formalParameters;
   final TypeImpl returnType;
 
@@ -93,7 +93,7 @@ class FunctionTypeBuilder extends TypeBuilder {
       nullabilitySuffix: nullabilitySuffix,
     );
 
-    var fresh = getFreshTypeParameters2(typeParameters);
+    var fresh = getFreshTypeParameters(typeParameters);
     type = fresh.applyToFunctionType(type);
 
     _type = type;
@@ -191,7 +191,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     }
   }
 
-  static List<TypeParameterElementImpl2> _getTypeParameters(
+  static List<TypeParameterElementImpl> _getTypeParameters(
     TypeParameterListImpl? node,
   ) {
     if (node == null) return const [];

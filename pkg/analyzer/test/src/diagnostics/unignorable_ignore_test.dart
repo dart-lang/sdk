@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -102,7 +103,7 @@ class _AvoidIntRule extends LintRule {
   @override
   void registerNodeProcessors(
     RuleVisitorRegistry registry,
-    LinterContext context,
+    RuleContext context,
   ) {
     var visitor = _AvoidIntVisitor(this);
     registry.addNamedType(this, visitor);

@@ -930,6 +930,8 @@ typedef struct {
   /**
    * A function to be called by the service isolate when it requires the
    * vmservice assets archive. See Dart_GetVMServiceAssetsArchive.
+   * 
+   * This field is deprecated and has no effect.
    */
   Dart_GetVMServiceAssetsArchive get_service_assets;
 
@@ -1457,6 +1459,16 @@ Dart_CreateSnapshot(uint8_t** vm_snapshot_data_buffer,
  * \return Whether the buffer contains a kernel binary (full or partial).
  */
 DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size);
+
+/**
+ * Returns whether the buffer contains a bytecode file.
+ *
+ * \param buffer Pointer to a buffer that might contain a bytecode binary.
+ * \param buffer_size Size of the buffer.
+ *
+ * \return Whether the buffer contains a bytecode binary.
+ */
+DART_EXPORT bool Dart_IsBytecode(const uint8_t* buffer, intptr_t buffer_size);
 
 /**
  * Make isolate runnable.
@@ -3550,6 +3562,20 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadScriptFromKernel(const uint8_t* kernel_buffer, intptr_t kernel_size);
 
 /**
+ * Loads the root library for the current isolate.
+ *
+ * Requires there to be no current root library.
+ *
+ * \param kernel_buffer A buffer which contains a bytecode binary.
+ *   Must remain valid until isolate group shutdown.
+ * \param kernel_size Length of the passed in buffer.
+ *
+ * \return A handle to the root library, or an error.
+ */
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer, intptr_t kernel_size);
+
+/**
  * Gets the library for the root script for the current isolate.
  *
  * If the root script has not yet been set for the current isolate,
@@ -3721,6 +3747,17 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadLibrary(Dart_Handle kernel_buffer);
 
 /**
+ * Called by the embedder to load a partial program. Does not set the root
+ * library.
+ *
+ * \param bytecode_buffer An external typed data containing bytecode binary.
+ *
+ * \return A handle to the main library of the compilation unit, or an error.
+ */
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadLibraryFromBytecode(Dart_Handle bytecode_buffer);
+
+/**
  * Indicates that all outstanding load requests have been satisfied.
  * This finalizes all the new classes loaded and optionally completes
  * deferred library futures.
@@ -3818,7 +3855,7 @@ DART_EXPORT Dart_Port Dart_KernelPort(void);
  * Compiles the given `script_uri` to a kernel file.
  *
  * \param platform_kernel A buffer containing the kernel of the platform (e.g.
- * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
+ * `vm_platform.dill`). The VM does not take ownership of this memory.
  *
  * \param platform_kernel_size The length of the platform_kernel buffer.
  *
@@ -4091,6 +4128,11 @@ typedef enum {
  *  CODE_SIGNATURE load commands for Mach-O dynamic libraries and for DW_AT_name
  *  in the Dart progam's root DWARF compilation unit.
  *
+ *  The path should be the full path of the resulting dynamic library.
+ *  Currently, it is only used in unstripped Mach-O snapshots to create an
+ *  appropriate N_OSO symbolic debugging variable so dsymutil can be used.
+ *  The N_OSO symbol is not created if the path is nullptr.
+ *
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
@@ -4099,7 +4141,8 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
                                   void* callback_data,
                                   bool stripped,
                                   void* debug_callback_data,
-                                  const char* identifier);
+                                  const char* identifier,
+                                  const char* path);
 
 /**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes

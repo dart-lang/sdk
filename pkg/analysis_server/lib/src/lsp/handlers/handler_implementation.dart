@@ -94,7 +94,7 @@ class ImplementationHandler
                     // Filter based on type, so when searching for members we don't
                     // include any intermediate classes that don't have
                     // implementations for the method.
-                    ? helper.findMemberElement(element)?.nonSynthetic2
+                    ? helper.findMemberElement(element)?.nonSynthetic
                     : element;
               })
               .nonNulls
@@ -107,7 +107,7 @@ class ImplementationHandler
                 }
 
                 var nameOffset = firstFragment.nameOffset2;
-                var name = firstFragment.name2;
+                var name = firstFragment.name;
                 if (nameOffset == null || name == null) {
                   return null;
                 }

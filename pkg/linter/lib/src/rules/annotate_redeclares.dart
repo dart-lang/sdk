@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -24,10 +25,7 @@ class AnnotateRedeclares extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.annotate_redeclares;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addExtensionTypeDeclaration(this, visitor);
   }
@@ -66,9 +64,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     ExecutableElement member,
     InterfaceElement extensionType,
   ) {
-    var memberName = member.name3;
+    var memberName = member.name;
     if (memberName == null) return false;
-    var name = Name.forLibrary(member.library2, memberName);
+    var name = Name.forLibrary(member.library, memberName);
     return extensionType.getInheritedMember(name) != null;
   }
 }

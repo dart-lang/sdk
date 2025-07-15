@@ -31,7 +31,6 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/type_recipe.dart'
     show TypeEnvironmentStructure, TypeRecipe, TypeExpressionRecipe;
 import '../native/behavior.dart';
-import '../options.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
@@ -54,6 +53,7 @@ abstract class HVisitor<R> {
   R visitCreate(HCreate node);
   R visitCreateBox(HCreateBox node);
   R visitDivide(HDivide node);
+  R visitEmbeddedGlobalGet(HEmbeddedGlobalGet node);
   R visitExit(HExit node);
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
@@ -504,6 +504,8 @@ class HBaseVisitor<R> extends HGraphVisitor implements HVisitor<R> {
   R visitCreateBox(HCreateBox node) => visitInstruction(node);
   @override
   R visitDivide(HDivide node) => visitBinaryArithmetic(node);
+  @override
+  R visitEmbeddedGlobalGet(HEmbeddedGlobalGet node) => visitInstruction(node);
   @override
   R visitExit(HExit node) => visitControlFlow(node);
   @override
@@ -1138,6 +1140,7 @@ enum _GvnType {
   charCodeAt,
   arrayFlagsGet,
   arrayFlagsCheck,
+  embeddedGlobal,
 }
 
 abstract class HInstruction implements SpannableWithEntity {
@@ -1952,9 +1955,7 @@ abstract class HInvoke extends HInstruction
       final receiver = inputs[1].nonCheck();
       if (interceptor == receiver) {
         _isCallOnInterceptor = false;
-      } else if (receiver case HConstant(
-        constant: DummyInterceptorConstantValue(),
-      )) {
+      } else if (receiver case HConstant(constant: DummyConstantValue())) {
         _isCallOnInterceptor = false;
       }
     }
@@ -3981,7 +3982,7 @@ abstract class HLateCheck extends HCheck {
     HInstruction? name,
     this.isTrusted,
     AbstractValue type,
-  ) : super([input, if (name != null) name], type);
+  ) : super([input, ?name], type);
 
   bool get hasName => inputs.length > 1;
 
@@ -4542,13 +4543,16 @@ class HIsTest extends HInstruction {
   HInstruction get typeInput => inputs[0];
   HInstruction get checkedInput => inputs[1];
 
-  AbstractBool evaluate(JClosedWorld closedWorld, CompilerOptions options) =>
+  /// Returns the value of the test (true/false/maybe). Pass [this.checkedInput]
+  /// as [input] to evaluate this test in place. [input] is provided as an
+  /// argument so that other inputs can be tested, for example, to test for
+  /// partial redundancy between a phi's inputs.
+  AbstractBool evaluateOn(HInstruction input, JClosedWorld closedWorld) =>
       _typeTest(
-        checkedInput,
+        input,
         dartType,
         checkedAbstractValue,
         closedWorld,
-        options,
         isCast: false,
       );
 
@@ -4587,13 +4591,13 @@ class HIsTestSimple extends HInstruction {
 
   HInstruction get checkedInput => inputs[0];
 
-  AbstractBool evaluate(JClosedWorld closedWorld, CompilerOptions options) =>
+  /// See [HIsTest.evaluateOn].
+  AbstractBool evaluateOn(HInstruction input, JClosedWorld closedWorld) =>
       _typeTest(
-        checkedInput,
+        input,
         dartType,
         checkedAbstractValue,
         closedWorld,
-        options,
         isCast: false,
       );
 
@@ -4617,8 +4621,7 @@ AbstractBool _typeTest(
   HInstruction expression,
   DartType dartType,
   AbstractValueWithPrecision checkedAbstractValue,
-  JClosedWorld closedWorld,
-  CompilerOptions options, {
+  JClosedWorld closedWorld, {
   required bool isCast,
 }) {
   JCommonElements commonElements = closedWorld.commonElements;
@@ -4753,15 +4756,17 @@ class HAsCheck extends HCheck {
     return isTypeError == other.isTypeError;
   }
 
-  bool isRedundant(JClosedWorld closedWorld, CompilerOptions options) =>
-      _typeTest(
-        checkedInput,
-        checkedTypeExpression,
-        checkedType,
-        closedWorld,
-        options,
-        isCast: true,
-      ).isDefinitelyTrue;
+  /// Returns 'true` is the check always passes. Provide [this.checkedInput] as
+  /// [input] to evaluate this check in place. [input] is provided as an
+  /// argument so that other inputs can be tested, for example, to test for
+  /// partial redundancy between a phi's inputs.
+  bool isRedundantOn(HInstruction input, JClosedWorld closedWorld) => _typeTest(
+    input,
+    checkedTypeExpression,
+    checkedType,
+    closedWorld,
+    isCast: true,
+  ).isDefinitelyTrue;
 
   @override
   String toString() {
@@ -4796,15 +4801,14 @@ class HAsCheckSimple extends HCheck {
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitAsCheckSimple(this);
 
-  bool isRedundant(JClosedWorld closedWorld, CompilerOptions options) =>
-      _typeTest(
-        checkedInput,
-        dartType,
-        checkedType,
-        closedWorld,
-        options,
-        isCast: true,
-      ).isDefinitelyTrue;
+  /// See [HAsCheck.isRedundantOn].
+  bool isRedundantOn(HInstruction input, JClosedWorld closedWorld) => _typeTest(
+    input,
+    dartType,
+    checkedType,
+    closedWorld,
+    isCast: true,
+  ).isDefinitelyTrue;
 
   @override
   _GvnType get _gvnType => _GvnType.asCheckSimple;
@@ -4989,13 +4993,7 @@ class HArrayFlagsCheck extends HCheck {
     HInstruction? operation,
     HInstruction? verb,
     AbstractValue type,
-  ) : super([
-        array,
-        arrayFlags,
-        checkFlags,
-        if (operation != null) operation,
-        if (verb != null) verb,
-      ], type);
+  ) : super([array, arrayFlags, checkFlags, ?operation, ?verb], type);
 
   HInstruction get array => inputs[0];
   HInstruction get arrayFlags => inputs[1];
@@ -5119,4 +5117,42 @@ class HIsLateSentinel extends HInstruction {
 
   @override
   String toString() => 'HIsLateSentinel()';
+}
+
+/// Reads an 'embedded global' to access some kind of metadata or value produced
+/// by the compiler.
+///
+/// This instruction corresponds to the `JS_EMBEDDED_GLOBAL` top level method in
+/// `foreign_helper.dart`.  The [name] should be a constant defined in the
+/// `_embedded_names` or `_js_shared_embedded_names` library.
+class HEmbeddedGlobalGet extends HInstruction {
+  final String name;
+
+  factory HEmbeddedGlobalGet(
+    String name,
+    NativeBehavior nativeBehavior,
+    AbstractValue type,
+  ) {
+    final node = HEmbeddedGlobalGet._(name, type);
+    node.sideEffects.add(nativeBehavior.sideEffects);
+    if (nativeBehavior.useGvn) node.setUseGvn();
+    return node;
+  }
+
+  HEmbeddedGlobalGet._(this.name, super.type) : super._noInput();
+
+  @override
+  R accept<R>(HVisitor<R> visitor) => visitor.visitEmbeddedGlobalGet(this);
+
+  @override
+  _GvnType get _gvnType => _GvnType.embeddedGlobal;
+
+  @override
+  bool typeEquals(HInstruction other) => other is HEmbeddedGlobalGet;
+
+  @override
+  bool dataEquals(HEmbeddedGlobalGet other) => name == other.name;
+
+  @override
+  String toString() => 'HEmbeddedGlobalGet($name)';
 }

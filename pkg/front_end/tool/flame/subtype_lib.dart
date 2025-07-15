@@ -108,7 +108,7 @@ void after() {
       DartType s = relation.subtype;
       DartType t = relation.supertype;
       narrow.start();
-      types.performNullabilityAwareSubtypeCheck(s, t);
+      types.performSubtypeCheck(s, t);
       narrow.stop();
     }
     narrowTiming.add(narrow.elapsedMicroseconds);
@@ -127,7 +127,7 @@ void after() {
       Types types = relation.types;
       DartType s = relation.subtype;
       DartType t = relation.supertype;
-      types.performNullabilityAwareSubtypeCheck(s, t);
+      types.performSubtypeCheck(s, t);
     }
     loop.stop();
     loopTiming.add(loop.elapsedMicroseconds);

@@ -72,26 +72,26 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
       return;
     }
 
-    var validErrors = _codesWhereThisIsValid;
-    var errors = unitResult.errors.where(
-      (e) => diagnostic.sameRangeAs(e) && validErrors.contains(e.errorCode),
+    var validCodes = _codesWhereThisIsValid;
+    var diagnostics = unitResult.diagnostics.where(
+      (e) => diagnostic.sameRangeAs(e) && validCodes.contains(e.diagnosticCode),
     );
 
     // Should not happen since the current diagnostic is in the list of errors
     // where this fix is valid.
-    if (errors.isEmpty) {
-      errors = [diagnostic];
+    if (diagnostics.isEmpty) {
+      diagnostics = [diagnostic];
     }
 
     // This should only trigger once and the disposition of the valid
     // diagnostics in the unit should always be the same.
-    if (errors.first != diagnostic) {
+    if (diagnostics.first != diagnostic) {
       return;
     }
 
-    _missingParameters = errors.length;
+    _missingParameters = diagnostics.length;
 
-    for (var (index, diagnostic) in errors.indexed) {
+    for (var (index, diagnostic) in diagnostics.indexed) {
       if (targetElement is ExecutableElement && argumentList != null) {
         // Format: "Missing required argument 'foo'."
         var messageParts = diagnostic.problemMessage
@@ -104,7 +104,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
         var parameterName = messageParts[1];
 
         var missingParameter = targetElement.formalParameters.firstWhereOrNull(
-          (p) => p.name3 == parameterName,
+          (p) => p.name == parameterName,
         );
         if (missingParameter == null) {
           return;

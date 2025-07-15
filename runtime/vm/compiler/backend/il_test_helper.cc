@@ -87,8 +87,7 @@ ObjectPtr Invoke(const Library& lib, const char* name) {
   Dart_Handle result;
   {
     TransitionVMToNative transition(thread);
-    result =
-        Dart_Invoke(api_lib, NewString(name), /*argc=*/0, /*argv=*/nullptr);
+    result = Dart_Invoke(api_lib, NewString(name), 0, nullptr);
     EXPECT_VALID(result);
   }
   return Api::UnwrapHandle(result);
@@ -108,8 +107,7 @@ InstructionsPtr BuildInstructions(
                               /*optimized=*/false, /*stats=*/nullptr);
   };
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-  thread->isolate_group()->RunWithStoppedMutators(install_code_fun,
-                                                  /*use_force_growth=*/true);
+  thread->isolate_group()->RunWithStoppedMutators(install_code_fun);
   return code.instructions();
 }
 

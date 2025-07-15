@@ -20,7 +20,7 @@ class ReplaceIfElseWithConditional extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL;
+  AssistKind get assistKind => DartAssistKind.replaceIfElseWithConditional;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

@@ -16,52 +16,80 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:source_span/source_span.dart';
 
+@Deprecated("Use 'BooleanDiagnosticListener' instead")
+typedef BooleanErrorListener = BooleanDiagnosticListener;
+
+@Deprecated("Use 'DiagnosticReporter' instead")
+typedef ErrorReporter = DiagnosticReporter;
+
+@Deprecated("Use 'RecordingDiagnosticListener' instead")
+typedef RecorderingErrorListener = RecordingDiagnosticListener;
+
 /// An object that listens for [Diagnostic]s being produced by the analysis
 /// engine.
-abstract class AnalysisErrorListener {
-  /// An error listener that ignores errors that are reported to it.
-  static final AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
+@Deprecated("Use 'DiagnosticListener' instead")
+abstract class AnalysisErrorListener implements DiagnosticOrErrorListener {
+  /// A diagnostic listener that ignores diagnostics that are reported to it.
+  @Deprecated("Use 'DiagnosticListener.nullListener' instead")
+  static const AnalysisErrorListener NULL_LISTENER = _NullErrorListener();
 
-  /// This method is invoked when an [error] has been found by the analysis
+  /// This method is invoked when a [diagnostic] has been found by the analysis
   /// engine.
-  void onError(Diagnostic error);
+  void onError(Diagnostic diagnostic);
 }
 
-/// An [AnalysisErrorListener] that keeps track of whether any error has been
+/// A [DiagnosticListener] that keeps track of whether any diagnostic has been
 /// reported to it.
-class BooleanErrorListener implements AnalysisErrorListener {
-  /// A flag indicating whether an error has been reported to this listener.
-  bool _errorReported = false;
+class BooleanDiagnosticListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener,
+        DiagnosticListener {
+  /// A flag indicating whether a diagnostic has been reported to this listener.
+  bool _diagnosticReported = false;
 
-  /// Return `true` if an error has been reported to this listener.
-  bool get errorReported => _errorReported;
+  /// Whether a diagnostic has been reported to this listener.
+  bool get errorReported => _diagnosticReported;
 
   @override
-  void onError(Diagnostic error) {
-    _errorReported = true;
+  void onDiagnostic(Diagnostic diagnostic) {
+    _diagnosticReported = true;
   }
+
+  @override
+  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
 }
 
-/// An object used to create analysis errors and report then to an error
-/// listener.
-class ErrorReporter {
-  /// The error listener to which errors will be reported.
-  final AnalysisErrorListener _errorListener;
+abstract class DiagnosticListener implements DiagnosticOrErrorListener {
+  /// A diagnostic listener that ignores diagnostics that are reported to it.
+  static const DiagnosticListener nullListener = _NullDiagnosticListener();
 
-  /// The source to be used when reporting errors.
+  void onDiagnostic(Diagnostic diagnostic);
+}
+
+sealed class DiagnosticOrErrorListener {}
+
+/// An object used to create diagnostics and report them to a diagnostic
+/// listener.
+class DiagnosticReporter {
+  /// The diagnostic listener to which diagnostics are reported.
+  final DiagnosticOrErrorListener _diagnosticListener;
+
+  /// The source to be used when reporting diagnostics.
   final Source _source;
 
-  /// The lock level, if greater than zero, no errors will be reported.
-  /// This is used to prevent reporting errors inside comments.
+  /// The lock level; if greater than zero, no diagnostic will be reported.
+  ///
+  /// This is used to prevent reporting diagnostics inside comments.
   @internal
   int lockLevel = 0;
 
-  /// Initializes a newly created error reporter that will report errors to the
-  /// given [_errorListener].
+  /// Initializes a newly created error reporter that will report diagnostics to the
+  /// given [_diagnosticListener].
   ///
-  /// Errors will be reported against the [_source] unless another source is
+  /// Diagnostics are reported against the [_source] unless another source is
   /// provided later.
-  ErrorReporter(this._errorListener, this._source);
+  DiagnosticReporter(this._diagnosticListener, this._source);
 
   Source get source => _source;
 
@@ -102,11 +130,11 @@ class ErrorReporter {
     List<DiagnosticMessage>? contextMessages,
     Object? data,
   }) {
-    var nonSynthetic = element.nonSynthetic2;
+    var nonSynthetic = element.nonSynthetic;
     atOffset(
       diagnosticCode: diagnosticCode,
       offset: nonSynthetic.firstFragment.nameOffset2 ?? -1,
-      length: nonSynthetic.name3?.length ?? 0,
+      length: nonSynthetic.name?.length ?? 0,
       arguments: arguments,
       contextMessages: contextMessages,
       data: data,
@@ -189,7 +217,7 @@ class ErrorReporter {
               .whereNotType<Uri>();
       if (invalid.isNotEmpty) {
         throw ArgumentError(
-          'Tried to format an error using '
+          'Tried to format a diagnostic using '
           '${invalid.map((e) => e.runtimeType).join(', ')}',
         );
       }
@@ -197,12 +225,12 @@ class ErrorReporter {
 
     contextMessages ??= [];
     contextMessages.addAll(convertTypeNames(arguments));
-    _errorListener.onError(
+    _diagnosticListener.onDiagnostic(
       Diagnostic.tmp(
         source: _source,
         offset: offset,
         length: length,
-        errorCode: diagnosticCode,
+        diagnosticCode: diagnosticCode,
         arguments: arguments ?? const [],
         contextMessages: contextMessages,
         data: data,
@@ -250,43 +278,79 @@ class ErrorReporter {
     );
   }
 
-  /// Report the given [error].
-  void reportError(Diagnostic error) {
-    _errorListener.onError(error);
+  /// Report the given [diagnostic].
+  void reportError(Diagnostic diagnostic) {
+    _diagnosticListener.onDiagnostic(diagnostic);
   }
 }
 
-/// An error listener that will record the errors that are reported to it in a
-/// way that is appropriate for caching those errors within an analysis context.
-class RecordingErrorListener implements AnalysisErrorListener {
-  Set<Diagnostic>? _errors;
+/// A diagnostic listener that records the diagnostics that are reported to it
+/// in a way that is appropriate for caching those diagnostic within an
+/// analysis context.
+class RecordingDiagnosticListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener,
+        DiagnosticListener {
+  Set<Diagnostic>? _diagnostics;
 
-  /// Return the errors collected by the listener.
-  List<Diagnostic> get errors {
-    if (_errors == null) {
+  /// The diagnostics collected by the listener.
+  List<Diagnostic> get diagnostics {
+    if (_diagnostics == null) {
       return const [];
     }
-    return _errors!.toList();
+    return _diagnostics!.toList();
   }
+
+  @Deprecated("Use 'diagnostics' instead")
+  List<Diagnostic> get errors => diagnostics;
 
   /// Return the errors collected by the listener for the given [source].
+  @Deprecated('No longer supported')
   List<Diagnostic> getErrorsForSource(Source source) {
-    if (_errors == null) {
+    if (_diagnostics == null) {
       return const [];
     }
-    return _errors!.where((error) => error.source == source).toList();
+    return _diagnostics!.where((d) => d.source == source).toList();
   }
 
   @override
-  void onError(Diagnostic error) {
-    (_errors ??= {}).add(error);
+  void onDiagnostic(Diagnostic diagnostic) {
+    (_diagnostics ??= {}).add(diagnostic);
+  }
+
+  @override
+  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
+}
+
+/// A [DiagnosticListener] that ignores everything.
+class _NullDiagnosticListener implements DiagnosticListener {
+  const _NullDiagnosticListener();
+
+  @override
+  void onDiagnostic(Diagnostic diagnostic) {
+    // Ignore diagnostics.
   }
 }
 
-/// An [AnalysisErrorListener] that ignores error.
-class _NullErrorListener implements AnalysisErrorListener {
+// ignore: deprecated_member_use_from_same_package
+/// An [AnalysisErrorListener] that ignores everything.
+class _NullErrorListener
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        AnalysisErrorListener {
+  const _NullErrorListener();
+
   @override
-  void onError(Diagnostic event) {
-    // Ignore errors
+  void onError(Diagnostic diagnostic) {
+    // Ignore diagnostics.
   }
+}
+
+extension DiagnosticOrErrorListenerExtension on DiagnosticOrErrorListener {
+  void onDiagnostic(Diagnostic diagnostic) => switch (this) {
+    DiagnosticListener self => self.onDiagnostic(diagnostic),
+    // ignore: deprecated_member_use_from_same_package
+    AnalysisErrorListener self => self.onError(diagnostic),
+  };
 }

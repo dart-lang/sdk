@@ -182,8 +182,8 @@ struct InstructionSource {
   // Treat an instruction source without inlining id information as unset.
   InstructionSource() : InstructionSource(TokenPosition::kNoSource) {}
   explicit InstructionSource(TokenPosition pos) : InstructionSource(pos, -1) {}
-  InstructionSource(TokenPosition pos, intptr_t id)
-      : token_pos(pos), inlining_id(id) {}
+  InstructionSource(TokenPosition pos, intptr_t inlining_id)
+      : token_pos(pos), inlining_id(inlining_id) {}
 
   const TokenPosition token_pos;
   const intptr_t inlining_id;

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class SplitVariableDeclarationTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.SPLIT_VARIABLE_DECLARATION;
+  AssistKind get kind => DartAssistKind.splitVariableDeclaration;
 
   Future<void> test_const() async {
     await resolveTestCode('''

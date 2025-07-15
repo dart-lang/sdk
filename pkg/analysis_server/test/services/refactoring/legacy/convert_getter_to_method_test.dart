@@ -150,7 +150,7 @@ String get foo => '';
 
     await indexTestUnit(''); // Initialize project.
 
-    var element = FindElement2(externalUnit.unit).topVar('foo').getter2!;
+    var element = FindElement2(externalUnit.unit).topVar('foo').getter!;
     _createRefactoringForElement(element);
 
     // check conditions

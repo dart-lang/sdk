@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
@@ -15,6 +16,7 @@ import 'package:test/test.dart';
 class ElementPrinter {
   final TreeStringSink _sink;
   final ElementPrinterConfiguration _configuration;
+  final IdMap idMap = IdMap();
 
   ElementPrinter({
     required TreeStringSink sink,
@@ -62,69 +64,61 @@ class ElementPrinter {
     switch (element) {
       case null:
         _sink.writeln('<null>');
+      case GetterElementImpl element:
+        writelnReference(element.reference);
+      case SetterElementImpl element:
+        writelnReference(element.reference);
+      case FormalParameterElementImpl element:
+        var refStr = _elementToReferenceString(element);
+        _sink.writeln(refStr);
+      case TypeParameterElementImpl element:
+        var idStr = idMap[element];
+        _sink.writeln('$idStr ${element.name ?? '<null-name>'}');
       case Member member:
         _writeMember(member);
-      case TypeAliasElementImpl2 element:
+      case TypeAliasElementImpl element:
         writelnReference(element.reference);
-      case TopLevelVariableElementImpl2 element:
+      case TopLevelVariableElementImpl element:
         writelnReference(element.reference);
-      case TypeParameterElementImpl2():
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case ConstructorElement element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
-      case DynamicElementImpl2():
+      case ConstructorElementImpl element:
+        writelnReference(element.reference);
+      case DynamicElementImpl():
         _sink.writeln('dynamic');
-      case FormalParameterElementImpl():
-        var firstFragment = element.firstFragment;
-        var referenceStr = _elementToReferenceString(firstFragment);
-        _sink.write(referenceStr);
-        _sink.writeln('#element');
+      case FieldElementImpl element:
+        writelnReference(element.reference);
       case TopLevelFunctionElementImpl element:
         writelnReference(element.reference);
-      case MethodElementImpl2 element:
+      case MethodElementImpl element:
         writelnReference(element.reference);
-      case FragmentedElementMixin element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference!;
-        writeReference(reference);
-        _sink.writeln('#element');
-      case GetterElement element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
       case LabelFragmentImpl():
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case LabelElementImpl2():
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+      case LabelElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
       case LibraryElementImpl e:
         writelnReference(e.reference!);
       case LocalFunctionElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
       case LocalVariableFragmentImpl():
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case LocalVariableElementImpl2():
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+      case LocalVariableElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name3}@${element.firstFragment.nameOffset2}');
-      case NeverElementImpl2():
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+      case NeverElementImpl():
         _sink.writeln('Never');
-      case ClassElementImpl2 element:
+      case ClassElementImpl element:
         writeReference(element.reference);
         _sink.writeln();
-      case EnumElementImpl2 element:
+      case EnumElementImpl element:
         writelnReference(element.reference);
-      case ExtensionElementImpl2 element:
+      case ExtensionElementImpl element:
         writelnReference(element.reference);
-      case ExtensionTypeElementImpl2 element:
+      case ExtensionTypeElementImpl element:
         writelnReference(element.reference);
-      case MixinElementImpl2 element:
+      case MixinElementImpl element:
         writelnReference(element.reference);
-      case MultiplyDefinedElementImpl2 multiElement:
+      case MultiplyDefinedElementImpl multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {
           for (var element in multiElement.conflictingElements2) {
@@ -134,13 +128,8 @@ class ElementPrinter {
         });
       case NeverFragmentImpl():
         _sink.writeln('Never@-1');
-      case PrefixElementImpl2 element:
+      case PrefixElementImpl element:
         writelnReference(element.reference);
-      case SetterElement element:
-        var firstFragment = element.firstFragment as FragmentImpl;
-        var reference = firstFragment.reference;
-        writeReference(reference!);
-        _sink.writeln('#element');
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -151,6 +140,11 @@ class ElementPrinter {
       _sink.writeIndent();
       writeElement2(element);
     });
+  }
+
+  void writeFragmentReference(Fragment fragment) {
+    var referenceStr = _fragmentToReferenceString(fragment);
+    _sink.write(referenceStr);
   }
 
   void writeLibraryExport(String name, LibraryExport? element) {
@@ -178,8 +172,7 @@ class ElementPrinter {
   }
 
   void writelnFragmentReference(Fragment fragment) {
-    var referenceStr = _fragmentToReferenceString(fragment);
-    _sink.write(referenceStr);
+    writeFragmentReference(fragment);
     _sink.writeln();
   }
 
@@ -233,7 +226,7 @@ class ElementPrinter {
       if (type is InterfaceType) {
         if (_configuration.withInterfaceTypeElements) {
           _sink.withIndent(() {
-            writeNamedElement2('element', type.element3);
+            writeNamedElement2('element', type.element);
           });
         }
       }
@@ -241,7 +234,7 @@ class ElementPrinter {
       var alias = type.alias;
       if (alias != null) {
         _sink.withIndent(() {
-          writeNamedElement2('alias', alias.element2);
+          writeNamedElement2('alias', alias.element);
           _sink.withIndent(() {
             writeTypeList('typeArguments', alias.typeArguments);
           });
@@ -264,40 +257,58 @@ class ElementPrinter {
     }
   }
 
-  String _elementToReferenceString(FragmentImpl element) {
-    var enclosingElement = element.enclosingElement3;
+  String _elementToReferenceString(Element element) {
+    element as ElementImpl;
+    var enclosingElement = element.enclosingElement as ElementImpl?;
+
+    // Positional parameters don't have actual references.
+    // But we fabricate one to make the output better.
+    if (element is FormalParameterElementImpl) {
+      var nameStr = element.name ?? '<null-name>';
+      if (enclosingElement is ConstructorElementImpl ||
+          enclosingElement is MethodElementImpl ||
+          enclosingElement is SetterElementImpl ||
+          enclosingElement is TopLevelFunctionElementImpl) {
+        var enclosingStr = _elementToReferenceString(enclosingElement!);
+        return '$enclosingStr::@formalParameter::$nameStr';
+      } else {
+        return '$nameStr@${element.firstFragment.nameOffset2}';
+      }
+    }
+
     var reference = element.reference;
     if (reference != null) {
       return _referenceToString(reference);
-    } else if (element is FormalParameterFragmentImpl &&
-        enclosingElement is! GenericFunctionTypeFragmentImpl) {
-      // Positional parameters don't have actual references.
-      // But we fabricate one to make the output better.
-      var enclosingStr =
-          enclosingElement != null
-              ? _elementToReferenceString(enclosingElement)
-              : 'root';
-      return '$enclosingStr::@parameter::${element.name2 ?? ''}';
-    } else if (element is JoinPatternVariableFragmentImpl) {
+    } else if (element is JoinPatternVariableElementImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
-        element.name2 ?? '',
+        element.name ?? '',
         '[',
         element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join();
     } else {
-      return '${element.name2 ?? ''}@${element.nameOffset}';
+      return '${element.name ?? ''}@${element.firstFragment.nameOffset2}';
     }
   }
 
-  String _fragmentToReferenceString(Fragment element) {
-    var enclosingFragment = element.enclosingFragment;
-    var reference = (element as FragmentImpl).reference;
-    if (reference != null) {
-      return _referenceToString(reference);
-    } else if (element is FormalParameterFragment &&
+  String _fragmentToReferenceString(Fragment fragment) {
+    if (fragment is LibraryFragmentImpl) {
+      return idMap[fragment];
+    }
+
+    var libraryFragmentUri = fragment.libraryFragment?.source.uri;
+    if (libraryFragmentUri != null) {
+      var uriStr = _toPosixUriStr('$libraryFragmentUri');
+      if (uriStr == 'package:test/test.dart') {
+        uriStr = '<testLibraryFragment>';
+      }
+      return '$uriStr ${fragment.name}@${fragment.nameOffset2}';
+    }
+
+    var enclosingFragment = fragment.enclosingFragment;
+    if (fragment is FormalParameterFragment &&
         enclosingFragment is! GenericFunctionTypeFragment) {
       // Positional parameters don't have actual references.
       // But we fabricate one to make the output better.
@@ -305,18 +316,18 @@ class ElementPrinter {
           enclosingFragment != null
               ? _fragmentToReferenceString(enclosingFragment)
               : 'root';
-      return '$enclosingStr::@formalParameter::${element.name2}';
-    } else if (element is JoinPatternVariableFragmentImpl) {
+      return '$enclosingStr::@formalParameter::${fragment.name}';
+    } else if (fragment is JoinPatternVariableFragmentImpl) {
       return [
-        if (!element.isConsistent) 'notConsistent ',
-        if (element.isFinal) 'final ',
-        element.name2 ?? '',
+        if (!fragment.isConsistent) 'notConsistent ',
+        if (fragment.isFinal) 'final ',
+        fragment.name ?? '',
         '[',
-        element.variables.map(_elementToReferenceString).join(', '),
+        fragment.variables.map(_fragmentToReferenceString).join(', '),
         ']',
       ].join();
     } else {
-      return '${element.name2}@${element.nameOffset2}';
+      return '${fragment.name}@${fragment.nameOffset2}';
     }
   }
 
@@ -358,7 +369,7 @@ class ElementPrinter {
   String _substitutionMapStr(Map<TypeParameterElement, DartType> map) {
     var entriesStr = map.entries
         .map((entry) {
-          return '${entry.key.name3}: ${_typeStr(entry.value)}';
+          return '${entry.key.name}: ${_typeStr(entry.value)}';
         })
         .join(', ');
     return '{$entriesStr}';
@@ -395,11 +406,11 @@ class ElementPrinter {
         if (_configuration.withRedirectedConstructors) {
           writeNamedElement2(
             'redirectedConstructor',
-            element.redirectedConstructor2,
+            element.redirectedConstructor,
           );
         }
         if (_configuration.withSuperConstructors) {
-          writeNamedElement2('superConstructor', element.superConstructor2);
+          writeNamedElement2('superConstructor', element.superConstructor);
         }
       }
     });
@@ -414,4 +425,50 @@ class ElementPrinterConfiguration {
   bool withInterfaceTypeElements = false;
   bool withRedirectedConstructors = false;
   bool withSuperConstructors = false;
+}
+
+class IdMap {
+  final Map<Expression, String> expressionMap = Map.identity();
+  final Map<FragmentImpl, String> fragmentMap = Map.identity();
+  final Map<ElementImpl, String> elementMap = Map.identity();
+  final Map<FragmentImpl, String> fieldMap = Map.identity();
+  final Map<FormalParameterFragmentImpl, String> formalParameterMap =
+      Map.identity();
+  final Map<TopLevelFunctionFragmentImpl, String> topLevelFunctionMap =
+      Map.identity();
+  final Map<FragmentImpl, String> getterMap = Map.identity();
+  final Map<PartIncludeImpl, String> partMap = Map.identity();
+  final Map<FragmentImpl, String> setterMap = Map.identity();
+  final Map<TypeAliasFragmentImpl, String> typeAliasMap = Map.identity();
+
+  String operator [](Object object) {
+    if (object is Expression) {
+      return expressionMap[object] ??= 'expression_${expressionMap.length}';
+    } else if (object is FragmentImpl) {
+      return fragmentMap[object] ??= '#F${fragmentMap.length}';
+    } else if (object is ElementImpl) {
+      return elementMap[object] ??= '#E${elementMap.length}';
+    } else if (object is FieldFragmentImpl) {
+      return fieldMap[object] ??= 'field_${fieldMap.length}';
+    } else if (object is TopLevelFunctionFragmentImpl) {
+      return topLevelFunctionMap[object] ??=
+          'topLevelFunction_${topLevelFunctionMap.length}';
+    } else if (object is TopLevelVariableFragmentImpl) {
+      return fieldMap[object] ??= 'variable_${fieldMap.length}';
+    } else if (object is GetterFragmentImpl) {
+      return getterMap[object] ??= 'getter_${getterMap.length}';
+    } else if (object is PartIncludeImpl) {
+      return partMap[object] ??= 'part_${partMap.length}';
+    } else if (object is SetterFragmentImpl) {
+      return setterMap[object] ??= 'setter_${setterMap.length}';
+    } else if (object is TypeAliasFragmentImpl) {
+      return typeAliasMap[object] ??= 'typeAlias_${typeAliasMap.length}';
+    } else {
+      return '???';
+    }
+  }
+
+  String? existingExpressionId(Expression object) {
+    return expressionMap[object];
+  }
 }

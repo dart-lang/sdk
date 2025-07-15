@@ -51,7 +51,7 @@ class SearchEngineImpl implements SearchEngine {
     var drivers = _drivers.toList();
     var searchedFiles = _createSearchedFiles(drivers);
 
-    var libraryUriStr = type.library2.uri.toString();
+    var libraryUriStr = type.library.uri.toString();
     var hasSubtypes = false;
     var visitedIds = <String>{};
     var members = <String>{};
@@ -186,10 +186,10 @@ class SearchEngineImpl implements SearchEngine {
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) async {
     var allElements = HashSet<Element>(
-      hashCode: (e) => e.name3.hashCode,
+      hashCode: (e) => e.name.hashCode,
       equals: (a, b) {
         return a.lookupName == b.lookupName &&
-            a.library2?.uri == b.library2?.uri;
+            a.library?.uri == b.library?.uri;
       },
     );
     var regExp = RegExp(pattern);
@@ -325,7 +325,7 @@ class SearchMatchImpl implements SearchMatch {
       true,
       true,
       MatchKind.DECLARATION,
-      SourceRange(firstFragment.nameOffset2!, firstFragment.name2!.length),
+      SourceRange(firstFragment.nameOffset2!, firstFragment.name!.length),
     );
   }
 

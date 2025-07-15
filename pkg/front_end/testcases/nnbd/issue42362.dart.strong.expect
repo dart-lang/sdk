@@ -130,9 +130,9 @@ class A extends core::Object {
     ;
   external constructor constructor8([core::int i = #C1]) → self::A;
   external constructor constructor9({core::int i = #C1}) → self::A;
-  static factory factory3([core::int i = #C1]) → self::A /* redirection-target: self::A::constructor3 */
+  static factory factory3([erroneously-initialized core::int i = #C1]) → self::A /* redirection-target: self::A::constructor3 */
     return new self::A::constructor3(i);
-  static factory factory4({core::int i = #C1}) → self::A /* redirection-target: self::A::constructor4 */
+  static factory factory4({erroneously-initialized core::int i = #C1}) → self::A /* redirection-target: self::A::constructor4 */
     return new self::A::constructor4(i: i);
   static factory factory5([core::int? i = #C1]) → self::A /* redirection-target: self::A::constructor5 */
     return new self::A::constructor5(i);
@@ -190,9 +190,9 @@ class C extends core::Object implements self::B {
   constructor constructor7({required core::int i}) → self::C
     : self::C::i = i, super core::Object::•()
     ;
-  static factory factory3([core::int i = #C1]) → self::C /* redirection-target: self::C::constructor3 */
+  static factory factory3([erroneously-initialized core::int i = #C1]) → self::C /* redirection-target: self::C::constructor3 */
     return new self::C::constructor3(i);
-  static factory factory4({core::int i = #C1}) → self::C /* redirection-target: self::C::constructor4 */
+  static factory factory4({erroneously-initialized core::int i = #C1}) → self::C /* redirection-target: self::C::constructor4 */
     return new self::C::constructor4(i: i);
   static factory factory5([core::int? i = #C1]) → self::C /* redirection-target: self::C::constructor5 */
     return new self::C::constructor5(i);

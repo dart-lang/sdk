@@ -51,15 +51,14 @@ class DartUnitOverridesComputer {
         var superMember =
             superElements.isNotEmpty
                 ? proto.newOverriddenMember_fromEngine(
-                  superElements.first.nonSynthetic2,
+                  superElements.first.nonSynthetic,
                 )
                 : null;
         var interfaceMembers =
             interfaceElements
                 .map(
-                  (member) => proto.newOverriddenMember_fromEngine(
-                    member.nonSynthetic2,
-                  ),
+                  (member) =>
+                      proto.newOverriddenMember_fromEngine(member.nonSynthetic),
                 )
                 .toList();
         _overrides.add(
@@ -124,7 +123,7 @@ class _OverriddenElementsFinder {
 
   factory _OverriddenElementsFinder(Element seed) {
     var class_ = seed.enclosingElement as InterfaceElement;
-    var library = class_.library2;
+    var library = class_.library;
     var name = seed.displayName;
     List<ElementKind> kinds;
     if (seed is FieldElement) {
@@ -175,13 +174,13 @@ class _OverriddenElementsFinder {
     }
     // interfaces
     for (var interfaceType in class_.interfaces) {
-      _addInterfaceOverrides(interfaceType.element3, true);
+      _addInterfaceOverrides(interfaceType.element, true);
     }
     // super
-    _addInterfaceOverrides(class_.supertype?.element3, checkType);
+    _addInterfaceOverrides(class_.supertype?.element, checkType);
     if (class_ is MixinElement) {
       for (var constraint in class_.superclassConstraints) {
-        _addInterfaceOverrides(constraint.element3, true);
+        _addInterfaceOverrides(constraint.element, true);
       }
     }
   }
@@ -204,13 +203,13 @@ class _OverriddenElementsFinder {
       }
     }
 
-    _addSuperOverrides(class_.supertype?.element3);
+    _addSuperOverrides(class_.supertype?.element);
     for (var mixin_ in class_.mixins) {
-      _addSuperOverrides(mixin_.element3);
+      _addSuperOverrides(mixin_.element);
     }
     if (class_ is MixinElement) {
       for (var constraint in class_.superclassConstraints) {
-        _addSuperOverrides(constraint.element3);
+        _addSuperOverrides(constraint.element);
       }
     }
   }
@@ -218,10 +217,10 @@ class _OverriddenElementsFinder {
   Element? _lookupMember(InterfaceElement classElement) {
     Element? findMatchingElement(Iterable<Element> elements) {
       return elements.firstWhereOrNull((Element element) {
-        if (!identical(element.library2, _library) && _name.startsWith('_')) {
+        if (!identical(element.library, _library) && _name.startsWith('_')) {
           return false;
         }
-        return element.name3 == _name;
+        return element.name == _name;
       });
     }
 

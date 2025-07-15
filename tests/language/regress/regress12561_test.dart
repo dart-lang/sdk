@@ -17,5 +17,5 @@ main() {
   Expect.throws(() => new C().foo, (e) => e is Error);
   //                          ^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'foo' isn't defined for the class 'C'.
+  // [cfe] The getter 'foo' isn't defined for the type 'C'.
 }

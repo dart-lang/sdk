@@ -30,8 +30,10 @@ CastPattern
   pattern: DeclaredVariablePattern
     keyword: var
     name: y
-    declaredElement: hasImplicitType y@29
-      type: int
+    declaredFragment: isPublic y@29
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   asToken: as
   type: NamedType
@@ -88,8 +90,10 @@ PatternVariableDeclaration
     pattern: CastPattern
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@19
-          type: int
+        declaredFragment: isPublic a@19
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       asToken: as
       type: NamedType
@@ -102,7 +106,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
   patternTypeSchema: _
 ''');

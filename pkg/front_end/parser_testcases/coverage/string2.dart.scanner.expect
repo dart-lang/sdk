@@ -1,0 +1,47 @@
+void foo(dynamic bar) {
+return """æbler$bar"""
+}
+
+void bar() {
+return """æbler"""
+}
+
+void baz() {
+return r"""hello"""
+}
+
+void qux() {
+return """
+æbler
+"""
+
+
+}
+
+void quux() {
+
+return """æbler\"""}
+
+[UnterminatedString][UnmatchedToken]void[KeywordToken] foo[StringToken]([BeginToken]dynamic[KeywordToken] bar[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] """æbler[StringToken]$[SimpleToken]bar[StringToken]"""[StringToken]
+}[SimpleToken]
+
+void[KeywordToken] bar[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] """æbler"""[StringToken]
+}[SimpleToken]
+
+void[KeywordToken] baz[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] r"""hello"""[StringToken]
+}[SimpleToken]
+
+void[KeywordToken] qux[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] """
+æbler
+"""[StringToken]
+
+
+}[SimpleToken]
+
+void[KeywordToken] quux[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+
+return[KeywordToken] """æbler\"""[SyntheticStringToken]}[SyntheticToken][SimpleToken]

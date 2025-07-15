@@ -14,60 +14,75 @@ import 'package:stack_trace/stack_trace.dart';
 ///
 /// [roots] are the paths (usually `http:` URI strings) that DDC applications
 /// are served from.  This is used to identify sdk and package URIs.
-StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
-    {required List<String?> roots}) {
+StackTrace mapStackTrace(
+  Mapping sourceMap,
+  StackTrace stackTrace, {
+  required List<String?> roots,
+}) {
   if (stackTrace is Chain) {
-    return Chain(stackTrace.traces.map((trace) {
-      return Trace.from(mapStackTrace(sourceMap, trace, roots: roots));
-    }));
+    return Chain(
+      stackTrace.traces.map((trace) {
+        return Trace.from(mapStackTrace(sourceMap, trace, roots: roots));
+      }),
+    );
   }
 
   var trace = Trace.from(stackTrace);
-  return Trace(trace.frames.map((frame) {
-    // If there's no line information, there's no way to translate this frame.
-    // We could return it as-is, but these lines are usually not useful anyways.
-    if (frame.line == null) return null;
+  return Trace(
+    trace.frames.map((frame) {
+      // If there's no line information, there's no way to translate this frame.
+      // We could return it as-is, but these lines are usually not useful anyways.
+      if (frame.line == null) return null;
 
-    // If there's no column, try using the first column of the line.
-    var column = frame.column ?? 0;
+      // If there's no column, try using the first column of the line.
+      var column = frame.column ?? 0;
 
-    // Subtract 1 because stack traces use 1-indexed lines and columns and
-    // source maps uses 0-indexed.
-    var span = sourceMap.spanFor(frame.line! - 1, column - 1,
-        uri: frame.uri.toString());
+      // Subtract 1 because stack traces use 1-indexed lines and columns and
+      // source maps uses 0-indexed.
+      var span = sourceMap.spanFor(
+        frame.line! - 1,
+        column - 1,
+        uri: frame.uri.toString(),
+      );
 
-    // If we can't find a source span, ignore the frame. It's probably something
-    // internal that the user doesn't care about.
-    if (span == null) return null;
+      // If we can't find a source span, ignore the frame. It's probably something
+      // internal that the user doesn't care about.
+      if (span == null) return null;
 
-    var sourceUrl = span.sourceUrl.toString();
-    for (var root in roots) {
-      if (root != null && p.url.isWithin(root, sourceUrl)) {
-        var relative = p.url.relative(sourceUrl, from: root);
-        if (relative.contains('dart:')) {
-          sourceUrl = relative.substring(relative.indexOf('dart:'));
-          break;
-        }
-        var packageRoot = '$root/packages';
-        if (p.url.isWithin(packageRoot, sourceUrl)) {
-          sourceUrl = 'package:${p.url.relative(sourceUrl, from: packageRoot)}';
-          break;
+      var sourceUrl = span.sourceUrl.toString();
+      for (var root in roots) {
+        if (root != null && p.url.isWithin(root, sourceUrl)) {
+          var relative = p.url.relative(sourceUrl, from: root);
+          if (relative.contains('dart:')) {
+            sourceUrl = relative.substring(relative.indexOf('dart:'));
+            break;
+          }
+          var packageRoot = '$root/packages';
+          if (p.url.isWithin(packageRoot, sourceUrl)) {
+            sourceUrl =
+                'package:${p.url.relative(sourceUrl, from: packageRoot)}';
+            break;
+          }
         }
       }
-    }
 
-    if (!sourceUrl.startsWith('dart:') &&
-        !sourceUrl.startsWith('package:') &&
-        sourceUrl.contains('dart_sdk')) {
-      // This compresses the long dart_sdk URLs if SDK source maps are missing.
-      // It's no longer linkable, but neither are the properly mapped ones
-      // above.
-      sourceUrl = 'dart:sdk_internal';
-    }
+      if (!sourceUrl.startsWith('dart:') &&
+          !sourceUrl.startsWith('package:') &&
+          sourceUrl.contains('dart_sdk')) {
+        // This compresses the long dart_sdk URLs if SDK source maps are missing.
+        // It's no longer linkable, but neither are the properly mapped ones
+        // above.
+        sourceUrl = 'dart:sdk_internal';
+      }
 
-    return Frame(Uri.parse(sourceUrl), span.start.line + 1,
-        span.start.column + 1, _prettifyMember(frame.member!));
-  }).nonNulls);
+      return Frame(
+        Uri.parse(sourceUrl),
+        span.start.line + 1,
+        span.start.column + 1,
+        _prettifyMember(frame.member!),
+      );
+    }).nonNulls,
+  );
 }
 
 final escapedPipe = '\$124';
@@ -122,7 +137,7 @@ String _prettifyExtension(String member) {
 /// that an escaped sequence precedes a number literal in the JS name.
 String _unescape(String name) {
   return name.replaceAllMapped(
-      RegExp(r'\$[0-9]+'),
-      (m) =>
-          String.fromCharCode(int.parse(name.substring(m.start + 1, m.end))));
+    RegExp(r'\$[0-9]+'),
+    (m) => String.fromCharCode(int.parse(name.substring(m.start + 1, m.end))),
+  );
 }

@@ -23,36 +23,42 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
+import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
+import 'package:path/path.dart';
 
 import 'idl_model.dart' as idl_model;
 import 'mini_ast.dart';
 
-void main(List<String> args) async {
-  if (args.length != 1) {
-    print('Error: IDL path is required');
-    print('usage: dart generate.dart path/to/idl.dart');
-    return;
-  }
-  String idlPath = args[0];
+void main() async {
+  var idlFolderPath = normalize(
+    join(pkg_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'),
+  );
+  var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
   await GeneratedContent.generateAll(
-    File(idlPath).parent.path,
+    pkg_root.packageRoot,
     getAllTargets(idlPath),
   );
 }
 
 List<GeneratedContent> getAllTargets(String idlPath) {
-  GeneratedFile formatTarget = GeneratedFile('format.dart', (_) async {
-    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
-    codeGenerator.generateFormatCode();
-    return codeGenerator._outBuffer.toString();
-  });
+  GeneratedFile formatTarget = GeneratedFile(
+    'analyzer/lib/src/summary/format.dart',
+    (_) async {
+      _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
+      codeGenerator.generateFormatCode();
+      return codeGenerator._outBuffer.toString();
+    },
+  );
 
-  GeneratedFile schemaTarget = GeneratedFile('format.fbs', (_) async {
-    _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
-    codeGenerator.generateFlatBufferSchema();
-    return codeGenerator._outBuffer.toString();
-  });
+  GeneratedFile schemaTarget = GeneratedFile(
+    'analyzer/lib/src/summary/format.fbs',
+    (_) async {
+      _CodeGenerator codeGenerator = _CodeGenerator(idlPath);
+      codeGenerator.generateFlatBufferSchema();
+      return codeGenerator._outBuffer.toString();
+    },
+  );
 
   return <GeneratedContent>[formatTarget, schemaTarget];
 }

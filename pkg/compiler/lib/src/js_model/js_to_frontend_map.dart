@@ -101,7 +101,7 @@ class JsToFrontendMap {
     return {
       for (final member in set.map(toBackendMember))
         // Members that are not live don't have a corresponding backend member.
-        if (member != null) member,
+        ?member,
     };
   }
 
@@ -317,10 +317,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   @override
   StringConstantValue visitString(StringConstantValue constant, _) => constant;
   @override
-  DummyInterceptorConstantValue visitDummyInterceptor(
-    DummyInterceptorConstantValue constant,
-    _,
-  ) => constant;
+  DummyConstantValue visitDummy(DummyConstantValue constant, _) => constant;
   @override
   LateSentinelConstantValue visitLateSentinel(
     LateSentinelConstantValue constant,

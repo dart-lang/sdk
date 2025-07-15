@@ -646,8 +646,7 @@ class OperationsCfe
 
   @override
   bool isSubtypeOfInternal(DartType leftType, DartType rightType) {
-    return typeEnvironment.isSubtypeOf(
-        leftType, rightType, SubtypeCheckMode.withNullabilities);
+    return typeEnvironment.isSubtypeOf(leftType, rightType);
   }
 
   @override
@@ -720,9 +719,8 @@ class OperationsCfe
   bool isAssignableTo(SharedTypeView fromType, SharedTypeView toType) {
     if (fromType is DynamicType) return true;
     return typeEnvironment
-        .performNullabilityAwareSubtypeCheck(
-            fromType.unwrapTypeView(), toType.unwrapTypeView())
-        .isSubtypeWhenUsingNullabilities();
+        .performSubtypeCheck(fromType.unwrapTypeView(), toType.unwrapTypeView())
+        .isSuccess();
   }
 
   @override
@@ -982,16 +980,14 @@ class OperationsCfe
   @override
   DartType greatestClosureOfTypeInternal(
       DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
-    return new NullabilityAwareFreeTypeParameterEliminator(
-            coreTypes: typeEnvironment.coreTypes)
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
         .eliminateToGreatest(type);
   }
 
   @override
   DartType leastClosureOfTypeInternal(
       DartType type, List<SharedTypeParameter> typeParametersToEliminate) {
-    return new NullabilityAwareFreeTypeParameterEliminator(
-            coreTypes: typeEnvironment.coreTypes)
+    return new FreeTypeParameterEliminator(coreTypes: typeEnvironment.coreTypes)
         .eliminateToLeast(type);
   }
 

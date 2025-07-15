@@ -122,23 +122,23 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       toType = parent.realTarget.typeOrThrow;
     } else if (parent is ForEachPartsWithDeclaration) {
       toType = typeProvider.iterableType(
-        parent.loopVariable.declaredElement2!.type,
+        parent.loopVariable.declaredElement!.type,
       );
     } else if (parent is ForEachPartsWithIdentifier) {
       toType = typeProvider.iterableType(parent.identifier.typeOrThrow);
     } else if (parent is SpreadElement) {
       var literal = parent.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
-        toType = literal.typeOrThrow.asInstanceOf2(
-          typeProvider.iterableElement2,
+        toType = literal.typeOrThrow.asInstanceOf(
+          typeProvider.iterableElement,
         );
       } else if (literal is SetOrMapLiteral) {
         toType =
             literal.typeOrThrow.isDartCoreSet
-                ? literal.typeOrThrow.asInstanceOf2(
-                  typeProvider.iterableElement2,
+                ? literal.typeOrThrow.asInstanceOf(
+                  typeProvider.iterableElement,
                 )
-                : literal.typeOrThrow.asInstanceOf2(typeProvider.mapElement2);
+                : literal.typeOrThrow.asInstanceOf(typeProvider.mapElement);
       }
     } else if (parent is YieldStatement) {
       var enclosingExecutable =

@@ -37,11 +37,11 @@ class ElementDisplayStringBuilder {
   String toString() => _buffer.toString();
 
   void writeAbstractElement(FragmentImpl element) {
-    _write(element.name2 ?? '<unnamed ${element.runtimeType}>');
+    _write(element.name ?? '<unnamed ${element.runtimeType}>');
   }
 
-  void writeAbstractElement2(ElementImpl2 element) {
-    _write(element.name3 ?? '<unnamed ${element.runtimeType}>');
+  void writeAbstractElement2(ElementImpl element) {
+    _write(element.name ?? '<unnamed ${element.runtimeType}>');
   }
 
   void writeClassElement(ClassFragmentImpl element) {
@@ -80,11 +80,20 @@ class ElementDisplayStringBuilder {
     _write(path);
   }
 
-  void writeConstructorElement(ConstructorElementMixin element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
+  void writeConstructorElement(ConstructorElementMixin2 element) {
+    _writeType(element.returnType);
+    _write(' ');
 
+    _write(element.displayName);
+
+    _writeFormalParameters2(
+      element.formalParameters,
+      forElement: true,
+      allowMultiline: true,
+    );
+  }
+
+  void writeConstructorFragment(ConstructorFragmentImpl element) {
     _writeType(element.returnType);
     _write(' ');
 
@@ -113,11 +122,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeExecutableElement(ExecutableElementOrMember element, String name) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
-
+  void writeExecutableElement(ExecutableElement2OrMember element, String name) {
     if (element.kind != ElementKind.SETTER) {
       _writeType(element.returnType);
       _write(' ');
@@ -126,9 +131,31 @@ class ElementDisplayStringBuilder {
     _write(name);
 
     if (element.kind != ElementKind.GETTER) {
-      _writeTypeParameters(element.typeParameters);
+      _writeTypeParameters2(element.typeParameters);
+      _writeFormalParameters2(
+        element.formalParameters,
+        forElement: true,
+        allowMultiline: true,
+      );
+    }
+  }
+
+  void writeExecutableFragment(ExecutableFragmentImpl fragment, String name) {
+    if (fragment.isAugmentation) {
+      _write('augment ');
+    }
+
+    if (fragment is! SetterFragmentImpl) {
+      _writeType(fragment.returnType);
+      _write(' ');
+    }
+
+    _write(name);
+
+    if (fragment is! GetterFragmentImpl) {
+      _writeTypeParameters(fragment.typeParameters);
       _writeFormalParameters(
-        element.parameters,
+        fragment.parameters,
         forElement: true,
         allowMultiline: true,
       );
@@ -162,13 +189,13 @@ class ElementDisplayStringBuilder {
     _write('(');
     _writeType(element.representation.type);
     _write(' ');
-    _write(element.representation.name2 ?? '<null-name}>');
+    _write(element.representation.name ?? '<null-name}>');
     _write(')');
 
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeFormalParameter(ParameterElementMixin element) {
+  void writeFormalParameter(FormalParameterFragmentImpl element) {
     if (element.isRequiredPositional) {
       _writeWithoutDelimiters(element, forElement: true);
     } else if (element.isOptionalPositional) {
@@ -178,6 +205,20 @@ class ElementDisplayStringBuilder {
     } else if (element.isNamed) {
       _write('{');
       _writeWithoutDelimiters(element, forElement: true);
+      _write('}');
+    }
+  }
+
+  void writeFormalParameter2(FormalParameterElementMixin element) {
+    if (element.isRequiredPositional) {
+      _writeWithoutDelimiters2(element, forElement: true);
+    } else if (element.isOptionalPositional) {
+      _write('[');
+      _writeWithoutDelimiters2(element, forElement: true);
+      _write(']');
+    } else if (element.isNamed) {
+      _write('{');
+      _writeWithoutDelimiters2(element, forElement: true);
       _write('}');
     }
   }
@@ -192,10 +233,7 @@ class ElementDisplayStringBuilder {
     _writeType(type.returnType);
     _write(' Function');
     _writeTypeParameters2(type.typeParameters);
-    _writeFormalParameters(
-      type.parameters.map((e) => e.asElement).toList(),
-      forElement: false,
-    );
+    _writeFormalParameters2(type.parameters, forElement: false);
     _writeNullability(type.nullabilitySuffix);
   }
 
@@ -213,7 +251,7 @@ class ElementDisplayStringBuilder {
       return;
     }
 
-    _write(type.element3.name3 ?? '<null>');
+    _write(type.element.name ?? '<null>');
     _writeTypeArguments(type.typeArguments);
     _writeNullability(type.nullabilitySuffix);
   }
@@ -261,7 +299,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writePrefixElement2(PrefixElementImpl2 element) {
+  void writePrefixElement(PrefixElementImpl element) {
     var libraryImports = element.imports;
     var displayName = element.displayName;
     if (libraryImports.isEmpty) {
@@ -353,7 +391,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeTypeParameter2(TypeParameterElementImpl2 element) {
+  void writeTypeParameter2(TypeParameterElementImpl element) {
     var variance = element.variance;
     if (!element.isLegacyCovariant && variance != Variance.unrelated) {
       _write(variance.keyword);
@@ -376,14 +414,14 @@ class ElementDisplayStringBuilder {
       if (hasSuffix) {
         _write('(');
       }
-      _write(type.element3.displayName);
+      _write(type.element.displayName);
       _write(' & ');
       _writeType(promotedBound);
       if (hasSuffix) {
         _write(')');
       }
     } else {
-      _write(type.element3.displayName);
+      _write(type.element.displayName);
     }
     _writeNullability(type.nullabilitySuffix);
   }
@@ -392,7 +430,13 @@ class ElementDisplayStringBuilder {
     _write('_');
   }
 
-  void writeVariableElement(VariableElementOrMember element) {
+  void writeVariableElement(VariableFragmentImpl element) {
+    _writeType(element.type);
+    _write(' ');
+    _write(element.displayName);
+  }
+
+  void writeVariableElement2(VariableElement2OrMember element) {
     _writeType(element.type);
     _write(' ');
     _write(element.displayName);
@@ -405,7 +449,7 @@ class ElementDisplayStringBuilder {
   bool _maybeWriteTypeAlias(DartType type) {
     if (preferTypeAlias) {
       if (type.alias case var alias?) {
-        _write(alias.element2.name3 ?? '<null>');
+        _write(alias.element.name ?? '<null>');
         _writeTypeArguments(alias.typeArguments);
         _writeNullability(type.nullabilitySuffix);
         return true;
@@ -429,7 +473,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeFormalParameters(
-    List<ParameterElementMixin> parameters, {
+    List<FormalParameterFragmentImpl> parameters, {
     required bool forElement,
     bool allowMultiline = false,
   }) {
@@ -480,6 +524,65 @@ class ElementDisplayStringBuilder {
       }
       _write(parameterPrefix);
       _writeWithoutDelimiters(parameter, forElement: forElement);
+    }
+
+    _write(trailingComma);
+    _write(lastClose);
+    _write(')');
+  }
+
+  void _writeFormalParameters2(
+    List<FormalParameterElementMixin> parameters, {
+    required bool forElement,
+    bool allowMultiline = false,
+  }) {
+    // Assume the display string looks better wrapped when there are at least
+    // three parameters. This avoids having to pre-compute the single-line
+    // version and know the length of the function name/return type.
+    var multiline = allowMultiline && _multiline && parameters.length >= 3;
+
+    // The prefix for open groups is included in separator for single-line but
+    // not for multiline so must be added explicitly.
+    var openGroupPrefix = multiline ? ' ' : '';
+    var separator = multiline ? ',' : ', ';
+    var trailingComma = multiline ? ',\n' : '';
+    var parameterPrefix = multiline ? '\n  ' : '';
+
+    _write('(');
+
+    _WriteFormalParameterKind? lastKind;
+    var lastClose = '';
+
+    void openGroup(_WriteFormalParameterKind kind, String open, String close) {
+      if (lastKind != kind) {
+        _write(lastClose);
+        if (lastKind != null) {
+          // We only need to include the space before the open group if there
+          // was a previous parameter, otherwise it goes immediately after the
+          // open paren.
+          _write(openGroupPrefix);
+        }
+        _write(open);
+        lastKind = kind;
+        lastClose = close;
+      }
+    }
+
+    for (var i = 0; i < parameters.length; i++) {
+      if (i != 0) {
+        _write(separator);
+      }
+
+      var parameter = parameters[i];
+      if (parameter.isRequiredPositional) {
+        openGroup(_WriteFormalParameterKind.requiredPositional, '', '');
+      } else if (parameter.isOptionalPositional) {
+        openGroup(_WriteFormalParameterKind.optionalPositional, '[', ']');
+      } else if (parameter.isNamed) {
+        openGroup(_WriteFormalParameterKind.named, '{', '}');
+      }
+      _write(parameterPrefix);
+      _writeWithoutDelimiters2(parameter, forElement: forElement);
     }
 
     _write(trailingComma);
@@ -546,7 +649,7 @@ class ElementDisplayStringBuilder {
       if (i != 0) {
         _write(', ');
       }
-      (elements[i] as TypeParameterElementImpl2).appendTo(this);
+      (elements[i] as TypeParameterElementImpl).appendTo(this);
     }
     _write('>');
   }
@@ -568,7 +671,33 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeWithoutDelimiters(
-    ParameterElementMixin element, {
+    FormalParameterFragmentImpl element, {
+    required bool forElement,
+  }) {
+    if (element.isRequiredNamed) {
+      _write('required ');
+    }
+
+    // TODO(scheglov): write a placeholder, or remove completely
+    // When we do correct separate writing elements.
+    _writeType(element.element.type);
+
+    if (forElement || element.isNamed) {
+      _write(' ');
+      _write(element.displayName);
+    }
+
+    if (forElement) {
+      var defaultValueCode = element.element.defaultValueCode;
+      if (defaultValueCode != null) {
+        _write(' = ');
+        _write(defaultValueCode);
+      }
+    }
+  }
+
+  void _writeWithoutDelimiters2(
+    FormalParameterElementMixin element, {
     required bool forElement,
   }) {
     if (element.isRequiredNamed) {
@@ -600,7 +729,7 @@ class ElementDisplayStringBuilder {
 
     void collectTypeParameters(DartType? type) {
       if (type is TypeParameterType) {
-        referencedTypeParameters.add(type.element3);
+        referencedTypeParameters.add(type.element);
       } else if (type is FunctionType) {
         for (var typeParameter in type.typeParameters) {
           collectTypeParameters(typeParameter.bound);
@@ -624,10 +753,10 @@ class ElementDisplayStringBuilder {
       namesToAvoid.add(typeParameter.displayName);
     }
 
-    var newTypeParameters = <TypeParameterElementImpl2>[];
+    var newTypeParameters = <TypeParameterElementImpl>[];
     for (var typeParameter in type.typeParameters) {
       // The type parameter name can be null in erroneous cases.
-      var name = typeParameter.name3 ?? '';
+      var name = typeParameter.name ?? '';
       for (var counter = 0; !namesToAvoid.add(name); counter++) {
         const unicodeSubscriptZero = 0x2080;
         const unicodeZero = 0x30;
@@ -638,12 +767,12 @@ class ElementDisplayStringBuilder {
           }),
         );
 
-        name = typeParameter.name3! + subscript;
+        name = typeParameter.name! + subscript;
       }
 
       var newTypeParameter = TypeParameterFragmentImpl(
-        name2: name,
-        nameOffset: -1,
+        name: name,
+        firstTokenOffset: null,
       );
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter.asElement2);

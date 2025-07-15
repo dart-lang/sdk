@@ -20,6 +20,41 @@ void main() {
 
 @reflectiveTest
 class ReplacedByTest extends DataDrivenFixProcessorTest {
+  Future<void> test_class_class() async {
+    await _assertReplacement(
+      _Element.class_(isDeprecated: true, isOld: true),
+      _Element.class_(),
+    );
+  }
+
+  Future<void> test_class_enum() async {
+    await _assertReplacement(
+      _Element.class_(isDeprecated: true, isOld: true),
+      _Element.enum_(),
+    );
+  }
+
+  Future<void> test_class_extensionType() async {
+    await _assertReplacement(
+      _Element.class_(isDeprecated: true, isOld: true),
+      _Element.extensionType(),
+    );
+  }
+
+  Future<void> test_class_mixin() async {
+    await _assertReplacement(
+      _Element.class_(isDeprecated: true, isOld: true),
+      _Element.mixin(),
+    );
+  }
+
+  Future<void> test_class_typedef() async {
+    await _assertReplacement(
+      _Element.class_(isDeprecated: true, isOld: true),
+      _Element.typedef(aliasedType: 'int'),
+    );
+  }
+
   Future<void> test_defaultConstructor_defaultConstructor() async {
     await _assertReplacement(
       _Element.defaultConstructor(isDeprecated: true, isOld: true),
@@ -60,6 +95,41 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
       _Element.namedConstructor(),
       isInvocation: true,
       isPrefixed: true,
+    );
+  }
+
+  Future<void> test_enum_class() async {
+    await _assertReplacement(
+      _Element.enum_(isDeprecated: true, isOld: true),
+      _Element.class_(),
+    );
+  }
+
+  Future<void> test_enum_enum() async {
+    await _assertReplacement(
+      _Element.enum_(isDeprecated: true, isOld: true),
+      _Element.enum_(),
+    );
+  }
+
+  Future<void> test_enum_extensionType() async {
+    await _assertReplacement(
+      _Element.enum_(isDeprecated: true, isOld: true),
+      _Element.extensionType(),
+    );
+  }
+
+  Future<void> test_enum_mixin() async {
+    await _assertReplacement(
+      _Element.enum_(isDeprecated: true, isOld: true),
+      _Element.mixin(),
+    );
+  }
+
+  Future<void> test_enum_typedef() async {
+    await _assertReplacement(
+      _Element.enum_(isDeprecated: true, isOld: true),
+      _Element.typedef(aliasedType: 'int'),
     );
   }
 
@@ -135,6 +205,41 @@ class ReplacedByTest extends DataDrivenFixProcessorTest {
       _Element.constant(isDeprecated: true, isOld: true),
       _Element.topLevelVariable(),
       isPrefixed: true,
+    );
+  }
+
+  Future<void> test_extensionType_class() async {
+    await _assertReplacement(
+      _Element.extensionType(isDeprecated: true, isOld: true),
+      _Element.class_(),
+    );
+  }
+
+  Future<void> test_extensionType_enum() async {
+    await _assertReplacement(
+      _Element.extensionType(isDeprecated: true, isOld: true),
+      _Element.enum_(),
+    );
+  }
+
+  Future<void> test_extensionType_extensionType() async {
+    await _assertReplacement(
+      _Element.extensionType(isDeprecated: true, isOld: true),
+      _Element.extensionType(),
+    );
+  }
+
+  Future<void> test_extensionType_mixin() async {
+    await _assertReplacement(
+      _Element.extensionType(isDeprecated: true, isOld: true),
+      _Element.mixin(),
+    );
+  }
+
+  Future<void> test_extensionType_typedef() async {
+    await _assertReplacement(
+      _Element.extensionType(isDeprecated: true, isOld: true),
+      _Element.typedef(aliasedType: 'int'),
     );
   }
 
@@ -307,6 +412,41 @@ import '$importUri';
 var x = C().oldMethod(1);
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_mixin_class() async {
+    await _assertReplacement(
+      _Element.mixin(isDeprecated: true, isOld: true),
+      _Element.class_(),
+    );
+  }
+
+  Future<void> test_mixin_enum() async {
+    await _assertReplacement(
+      _Element.mixin(isDeprecated: true, isOld: true),
+      _Element.enum_(),
+    );
+  }
+
+  Future<void> test_mixin_extensionType() async {
+    await _assertReplacement(
+      _Element.mixin(isDeprecated: true, isOld: true),
+      _Element.extensionType(),
+    );
+  }
+
+  Future<void> test_mixin_mixin() async {
+    await _assertReplacement(
+      _Element.mixin(isDeprecated: true, isOld: true),
+      _Element.mixin(),
+    );
+  }
+
+  Future<void> test_mixin_typedef() async {
+    await _assertReplacement(
+      _Element.mixin(isDeprecated: true, isOld: true),
+      _Element.typedef(aliasedType: 'int'),
+    );
   }
 
   Future<void> test_namedConstructor_defaultConstructor() async {
@@ -911,6 +1051,41 @@ var x = C().oldMethod(1);
     );
   }
 
+  Future<void> test_typedef_class() async {
+    await _assertReplacement(
+      _Element.typedef(isDeprecated: true, isOld: true, aliasedType: 'int'),
+      _Element.class_(),
+    );
+  }
+
+  Future<void> test_typedef_enum() async {
+    await _assertReplacement(
+      _Element.typedef(isDeprecated: true, isOld: true, aliasedType: 'int'),
+      _Element.enum_(),
+    );
+  }
+
+  Future<void> test_typedef_extensionType() async {
+    await _assertReplacement(
+      _Element.typedef(isDeprecated: true, isOld: true, aliasedType: 'int'),
+      _Element.extensionType(),
+    );
+  }
+
+  Future<void> test_typedef_mixin() async {
+    await _assertReplacement(
+      _Element.typedef(isDeprecated: true, isOld: true, aliasedType: 'int'),
+      _Element.mixin(),
+    );
+  }
+
+  Future<void> test_typedef_typedef() async {
+    await _assertReplacement(
+      _Element.typedef(isDeprecated: true, isOld: true, aliasedType: 'int'),
+      _Element.typedef(aliasedType: 'int'),
+    );
+  }
+
   Future<void> _assertReplacement(
     _Element oldElement,
     _Element newElement, {
@@ -1083,6 +1258,48 @@ f() {
 ''');
   }
 
+  Future<void> test_new_element_uris_prefixed() async {
+    setPackageContent('''
+@deprecated
+void expect(Object? v1, Object? v2) {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+void expect(Object? v1, Object? v2) {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace expect'
+    date: 2022-05-12
+    bulkApply: false
+    element:
+      uris: ['$importUri']
+      function: 'expect'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'expect'
+''');
+
+    /// Uses the unprefixed name from the new unprefixed import.
+    await resolveTestCode('''
+import '$importUri' as prefix;
+
+main() {
+  prefix.expect(true, true);
+}
+''');
+    await assertHasFix('''
+import '$importUri' as prefix;
+import 'package:p/lib2.dart';
+
+main() {
+  expect(true, true);
+}
+''');
+  }
+
   Future<void> test_new_element_uris_single() async {
     setPackageContent('');
     addPackageDataFile('''
@@ -1116,6 +1333,48 @@ main() {
 }
 ''');
   }
+
+  Future<void> test_new_element_uris_to_prefixed() async {
+    setPackageContent('''
+@deprecated
+void expect(Object? v1, Object? v2) {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib2.dart', '''
+void expect(Object? v1, Object? v2) {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace expect'
+    date: 2022-05-12
+    bulkApply: false
+    element:
+      uris: ['$importUri']
+      function: 'expect'
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['package:p/lib2.dart']
+          function: 'expect'
+''');
+    // Use the prefix of the existing prefixed import.
+    await resolveTestCode('''
+import '$importUri';
+import 'package:p/lib2.dart' as prefix; // ignore: unused_import
+
+main() {
+  expect(true, true);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+import 'package:p/lib2.dart' as prefix; // ignore: unused_import
+
+main() {
+  prefix.expect(true, true);
+}
+''');
+  }
 }
 
 class _Element {
@@ -1125,7 +1384,6 @@ class _Element {
 
   _Element(this.kind, this.components, this.declaration);
 
-  // ignore: unused_element
   factory _Element.class_({bool isDeprecated = false, bool isOld = false}) {
     var name = isOld ? 'C_old' : 'C_new';
     var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
@@ -1167,7 +1425,6 @@ class $className {
     );
   }
 
-  // ignore: unused_element
   factory _Element.enum_({bool isDeprecated = false, bool isOld = false}) {
     var enumName = isOld ? 'E_old' : 'E_new';
     var constantName = isOld ? 'c_old' : 'c_new';
@@ -1177,6 +1434,28 @@ class $className {
       [enumName],
       '''
 ${annotation}enum $enumName { $constantName }''',
+    );
+  }
+
+  factory _Element.extensionType({
+    bool isDeprecated = false,
+    bool isOld = false,
+    String representationType = 'int',
+    String representationVariable = '_',
+    String? constructorName,
+    bool isConst = false,
+  }) {
+    var name = isOld ? 'X_old' : 'X_new';
+    var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
+    var constructorPart =
+        '${constructorName == null ? '' : '.$constructorName'}'
+        '($representationType $representationVariable)';
+    var constPrefix = isConst ? 'const ' : '';
+    return _Element(
+      ElementKind.extensionTypeKind,
+      [name],
+      '''
+${annotation}extension type $constPrefix$name$constructorPart {}''',
     );
   }
 
@@ -1234,6 +1513,17 @@ class $className {
 class $className {
   $annotation${keyword}int $methodName() => 0;
 }''',
+    );
+  }
+
+  factory _Element.mixin({bool isDeprecated = false, bool isOld = false}) {
+    var name = isOld ? 'M_old' : 'M_new';
+    var annotation = _annotation(isDeprecated: isDeprecated, isTopLevel: true);
+    return _Element(
+      ElementKind.mixinKind,
+      [name],
+      '''
+${annotation}mixin $name {}''',
     );
   }
 
@@ -1329,15 +1619,18 @@ ${annotation}int $name = 0;''',
     );
   }
 
-  // ignore: unused_element
-  factory _Element.typedef({bool isDeprecated = false, bool isOld = false}) {
+  factory _Element.typedef({
+    bool isDeprecated = false,
+    bool isOld = false,
+    String aliasedType = 'int Function()',
+  }) {
     var name = isOld ? 'T_old' : 'T_new';
     var annotation = _annotation(isDeprecated: isDeprecated);
     return _Element(
       ElementKind.typedefKind,
       [name],
       '''
-${annotation}typedef $name = int Function();''',
+${annotation}typedef $name = $aliasedType;''',
     );
   }
 

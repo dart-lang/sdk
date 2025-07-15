@@ -37,7 +37,7 @@ void f() {
   }
 }
     ''';
-    await assertSnippet(code, expectedCode);
+    await assertSnippetResult(code, expectedCode);
   }
 
   Future<void> test_switch_nested() async {
@@ -57,6 +57,6 @@ int f(String a, int b) {
   };
 }
     ''';
-    await assertSnippet(code, expectedCode);
+    await assertSnippetResult(code, expectedCode);
   }
 }

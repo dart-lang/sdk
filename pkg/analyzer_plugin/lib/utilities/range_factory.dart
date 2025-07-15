@@ -14,6 +14,7 @@ final RangeFactory range = RangeFactory();
 
 /// A factory used to create instances of [SourceRange] based on various
 /// syntactic and semantic entities.
+// TODO(srawlins): Make this class final.
 class RangeFactory {
   /// Return a source range that covers all of the arguments in the
   /// [argumentList] between the [lower] and [upper] indices, inclusive. The
@@ -95,6 +96,10 @@ class RangeFactory {
     return startOffsetEndOffset(startOffset, endOffset);
   }
 
+  /// A source range that covers the same range as the given [diagnostic].
+  SourceRange diagnostic(Diagnostic diagnostic) =>
+      SourceRange(diagnostic.offset, diagnostic.length);
+
   /// Return a source range that starts at the end of [leftEntity] and ends at
   /// the end of [rightEntity].
   SourceRange endEnd(SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
@@ -123,21 +128,18 @@ class RangeFactory {
     return SourceRange(node.offset, node.length);
   }
 
-  /// Returns a source range that covers the same range as the given
-  /// [diagnostic].
-  SourceRange error(Diagnostic diagnostic) {
-    return SourceRange(diagnostic.offset, diagnostic.length);
-  }
+  @Deprecated("Use 'diagnostic' instead")
+  SourceRange error(Diagnostic d) => diagnostic(d);
 
   /// Returns a source range that covers the name of the given [fragment].
   ///
   /// Returns `null` if the [fragment] does not have an explicit name location,
   /// such as when it is synthetic.
   ///
-  /// See [Fragment.name2] and [Fragment.nameOffset2].
+  /// See [Fragment.name] and [Fragment.nameOffset2].
   SourceRange? fragmentName(Fragment fragment) {
     var nameOffset = fragment.nameOffset2;
-    var nameLength = fragment.name2?.length;
+    var nameLength = fragment.name?.length;
     if (nameOffset == null || nameLength == null) {
       return null;
     }

@@ -5,7 +5,12 @@
 * Remove deprecated `RecordType.sortedNamedTypes`.
 * Remove `ElementLocation` class; its values are not returned anymore.
 * Remove deprecated `AnalysisContext.analysisOptions`.
+* Remove deprecated `PromotableElement` and `PromotableFragment`.
+* Remove deprecated `LocalVariableElement.hasInitializer`.
+* Remove deprecated `LocalVariableFragment.hasInitializer`.
 * `LibraryFragment` is not `Annotatable` anymore.
+* Stop implementing `ConstantEvaluationTarget` by `ElementAnnotation`.
+  This is an internal interface that should not have been exposed.
 * Deprecate `element2.dart` library; import `element.dart`.
 * Deprecate `XyzElement2` classes; use `XyzElement` instead.
 * Deprecate `AnalysisError.correction` field; use
@@ -17,6 +22,19 @@
 * Deprecate `ErrorSeverity`; use `DiagnosticSeverity` instead.
 * Deprecate `DiagnosticCode.errorSeverity`; use
   `DiagnosticCode.diagnosticSeverity` instead.
+* Deprecate `AnalysisErrorListener`, `BooleanErrorListener`, and
+  `RecordingErrorListener`; use `DiagnosticListener`,
+  `BooleanDiagnosticListener`, and `RecordingDiagnosticListener` respectively,
+  instead. Instead of calling or overriding `AnalysisErrorListener.onError`,
+  call or override `DiagnosticListener.onDiagnostic`. Instead of using
+  `AnalysisErrorListener.NULL_LISTENER`, use `DiagnosticListener.nullListener`.
+* Deprecate `RecordingErrorListener.errors`; use
+  `RecordingDiagnosticListener.diagnostics` instead.
+* Deprecate `RecordingErrorListener.getErrorsForSource`; no longer supported.
+* Deprecate `AnalysisResultWithErrors`; use `AnalysisResultWithDiagnostics`
+  instead.
+* Deprecate `AnalysisResultWithErrors.errors`; use
+  `AnalysisResultWithErrors.diagnostics` instead.
 * Deprecate `ErrorType`; use `DiagnosticType` instead.
 * Change `ElementDirective` from `sealed` to `abstract`.
   This allows the analyzer to have an internal implementation
@@ -38,6 +56,109 @@
 * Deprecate `InterfaceFragment.constructors2`, use `constructors` instead.
 * Deprecate `JoinPatternVariableElement.variables2`, use `variables` instead.
 * Deprecate `Annotatable.metadata2`, use `metadata` instead.
+* Deprecate `Element.nonSynthetic2`, use `nonSynthetic` instead.
+* Deprecate `Element.library2`, use `library` instead.
+* Deprecate `ExtensionTypeElement.primaryConstructor2`, use `primaryConstructor` instead.
+* Deprecate `ExtensionTypeElement.representation2`, use `representation` instead.
+* Deprecate `ExtensionTypeFragment.primaryConstructor2`, use `primaryConstructor` instead.
+* Deprecate `ExtensionTypeFragment.representation2`, use `representation` instead.
+* Deprecate `InterfaceType.getGetter2`, use `getGetter` instead.
+* Deprecate `InterfaceType.getMethod2`, use `getMethod` instead.
+* Deprecate `InterfaceType.getSetter2`, use `getSetter` instead.
+* Deprecate `InterfaceType.lookUpConstructor2`, use `lookUpConstructor` instead.
+* Deprecate `InterfaceType.lookUpGetter3`, use `lookUpGetter` instead.
+* Deprecate `InterfaceType.lookUpMethod3`, use `lookUpMethod` instead.
+* Deprecate `InterfaceType.lookUpSetter3`, use `lookUpSetter` instead.
+* Remove `PropertyAccessorFragmentImplImplicitGetter`, `PropertyAccessorFragmentImplImplicitSetter`, 
+  and `FormalParameterFragmentImplOfImplicitSetter`, replace with `GetterFragmentImpl`, and `SetterFragmentImpl`.
+* Deprecate `ExtensionTypeFragment.representation2`, use `representation` instead.
+* Deprecate `DartType.element3`, use `element` instead.
+* Deprecate `LibraryElement.loadLibraryFunction2`, use `loadLibraryFunction` instead.
+* Deprecate `InterfaceType.constructors2`, use `constructors` instead.
+* Deprecate `Element.accept2`, use `accept` instead.
+* Deprecate `InstantiatedTypeAliasElement.element2`, use `element` instead.
+* Deprecate  `TypeProvider.boolElement2`, use `boolElement` instead.
+* Deprecate  `TypeProvider.doubleElement2`, use `doubleElement` instead.
+* Deprecate  `TypeProvider.enumElement2`, use `enumElement` instead.
+* Deprecate  `TypeProvider.futureElement2`, use `futureElement` instead.
+* Deprecate  `TypeProvider.futureOrElement2`, use `futureOrElement` instead.
+* Deprecate  `TypeProvider.intElement2`, use `intElement` instead.
+* Deprecate  `TypeProvider.iterableElement2`, use `iterableElement` instead.
+* Deprecate  `TypeProvider.listElement2`, use `listElement` instead.
+* Deprecate  `TypeProvider.mapElement2`, use `mapElement` instead.
+* Deprecate  `TypeProvider.nullElement2`, use `nullElement` instead.
+* Deprecate  `TypeProvider.numElement2`, use `numElement` instead.
+* Deprecate  `TypeProvider.objectElement2`, use `objectElement` instead.
+* Deprecate  `TypeProvider.recordElement2`, use `recordElement` instead.
+* Deprecate  `TypeProvider.setElement2`, use `setElement` instead.
+* Deprecate  `TypeProvider.streamElement2`, use `streamElement` instead.
+* Deprecate  `TypeProvider.stringElement2`, use `stringElement` instead.
+* Deprecate  `TypeProvider.symbolElement2`, use `symbolElement` instead.
+* Deprecated `Annotation.element2`, use `element` instead.
+* Deprecated `LibraryDirective.name2`, use `name` instead.
+* Deprecated `CatchClauseParameter.declaredElement2`, use `declaredElement` instead.
+* Deprecated `CompoundAssignmentExpression.readElement2`, use `readElement` instead.
+* Deprecated `CompoundAssignmentExpression.writeElement2`, use `writeElement` instead.
+* Deprecated `DeclaredIdentifier.declaredElement2`, use `declaredElement` instead.
+* Deprecated `DeclaredVariablePattern.declaredElement2`, use `declaredElement` instead.
+* Deprecated `EnumConstantDeclaration.constructorElement2`, use `constructorElement` instead.
+* Deprecated `ExtensionOverride.element2`, use `element` instead.
+* Deprecated `FunctionBody.isPotentiallyMutatedInScope2`, use `isPotentiallyMutatedInScope` instead.
+* Deprecated `ImportPrefixReference.element2`, use `element` instead.
+* Deprecated `LibraryDirective.element2, use `element` instead.
+* Deprecated `LibraryDirective.name2, use `name` instead.
+* Deprecated `NamedExpression.element2, use `element` instead.
+* Deprecated `NamedType.element2, use `element` instead.
+* Deprecated `PatternField.element2, use `element` instead.
+* Deprecated `RelationalPattern.element2, use `element` instead.
+* Deprecated `VariableDeclaration.declaredElement2, use `declaredElement` instead.
+* Deprecate `InterfaceType.methods2`, use `methods` instead.
+* Deprecate `Fragment.name2`, use `name` instead.
+* Deprecate `Element.name3`, use `name` instead.
+* Deprecate `ConstructorElement.redirectedConstructor2`, use `redirectedConstructor` instead.
+* Deprecate `ConstructorElement.superConstructor2`, use `superConstructor˙` instead.
+* Deprecate `Element.children2`, use `children` instead.
+* Deprecate `Element.displayString2`, use `displayString` instead.
+* Deprecate `Element.getExtendedDisplayName2`, use `getExtendedDisplayName` instead.
+* Deprecate `Element.isAccessibleIn2`, use `isAccessibleIn` instead.
+* Deprecate `Element.thisOrAncestorMatching2`, use `thisOrAncestorMatching` instead.
+* Deprecate `Element.thisOrAncestorOfType2`, use `thisOrAncestorOfType` instead.
+* Deprecate `EnumElement.constants2`, use `constants` instead.
+* Deprecate `FieldFormalParameterElement.field2`, use `field` instead.
+* Deprecate `FormalParameterElement.typeParameters2`, use `typeParameters` instead.
+* Deprecate `Fragment.children3`, use `children` instead.
+* Deprecate `DartType.asInstanceOf2`, use `asInstanceOf` instead.
+* Deprecate `TypeSystem.instantiateInterfaceToBounds2`, use `instantiateInterfaceToBounds` instead.
+* Deprecate `TypeSystem.instantiateTypeAliasToBounds2`, use `instantiateTypeAliasToBounds` instead.
+* Deprecate `FormalParameterElement.appendToWithoutDelimiters`, use `appendToWithoutDelimiters` instead.
+* Deprecate `GetterElement.correspondingSetter2`, use `correspondingSetter` instead.
+* Deprecate `InterfaceElement.unnamedConstructor2`, use `unnamedConstructor` instead.
+* Deprecate `InterfaceElement.getNamedConstructor2`, use `getNamedConstructor` instead.
+* Deprecate `TypeParameterizedElement.typeParameters2`, use `typeParameters` instead.
+* Deprecate `FormalParameterElement.appendToWithoutDelimiters2`, use `appendToWithoutDelimiters` instead.
+* Deprecate `GetterElement.correspondingSetter2`, use `correspondingSetter` instead.
+* Deprecate `InterfaceElement.unnamedConstructor2`, use `unnamedConstructor` instead.
+* Deprecate `InterfaceElement.getNamedConstructor2`, use `getNamedConstructor` instead.
+* Deprecate `LibraryElement.entryPoint2`, use `entryPoint` instead.
+* Deprecate `LibraryElement.exportedLibraries2`, use `exportedLibraries` instead.
+* Deprecate `LibraryElement.getClass2`, use `getClass` instead.
+* Deprecate `LibraryElement.getEnum2`, use `getEnum` instead.
+* Deprecate `LibraryElement.getMixin2`, use `getMixin` instead.
+* Deprecate `LibraryExport.exportedLibrary2`, use `exportedLibrary` instead.
+* Deprecate `LibraryFragment.accessibleExtensions2`, use `accessibleExtensions` instead.
+* Deprecate `LibraryFragment.importedLibraries2`, use `importedLibraries` instead.
+* Deprecate `LibraryImport.importedLibrary2`, use `importedLibrary` instead.
+* Deprecate `MixinElement.isImplementableIn2`, use `isImplementableIn` instead.
+* Deprecate `PatternVariableElement.join2`, use `join` instead.
+* Deprecate `PropertyAccessorElement.variable3`, use `variable` instead.
+* Deprecate `PropertyInducingElement.getter2`, use `getter` instead.
+* Deprecate `PropertyInducingElement.setter2`, use `setter` instead.
+* Deprecate `SetterElement.correspondingGetter2`, use `correspondingGetter` instead.
+* Deprecate `SuperFormalParameterElement.superConstructorParameter2`, use `superConstructorParameter` instead.
+* Deprecate `TypeAliasElement.aliasedElement2`, use `aliasedElement` instead.
+* Deprecate `TypeParameterizedElement.typeParameters2`, use `typeParameters` instead.
+* Deprecate `VariableElement.constantInitializer2`, use `constantInitializer` instead.
+* Deprecate `TypeProvider.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

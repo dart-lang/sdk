@@ -50,9 +50,9 @@ class EditSortMembersHandler extends LegacyHandler {
     var fileStamp = -1;
     var code = result.content;
     var unit = result.unit;
-    var errors = result.errors;
+    var diagnostics = result.diagnostics;
     // Check if there are scan/parse errors in the file.
-    var numScanParseErrors = numberOfSyntacticErrors(errors);
+    var numScanParseErrors = numberOfSyntacticErrors(diagnostics);
     if (numScanParseErrors != 0) {
       sendResponse(
         Response.sortMembersParseErrors(request, numScanParseErrors),

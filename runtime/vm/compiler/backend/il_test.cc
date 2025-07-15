@@ -1370,7 +1370,7 @@ ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_InstanceCallWithNoICDataInAOT) {
     // length_call <- InstanceCall('get:length', array, ICData[])
     length_call = builder.AddDefinition(new InstanceCallInstr(
         InstructionSource(), Symbols::GetLength(), Token::kGET,
-        /*args=*/{new Value(array)}, 0, Array::empty_array(), 1,
+        /*arguments=*/{new Value(array)}, 0, Array::empty_array(), 1,
         /*deopt_id=*/42));
     length_call->EnsureICData(H.flow_graph());
     // Return(load)

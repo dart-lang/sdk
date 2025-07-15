@@ -47,7 +47,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -160,7 +160,7 @@ MethodInvocation
     arguments
       IntegerLiteral
         literal: 0
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::foo::@parameter::_#element
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::_
         staticType: int
     rightParenthesis: )
   staticInvokeType: void Function(int)
@@ -297,7 +297,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -328,7 +328,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -359,7 +359,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@mixin::A::@getter::foo#element
+    element: <testLibrary>::@mixin::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -387,7 +387,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -419,7 +419,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -449,7 +449,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@class::A::@getter::foo#element
+    element: <testLibrary>::@class::A::@getter::foo
     staticType: int
   staticType: int
 ''');
@@ -517,11 +517,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -559,11 +559,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -601,12 +601,12 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    correspondingParameter: <testLibraryFragment>::@mixin::A::@setter::foo::@parameter::a#element
-    element: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a#element
+    correspondingParameter: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::a
+    element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@mixin::A::@setter::foo#element
+  writeElement2: <testLibrary>::@mixin::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -641,12 +641,12 @@ AssignmentExpression
   operator: =
   rightHandSide: SimpleIdentifier
     token: a
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::a#element
-    element: <testLibraryFragment>::@class::B::@setter::foo::@parameter::a#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::a
+    element: <testLibrary>::@class::B::@setter::foo::@formalParameter::a
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -685,11 +685,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@setter::foo::@parameter::_#element
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
   readElement2: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@class::A::@setter::foo#element
+  writeElement2: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

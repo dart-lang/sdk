@@ -113,7 +113,7 @@ int _readWhitespace(String content, [int index = 0]) {
 /// is ultimately built with [build].
 final class DocCommentBuilder {
   final Parser _parser;
-  final ErrorReporter? _errorReporter;
+  final DiagnosticReporter? _diagnosticReporter;
   final Uri _uri;
   final FeatureSet _featureSet;
   final LibraryLanguageVersion _languageVersion;
@@ -130,7 +130,7 @@ final class DocCommentBuilder {
 
   DocCommentBuilder(
     this._parser,
-    this._errorReporter,
+    this._diagnosticReporter,
     this._uri,
     this._featureSet,
     this._languageVersion,
@@ -202,7 +202,7 @@ final class DocCommentBuilder {
           // `null`.
           var openingTag = builder.openingTag;
           if (openingTag != null) {
-            _errorReporter?.atOffset(
+            _diagnosticReporter?.atOffset(
               offset: openingTag.offset,
               length: openingTag.end - openingTag.offset,
               diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
@@ -219,7 +219,7 @@ final class DocCommentBuilder {
     }
 
     // No matching opening tag was found.
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: closingTag.offset,
       length: closingTag.end - closingTag.offset,
       diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG,
@@ -301,7 +301,7 @@ final class DocCommentBuilder {
       // `null`.
       var openingTag = builder.openingTag;
       if (openingTag != null) {
-        _errorReporter?.atOffset(
+        _diagnosticReporter?.atOffset(
           offset: openingTag.offset,
           length: openingTag.end - openingTag.offset,
           diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG,
@@ -349,7 +349,7 @@ final class DocCommentBuilder {
       nameEnd: _characterSequence._offset + nameEnd,
       content: content,
       index: index,
-      errorReporter: _errorReporter,
+      diagnosticReporter: _diagnosticReporter,
     );
 
     switch (name) {
@@ -392,7 +392,7 @@ final class DocCommentBuilder {
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.youtube));
         return true;
     }
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: _characterSequence._offset + nameIndex,
       length: nameEnd - nameIndex,
       diagnosticCode: WarningCode.DOC_DIRECTIVE_UNKNOWN,
@@ -439,7 +439,7 @@ final class DocCommentBuilder {
 
     var token = result.tokens;
     var docImportListener = AstBuilder(
-      _errorReporter,
+      _diagnosticReporter,
       _uri,
       true /* isFullAst */,
       _featureSet,
@@ -1079,7 +1079,7 @@ final class _DirectiveParser {
   /// The length of [content].
   final int _length;
 
-  final ErrorReporter? _errorReporter;
+  final DiagnosticReporter? _diagnosticReporter;
 
   /// The current position in [content].
   int index;
@@ -1097,11 +1097,11 @@ final class _DirectiveParser {
     required this.nameEnd,
     required this.content,
     required this.index,
-    required ErrorReporter? errorReporter,
+    required DiagnosticReporter? diagnosticReporter,
   }) : _contentOffset = contentOffset,
        _offset = offset,
        _length = content.length,
-       _errorReporter = errorReporter;
+       _diagnosticReporter = diagnosticReporter;
 
   /// Parses a non-block (single line) doc directive.
   DocDirectiveTag directive(DocDirectiveType type) {
@@ -1212,7 +1212,7 @@ final class _DirectiveParser {
 
     // We've hit EOL without closing brace.
     _end = _offset + index;
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: _offset + index - 1,
       length: 1,
       diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
@@ -1247,7 +1247,7 @@ final class _DirectiveParser {
       index++;
       if (index == _length) {
         // Found extra arguments and no closing brace.
-        _errorReporter?.atOffset(
+        _diagnosticReporter?.atOffset(
           offset: _offset + index - 1,
           length: 1,
           diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE,
@@ -1257,7 +1257,7 @@ final class _DirectiveParser {
     }
 
     var errorLength = _offset + index - extraArgumentsOffset;
-    _errorReporter?.atOffset(
+    _diagnosticReporter?.atOffset(
       offset: extraArgumentsOffset,
       length: errorLength,
       diagnosticCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,

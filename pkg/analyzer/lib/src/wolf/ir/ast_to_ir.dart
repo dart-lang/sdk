@@ -116,7 +116,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     required this.typeSystem,
     required this.inheritanceManager,
     required this.eventListener,
-  }) : coreLibrary = typeProvider.objectElement2.library2;
+  }) : coreLibrary = typeProvider.objectElement.library;
 
   /// If [node] is used as the target of a [CompoundAssignmentExpression],
   /// returns the [CompoundAssignmentExpression].
@@ -212,8 +212,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   MethodElement lookupToString(DartType? type) {
     var class_ =
-        type is InterfaceType ? type.element3 : typeProvider.objectElement2;
-    return inheritanceManager.getMember4(
+        type is InterfaceType ? type.element : typeProvider.objectElement;
+    return inheritanceManager.getMember(
           class_,
           Name.forLibrary(coreLibrary, 'toString'),
         )
@@ -755,8 +755,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
           previousNestingLevel: previousNestingLevel,
         );
         // Stack: arguments
-        if (methodElement.library2.isDartCore &&
-            methodElement.name3 == 'identical') {
+        if (methodElement.library.isDartCore &&
+            methodElement.name == 'identical') {
           ir.identical();
         } else {
           ir.call(
@@ -932,7 +932,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     var staticElement = node.element;
     if (staticElement == null) {
       if (assignmentTargeting(node) case var assignment?) {
-        staticElement = assignment.readElement2 ?? assignment.writeElement2;
+        staticElement = assignment.readElement ?? assignment.writeElement;
       }
     }
     switch (staticElement) {
@@ -1165,7 +1165,7 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   void read(_AstToIRVisitor visitor) {
     // Stack: target
     visitor.instanceGet(
-      (property.element ?? visitor.assignmentTargeting(property)?.readElement2)
+      (property.element ?? visitor.assignmentTargeting(property)?.readElement)
           as PropertyAccessorElement?,
       property.name,
     );
@@ -1205,7 +1205,7 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     visitor.ir.shuffle(2, visitor.stackIndices101);
     // Stack: value target value
     visitor.instanceSet(
-      visitor.assignmentTargeting(property)!.writeElement2
+      visitor.assignmentTargeting(property)!.writeElement
           as PropertyAccessorElement?,
       property.name,
     );

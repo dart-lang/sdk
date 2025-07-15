@@ -84,11 +84,11 @@ embedded_libs:
     var dartCore = await analysisSession.getLibrary('dart:core');
     var dartMath = await analysisSession.getLibrary('dart:math');
     var dartUi = await analysisSession.getLibrary('dart:ui');
-    expect(dartAsync.getClass2('Stream'), isNotNull);
-    expect(dartCore.getClass2('String'), isNotNull);
-    expect(dartMath.getClass2('Random'), isNotNull);
-    expect(dartUi.getClass2('FontStyle'), isNotNull);
-    expect(dartUi.getClass2('Offset'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
+    expect(dartUi.getClass('FontStyle'), isNotNull);
+    expect(dartUi.getClass('Offset'), isNotNull);
   }
 
   test_it() async {
@@ -127,9 +127,9 @@ embedded_libs:
     var dartAsync = await analysisSession.getLibrary('dart:async');
     var dartCore = await analysisSession.getLibrary('dart:core');
     var dartMath = await analysisSession.getLibrary('dart:math');
-    expect(dartAsync.getClass2('Stream'), isNotNull);
-    expect(dartCore.getClass2('String'), isNotNull);
-    expect(dartMath.getClass2('Random'), isNotNull);
+    expect(dartAsync.getClass('Stream'), isNotNull);
+    expect(dartCore.getClass('String'), isNotNull);
+    expect(dartMath.getClass('Random'), isNotNull);
   }
 }
 

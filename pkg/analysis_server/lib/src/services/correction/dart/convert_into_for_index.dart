@@ -21,7 +21,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
+  AssistKind get assistKind => DartAssistKind.convertIntoForIndex;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -60,7 +60,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     {
       var iterableType = iterable.staticType;
       if (iterableType is! InterfaceType ||
-          iterableType.element3 != typeProvider.listElement2) {
+          iterableType.element != typeProvider.listElement) {
         return;
       }
     }

@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:_fe_analyzer_shared/src/util/relativize.dart' as uri_extras;
 
-import '../builder/library_builder.dart';
+import '../builder/compilation_unit.dart';
 
 /// Compute the set of distinct import chains to the library at [uri] within
 /// [loadedLibraries].

@@ -42,6 +42,7 @@ import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
+import '../source/type_parameter_factory.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -488,18 +489,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             typeName.fullNameLength);
       }
     }
-    return unaliasing.unalias(aliasedType, legacyEraseAliases: false);
+    return unaliasing.unalias(aliasedType);
   }
 
   @override
   TypeBuilder? unalias(
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
-      List<StructuralParameterBuilder>? unboundTypeParameters}) {
+      List<TypeBuilder>? unboundTypes}) {
     if (declaration is TypeAliasBuilder) {
-      return (declaration as TypeAliasBuilder).unalias(typeArguments,
-          usedTypeAliasBuilders: usedTypeAliasBuilders,
-          unboundTypeParameters: unboundTypeParameters);
+      return (declaration as TypeAliasBuilder)
+          .unalias(typeArguments, usedTypeAliasBuilders: usedTypeAliasBuilders);
     }
     return this;
   }
@@ -837,7 +836,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
       Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralParameterBuilder> unboundTypeParameters,
+      TypeParameterFactory typeParameterFactory,
       {final Variance variance = Variance.covariant}) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;
@@ -870,7 +869,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ClassBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, unboundTypeParameters,
+              upperSubstitution, lowerSubstitution, typeParameterFactory,
               variance: variance);
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -880,7 +879,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       case ExtensionTypeDeclarationBuilder():
         for (int i = 0; i < arguments.length; ++i) {
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, unboundTypeParameters,
+              upperSubstitution, lowerSubstitution, typeParameterFactory,
               variance: variance);
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -891,7 +890,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         for (int i = 0; i < arguments.length; ++i) {
           NominalParameterBuilder variable = declaration.typeParameters![i];
           TypeBuilder? substitutedArgument = arguments[i].substituteRange(
-              upperSubstitution, lowerSubstitution, unboundTypeParameters,
+              upperSubstitution, lowerSubstitution, typeParameterFactory,
               variance: variance.combine(variable.variance));
           if (substitutedArgument != null) {
             newArguments ??= arguments.toList();
@@ -926,15 +925,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   TypeBuilder? unaliasAndErase() {
     TypeDeclarationBuilder declaration = this.declaration;
     if (declaration is TypeAliasBuilder) {
-      // We pass empty lists as [unboundTypes] and [unboundTypeParameters]
+      // We pass a fresh [TypeParameterFactory] to [TypeBuilder.unalias]
       // because new builders can be generated during unaliasing. We ignore
-      // the returned builders, however, because they will not be used in the
-      // output and are needed only for the checks.
+      // the created parameter builders, however, because they will not be used
+      // in the output and are needed only for the checks.
       //
       // We also don't instantiate-to-bound raw types because it won't affect
       // the dependency cycle analysis.
-      return declaration
-          .unalias(typeArguments, unboundTypeParameters: [])?.unaliasAndErase();
+      return declaration.unalias(typeArguments)?.unaliasAndErase();
     } else if (declaration is ExtensionTypeDeclarationBuilder) {
       TypeBuilder? representationType =
           declaration.declaredRepresentationTypeBuilder;

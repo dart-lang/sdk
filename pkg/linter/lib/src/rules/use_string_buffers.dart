@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -30,10 +31,7 @@ class UseStringBuffers extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.use_string_buffers;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -99,7 +97,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
         writeType is InterfaceType &&
         writeType.isDartCoreString) {
       if (node.operator.type == TokenType.PLUS_EQ &&
-          !localElements.contains(node.writeElement2)) {
+          !localElements.contains(node.writeElement)) {
         rule.reportAtNode(node);
       }
       if (node.operator.type == TokenType.EQ) {
@@ -127,7 +125,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      localElements.add(variable.declaredElement2);
+      localElements.add(variable.declaredElement);
     }
   }
 }

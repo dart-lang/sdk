@@ -186,10 +186,11 @@ class StatementCompletionProcessor {
     if (_isEmptyStatementOrEmptyBlock(node)) {
       node = node.parent!;
     }
-    for (var error in statementContext.resolveResult.errors) {
-      if (error.offset >= node.offset && error.offset <= node.end) {
-        if (error.errorCode is! HintCode && error.errorCode is! WarningCode) {
-          diagnostics.add(error);
+    for (var diagnostic in statementContext.resolveResult.diagnostics) {
+      if (diagnostic.offset >= node.offset && diagnostic.offset <= node.end) {
+        if (diagnostic.diagnosticCode is! HintCode &&
+            diagnostic.diagnosticCode is! WarningCode) {
+          diagnostics.add(diagnostic);
         }
       }
     }
@@ -302,7 +303,7 @@ class StatementCompletionProcessor {
       DiagnosticCode diagnosticCode, {
       Pattern? partialMatch,
     }) {
-      var error = _findError(diagnosticCode, partialMatch: partialMatch);
+      var error = _findDiagnostic(diagnosticCode, partialMatch: partialMatch);
       if (error == null) {
         return null;
       }
@@ -434,7 +435,7 @@ class StatementCompletionProcessor {
     var previousInsertions = _lengthOfInsertions();
     var delta = 0;
     if (diagnostics.isNotEmpty) {
-      var error = _findError(
+      var error = _findDiagnostic(
         ParserErrorCode.EXPECTED_TOKEN,
         partialMatch: "';'",
       );
@@ -751,7 +752,9 @@ class StatementCompletionProcessor {
     var needsParen = false;
     int computeExitPos(FormalParameterList parameters) {
       if (needsParen = parameters.rightParenthesis.isSynthetic) {
-        var error = _findError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
+        var error = _findDiagnostic(
+          ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
+        );
         if (error != null) {
           return error.offset - 1;
         }
@@ -790,7 +793,10 @@ class StatementCompletionProcessor {
     if (node is! FunctionDeclarationStatement) {
       return false;
     }
-    var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+    var error = _findDiagnostic(
+      ParserErrorCode.EXPECTED_TOKEN,
+      partialMatch: "';'",
+    );
     if (error != null) {
       var src = utils.getNodeText(node);
       var insertOffset = node.functionDeclaration.end - 1;
@@ -922,8 +928,8 @@ class StatementCompletionProcessor {
 
   bool _complete_methodCall(AstNode node) {
     var parenError =
-        _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'") ??
-        _findError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
+        _findDiagnostic(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'") ??
+        _findDiagnostic(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
     if (parenError == null) {
       return false;
     }
@@ -941,7 +947,7 @@ class StatementCompletionProcessor {
     var previousInsertions = _lengthOfInsertions();
     var loc = min(selectionOffset, argList.end - 1);
     var delta = 1;
-    var semicolonError = _findError(
+    var semicolonError = _findDiagnostic(
       ParserErrorCode.EXPECTED_TOKEN,
       partialMatch: "';'",
     );
@@ -980,7 +986,10 @@ class StatementCompletionProcessor {
     if (diagnostics.length != 1) {
       return false;
     }
-    var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
+    var error = _findDiagnostic(
+      ParserErrorCode.EXPECTED_TOKEN,
+      partialMatch: "';'",
+    );
     if (error != null) {
       var previousInsertions = _lengthOfInsertions();
       // TODO(messick): Fix this to find the correct place in all cases.
@@ -1070,7 +1079,7 @@ class StatementCompletionProcessor {
         var exceptionType = catchNode.exceptionType;
         if (onKeyword != null && exceptionType != null) {
           if (exceptionType.length == 0 ||
-              _findError(
+              _findDiagnostic(
                     CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
                     partialMatch: "name 'catch",
                   ) !=
@@ -1169,11 +1178,14 @@ class StatementCompletionProcessor {
     );
   }
 
-  engine.Diagnostic? _findError(DiagnosticCode code, {Pattern? partialMatch}) {
+  engine.Diagnostic? _findDiagnostic(
+    DiagnosticCode code, {
+    Pattern? partialMatch,
+  }) {
     return diagnostics.firstWhereOrNull(
-      (err) =>
-          err.errorCode == code &&
-          (partialMatch == null ? true : err.message.contains(partialMatch)),
+      (d) =>
+          d.diagnosticCode == code &&
+          (partialMatch == null ? true : d.message.contains(partialMatch)),
     );
   }
 
@@ -1273,7 +1285,7 @@ class StatementCompletionProcessor {
   }
 
   void _removeError(DiagnosticCode diagnosticCode, {Pattern? partialMatch}) {
-    var error = _findError(diagnosticCode, partialMatch: partialMatch);
+    var error = _findDiagnostic(diagnosticCode, partialMatch: partialMatch);
     if (error != null) {
       diagnostics.remove(error);
     }

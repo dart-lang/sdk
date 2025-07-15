@@ -737,9 +737,17 @@ void _mergeCoverageInto(
     Coverage coverage, Map<Uri, Set<int>> misses, Map<Uri, Hit> hits) {
   for (FileCoverage fileCoverage in coverage.getAllFileCoverages()) {
     if (fileCoverage.uri.isScheme("package") &&
-        fileCoverage.uri.pathSegments.first != "front_end") {
+        fileCoverage.uri.pathSegments.first != "front_end" &&
+        fileCoverage.uri.pathSegments.first != "_fe_analyzer_shared") {
       continue;
     }
+
+    if (fileCoverage.uri.isScheme("package") &&
+        fileCoverage.uri.pathSegments.first == "_fe_analyzer_shared" &&
+        fileCoverage.uri.pathSegments.last != "abstract_scanner.dart") {
+      continue;
+    }
+
     if (fileCoverage.misses.isNotEmpty) {
       Set<int> miss = misses[fileCoverage.uri] ??= {};
       miss.addAll(fileCoverage.misses);

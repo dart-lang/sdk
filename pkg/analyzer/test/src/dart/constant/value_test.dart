@@ -965,7 +965,7 @@ class DartObjectImplTest {
       _boolValue(true),
       _listValue(_typeProvider.objectType, []),
       _listValue(
-        _typeProvider.futureOrElement2.instantiateImpl(
+        _typeProvider.futureOrElement.instantiateImpl(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -1013,7 +1013,7 @@ class DartObjectImplTest {
       _mapValue(_typeProvider.intType, _typeProvider.objectType, []),
       _mapValue(
         _typeProvider.intType,
-        _typeProvider.futureOrElement2.instantiateImpl(
+        _typeProvider.futureOrElement.instantiateImpl(
           typeArguments: [_typeProvider.objectType],
           nullabilitySuffix: NullabilitySuffix.none,
         ),
@@ -1152,8 +1152,8 @@ class DartObjectImplTest {
 
   void test_identical_Type_functionType() {
     var toStringType =
-        _typeProvider.intType.methods2
-            .firstWhere((e) => e.name3 == 'toString')
+        _typeProvider.intType.methods
+            .firstWhere((e) => e.name == 'toString')
             .type;
 
     _assertIdentical(

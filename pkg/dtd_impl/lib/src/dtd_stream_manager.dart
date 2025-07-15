@@ -3,26 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
+import 'package:dtd/dtd.dart' show DtdParameters;
 
 import 'dart_tooling_daemon.dart';
 
 /// Manages state related to stream subscriptions made by [DTDClient]s.
 class DTDStreamManager extends StreamManager {
   DTDStreamManager(this.dtd);
-
-  /// The name of the stream for events related to new services/methods being
-  /// added and removed.
-  ///
-  /// This stream is not part of the VM service protocol.
-  static const servicesStreamId = 'Service';
-
-  /// The kind of the event sent over the [servicesStreamId] stream when a new
-  /// service method is registered.
-  static const serviceRegisteredId = 'ServiceRegistered';
-
-  /// The kind of the event sent over the [servicesStreamId] stream when a new
-  /// service method is unregistered.
-  static const serviceUnregisteredId = 'ServiceUnregistered';
 
   final DartToolingDaemon dtd;
 
@@ -44,10 +31,10 @@ class DTDStreamManager extends StreamManager {
     super.postEvent(
       stream,
       <String, Object?>{
-        'streamId': stream,
-        'eventKind': eventKind,
-        'eventData': eventData,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        DtdParameters.streamId: stream,
+        DtdParameters.eventKind: eventKind,
+        DtdParameters.eventData: eventData,
+        DtdParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
       },
     );
   }

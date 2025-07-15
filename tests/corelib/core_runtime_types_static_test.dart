@@ -23,7 +23,7 @@ class CoreStaticTypesTest {
     q[0] = 'x';
     // [error column 6, length 3]
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
-    // [cfe] The operator '[]=' isn't defined for the class 'String'.
+    // [cfe] The operator '[]=' isn't defined for the type 'String'.
   }
 
   static testStringMethods() {

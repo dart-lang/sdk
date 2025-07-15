@@ -66,12 +66,12 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: f
-    element: <testLibraryFragment>::@class::A::@field::f#element
+    element: <testLibrary>::@class::A::@field::f
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
     staticType: int
 ''');
   }
@@ -89,7 +89,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -108,19 +108,19 @@ ConstructorFieldInitializer
                 expression: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: a
-                    element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
                     staticType: int
                   operator: +
                   rightOperand: IntegerLiteral
                     literal: 1
-                    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+                    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
                     staticType: int
                   element: dart:core::@class::num::@method::+
                   staticInvokeType: num Function(num)
                   staticType: int
                 semicolon: ;
             rightBracket: }
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: int Function()
         staticType: int Function()
       rightParenthesis: )
@@ -147,7 +147,7 @@ class A {
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: FunctionExpressionInvocation
@@ -162,17 +162,17 @@ ConstructorFieldInitializer
           expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
-              element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::a#element
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
               staticType: int
             operator: +
             rightOperand: IntegerLiteral
               literal: 1
-              correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+              correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
               staticType: int
             element: dart:core::@class::num::@method::+
             staticInvokeType: num Function(num)
             staticType: int
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: int Function()
         staticType: int Function()
       rightParenthesis: )
@@ -209,12 +209,12 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -241,7 +241,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -263,12 +263,12 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -298,7 +298,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -325,7 +325,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -347,12 +347,12 @@ const a = 0;
 ConstructorFieldInitializer
   fieldName: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@class::A::@field::x#element
+    element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -379,7 +379,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -406,7 +406,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -432,7 +432,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }
@@ -458,7 +458,7 @@ ConstructorFieldInitializer
   equals: =
   expression: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@getter::a#element
+    element: <testLibrary>::@getter::a
     staticType: int
 ''');
   }

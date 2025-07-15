@@ -297,7 +297,7 @@
         "builder-tag": "ffi"
       }
     },
-    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simarm64_arm64|simriscv32|simriscv64)": {
+    "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {}
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
@@ -346,6 +346,26 @@
     "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "gen-snapshot-format" : "elf"
+      }
+    },
+    "vm-linux-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "vm-options": ["--use_simulator=true"], "use-qemu": true
+      }
+    },
+    "vm-linux-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "vm-options": ["--use_simulator=false"], "use-qemu": true
+      }
+    },
+    "vm-mac-(debug|product|release)-simarm64_arm64": {
+      "options": {
+        "vm-options": ["--use_simulator=true"]
+      }
+    },
+    "vm-mac-(debug|product|release)-simarm64_arm64-nosim": {
+      "options": {
+        "vm-options": ["--use_simulator=false"]
       }
     },
     "dart2js-(linux|win)-chrome": {
@@ -733,8 +753,10 @@
     },
     {
       "builders": [
-        "vm-aot-android-release-arm_x64",
-        "vm-aot-android-release-arm64c"
+        "vm-aot-android-debug-arm64c",
+        "vm-aot-android-debug-arm_x64",
+        "vm-aot-android-release-arm64c",
+        "vm-aot-android-release-arm_x64"
       ],
       "meta": {
         "description": "This configuration is used by the vm precomp builders on Android."
@@ -812,6 +834,13 @@
           "name": "vm ffi tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
+            "ffi"
+          ]
+        },
+        {
+          "name": "vm ffi tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}-nosim",
             "ffi"
           ]
         }
@@ -923,9 +952,7 @@
     },
     {
       "builders": [
-        "vm-linux-debug-ia32",
         "vm-linux-debug-x64",
-        "vm-linux-release-ia32",
         "vm-linux-release-x64",
         "vm-win-debug-x64",
         "vm-win-release-x64"
@@ -996,8 +1023,12 @@
     },
     {
       "builders": [
+        "vm-linux-debug-ia32",
+        "vm-linux-release-ia32",
         "vm-linux-debug-simriscv32",
         "vm-linux-debug-simriscv64",
+        "vm-linux-release-simriscv32",
+        "vm-linux-release-simriscv64",
         "vm-linux-debug-x64c",
         "vm-linux-release-simarm",
         "vm-linux-release-simarm64",
@@ -1020,12 +1051,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19"
+            "-nvm-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 16
+          "shards": 10
         }
       ]
     },
@@ -1033,6 +1062,9 @@
       "builders": [
         "vm-aot-linux-debug-x64",
         "vm-aot-linux-release-x64",
+        "vm-aot-mac-release-arm64",
+        "vm-aot-mac-debug-arm64",
+        "vm-aot-win-debug-x64",
         "vm-aot-win-release-x64"
       ],
       "meta": {
@@ -1043,6 +1075,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--codesigning-identity=-",
             "runtime",
             "dartaotruntime"
           ]
@@ -1062,17 +1095,16 @@
     },
     {
       "builders": [
+        "vm-aot-linux-release-simriscv32",
         "vm-aot-linux-debug-simriscv32",
+        "vm-aot-linux-release-simriscv64",
         "vm-aot-linux-debug-simriscv64",
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
-        "vm-aot-mac-debug-arm64",
         "vm-aot-mac-debug-x64",
-        "vm-aot-mac-product-arm64",
-        "vm-aot-mac-release-arm64",
         "vm-aot-mac-release-x64",
-        "vm-aot-win-debug-x64",
+        "vm-aot-mac-product-arm64",
         "vm-aot-win-debug-x64c",
         "vm-aot-win-product-x64"
       ],
@@ -1092,12 +1124,10 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}",
-            "--default-suites",
-            "co19"
+            "-nvm-aot-${system}-${mode}-${arch}"
           ],
           "fileset": "vm",
-          "shards": 20
+          "shards": 12
         }
       ]
     },
@@ -1293,7 +1323,9 @@
           "arguments": [
             "-nvm-dyn-${system}-${mode}-${arch}",
             "corelib",
-            "language"
+            "language",
+            "vm",
+            "pkg/vm_service/"
           ],
           "fileset": "vm",
           "shards": 5
@@ -1421,6 +1453,17 @@
           ]
         },
         {
+          "name": "build dart debug arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=debug",
+            "--arch=arm64",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
           "name": "build dart debug riscv64",
           "script": "tools/build.py",
           "arguments": [
@@ -1448,6 +1491,17 @@
           "arguments": [
             "--mode=release",
             "--arch=arm",
+            "--no-clang",
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "build dart release arm64",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--arch=arm64",
             "--no-clang",
             "runtime",
             "runtime_precompiled"
@@ -1637,6 +1691,7 @@
     },
     {
       "builders": [
+        "vm-linux-debug-arm64",
         "vm-linux-release-arm64"
       ],
       "meta": {
@@ -1662,6 +1717,7 @@
     },
     {
       "builders": [
+        "vm-aot-linux-debug-arm64",
         "vm-aot-linux-release-arm64"
       ],
       "meta": {
@@ -2103,6 +2159,17 @@
             "pkg/dev_compiler/test/hot_reload_suite.dart",
             "-nddc-canary-linux-chrome",
             "--verbose"
+          ]
+        },
+        {
+          "name": "ddc hot reload tests without fe server in d8",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dev_compiler/test/hot_reload_suite.dart",
+            "-nddc-canary-linux-chrome",
+            "--verbose",
+            "--no-use-fe-server"
           ]
         },
         {
@@ -2597,6 +2664,15 @@
           ],
           "shards": 8,
           "fileset": "dart2wasm_hostasserts"
+        },
+        {
+          "name": "dart2wasm unit tests",
+          "script":  "out/ReleaseX64/dart-sdk/bin/dart",
+          "testRunner": true,
+          "arguments": [
+            "pkg/dart2wasm/test/dry_run/dry_run_test.dart",
+            "-ndart2wasm-asserts-linux-chrome"
+          ]
         }
       ]
     },
@@ -3250,16 +3326,8 @@
           ]
         },
         {
-          "name": "analyze flutter/engine",
-          "script": "tools/bots/flutter/analyze_flutter_engine.sh"
-        },
-        {
-          "name": "analyze flutter/flutter",
-          "script": "tools/bots/flutter/analyze_flutter_flutter.sh"
-        },
-        {
-          "name": "analyze flutter/packages",
-          "script": "tools/bots/flutter/analyze_flutter_packages.sh"
+          "name": "analyze Flutter repositories",
+          "script": "tools/bots/flutter/analyze_flutter.sh"
         }
       ]
     },
@@ -3448,7 +3516,7 @@
           "script": "${build_root}/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
-            "--platform=${build_root}/vm_platform_strong.dill",
+            "--platform=${build_root}/vm_platform.dill",
             "--no-aot",
             "-Dtest_runner.configuration=vm-linux-release-${arch}",
             "-o",
@@ -3461,7 +3529,7 @@
           "script": "${build_root}/dart",
           "arguments": [
             "pkg/vm/bin/gen_kernel.dart",
-            "--platform=${build_root}/vm_platform_strong.dill",
+            "--platform=${build_root}/vm_platform.dill",
             "--aot",
             "-Dtest_runner.configuration=vm-aot-linux-release-${arch}",
             "-o",

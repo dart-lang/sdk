@@ -5,6 +5,7 @@
 /// @docImport 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 library;
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -34,10 +35,7 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -56,7 +54,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
     String displayName,
     String? message,
   ) {
-    var library = element is LibraryElement ? element : element.library2;
+    var library = element is LibraryElement ? element : element.library;
     if (library == null ||
         !_workspacePackage.contains(library.firstFragment.source)) {
       // In this case, `DEPRECATED_MEMBER_USE` is reported by the analyzer.
@@ -364,7 +362,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 /// the deprecated-ness of ancestor declaration nodes.
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule _rule;
-  final LinterContext _context;
+  final RuleContext _context;
 
   _Visitor(this._rule, this._context);
 

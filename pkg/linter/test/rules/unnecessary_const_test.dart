@@ -18,6 +18,32 @@ class UnnecessaryConstPatternsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.unnecessary_const;
 
+  test_case_constConstructor_dotShorthand_named_ok() async {
+    await assertNoDiagnostics(r'''
+class C {
+  const C.named();
+}
+f(C c) {
+  switch (c) {
+    case const .named():
+  }
+}
+''');
+  }
+
+  test_case_constConstructor_dotShorthand_ok() async {
+    await assertNoDiagnostics(r'''
+class C {
+  const C();
+}
+f(C c) {
+  switch (c) {
+    case const .new():
+  }
+}
+''');
+  }
+
   test_case_constConstructor_ok() async {
     await assertNoDiagnostics(r'''
 class C {
@@ -70,6 +96,30 @@ class C {
 const c = const C();
 ''',
       [lint(35, 5)],
+    );
+  }
+
+  test_constConstructor_dotShorthand() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  const C();
+}
+const C c = const .new();
+''',
+      [lint(37, 5)],
+    );
+  }
+
+  test_constConstructor_dotShorthand_named() async {
+    await assertDiagnostics(
+      r'''
+class C {
+  const C.named();
+}
+const C c = const .named();
+''',
+      [lint(43, 5)],
     );
   }
 

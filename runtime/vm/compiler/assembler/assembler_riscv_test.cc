@@ -50,7 +50,7 @@ static intx_t Call(intx_t entry,
                    intx_t arg1 = 0,
                    intx_t arg2 = 0,
                    intx_t arg3 = 0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->Call(entry, arg0, arg1, arg2, arg3);
 #else
   typedef intx_t (*F)(intx_t, intx_t, intx_t, intx_t);
@@ -58,7 +58,7 @@ static intx_t Call(intx_t entry,
 #endif
 }
 static float CallF(intx_t entry, intx_t arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallF(entry, arg0);
 #else
   typedef float (*F)(intx_t);
@@ -66,7 +66,7 @@ static float CallF(intx_t entry, intx_t arg0) {
 #endif
 }
 static float CallF(intx_t entry, intx_t arg0, float arg1) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallF(entry, arg0, arg1);
 #else
   typedef float (*F)(intx_t, float);
@@ -74,7 +74,7 @@ static float CallF(intx_t entry, intx_t arg0, float arg1) {
 #endif
 }
 static float CallF(intx_t entry, double arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallF(entry, arg0);
 #else
   typedef float (*F)(double);
@@ -82,7 +82,7 @@ static float CallF(intx_t entry, double arg0) {
 #endif
 }
 static float CallF(intx_t entry, float arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallF(entry, arg0);
 #else
   typedef float (*F)(float);
@@ -90,7 +90,7 @@ static float CallF(intx_t entry, float arg0) {
 #endif
 }
 static float CallF(intx_t entry, float arg0, float arg1) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallF(entry, arg0, arg1);
 #else
   typedef float (*F)(float, float);
@@ -98,7 +98,7 @@ static float CallF(intx_t entry, float arg0, float arg1) {
 #endif
 }
 static float CallF(intx_t entry, float arg0, float arg1, float arg2) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallF(entry, arg0, arg1, arg2);
 #else
   typedef float (*F)(float, float, float);
@@ -106,7 +106,7 @@ static float CallF(intx_t entry, float arg0, float arg1, float arg2) {
 #endif
 }
 static intx_t CallI(intx_t entry, float arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallI(entry, arg0);
 #else
   typedef intx_t (*F)(float);
@@ -114,7 +114,7 @@ static intx_t CallI(intx_t entry, float arg0) {
 #endif
 }
 static intx_t CallI(intx_t entry, float arg0, float arg1) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallI(entry, arg0, arg1);
 #else
   typedef intx_t (*F)(float, float);
@@ -122,7 +122,7 @@ static intx_t CallI(intx_t entry, float arg0, float arg1) {
 #endif
 }
 static double CallD(intx_t entry, intx_t arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0);
 #else
   typedef double (*F)(intx_t);
@@ -131,7 +131,7 @@ static double CallD(intx_t entry, intx_t arg0) {
 }
 #if XLEN == 32
 static double CallD(intx_t entry, int64_t arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0);
 #else
   typedef double (*F)(int64_t);
@@ -140,7 +140,7 @@ static double CallD(intx_t entry, int64_t arg0) {
 }
 #endif
 static double CallD(intx_t entry, intx_t arg0, double arg1) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0, arg1);
 #else
   typedef double (*F)(intx_t, double);
@@ -148,7 +148,7 @@ static double CallD(intx_t entry, intx_t arg0, double arg1) {
 #endif
 }
 static double CallD(intx_t entry, float arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0);
 #else
   typedef double (*F)(float);
@@ -156,7 +156,7 @@ static double CallD(intx_t entry, float arg0) {
 #endif
 }
 static double CallD(intx_t entry, double arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0);
 #else
   typedef double (*F)(double);
@@ -164,7 +164,7 @@ static double CallD(intx_t entry, double arg0) {
 #endif
 }
 static double CallD(intx_t entry, double arg0, double arg1) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0, arg1);
 #else
   typedef double (*F)(double, double);
@@ -172,7 +172,7 @@ static double CallD(intx_t entry, double arg0, double arg1) {
 #endif
 }
 static double CallD(intx_t entry, double arg0, double arg1, double arg2) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallD(entry, arg0, arg1, arg2);
 #else
   typedef double (*F)(double, double, double);
@@ -180,7 +180,7 @@ static double CallD(intx_t entry, double arg0, double arg1, double arg2) {
 #endif
 }
 static intx_t CallI(intx_t entry, double arg0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallI(entry, arg0);
 #else
   typedef intx_t (*F)(double);
@@ -188,7 +188,7 @@ static intx_t CallI(intx_t entry, double arg0) {
 #endif
 }
 static intx_t CallI(intx_t entry, double arg0, double arg1) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallI(entry, arg0, arg1);
 #else
   typedef intx_t (*F)(double, double);
@@ -197,7 +197,7 @@ static intx_t CallI(intx_t entry, double arg0, double arg1) {
 }
 #if XLEN == 32
 static int64_t CallI64(intx_t entry, double arg0, double arg1 = 0.0) {
-#if defined(USING_SIMULATOR)
+#if defined(DART_INCLUDE_SIMULATOR)
   return Simulator::Current()->CallI64(entry, arg0, arg1);
 #else
   typedef int64_t (*F)(double, double);

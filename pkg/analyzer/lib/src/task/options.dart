@@ -62,7 +62,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+            diagnosticCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
             arguments: args,
           ),
         );
@@ -121,7 +121,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
+            diagnosticCode: AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE,
             arguments: [includeUri, source.fullName],
           ),
         );
@@ -133,7 +133,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+            diagnosticCode: AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
             arguments: [includeUri, source.fullName, contextRoot],
           ),
         );
@@ -146,7 +146,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+            diagnosticCode: AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
             arguments: [
               includedSource,
               spanInChain.start.offset,
@@ -190,7 +190,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            errorCode: AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+            diagnosticCode: AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
             arguments: args,
           ),
         );
@@ -218,7 +218,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         source: source,
         offset: span.start.offset,
         length: span.length,
-        errorCode: AnalysisOptionsErrorCode.PARSE_ERROR,
+        diagnosticCode: AnalysisOptionsErrorCode.PARSE_ERROR,
         arguments: [e.message],
       ),
     );
@@ -252,12 +252,12 @@ List<Diagnostic> _validateLegacyPluginsOption(
   required YamlMap options,
   String? firstEnabledPluginName,
 }) {
-  RecordingErrorListener recorder = RecordingErrorListener();
-  ErrorReporter reporter = ErrorReporter(recorder, source);
+  RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
+  DiagnosticReporter reporter = DiagnosticReporter(recorder, source);
   _LegacyPluginsOptionValidator(
     firstEnabledPluginName,
   ).validate(reporter, options);
-  return recorder.errors;
+  return recorder.diagnostics;
 }
 
 /// Options (keys) that can be specified in an analysis options file.
@@ -407,12 +407,12 @@ class OptionsFileValidator {
        ];
 
   List<Diagnostic> validate(YamlMap options) {
-    RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(recorder, _source);
+    RecordingDiagnosticListener recorder = RecordingDiagnosticListener();
+    DiagnosticReporter reporter = DiagnosticReporter(recorder, _source);
     for (var validator in _validators) {
       validator.validate(reporter, options);
     }
-    return recorder.errors;
+    return recorder.diagnostics;
   }
 }
 
@@ -427,23 +427,23 @@ class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
 /// This includes the format of the `cannot-ignore` section, the format of
 /// values in the section, and whether each value is a valid string.
 class _CannotIgnoreOptionValidator extends OptionsValidator {
-  /// Lazily populated set of error codes.
-  static final Set<String> _errorCodes =
-      errorCodeValues.map((DiagnosticCode code) => code.name).toSet();
+  /// Lazily populated set of diagnostic code names.
+  static final Set<String> _diagnosticCodes =
+      diagnosticCodeValues.map((DiagnosticCode code) => code.name).toSet();
 
-  /// The error code names that existed, but were removed.
+  /// The diagnostic code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> _removedErrorCodes = {'MISSING_RETURN'};
+  static const Set<String> _removedDiagnosticCodes = {'MISSING_RETURN'};
 
-  /// Lazily populated set of lint codes.
+  /// Lazily populated set of lint code names.
   late final Set<String> _lintCodes =
       Registry.ruleRegistry.rules
           .map((rule) => rule.name.toUpperCase())
           .toSet();
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is YamlMap) {
       var unignorableNames = analyzer.valueAt(AnalysisOptionsFile.cannotIgnore);
@@ -457,9 +457,9 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
               continue;
             }
             var upperCaseName = unignorableName.toUpperCase();
-            if (!_errorCodes.contains(upperCaseName) &&
+            if (!_diagnosticCodes.contains(upperCaseName) &&
                 !_lintCodes.contains(upperCaseName) &&
-                !_removedErrorCodes.contains(upperCaseName)) {
+                !_removedDiagnosticCodes.contains(upperCaseName)) {
               reporter.atSourceSpan(
                 unignorableNameNode.span,
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
@@ -493,7 +493,7 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
 /// Validates `code-style` options.
 class _CodeStyleOptionsValidator extends OptionsValidator {
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var codeStyle = options.valueAt(AnalysisOptionsFile.codeStyle);
     if (codeStyle is YamlMap) {
       codeStyle.nodeMap.forEach((keyNode, valueNode) {
@@ -523,7 +523,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     }
   }
 
-  void _validateFormat(ErrorReporter reporter, YamlNode format) {
+  void _validateFormat(DiagnosticReporter reporter, YamlNode format) {
     if (format is YamlMap) {
       reporter.atSourceSpan(
         format.span,
@@ -560,7 +560,7 @@ class _CompositeValidator extends OptionsValidator {
   _CompositeValidator(this.validators);
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     for (var validator in validators) {
       validator.validate(reporter, options);
     }
@@ -570,7 +570,7 @@ class _CompositeValidator extends OptionsValidator {
 /// Validates `analyzer` enabled experiments configuration options.
 class _EnabledExperimentsValidator extends OptionsValidator {
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is YamlMap) {
       var experimentNames = analyzer.valueAt(
@@ -643,7 +643,11 @@ class _ErrorBuilder {
   _ErrorBuilder._({required this.proposal, required this.code});
 
   /// Report an unsupported [node] value, defined in the given [scopeName].
-  void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
+  void reportError(
+    DiagnosticReporter reporter,
+    String scopeName,
+    YamlNode node,
+  ) {
     if (proposal.isNotEmpty) {
       reporter.atSourceSpan(
         node.span,
@@ -673,23 +677,23 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
   static final String legalValueString =
       legalValues.quotedAndCommaSeparatedWithAnd;
 
-  /// Lazily populated set of diagnostic codes.
+  /// Lazily populated set of diagnostic code names.
   static final Set<String> _diagnosticCodes =
-      errorCodeValues.map((DiagnosticCode code) => code.name).toSet();
+      diagnosticCodeValues.map((DiagnosticCode code) => code.name).toSet();
 
-  /// The error code names that existed, but were removed.
+  /// The diagnostic code names that existed, but were removed.
   /// We don't want to report these, this breaks clients.
   // TODO(scheglov): https://github.com/flutter/flutter/issues/141576
-  static const Set<String> _removedErrorCodes = {'MISSING_RETURN'};
+  static const Set<String> _removedDiagnosticCodes = {'MISSING_RETURN'};
 
-  /// Lazily populated set of lint codes.
+  /// Lazily populated set of lint code names.
   late final Set<String> _lintCodes =
       Registry.ruleRegistry.rules
           .map((rule) => rule.name.toUpperCase())
           .toSet();
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is YamlMap) {
       var filters = analyzer.valueAt(AnalysisOptionsFile.errors);
@@ -700,7 +704,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             value = toUpperCase(k.value);
             if (!_diagnosticCodes.contains(value) &&
                 !_lintCodes.contains(value) &&
-                !_removedErrorCodes.contains(value)) {
+                !_removedDiagnosticCodes.contains(value)) {
               reporter.atSourceSpan(
                 k.span,
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
@@ -743,7 +747,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
 /// Validates `formatter` options.
 class _FormatterOptionsValidator extends OptionsValidator {
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var formatter = options.valueAt(AnalysisOptionsFile.formatter);
     if (formatter == null) {
       return;
@@ -776,7 +780,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
   void _validatePageWidth(
     YamlNode keyNode,
     YamlNode valueNode,
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
   ) {
     var value = valueNode.value;
     if (value is! int || value <= 0) {
@@ -794,7 +798,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
   void _validateTrailingCommas(
     YamlNode keyNode,
     YamlNode valueNode,
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
   ) {
     var value = valueNode.value;
 
@@ -818,7 +822,7 @@ class _LanguageOptionValidator extends OptionsValidator {
   );
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is YamlMap) {
       var language = analyzer.valueAt(AnalysisOptionsFile.language);
@@ -879,7 +883,7 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
   _LegacyPluginsOptionValidator(this._firstIncludedPluginName);
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is! YamlMap) {
       return;
@@ -979,7 +983,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
   );
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is YamlMap) {
       var v = analyzer.valueAt(AnalysisOptionsFile.optionalChecks);
@@ -1037,7 +1041,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
   );
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var plugins = options.valueAt(AnalysisOptionsFile.plugins);
     switch (plugins) {
       case YamlMap():
@@ -1078,7 +1082,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
   }
 
   void _validatePluginMap(
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
     String pluginName,
     YamlMap pluginValue,
   ) {
@@ -1106,7 +1110,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
   );
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
     if (analyzer is YamlMap) {
       var strongModeNode = analyzer.valueAt(AnalysisOptionsFile.strongMode);
@@ -1123,7 +1127,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
   }
 
   void _validateStrongModeAsMap(
-    ErrorReporter reporter,
+    DiagnosticReporter reporter,
     YamlMap strongModeNode,
   ) {
     strongModeNode.nodes.forEach((k, v) {
@@ -1184,7 +1188,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
               : AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES;
 
   @override
-  void validate(ErrorReporter reporter, YamlMap options) {
+  void validate(DiagnosticReporter reporter, YamlMap options) {
     var node = options.valueAt(pluginName);
     if (node is YamlMap) {
       node.nodes.forEach((k, v) {

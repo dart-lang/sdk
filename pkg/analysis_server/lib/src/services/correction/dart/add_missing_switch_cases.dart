@@ -60,7 +60,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
     for (var part in parts) {
       if (part is MissingPatternEnumValuePart &&
           (part.enumElement2.isPrivate || part.value2.isPrivate) &&
-          libraryElement2 != part.enumElement2.library2) {
+          libraryElement2 != part.enumElement2.library) {
         return true;
       }
     }
@@ -176,7 +176,7 @@ class AddMissingSwitchCases extends ResolvedCorrectionProducer {
       if (part is MissingPatternEnumValuePart) {
         builder.writeReference(part.enumElement2);
         builder.write('.');
-        builder.write(part.value2.name3!);
+        builder.write(part.value2.name!);
       } else if (part is MissingPatternTextPart) {
         builder.write(part.text);
       } else if (part is MissingPatternTypePart) {

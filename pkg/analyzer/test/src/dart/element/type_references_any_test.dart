@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class TypeReferencesAnyTest extends AbstractTypeSystemTest {
-  late TypeParameterElementImpl2 T;
+  late TypeParameterElementImpl T;
   late TypeParameterTypeImpl T_none;
 
   @override
@@ -60,12 +60,12 @@ class TypeReferencesAnyTest extends AbstractTypeSystemTest {
   }
 
   void _checkFalse(TypeImpl type) {
-    var actual = type.referencesAny2({T});
+    var actual = type.referencesAny({T});
     expect(actual, isFalse);
   }
 
   void _checkTrue(TypeImpl type) {
-    var actual = type.referencesAny2({T});
+    var actual = type.referencesAny({T});
     expect(actual, isTrue);
   }
 }

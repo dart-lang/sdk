@@ -207,21 +207,20 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
         completer.completeError(e);
       }
     }.toJS;
-    final error = (JSAny? e) {
-      // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
-      // all backends and if it is feasible, or feasible for some limited use
-      // cases, then we should pass [e] directly to `completeError`.
-      // TODO(joshualitt): Use helpers to avoid conflating `null` and `JSNull` /
-      // `JSUndefined`.
+    final error = (JSAny? e, bool isUndefined) {
+      // `e` is null when the original error is either JS `null` or JS
+      // `undefined`.
       if (e == null) {
-        // Note that we pass false as a default. It's not currently possible to
-        // be able to differentiate between null and undefined.
-        completer.completeError(js_util.NullRejectionException(false));
+        completer.completeError(js_util.NullRejectionException(isUndefined));
         return;
       }
       completer.completeError(e);
     }.toJS;
-    promiseThen(toExternRef, success.toExternRef, error.toExternRef);
+    js_helper.promiseThenWithIsUndefined(
+      toExternRef,
+      success.toExternRef,
+      error.toExternRef,
+    );
     return completer.future;
   }
 }
@@ -241,13 +240,19 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
   @patch
   JSArrayBuffer get toJS {
     final t = this;
-    return JSArrayBuffer._(
-      JSValue(
-        t is js_types.JSArrayBufferImpl
-            ? t.toExternRef
-            : jsArrayBufferFromDartByteBuffer(t),
-      ),
-    );
+    if (t is js_types.JSArrayBufferImpl) {
+      if (!t.isArrayBuffer) {
+        assert(t.isSharedArrayBuffer);
+        throw StateError(
+          "ByteBuffer is a wrapped 'SharedArrayBuffer'. Convert the typed list "
+          "that wrapped this buffer to a JS typed array instead to access the "
+          "`SharedArrayBuffer` from that JS typed array.",
+        );
+      }
+      return JSArrayBuffer._(JSValue(t.toExternRef));
+    } else {
+      return JSArrayBuffer._(JSValue(jsArrayBufferFromDartByteBuffer(t)));
+    }
   }
 }
 

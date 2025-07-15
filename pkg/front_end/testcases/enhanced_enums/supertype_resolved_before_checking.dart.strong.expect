@@ -22,7 +22,7 @@ class E<S extends core::num, T extends core::num> extends self::_E&_Enum&GM&M<se
   const synthetic constructor •(core::int #index, core::String #name) → self::E<self::E::S, self::E::T>
     : super self::_E&_Enum&GM&M::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class _E&_Enum&GM<S extends core::num, T extends core::num> = core::_Enum with self::GM<self::_E&_Enum&GM::T> /*isAnonymousMixin,hasConstConstructor*/  {

@@ -20,7 +20,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   final DeclarationFragment enclosingDeclaration;
   final LibraryFragment enclosingCompilationUnit;
 
-  SourceConstructorBuilderImpl? _builder;
+  SourceConstructorBuilder? _builder;
 
   ConstructorFragmentDeclaration? _declaration;
 
@@ -52,12 +52,12 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  SourceConstructorBuilderImpl get builder {
+  SourceConstructorBuilder get builder {
     assert(_builder != null, "Builder has not been computed for $this.");
     return _builder!;
   }
 
-  void set builder(SourceConstructorBuilderImpl value) {
+  void set builder(SourceConstructorBuilder value) {
     assert(_builder == null, "Builder has already been computed for $this.");
     _builder = value;
   }

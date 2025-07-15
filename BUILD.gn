@@ -218,18 +218,6 @@ group("dart2js_bot") {
   ]
 }
 
-# This rule and the compressed_observatory_archive rule are for the Fuchsia
-# bots that pre-build the Observatory. They copy the observatory tar files to
-# the root build output directory for convenient access by the Fuchsia buildbot
-# scripts.
-group("observatory_archive") {
-  deps = [ "runtime/observatory:copy_observatory_archive" ]
-}
-
-group("compressed_observatory_archive") {
-  deps = [ "runtime/observatory:copy_compressed_observatory_archive" ]
-}
-
 if (is_fuchsia) {
   import("third_party/fuchsia/gn-sdk/src/component.gni")
   import("third_party/fuchsia/gn-sdk/src/package.gni")

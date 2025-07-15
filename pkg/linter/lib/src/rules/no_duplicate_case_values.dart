@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/constants.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -20,10 +20,7 @@ class NoDuplicateCaseValues extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.no_duplicate_case_values;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
@@ -43,7 +40,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var expression = member.expression;
 
         var result = expression.computeConstantValue();
-        var value = result.value;
+        var value = result?.value;
 
         if (value == null || !value.hasKnownValue) {
           continue;

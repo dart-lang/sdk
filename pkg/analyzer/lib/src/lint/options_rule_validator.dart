@@ -46,7 +46,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   }
 
   @override
-  List<Diagnostic> validate(ErrorReporter reporter, YamlMap options) {
+  List<Diagnostic> validate(DiagnosticReporter reporter, YamlMap options) {
     var node = options.valueAt(linter);
     if (node is YamlMap) {
       var rules = node.valueAt(rulesKey);
@@ -55,7 +55,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     return const [];
   }
 
-  void _validateRules(YamlNode? rules, ErrorReporter reporter) {
+  void _validateRules(YamlNode? rules, DiagnosticReporter reporter) {
     var seenRules = <String>{};
 
     String? findIncompatibleRule(AbstractAnalysisRule rule) {

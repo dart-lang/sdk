@@ -20,7 +20,7 @@ class FlutterMoveDown extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.FLUTTER_MOVE_DOWN;
+  AssistKind get assistKind => DartAssistKind.flutterMoveDown;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

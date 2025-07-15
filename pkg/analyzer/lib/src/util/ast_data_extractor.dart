@@ -10,18 +10,18 @@ import 'package:analyzer/dart/element/element.dart';
 MemberId computeMemberId(Element element) {
   var enclosingElement = element.enclosingElement;
   if (enclosingElement is LibraryElement) {
-    var memberName = element.name3!;
+    var memberName = element.name!;
     if (element is SetterElement) {
       memberName += '=';
     }
     return MemberId.internal(memberName);
   } else if (enclosingElement is InterfaceElement) {
     var memberName = element.lookupName!;
-    var className = enclosingElement.name3;
+    var className = enclosingElement.name;
     return MemberId.internal(memberName, className: className);
   } else if (enclosingElement is ExtensionElement) {
-    var memberName = element.name3!;
-    var extensionName = enclosingElement.name3;
+    var memberName = element.name!;
+    var extensionName = enclosingElement.name;
     if (element is PropertyAccessorElement) {
       if (element is GetterElement) {
         memberName = 'get#$memberName';
@@ -107,7 +107,7 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
 
   Id createClassId(Declaration node) {
     var element = node.declaredFragment!.element;
-    return ClassId(element.name3!);
+    return ClassId(element.name!);
   }
 
   Id createLibraryId(LibraryElement node) {

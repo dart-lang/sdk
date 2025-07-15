@@ -7,14 +7,10 @@ import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart' as type;
 
 class NullValues {
-  static const NullValue<type.Expression> Expression =
-      const NullValue<type.Expression>();
-  static const NullValue<type.MapLiteralEntry> MapLiteralEntry =
-      const NullValue<type.MapLiteralEntry>();
-  static const NullValue<type.Pattern> Pattern =
-      const NullValue<type.Pattern>();
-  static const NullValue<type.Statement> Statement =
-      const NullValue<type.Statement>();
+  static const NullValue Expression = const NullValue("Expression");
+  static const NullValue MapLiteralEntry = const NullValue("MapLiteralEntry");
+  static const NullValue Pattern = const NullValue("Pattern");
+  static const NullValue Statement = const NullValue("Statement");
 }
 
 class ValueKinds {

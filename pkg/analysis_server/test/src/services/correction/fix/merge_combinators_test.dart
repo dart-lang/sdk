@@ -14,11 +14,45 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(MergeCombinatorsPriorityTest);
     defineReflectiveTests(MergeHideUsingHideTest);
     defineReflectiveTests(MergeHideUsingShowTest);
     defineReflectiveTests(MergeShowUsingHideTest);
     defineReflectiveTests(MergeShowUsingShowTest);
   });
+}
+
+@reflectiveTest
+class MergeCombinatorsPriorityTest extends FixPriorityTest {
+  Future<void> test_atLeastOneShow() async {
+    await resolveTestCode('''
+import 'other.dart' show Stream, Future hide Stream;
+''');
+    await assertFixPriorityOrder(
+      [
+        DartFixKind.MERGE_COMBINATORS_SHOW_SHOW,
+        DartFixKind.MERGE_COMBINATORS_HIDE_SHOW,
+      ],
+      errorFilter: (error) {
+        return error.diagnosticCode == WarningCode.MULTIPLE_COMBINATORS;
+      },
+    );
+  }
+
+  Future<void> test_onlyHide() async {
+    await resolveTestCode('''
+import 'other.dart' hide Stream hide Future;
+''');
+    await assertFixPriorityOrder(
+      [
+        DartFixKind.MERGE_COMBINATORS_HIDE_HIDE,
+        DartFixKind.MERGE_COMBINATORS_SHOW_HIDE,
+      ],
+      errorFilter: (error) {
+        return error.diagnosticCode == WarningCode.MULTIPLE_COMBINATORS;
+      },
+    );
+  }
 }
 
 @reflectiveTest
@@ -554,9 +588,12 @@ import 'other.dart' show FutureOr, Completer, Timer;
   }
 }
 
-abstract class _MergeCombinatorTest extends FixProcessorErrorCodeTest {
+abstract class _MergeCombinatorTest extends FixProcessorErrorCodeTest
+    with _MergeCombinatorTestMixin {}
+
+mixin _MergeCombinatorTestMixin on FixProcessorErrorCodeTest {
   bool diagnosticCodeFilter(Diagnostic d) {
-    return d.errorCode == diagnosticCode;
+    return d.diagnosticCode == diagnosticCode;
   }
 
   @override

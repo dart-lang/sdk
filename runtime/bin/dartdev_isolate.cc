@@ -67,9 +67,10 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
       (strcmp(script_uri, "devtools") == 0) ||
       (strcmp(script_uri, "doc") == 0) || (strcmp(script_uri, "fix") == 0) ||
       (strcmp(script_uri, "format") == 0) ||
-      (strcmp(script_uri, "info") == 0) || (strcmp(script_uri, "pub") == 0) ||
-      (strcmp(script_uri, "run") == 0) || (strcmp(script_uri, "test") == 0) ||
       (strcmp(script_uri, "info") == 0) ||
+      (strcmp(script_uri, "mcp-server") == 0) ||
+      (strcmp(script_uri, "pub") == 0) || (strcmp(script_uri, "run") == 0) ||
+      (strcmp(script_uri, "test") == 0) || (strcmp(script_uri, "info") == 0) ||
       (strcmp(script_uri, "language-server") == 0) ||
       (strcmp(script_uri, "tooling-daemon") == 0) ||
       (!File::ExistsUri(nullptr, script_uri) &&
@@ -78,6 +79,12 @@ bool DartDevIsolate::ShouldParseCommand(const char* script_uri) {
        (strncmp(script_uri, "file://", 7) != 0) &&
        (strncmp(script_uri, "package:", 8) != 0) &&
        (strncmp(script_uri, "google3://", 10) != 0)));
+}
+
+bool DartDevIsolate::ShouldParseVMOptions(const char* command) {
+  // If command is 'run' or 'test' parse the VM options as we need to pass
+  // it down to the VM that executes these commands.
+  return (strcmp(command, "run") == 0) || (strcmp(command, "test") == 0);
 }
 
 CStringUniquePtr DartDevIsolate::TryResolveArtifactPath(const char* filename) {
@@ -322,7 +329,7 @@ void DartDevIsolate::DartDevRunner::RunCallback(uword args) {
   flags.use_field_guards = true;
   flags.use_osr = true;
   flags.is_system_isolate = true;
-  flags.branch_coverage = false;
+  flags.branch_coverage = true;
   flags.coverage = false;
 
   char* error = nullptr;

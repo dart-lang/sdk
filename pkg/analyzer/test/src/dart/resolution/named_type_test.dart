@@ -261,7 +261,7 @@ NamedType
         element2: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: T@8
+  element2: #E0 T
   type: T
 ''');
   }
@@ -565,7 +565,14 @@ import 'dart:math' as prefix;
 
 void f(prefix a) {}
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6)],
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          38,
+          6,
+          contextMessages: [message(testFile, 22, 6)],
+        ),
+      ],
     );
 
     var node = findNode.namedType('prefix a');
@@ -584,7 +591,14 @@ import 'dart:math' as prefix;
 
 void f(prefix<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 38, 6)],
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          38,
+          6,
+          contextMessages: [message(testFile, 22, 6)],
+        ),
+      ],
     );
 
     var node = findNode.namedType('prefix<int>');
@@ -657,7 +671,14 @@ void f(T a) {}
 
 void T() {}
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1)],
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          7,
+          1,
+          contextMessages: [message(testFile, 21, 1)],
+        ),
+      ],
     );
 
     var node = findNode.namedType('T a');
@@ -676,7 +697,14 @@ void f(T<int> a) {}
 
 void T() {}
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 7, 1)],
+      [
+        error(
+          CompileTimeErrorCode.NOT_A_TYPE,
+          7,
+          1,
+          contextMessages: [message(testFile, 26, 1)],
+        ),
+      ],
     );
 
     var node = findNode.namedType('T<int>');
@@ -710,7 +738,7 @@ NamedType
   importPrefix: ImportPrefixReference
     name: T
     period: .
-    element2: T@7
+    element2: #E0 T
   name: name
   typeArguments: TypeArgumentList
     leftBracket: <

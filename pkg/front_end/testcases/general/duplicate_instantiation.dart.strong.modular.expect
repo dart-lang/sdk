@@ -181,85 +181,85 @@ library;
 //   Class<int><int>.named<int><int>();
 //                                    ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:15:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:15:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>;
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:16:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:16:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>();
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>.named;
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:21:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
 //  - 'List' is from 'dart:core'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
 //   Class<int><int>.named;
 //                   ^^^^^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>.named();
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the type 'List<int>'.
 //  - 'List' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'named'.
 //   Class<int><int>.named();
 //                   ^^^^^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>.named<int>;
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
 //  - 'List' is from 'dart:core'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
 //   Class<int><int>.named<int>;
 //                   ^^^^^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>.named<int>();
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:24:19: Error: The method 'named' isn't defined for the type 'List<int>'.
 //  - 'List' is from 'dart:core'.
 // Try correcting the name to the name of an existing method, or defining a method named 'named'.
 //   Class<int><int>.named<int>();
 //                   ^^^^^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>.named<int><int>;
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:25:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
 //  - 'List' is from 'dart:core'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
 //   Class<int><int>.named<int><int>;
 //                   ^^^^^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:8: Error: The operator '<' isn't defined for the class 'Type'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:8: Error: The operator '<' isn't defined for the type 'Type'.
 //  - 'Type' is from 'dart:core'.
 // Try correcting the operator to an existing operator, or defining a '<' operator.
 //   Class<int><int>.named<int><int>();
 //        ^
 //
-// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+// pkg/front_end/testcases/general/duplicate_instantiation.dart:26:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
 //  - 'List' is from 'dart:core'.
 // Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
 //   Class<int><int>.named<int><int>();
@@ -279,12 +279,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
 static method test() → dynamic {
   #C1;
   new self::Class::•<core::int>();
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:15:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:15:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>;
        ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(<core::int>[]);
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:16:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:16:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>();
@@ -299,56 +299,56 @@ Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int>.named<int>;
              ^^^^^";
   new self::Class::named<core::int>();
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:21:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:21:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named;
-       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:21:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:21:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named;
                   ^^^^^" in <core::int>[]{<unresolved>}.named);
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:22:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named();
-       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:22:19: Error: The method 'named' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'named'.
   Class<int><int>.named();
                   ^^^^^" in <core::int>[]{<unresolved>}.named());
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:23:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:23:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int>;
-       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:23:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named<int>;
                   ^^^^^" in <core::int>[]{<unresolved>}.named);
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:24:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:24:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int>();
-       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:24:19: Error: The method 'named' isn't defined for the class 'List<int>'.
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:24:19: Error: The method 'named' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'named'.
   Class<int><int>.named<int>();
                   ^^^^^" in <core::int>[]{<unresolved>}.named<core::int>());
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:25:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:25:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int><int>;
-       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:25:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:25:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named<int><int>;
                   ^^^^^" in <core::int>[]{<unresolved>}.named){dynamic}.<(#C2){dynamic}.>(<core::int>[]);
-  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:26:8: Error: The operator '<' isn't defined for the class 'Type'.
+  invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:26:8: Error: The operator '<' isn't defined for the type 'Type'.
  - 'Type' is from 'dart:core'.
 Try correcting the operator to an existing operator, or defining a '<' operator.
   Class<int><int>.named<int><int>();
-       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:26:19: Error: The getter 'named' isn't defined for the class 'List<int>'.
+       ^" in #C1{<unresolved>}.<(#C2){dynamic}.>(invalid-expression "pkg/front_end/testcases/general/duplicate_instantiation.dart:26:19: Error: The getter 'named' isn't defined for the type 'List<int>'.
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
   Class<int><int>.named<int><int>();

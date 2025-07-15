@@ -20,7 +20,7 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_OUTER;
+  AssistKind get assistKind => DartAssistKind.joinIfWithOuter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

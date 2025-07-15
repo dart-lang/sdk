@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -26,10 +27,7 @@ class UnnecessaryLambdas extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_lambdas;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addFunctionExpression(this, visitor);
   }
@@ -94,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, LinterContext context)
+  _Visitor(this.rule, RuleContext context)
     : constructorTearOffsEnabled = context.isFeatureEnabled(
         Feature.constructor_tearoffs,
       ),
@@ -103,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     var element = node.declaredFragment?.element;
-    if (element?.name3 != null || node.body.keyword != null) {
+    if (element?.name != null || node.body.keyword != null) {
       return;
     }
     var body = node.body;
@@ -212,7 +210,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {
         var variableElement =
-            parent.declaredElement2 ?? parent.declaredFragment?.element;
+            parent.declaredElement ?? parent.declaredFragment?.element;
         var variableType = variableElement?.type;
         if (variableType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, variableType)) return;
@@ -244,8 +242,8 @@ extension on Expression? {
 extension on Element? {
   /// Returns whether this is a `final` variable or property and not `late`.
   bool get isFinal => switch (this) {
-    PropertyAccessorElement(:var isSynthetic, :var variable3?) =>
-      isSynthetic && variable3.isFinal && !variable3.isLate,
+    PropertyAccessorElement(:var isSynthetic, :var variable?) =>
+      isSynthetic && variable.isFinal && !variable.isLate,
     VariableElement(:var isLate, :var isFinal) => isFinal && !isLate,
     // TODO(pq): [element model] this preserves existing v1 semantics but looks fishy
     _ => true,

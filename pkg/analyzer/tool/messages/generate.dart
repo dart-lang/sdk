@@ -28,7 +28,7 @@ import 'package:path/path.dart';
 import 'error_code_info.dart';
 
 Future<void> main() async {
-  await GeneratedContent.generateAll(analyzerPkgPath, allTargets);
+  await GeneratedContent.generateAll(pkg_root.packageRoot, allTargets);
 
   _SyntacticErrorGenerator()
     ..checkForManualChanges()
@@ -41,25 +41,26 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile = <String, List<ErrorClassInfo>>{};
+  var classesByFile = <GeneratedErrorCodeFile, List<ErrorClassInfo>>{};
   for (var errorClassInfo in errorClasses) {
-    (classesByFile[errorClassInfo.filePath] ??= []).add(errorClassInfo);
+    (classesByFile[errorClassInfo.file] ??= []).add(errorClassInfo);
   }
   var generatedCodes = <String>[];
   return [
     for (var entry in classesByFile.entries)
-      GeneratedFile(entry.key, (String pkgPath) async {
+      GeneratedFile(entry.key.path, (pkgRoot) async {
         var codeGenerator = _AnalyzerErrorGenerator(
+          entry.key,
           entry.value,
           generatedCodes,
         );
         codeGenerator.generate();
         return codeGenerator.out.toString();
       }),
-    GeneratedFile('lib/src/error/error_code_values.g.dart', (
-      String pkgPath,
+    GeneratedFile('analyzer/lib/src/diagnostic/diagnostic_code_values.g.dart', (
+      pkgRoot,
     ) async {
-      var codeGenerator = _ErrorCodeValuesGenerator(generatedCodes);
+      var codeGenerator = _DiagnosticCodeValuesGenerator(generatedCodes);
       codeGenerator.generate();
       return codeGenerator.out.toString();
     }),
@@ -68,6 +69,8 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
 
 /// Code generator for analyzer error classes.
 class _AnalyzerErrorGenerator {
+  final GeneratedErrorCodeFile file;
+
   final List<ErrorClassInfo> errorClasses;
 
   final List<String> generatedCodes;
@@ -88,16 +91,24 @@ class _AnalyzerErrorGenerator {
 // 
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
-
-/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
-/// @docImport 'package:analyzer/src/error/inference_error.dart';
-library;
 ''');
 
-  _AnalyzerErrorGenerator(this.errorClasses, this.generatedCodes);
+  _AnalyzerErrorGenerator(this.file, this.errorClasses, this.generatedCodes);
 
   void generate() {
-    var imports = {'package:analyzer/error/error.dart'};
+    out.writeln();
+    out.write('''
+/// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+/// @docImport 'package:analyzer/src/error/inference_error.dart';
+@Deprecated(
+  // This library is deprecated to prevent it from being accidentally imported
+  // It should only be imported by the corresponding non-code-generated library
+  // (which suppresses the deprecation warning using an "ignore" comment).
+  'Use ${file.preferredImportUri} instead',
+)
+library;
+''');
+    var imports = {'package:_fe_analyzer_shared/src/base/errors.dart'};
     bool shouldGenerateFastaAnalyzerErrorCodes = false;
     for (var errorClass in errorClasses) {
       imports.addAll(errorClass.extraImports);
@@ -106,7 +117,7 @@ library;
       }
       analyzerMessages[errorClass.name]!.forEach((_, errorCodeInfo) {
         if (errorCodeInfo is AliasErrorCodeInfo) {
-          imports.add(errorCodeInfo.aliasForFilePath.toPackageAnalyzerUri);
+          imports.add(errorCodeInfo.aliasForFilePath.toPackageUri);
         }
       });
     }
@@ -145,7 +156,13 @@ library;
         } else {
           generatedCodes.add('${errorClass.name}.$errorName');
           out.writeln('  static const ${errorClass.name} $errorName =');
-          out.writeln(errorCodeInfo.toAnalyzerCode(errorClass.name, errorName));
+          out.writeln(
+            errorCodeInfo.toAnalyzerCode(
+              errorClass.name,
+              errorName,
+              useExplicitConst: file.shouldUseExplicitConst,
+            ),
+          );
         }
       }
       out.writeln();
@@ -188,7 +205,7 @@ library;
   }
 }
 
-class _ErrorCodeValuesGenerator {
+class _DiagnosticCodeValuesGenerator {
   final List<String> generatedCodes;
 
   final StringBuffer out = StringBuffer('''
@@ -210,23 +227,12 @@ class _ErrorCodeValuesGenerator {
 // ignore_for_file: deprecated_member_use_from_same_package
 ''');
 
-  _ErrorCodeValuesGenerator(this.generatedCodes);
+  _DiagnosticCodeValuesGenerator(this.generatedCodes);
 
   void generate() {
     // The scanner error codes are not yet being generated, so we need to add
     // them to the list explicitly.
     generatedCodes.addAll([
-      'ScannerErrorCode.EXPECTED_TOKEN',
-      'ScannerErrorCode.ILLEGAL_CHARACTER',
-      'ScannerErrorCode.MISSING_DIGIT',
-      'ScannerErrorCode.MISSING_HEX_DIGIT',
-      'ScannerErrorCode.MISSING_IDENTIFIER',
-      'ScannerErrorCode.MISSING_QUOTE',
-      'ScannerErrorCode.UNABLE_GET_CONTENT',
-      'ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING',
-      'ScannerErrorCode.UNSUPPORTED_OPERATOR',
-      'ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT',
-      'ScannerErrorCode.UNTERMINATED_STRING_LITERAL',
       'TodoCode.TODO',
       'TodoCode.FIXME',
       'TodoCode.HACK',
@@ -248,11 +254,19 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
     out.writeln(
       "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
     );
-    out.writeln('const List<DiagnosticCode> errorCodeValues = [');
+    out.writeln('const List<DiagnosticCode> diagnosticCodeValues = [');
     for (var name in generatedCodes) {
       out.writeln('  $name,');
     }
     out.writeln('];');
+    out.writeln();
+    out.writeln(
+      "@AnalyzerPublicApi(message: 'exported by lib/error/error.dart')",
+    );
+    out.writeln('@Deprecated("Use \'diagnosticCodeValues\' instead")');
+    out.writeln(
+      'List<DiagnosticCode> get errorCodeValues => diagnosticCodeValues;',
+    );
   }
 }
 
@@ -420,6 +434,8 @@ class _SyntacticErrorGenerator {
 }
 
 extension on String {
-  String get toPackageAnalyzerUri =>
-      replaceFirst(RegExp('^lib/'), 'package:analyzer/');
+  String get toPackageUri => switch (this.split('/')) {
+    [var pkgName, 'lib', ...var rest] => 'package:$pkgName/${rest.join('/')}',
+    _ => 'Cannot convert to a package URI: $this',
+  };
 }

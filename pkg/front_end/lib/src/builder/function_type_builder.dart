@@ -21,6 +21,7 @@ import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import '../source/source_type_parameter_builder.dart';
+import '../source/type_parameter_factory.dart';
 import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
 import 'inferable_type_builder.dart';
@@ -152,7 +153,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   DartType _buildInternal(
       LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
     DartType aliasedType = buildAliased(library, typeUse, hierarchy);
-    return unalias(aliasedType, legacyEraseAliases: false);
+    return unalias(aliasedType);
   }
 
   @override
@@ -292,7 +293,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
   TypeBuilder? substituteRange(
       Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
       Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      List<StructuralParameterBuilder> unboundTypeParameters,
+      TypeParameterFactory typeParameterFactory,
       {final Variance variance = Variance.covariant}) {
     List<StructuralParameterBuilder>? typeParameters = this.typeParameters;
     List<ParameterBuilder>? formals = this.formals;
@@ -310,16 +311,16 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         TypeBuilder? bound;
         if (variable.bound != null) {
           bound = variable.bound!.substituteRange(
-              upperSubstitution, lowerSubstitution, unboundTypeParameters,
+              upperSubstitution, lowerSubstitution, typeParameterFactory,
               variance: Variance.invariant);
         }
         if (bound != null) {
           newTypeParameters ??= typeParameters.toList();
           StructuralParameterBuilder newTypeParameterBuilder =
-              newTypeParameters[i] = new SourceStructuralParameterBuilder(
-                  new SyntheticStructuralParameterDeclaration(variable))
+              newTypeParameters[i] = typeParameterFactory
+                  .createStructuralParameterBuilder(
+                      new SyntheticStructuralParameterDeclaration(variable))
                 ..bound = bound;
-          unboundTypeParameters.add(newTypeParameterBuilder);
           if (functionTypeUpperSubstitution == null) {
             functionTypeUpperSubstitution = {...upperSubstitution};
             functionTypeLowerSubstitution = {...lowerSubstitution};
@@ -340,7 +341,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
         TypeBuilder? parameterType = formal.type.substituteRange(
             functionTypeUpperSubstitution ?? upperSubstitution,
             functionTypeLowerSubstitution ?? lowerSubstitution,
-            unboundTypeParameters,
+            typeParameterFactory,
             variance: variance.combine(Variance.contravariant));
         if (parameterType != null) {
           newFormals ??= new List.of(formals);
@@ -352,7 +353,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     newReturnType = returnType.substituteRange(
         functionTypeUpperSubstitution ?? upperSubstitution,
         functionTypeLowerSubstitution ?? lowerSubstitution,
-        unboundTypeParameters,
+        typeParameterFactory,
         variance: variance);
 
     if (newTypeParameters != null ||

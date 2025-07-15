@@ -18,11 +18,10 @@ import 'package:analyzer/dart/element/element.dart'
     show Element, InterfaceElement, LibraryElement;
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
@@ -303,8 +302,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The compilation unit in which data is currently being collected.
   late CompilationUnit unit;
 
-  late InheritanceManager3 inheritanceManager = InheritanceManager3();
-
   /// The library containing the compilation unit being visited.
   late LibraryElement enclosingLibrary;
 
@@ -532,7 +529,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     enclosingLibrary = node.declaredFragment!.element;
     typeProvider = enclosingLibrary.typeProvider;
     typeSystem = enclosingLibrary.typeSystem;
-    inheritanceManager = InheritanceManager3();
     featureComputer = FeatureComputer(typeSystem, typeProvider);
 
     for (var directive in node.directives) {
@@ -1560,7 +1556,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (element is InterfaceElement) {
       var parent = node.parent;
       if (parent is Annotation && parent.arguments != null) {
-        element = parent.element2!;
+        element = parent.element!;
       }
     }
     return featureComputer.computeElementKind2(element);
@@ -1687,13 +1683,11 @@ class RelevanceMetricsComputer {
               print('');
             }
             continue;
-          } else if (hasError(resolvedUnitResult)) {
+          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
             if (verbose) {
               print('File $filePath skipped due to errors:');
-              for (var error in resolvedUnitResult.errors.where(
-                (e) => e.severity == Severity.error,
-              )) {
-                print('  ${error.toString()}');
+              for (var diagnostic in resolvedUnitResult.diagnostics.errors) {
+                print('  ${diagnostic.toString()}');
               }
               print('');
             } else {
@@ -1711,16 +1705,6 @@ class RelevanceMetricsComputer {
         }
       }
     }
-  }
-
-  /// Return `true` if the [result] contains an error.
-  static bool hasError(ResolvedUnitResult result) {
-    for (var error in result.errors) {
-      if (error.severity == Severity.error) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 

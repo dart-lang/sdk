@@ -76,7 +76,7 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 extension AstNodeExtension on AstNode {
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
-    for (var node in withParents) {
+    for (var node in withAncestors) {
       if (node is IfStatement) {
         return node;
       } else if (node is! Expression) {
@@ -159,8 +159,8 @@ extension AstNodeExtension on AstNode {
     var grandparent = parent?.parent;
     if (this case SimpleIdentifier(:var element)) {
       if (element is TopLevelFunctionElement &&
-          element.name3 == 'print' &&
-          element.library2.isDartCore &&
+          element.name == 'print' &&
+          element.library.isDartCore &&
           parent is MethodInvocation &&
           grandparent is ExpressionStatement) {
         return grandparent;
@@ -193,7 +193,7 @@ extension AstNodeExtension on AstNode {
     if (useMockForImport && node is ImportDirective) {
       element = MockLibraryImportElement(node.libraryImport!);
     } else {
-      element = ElementLocator.locate2(node);
+      element = ElementLocator.locate(node);
     }
     if (useMockForImport &&
         node is SimpleIdentifier &&
@@ -286,9 +286,9 @@ extension DirectiveExtension on Directive {
   LibraryElement? get referencedLibrary {
     switch (this) {
       case ExportDirective directive:
-        return directive.libraryExport?.exportedLibrary2;
+        return directive.libraryExport?.exportedLibrary;
       case ImportDirective directive:
-        return directive.libraryImport?.importedLibrary2;
+        return directive.libraryImport?.importedLibrary;
       default:
         return null;
     }

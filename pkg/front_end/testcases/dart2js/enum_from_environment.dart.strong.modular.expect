@@ -10,10 +10,8 @@ class A extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name, self::B value) → self::A
     : self::A::value = value, super core::_Enum::•(#index, #name)
     ;
-  method _enumToString() → core::String
+  method core::_enumToString() → core::String
     return "A.${this.{core::_Enum::_name}{core::String}}";
-  static synthetic method _#new#tearOff(core::int #index, core::String #name, self::B value) → self::A
-    return new self::A::•(#index, #name, value);
 }
 class B extends core::Object /*hasConstConstructor*/  {
   final field core::int value;

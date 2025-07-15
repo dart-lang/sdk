@@ -109,7 +109,7 @@ ExtendsClause
   extendsKeyword: extends
   superclass: NamedType
     name: v
-    element2: <testLibraryFragment>::@getter::v#element
+    element2: <testLibrary>::@getter::v
     type: InvalidType
 ''');
   }
@@ -137,7 +137,7 @@ ExtendsClause
           element2: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: <testLibraryFragment>::@getter::v#element
+    element2: <testLibrary>::@getter::v
     type: InvalidType
 ''');
   }

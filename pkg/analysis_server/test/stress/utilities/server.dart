@@ -601,7 +601,7 @@ class Server {
   /// the specified port.
   ///
   /// If [profileServer] is `true`, the server will be started with "--observe"
-  /// and "--pause-isolates-on-exit", allowing the observatory to be used.
+  /// and "--pause-isolates-on-exit", allowing Dart DevTools to be used.
   ///
   /// If [useAnalysisHighlight2] is `true`, the server will use the new
   /// highlight APIs.

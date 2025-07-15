@@ -13,6 +13,7 @@
 #include "platform/assert.h"
 #include "platform/unicode.h"
 #include "vm/app_snapshot.h"
+#include "vm/bytecode_reader.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart.h"
@@ -1553,8 +1554,8 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   // TransitionXXX scope objects as the reverse transition happens
   // outside this scope in Dart_ExitIsolate/Dart_ShutdownIsolate.
   Thread* T = Thread::Current();
-  T->EnterSafepointToNative();
   T->set_execution_state(Thread::kThreadInNative);
+  T->EnterSafepointToNative();
 }
 
 DART_EXPORT void Dart_StartProfiling() {
@@ -1937,6 +1938,14 @@ DART_EXPORT bool Dart_IsKernel(const uint8_t* buffer, intptr_t buffer_size) {
   }
   return (buffer[0] == 0x90) && (buffer[1] == 0xab) && (buffer[2] == 0xcd) &&
          (buffer[3] == 0xef);
+}
+
+DART_EXPORT bool Dart_IsBytecode(const uint8_t* buffer, intptr_t buffer_size) {
+  if (buffer_size < 4) {
+    return false;
+  }
+  return (buffer[0] == 0x33) && (buffer[1] == 0x43) && (buffer[2] == 0x42) &&
+         (buffer[3] == 0x44);
 }
 
 DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
@@ -3404,9 +3413,7 @@ static ObjectPtr ThrowArgumentError(const char* exception_message) {
     saved_exception = &Instance::Handle(raw_exception);
   }
   Exceptions::Throw(thread, *saved_exception);
-  const String& message =
-      String::Handle(String::New("Exception was not thrown, internal error"));
-  return ApiError::New(message);
+  UNREACHABLE();
 }
 
 // TODO(sgjesse): value should always be smaller then 0xff. Add error handling.
@@ -5475,6 +5482,47 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+DART_EXPORT Dart_Handle Dart_LoadScriptFromBytecode(const uint8_t* buffer,
+                                                    intptr_t buffer_size) {
+#if defined(DART_DYNAMIC_MODULES)
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  StackZone zone(T);
+  IsolateGroup* IG = T->isolate_group();
+
+  Library& library = Library::Handle(Z, IG->object_store()->root_library());
+  if (!library.IsNull()) {
+    const String& library_url = String::Handle(Z, library.url());
+    return Api::NewError("%s: A script has already been loaded from '%s'.",
+                         CURRENT_FUNC, library_url.ToCString());
+  }
+  CHECK_CALLBACK_STATE(T);
+
+  // NOTE: We do not attach a finalizer for this object, because the embedder
+  // will free it once the isolate group has shutdown.
+  const auto& typed_data = ExternalTypedData::Handle(ExternalTypedData::New(
+      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
+      buffer_size, Heap::kOld));
+
+  SafepointWriteRwLocker ml(T, IG->program_lock());
+  bytecode::BytecodeLoader loader(T, typed_data);
+  const Function& function = Function::Handle(loader.LoadBytecode());
+
+  if (function.IsNull()) {
+    return Api::NewError(
+        "Invoked Dart programs must have a 'main' function defined:\n"
+        "https://dart.dev/to/main-function");
+  }
+  library ^= Class::Handle(function.Owner()).library();
+  IG->object_store()->set_root_library(library);
+  return Api::NewHandle(T, library.ptr());
+#else
+  return Api::NewError(
+      "%s: Cannot load bytecode as dynamic modules are disabled.",
+      CURRENT_FUNC);
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 DART_EXPORT Dart_Handle Dart_RootLibrary() {
   Thread* thread = Thread::Current();
   IsolateGroup* isolate_group = thread->isolate_group();
@@ -5795,6 +5843,29 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle kernel_buffer) {
   }
   return LoadLibrary(T, td);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+}
+
+DART_EXPORT Dart_Handle
+Dart_LoadLibraryFromBytecode(Dart_Handle bytecode_buffer) {
+#if defined(DART_DYNAMIC_MODULES)
+  DARTSCOPE(Thread::Current());
+  const ExternalTypedData& td =
+      Api::UnwrapExternalTypedDataHandle(Z, bytecode_buffer);
+  if (td.IsNull()) {
+    RETURN_TYPE_ERROR(Z, bytecode_buffer, ExternalTypedData);
+  }
+  SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
+  bytecode::BytecodeLoader loader(T, td);
+  const Function& function = Function::Handle(loader.LoadBytecode());
+  if (function.IsNull()) {
+    return Api::Null();
+  }
+  return Api::NewHandle(T, Class::Handle(function.Owner()).library());
+#else
+  return Api::NewError(
+      "%s: Cannot load bytecode as dynamic modules are disabled.",
+      CURRENT_FUNC);
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 // Finalizes classes and invokes Dart core library function that completes
@@ -6439,7 +6510,8 @@ static void CreateAppAOTSnapshot(
     GrowableArray<LoadingUnitSerializationData*>* units,
     LoadingUnitSerializationData* unit,
     uint32_t program_hash,
-    const char* identifier) {
+    const char* identifier,
+    const char* path) {
   Thread* T = Thread::Current();
 
   NOT_IN_PRODUCT(TimelineBeginEndScope tbes2(T, Timeline::GetIsolateStream(),
@@ -6472,7 +6544,7 @@ static void CreateAppAOTSnapshot(
     if (format == Dart_AotBinaryFormat_MachO_Dylib) {
       debug_so = new (Z)
           MachOWriter(Z, &debug_stream, SharedObjectWriter::Type::DebugInfo,
-                      identifier, debug_dwarf);
+                      identifier, /*path=*/nullptr, debug_dwarf);
     } else {
       debug_so = new (Z) ElfWriter(
           Z, &debug_stream, SharedObjectWriter::Type::DebugInfo, debug_dwarf);
@@ -6508,7 +6580,7 @@ static void CreateAppAOTSnapshot(
   } else if (format == Dart_AotBinaryFormat_MachO_Dylib) {
     so = new (Z)
         MachOWriter(Z, &output_stream, SharedObjectWriter::Type::Snapshot,
-                    identifier, dwarf);
+                    identifier, path, dwarf);
   }
 
   if (format == Dart_AotBinaryFormat_Assembly) {
@@ -6561,7 +6633,8 @@ static void Split(Dart_CreateLoadingUnitCallback next_callback,
     }
     CreateAppAOTSnapshot(write_callback, write_callback_data, strip, format,
                          write_debug_callback_data, &data, data[id],
-                         program_hash, /*identifier=*/nullptr);
+                         program_hash, /*identifier=*/nullptr,
+                         /*path=*/nullptr);
     {
       TransitionVMToNative transition(T);
       close_callback(write_callback_data);
@@ -6593,7 +6666,8 @@ Dart_CreateAppAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 
   CreateAppAOTSnapshot(callback, callback_data, strip,
                        Dart_AotBinaryFormat_Assembly, debug_callback_data,
-                       nullptr, nullptr, 0, /*identifier=*/nullptr);
+                       nullptr, nullptr, 0, /*identifier=*/nullptr,
+                       /*path=*/nullptr);
 
   return Api::Success();
 #endif
@@ -6671,7 +6745,7 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
 
   CreateAppAOTSnapshot(callback, callback_data, strip, Dart_AotBinaryFormat_Elf,
                        debug_callback_data, nullptr, nullptr, 0,
-                       /*identifier=*/nullptr);
+                       /*identifier=*/nullptr, /*path=*/nullptr);
 
   return Api::Success();
 #endif
@@ -6708,7 +6782,8 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
                                   void* callback_data,
                                   bool strip,
                                   void* debug_callback_data,
-                                  const char* identifier) {
+                                  const char* identifier,
+                                  const char* path) {
 #if defined(TARGET_ARCH_IA32)
   return Api::NewError("AOT compilation is not supported on IA32.");
 #elif !defined(DART_PRECOMPILER)
@@ -6723,7 +6798,8 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
   T->isolate_group()->object_store()->set_loading_units(Object::null_array());
 
   CreateAppAOTSnapshot(callback, callback_data, strip, format,
-                       debug_callback_data, nullptr, nullptr, 0, identifier);
+                       debug_callback_data, nullptr, nullptr, 0, identifier,
+                       path);
 
   return Api::Success();
 #endif

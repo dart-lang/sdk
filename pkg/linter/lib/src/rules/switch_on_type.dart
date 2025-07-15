@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -23,10 +24,7 @@ class SwitchOnType extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.switch_on_type;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     if (!context.isFeatureEnabled(Feature.patterns)) return;
     var visitor = _Visitor(this, context);
     registry.addSwitchExpression(this, visitor);
@@ -37,7 +35,7 @@ class SwitchOnType extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
+  final RuleContext context;
 
   /// The node where the lint will be reported.
   late AstNode node;
@@ -149,6 +147,6 @@ extension on Element? {
   /// Returns `true` if this element is the `toString` method.
   bool get isToStringMethod {
     var self = this;
-    return self is MethodElement && self.name3 == _objectToStringName;
+    return self is MethodElement && self.name == _objectToStringName;
   }
 }

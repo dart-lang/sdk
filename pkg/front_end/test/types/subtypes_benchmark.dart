@@ -22,8 +22,7 @@ import "package:kernel/core_types.dart" show CoreTypes;
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 import 'package:kernel/testing/type_parser_environment.dart'
     show TypeParserEnvironment, parseLibrary;
-import "package:kernel/type_environment.dart"
-    show SubtypeCheckMode, TypeEnvironment;
+import "package:kernel/type_environment.dart" show TypeEnvironment;
 
 class SubtypesBenchmark {
   final Library library;
@@ -97,8 +96,7 @@ void performKernelChecks(
     List<SubtypeCheck> checks, TypeEnvironment environment) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
-    bool isSubtype = environment.isSubtypeOf(
-        check.s, check.t, SubtypeCheckMode.withNullabilities);
+    bool isSubtype = environment.isSubtypeOf(check.s, check.t);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }
@@ -109,8 +107,7 @@ void performBuilderChecks(
     List<SubtypeCheck> checks, ClassHierarchyBuilder hierarchy) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
-    bool isSubtype = hierarchy.types
-        .isSubtypeOf(check.s, check.t, SubtypeCheckMode.withNullabilities);
+    bool isSubtype = hierarchy.types.isSubtypeOf(check.s, check.t);
     if (isSubtype != check.isSubtype) {
       throw "Check failed: $check";
     }

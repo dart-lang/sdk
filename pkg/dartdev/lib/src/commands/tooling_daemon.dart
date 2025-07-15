@@ -29,6 +29,9 @@ class ToolingDaemonCommand extends DartdevCommand {
   }
 
   @override
+  CommandCategory get commandCategory => CommandCategory.tools;
+
+  @override
   Future<int> run() async {
     var script = sdk.dartAotRuntime;
     var snapshot = sdk.dtdAotSnapshot;
@@ -51,7 +54,7 @@ class ToolingDaemonCommand extends DartdevCommand {
         script,
         dtdCommand,
         packageConfigOverride: null,
-        useExecProcess : useExecProcess,
+        useExecProcess: useExecProcess,
       );
       return 0;
     } catch (e, st) {

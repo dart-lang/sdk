@@ -25,8 +25,8 @@ typedef _VmServiceUpdate = ({
 typedef _VmServiceWithInfo = ({VmService vmService, VmServiceInfo info});
 
 enum _VmServiceUpdateKind {
-  registered('VmServiceRegistered'),
-  unregistered('VmServiceUnregistered');
+  registered(ConnectedAppServiceConstants.vmServiceRegistered),
+  unregistered(ConnectedAppServiceConstants.vmServiceUnregistered);
 
   const _VmServiceUpdateKind(this.id);
 
@@ -93,14 +93,14 @@ class ConnectedAppService extends InternalService {
 
     _vmServiceUpdatesSubscription = _vmServiceUpdates.stream.listen((update) {
       client.streamNotify(_streamId, {
-        EventParameters.streamId: _streamId,
-        EventParameters.eventKind: update.kind.id,
-        EventParameters.eventData: {
-          EventParameters.uri: update.vmServiceInfo.uri,
-          EventParameters.exposedUri: update.vmServiceInfo.exposedUri,
-          EventParameters.name: update.vmServiceInfo.name,
+        DtdParameters.streamId: _streamId,
+        DtdParameters.eventKind: update.kind.id,
+        DtdParameters.eventData: {
+          DtdParameters.uri: update.vmServiceInfo.uri,
+          DtdParameters.exposedUri: update.vmServiceInfo.exposedUri,
+          DtdParameters.name: update.vmServiceInfo.name,
         },
-        EventParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
+        DtdParameters.timestamp: DateTime.now().millisecondsSinceEpoch,
       });
     });
   }
@@ -134,7 +134,7 @@ class ConnectedAppService extends InternalService {
   /// Only the client that started DTD (identified by [_clientSecret])
   /// should be able to call this method.
   Future<Map<String, Object?>> _registerVmService(Parameters parameters) async {
-    final incomingSecret = parameters[EventParameters.secret].asString;
+    final incomingSecret = parameters[DtdParameters.secret].asString;
     if (!unrestrictedMode && secret != incomingSecret) {
       throw RpcErrorCodes.buildRpcException(
         RpcErrorCodes.kPermissionDenied,
@@ -142,14 +142,14 @@ class ConnectedAppService extends InternalService {
     }
 
     return await _mutex.runGuarded(() async {
-      final uri = parameters[EventParameters.uri].asString;
+      final uri = parameters[DtdParameters.uri].asString;
       if (_vmServices.containsKey(uri)) {
         // We already know about this VM service instance. Exit early.
         return Success().toJson();
       }
 
-      final exposedUri = parameters[EventParameters.exposedUri].asStringOrNull;
-      final name = parameters[EventParameters.name].asStringOrNull;
+      final exposedUri = parameters[DtdParameters.exposedUri].asStringOrNull;
+      final name = parameters[DtdParameters.name].asStringOrNull;
 
       try {
         await vmServiceConnectUri(uri).then((vmService) async {
@@ -184,7 +184,7 @@ class ConnectedAppService extends InternalService {
   Future<Map<String, Object?>> _unregisterVmService(
     Parameters parameters,
   ) async {
-    final incomingSecret = parameters[EventParameters.secret].asString;
+    final incomingSecret = parameters[DtdParameters.secret].asString;
     if (!unrestrictedMode && secret != incomingSecret) {
       throw RpcErrorCodes.buildRpcException(
         RpcErrorCodes.kPermissionDenied,
@@ -192,7 +192,7 @@ class ConnectedAppService extends InternalService {
     }
 
     return await _mutex.runGuarded(() {
-      final uri = parameters[EventParameters.uri].asString;
+      final uri = parameters[DtdParameters.uri].asString;
       if (!_vmServices.containsKey(uri)) {
         // This VM service is not in the registry. Exit early.
         return Success().toJson();

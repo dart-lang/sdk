@@ -17,6 +17,7 @@ class PreferTypingUninitializedVariablesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_typing_uninitialized_variables;
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_field_augmented() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -132,6 +133,7 @@ void f() {
     );
   }
 
+  @SkippedTest() // TODO(scheglov): implement augmentation
   test_topLevelVariable_augmented() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

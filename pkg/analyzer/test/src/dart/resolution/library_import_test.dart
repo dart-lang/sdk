@@ -226,12 +226,12 @@ CompilationUnit
                   name: A
                   element2: package:test/a.dart::@class::A
                   type: A
-                element: package:test/a.dart::<fragment>::@class::A::@constructor::new#element
+                element: package:test/a.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -326,12 +326,12 @@ CompilationUnit
                   name: A
                   element2: package:test/a_html.dart::@class::A
                   type: A
-                element: package:test/a_html.dart::<fragment>::@class::A::@constructor::new#element
+                element: package:test/a_html.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');
@@ -548,12 +548,12 @@ CompilationUnit
                   name: A
                   element2: package:test/a_io.dart::@class::A
                   type: A
-                element: package:test/a_io.dart::<fragment>::@class::A::@constructor::new#element
+                element: package:test/a_io.dart::@class::A::@constructor::new
               argumentList: ArgumentList
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment>::@topLevelVariable::a
+            declaredElement: <testLibraryFragment> a@96
       semicolon: ;
       declaredElement: <null>
 ''');

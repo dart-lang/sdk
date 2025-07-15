@@ -103,7 +103,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@extension::E1::@getter::a#element
+    element: <testLibrary>::@extension::E1::@getter::a
     staticType: void
   staticType: void
 ''');

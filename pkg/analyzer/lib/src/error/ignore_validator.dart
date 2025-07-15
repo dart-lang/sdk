@@ -12,12 +12,13 @@ import 'package:analyzer/src/lint/registry.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
-  /// A list of known error codes used to ensure we don't over-report
+  /// A list of known diagnostic codes used to ensure we don't over-report
   /// `unnecessary_ignore`s on error codes that may be contributed by a plugin.
-  static final Set<String> _validErrorCodeNames =
-      errorCodeValues.map((e) => e.name.toLowerCase()).toSet();
+  static final Set<String> _validDiagnosticCodeNames =
+      diagnosticCodeValues.map((d) => d.name.toLowerCase()).toSet();
 
-  /// Error codes used to report `unnecessary_ignore`s.
+  /// Diagnostic codes used to report `unnecessary_ignore`s.
+  ///
   /// These codes are set when the `UnnecessaryIgnore` lint rule is instantiated and
   /// registered by the linter.
   static late DiagnosticCode unnecessaryIgnoreLocationLintCode;
@@ -25,11 +26,11 @@ class IgnoreValidator {
   static late DiagnosticCode unnecessaryIgnoreNameLocationLintCode;
   static late DiagnosticCode unnecessaryIgnoreNameFileLintCode;
 
-  /// The error reporter to which errors are to be reported.
-  final ErrorReporter _errorReporter;
+  /// The diagnostic reporter to which diagnostics are to be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// The diagnostics that are reported in the file being analyzed.
-  final List<Diagnostic> _reportedErrors;
+  final List<Diagnostic> _reportedDiagnostics;
 
   /// The information about the ignore comments in the file being analyzed.
   final IgnoreInfo _ignoreInfo;
@@ -50,8 +51,8 @@ class IgnoreValidator {
   /// comments in the file being analyzed. The diagnostics will be reported to
   /// the [_errorReporter].
   IgnoreValidator(
-    this._errorReporter,
-    this._reportedErrors,
+    this._diagnosticReporter,
+    this._reportedDiagnostics,
     this._ignoreInfo,
     this._lineInfo,
     this._unignorableNames,
@@ -123,7 +124,7 @@ class IgnoreValidator {
     //
     // Remove all of the errors that are actually being ignored.
     //
-    for (var error in _reportedErrors) {
+    for (var error in _reportedDiagnostics) {
       var lineNumber = _lineInfo.getLocation(error.offset).lineNumber;
       var ignoredOnLine = ignoredOnLineMap[lineNumber];
 
@@ -168,7 +169,7 @@ class IgnoreValidator {
     for (var ignoredElement in duplicated) {
       if (ignoredElement is IgnoredDiagnosticName) {
         var name = ignoredElement.name;
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: name.length,
           diagnosticCode: WarningCode.DUPLICATE_IGNORE,
@@ -176,7 +177,7 @@ class IgnoreValidator {
         );
         list.remove(ignoredElement);
       } else if (ignoredElement is IgnoredDiagnosticType) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: ignoredElement.length,
           diagnosticCode: WarningCode.DUPLICATE_IGNORE,
@@ -202,7 +203,7 @@ class IgnoreValidator {
           // If a code is not a lint or a recognized error,
           // don't report. (It could come from a plugin.)
           // TODO(pq): consider another diagnostic that reports undefined codes
-          if (!_validErrorCodeNames.contains(name.toLowerCase())) continue;
+          if (!_validDiagnosticCodeNames.contains(name.toLowerCase())) continue;
         } else {
           var state = rule.state;
           var since = state.since.toString();
@@ -211,7 +212,7 @@ class IgnoreValidator {
           } else if (state.isRemoved) {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
-              _errorReporter.atOffset(
+              _diagnosticReporter.atOffset(
                 diagnosticCode: WarningCode.REPLACED_LINT_USE,
                 offset: ignoredName.offset,
                 length: name.length,
@@ -219,7 +220,7 @@ class IgnoreValidator {
               );
               continue;
             } else {
-              _errorReporter.atOffset(
+              _diagnosticReporter.atOffset(
                 diagnosticCode: WarningCode.REMOVED_LINT_USE,
                 offset: ignoredName.offset,
                 length: name.length,
@@ -273,7 +274,7 @@ class IgnoreValidator {
                   : unnecessaryIgnoreLocationLintCode;
         }
 
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           diagnosticCode: lintCode,
           offset: ignoredName.offset,
           length: name.length,
@@ -285,10 +286,10 @@ class IgnoreValidator {
 }
 
 extension on Diagnostic {
-  String get ignoreName => errorCode.name.toLowerCase();
+  String get ignoreName => diagnosticCode.name.toLowerCase();
 
   String get ignoreUniqueName {
-    String uniqueName = errorCode.uniqueName;
+    String uniqueName = diagnosticCode.uniqueName;
     int period = uniqueName.indexOf('.');
     if (period >= 0) {
       uniqueName = uniqueName.substring(period + 1);

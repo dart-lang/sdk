@@ -367,7 +367,7 @@ functionality is publicly exposed.
     when run on very large apps.
 
   * `tool/dart2js_stress.dart` and `tool/dart2js_profile_many.dart`: other
-    helper wrappers to make it easier to profile dart2js with Observatory.
+    helper wrappers to make it easier to profile dart2js with Dart DevTools.
 
 * Source map tracking (`lib/src/io`): helpers used to track source information
   and to build source map files. _TODO: add details_.

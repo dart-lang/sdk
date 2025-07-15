@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class UseCurlyBracesTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.USE_CURLY_BRACES;
+  AssistKind get kind => DartAssistKind.useCurlyBraces;
 
   Future<void> test_comment() async {
     await resolveTestCode('''

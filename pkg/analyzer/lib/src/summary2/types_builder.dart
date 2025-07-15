@@ -22,7 +22,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Return `true` if [type] can be used as a class.
 bool _isInterfaceTypeClass(InterfaceType type) {
-  if (type.element3 is! ClassElement) {
+  if (type.element is! ClassElement) {
     return false;
   }
   return _isInterfaceTypeInterface(type);
@@ -30,10 +30,10 @@ bool _isInterfaceTypeClass(InterfaceType type) {
 
 /// Return `true` if [type] can be used as an interface or a mixin.
 bool _isInterfaceTypeInterface(InterfaceType type) {
-  if (type.element3 is EnumElement) {
+  if (type.element is EnumElement) {
     return false;
   }
-  if (type.element3 is ExtensionTypeElement) {
+  if (type.element is ExtensionTypeElement) {
     return false;
   }
   if (type.isDartCoreFunction || type.isDartCoreNull) {
@@ -108,7 +108,7 @@ class TypesBuilder {
     var formalParameters = _formalParameters(parameterList);
 
     return FunctionTypeImpl(
-      typeFormals: typeParameters,
+      typeParameters: typeParameters.map((f) => f.asElement2).toList(),
       parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: nullabilitySuffix,
@@ -177,7 +177,36 @@ class TypesBuilder {
         }
       }
       var fragment = node.declaredFragment!;
+      var element = fragment.element;
       fragment.returnType = returnType;
+
+      switch (element) {
+        case GetterElementImpl():
+          element.returnType = returnType;
+          (element.variable as TopLevelVariableElementImpl).type = returnType;
+          element.variable!.firstFragment.type = returnType;
+        case SetterElementImpl():
+          element.returnType = returnType;
+          var valueElement =
+              element.formalParameters.singleOrNull
+                  as FormalParameterElementImpl?;
+          var valueNode =
+              node.functionExpression.parameters?.parameters.firstOrNull;
+          var valueNodeElement = valueNode?.declaredFragment!.element;
+          var valueNodeType = valueNodeElement?.type;
+          var valueType = valueNodeType ?? InvalidTypeImpl.instance;
+          valueElement?.type = valueType;
+          valueElement?.firstFragment.type = valueType;
+
+          var variableElement =
+              element.variable as TopLevelVariableElementImpl;
+          if (variableElement.isSynthetic) {
+            variableElement.type = valueType;
+            variableElement.firstFragment.type = valueType;
+          }
+        case TopLevelFunctionElementImpl():
+          element.returnType = returnType;
+      }
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is FunctionTypedFormalParameterImpl) {
@@ -198,11 +227,38 @@ class TypesBuilder {
         }
       }
       var fragment = node.declaredFragment!;
+      var element = fragment.element;
       fragment.returnType = returnType;
+      switch (element) {
+        case GetterElementImpl():
+          element.returnType = returnType;
+          (element.variable as FieldElementImpl).type = returnType;
+          element.variable!.firstFragment.type = returnType;
+        case SetterElementImpl():
+          element.returnType = returnType;
+          var valueElement =
+              element.formalParameters.singleOrNull
+                  as FormalParameterElementImpl?;
+          var valueNode = node.parameters?.parameters.firstOrNull;
+          var valueNodeElement = valueNode?.declaredFragment!.element;
+          var valueNodeType = valueNodeElement?.type;
+          var valueType = valueNodeType ?? InvalidTypeImpl.instance;
+          valueElement?.type = valueType;
+          valueElement?.firstFragment.type = valueType;
+
+          var variableElement = element.variable as FieldElementImpl;
+          if (variableElement.isSynthetic && variableElement.getter == null) {
+            variableElement.type = valueType;
+            variableElement.firstFragment.type = valueType;
+          }
+        case MethodElementImpl():
+          element.returnType = returnType;
+      }
     } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
     } else if (node is SimpleFormalParameterImpl) {
       var fragment = node.declaredFragment!;
+      fragment.element.type = node.type?.type ?? _dynamicType;
       fragment.type = node.type?.type ?? _dynamicType;
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
@@ -212,7 +268,27 @@ class TypesBuilder {
       var type = node.type?.type;
       if (type != null) {
         for (var variable in node.variables) {
-          variable.declaredFragment!.type = type;
+          var variableFragment = variable.declaredFragment!;
+          var variableElement = variableFragment.element;
+          variableFragment.type = type;
+          variableElement.type = type;
+          if (variableElement is PropertyInducingElementImpl) {
+            if (variableElement.getter case var getterElement?) {
+              getterElement.returnType = type;
+              getterElement.firstFragment.returnType = type;
+            }
+            if (variableElement.setter case var setterElement?) {
+              setterElement.returnType = VoidTypeImpl.instance;
+              setterElement.firstFragment.returnType = VoidTypeImpl.instance;
+              (setterElement.formalParameters.single
+                      as FormalParameterElementImpl)
+                  .type = type;
+              (setterElement.formalParameters.single
+                      as FormalParameterElementImpl)
+                  .firstFragment
+                  .type = type;
+            }
+          }
         }
       }
     } else {
@@ -265,8 +341,10 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
+      fragment.element.type = type;
       fragment.type = type;
     } else {
+      fragment.element.type = node.type?.type ?? _dynamicType;
       fragment.type = node.type?.type ?? _dynamicType;
     }
   }
@@ -294,6 +372,7 @@ class TypesBuilder {
       _nullability(node, node.question != null),
     );
     var fragment = node.declaredFragment!;
+    fragment.element.type = type;
     fragment.type = type;
   }
 
@@ -349,8 +428,10 @@ class TypesBuilder {
         parameterList,
         _nullability(node, node.question != null),
       );
+      fragment.element.type = type;
       fragment.type = type;
     } else {
+      fragment.element.type = node.type?.type ?? _dynamicType;
       fragment.type = node.type?.type ?? _dynamicType;
     }
   }
@@ -388,7 +469,7 @@ class TypesBuilder {
   /// alias, but the actual provided type annotation is not a function type.
   static FunctionTypeImpl _errorFunctionType() {
     return FunctionTypeImpl(
-      typeFormals: const [],
+      typeParameters: const [],
       parameters: const [],
       returnType: DynamicTypeImpl.instance,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -439,7 +520,7 @@ class _MixinInference {
     List<InterfaceTypeImpl> interfaceTypes,
   ) {
     for (var interfaceType in interfaceTypes) {
-      if (interfaceType.element3 == element) return interfaceType;
+      if (interfaceType.element == element) return interfaceType;
     }
     return null;
   }
@@ -451,7 +532,7 @@ class _MixinInference {
     var result = <InterfaceTypeImpl>[];
     for (var constraint in constraints) {
       var interfaceType = _findInterfaceTypeForElement(
-        constraint.element3,
+        constraint.element,
         interfaceTypes,
       );
 
@@ -475,12 +556,12 @@ class _MixinInference {
       return mixinType;
     }
 
-    List<TypeParameterElementImpl2>? typeParameters;
+    List<TypeParameterElementImpl>? typeParameters;
     List<InterfaceTypeImpl>? supertypeConstraints;
     InterfaceTypeImpl Function(List<TypeImpl> typeArguments)? instantiate;
-    var mixinElement = mixinNode.element2;
-    if (mixinElement is InterfaceElementImpl2) {
-      typeParameters = mixinElement.typeParameters2;
+    var mixinElement = mixinNode.element;
+    if (mixinElement is InterfaceElementImpl) {
+      typeParameters = mixinElement.typeParameters;
       if (typeParameters.isNotEmpty) {
         supertypeConstraints = typeSystem
             .gatherMixinSupertypeConstraintsForInference(mixinElement);
@@ -491,8 +572,8 @@ class _MixinInference {
           );
         };
       }
-    } else if (mixinElement is TypeAliasElementImpl2) {
-      typeParameters = mixinElement.typeParameters2;
+    } else if (mixinElement is TypeAliasElementImpl) {
+      typeParameters = mixinElement.typeParameters;
       if (typeParameters.isNotEmpty) {
         var rawType = mixinElement.aliasedType;
         if (rawType is InterfaceTypeImpl) {

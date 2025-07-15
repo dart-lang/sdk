@@ -90,10 +90,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       _isMapOf = assertions.isMapOf;
       _isFunction2Of = assertions.isFunction2Of;
       _isFutureOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureElement2),
+        _hasElement(typeProvider.futureElement),
       );
       _isFutureOrOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureOrElement2),
+        _hasElement(typeProvider.futureOrElement),
       );
       _isFutureOfDynamic = _isFutureOf([_isDynamic]);
       _isFutureOfInt = _isFutureOf([_isInt]);
@@ -414,10 +414,10 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     ClassElement elementA =
         AstFinder.getClass(unit, "A").declaredFragment!.element;
     var type = exp.constructorName.type.typeOrThrow as InterfaceType;
-    expect(type.element3, elementB);
+    expect(type.element, elementB);
     _isInstantiationOf(_hasElement(elementB))([
       _isType(
-        elementA.typeParameters2[0].instantiate(
+        elementA.typeParameters[0].instantiate(
           nullabilitySuffix: NullabilitySuffix.none,
         ),
       ),
@@ -1448,13 +1448,13 @@ MethodInvocation
       IntegerLiteral
         literal: 1
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::max::@parameter::x#element
+          baseElement: <testLibrary>::@function::max::@formalParameter::x
           substitution: {T: Never}
         staticType: int
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::max::@parameter::y#element
+          baseElement: <testLibrary>::@function::max::@formalParameter::y
           substitution: {T: Never}
         staticType: int
     rightParenthesis: )
@@ -1568,23 +1568,23 @@ Block
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T Function(T)
           rightParenthesis: )
         staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
@@ -1604,23 +1604,23 @@ Block
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T Function(T)
           rightParenthesis: )
         staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
@@ -1640,23 +1640,23 @@ Block
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T Function(T)
           rightParenthesis: )
         staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
@@ -1676,23 +1676,23 @@ Block
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T Function(T)
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T Function(T)
           rightParenthesis: )
         staticInvokeType: void Function(T Function(T), int Function(T, T), T Function(T))
@@ -1735,23 +1735,23 @@ Block
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: List<T>
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: List<T>
           rightParenthesis: )
         staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
@@ -1771,23 +1771,23 @@ Block
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: List<T>
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: List<T>
           rightParenthesis: )
         staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
@@ -1807,23 +1807,23 @@ Block
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: List<T>
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: List<T>
           rightParenthesis: )
         staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
@@ -1843,23 +1843,23 @@ Block
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: List<T>
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: List<T>
           rightParenthesis: )
         staticInvokeType: void Function(List<T>, int Function(T, T), List<T>)
@@ -1902,23 +1902,23 @@ Block
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T
           rightParenthesis: )
         staticInvokeType: void Function(T, int Function(T, T), T)
@@ -1938,23 +1938,23 @@ Block
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T
           rightParenthesis: )
         staticInvokeType: void Function(T, int Function(T, T), T)
@@ -1974,23 +1974,23 @@ Block
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T
           rightParenthesis: )
         staticInvokeType: void Function(T, int Function(T, T), T)
@@ -2010,23 +2010,23 @@ Block
             SimpleIdentifier
               token: target
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
               staticType: T
             SimpleIdentifier
               token: compare
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::compare#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
               staticType: int Function(T, T)
             SimpleIdentifier
               token: list
               correspondingParameter: ParameterMember
-                baseElement: <testLibraryFragment>::@function::_mergeSort::@parameter::target#element
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
                 substitution: {T: T}
-              element: <testLibraryFragment>::@function::_mergeSort::@parameter::list#element
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
               staticType: T
           rightParenthesis: )
         staticInvokeType: void Function(T, int Function(T, T), T)
@@ -2068,7 +2068,7 @@ MethodInvocation
           element: <testLibrary>::@function::g
           staticType: S Function<S>(S)
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@function::f::@parameter::x#element
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
           substitution: {T: dynamic}
         staticType: dynamic Function(dynamic)
         typeArgumentTypes
@@ -2101,7 +2101,7 @@ num test(Iterable values) => values.fold(values.first as num, max);
 MethodInvocation
   target: SimpleIdentifier
     token: values
-    element: <testLibraryFragment>::@function::test::@parameter::values#element
+    element: <testLibrary>::@function::test::@formalParameter::values
     staticType: Iterable<dynamic>
   operator: .
   methodName: SimpleIdentifier
@@ -2117,17 +2117,17 @@ MethodInvocation
         expression: PrefixedIdentifier
           prefix: SimpleIdentifier
             token: values
-            element: <testLibraryFragment>::@function::test::@parameter::values#element
+            element: <testLibrary>::@function::test::@formalParameter::values
             staticType: Iterable<dynamic>
           period: .
           identifier: SimpleIdentifier
             token: first
             element: GetterMember
-              baseElement: <testLibraryFragment>::@class::Iterable::@getter::first#element
+              baseElement: <testLibrary>::@class::Iterable::@getter::first
               substitution: {T: dynamic}
             staticType: dynamic
           element: GetterMember
-            baseElement: <testLibraryFragment>::@class::Iterable::@getter::first#element
+            baseElement: <testLibrary>::@class::Iterable::@getter::first
             substitution: {T: dynamic}
           staticType: dynamic
         asOperator: as
@@ -2136,7 +2136,7 @@ MethodInvocation
           element2: dart:core::@class::num
           type: num
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::s#element
+          baseElement: s@null
           substitution: {S: num}
         staticType: num
       FunctionReference
@@ -2145,7 +2145,7 @@ MethodInvocation
           element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::f#element
+          baseElement: f@null
           substitution: {S: num}
         staticType: num Function(num, num)
         typeArgumentTypes
@@ -3235,7 +3235,7 @@ class B<T2, U2> {
     assertType(typeName.type, 'A<T2, U2>');
 
     var constructorMember = redirected.element!;
-    expect(constructorMember.displayString2(), 'A<T2, U2> A.named()');
+    expect(constructorMember.displayString(), 'A<T2, U2> A.named()');
     expect(redirected.name!.element, constructorMember);
   }
 
@@ -3268,7 +3268,7 @@ class B<T2, U2> {
     assertType(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
-    expect(redirected.element!.displayString2(), 'A<T2, U2> A()');
+    expect(redirected.element!.displayString(), 'A<T2, U2> A()');
   }
 
   test_redirectingConstructor_propagation() async {
@@ -3442,8 +3442,10 @@ class B<T2, U2> {
   /// the expected [errorMessage].
   void _expectInferenceError(String errorMessage) {
     var errors =
-        result.errors
-            .where((e) => e.errorCode == CompileTimeErrorCode.COULD_NOT_INFER)
+        result.diagnostics
+            .where(
+              (e) => e.diagnosticCode == CompileTimeErrorCode.COULD_NOT_INFER,
+            )
             .map((e) => e.message)
             .toList();
     expect(errors.length, 1);
@@ -3560,7 +3562,7 @@ void main() {
 FunctionDeclaration
   returnType: NamedType
     name: T
-    element2: T@4
+    element2: #E0 T
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3569,7 +3571,7 @@ FunctionDeclaration
       typeParameters
         TypeParameter
           name: T
-          declaredElement: T@4
+          declaredElement: <testLibraryFragment> T@4
             defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
@@ -3577,10 +3579,10 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: T
-          element2: T@4
+          element2: #E0 T
           type: T
         name: x
-        declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
+        declaredElement: <testLibraryFragment> x@9
           type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
@@ -3589,10 +3591,10 @@ FunctionDeclaration
         literal: null
         staticType: Null
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@2
       type: T Function<T>(T)
     staticType: T Function<T>(T)
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@2
     type: T Function<T>(T)
 ''');
   }
@@ -3607,7 +3609,7 @@ FunctionDeclaration
 FunctionDeclaration
   returnType: NamedType
     name: T
-    element2: T@4
+    element2: #E0 T
     type: T
   name: f
   functionExpression: FunctionExpression
@@ -3621,7 +3623,7 @@ FunctionDeclaration
             name: num
             element2: dart:core::@class::num
             type: num
-          declaredElement: T@4
+          declaredElement: <testLibraryFragment> T@4
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
@@ -3629,10 +3631,10 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: T
-          element2: T@4
+          element2: #E0 T
           type: T
         name: x
-        declaredElement: <testLibraryFragment>::@function::f::@formalParameter::x
+        declaredElement: <testLibraryFragment> x@21
           type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
@@ -3641,10 +3643,10 @@ FunctionDeclaration
         literal: null
         staticType: Null
       semicolon: ;
-    declaredElement: <testLibraryFragment>::@function::f
+    declaredElement: <testLibraryFragment> f@2
       type: T Function<T extends num>(T)
     staticType: T Function<T extends num>(T)
-  declaredElement: <testLibraryFragment>::@function::f
+  declaredElement: <testLibraryFragment> f@2
     type: T Function<T extends num>(T)
 ''');
   }
@@ -3675,7 +3677,7 @@ MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: T
-    element2: T@26
+    element2: #E0 T
     type: T
   name: f
   typeParameters: TypeParameterList
@@ -3683,7 +3685,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: T@26
+        declaredElement: <testLibraryFragment> T@26
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -3691,10 +3693,10 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: T@26
+        element2: #E0 T
         type: T
       name: x
-      declaredElement: <testLibraryFragment>::@class::C::@method::f::@formalParameter::x
+      declaredElement: <testLibraryFragment> x@31
         type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -3703,7 +3705,7 @@ MethodDeclaration
       literal: null
       staticType: Null
     semicolon: ;
-  declaredElement: <testLibraryFragment>::@class::C::@method::f
+  declaredElement: <testLibraryFragment> f@24
     type: T Function<T>(T)
 ''');
   }
@@ -4232,19 +4234,19 @@ MethodInvocation
           leftParenthesis: (
           parameter: SimpleFormalParameter
             name: e
-            declaredElement: null@null::@formalParameter::e
+            declaredElement: <testLibraryFragment> e@93
               type: dynamic
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression: SimpleIdentifier
             token: e
-            element: @92::@parameter::e#element
+            element: e@93
             staticType: dynamic
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: dynamic Function(dynamic)
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::f#element
+          baseElement: f@null
           substitution: {T: dynamic}
         staticType: dynamic Function(dynamic)
     rightParenthesis: )
@@ -4276,7 +4278,7 @@ MethodInvocation
           leftParenthesis: (
           parameter: SimpleFormalParameter
             name: e
-            declaredElement: null@null::@formalParameter::e
+            declaredElement: <testLibraryFragment> e@115
               type: dynamic
           rightParenthesis: )
         body: ExpressionFunctionBody
@@ -4284,10 +4286,10 @@ MethodInvocation
           expression: IntegerLiteral
             literal: 3
             staticType: int
-        declaredElement: null@null
+        declaredElement: <testLibraryFragment> null@null
           type: int Function(dynamic)
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::f#element
+          baseElement: f@null
           substitution: {T: int}
         staticType: int Function(dynamic)
     rightParenthesis: )
@@ -4401,13 +4403,13 @@ MethodInvocation
           arguments
             NamedType
               name: S
-              element2: S@19
+              element2: #E0 S
               type: S
           rightBracket: >
         element2: <testLibrary>::@class::C
         type: C<S>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+        baseElement: <testLibrary>::@class::C::@constructor::new
         substitution: {T: S}
     argumentList: ArgumentList
       leftParenthesis: (
@@ -4434,7 +4436,7 @@ MethodInvocation
       IntegerLiteral
         literal: 3
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::x#element
+          baseElement: x@null
           substitution: {S: int}
         staticType: int
     rightParenthesis: )
@@ -4475,13 +4477,13 @@ MethodInvocation
           arguments
             NamedType
               name: S
-              element2: S@19
+              element2: #E0 S
               type: S
           rightBracket: >
         element2: <testLibrary>::@class::C
         type: C<S>
       element: ConstructorMember
-        baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+        baseElement: <testLibrary>::@class::C::@constructor::new
         substitution: {T: S}
     argumentList: ArgumentList
       leftParenthesis: (
@@ -4508,7 +4510,7 @@ MethodInvocation
       IntegerLiteral
         literal: 3
         correspondingParameter: ParameterMember
-          baseElement: root::@parameter::x#element
+          baseElement: x@null
           substitution: {S: int}
         staticType: int
     rightParenthesis: )
@@ -4570,7 +4572,7 @@ class D extends C {
 MethodDeclaration
   returnType: NamedType
     name: T
-    element2: T@61
+    element2: #E0 T
     type: T
   name: f
   typeParameters: TypeParameterList
@@ -4578,7 +4580,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: T@61
+        declaredElement: <testLibraryFragment> T@61
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -4586,10 +4588,10 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: T@61
+        element2: #E0 T
         type: T
       name: y
-      declaredElement: <testLibraryFragment>::@class::D::@method::f::@formalParameter::y
+      declaredElement: <testLibraryFragment> y@66
         type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
@@ -4598,7 +4600,7 @@ MethodDeclaration
       literal: null
       staticType: Null
     semicolon: ;
-  declaredElement: <testLibraryFragment>::@class::D::@method::f
+  declaredElement: <testLibraryFragment> f@59
     type: T Function<T>(T)
 ''');
   }
@@ -5284,13 +5286,13 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::m::@parameter::p0#element
+          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p0
           substitution: {S0: T, S1: List<T>}
         staticType: Null
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::m::@parameter::p1#element
+          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p1
           substitution: {S0: T, S1: List<T>}
         staticType: Null
     rightParenthesis: )
@@ -5361,7 +5363,7 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@method::m::@parameter::p0#element
+          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p0
           substitution: {S: T}
         staticType: Null
     rightParenthesis: )

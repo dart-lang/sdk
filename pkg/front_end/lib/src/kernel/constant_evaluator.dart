@@ -26,7 +26,6 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/find_type_visitor.dart';
-import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/printer.dart'
     show AstPrinter, AstTextStrategy, defaultAstTextStrategy;
@@ -2738,7 +2737,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // We therefore reset it before each call, combine it and set it correctly
     // at the end.
     bool wasOrBecameUnevaluated = seenUnevaluatedChild;
-    for (Expression element in node.expressions) {
+    for (int i = 0; i < node.expressions.length; i++) {
+      Expression element = node.expressions[i];
       seenUnevaluatedChild = false;
       AbortConstant? error = builder.add(element);
       wasOrBecameUnevaluated |= seenUnevaluatedChild;
@@ -4548,7 +4548,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     bool performIs(Constant constant, {required bool strongMode}) {
       if (strongMode) {
-        return isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
+        return isSubtype(constant, type);
       } else {
         // Coverage-ignore-block(suite): Not run.
         // In weak checking mode: if e evaluates to a value v and v has runtime
@@ -4561,21 +4561,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         //       return NNBD_SUBTYPE(NULL, T)
         //    Otherwise return LEGACY_SUBTYPE(S, T)
         if (constant is NullConstant) {
-          if (type.nullability == Nullability.legacy) {
-            // `null is Null` is handled below.
-            return typeEnvironment.isSubtypeOf(type, const NullType(),
-                    SubtypeCheckMode.ignoringNullabilities) ||
-                typeEnvironment.isSubtypeOf(
-                    typeEnvironment.objectNullableRawType,
-                    type,
-                    SubtypeCheckMode.ignoringNullabilities);
-          } else {
-            return typeEnvironment.isSubtypeOf(
-                const NullType(), type, SubtypeCheckMode.withNullabilities);
-          }
+          return typeEnvironment.isSubtypeOf(const NullType(), type);
         }
-        return isSubtype(
-            constant, type, SubtypeCheckMode.ignoringNullabilities);
+        return isSubtype(constant, type);
       }
     }
 
@@ -4831,13 +4819,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   BoolConstant makeBoolConstant(bool value) =>
       value ? trueConstant : falseConstant;
 
-  bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
+  bool isSubtype(Constant constant, DartType type) {
     DartType constantType =
         constant.getType(staticTypeContext).extensionTypeErasure;
-    if (mode == SubtypeCheckMode.ignoringNullabilities) {
-      // Coverage-ignore-block(suite): Not run.
-      constantType = rawLegacyErasure(constantType) ?? constantType;
-    }
     if (type is RecordType && constant is RecordConstant) {
       if (type.positional.length != constant.positional.length ||
           type.named.length != constant.named.length ||
@@ -4848,16 +4832,16 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       for (int i = 0; i < type.positional.length; i++) {
         final DartType fieldType = type.positional[i];
         final Constant fieldValue = constant.positional[i];
-        if (!isSubtype(fieldValue, fieldType, mode)) return false;
+        if (!isSubtype(fieldValue, fieldType)) return false;
       }
       for (int i = 0; i < type.named.length; i++) {
         final NamedType namedFieldType = type.named[i];
         final Constant fieldValue = constant.named[namedFieldType.name]!;
-        if (!isSubtype(fieldValue, namedFieldType.type, mode)) return false;
+        if (!isSubtype(fieldValue, namedFieldType.type)) return false;
       }
       return true;
     }
-    bool result = typeEnvironment.isSubtypeOf(constantType, type, mode);
+    bool result = typeEnvironment.isSubtypeOf(constantType, type);
     if (targetingJavaScript && !result) {
       if (constantType is InterfaceType &&
           constantType.classNode == typeEnvironment.coreTypes.intClass) {
@@ -4866,15 +4850,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         result = typeEnvironment.isSubtypeOf(
             new InterfaceType(typeEnvironment.coreTypes.doubleClass,
                 constantType.nullability, const <DartType>[]),
-            type,
-            mode);
+            type);
       } else if (intFolder.isInt(constant)) {
         // With JS semantics, an integer valued double is also an int.
         result = typeEnvironment.isSubtypeOf(
             new InterfaceType(typeEnvironment.coreTypes.intClass,
                 constantType.nullability, const <DartType>[]),
-            type,
-            mode);
+            type);
       }
     }
     return result;
@@ -4883,7 +4865,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// Note that this returns an error-constant on error and as such the
   /// return value should be checked.
   Constant ensureIsSubtype(Constant constant, DartType type, TreeNode node) {
-    bool result = isSubtype(constant, type, SubtypeCheckMode.withNullabilities);
+    bool result = isSubtype(constant, type);
     if (!result) {
       return createEvaluationErrorConstant(
           node,
@@ -4984,7 +4966,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // We therefore reset it before each call, combine it and set it correctly
     // at the end.
     bool wasOrBecameUnevaluated = seenUnevaluatedChild;
-    for (NamedExpression pair in named) {
+    for (int i = 0; i < named.length; i++) {
+      NamedExpression pair = named[i];
       if (_gotError != null) return null;
       seenUnevaluatedChild = false;
       Constant constant = _evaluateSubexpression(pair.value);
@@ -5369,8 +5352,8 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
         assert(throwType != null);
 
         for (Catch catchClause in node.catches) {
-          if (exprEvaluator.typeEnvironment.isSubtypeOf(throwType!,
-                  catchClause.guard, SubtypeCheckMode.withNullabilities) ||
+          if (exprEvaluator.typeEnvironment
+                  .isSubtypeOf(throwType!, catchClause.guard) ||
               catchClause.guard == defaultType) {
             return exprEvaluator.withNewEnvironment(() {
               if (catchClause.exception != null) {

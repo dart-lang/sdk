@@ -65,7 +65,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (node == null) {
       return null;
     }
-    return ElementLocator.locate2(node);
+    return ElementLocator.locate(node);
   }
 
   int findOffset(String search) {
@@ -105,14 +105,14 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testCode = result.content;
     testUnit = result.unit;
     if (verifyNoTestUnitErrors) {
-      expect(result.errors.where((error) {
-        return error.errorCode != WarningCode.DEAD_CODE &&
-            error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
-            error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
-            error.errorCode != WarningCode.UNUSED_ELEMENT &&
-            error.errorCode != WarningCode.UNUSED_FIELD &&
-            error.errorCode != WarningCode.UNUSED_IMPORT &&
-            error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;
+      expect(result.diagnostics.where((d) {
+        return d.diagnosticCode != WarningCode.DEAD_CODE &&
+            d.diagnosticCode != WarningCode.UNUSED_CATCH_CLAUSE &&
+            d.diagnosticCode != WarningCode.UNUSED_CATCH_STACK &&
+            d.diagnosticCode != WarningCode.UNUSED_ELEMENT &&
+            d.diagnosticCode != WarningCode.UNUSED_FIELD &&
+            d.diagnosticCode != WarningCode.UNUSED_IMPORT &&
+            d.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE;
       }), isEmpty);
     }
     findNode = FindNode(testCode, testUnit);

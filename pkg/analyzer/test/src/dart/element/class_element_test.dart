@@ -1242,7 +1242,10 @@ class A {
 abstract class B implements A {}
 ''');
     var B = findElement2.class_('B');
-    assertElementNull(B._lookUpInheritedMethod('foo'));
+    assertElement(
+      B._lookUpInheritedMethod('foo'),
+      declaration: findElement2.method('foo', of: 'A'),
+    );
   }
 
   test_lookUpInheritedMethod_recursive() async {
@@ -1269,36 +1272,33 @@ class A {}
   }
 
   static void _assertIsEnumLike(ClassElement element, bool expected) {
-    expect((element as ClassElementImpl2).isEnumLike, expected);
+    expect((element as ClassElementImpl).isEnumLike, expected);
   }
 }
 
 extension on ClassElement {
   PropertyAccessorElement? _lookUpInheritedConcreteGetter(String name) {
-    return (this as InterfaceElementImpl2).lookUpInheritedConcreteGetter(
+    return (this as InterfaceElementImpl).lookUpInheritedConcreteGetter(
       name,
-      library2,
+      library,
     );
   }
 
   MethodElement? _lookUpInheritedConcreteMethod(String name) {
-    return (this as InterfaceElementImpl2).lookUpInheritedConcreteMethod(
+    return (this as InterfaceElementImpl).lookUpInheritedConcreteMethod(
       name,
-      library2,
+      library,
     );
   }
 
   PropertyAccessorElement? _lookUpInheritedConcreteSetter(String name) {
-    return (this as InterfaceElementImpl2).lookUpInheritedConcreteSetter(
+    return (this as InterfaceElementImpl).lookUpInheritedConcreteSetter(
       name,
-      library2,
+      library,
     );
   }
 
   MethodElement? _lookUpInheritedMethod(String name) {
-    return (this as InterfaceElementImpl2).lookUpInheritedMethod(
-      name,
-      library2,
-    );
+    return lookUpInheritedMethod2(methodName: name, library: library);
   }
 }

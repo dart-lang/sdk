@@ -67,6 +67,7 @@ import 'convert_flutter_children_test.dart' as convert_flutter_children;
 import 'convert_for_each_to_for_loop_test.dart' as convert_for_each_to_for_loop;
 import 'convert_into_block_body_test.dart' as convert_into_block_body;
 import 'convert_into_expression_body_test.dart' as convert_into_expression_body;
+import 'convert_into_getter_test.dart' as convert_into_getter;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_null_check_to_null_aware_element_or_entry_test.dart'
     as convert_null_check_to_null_aware_element_or_entry;
@@ -131,6 +132,7 @@ import 'create_method_test.dart' as create_method;
 import 'create_missing_overrides_test.dart' as create_missing_overrides;
 import 'create_mixin_test.dart' as create_mixin;
 import 'create_no_such_method_test.dart' as create_no_such_method;
+import 'create_operator_test.dart' as create_operator;
 import 'create_parameter_test.dart' as create_parameter;
 import 'create_setter_test.dart' as create_setter;
 import 'data_driven/test_all.dart' as data_driven;
@@ -378,6 +380,7 @@ void main() {
     convert_for_each_to_for_loop.main();
     convert_into_block_body.main();
     convert_into_expression_body.main();
+    convert_into_getter.main();
     convert_into_is_not.main();
     convert_null_check_to_null_aware_element_or_entry.main();
     convert_quotes.main();
@@ -430,6 +433,7 @@ void main() {
     create_missing_overrides.main();
     create_mixin.main();
     create_no_such_method.main();
+    create_operator.main();
     create_setter.main();
     data_driven.main();
     deduplicating_still_offers_several_all_in_file_options.main();

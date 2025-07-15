@@ -27,13 +27,13 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
   @override
   AssistKind get assistKind =>
-      DartAssistKind.DESTRUCTURE_LOCAL_VARIABLE_ASSIGNMENT;
+      DartAssistKind.destructureLocalVariableAssignment;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! VariableDeclaration) return;
-    var element = node.declaredElement2;
+    var element = node.declaredElement;
     if (element == null) return;
     var type = element.type;
     switch (type) {
@@ -51,7 +51,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
   ) async {
     // TODO(pq): share reference checking w/ record computation
 
-    var variableElement = node.declaredElement2;
+    var variableElement = node.declaredElement;
     if (variableElement == null) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
@@ -88,7 +88,7 @@ class DestructureLocalVariableAssignment extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.entity(node.name), (builder) {
-        builder.write('${type.element3.name3}(');
+        builder.write('${type.element.name}(');
         if (varMap.isEmpty) {
           builder.selectHere();
         } else {

@@ -400,13 +400,13 @@ class DispatchTable {
   final Map<int, SelectorInfo> _selectorInfo = {};
 
   /// Maps member names to getter selectors with the same member name.
-  final Map<String, Set<SelectorInfo>> _dynamicGetters = {};
+  final Map<Name, Set<SelectorInfo>> _dynamicGetters = {};
 
   /// Maps member names to setter selectors with the same member name.
-  final Map<String, Set<SelectorInfo>> _dynamicSetters = {};
+  final Map<Name, Set<SelectorInfo>> _dynamicSetters = {};
 
   /// Maps member names to method selectors with the same member name.
-  final Map<String, Set<SelectorInfo>> _dynamicMethods = {};
+  final Map<Name, Set<SelectorInfo>> _dynamicMethods = {};
 
   /// Contents of [_definedWasmTable]. For a selector with ID S and a target
   /// class of the selector with ID C, `table[S + C]` gives the reference to the
@@ -427,7 +427,7 @@ class DispatchTable {
     sink.writeList(_selectorInfo.values, (s) => s.serialize(sink));
     sink.writeList(_table, (r) => sink.writeNullable(r, sink.writeReference));
     // Preserve call selectors for closure calls which are handled dynamically.
-    final callSelectors = _dynamicGetters['call']!;
+    final callSelectors = _dynamicGetters[Name('call')]!;
     sink.writeList(callSelectors, (s) => sink.writeInt(s.id));
   }
 
@@ -450,7 +450,7 @@ class DispatchTable {
     for (final selectorId in callSelectorIds) {
       callSelectors.add(dispatchTable._selectorInfo[selectorId]!);
     }
-    dispatchTable._dynamicGetters['call'] = callSelectors;
+    dispatchTable._dynamicGetters[Name('call')] = callSelectors;
 
     return dispatchTable;
   }
@@ -497,11 +497,11 @@ class DispatchTable {
 
     if (calledDynamically) {
       if (isGetter) {
-        (_dynamicGetters[member.name.text] ??= {}).add(selector);
+        (_dynamicGetters[member.name] ??= {}).add(selector);
       } else if (isSetter) {
-        (_dynamicSetters[member.name.text] ??= {}).add(selector);
+        (_dynamicSetters[member.name] ??= {}).add(selector);
       } else {
-        (_dynamicMethods[member.name.text] ??= {}).add(selector);
+        (_dynamicMethods[member.name] ??= {}).add(selector);
       }
     }
 
@@ -509,15 +509,15 @@ class DispatchTable {
   }
 
   /// Get selectors for getters and tear-offs with the given name.
-  Iterable<SelectorInfo> dynamicGetterSelectors(String memberName) =>
+  Iterable<SelectorInfo> dynamicGetterSelectors(Name memberName) =>
       _dynamicGetters[memberName] ?? Iterable.empty();
 
   /// Get selectors for setters with the given name.
-  Iterable<SelectorInfo> dynamicSetterSelectors(String memberName) =>
+  Iterable<SelectorInfo> dynamicSetterSelectors(Name memberName) =>
       _dynamicSetters[memberName] ?? Iterable.empty();
 
   /// Get selectors for methods with the given name.
-  Iterable<SelectorInfo> dynamicMethodSelectors(String memberName) =>
+  Iterable<SelectorInfo> dynamicMethodSelectors(Name memberName) =>
       _dynamicMethods[memberName] ?? Iterable.empty();
 
   void _initializeWasmTable() {

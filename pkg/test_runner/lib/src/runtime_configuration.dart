@@ -297,29 +297,29 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 class QemuConfig {
   static const all = <Architecture, QemuConfig>{
     Architecture.ia32:
-        QemuConfig('qemu-i386', ['-L', '/usr/lib/i386-linux-gnu/']),
+        QemuConfig('qemu-i386', '/usr/lib/i386-linux-gnu/'),
     Architecture.x64:
-        QemuConfig('qemu-x86_64', ['-L', '/usr/lib/x86_64-linux-gnu/']),
+        QemuConfig('qemu-x86_64', '/usr/lib/x86_64-linux-gnu/'),
     Architecture.x64c:
-        QemuConfig('qemu-x86_64', ['-L', '/usr/lib/x86_64-linux-gnu/']),
+        QemuConfig('qemu-x86_64', '/usr/lib/x86_64-linux-gnu/'),
     Architecture.arm:
-        QemuConfig('qemu-arm', ['-L', '/usr/arm-linux-gnueabihf/']),
+        QemuConfig('qemu-arm', '/usr/arm-linux-gnueabihf/'),
     Architecture.arm64:
-        QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+        QemuConfig('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
     Architecture.simarm64_arm64:
-        QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+        QemuConfig('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
     Architecture.arm64c:
-        QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+        QemuConfig('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
     Architecture.riscv32:
-        QemuConfig('qemu-riscv32', ['-L', '/usr/riscv32-linux-gnu/']),
+        QemuConfig('qemu-riscv32', '/usr/riscv32-linux-gnu/'),
     Architecture.riscv64:
-        QemuConfig('qemu-riscv64', ['-L', '/usr/riscv64-linux-gnu/']),
+        QemuConfig('qemu-riscv64', '/usr/riscv64-linux-gnu/'),
   };
 
   final String executable;
-  final List<String> arguments;
+  final String elfInterpreterPrefix;
 
-  const QemuConfig(this.executable, this.arguments);
+  const QemuConfig(this.executable, this.elfInterpreterPrefix);
 }
 
 /// Common runtime configuration for runtimes based on the Dart VM.
@@ -408,8 +408,10 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (_configuration.useQemu) {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
-      arguments.insertAll(0, config.arguments);
       executable = config.executable;
+      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
+        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
+      }
     }
     var command = VMCommand(executable, arguments, environmentOverrides);
     if (_configuration.rr && !isCrashExpected) {
@@ -443,8 +445,10 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (_configuration.useQemu) {
       final config = QemuConfig.all[_configuration.architecture]!;
       arguments.insert(0, executable);
-      arguments.insertAll(0, config.arguments);
       executable = config.executable;
+      if (environmentOverrides['QEMU_LD_PREFIX'] == null) {
+        environmentOverrides['QEMU_LD_PREFIX'] = config.elfInterpreterPrefix;
+      }
     }
 
     var command = VMCommand(executable, arguments, environmentOverrides);

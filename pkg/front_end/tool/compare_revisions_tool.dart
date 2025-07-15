@@ -171,7 +171,7 @@ void _compileRevision(String gitCommit, {Stopwatch? stopwatch}) {
         "stderr: ${processResult.stderr}\n"
         "stdout: ${processResult.stdout}";
   }
-  new File("$changingWorkingDir/out/ReleaseX64/vm_platform_strong.dill")
+  new File("$changingWorkingDir/out/ReleaseX64/vm_platform.dill")
       .copySync("$snapshotsPath/platform.dill.$gitCommit");
   print("Done building the platform for $gitCommit "
       "after ${stopwatch.elapsed.inSeconds} seconds.");

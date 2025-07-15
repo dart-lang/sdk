@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_testing/utilities/utilities.dart';
+import 'package:linter/src/lint_names.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
@@ -17,6 +20,23 @@ class RecordPatternTest extends AbstractCompletionDriverTest
     with RecordPatternTestCases {}
 
 mixin RecordPatternTestCases on AbstractCompletionDriverTest {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    registerLintRules();
+    var oldFilter = printerConfiguration.filter;
+    printerConfiguration.filter = (suggestion) {
+      if (oldFilter(suggestion)) {
+        return true;
+      }
+      var label = suggestion.displayText;
+      if (label == null) {
+        return false;
+      }
+      return identifierRegExp.hasMatch(label);
+    };
+  }
+
   Future<void> test_assignmentContext_namedField_name() async {
     await computeSuggestions('''
 void f(({int f01, int f02, int g01}) x0) {
@@ -88,6 +108,28 @@ suggestions
 ''');
   }
 
+  Future<void>
+  test_declarationContext_namedField_name_type_changesNothing() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      analysisOptionsContent(rules: [LintNames.always_specify_types]),
+    );
+    await computeSuggestions('''
+void f(({int f01, int f02, int g01}) x0) {
+  var (^: ) = x0;
+}
+''');
+    assertResponse(r'''
+suggestions
+  f01
+    kind: identifier
+  f02
+    kind: identifier
+  g01
+    kind: identifier
+''');
+  }
+
   Future<void> test_declarationContext_namedField_withoutName_pattern() async {
     await computeSuggestions('''
 void f(({int f01, int f02, int g01}) x0) {
@@ -101,6 +143,28 @@ suggestions
   f02
     kind: identifier
   g01
+    kind: identifier
+''');
+  }
+
+  Future<void>
+  test_declarationContext_namedField_withoutName_pattern_types() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      analysisOptionsContent(rules: [LintNames.always_specify_types]),
+    );
+    await computeSuggestions('''
+void f(({int f01, String f02, double g01}) x0) {
+  var (: ^) = x0;
+}
+''');
+    assertResponse(r'''
+suggestions
+  String f02
+    kind: identifier
+  double g01
+    kind: identifier
+  int f01
     kind: identifier
 ''');
   }
@@ -270,16 +334,16 @@ void f(({int f01, int f02, int g01}) x0) {
 ''');
     assertResponse(r'''
 suggestions
-  f01
-    kind: identifier
-  f02
-    kind: identifier
   final
     kind: keyword
-  g01
-    kind: identifier
   var
     kind: keyword
+  var f01
+    kind: identifier
+  var f02
+    kind: identifier
+  var g01
+    kind: identifier
 ''');
   }
 
@@ -316,6 +380,86 @@ suggestions
     kind: identifier
   f02
     kind: identifier
+''');
+  }
+
+  Future<void>
+  test_matchingContext_namedField_withoutName_pattern_final() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      analysisOptionsContent(rules: [LintNames.prefer_final_locals]),
+    );
+    await computeSuggestions('''
+void f(({int f01, int f02, int g01}) x0) {
+  if (x0 case (: ^)) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  final
+    kind: keyword
+  final f01
+    kind: identifier
+  final f02
+    kind: identifier
+  final g01
+    kind: identifier
+  var
+    kind: keyword
+''');
+  }
+
+  Future<void>
+  test_matchingContext_namedField_withoutName_pattern_type() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      analysisOptionsContent(rules: [LintNames.always_specify_types]),
+    );
+    await computeSuggestions('''
+void f(({int f01, String f02, double g01}) x0) {
+  if (x0 case (: ^)) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  String f02
+    kind: identifier
+  double g01
+    kind: identifier
+  final
+    kind: keyword
+  int f01
+    kind: identifier
+  var
+    kind: keyword
+''');
+  }
+
+  Future<void>
+  test_matchingContext_namedField_withoutName_pattern_type_final() async {
+    newAnalysisOptionsYamlFile(
+      testPackageRootPath,
+      analysisOptionsContent(
+        rules: [LintNames.always_specify_types, LintNames.prefer_final_locals],
+      ),
+    );
+    await computeSuggestions('''
+void f(({int f01, String f02, double g01}) x0) {
+  if (x0 case (: ^)) {}
+}
+''');
+    assertResponse(r'''
+suggestions
+  final
+    kind: keyword
+  final String f02
+    kind: identifier
+  final double g01
+    kind: identifier
+  final int f01
+    kind: identifier
+  var
+    kind: keyword
 ''');
   }
 

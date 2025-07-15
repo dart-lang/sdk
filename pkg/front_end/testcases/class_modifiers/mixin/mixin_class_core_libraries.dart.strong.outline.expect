@@ -42,8 +42,8 @@ abstract class _B&Object&Error = core::Object with core::Error /*isAnonymousMixi
     ;
   synthetic mixin-super-stub get stackTrace() → core::StackTrace?
     return super.{core::Error::stackTrace};
-  synthetic mixin-super-stub get _stackTrace() → core::StackTrace?
+  synthetic mixin-super-stub get core::_stackTrace() → core::StackTrace?
     return super.{core::Error::_stackTrace};
-  synthetic mixin-super-stub set _stackTrace(core::StackTrace? value) → void
+  synthetic mixin-super-stub set core::_stackTrace(core::StackTrace? value) → void
     return super.{core::Error::_stackTrace} = value;
 }

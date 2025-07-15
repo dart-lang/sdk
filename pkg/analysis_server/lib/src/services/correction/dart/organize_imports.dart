@@ -25,7 +25,7 @@ class OrganizeImports extends ResolvedCorrectionProducer {
     var organizer = ImportOrganizer(
       unitResult.content,
       unit,
-      unitResult.errors,
+      unitResult.diagnostics,
     );
     // TODO(pq): consider restructuring organizer to allow a passed-in change
     //  builder

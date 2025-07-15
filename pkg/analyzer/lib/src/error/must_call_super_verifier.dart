@@ -9,12 +9,12 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 class MustCallSuperVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  MustCallSuperVerifier(this._errorReporter);
+  MustCallSuperVerifier(this._diagnosticReporter);
 
   void checkMethodDeclaration(MethodDeclaration node) {
     if (node.isStatic || node.isAbstract) {
@@ -27,7 +27,7 @@ class MustCallSuperVerifier {
       return;
     }
 
-    var overriddenName = overridden.name3;
+    var overriddenName = overridden.name;
     if (overriddenName == null) {
       return;
     }
@@ -36,7 +36,7 @@ class MustCallSuperVerifier {
       _verifySuperIsCalled(
         node,
         overriddenName,
-        overridden.enclosingElement?.name3,
+        overridden.enclosingElement?.name,
       );
       return;
     }
@@ -53,7 +53,7 @@ class MustCallSuperVerifier {
         _verifySuperIsCalled(
           node,
           overriddenName,
-          overridden.enclosingElement?.name3,
+          overridden.enclosingElement?.name,
         );
       }
       return;
@@ -69,7 +69,7 @@ class MustCallSuperVerifier {
         if (name.endsWith('=')) {
           name = name.substring(0, name.length - 1);
         }
-        _verifySuperIsCalled(node, name, overridden.enclosingElement?.name3);
+        _verifySuperIsCalled(node, name, overridden.enclosingElement?.name);
       }
     }
   }
@@ -90,7 +90,7 @@ class MustCallSuperVerifier {
       return null;
     }
 
-    var name = element.name3;
+    var name = element.name;
     if (name == null) {
       return null;
     }
@@ -100,11 +100,11 @@ class MustCallSuperVerifier {
     var superclasses = Queue<InterfaceElement?>();
 
     void addToQueue(InterfaceElement element) {
-      superclasses.addAll(element.mixins.map((i) => i.element3));
-      superclasses.add(element.supertype?.element3);
+      superclasses.addAll(element.mixins.map((i) => i.element));
+      superclasses.add(element.supertype?.element);
       if (element is MixinElement) {
         superclasses.addAll(
-          element.superclassConstraints.map((i) => i.element3),
+          element.superclassConstraints.map((i) => i.element),
         );
       }
     }
@@ -146,7 +146,7 @@ class MustCallSuperVerifier {
   bool _hasConcreteSuperMethod(ExecutableElement element) {
     var classElement = element.enclosingElement as InterfaceElement;
 
-    var name = element.name3;
+    var name = element.name;
     if (name == null) {
       return true;
     }
@@ -173,11 +173,11 @@ class MustCallSuperVerifier {
     String? overriddenEnclosingName,
   ) {
     var declaredFragment = node.declaredFragment!;
-    var declaredElement = declaredFragment.element as ExecutableElementImpl2;
+    var declaredElement = declaredFragment.element as ExecutableElementImpl;
     if (!declaredElement.invokesSuperSelf) {
       // Overridable elements are always enclosed in named elements, so it is
       // safe to assume [overriddenEnclosingName] is non-`null`.
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         node.name,
         WarningCode.MUST_CALL_SUPER,
         arguments: [overriddenEnclosingName!],
@@ -194,9 +194,9 @@ extension on InterfaceElement {
       return null;
     }
 
-    var library = element.library2 as LibraryElementImpl;
+    var library = element.library as LibraryElementImpl;
     var inheritanceManager = library.session.inheritanceManager;
-    return inheritanceManager.getMember4(this, nameObj, forSuper: true);
+    return inheritanceManager.getMember(this, nameObj, forSuper: true);
   }
 }
 
@@ -204,12 +204,12 @@ extension on InterfaceType? {
   bool isConcrete(String name) {
     var self = this;
     if (self == null) return false;
-    var element = self.element3;
+    var element = self.element;
 
-    var library = element.library2 as LibraryElementImpl;
+    var library = element.library as LibraryElementImpl;
     var inheritanceManager = library.session.inheritanceManager;
 
-    var concrete = inheritanceManager.getMember4(
+    var concrete = inheritanceManager.getMember(
       element,
       Name.forLibrary(library, name),
       concrete: true,

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -25,10 +26,7 @@ class AvoidFutureOrVoid extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.avoid_futureor_void;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addAsExpression(this, visitor);
     registry.addCastPattern(this, visitor);
@@ -71,7 +69,7 @@ class _FutureOrVarianceChecker extends VarianceChecker {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
+  final RuleContext context;
   final VarianceChecker checker;
 
   _Visitor(this.rule, this.context) : checker = _FutureOrVarianceChecker(rule);

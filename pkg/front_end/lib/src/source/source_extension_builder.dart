@@ -18,14 +18,14 @@ import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionBuilder extends ExtensionBuilderImpl
-    with SourceDeclarationBuilderMixin {
+    with SourceDeclarationBuilderBaseMixin, SourceDeclarationBuilderMixin {
   @override
   final SourceLibraryBuilder libraryBuilder;
 
@@ -149,9 +149,9 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         indexedContainer: null,
         containerType: ContainerType.Extension,
         containerName: extensionName,
-        includeConstructors: false,
         constructorBuilders: _constructorBuilders,
-        memberBuilders: _memberBuilders);
+        memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory);
   }
 
   @override
@@ -288,5 +288,10 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         isStatic: memberBuilder.isStatic,
         isInternalImplementation: isInternalImplementation,
         kind: kind));
+  }
+
+  @override
+  int resolveConstructors(SourceLibraryBuilder library) {
+    return 0;
   }
 }

@@ -68,7 +68,9 @@ Future<void> runHelper<E, F, G>(
         caption = 'size $size';
       }
       try {
-        Directory tmpDir = Directory.systemTemp.createTempSync('lsp_benchmark');
+        Directory tmpDir = Directory.systemTemp.createTempSync(
+          'analysisServer_benchmark',
+        );
         try {
           Directory cacheDir = Directory.fromUri(tmpDir.uri.resolve('cache/'))
             ..createSync(recursive: true);

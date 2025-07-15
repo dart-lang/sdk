@@ -33,6 +33,9 @@ class TestCommand extends DartdevCommand {
   }
 
   @override
+  CommandCategory get commandCategory => CommandCategory.project;
+
+  @override
   void printUsage() {
     print('''Usage: dart test [arguments]
 
@@ -67,6 +70,7 @@ Run "${runner!.executableName} help" to see global options.''');
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
           runPackageName: runPackageName,
+          includeDevDependencies: true,
           verbose: verbose,
         );
         if (!nativeAssetsExperimentEnabled) {

@@ -98,15 +98,16 @@ import '../codes/cfe_codes.dart' as cfe;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
 import '../dill/dill_type_parameter_builder.dart';
 import '../fragment/fragment.dart';
-import '../source/constructor_declaration.dart';
 import '../source/diet_parser.dart';
 import '../source/offset_map.dart';
+import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_parameter_builder.dart';
 import '../source/stack_listener_impl.dart'
     show StackListenerImpl, offsetForToken;
+import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
 import '../type_inference/inference_results.dart'
     show InitializerInferenceResult;
@@ -642,7 +643,7 @@ class BodyBuilder extends StackListenerImpl
       return buildProblem(
           cfe.messageSuperAsExpression, node.fileOffset, noLength);
     } else if (node is ProblemBuilder) {
-      return buildProblem(node.message, node.fileOffset, noLength);
+      return node.toExpression(libraryBuilder);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -663,8 +664,7 @@ class BodyBuilder extends StackListenerImpl
     }
     // Coverage-ignore(suite): Not run.
     else if (node is ProblemBuilder) {
-      Expression expression =
-          buildProblem(node.message, node.fileOffset, noLength);
+      Expression expression = node.toExpression(libraryBuilder);
       return forest.createConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
@@ -1201,20 +1201,9 @@ class BodyBuilder extends StackListenerImpl
     typeInferrer.assignedVariables.finish();
 
     FunctionNode function = _context.function;
-    if (thisVariable != null) {
-      typeInferrer.flowAnalysis.declare(
-          thisVariable!, new SharedTypeView(thisVariable!.type),
-          initialized: true);
-    }
+    _declareFormals();
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
-        FormalParameterBuilder parameter = formals.parameters![i];
-        VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis.declare(
-            variable, new SharedTypeView(variable.type),
-            initialized: true);
-      }
-      for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         Expression? initializer = parameter.variable!.initializer;
         bool inferInitializer;
@@ -1254,6 +1243,8 @@ class BodyBuilder extends StackListenerImpl
                 _cloner.cloneInContext(initializer!);
             tearOffParameter.initializer = tearOffInitializer
               ..parent = tearOffParameter;
+            tearOffParameter.isErroneouslyInitialized =
+                parameter.variable!.isErroneouslyInitialized;
           }
         }
       }
@@ -1359,8 +1350,7 @@ class BodyBuilder extends StackListenerImpl
     switch (asyncModifier) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-        if (!typeEnvironment.isSubtypeOf(
-            futureBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
+        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType)) {
           problem = cfe.messageIllegalAsyncReturnType;
         }
         break;
@@ -1369,8 +1359,7 @@ class BodyBuilder extends StackListenerImpl
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
           problem = cfe.messageIllegalAsyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(
-            streamBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType)) {
           problem = cfe.messageIllegalAsyncGeneratorReturnType;
         }
         break;
@@ -1379,8 +1368,8 @@ class BodyBuilder extends StackListenerImpl
         DartType iterableBottomType = libraryBuilder.loader.iterableOfBottom;
         if (returnType is VoidType) {
           problem = cfe.messageIllegalSyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(iterableBottomType, returnType,
-            SubtypeCheckMode.withNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(
+            iterableBottomType, returnType)) {
           problem = cfe.messageIllegalSyncGeneratorReturnType;
         }
         break;
@@ -1705,10 +1694,11 @@ class BodyBuilder extends StackListenerImpl
     }
     if (doFinishConstructor) {
       List<FormalParameterBuilder>? formals = _context.formals;
+      List<Object>? superParametersAsArguments =
+          formals != null ? createSuperParametersAsArguments(formals) : null;
+      _declareFormals();
       finishConstructor(AsyncMarker.Sync, null,
-          superParametersAsArguments: formals != null
-              ? createSuperParametersAsArguments(formals)
-              : null);
+          superParametersAsArguments: superParametersAsArguments);
     }
     return _initializers;
   }
@@ -1753,6 +1743,26 @@ class BodyBuilder extends StackListenerImpl
     ArgumentsImpl arguments = pop() as ArgumentsImpl;
     checkEmpty(token.charOffset);
     return arguments;
+  }
+
+  void _declareFormals() {
+    if (thisVariable != null && _context.isConstructor) {
+      // `thisVariable` usually appears in `_context.formals`, but for a
+      // constructor, it doesn't. So declare it separately.
+      typeInferrer.flowAnalysis.declare(
+          thisVariable!, new SharedTypeView(thisVariable!.type),
+          initialized: true);
+    }
+    List<FormalParameterBuilder>? formals = _context.formals;
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder parameter = formals[i];
+        VariableDeclaration variable = parameter.variable!;
+        typeInferrer.flowAnalysis.declare(
+            variable, new SharedTypeView(variable.type),
+            initialized: true);
+      }
+    }
   }
 
   void finishConstructor(AsyncMarker asyncModifier, Statement? body,
@@ -1800,24 +1810,11 @@ class BodyBuilder extends StackListenerImpl
         "to be sorted by occurrence in file.");
 
     FunctionNode function = _context.function;
-    List<FormalParameterBuilder>? formals = _context.formals;
-    if (formals != null) {
-      for (int i = 0; i < formals.length; i++) {
-        FormalParameterBuilder parameter = formals[i];
-        VariableDeclaration variable = parameter.variable!;
-        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
-        // around a failure in
-        // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
-        // fix this.
-        typeInferrer.flowAnalysis.declare(
-            variable, new SharedTypeView(variable.type),
-            initialized: true, skipDuplicateCheck: true);
-      }
-    }
 
     Set<String>? namedSuperParameterNames;
     List<Expression>? positionalSuperParametersAsArguments;
     List<NamedExpression>? namedSuperParametersAsArguments;
+    List<FormalParameterBuilder>? formals = _context.formals;
     if (superParametersAsArguments != null) {
       for (Object superParameterAsArgument in superParametersAsArguments) {
         if (superParameterAsArgument is Expression) {
@@ -2774,8 +2771,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
         if (left is ProblemBuilder) {
-          ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.fileOffset, noLength);
+          left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left as Expression, right,
@@ -2795,8 +2791,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildBinaryOperation(token, name, right));
       } else {
         if (left is ProblemBuilder) {
-          ProblemBuilder problem = left;
-          left = buildProblem(problem.message, problem.fileOffset, noLength);
+          left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left as Expression, name, right));
@@ -5095,9 +5090,6 @@ class BodyBuilder extends StackListenerImpl
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
     } else if (name is ProblemBuilder) {
-      // TODO(ahe): Arguments could be passed here.
-      libraryBuilder.addProblem(
-          name.message, name.fileOffset, name.name.length, name.fileUri);
       result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
           isMarkedAsNullable
@@ -5517,6 +5509,7 @@ class BodyBuilder extends StackListenerImpl
                 .withArguments(_context.redirectingFactoryTargetName),
             initializer.fileOffset,
             noLength);
+        variable.isErroneouslyInitialized = true;
       } else {
         if (!parameter.initializerWasInferred) {
           variable.initializer = initializer..parent = variable;
@@ -6258,7 +6251,8 @@ class BodyBuilder extends StackListenerImpl
     if (named.isNotEmpty) {
       Set<String?> parameterNames =
           new Set.of(function.namedParameters.map((a) => a.name));
-      for (NamedExpression argument in named) {
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
         if (!parameterNames.contains(argument.name)) {
           return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
@@ -6268,7 +6262,8 @@ class BodyBuilder extends StackListenerImpl
     }
     if (function.namedParameters.isNotEmpty) {
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (VariableDeclaration parameter in function.namedParameters) {
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        VariableDeclaration parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
           return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name!)
@@ -6328,7 +6323,8 @@ class BodyBuilder extends StackListenerImpl
     if (named.isNotEmpty) {
       Set<String> names =
           new Set.of(function.namedParameters.map((a) => a.name));
-      for (NamedExpression argument in named) {
+      for (int i = 0; i < named.length; i++) {
+        NamedExpression argument = named[i];
         if (!names.contains(argument.name)) {
           return cfe.templateNoSuchNamedParameter
               .withArguments(argument.name)
@@ -6338,7 +6334,8 @@ class BodyBuilder extends StackListenerImpl
     }
     if (function.namedParameters.isNotEmpty) {
       Set<String> argumentNames = new Set.of(named.map((a) => a.name));
-      for (NamedType parameter in function.namedParameters) {
+      for (int i = 0; i < function.namedParameters.length; i++) {
+        NamedType parameter = function.namedParameters[i];
         if (parameter.isRequired && !argumentNames.contains(parameter.name)) {
           return cfe.templateValueForRequiredParameterNotProvidedError
               .withArguments(parameter.name)
@@ -8994,14 +8991,14 @@ class BodyBuilder extends StackListenerImpl
     // Peek to leave type parameters on top of stack.
     List<TypeParameterBuilder> typeParameters =
         peek() as List<TypeParameterBuilder>;
-    libraryBuilder.checkTypeParameterDependencies(typeParameters);
+    checkTypeParameterDependencies(libraryBuilder, typeParameters);
 
-    List<StructuralParameterBuilder> unboundTypeParameters = [];
+    TypeParameterFactory typeParameterFactory = new TypeParameterFactory();
     List<TypeBuilder> calculatedBounds = calculateBounds(
         typeParameters,
         libraryBuilder.loader.target.dynamicType,
         libraryBuilder.loader.target.nullType,
-        unboundTypeParameters: unboundTypeParameters);
+        typeParameterFactory: typeParameterFactory);
     for (int i = 0; i < typeParameters.length; ++i) {
       typeParameters[i].defaultType = calculatedBounds[i];
       typeParameters[i].finish(
@@ -9009,12 +9006,10 @@ class BodyBuilder extends StackListenerImpl
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
     }
-    for (int i = 0;
-        i < unboundTypeParameters.length;
-        // Coverage-ignore(suite): Not run.
-        ++i) {
+    for (TypeParameterBuilder builder
+        in typeParameterFactory.collectTypeParameters()) {
       // Coverage-ignore-block(suite): Not run.
-      unboundTypeParameters[i].finish(
+      builder.finish(
           libraryBuilder,
           libraryBuilder.loader.target.objectClassBuilder,
           libraryBuilder.loader.target.dynamicType);
@@ -9234,8 +9229,7 @@ class BodyBuilder extends StackListenerImpl
         if (formal != null && formal.type is! OmittedTypeBuilder) {
           DartType formalType = formal.variable!.type;
           DartType fieldType = _context.substituteFieldType(builder.fieldType);
-          if (!typeEnvironment.isSubtypeOf(
-              formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
+          if (!typeEnvironment.isSubtypeOf(formalType, fieldType)) {
             libraryBuilder.addProblem(
                 cfe.templateInitializingFormalTypeMismatch
                     .withArguments(name, formalType, builder.fieldType),
@@ -9313,7 +9307,7 @@ class BodyBuilder extends StackListenerImpl
                 cfe.messageUnexpectedSuperParametersInGenerativeConstructors,
                 formal.fileOffset,
                 noLength);
-            if (constructorBuilder is ConstructorDeclarationBuilder) {
+            if (constructorBuilder is SourceConstructorBuilder) {
               constructorBuilder.markAsErroneous();
             }
           }
@@ -10600,5 +10594,15 @@ extension on MemberKind {
       case MemberKind.PrimaryConstructor:
         return false;
     }
+  }
+}
+
+extension on ProblemBuilder {
+  Expression toExpression(SourceLibraryBuilder libraryBuilder) {
+    String text = libraryBuilder.loader.target.context
+        .format(
+            message.withLocation(fileUri, fileOffset, noLength), Severity.error)
+        .plain;
+    return new InvalidExpression(text)..fileOffset = fileOffset;
   }
 }

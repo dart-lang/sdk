@@ -14,6 +14,7 @@ import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
 import '../base/uris.dart';
 import '../builder/builder.dart';
+import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -24,6 +25,7 @@ import '../codes/cfe_codes.dart'
     show LocatedMessage, Message, Severity, noLength, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
+import '../source/name_scheme.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
 import 'dill_extension_type_declaration_builder.dart';
@@ -103,6 +105,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   final Library library;
+
+  @override
+  late final LibraryName libraryName = new LibraryName(library.reference);
 
   @override
   DillLoader loader;

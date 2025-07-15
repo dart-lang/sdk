@@ -327,6 +327,9 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     if (Platform.isWindows) {
       return 'cmd.exe';
     }
+    if (Platform.isAndroid) {
+      return '/system/bin/sh';
+    }
     return '/bin/sh';
   }
 

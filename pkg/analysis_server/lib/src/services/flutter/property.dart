@@ -24,7 +24,7 @@ String? getFieldDocumentation(FieldElement field) {
 
 String? getParameterDocumentation(FormalParameterElement? parameter) {
   if (parameter is FieldFormalParameterElement) {
-    var rawComment = parameter.field2?.documentationComment;
+    var rawComment = parameter.field?.documentationComment;
     return getDartDocPlainText(rawComment);
   }
   return null;
@@ -187,7 +187,7 @@ class PropertyDescription {
       if (parameterElement == null) {
         return;
       }
-      var parameterName = parameterElement.name3!;
+      var parameterName = parameterElement.name!;
       var instanceCreation = this.instanceCreation;
       if (instanceCreation != null) {
         var argumentList = instanceCreation.argumentList;
@@ -449,7 +449,7 @@ class _EdgeInsetsProperty {
       if (constructor != null &&
           constructor.enclosingElement == classEdgeInsets) {
         var arguments = propertyExpression.argumentList;
-        var constructorName = constructor.name3;
+        var constructorName = constructor.name;
         if (constructorName == 'all') {
           var expression = arguments.elementAtOrNull(0);
           leftExpression = expression;
@@ -487,7 +487,7 @@ class _EdgeInsetsProperty {
     }
 
     onlyConstructor = classEdgeInsets.constructors.firstWhereOrNull(
-      (e) => e.name3 == 'only',
+      (e) => e.name == 'only',
     );
 
     leftProperty = _addNestedProperty(
@@ -618,7 +618,7 @@ class _EdgeInsetsProperty {
     required double? value,
   }) {
     var parameter = onlyConstructor?.formalParameters.singleWhere(
-      (p) => p.name3 == name,
+      (p) => p.name == name,
     );
     var parameterDocumentation = getParameterDocumentation(parameter);
     var nested = PropertyDescription(

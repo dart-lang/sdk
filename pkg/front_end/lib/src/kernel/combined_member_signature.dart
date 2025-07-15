@@ -10,7 +10,6 @@ import 'package:kernel/src/nnbd_top_merge.dart';
 import 'package:kernel/src/norm.dart';
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart';
-import 'package:kernel/type_environment.dart';
 
 import '../base/problems.dart' show unhandled;
 import '../builder/declaration_builders.dart';
@@ -357,9 +356,9 @@ abstract class CombinedMemberSignatureBase {
         DartType signatureTypeParameterBound =
             instantiator.substitute(signatureTypeParameters[i].bound);
         if (!_types
-            .performNullabilityAwareMutualSubtypesCheck(
+            .performMutualSubtypesCheck(
                 typeParameterBound, signatureTypeParameterBound)
-            .isSubtypeWhenUsingNullabilities()) {
+            .isSuccess()) {
           return null;
         }
       }
@@ -656,9 +655,9 @@ abstract class CombinedMemberSignatureBase {
 
   bool _isMoreSpecific(DartType a, DartType b, bool forSetter) {
     if (forSetter) {
-      return _types.isSubtypeOf(b, a, SubtypeCheckMode.withNullabilities);
+      return _types.isSubtypeOf(b, a);
     } else {
-      return _types.isSubtypeOf(a, b, SubtypeCheckMode.withNullabilities);
+      return _types.isSubtypeOf(a, b);
     }
   }
 }

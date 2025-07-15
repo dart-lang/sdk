@@ -48,7 +48,7 @@ class TypedLiteralResolver {
   final ResolverVisitor _resolver;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
   final bool _strictInference;
 
@@ -62,7 +62,7 @@ class TypedLiteralResolver {
       resolver,
       typeSystem,
       typeProvider,
-      resolver.errorReporter,
+      resolver.diagnosticReporter,
       analysisOptions.strictInference,
     );
   }
@@ -71,7 +71,7 @@ class TypedLiteralResolver {
     this._resolver,
     this._typeSystem,
     this._typeProvider,
-    this._errorReporter,
+    this._diagnosticReporter,
     this._strictInference,
   );
 
@@ -145,7 +145,7 @@ class TypedLiteralResolver {
         );
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
-          literalType = _typeProvider.setElement2.instantiateImpl(
+          literalType = _typeProvider.setElement.instantiateImpl(
             typeArguments: typeArguments,
             nullabilitySuffix: NullabilitySuffix.none,
           );
@@ -163,7 +163,7 @@ class TypedLiteralResolver {
         );
         if (literalResolution.contextType != null) {
           var typeArguments = inferrer.choosePreliminaryTypes();
-          literalType = _typeProvider.mapElement2.instantiateImpl(
+          literalType = _typeProvider.mapElement.instantiateImpl(
             typeArguments: typeArguments,
             nullabilitySuffix: NullabilitySuffix.none,
           );
@@ -230,8 +230,8 @@ class TypedLiteralResolver {
       case SpreadElementImpl():
         var expressionType = element.expression.typeOrThrow;
 
-        var iterableType = expressionType.asInstanceOf2(
-          _typeProvider.iterableElement2,
+        var iterableType = expressionType.asInstanceOf(
+          _typeProvider.iterableElement,
         );
         if (iterableType != null) {
           return iterableType.typeArguments[0];
@@ -328,11 +328,11 @@ class TypedLiteralResolver {
       var unwrappedContextType = _typeSystem.futureOrBase(contextType);
       // TODO(brianwilkerson): Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
-      var iterableType = unwrappedContextType.asInstanceOf2(
-        _typeProvider.iterableElement2,
+      var iterableType = unwrappedContextType.asInstanceOf(
+        _typeProvider.iterableElement,
       );
-      var mapType = unwrappedContextType.asInstanceOf2(
-        _typeProvider.mapElement2,
+      var mapType = unwrappedContextType.asInstanceOf(
+        _typeProvider.mapElement,
       );
       var isIterable = iterableType != null;
       var isMap = mapType != null;
@@ -417,8 +417,8 @@ class TypedLiteralResolver {
       case SpreadElementImpl():
         var expressionType = element.expression.typeOrThrow;
 
-        var iterableType = expressionType.asInstanceOf2(
-          _typeProvider.iterableElement2,
+        var iterableType = expressionType.asInstanceOf(
+          _typeProvider.iterableElement,
         );
         if (iterableType != null) {
           return _InferredCollectionElementTypeInformation(
@@ -426,7 +426,7 @@ class TypedLiteralResolver {
           );
         }
 
-        var mapType = expressionType.asInstanceOf2(_typeProvider.mapElement2);
+        var mapType = expressionType.asInstanceOf(_typeProvider.mapElement);
         if (mapType != null) {
           return _InferredCollectionElementTypeInformation(
             keyType: mapType.typeArguments[0],
@@ -472,8 +472,8 @@ class TypedLiteralResolver {
     ListLiteralImpl node, {
     required TypeImpl contextType,
   }) {
-    var element = _typeProvider.listElement2;
-    var typeParameters = element.typeParameters2;
+    var element = _typeProvider.listElement;
+    var typeParameters = element.typeParameters;
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.listElement2` to `ClassElementImpl2`.
@@ -486,7 +486,7 @@ class TypedLiteralResolver {
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
-      errorReporter: _errorReporter,
+      diagnosticReporter: _diagnosticReporter,
       errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
       inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
@@ -503,8 +503,8 @@ class TypedLiteralResolver {
     ListLiteralImpl node, {
     required DartType contextType,
   }) {
-    var element = _typeProvider.listElement2;
-    var typeParameters = element.typeParameters2;
+    var element = _typeProvider.listElement;
+    var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -512,22 +512,19 @@ class TypedLiteralResolver {
     // Also use upwards information to infer the type.
     List<TypeImpl> elementTypes =
         node.elements.map(_computeElementType).toList();
-    var syntheticParameter = FormalParameterFragmentImpl.synthetic(
+    var syntheticParameter = FormalParameterElementImpl.synthetic(
       'element',
       genericElementType,
       ParameterKind.POSITIONAL,
     );
-    List<ParameterElementMixin> parameters = List.filled(
-      elementTypes.length,
-      syntheticParameter,
-    );
+    var parameters = List.filled(elementTypes.length, syntheticParameter);
     if (_strictInference &&
         parameters.isEmpty &&
         contextType is UnknownInferredType) {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
         arguments: ['List'],
@@ -550,15 +547,15 @@ class TypedLiteralResolver {
     SetOrMapLiteralImpl node,
     TypeImpl contextType,
   ) {
-    var element = _typeProvider.mapElement2;
+    var element = _typeProvider.mapElement;
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.mapElement2` to `ClassElementImpl2`.
-      element.typeParameters2.cast(),
+      element.typeParameters.cast(),
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters2,
+      typeParameters: element.typeParameters,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
@@ -612,10 +609,10 @@ class TypedLiteralResolver {
     // a different subtype relationship to `Iterable<Object>` and
     // `Map<Object, Object>` is if the context type is `_`.
     if (contextType != null) {
-      var contextIterableType = contextType.asInstanceOf2(
-        _typeProvider.iterableElement2,
+      var contextIterableType = contextType.asInstanceOf(
+        _typeProvider.iterableElement,
       );
-      var contextMapType = contextType.asInstanceOf2(_typeProvider.mapElement2);
+      var contextMapType = contextType.asInstanceOf(_typeProvider.mapElement);
       var contextIsIterable = contextIterableType != null;
       var contextIsMap = contextMapType != null;
 
@@ -646,12 +643,12 @@ class TypedLiteralResolver {
       inferenceLogWriter?.exitGenericInference(failed: true);
     }
     if (mustBeAMap && mustBeASet) {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         literal,
         CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
       );
     } else {
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         literal,
         CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
       );
@@ -663,15 +660,15 @@ class TypedLiteralResolver {
     SetOrMapLiteralImpl node,
     TypeImpl contextType,
   ) {
-    var element = _typeProvider.setElement2;
+    var element = _typeProvider.setElement;
     inferenceLogWriter?.enterGenericInference(
       // TODO(paulberry): make this cast unnecessary by changing
       // `TypeProviderImpl.setElement2` to `ClassElementImpl2`.
-      element.typeParameters2.cast(),
+      element.typeParameters.cast(),
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
-      typeParameters: element.typeParameters2,
+      typeParameters: element.typeParameters,
       declaredReturnType: element.thisType,
       contextReturnType: contextType,
       isConst: node.isConst,
@@ -708,7 +705,7 @@ class TypedLiteralResolver {
       if (typeArguments.length == 1) {
         elementType = typeArguments[0].typeOrThrow;
       }
-      return _typeProvider.listElement2.instantiateImpl(
+      return _typeProvider.listElement.instantiateImpl(
         typeArguments: fixedTypeList(elementType),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -754,7 +751,7 @@ class TypedLiteralResolver {
         node.becomeSet();
         var elementType = typeArguments[0].typeOrThrow;
         node.recordStaticType(
-          _typeProvider.setElement2.instantiateImpl(
+          _typeProvider.setElement.instantiateImpl(
             typeArguments: fixedTypeList(elementType),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
@@ -767,7 +764,7 @@ class TypedLiteralResolver {
         var keyType = typeArguments[0].typeOrThrow;
         var valueType = typeArguments[1].typeOrThrow;
         node.recordStaticType(
-          _typeProvider.mapElement2.instantiateImpl(
+          _typeProvider.mapElement.instantiateImpl(
             typeArguments: fixedTypeList(keyType, valueType),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
@@ -787,12 +784,12 @@ class TypedLiteralResolver {
       // The literal is ambiguous, and further analysis won't resolve the
       // ambiguity.  Leave it as neither a set nor a map.
     } else if (literalType is InterfaceType &&
-        literalType.element3 == _typeProvider.mapElement2) {
+        literalType.element == _typeProvider.mapElement) {
       node.becomeMap();
     } else {
       assert(
         literalType is InterfaceType &&
-            literalType.element3 == _typeProvider.setElement2,
+            literalType.element == _typeProvider.setElement,
       );
       node.becomeSet();
     }
@@ -802,7 +799,7 @@ class TypedLiteralResolver {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
       // as the types of those elements are considered resolved.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node,
         WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
         arguments: [node.isMap ? 'Map' : 'Set'],
@@ -826,8 +823,8 @@ class TypedLiteralResolver {
     );
     TypeImpl dynamicType = _typeProvider.dynamicType;
 
-    var element = _typeProvider.mapElement2;
-    var typeParameters = element.typeParameters2;
+    var element = _typeProvider.mapElement;
+    var typeParameters = element.typeParameters;
     var genericKeyType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -835,18 +832,18 @@ class TypedLiteralResolver {
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var parameters = <ParameterElementMixin>[];
+    var parameters = <FormalParameterElementImpl>[];
     var argumentTypes = <TypeImpl>[];
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters.add(
-        FormalParameterFragmentImpl.synthetic(
+        FormalParameterElementImpl.synthetic(
           'key',
           genericKeyType,
           ParameterKind.POSITIONAL,
         ),
       );
       parameters.add(
-        FormalParameterFragmentImpl.synthetic(
+        FormalParameterElementImpl.synthetic(
           'value',
           genericValueType,
           ParameterKind.POSITIONAL,
@@ -888,17 +885,17 @@ class TypedLiteralResolver {
     );
     var dynamicType = _typeProvider.dynamicType;
 
-    var element = _typeProvider.setElement2;
-    var typeParameters = element.typeParameters2;
+    var element = _typeProvider.setElement;
+    var typeParameters = element.typeParameters;
     var genericElementType = typeParameters[0].instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
-    var parameters = <ParameterElementMixin>[];
+    var parameters = <FormalParameterElementImpl>[];
     var argumentTypes = <TypeImpl>[];
     for (var i = 0; i < inferredTypes.length; i++) {
       parameters.add(
-        FormalParameterFragmentImpl.synthetic(
+        FormalParameterElementImpl.synthetic(
           'element',
           genericElementType,
           ParameterKind.POSITIONAL,

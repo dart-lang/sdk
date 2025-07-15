@@ -25,22 +25,20 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   }
 
   @override
-  DartType getNullabilityAwareStandardLowerBoundInternal(
-      DartType type1, DartType type2) {
+  DartType getStandardLowerBoundInternal(DartType type1, DartType type2) {
     //  - We add the axiom that `DOWN(T, _) == T` and the symmetric version.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;
 
-    return super.getNullabilityAwareStandardLowerBoundInternal(type1, type2);
+    return super.getStandardLowerBoundInternal(type1, type2);
   }
 
   @override
-  DartType getNullabilityAwareStandardUpperBoundInternal(
-      DartType type1, DartType type2) {
+  DartType getStandardUpperBoundInternal(DartType type1, DartType type2) {
     //  - We add the axiom that `UP(T, _) == T` and the symmetric version.
     if (type1 is UnknownType) return type2;
     if (type2 is UnknownType) return type1;
 
-    return super.getNullabilityAwareStandardUpperBoundInternal(type1, type2);
+    return super.getStandardUpperBoundInternal(type1, type2);
   }
 }

@@ -141,10 +141,15 @@ int32_t DarwinVersionInternal() {
   int32_t minor_version = 0;
 
 #if defined(DART_HOST_OS_IOS)
-  // We do not expect to run on version of iOS <12.0 so we can assume that
-  // kernel version is off by 6 from iOS version (e.g. kernel 18.0 is iOS 12.0).
-  // This only holds starting from iOS 4.0.
-  major_version = kernel_major_version - 6;
+  if (kernel_major_version >= 25) {
+    // Starting from iOS 26 kernel versions are 1 behind OS version.
+    major_version = kernel_major_version + 1;
+  } else {
+    // We do not expect to run on version of iOS <12.0 so we can assume that
+    // kernel version is off by 6 from iOS version (e.g. kernel 18.0 is
+    // iOS 12.0). This only holds starting from iOS 4.0.
+    major_version = kernel_major_version - 6;
+  }
   if (major_version >= 15) {
     // After iOS 15 minor version of kernel is the same as minor version of
     // the iOS release. Before iOS 15 these numbers were not in sync. However

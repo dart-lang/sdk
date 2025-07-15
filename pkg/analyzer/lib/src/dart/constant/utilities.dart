@@ -117,7 +117,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   ConstantFinder({required this.configuration});
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     super.visitAnnotation(node);
     var elementAnnotation = node.elementAnnotation;
     if (elementAnnotation == null) {
@@ -155,8 +155,10 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     if (node.constKeyword != null) {
       var fragment = node.declaredFragment;
       if (fragment != null) {
-        constantsToCompute.add(fragment);
-        constantsToCompute.addAll(fragment.parameters);
+        var element = fragment.element;
+        constantsToCompute.add(element);
+        // TODO(scheglov): remove cast
+        constantsToCompute.addAll(element.baseElement.formalParameters.cast());
       }
     }
   }
@@ -166,7 +168,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     super.visitDefaultFormalParameter(node);
     var defaultValue = node.defaultValue;
     if (defaultValue != null && node.declaredFragment != null) {
-      constantsToCompute.add(node.declaredFragment!);
+      constantsToCompute.add(node.declaredFragment!.element);
     }
   }
 
@@ -176,11 +178,11 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   ) {
     super.visitEnumConstantDeclaration(node);
 
-    var element = node.declaredFragment!;
+    var element = node.declaredFragment!.element;
     constantsToCompute.add(element);
 
     configuration.addErrorNode(
-      fromElement: element.constantInitializer,
+      fromElement: element.constantInitializer?.expression,
       fromAst: node,
     );
   }
@@ -189,19 +191,18 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer;
-    var element = node.declaredFragment!;
+    var element = node.declaredFragment!.element;
     if (initializer != null &&
         (node.isConst ||
             treatFinalInstanceVarAsConst &&
-                element is FieldFragmentImpl &&
+                element is FieldElementImpl &&
                 node.isFinal &&
                 !element.isStatic)) {
       constantsToCompute.add(element);
       // Fill error nodes.
-      if (element is ConstVariableElement) {
-        var constElement = element as ConstVariableElement;
+      if (element.constantInitializer case var constantInitializer?) {
         configuration.addErrorNode(
-          fromElement: constElement.constantInitializer,
+          fromElement: constantInitializer.expression,
           fromAst: node.initializer,
         );
       }
@@ -228,7 +229,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     if (node.isConst) {
       var constructor = node.constructorName.element?.baseElement;
       if (constructor != null && constructor.isConst) {
-        _callback(constructor.firstFragment);
+        _callback(constructor);
       }
     }
     super.visitInstanceCreationExpression(node);
@@ -250,7 +251,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     super.visitRedirectingConstructorInvocation(node);
     var target = node.element?.baseElement;
     if (target != null) {
-      _callback(target.firstFragment);
+      _callback(target);
     }
   }
 
@@ -258,11 +259,11 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   void visitSimpleIdentifier(SimpleIdentifier node) {
     var element = node.element;
     if (element is GetterElementImpl) {
-      element = element.variable3;
+      element = element.variable;
     }
 
-    if (element is VariableElementImpl2 && element.isConst) {
-      _callback(element.firstFragment as VariableFragmentImpl);
+    if (element is VariableElementImpl && element.isConst) {
+      _callback(element);
     }
   }
 
@@ -273,7 +274,7 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
     super.visitSuperConstructorInvocation(node);
     var constructor = node.element?.baseElement;
     if (constructor != null) {
-      _callback(constructor.firstFragment);
+      _callback(constructor);
     }
   }
 }

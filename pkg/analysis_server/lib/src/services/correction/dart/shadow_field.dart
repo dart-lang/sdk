@@ -21,7 +21,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.SHADOW_FIELD;
+  AssistKind get assistKind => DartAssistKind.shadowField;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -30,12 +30,12 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var accessor = node.writeOrReadElement2;
+    var accessor = node.writeOrReadElement;
     if (accessor is! GetterElement) {
       return;
     }
 
-    var fieldName = accessor.name3;
+    var fieldName = accessor.name;
     if (fieldName == null) {
       return;
     }
@@ -58,7 +58,7 @@ class ShadowField extends ResolvedCorrectionProducer {
       return;
     }
 
-    var correspondingSetter = accessor.correspondingSetter2;
+    var correspondingSetter = accessor.correspondingSetter;
     if (correspondingSetter == null) {
       return;
     }
@@ -139,7 +139,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.writeOrReadElement2 == setter) {
+    if (node.writeOrReadElement == setter) {
       hasSetterReference = true;
     }
   }

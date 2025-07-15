@@ -1926,22 +1926,15 @@ class Native<T> {
   _get_ffi_native_resolver<T extends NativeFunction>();
 
   // Resolver for FFI Native C function pointers.
-  //
-  // TODO(dartbug.com/60699): Once the referenced issue is fixed, this can be
-  // restored back to use of a field with initializer.
   @pragma('vm:entry-point')
   @pragma('vm:shared')
-  static int Function(Object, Object, int)? _ffi_resolver = null;
+  static final _ffi_resolver =
+      _get_ffi_native_resolver<
+            NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>
+          >()
+          .asFunction<int Function(Object, Object, int)>();
 
   @pragma('vm:entry-point')
-  static int _ffi_resolver_function(Object a, Object s, int n) {
-    if (_ffi_resolver == null) {
-      _ffi_resolver =
-          _get_ffi_native_resolver<
-                NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>
-              >()
-              .asFunction<int Function(Object, Object, int)>();
-    }
-    return _ffi_resolver!(a, s, n);
-  }
+  static int _ffi_resolver_function(Object a, Object s, int n) =>
+      _ffi_resolver(a, s, n);
 }

@@ -15,9 +15,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart'
-    show JoinPatternVariableElementImpl2, MetadataImpl;
+    show JoinPatternVariableElementImpl, MetadataImpl;
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -61,14 +60,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null) {
-      var element = exceptionParameter.declaredElement2;
+      var element = exceptionParameter.declaredElement;
       usedElements.addCatchException(element);
       if (stackTraceParameter != null || node.onKeyword == null) {
         usedElements.addElement(element);
       }
     }
     if (stackTraceParameter != null) {
-      var element = stackTraceParameter.declaredElement2;
+      var element = stackTraceParameter.declaredElement;
       usedElements.addCatchStackTrace(element);
     }
     super.visitCatchClause(node);
@@ -117,7 +116,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     var element = node.declaredFragment?.element;
     if (element is SuperFormalParameterElement) {
-      usedElements.addElement(element.superConstructorParameter2);
+      usedElements.addElement(element.superConstructorParameter);
     }
 
     super.visitDefaultFormalParameter(node);
@@ -125,7 +124,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    usedElements.addElement(node.constructorElement2?.baseElement);
+    usedElements.addElement(node.constructorElement?.baseElement);
 
     var argumentList = node.arguments?.argumentList;
     if (argumentList != null) {
@@ -165,8 +164,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (!Identifier.isPrivateName(node.name.lexeme)) {
       var type = node.type.type;
       if (type is InterfaceTypeImpl) {
-        for (var constructor in type.constructors2) {
-          if (!Identifier.isPrivateName(constructor.name3!)) {
+        for (var constructor in type.constructors) {
+          if (!Identifier.isPrivateName(constructor.name!)) {
             usedElements.addElement(constructor);
           }
         }
@@ -177,7 +176,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     usedElements.addMember(element);
     super.visitIndexExpression(node);
   }
@@ -224,14 +223,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _useIdentifierElement(node.element2, parent: node);
+    _useIdentifierElement(node.element, parent: node);
     super.visitNamedType(node);
   }
 
   @override
   void visitPatternField(PatternField node) {
-    usedElements.addMember(node.element2);
-    usedElements.addReadMember(node.element2);
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
     super.visitPatternField(node);
   }
 
@@ -251,8 +250,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitRelationalPattern(RelationalPattern node) {
-    usedElements.addMember(node.element2);
-    usedElements.addReadMember(node.element2);
+    usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
     super.visitRelationalPattern(node);
   }
 
@@ -264,12 +263,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (_inCommentReference(node)) {
       return;
     }
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     // Store un-parameterized members.
     if (element is ExecutableMember) {
       element = element.baseElement;
     }
-    var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable3;
+    var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable;
     bool isIdentifierRead = _isReadIdentifier(node);
     if (element is PropertyAccessorElement &&
         isIdentifierRead &&
@@ -286,8 +285,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       }
     } else {
       var parent = node.parent!;
-      _useIdentifierElement(node.readElement2, parent: parent);
-      _useIdentifierElement(node.writeElement2, parent: parent);
+      _useIdentifierElement(node.readElement, parent: parent);
+      _useIdentifierElement(node.writeElement, parent: parent);
       _useIdentifierElement(node.element, parent: parent);
       var grandparent = parent.parent;
       // If [node] is a tear-off, assume all parameters are used.
@@ -313,12 +312,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
         if (isIdentifierRead) {
           usedElements.unresolvedReadMembers.add(node.name);
         }
-      } else if (enclosingElement is EnumElement && element.name3 == 'values') {
+      } else if (enclosingElement is EnumElement && element.name == 'values') {
         // If the 'values' static accessor of the enum is accessed, then all of
         // the enum values have been read.
         for (var field in enclosingElement.fields) {
           if (field.isEnumConstant) {
-            usedElements.readMembers.add(field.getter2!);
+            usedElements.readMembers.add(field.getter!);
           }
         }
       } else if ((enclosingElement is InterfaceElement ||
@@ -355,8 +354,8 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   /// corresponding getter as a used member.
   void _addMemberAndCorrespondingGetter(Element element) {
     if (element is SetterElement) {
-      usedElements.addMember(element.correspondingGetter2);
-      usedElements.addReadMember(element.correspondingGetter2);
+      usedElements.addMember(element.correspondingGetter);
+      usedElements.addReadMember(element.correspondingGetter);
     } else {
       usedElements.addReadMember(element);
     }
@@ -375,7 +374,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Check if [element] is a local element.
-    if (!identical(element.library2, _enclosingLibrary)) {
+    if (!identical(element.library, _enclosingLibrary)) {
       return;
     }
     // Ignore references to an element from itself.
@@ -456,14 +455,14 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     var secondPositional = <FormalParameterElement>[];
     for (var element in firstList) {
       if (element.isNamed) {
-        (firstNamed ??= {})[element.name3!] = element;
+        (firstNamed ??= {})[element.name!] = element;
       } else {
         firstPositional.add(element);
       }
     }
     for (var element in secondList) {
       if (element.isNamed) {
-        (secondNamed ??= {})[element.name3!] = element;
+        (secondNamed ??= {})[element.name!] = element;
       } else {
         secondPositional.add(element);
       }
@@ -494,13 +493,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 /// [WarningCode.UNUSED_LOCAL_VARIABLE], etc.
 class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   /// The error listener to which errors will be reported.
-  final AnalysisErrorListener _errorListener;
+  final DiagnosticListener _diagnosticListener;
 
   /// The elements know to be used.
   final UsedLocalElements _usedElements;
-
-  /// The inheritance manager used to find overridden methods.
-  final InheritanceManager3 _inheritanceManager;
 
   /// The URI of the library being verified.
   final Uri _libraryUri;
@@ -514,9 +510,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   /// Create a new instance of the [UnusedLocalElementsVerifier].
   UnusedLocalElementsVerifier(
-    this._errorListener,
+    this._diagnosticListener,
     this._usedElements,
-    this._inheritanceManager,
     LibraryElement library,
   ) : _libraryUri = library.uri,
       _wildCardVariablesEnabled = library.featureSet.isEnabled(
@@ -525,7 +520,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitCatchClauseParameter(CatchClauseParameter node) {
-    _visitLocalVariableElement(node.declaredElement2!);
+    _visitLocalVariableElement(node.declaredElement!);
     super.visitCatchClauseParameter(node);
   }
 
@@ -557,7 +552,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitDeclaredVariablePattern(
     covariant DeclaredVariablePatternImpl node,
   ) {
-    var declaredElement = node.declaredElement2!;
+    var declaredElement = node.declaredElement!;
     if (!declaredElement.isDuplicate) {
       var patternVariableElements = _patternVariableElements;
       if (patternVariableElements != null) {
@@ -622,7 +617,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement2 as LocalVariableElement,
+        variable.declaredElement as LocalVariableElement,
       );
     }
 
@@ -752,7 +747,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
       _visitLocalVariableElement(
-        variable.declaredElement2 as LocalVariableElement,
+        variable.declaredElement as LocalVariableElement,
       );
     }
 
@@ -769,7 +764,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     FormalParameterElement? correspondingParameter;
     if (parameter.isNamed) {
       correspondingParameter = overridden.formalParameters.firstWhereOrNull(
-        (p) => p.name3 == parameter.name3,
+        (p) => p.name == parameter.name,
       );
     } else {
       var parameterIndex = 0;
@@ -794,7 +789,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     if (_wildCardVariablesEnabled) {
       return element.isWildcardVariable;
     } else {
-      var name = element.name3;
+      var name = element.name;
       if (name == null) return false;
       return name.codeUnits.every((e) => e == 0x5F /* '_' */);
     }
@@ -850,14 +845,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
       return true;
     }
     if (element is FieldElement) {
-      var getter = element.getter2;
+      var getter = element.getter;
       if (getter == null) {
         return false;
       }
       element = getter;
     }
     if (_usedElements.readMembers.contains(element) ||
-        _usedElements.unresolvedReadMembers.contains(element.name3)) {
+        _usedElements.unresolvedReadMembers.contains(element.name)) {
       return true;
     }
 
@@ -888,7 +883,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (enclosingElement is ConstructorElement &&
-          enclosingElement.enclosingElement.typeParameters2.isNotEmpty) {
+          enclosingElement.enclosingElement.typeParameters.isNotEmpty) {
         // There is an issue matching arguments of instance creation
         // expressions for generic classes with parameters, so for now,
         // consider every parameter of a constructor of a generic class
@@ -896,7 +891,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (enclosingElement is ConstructorElement) {
-        var superConstructor = enclosingElement.superConstructor2;
+        var superConstructor = enclosingElement.superConstructor;
         if (superConstructor != null) {
           var correspondingParameter = _getCorrespondingParameter(
             element,
@@ -912,7 +907,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         }
       }
       if (enclosingElement is ExecutableElement) {
-        if (enclosingElement.typeParameters2.isNotEmpty) {
+        if (enclosingElement.typeParameters.isNotEmpty) {
           // There is an issue matching arguments of generic function
           // invocations with parameters, so for now, consider every parameter
           // of a generic function "used". See
@@ -960,15 +955,12 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   Iterable<ExecutableElement> _overriddenElements(Element element) {
     var enclosingElement = element.enclosingElement;
     if (enclosingElement is InterfaceElement) {
-      var elementName = element.name3;
+      var elementName = element.name;
       if (elementName != null) {
         Name name = Name(_libraryUri, elementName);
-        var overridden = _inheritanceManager.getOverridden4(
-          enclosingElement,
-          name,
-        );
+        var overridden = enclosingElement.getOverridden(name);
         if (overridden == null) {
-          return [];
+          return const [];
         }
         return overridden.map(
           (e) => (e is ExecutableMember) ? e.baseElement : e,
@@ -1019,15 +1011,15 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   ) {
     if (element != null) {
       var fragment = element.firstFragment;
-      _errorListener.onError(
+      _diagnosticListener.onDiagnostic(
         Diagnostic.tmp(
           source: fragment.libraryFragment!.source,
           offset:
               fragment.nameOffset2 ??
               fragment.enclosingFragment?.nameOffset2 ??
               0,
-          length: fragment.name2?.length ?? 0,
-          errorCode: code,
+          length: fragment.name?.length ?? 0,
+          diagnosticCode: code,
           arguments: arguments,
         ),
       );
@@ -1187,7 +1179,7 @@ class UsedLocalElements {
   }
 
   void addElement(Element? element) {
-    if (element is JoinPatternVariableElementImpl2) {
+    if (element is JoinPatternVariableElementImpl) {
       elements.addAll(element.transitiveVariables);
     } else if (element is ExecutableMember) {
       elements.add(element.baseElement);

@@ -4,6 +4,7 @@
 
 library generate_vm_service_dart;
 
+import 'package:collection/collection.dart';
 import 'package:markdown/markdown.dart';
 
 import '../common/generate_common.dart';
@@ -13,7 +14,7 @@ import 'src_gen_dart.dart';
 
 export 'src_gen_dart.dart' show DartGenerator;
 
-String? _coerceRefType(String? typeName) {
+String _coerceRefType(String typeName) {
   if (typeName == 'Object') typeName = 'Obj';
   if (typeName == '@Object') typeName = 'ObjRef';
   if (typeName == 'Null') typeName = 'NullVal';
@@ -21,7 +22,7 @@ String? _coerceRefType(String? typeName) {
   if (typeName == 'Function') typeName = 'Func';
   if (typeName == '@Function') typeName = 'FuncRef';
 
-  if (typeName!.startsWith('@')) typeName = '${typeName.substring(1)}Ref';
+  if (typeName.startsWith('@')) typeName = '${typeName.substring(1)}Ref';
 
   if (typeName == 'string') typeName = 'String';
   if (typeName == 'map') typeName = 'Map';
@@ -30,7 +31,7 @@ String? _coerceRefType(String? typeName) {
 }
 
 String typeRefListToString(List<TypeRef> types) =>
-    'const [${types.map((e) => "'${e.name!}'").join(',')}]';
+    'const [${types.map((e) => "'${e.name}'").join(',')}]';
 
 final registerServiceImpl = '''
 _serviceExtensionRegistry.registerExtension(params!['service'], this);
@@ -89,7 +90,7 @@ abstract class Api with ApiParseUtil {
   String? serviceVersion;
   List<Method> methods = [];
   List<Enum> enums = [];
-  List<Type?> types = [];
+  List<Type> types = [];
   List<StreamCategory> streamCategories = [];
 
   void parse(List<Node> nodes) {
@@ -132,8 +133,8 @@ abstract class Api with ApiParseUtil {
       }
     }
 
-    for (Type? type in types) {
-      type!.calculateFieldOverrides();
+    for (Type type in types) {
+      type.calculateFieldOverrides();
     }
 
     Method streamListenMethod =
@@ -147,7 +148,7 @@ abstract class Api with ApiParseUtil {
     if (docs != null) docs = replaceHTMLEntities(docs.trim());
 
     if (definition.startsWith('class ')) {
-      types.add(Type(this, this, name, definition, docs));
+      types.add(Type(this, this, definition, docs));
     } else if (name.substring(0, 1).toLowerCase() == name.substring(0, 1)) {
       methods.add(Method(this, name, definition, docs));
     } else if (definition.startsWith('enum ')) {
@@ -190,32 +191,30 @@ abstract class Api with ApiParseUtil {
 
   void generate(DartGenerator gen);
 
-  bool isEnumName(String? typeName) =>
-      enums.any((Enum e) => e.name == typeName);
+  bool isEnumName(String typeName) => enums.any((Enum e) => e.name == typeName);
 
-  Type? getType(String? name) =>
-      types.firstWhere((t) => t!.name == name, orElse: () => null);
+  Type? getType(String name) => types.firstWhereOrNull((t) => t.name == name);
 }
 
 class StreamCategory {
-  String? _name;
-  List<String>? _events;
+  final String name;
+  final List<String> events;
 
-  StreamCategory(String line) {
+  factory StreamCategory(String line) {
     // Debug | PauseStart, PauseExit, ...
-    _name = line.split('|')[0].trim();
+    String name = line.split('|')[0].trim();
 
     line = line.split('|')[1];
-    _events = line.split(',').map((w) => w.trim()).toList();
+    List<String> events = line.split(',').map((w) => w.trim()).toList();
+
+    return StreamCategory._(name: name, events: events);
   }
 
-  String? get name => _name;
-
-  List<String>? get events => _events;
+  StreamCategory._({required this.name, required this.events});
 
   void generate(DartGenerator gen) {
     gen.writeln();
-    gen.writeln('// ${events!.join(', ')}');
+    gen.writeln('// ${events.join(', ')}');
     gen.writeln(
         "Stream<Event> get on${name}Event => _getEventController('$name').stream;");
   }
@@ -258,7 +257,7 @@ class Method extends Member {
           .join());
 
       args.where((MethodArg a) => a.optional).forEach((MethodArg arg) {
-        String? valueRef = arg.name;
+        String valueRef = arg.name;
         // Special case for `getAllocationProfile`. We do not want to add these
         // params if they are false.
         if (name == 'getAllocationProfile') {
@@ -332,7 +331,7 @@ class Method extends Member {
 
 class MemberType extends Member {
   final Api api;
-  List<TypeRef> types = [];
+  final List<TypeRef> types = [];
 
   MemberType(this.api);
 
@@ -353,14 +352,14 @@ class MemberType extends Member {
             // @Instance | Sentinel
             final token = parser.advance()!;
             if (token.isName) {
-              unionTypes.add(_coerceRefType(token.text)!);
+              unionTypes.add(_coerceRefType(token.text!));
             }
           }
         }
         parser.consume(')');
         TypeRef ref;
         if (unionTypes.length == 1) {
-          ref = TypeRef(unionTypes.first)..nullable = nullable;
+          ref = TypeRef(unionTypes.first, nullable: nullable);
         } else {
           ref = TypeRef('dynamic');
         }
@@ -371,7 +370,7 @@ class MemberType extends Member {
         types.add(ref);
       } else {
         Token t = parser.expectName();
-        TypeRef ref = TypeRef(_coerceRefType(t.text));
+        TypeRef ref = TypeRef(_coerceRefType(t.text!));
         while (parser.consume('[')) {
           parser.expect(']');
           ref.arrayDepth++;
@@ -421,12 +420,12 @@ class MemberType extends Member {
 }
 
 class TypeRef {
-  String? name;
+  final String name;
   int arrayDepth = 0;
-  bool nullable = false;
+  final bool nullable;
   List<TypeRef>? genericTypes;
 
-  TypeRef(this.name);
+  TypeRef(this.name, {this.nullable = false});
 
   String get ref {
     if (arrayDepth == 2) {
@@ -436,7 +435,7 @@ class TypeRef {
     } else if (genericTypes != null) {
       return '$name<${genericTypes!.join(', ')}>';
     } else {
-      return name!.startsWith('_') ? name!.substring(1) : name!;
+      return name.startsWith('_') ? name.substring(1) : name;
     }
   }
 
@@ -450,7 +449,7 @@ class TypeRef {
     }
   }
 
-  String? get listTypeArg => arrayDepth == 2
+  String get listTypeArg => arrayDepth == 2
       ? 'List<$name${nullable ? "?" : ""}>'
       : '$name${nullable ? "?" : ""}';
 
@@ -480,9 +479,9 @@ class TypeRef {
 
 class MethodArg extends Member {
   final Method parent;
-  TypeRef type;
+  final TypeRef type;
   @override
-  String? name;
+  final String name;
   bool optional = false;
 
   MethodArg(this.parent, this.type, this.name);
@@ -507,8 +506,7 @@ class Type extends Member {
   final String? docs;
   List<TypeField> fields = [];
 
-  Type(this.api, this.parent, String categoryName, String definition,
-      [this.docs]) {
+  Type(this.api, this.parent, String definition, [this.docs]) {
     _parse(Tokenizer(definition).tokenize());
   }
 
@@ -539,7 +537,7 @@ class Type extends Member {
   bool get isResponse {
     if (superName == null) return false;
     if (name == 'Response' || superName == 'Response') return true;
-    return parent.getType(superName)!.isResponse;
+    return parent.getType(superName!)!.isResponse;
   }
 
   bool get isRef => name!.endsWith('Ref');
@@ -549,7 +547,7 @@ class Type extends Member {
     return superName == null ? false : getSuper()!.supportsIdentity;
   }
 
-  Type? getSuper() => superName == null ? null : api.getType(superName);
+  Type? getSuper() => superName == null ? null : api.getType(superName!);
 
   List<TypeField> getAllFields() {
     if (superName == null) return fields;
@@ -575,7 +573,7 @@ class Type extends Member {
     gen.write('class $name ');
     Type? superType;
     if (superName != null) {
-      superType = parent.getType(superName);
+      superType = parent.getType(superName!);
       gen.write('extends $superName ');
     }
     if (parent.getType('${name}Ref') != null) {
@@ -650,18 +648,18 @@ class Type extends Member {
     gen.writeln();
     if (name == 'Response' || name == 'TimelineEvent') {
       gen.write('$name._fromJson(Map<String, dynamic> this.json)');
-    } else if (superName != null && fields.isEmpty) {
-      gen.write('$name._fromJson(super.json): super._fromJson()');
+    } else if (superName != null) {
+      gen.write('$name._fromJson(super.json)');
     } else {
-      final superCall = superName == null ? '' : ': super._fromJson(json) ';
-      gen.write('$name._fromJson(Map<String, dynamic> json) $superCall');
+      gen.write('$name._fromJson(Map<String, dynamic> json)');
     }
 
-    if (fields.isEmpty) {
-      gen.writeln(';');
-    } else {
-      gen.writeln('{');
-    }
+    final bool hasInitializers = fields.isNotEmpty || superName != null;
+    gen.writeln(hasInitializers ? ':' : ';');
+
+    // Controls whether we must call `_parseTokenPosTable` in the constructor
+    // body.
+    bool mustParseTokenPosTable = false;
 
     for (var field in fields) {
       if (field.type.isSimple || field.type.isEnum) {
@@ -677,44 +675,43 @@ class Type extends Member {
         if (defaultValue != null) {
           gen.write(' ?? $defaultValue');
         }
-        gen.writeln(';');
         // } else if (field.type.isEnum) {
         //   // Parse the enum.
         //   String enumTypeName = field.type.types.first.name;
         //   gen.writeln(
-        //     "${field.generatableName} = _parse${enumTypeName}[json['${field.name}']];");
+        //     "${field.generatableName} = _parse${enumTypeName}[json['${field.name}']]");
       } else if (name == 'Event' && field.name == 'extensionData') {
         // Special case `Event.extensionData`.
         gen.writeln(
-            "extensionData = ExtensionData.parse(json['extensionData']);");
+            "extensionData = ExtensionData.parse(json['extensionData'])");
       } else if (name == 'Instance' && field.name == 'associations') {
         // Special case `Instance.associations`.
         gen.writeln("associations = json['associations'] == null "
             '? null : List<MapAssociation>.from('
-            "_createSpecificObject(json['associations'], MapAssociation.parse));");
+            "_createSpecificObject(json['associations'], MapAssociation.parse))");
       } else if (name == 'Instance' && field.name == 'classRef') {
         // This is populated by `Obj`
       } else if (name == '_CpuProfile' && field.name == 'codes') {
         // Special case `_CpuProfile.codes`.
         gen.writeln('codes = List<CodeRegion>.from('
-            "_createSpecificObject(json['codes']!, CodeRegion.parse));");
+            "_createSpecificObject(json['codes']!, CodeRegion.parse))");
       } else if (name == '_CpuProfile' && field.name == 'functions') {
         // Special case `_CpuProfile.functions`.
         gen.writeln('functions = List<ProfileFunction>.from('
-            "_createSpecificObject(json['functions']!, ProfileFunction.parse));");
+            "_createSpecificObject(json['functions']!, ProfileFunction.parse))");
       } else if (name == 'SourceReport' && field.name == 'ranges') {
         // Special case `SourceReport.ranges`.
         gen.writeln('ranges = List<SourceReportRange>.from('
-            "_createSpecificObject(json['ranges']!, SourceReportRange.parse));");
+            "_createSpecificObject(json['ranges']!, SourceReportRange.parse))");
       } else if (name == 'SourceReportRange' && field.name == 'coverage') {
         // Special case `SourceReportRange.coverage`.
         gen.writeln('coverage = _createSpecificObject('
-            "json['coverage'], SourceReportCoverage.parse);");
+            "json['coverage'], SourceReportCoverage.parse)");
       } else if (name == 'Library' && field.name == 'dependencies') {
         // Special case `Library.dependencies`.
         gen.writeln('dependencies = List<LibraryDependency>.from('
             "_createSpecificObject(json['dependencies']!, "
-            'LibraryDependency.parse));');
+            'LibraryDependency.parse))');
       } else if (name == 'Script' && field.name == 'tokenPosTable') {
         // Special case `Script.tokenPosTable`.
         gen.write('tokenPosTable = ');
@@ -722,8 +719,8 @@ class Type extends Member {
           gen.write("json['tokenPosTable'] == null ? null : ");
         }
         gen.writeln("List<List<int>>.from(json['tokenPosTable']!.map"
-            '((dynamic list) => List<int>.from(list)));');
-        gen.writeln('_parseTokenPosTable();');
+            '((dynamic list) => List<int>.from(list)))');
+        mustParseTokenPosTable = true;
       } else if (field.type.isArray) {
         TypeRef fieldType = field.type.types.first;
         String typesList = typeRefListToString(field.type.types);
@@ -731,10 +728,11 @@ class Type extends Member {
         if (field.optional) {
           if (fieldType.isListTypeSimple) {
             gen.writeln('${field.generatableName} = $ref == null ? null : '
-                'List<${fieldType.listTypeArg}>.from($ref);');
+                'List<${fieldType.listTypeArg}>.from($ref)');
           } else {
-            gen.writeln('${field.generatableName} = $ref == null ? null : '
-                'List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList)! as List);');
+            gen.writeln(
+                '${field.generatableName} = _createServiceObjectListOrNull'
+                '<${fieldType.listTypeArg}>($ref, $typesList)');
           }
         } else {
           if (fieldType.isListTypeSimple) {
@@ -742,36 +740,51 @@ class Type extends Member {
             // `new` and `old`. Post 3.18, these will be null.
             if (name == 'ClassHeapStats') {
               gen.writeln('${field.generatableName} = $ref == null ? null : '
-                  'List<${fieldType.listTypeArg}>.from($ref);');
+                  'List<${fieldType.listTypeArg}>.from($ref)');
             } else {
               gen.writeln('${field.generatableName} = '
-                  'List<${fieldType.listTypeArg}>.from($ref);');
+                  'List<${fieldType.listTypeArg}>.from($ref)');
             }
           } else {
             // Special case `InstanceSet`. Pre 3.20, instances were sent in a
             // field named 'samples' instead of 'instances'.
             if (name == 'InstanceSet') {
               gen.writeln('${field.generatableName} = '
-                  "List<${fieldType.listTypeArg}>.from(createServiceObject(($ref ?? json['samples']!) as List, $typesList)! as List);");
+                  "List<${fieldType.listTypeArg}>.from(createServiceObject(($ref ?? json['samples']!) as List, $typesList)! as List)");
             } else {
-              gen.writeln('${field.generatableName} = '
-                  'List<${fieldType.listTypeArg}>.from(createServiceObject($ref, $typesList) as List? ?? []);');
+              gen.writeln(
+                  '${field.generatableName} = _createServiceObjectListOrNull'
+                  '<${fieldType.listTypeArg}>($ref, $typesList)');
             }
           }
         }
       } else {
-        String typesList = typeRefListToString(field.type.types);
-        String nullable = field.type.name != 'dynamic' ? '?' : '';
+        final typeName = field.type.name;
+        final typesList = typeRefListToString(field.type.types);
+        final cast = typeName == 'dynamic' ? '' : 'as $typeName?';
         gen.writeln(
           '${field.generatableName} = '
           "createServiceObject(json['${field.name}'], "
-          '$typesList) as ${field.type.name}$nullable;',
+          '$typesList) $cast',
         );
       }
+
+      if (superName != null || field != fields.last) {
+        gen.write(',');
+      }
     }
-    if (fields.isNotEmpty) {
-      gen.writeln('}');
+
+    if (name != 'Response' && name != 'TimelineEvent' && superName != null) {
+      gen.write('super._fromJson()');
     }
+    if (mustParseTokenPosTable) {
+      gen.writeln('{');
+      gen.writeln('_parseTokenPosTable();');
+      gen.write('}');
+    } else if (hasInitializers) {
+      gen.write(';');
+    }
+    gen.writeln();
     gen.writeln();
 
     if (name == 'Script') {
@@ -963,7 +976,7 @@ void _parseTokenPosTable() {
           TypeRef arrayType = type.types.first;
           if (arrayType.arrayDepth == 1) {
             String assertMethodName =
-                'assertListOf${arrayType.name!.substring(0, 1).toUpperCase()}${arrayType.name!.substring(1)}';
+                'assertListOf${arrayType.name.substring(0, 1).toUpperCase()}${arrayType.name.substring(1)}';
             gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
           } else {
             gen.writeln(
@@ -977,7 +990,7 @@ void _parseTokenPosTable() {
             gen.writeln(
                 'if (obj.${field.generatableName} is vms.${typeRef.name}) {');
             String assertMethodName =
-                'assert${typeRef.name!.substring(0, 1).toUpperCase()}${typeRef.name!.substring(1)}';
+                'assert${typeRef.name.substring(0, 1).toUpperCase()}${typeRef.name.substring(1)}';
             gen.writeln('$assertMethodName(obj.${field.generatableName}!);');
           }
           gen.writeln('} else {');
@@ -1051,7 +1064,7 @@ class TypeField extends Member {
   void setOverrides() => overrides = true;
 
   @override
-  String? get docs {
+  String get docs {
     String str = _docs ?? '';
     if (type.isMultipleReturns) {
       str += '\n\n[$generatableName] can be one of '
@@ -1102,11 +1115,14 @@ class TypeField extends Member {
   @override
   void generate(DartGenerator gen) {
     Type? refType = parent.parent.getType('${parent.name}Ref');
-    var interfaceOverride = refType?.hasField(name) ?? false;
+    bool interfaceOverride = refType?.hasField(name) ?? false;
 
-    if (docs!.isNotEmpty) gen.writeDocs(docs!);
+    if (docs.isNotEmpty) gen.writeDocs(docs);
     if (optional) gen.write('@optional ');
     if (overrides || interfaceOverride) gen.write('@override ');
+    // TODO(srawlins): Most fields could be made final, now that they are
+    // assigned in field initializers. But this is a breaking change, so take
+    // care.
     // Special case where Instance extends Obj, but 'classRef' is not optional
     // for Instance although it is for Obj.
     /*if (parent.name == 'Instance' && generatableName == 'classRef') {
@@ -1116,9 +1132,17 @@ class TypeField extends Member {
       gen.writeStatement('covariant late final String valueAsString;');
     } else */
     {
-      String? typeName =
+      String typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
       if (typeName != 'dynamic') {
+        // Since this package is used to interact with DWDS as well as the
+        // native VM service, we need to be extremely careful when making types
+        // non-nullable. DWDS isn't completely compliant with the service
+        // protocol specification, meaning that some fields aren't provided in
+        // responses even though they're not marked as optional. This has been a
+        // headache for years, but until we're able to make DWDS consistent with
+        // the native VM service responses and test package:vm_service against
+        // it, we need to be extremely defensive in our parsing logic.
         typeName = '$typeName?';
       }
       gen.writeStatement('$typeName $generatableName;');
@@ -1128,7 +1152,7 @@ class TypeField extends Member {
 
   void generateNamedParameter(DartGenerator gen, {bool fromParent = false}) {
     if (fromParent) {
-      String? typeName =
+      String typeName =
           api.isEnumName(type.name) ? '/*${type.name}*/ String' : type.name;
       gen.writeStatement('required $typeName $generatableName,');
     } else {
@@ -1145,7 +1169,7 @@ class Enum extends Member {
 
   List<EnumValue> enums = [];
 
-  Enum(this.name, String definition, [this.docs]) {
+  Enum(this.name, String definition, this.docs) {
     _parse(Tokenizer(definition).tokenize());
   }
 
@@ -1153,7 +1177,7 @@ class Enum extends Member {
 
   factory Enum.merge(Enum e1, Enum e2) {
     final String name = e1.name;
-    final String docs = [e1.docs, e2.docs].where((e) => e != null).join('\n');
+    final String docs = [e1.docs, e2.docs].nonNulls.join('\n');
     final Map<String?, EnumValue> map = <String?, EnumValue>{};
     for (EnumValue e in e2.enums.reversed) {
       map[e.name] = e;
@@ -1186,7 +1210,7 @@ class Enum extends Member {
   void generateAssert(DartGenerator gen) {
     gen.writeln('String assert$name(String obj) {');
     List<EnumValue> sorted = enums.toList()
-      ..sort((EnumValue e1, EnumValue e2) => e1.name!.compareTo(e2.name!));
+      ..sort((EnumValue e1, EnumValue e2) => e1.name.compareTo(e2.name));
     for (EnumValue value in sorted) {
       gen.writeln('  if (obj == "${value.name}") return obj;');
     }
@@ -1201,7 +1225,7 @@ class Enum extends Member {
 class EnumValue extends Member {
   final Enum parent;
   @override
-  final String? name;
+  final String name;
   @override
   final String? docs;
 
@@ -1257,7 +1281,7 @@ class TextOutputVisitor implements NodeVisitor {
 
   @override
   void visitText(Text text) {
-    String? t = text.text;
+    String t = text.text;
     if (_em) {
       t = _coerceRefType(t);
     } else if (_href) {
@@ -1323,7 +1347,7 @@ class MethodParser extends Parser {
 
     while (peek()!.text != ')') {
       Token type = expectName();
-      TypeRef ref = TypeRef(_coerceRefType(type.text));
+      TypeRef ref = TypeRef(_coerceRefType(type.text!));
       if (peek()!.text == '[') {
         while (consume('[')) {
           expect(']');
@@ -1335,14 +1359,14 @@ class MethodParser extends Parser {
         ref.genericTypes = [];
         while (peek()!.text != '>') {
           Token genericTypeName = expectName();
-          ref.genericTypes!.add(TypeRef(_coerceRefType(genericTypeName.text)));
+          ref.genericTypes!.add(TypeRef(_coerceRefType(genericTypeName.text!)));
           consume(',');
         }
         expect('>');
       }
 
       Token name = expectName();
-      MethodArg arg = MethodArg(method, ref, name.text);
+      MethodArg arg = MethodArg(method, ref, name.text!);
       if (consume('[')) {
         expect('optional');
         expect(']');
@@ -1374,10 +1398,10 @@ class TypeParser extends Parser {
 
     Token t = expectName();
     type.rawName = t.text;
-    type.name = _coerceRefType(type.rawName);
+    type.name = _coerceRefType(type.rawName!);
     if (consume('extends')) {
       t = expectName();
-      type.superName = _coerceRefType(t.text);
+      type.superName = _coerceRefType(t.text!);
     }
 
     expect('{');
@@ -1431,7 +1455,7 @@ class EnumParser extends Parser {
       t = expectName();
       consume(',');
 
-      e.enums.add(EnumValue(e, t.text, docs));
+      e.enums.add(EnumValue(e, t.text!, docs));
     }
   }
 }

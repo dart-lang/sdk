@@ -51,8 +51,10 @@ ForStatement
         element2: dart:core::@class::int
         type: int
       name: v
-      declaredElement: v@56
+      declaredFragment: isPublic v@56
         type: int
+        element: isPublic
+          type: int
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -92,12 +94,14 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: hasImplicitType v@36
-        type: dynamic
+      declaredFragment: isPublic v@36
+        type: null
+        element: hasImplicitType isPublic
+          type: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      element: <testLibraryFragment>::@function::f::@parameter::values#element
+      element: <testLibrary>::@function::f::@formalParameter::values
       staticType: dynamic
   rightParenthesis: )
   body: Block
@@ -127,8 +131,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: hasImplicitType v@22
-        type: InvalidType
+      declaredFragment: isPublic v@22
+        type: null
+        element: hasImplicitType isPublic
+          type: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: <empty> <synthetic>
@@ -172,8 +178,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: hasImplicitType v@70
-        type: int
+      declaredFragment: isPublic v@70
+        type: null
+        element: hasImplicitType isPublic
+          type: int
     inKeyword: in
     iterable: SuperExpression
       superKeyword: super
@@ -204,12 +212,14 @@ ForStatement
         element2: dynamic
         type: dynamic
       name: v
-      declaredElement: v@42
+      declaredFragment: isPublic v@42
         type: dynamic
+        element: isPublic
+          type: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      element: <testLibraryFragment>::@function::f::@parameter::values#element
+      element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
   body: Block
@@ -244,8 +254,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: hasImplicitType v@56
-        type: Object?
+      declaredFragment: isPublic v@56
+        type: null
+        element: hasImplicitType isPublic
+          type: Object?
     inKeyword: in
     iterable: MethodInvocation
       methodName: SimpleIdentifier
@@ -283,12 +295,14 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: hasImplicitType v@42
-        type: int
+      declaredFragment: isPublic v@42
+        type: null
+        element: hasImplicitType isPublic
+          type: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      element: <testLibraryFragment>::@function::f::@parameter::values#element
+      element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Iterable<int>
   rightParenthesis: )
   body: Block
@@ -321,12 +335,14 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: hasImplicitType v@38
-        type: int
+      declaredFragment: isPublic v@38
+        type: null
+        element: hasImplicitType isPublic
+          type: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      element: <testLibraryFragment>::@function::f::@parameter::values#element
+      element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
   body: Block
@@ -359,12 +375,14 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: v
-      declaredElement: hasImplicitType v@52
-        type: int
+      declaredFragment: isPublic v@52
+        type: null
+        element: hasImplicitType isPublic
+          type: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      element: <testLibraryFragment>::@function::f::@parameter::values#element
+      element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
   rightParenthesis: )
   body: Block
@@ -399,23 +417,25 @@ ForStatement
     loopVariable: DeclaredIdentifier
       keyword: var
       name: x
-      declaredElement: hasImplicitType x@39
-        type: int
+      declaredFragment: isPublic x@39
+        type: null
+        element: hasImplicitType isPublic
+          type: int
     inKeyword: in
     iterable: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: x
-        element: <testLibraryFragment>::@function::f::@parameter::x#element
+        element: <testLibrary>::@function::f::@formalParameter::x
         staticType: List<List<int>>
       period: .
       identifier: SimpleIdentifier
         token: first
         element: GetterMember
-          baseElement: dart:core::<fragment>::@class::Iterable::@getter::first#element
+          baseElement: dart:core::@class::Iterable::@getter::first
           substitution: {E: List<int>}
         staticType: List<int>
       element: GetterMember
-        baseElement: dart:core::<fragment>::@class::Iterable::@getter::first#element
+        baseElement: dart:core::@class::Iterable::@getter::first
         substitution: {E: List<int>}
       staticType: List<int>
   rightParenthesis: )
@@ -462,12 +482,12 @@ ForStatement
   forLoopParts: ForEachPartsWithIdentifier
     identifier: SimpleIdentifier
       token: v
-      element: <testLibraryFragment>::@function::f::@parameter::v#element
+      element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: values
-      element: <testLibraryFragment>::@function::f::@parameter::values#element
+      element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
   body: Block
@@ -476,7 +496,7 @@ ForStatement
       ExpressionStatement
         expression: SimpleIdentifier
           token: v
-          element: <testLibraryFragment>::@function::f::@parameter::v#element
+          element: <testLibrary>::@function::f::@formalParameter::v
           staticType: dynamic
         semicolon: ;
     rightBracket: }
@@ -502,7 +522,7 @@ ForStatement
   forLoopParts: ForEachPartsWithIdentifier
     identifier: SimpleIdentifier
       token: v
-      element: <testLibraryFragment>::@class::A::@method::f::@parameter::v#element
+      element: <testLibrary>::@class::A::@method::f::@formalParameter::v
       staticType: dynamic
     inKeyword: in
     iterable: SuperExpression
@@ -538,15 +558,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@24
-          type: dynamic
+        declaredFragment: isPublic a@24
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       rightParenthesis: )
       matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
   body: Block
@@ -581,15 +603,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@34
-          type: int
+        declaredFragment: isPublic a@34
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
   body: Block
@@ -627,15 +651,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@31
-          type: InvalidType
+        declaredFragment: isPublic a@31
+          type: null
+          element: hasImplicitType isPublic
+            type: InvalidType
         matchedValueType: InvalidType
       rightParenthesis: )
       matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
   body: Block
@@ -676,8 +702,10 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@71
-          type: int
+        declaredFragment: isPublic a@71
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -718,8 +746,10 @@ ForStatement
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@27
+        declaredFragment: isPublic a@27
           type: int
+          element: isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -765,8 +795,10 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@23
-          type: Object?
+        declaredFragment: isPublic a@23
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       rightParenthesis: )
       matchedValueType: Object?
@@ -809,15 +841,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType isFinal a@36
-          type: int
+        declaredFragment: isFinal isPublic a@36
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
   body: Block
@@ -856,15 +890,17 @@ ForStatement
           element2: dart:core::@class::num
           type: num
         name: a
-        declaredElement: a@38
+        declaredFragment: isPublic a@38
           type: num
+          element: isPublic
+            type: num
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: List<int>
   rightParenthesis: )
   body: Block
@@ -904,15 +940,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@36
-          type: dynamic
+        declaredFragment: isPublic a@36
+          type: null
+          element: hasImplicitType isPublic
+            type: dynamic
         matchedValueType: dynamic
       rightParenthesis: )
       matchedValueType: dynamic
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: dynamic
   rightParenthesis: )
   body: Block
@@ -951,15 +989,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@43
-          type: InvalidType
+        declaredFragment: isPublic a@43
+          type: null
+          element: hasImplicitType isPublic
+            type: InvalidType
         matchedValueType: InvalidType
       rightParenthesis: )
       matchedValueType: InvalidType
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object
   rightParenthesis: )
   body: Block
@@ -995,15 +1035,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@48
-          type: int
+        declaredFragment: isPublic a@48
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
   body: Block
@@ -1045,8 +1087,10 @@ ForStatement
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@39
+        declaredFragment: isPublic a@39
           type: int
+          element: isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
@@ -1099,8 +1143,10 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@35
-          type: Object?
+        declaredFragment: isPublic a@35
+          type: null
+          element: hasImplicitType isPublic
+            type: Object?
         matchedValueType: Object?
       rightParenthesis: )
       matchedValueType: Object?
@@ -1151,15 +1197,17 @@ ForStatement
       leftParenthesis: (
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType isFinal a@50
-          type: int
+        declaredFragment: isFinal isPublic a@50
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: int
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
   body: Block
@@ -1199,15 +1247,17 @@ ForStatement
           element2: dart:core::@class::num
           type: num
         name: a
-        declaredElement: a@52
+        declaredFragment: isPublic a@52
           type: num
+          element: isPublic
+            type: num
         matchedValueType: int
       rightParenthesis: )
       matchedValueType: int
     inKeyword: in
     iterable: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Stream<int>
   rightParenthesis: )
   body: Block
@@ -1244,7 +1294,7 @@ ForStatement
     condition: FunctionExpressionInvocation
       function: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: bool Function()
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1366,15 +1416,19 @@ ForStatement
           PatternField
             pattern: DeclaredVariablePattern
               name: a
-              declaredElement: hasImplicitType a@36
-                type: int
+              declaredFragment: isPublic a@36
+                type: null
+                element: hasImplicitType isPublic
+                  type: int
               matchedValueType: int
             element2: <null>
           PatternField
             pattern: DeclaredVariablePattern
               name: b
-              declaredElement: hasImplicitType b@39
-                type: bool
+              declaredFragment: isPublic b@39
+                type: null
+                element: hasImplicitType isPublic
+                  type: bool
               matchedValueType: bool
             element2: <null>
         rightParenthesis: )
@@ -1382,7 +1436,7 @@ ForStatement
       equals: =
       expression: SimpleIdentifier
         token: x
-        element: <testLibraryFragment>::@function::f::@parameter::x#element
+        element: <testLibrary>::@function::f::@formalParameter::x
         staticType: (int, bool)
       patternTypeSchema: (_, _)
     leftSeparator: ;

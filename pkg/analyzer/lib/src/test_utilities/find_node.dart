@@ -32,10 +32,6 @@ class FindNode {
 
   AssignmentExpression get singleAssignmentExpression => _single();
 
-  AugmentedExpression get singleAugmentedExpression => _single();
-
-  AugmentedInvocation get singleAugmentedInvocation => _single();
-
   AwaitExpression get singleAwaitExpression => _single();
 
   BinaryExpression get singleBinaryExpression => _single();
@@ -250,7 +246,7 @@ class FindNode {
 
   BindPatternVariableElement bindPatternVariableElement(String search) {
     var node = declaredVariablePattern(search);
-    return node.declaredElement2!;
+    return node.declaredElement!;
   }
 
   Block block(String search) {

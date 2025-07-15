@@ -105,7 +105,7 @@ Object? testVoidParam(void x) {
   // [cfe] This expression has type 'void' and can't be used.
   //^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   x.toString(); // param_toString
   // [error column 3, length 1]
@@ -180,7 +180,7 @@ Object? testVoidParam(void x) {
   -x; // param_negation
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The operator 'unary-' isn't defined for the class 'void'.
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
   // [error column 4, length 1]
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
@@ -190,7 +190,7 @@ Object? testVoidParam(void x) {
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
   // [error column 4]
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$x"; // param_use_in_string_interpolation
   //     ^
@@ -481,7 +481,7 @@ Object? testVoidCall(void f()) {
   -f(); // call_negation
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The operator 'unary-' isn't defined for the class 'void'.
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
   // [error column 4, length 3]
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
@@ -493,7 +493,7 @@ Object? testVoidCall(void f()) {
   // [error column 4]
   // [cfe] This expression has type 'void' and can't be used.
   // ^
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello${f()}"; // call_use_in_string_interpolation
   //      ^^^
@@ -632,7 +632,7 @@ Object? testVoidLocal() {
   // [cfe] This expression has type 'void' and can't be used.
   //^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   x.toString(); // local_toString
   // [error column 3, length 1]
@@ -707,7 +707,7 @@ Object? testVoidLocal() {
   -x; // local_negation
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The operator 'unary-' isn't defined for the class 'void'.
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
   // [error column 4, length 1]
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
@@ -717,7 +717,7 @@ Object? testVoidLocal() {
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
   // [error column 4]
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$x"; // local_use_in_string_interpolation
   //     ^
@@ -929,7 +929,7 @@ Object? testVoidFinalLocal() {
   -x; // final_local_negation
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The operator 'unary-' isn't defined for the class 'void'.
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
   // [error column 4, length 1]
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
@@ -939,7 +939,7 @@ Object? testVoidFinalLocal() {
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
   // [error column 4]
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$x"; // final_local_use_in_string_interpolation
   //     ^
@@ -1072,7 +1072,7 @@ Object? testVoidGlobal() {
   // [cfe] This expression has type 'void' and can't be used.
   //     ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   global.toString(); // global_toString
   // [error column 3, length 6]
@@ -1147,7 +1147,7 @@ Object? testVoidGlobal() {
   -global; // global_negation
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The operator 'unary-' isn't defined for the class 'void'.
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
   // [error column 4, length 6]
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
@@ -1157,7 +1157,7 @@ Object? testVoidGlobal() {
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
   //    ^
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello$global"; // global_use_in_string_interpolation
   //     ^^^^^^
@@ -1686,7 +1686,7 @@ Object? testInstanceField() {
   a.x += 1; // instance_plus_eq
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   a.x.toString(); // instance_toString
   // [error column 3, length 3]
@@ -1810,7 +1810,7 @@ Object? testInstanceField() {
   b.x += 1; // instance2_plus_eq
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   b.x.toString(); // instance2_toString
   // [error column 3, length 3]
@@ -1934,7 +1934,7 @@ Object? testInstanceField() {
   c.x += 1; // instance3_plus_eq
   //  ^^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
-  // [cfe] The operator '+' isn't defined for the class 'void'.
+  // [cfe] The operator '+' isn't defined for the type 'void'.
 
   c.x.toString(); // instance3_toString
   // [error column 3, length 3]
@@ -2158,7 +2158,7 @@ Object? testParenthesized() {
   -(x); // paren_negation
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-  // [cfe] The operator 'unary-' isn't defined for the class 'void'.
+  // [cfe] The operator 'unary-' isn't defined for the type 'void'.
   // [error column 4, length 3]
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   //^
@@ -2170,7 +2170,7 @@ Object? testParenthesized() {
   // [error column 4]
   // [cfe] This expression has type 'void' and can't be used.
   // ^
-  // [cfe] The method 'call' isn't defined for the class 'void'.
+  // [cfe] The method 'call' isn't defined for the type 'void'.
 
   "hello${(x)}"; // paren_use_in_string_interpolation
   //      ^^^

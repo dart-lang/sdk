@@ -144,11 +144,24 @@ class DwarfWriteStream : public ValueObject {
   virtual void WritePrefixedLength(const char* symbol_prefix,
                                    std::function<void()> body) = 0;
 
-  virtual void OffsetFromSymbol(intptr_t label, intptr_t offset) = 0;
+  // Generates a relocated address from the given symbol label and offset.
+  //
+  // If no size is provided, the size of the relocated address in the stream
+  // is the native word size.
+  virtual void OffsetFromSymbol(intptr_t label,
+                                intptr_t offset,
+                                size_t size = kAddressSize) = 0;
 
   virtual void InitializeAbstractOrigins(intptr_t size) = 0;
   virtual void RegisterAbstractOrigin(intptr_t index) = 0;
   virtual void AbstractOrigin(intptr_t index) = 0;
+
+ protected:
+#if defined(TARGET_ARCH_IS_32_BIT)
+  static constexpr size_t kAddressSize = kInt32Size;
+#else
+  static constexpr size_t kAddressSize = kInt64Size;
+#endif
 
   DISALLOW_COPY_AND_ASSIGN(DwarfWriteStream);
 };
@@ -162,7 +175,7 @@ class Dwarf : public ZoneAllocated {
         const Trie<const char>* deobfuscation_trie,
         const char* compilation_unit_name = nullptr);
 
-  const ZoneGrowableArray<const Code*>& codes() const { return codes_; }
+  const GrowableArray<const Code*>& codes() const { return codes_; }
 
   // Stores the code object for later creating the line number program.
   void AddCode(const Code& code, intptr_t label);
@@ -175,6 +188,24 @@ class Dwarf : public ZoneAllocated {
   void WriteAbbreviations(DwarfWriteStream* stream);
   void WriteDebugInfo(DwarfWriteStream* stream);
   void WriteLineNumberProgram(DwarfWriteStream* stream);
+
+#if !defined(TARGET_ARCH_IA32)
+  // A frame description entry (used in the call frame information records)
+  // needs two pieces of information from the SharedObjectWriter:
+  struct FrameDescriptionEntry {
+    // * The starting address (here, represented by the label of the symbol
+    //   corresponding to the starting address).
+    intptr_t label;
+    // * The size of the memory space to cover from the starting address.
+    intptr_t size;
+  };
+
+  // Only used for non-assembly outputs; the AssemblyImageWriter inserts
+  // approrpiate CFI directives directly into the generated assembly.
+  static void WriteCallFrameInformationRecords(
+      class DwarfSharedObjectStream* stream,
+      const GrowableArray<FrameDescriptionEntry>& fdes);
+#endif
 
  private:
   friend class LineNumberProgramWriter;
@@ -223,13 +254,13 @@ class Dwarf : public ZoneAllocated {
   static constexpr intptr_t DW_LNE_end_sequence = 0x01;
   static constexpr intptr_t DW_LNE_set_address = 0x02;
 
- public:
-  // Public because they're also used in constructing .eh_frame ELF sections.
   static constexpr intptr_t DW_CFA_offset = 0x80;
   static constexpr intptr_t DW_CFA_val_offset = 0x14;
   static constexpr intptr_t DW_CFA_def_cfa = 0x0c;
 
- private:
+  static constexpr uint8_t DW_EH_PE_pcrel = 0x10;
+  static constexpr uint8_t DW_EH_PE_sdata4 = 0x0b;
+
   enum {
     kCompilationUnit = 1,
     kAbstractFunction,
@@ -252,11 +283,11 @@ class Dwarf : public ZoneAllocated {
   Zone* const zone_;
   const char* const compilation_unit_name_;
   const Trie<const char>* const deobfuscation_trie_;
-  ZoneGrowableArray<const Code*> codes_;
+  GrowableArray<const Code*> codes_;
   DwarfCodeMap<intptr_t> code_to_label_;
-  ZoneGrowableArray<const Function*> functions_;
+  GrowableArray<const Function*> functions_;
   FunctionIndexMap function_to_index_;
-  ZoneGrowableArray<const Script*> scripts_;
+  GrowableArray<const Script*> scripts_;
   ScriptIndexMap script_to_index_;
 };
 

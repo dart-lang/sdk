@@ -22,7 +22,7 @@ library;
 //   nonNullableClass1.method().field = 42;
 //                           ^
 //
-// pkg/front_end/testcases/none/property_set.dart:32:21: Error: The setter 'unresolved' isn't defined for the class 'Class1'.
+// pkg/front_end/testcases/none/property_set.dart:32:21: Error: The setter 'unresolved' isn't defined for the type 'Class1'.
 //  - 'Class1' is from 'pkg/front_end/testcases/none/property_set.dart'.
 // Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
 //   nonNullableClass1.unresolved = 42;
@@ -58,7 +58,7 @@ static method test(self::Class1 nonNullableClass1, self::Class1? nullableClass1,
   nonNullableClass1.method().field = 42;
                           ^" in nonNullableClass1.{self::Class1::method}{<inapplicable>}.(){() → invalid-type}.{<invalid>}field = 42;
   core::print("DynamicSet (Unresolved)");
-  invalid-expression "pkg/front_end/testcases/none/property_set.dart:32:21: Error: The setter 'unresolved' isn't defined for the class 'Class1'.
+  invalid-expression "pkg/front_end/testcases/none/property_set.dart:32:21: Error: The setter 'unresolved' isn't defined for the type 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/none/property_set.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'unresolved'.
   nonNullableClass1.unresolved = 42;

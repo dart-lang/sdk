@@ -29,7 +29,7 @@ class VariableDeclarationResolver {
 
     if (initializer == null) {
       if (_strictInference && parent.type == null) {
-        _resolver.errorReporter.atNode(
+        _resolver.diagnosticReporter.atNode(
           node,
           WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE,
           arguments: [node.name.lexeme],
@@ -49,7 +49,7 @@ class VariableDeclarationResolver {
     }
 
     var contextType =
-        element is! PropertyInducingElementImpl2 ||
+        element is! PropertyInducingElementImpl ||
                 element.shouldUseTypeForInitializerInference
             ? element.type
             : UnknownInferredType.instance;
@@ -60,7 +60,7 @@ class VariableDeclarationResolver {
     );
 
     var initializerType = initializer.typeOrThrow;
-    if (parent.type == null && element is LocalVariableElementImpl2) {
+    if (parent.type == null && element is LocalVariableElementImpl) {
       element.type =
           _resolver
               .variableTypeFromInitializerType(SharedTypeView(initializerType))
@@ -76,8 +76,8 @@ class VariableDeclarationResolver {
 
     // Initializers of top-level variables and fields are already included
     // into elements during linking.
-    if (element is LocalVariableElementImpl2 && element.isConst) {
-      var fragment = element.firstFragment as ConstLocalVariableFragmentImpl;
+    if (element is LocalVariableElementImpl && element.isConst) {
+      var fragment = element.firstFragment;
       fragment.constantInitializer = initializer;
     }
 

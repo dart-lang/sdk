@@ -19,21 +19,31 @@ import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/constant/compute.dart';
+import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -243,6 +253,14 @@ abstract final class Annotation implements AstNode {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
   @experimental
+  Element? get element;
+
+  /// The element associated with this annotation.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this
+  /// annotation couldn't be resolved.
+  @Deprecated('Use element instead')
+  @experimental
   Element? get element2;
 
   /// The element annotation representing this annotation in the element model,
@@ -303,7 +321,7 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   @generated
   ArgumentListImpl? _arguments;
 
-  Element? _element2;
+  Element? _element;
 
   @override
   ElementAnnotationImpl? elementAnnotation;
@@ -351,8 +369,8 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
   }
 
   @override
-  Element? get element2 {
-    if (_element2 case var element?) {
+  Element? get element {
+    if (_element case var element?) {
       return element;
     } else if (constructorName == null) {
       return name.element;
@@ -360,8 +378,14 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
     return null;
   }
 
-  set element2(Element? value) {
-    _element2 = value;
+  set element(Element? value) {
+    _element = value;
+  }
+
+  @Deprecated('Use element instead')
+  @override
+  Element? get element2 {
+    return element;
   }
 
   @generated
@@ -524,10 +548,10 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     return leftParenthesis;
   }
 
-  List<FormalParameterElementMixin?>? get correspondingStaticParameters2 =>
+  List<FormalParameterElementMixin?>? get correspondingStaticParameters =>
       _correspondingStaticParameters;
 
-  set correspondingStaticParameters2(
+  set correspondingStaticParameters(
     List<FormalParameterElementMixin?>? parameters,
   ) {
     if (parameters != null && parameters.length != arguments.length) {
@@ -1007,6 +1031,10 @@ abstract final class AssignedVariablePattern implements VariablePattern {
   /// In valid code this is either a [LocalVariableElement] or a
   /// [FormalParameterElement].
   @experimental
+  Element? get element;
+
+  @Deprecated('Use element instead')
+  @experimental
   Element? get element2;
 }
 
@@ -1016,7 +1044,7 @@ abstract final class AssignedVariablePattern implements VariablePattern {
 final class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
-  Element? element2;
+  Element? element;
 
   @generated
   AssignedVariablePatternImpl({required super.name});
@@ -1026,6 +1054,10 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   Token get beginToken {
     return name;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  Element? get element2 => element;
 
   @generated
   @override
@@ -1047,8 +1079,8 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
-    var element = element2;
-    if (element is PromotableElementImpl2) {
+    var element = this.element;
+    if (element is PromotableElementImpl) {
       return resolverVisitor
           .analyzeAssignedVariablePatternSchema(element)
           .unwrapTypeSchemaView();
@@ -1184,7 +1216,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     if (operator.type != TokenType.EQ) {
       executableElement = element;
     } else {
-      executableElement = writeElement2;
+      executableElement = writeElement;
     }
 
     if (executableElement is ExecutableElement) {
@@ -1521,10 +1553,6 @@ abstract class AstVisitor<R> {
   R? visitAssignedVariablePattern(AssignedVariablePattern node);
 
   R? visitAssignmentExpression(AssignmentExpression node);
-
-  R? visitAugmentedExpression(AugmentedExpression node);
-
-  R? visitAugmentedInvocation(AugmentedInvocation node);
 
   R? visitAwaitExpression(AwaitExpression node);
 
@@ -1865,238 +1893,19 @@ abstract class AstVisitor<R> {
   R? visitYieldStatement(YieldStatement node);
 }
 
-/// The augmented expression.
-///
-/// It is created only inside an augmentation.
-/// The exact meaning depends on what is augmented, and where it is used.
-///
-/// Augmenting getters: `augmented` invokes the getter and evaluates to the
-/// return value.
-/// The [fragment] is the augmented getter.
-/// The [staticType] is the return type of the getter.
-///
-/// Augmenting setters: `augmented` must be followed by an `=`, and will
-/// directly invoke the augmented setter.
-/// The [fragment] is the augmented setter.
-/// The [staticType] is meaningless, and set to `null`.
-///
-/// Augmenting fields: `augmented` can only be used in an initializer
-/// expression, and refers to the original field's initializer expression.
-/// The [fragment] is the augmented field.
-/// The [staticType] is the type of the field.
-///
-/// Augmenting binary operators: `augmented` must be the LHS, and followed by
-/// the argument, e.g. `augmented + 1`.
-/// The [fragment] is the augmented [MethodFragment].
-/// The [staticType] is the type of `this`.
-///
-/// Augmenting index operators: `augmented` must be the index target,
-/// e.g. `augmented[0]`.
-/// The [fragment] is the augmented [MethodFragment].
-/// The [staticType] is the type of `this`.
-///
-/// Augmenting prefix operators: `augmented` must be the target, e.g.
-/// `~augmented`.
-/// The [fragment] is the augmented [MethodFragment].
-/// The [staticType] is the type of `this`.
+/// The result of attempting to evaluate an expression as a constant.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class AugmentedExpression implements Expression {
-  /// The 'augmented' keyword.
-  Token get augmentedKeyword;
-
-  /// The referenced augmented fragment: getter, setter, variable.
-  @experimental
-  Fragment? get fragment;
-}
-
-@GenerateNodeImpl(
-  childEntitiesOrder: [GenerateNodeProperty('augmentedKeyword')],
-)
-final class AugmentedExpressionImpl extends ExpressionImpl
-    implements AugmentedExpression {
-  @generated
-  @override
-  final Token augmentedKeyword;
-
-  @override
-  FragmentImpl? fragment;
-
-  @generated
-  AugmentedExpressionImpl({required this.augmentedKeyword});
-
-  @generated
-  @override
-  Token get beginToken {
-    return augmentedKeyword;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return augmentedKeyword;
-  }
-
-  @override
-  bool get isAssignable => true;
-
-  @override
-  Precedence get precedence => Precedence.primary;
-
-  @generated
-  @override
-  ChildEntities get _childEntities =>
-      ChildEntities()..addToken('augmentedKeyword', augmentedKeyword);
-
-  @generated
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitAugmentedExpression(this);
-
-  @generated
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitAugmentedExpression(this, contextType: contextType);
-  }
-
-  @generated
-  @override
-  void visitChildren(AstVisitor visitor) {}
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    return null;
-  }
-}
-
-/// Invocation of the augmented function, constructor, or method.
-///
-///    augmentedInvocation ::=
-///        'augmented' [TypeArgumentList]? [ArgumentList]
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class AugmentedInvocation implements Expression {
-  /// The list of value arguments.
-  ArgumentList get arguments;
-
-  /// The 'augmented' keyword.
-  Token get augmentedKeyword;
-
-  /// The referenced augmented element: function, constructor, or method.
+final class AttemptedConstantEvaluationResult {
+  /// The value of the expression, or `null` if has [diagnostics].
   ///
-  /// Returns `null` if the AST structure hasn't been resolved or if this
-  /// fragment is the first fragment in the chain.
-  @experimental
-  ExecutableFragment? get fragment;
+  /// If evaluating a constant expression yields diagnostics, then the value of
+  /// the constant expression cannot be calculated.
+  final DartObject? value;
 
-  /// The list of type arguments.
-  ///
-  /// In valid code cannot be provided for augmented constructor invocation.
-  TypeArgumentList? get typeArguments;
-}
+  /// The diagnostics reported during the evaluation.
+  final List<Diagnostic> diagnostics;
 
-@GenerateNodeImpl(
-  childEntitiesOrder: [
-    GenerateNodeProperty('augmentedKeyword'),
-    GenerateNodeProperty('typeArguments'),
-    GenerateNodeProperty('arguments'),
-  ],
-)
-final class AugmentedInvocationImpl extends ExpressionImpl
-    implements AugmentedInvocation {
-  @generated
-  @override
-  final Token augmentedKeyword;
-
-  @generated
-  TypeArgumentListImpl? _typeArguments;
-
-  @generated
-  ArgumentListImpl _arguments;
-
-  @override
-  ExecutableFragmentImpl? fragment;
-
-  @generated
-  AugmentedInvocationImpl({
-    required this.augmentedKeyword,
-    required TypeArgumentListImpl? typeArguments,
-    required ArgumentListImpl arguments,
-  }) : _typeArguments = typeArguments,
-       _arguments = arguments {
-    _becomeParentOf(typeArguments);
-    _becomeParentOf(arguments);
-  }
-
-  @generated
-  @override
-  ArgumentListImpl get arguments => _arguments;
-
-  @generated
-  set arguments(ArgumentListImpl arguments) {
-    _arguments = _becomeParentOf(arguments);
-  }
-
-  @generated
-  @override
-  Token get beginToken {
-    return augmentedKeyword;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return arguments.endToken;
-  }
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @generated
-  @override
-  TypeArgumentListImpl? get typeArguments => _typeArguments;
-
-  @generated
-  set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities =>
-      ChildEntities()
-        ..addToken('augmentedKeyword', augmentedKeyword)
-        ..addNode('typeArguments', typeArguments)
-        ..addNode('arguments', arguments);
-
-  @generated
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitAugmentedInvocation(this);
-
-  @generated
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitAugmentedInvocation(this, contextType: contextType);
-  }
-
-  @generated
-  @override
-  void visitChildren(AstVisitor visitor) {
-    typeArguments?.accept(visitor);
-    arguments.accept(visitor);
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (typeArguments case var typeArguments?) {
-      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
-        return typeArguments;
-      }
-    }
-    if (arguments._containsOffset(rangeOffset, rangeEnd)) {
-      return arguments;
-    }
-    return null;
-  }
+  AttemptedConstantEvaluationResult._(this.value, this.diagnostics);
 }
 
 /// An await expression.
@@ -3308,6 +3117,13 @@ abstract final class CatchClauseParameter extends AstNode {
   ///
   /// Returns `null` if the AST hasn't been resolved.
   @experimental
+  LocalVariableElement? get declaredElement;
+
+  /// The declared element.
+  ///
+  /// Returns `null` if the AST hasn't been resolved.
+  @Deprecated('Use declaredElement instead')
+  @experimental
   LocalVariableElement? get declaredElement2;
 
   /// The declared fragment.
@@ -3340,8 +3156,14 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   }
 
   @override
-  LocalVariableElementImpl2? get declaredElement2 {
+  LocalVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
+  }
+
+  @Deprecated('Use declaredElement instead')
+  @override
+  LocalVariableElementImpl? get declaredElement2 {
+    return declaredElement;
   }
 
   @generated
@@ -4641,12 +4463,27 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// [FormalParameterElement], or a [GetterElement].
   ///
   /// In invalid code this element is `null`. For example, in `int += 2`. In
-  /// such cases, for recovery purposes, [writeElement2] is filled, and can be
+  /// such cases, for recovery purposes, [writeElement] is filled, and can be
   /// used for navigation.
+  @experimental
+  Element? get readElement;
+
+  /// The element that is used to read the value.
+  ///
+  /// Returns `null` if this node isn't a compound assignment, if the AST
+  /// structure hasn't been resolved, or if the target couldn't be resolved.
+  ///
+  /// In valid code this element can be a [LocalVariableElement], a
+  /// [FormalParameterElement], or a [GetterElement].
+  ///
+  /// In invalid code this element is `null`. For example, in `int += 2`. In
+  /// such cases, for recovery purposes, [writeElement] is filled, and can be
+  /// used for navigation.
+  @Deprecated('Use readElement instead')
   @experimental
   Element? get readElement2;
 
-  /// The type of the value read with the [readElement2], or `null` if this node
+  /// The type of the value read with the [readElement], or `null` if this node
   /// isn't a compound assignment.
   ///
   /// Returns the type `dynamic` if the code is invalid, if the AST structure
@@ -4667,7 +4504,26 @@ abstract final class CompoundAssignmentExpression implements Expression {
   /// add the corresponding setter.
   ///
   /// If this node is a compound assignment, such as `x += y`, both
-  /// [readElement2] and [writeElement2] could be non-`null`.
+  /// [readElement] and [writeElement] could be non-`null`.
+  @experimental
+  Element? get writeElement;
+
+  /// The element that is used to write the result.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved, or if the target
+  /// couldn't be resolved.
+  ///
+  /// In valid code this is a [LocalVariableElement], [FormalParameterElement],
+  /// or a [SetterElement].
+  ///
+  /// In invalid code, for recovery, we might use other elements, for example a
+  /// [GetterElement] `myGetter = 0` even though the getter can't be used to set
+  /// a value. We do this to help the user to navigate to the getter, and maybe
+  /// add the corresponding setter.
+  ///
+  /// If this node is a compound assignment, such as `x += y`, both
+  /// [readElement] and [writeElement] could be non-`null`.
+  @Deprecated('Use writeElement instead')
   @experimental
   Element? get writeElement2;
 
@@ -4682,16 +4538,24 @@ abstract final class CompoundAssignmentExpression implements Expression {
 base mixin CompoundAssignmentExpressionImpl
     implements CompoundAssignmentExpression {
   @override
-  Element? readElement2;
+  Element? readElement;
 
   @override
-  Element? writeElement2;
+  Element? writeElement;
 
   @override
   TypeImpl? readType;
 
   @override
   TypeImpl? writeType;
+
+  @Deprecated('Use readElement instead')
+  @override
+  Element? get readElement2 => readElement;
+
+  @Deprecated('Use writeElement instead')
+  @override
+  Element? get writeElement2 => writeElement;
 }
 
 /// A conditional expression.
@@ -6132,6 +5996,9 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// declaration doesn't have the corresponding attribute.
   DeclarationImpl({required super.comment, required super.metadata});
+
+  @override
+  FragmentImpl? get declaredFragment;
 }
 
 /// The declaration of a single identifier.
@@ -6144,6 +6011,14 @@ abstract final class DeclaredIdentifier implements Declaration {
   ///
   /// Returns `null` if either this node corresponds to a list of declarations
   /// or if the AST structure hasn't been resolved.
+  @experimental
+  LocalVariableElement? get declaredElement;
+
+  /// The element associated with this declaration.
+  ///
+  /// Returns `null` if either this node corresponds to a list of declarations
+  /// or if the AST structure hasn't been resolved.
+  @Deprecated('Use declaredElement instead')
   @experimental
   LocalVariableElement? get declaredElement2;
 
@@ -6207,8 +6082,15 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @experimental
   @override
-  LocalVariableElementImpl2? get declaredElement2 {
+  LocalVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
+  }
+
+  @Deprecated('Use declaredElement instead')
+  @experimental
+  @override
+  LocalVariableElementImpl? get declaredElement2 {
+    return declaredElement;
   }
 
   @generated
@@ -6288,6 +6170,13 @@ sealed class DeclaredVariablePattern implements VariablePattern {
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
   @experimental
+  BindPatternVariableElement? get declaredElement;
+
+  /// The element declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  @Deprecated('Use declaredElement instead')
+  @experimental
   BindPatternVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
@@ -6345,8 +6234,15 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @experimental
   @override
-  BindPatternVariableElementImpl2? get declaredElement2 {
+  BindPatternVariableElementImpl? get declaredElement {
     return declaredFragment?.element;
+  }
+
+  @Deprecated('Use declaredElement instead')
+  @experimental
+  @override
+  BindPatternVariableElementImpl? get declaredElement2 {
+    return declaredElement;
   }
 
   @generated
@@ -6407,11 +6303,11 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     var result = resolverVisitor.analyzeDeclaredVariablePattern(
       context,
       this,
-      declaredElement2!,
-      declaredFragment!.name2 ?? '',
+      declaredElement!,
+      declaredFragment!.name ?? '',
       type?.typeOrThrow.wrapSharedTypeView(),
     );
-    declaredElement2!.type = result.staticType.unwrapTypeView();
+    declaredElement!.type = result.staticType.unwrapTypeView();
 
     resolverVisitor.checkPatternNeverMatchesValueType(
       context: context,
@@ -6818,7 +6714,7 @@ final class DotShorthandConstructorInvocationImpl
         DotShorthandConstructorInvocation {
   @generated
   @override
-  final Token? constKeyword;
+  Token? constKeyword;
 
   @generated
   @override
@@ -6828,7 +6724,7 @@ final class DotShorthandConstructorInvocationImpl
   SimpleIdentifierImpl _constructorName;
 
   @override
-  ConstructorElementImpl2? element;
+  ConstructorElementImpl? element;
 
   @generated
   DotShorthandConstructorInvocationImpl({
@@ -6848,6 +6744,26 @@ final class DotShorthandConstructorInvocationImpl
       return constKeyword;
     }
     return period;
+  }
+
+  @override
+  bool get canBeConst {
+    var element = constructorName.element;
+    if (element is! ConstructorElementMixin2) return false;
+    if (!element.isConst) return false;
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    element.baseElement.computeConstantDependencies();
+
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    var oldKeyword = constKeyword;
+    try {
+      constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      constKeyword = oldKeyword;
+    }
   }
 
   @generated
@@ -7046,8 +6962,17 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
 base mixin DotShorthandMixin on ExpressionImpl {
   /// Whether the AST node is a dot shorthand and has a dot shorthand head
-  /// ([DotShorthandInvocation] or [DotShorthandPropertyAccess]) as its
+  /// ([DotShorthandInvocation], [DotShorthandConstructorInvocation] or
+  /// [DotShorthandPropertyAccess]) as its
   /// inner-most target.
+  ///
+  /// This is `false` and remains `false` when there is no dot shorthand head as
+  /// its inner-most target. When we are parsing and notice that we have a dot
+  /// shorthand head, we flip this flag to `true` and it remains `true` for that
+  /// expression.
+  ///
+  /// We use this flag to determine the correct context type to cache. This
+  /// cached context type is then used to resolve the dot shorthand head.
   bool isDotShorthand = false;
 }
 
@@ -7553,6 +7478,14 @@ abstract final class EnumConstantDeclaration implements Declaration {
   /// Returns `null` if the AST structure hasn't been resolved, or if the
   /// constructor couldn't be resolved.
   @experimental
+  ConstructorElement? get constructorElement;
+
+  /// The constructor that's invoked by this enum constant.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved, or if the
+  /// constructor couldn't be resolved.
+  @Deprecated('Use constructorElement instead')
+  @experimental
   ConstructorElement? get constructorElement2;
 
   @experimental
@@ -7587,7 +7520,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   FieldFragmentImpl? declaredFragment;
 
   @override
-  ConstructorElementMixin2? constructorElement2;
+  ConstructorElementMixin2? constructorElement;
 
   @generated
   EnumConstantDeclarationImpl({
@@ -7608,6 +7541,10 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   set arguments(EnumConstantArgumentsImpl? arguments) {
     _arguments = _becomeParentOf(arguments);
   }
+
+  @Deprecated('Use constructorElement instead')
+  @override
+  ConstructorElementMixin2? get constructorElement2 => constructorElement;
 
   @generated
   @override
@@ -8007,6 +7944,12 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///      | [ThrowExpression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class Expression implements CollectionElement {
+  /// Whether it would be valid for this expression to have a `const` keyword.
+  ///
+  /// Note that this method can cause constant evaluation to occur, which can be
+  /// computationally expensive.
+  bool get canBeConst;
+
   /// The parameter element representing the parameter to which the value of
   /// this expression is bound.
   ///
@@ -8064,6 +8007,14 @@ abstract final class Expression implements CollectionElement {
   /// unwrapping the expression inside the parentheses. Otherwise, returns this
   /// expression.
   Expression get unParenthesized;
+
+  /// Computes the constant value of this expression, if it has one.
+  ///
+  /// Returns a [AttemptedConstantEvaluationResult], containing both the computed
+  /// constant value, and a list of errors that occurred during the computation.
+  ///
+  /// Returns `null` if this expression is not a constant expression.
+  AttemptedConstantEvaluationResult? computeConstantValue();
 }
 
 /// A function body consisting of a single expression.
@@ -8215,6 +8166,9 @@ sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
   TypeImpl? _staticType;
 
+  @override
+  bool get canBeConst => false;
+
   @experimental
   @override
   FormalParameterElementMixin? get correspondingParameter {
@@ -8242,10 +8196,10 @@ sealed class ExpressionImpl extends AstNodeImpl
       // TODO(scheglov): This doesn't look right, there's no element for
       // the operand, for `a++` we invoke `a = a + 1`, so the parameter
       // is for `1`, not for `a`.
-      return parent._staticParameterElementForOperand2;
+      return parent._staticParameterElementForOperand;
     } else if (parent is PostfixExpressionImpl) {
       // TODO(scheglov): The same as above.
-      return parent._staticParameterElementForOperand2;
+      return parent._staticParameterElementForOperand;
     }
     return null;
   }
@@ -8263,6 +8217,53 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @override
   ExpressionImpl get unParenthesized => this;
+
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() {
+    var unitNode = thisOrAncestorOfType<CompilationUnitImpl>();
+    var unitFragment = unitNode?.declaredFragment;
+    if (unitFragment == null) {
+      throw ArgumentError('This AST structure has not yet been resolved.');
+    }
+
+    var libraryElement = unitFragment.element;
+    var declaredVariables = libraryElement.session.declaredVariables;
+
+    var evaluationEngine = ConstantEvaluationEngine(
+      declaredVariables: declaredVariables,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+
+    var dependencies = <ConstantEvaluationTarget>[];
+    accept(ReferenceFinder(dependencies.add));
+
+    computeConstants(
+      declaredVariables: declaredVariables,
+      constants: dependencies,
+      featureSet: libraryElement.featureSet,
+      configuration: ConstantEvaluationConfiguration(),
+    );
+
+    var diagnosticListener = RecordingDiagnosticListener();
+    var visitor = ConstantVisitor(
+      evaluationEngine,
+      libraryElement,
+      DiagnosticReporter(diagnosticListener, unitFragment.source),
+    );
+
+    var constant = visitor.evaluateAndReportInvalidConstant(this);
+    var isInvalidConstant = diagnosticListener.diagnostics.any(
+      (e) => e.diagnosticCode == CompileTimeErrorCode.INVALID_CONSTANT,
+    );
+    if (isInvalidConstant) {
+      return null;
+    }
+
+    return AttemptedConstantEvaluationResult._(
+      constant is DartObjectImpl ? constant : null,
+      diagnosticListener.diagnostics,
+    );
+  }
 
   /// Returns the [AstNode] that puts node into the constant context, and
   /// the explicit `const` keyword of that node. The keyword might be absent
@@ -8848,6 +8849,11 @@ abstract final class ExtensionOverride implements Expression {
 
   /// The extension that resolution will use to resolve member references.
   @experimental
+  ExtensionElement get element;
+
+  /// The extension that resolution will use to resolve member references.
+  @Deprecated('Use element instead')
+  @experimental
   ExtensionElement get element2;
 
   /// The actual type extended by this override, produced by applying
@@ -8882,7 +8888,7 @@ abstract final class ExtensionOverride implements Expression {
     GenerateNodeProperty('name'),
     GenerateNodeProperty('typeArguments'),
     GenerateNodeProperty('argumentList'),
-    GenerateNodeProperty('element2', type: ExtensionElementImpl2),
+    GenerateNodeProperty('element2', type: ExtensionElementImpl),
   ],
 )
 final class ExtensionOverrideImpl extends ExpressionImpl
@@ -8902,7 +8908,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @generated
   @override
-  final ExtensionElementImpl2 element2;
+  final ExtensionElementImpl element;
 
   @override
   List<DartType>? typeArgumentTypes;
@@ -8916,7 +8922,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     required this.name,
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
-    required this.element2,
+    required this.element,
   }) : _importPrefix = importPrefix,
        _typeArguments = typeArguments,
        _argumentList = argumentList {
@@ -8942,6 +8948,10 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     }
     return name;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  ExtensionElementImpl get element2 => element;
 
   @generated
   @override
@@ -9357,7 +9367,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   }
 
   @override
-  Fragment? get declaredFragment => null;
+  Null get declaredFragment => null;
 
   @generated
   @override
@@ -11047,6 +11057,19 @@ sealed class FunctionBody implements AstNode {
   ///
   /// Throws an exception if resolution hasn't been performed.
   @experimental
+  bool isPotentiallyMutatedInScope(VariableElement variable);
+
+  /// If [variable] is a local variable or parameter declared anywhere within
+  /// the top level function or method containing this [FunctionBody], return a
+  /// boolean indicating whether [variable] is potentially mutated within the
+  /// scope of its declaration.
+  ///
+  /// If [variable] isn't a local variable or parameter declared within the top
+  /// level function or method containing this [FunctionBody], return `false`.
+  ///
+  /// Throws an exception if resolution hasn't been performed.
+  @Deprecated('Use isPotentiallyMutatedInScope instead')
+  @experimental
   bool isPotentiallyMutatedInScope2(VariableElement variable);
 }
 
@@ -11076,11 +11099,17 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   Token? get star => null;
 
   @override
-  bool isPotentiallyMutatedInScope2(VariableElement variable) {
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
     if (localVariableInfo == null) {
       throw StateError('Resolution has not been performed');
     }
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
+  }
+
+  @Deprecated('Use isPotentiallyMutatedInScope instead')
+  @override
+  bool isPotentiallyMutatedInScope2(VariableElement variable) {
+    return isPotentiallyMutatedInScope(variable);
   }
 
   /// Dispatch this function body to the resolver, imposing [imposedType] as the
@@ -12545,7 +12574,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   /// Variables declared in [pattern], available in [whenClause] guard, and
   /// to the `ifTrue` node.
-  late Map<String, PatternVariableElementImpl2> variables;
+  late Map<String, PatternVariableElementImpl> variables;
 
   @generated
   GuardedPatternImpl({
@@ -13603,6 +13632,13 @@ abstract final class ImportPrefixReference implements AstNode {
   ///
   /// Usually a [PrefixElement], but can be anything in invalid code.
   @experimental
+  Element? get element;
+
+  /// The element to which [name] is resolved.
+  ///
+  /// Usually a [PrefixElement], but can be anything in invalid code.
+  @Deprecated('Use element instead')
+  @experimental
   Element? get element2;
 
   /// The name of the referenced import prefix.
@@ -13629,7 +13665,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   final Token period;
 
   @override
-  Element? element2;
+  Element? element;
 
   @generated
   ImportPrefixReferenceImpl({required this.name, required this.period});
@@ -13639,6 +13675,10 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   Token get beginToken {
     return name;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  Element? get element2 => element;
 
   @generated
   @override
@@ -13895,7 +13935,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
     var parent = this.parent;
     if (parent is CompoundAssignmentExpression) {
-      element = parent.writeElement2 ?? parent.readElement2;
+      element = parent.writeElement ?? parent.readElement;
     }
 
     if (element is ExecutableElement2OrMember) {
@@ -14055,6 +14095,25 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
       return keyword;
     }
     return constructorName.beginToken;
+  }
+
+  @override
+  bool get canBeConst {
+    var element = constructorName.element;
+    if (element == null || !element.isConst) return false;
+
+    // Ensure that dependencies (e.g. default parameter values) are computed.
+    element.baseElement.computeConstantDependencies();
+
+    // Verify that the evaluation of the constructor would not produce an
+    // exception.
+    var oldKeyword = keyword;
+    try {
+      keyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      keyword = oldKeyword;
+    }
   }
 
   @generated
@@ -14837,7 +14896,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @override
   LabelFragmentImpl? get declaredFragment =>
-      (label.element as LabelElementImpl2?)?.firstFragment;
+      (label.element as LabelElementImpl?)?.firstFragment;
 
   @generated
   @override
@@ -14892,12 +14951,24 @@ abstract final class LibraryDirective implements Directive {
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// directive couldn't be resolved.
   @experimental
+  LibraryElement? get element;
+
+  /// The element associated with this directive.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this
+  /// directive couldn't be resolved.
+  @Deprecated('Use element instead')
+  @experimental
   LibraryElement? get element2;
 
   /// The token representing the `library` keyword.
   Token get libraryKeyword;
 
   /// The name of the library being defined.
+  LibraryIdentifier? get name;
+
+  /// The name of the library being defined.
+  @Deprecated('Use name instead')
   LibraryIdentifier? get name2;
 
   /// The semicolon terminating the directive.
@@ -14918,14 +14989,14 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   final Token libraryKeyword;
 
   @generated
-  LibraryIdentifierImpl? _name2;
+  LibraryIdentifierImpl? _name;
 
   @generated
   @override
   final Token semicolon;
 
   @override
-  LibraryElementImpl? element2;
+  LibraryElementImpl? element;
 
   @generated
   LibraryDirectiveImpl({
@@ -14934,9 +15005,13 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     required this.libraryKeyword,
     required LibraryIdentifierImpl? name2,
     required this.semicolon,
-  }) : _name2 = name2 {
+  }) : _name = name2 {
     _becomeParentOf(name2);
   }
+
+  @Deprecated('Use element instead')
+  @override
+  LibraryElementImpl? get element2 => element;
 
   @generated
   @override
@@ -14952,19 +15027,23 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  LibraryIdentifierImpl? get name2 => _name2;
+  LibraryIdentifierImpl? get name => _name;
 
   @generated
-  set name2(LibraryIdentifierImpl? name2) {
-    _name2 = _becomeParentOf(name2);
+  set name(LibraryIdentifierImpl? name2) {
+    _name = _becomeParentOf(name2);
   }
+
+  @Deprecated('Use name instead')
+  @override
+  LibraryIdentifierImpl? get name2 => name;
 
   @generated
   @override
   ChildEntities get _childEntities =>
       super._childEntities
         ..addToken('libraryKeyword', libraryKeyword)
-        ..addNode('name2', name2)
+        ..addNode('name2', name)
         ..addToken('semicolon', semicolon);
 
   @generated
@@ -14975,7 +15054,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    name2?.accept(visitor);
+    name?.accept(visitor);
   }
 
   @generated
@@ -14984,7 +15063,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (name2 case var name2?) {
+    if (name case var name2?) {
       if (name2._containsOffset(rangeOffset, rangeEnd)) {
         return name2;
       }
@@ -16385,7 +16464,7 @@ abstract final class MethodInvocation
   /// there's no target.
   ///
   /// In an ordinary method invocation this is either a period (`.`) or a
-  /// null-aware opertator (`?.`). In a cascade section this is the cascade
+  /// null-aware operator (`?.`). In a cascade section this is the cascade
   /// operator ('..').
   Token? get operator;
 
@@ -16946,6 +17025,14 @@ abstract final class NamedExpression implements Expression {
   /// Returns `null` if the AST structure hasn't been resolved or if there's no
   /// parameter with the same name as this expression.
   @experimental
+  FormalParameterElement? get element;
+
+  /// The element representing the parameter being named by this expression.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if there's no
+  /// parameter with the same name as this expression.
+  @Deprecated('Use element instead')
+  @experimental
   FormalParameterElement? get element2;
 
   /// The expression with which the name is associated.
@@ -16987,8 +17074,15 @@ final class NamedExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  FormalParameterElementMixin? get element2 {
+  FormalParameterElementMixin? get element {
     return _name.label.element?.ifTypeOrNull();
+  }
+
+  @Deprecated('Use element instead')
+  @experimental
+  @override
+  FormalParameterElementMixin? get element2 {
+    return element;
   }
 
   @generated
@@ -17069,6 +17163,17 @@ abstract final class NamedType implements TypeAnnotation {
   /// Returns `null` if [name] can't be resolved, or there's no element for the
   /// type name, such as for `void`.
   @experimental
+  Element? get element;
+
+  /// The element of [name] considering [importPrefix].
+  ///
+  /// This could be a [ClassElement], [TypeAliasElement], or other type defining
+  /// element.
+  ///
+  /// Returns `null` if [name] can't be resolved, or there's no element for the
+  /// type name, such as for `void`.
+  @Deprecated('Use element instead')
+  @experimental
   Element? get element2;
 
   /// The optional import prefix before [name].
@@ -17124,7 +17229,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @experimental
   @override
-  Element? element2;
+  Element? element;
 
   @override
   TypeImpl? type;
@@ -17150,6 +17255,11 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     return name;
   }
 
+  @Deprecated('Use element instead')
+  @experimental
+  @override
+  Element? get element2 => element;
+
   @generated
   @override
   Token get endToken {
@@ -17173,7 +17283,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @override
   bool get isDeferred {
-    var importPrefixElement = importPrefix?.element2;
+    var importPrefixElement = importPrefix?.element;
     if (importPrefixElement is PrefixElement) {
       return importPrefixElement.fragments.any(
         (fragment) => fragment.isDeferred,
@@ -18934,6 +19044,16 @@ abstract final class PatternField implements AstNode {
   /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
   /// inside [RecordPattern]s.
   @experimental
+  Element? get element;
+
+  /// The element referenced by [effectiveName].
+  ///
+  /// Returns `null` if the AST structure is not resolved yet.
+  ///
+  /// Returns non-`null` inside valid [ObjectPattern]s; always returns `null`
+  /// inside [RecordPattern]s.
+  @Deprecated('Use element instead')
+  @experimental
   Element? get element2;
 
   /// The name of the field, or `null` if the field is a positional field.
@@ -18957,7 +19077,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   DartPatternImpl _pattern;
 
   @override
-  Element? element2;
+  Element? element;
 
   @generated
   PatternFieldImpl({
@@ -18987,6 +19107,10 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
     }
     return null;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  Element? get element2 => element;
 
   @generated
   @override
@@ -19162,7 +19286,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   TypeImpl? patternTypeSchema;
 
   /// Variables declared in [pattern].
-  late final List<BindPatternVariableElementImpl2> elements;
+  late final List<BindPatternVariableElementImpl> elements;
 
   @generated
   PatternVariableDeclarationImpl({
@@ -19430,7 +19554,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForOperand2 {
+  FormalParameterElementMixin? get _staticParameterElementForOperand {
     if (element == null) {
       return null;
     }
@@ -19704,7 +19828,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForOperand2 {
+  FormalParameterElementMixin? get _staticParameterElementForOperand {
     if (element == null) {
       return null;
     }
@@ -20674,7 +20798,7 @@ final class RedirectingConstructorInvocationImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElementImpl2? element;
+  ConstructorElementImpl? element;
 
   @generated
   RedirectingConstructorInvocationImpl({
@@ -20765,6 +20889,14 @@ abstract final class RelationalPattern implements DartPattern {
   /// Returns `null` if the AST structure hasn't been resolved or if the
   /// operator couldn't be resolved.
   @experimental
+  MethodElement? get element;
+
+  /// The element of the [operator] for the matched type.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if the
+  /// operator couldn't be resolved.
+  @Deprecated('Use element instead')
+  @experimental
   MethodElement? get element2;
 
   /// The expression used to compute the operand.
@@ -20790,7 +20922,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   ExpressionImpl _operand;
 
   @override
-  MethodElement? element2;
+  MethodElement? element;
 
   @generated
   RelationalPatternImpl({
@@ -20805,6 +20937,10 @@ final class RelationalPatternImpl extends DartPatternImpl
   Token get beginToken {
     return operator;
   }
+
+  @Deprecated('Use element instead')
+  @override
+  MethodElement? get element2 => element;
 
   @generated
   @override
@@ -23676,7 +23812,7 @@ class SwitchStatementCaseGroup {
   final bool hasLabels;
 
   /// Joined variables declared in [members], available in [statements].
-  late Map<String, PromotableElementImpl2> variables;
+  late Map<String, PromotableElementImpl> variables;
 
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 
@@ -24127,7 +24263,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @override
-  Fragment? get declaredFragment => null;
+  Null get declaredFragment => null;
 
   @generated
   @override
@@ -24538,6 +24674,17 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     required TypeArgumentListImpl? typeArguments,
   }) : _typeArguments = typeArguments {
     _becomeParentOf(_typeArguments);
+  }
+
+  @override
+  bool get canBeConst {
+    var oldKeyword = constKeyword;
+    try {
+      constKeyword = KeywordToken(Keyword.CONST, offset);
+      return !hasConstantVerifierError;
+    } finally {
+      constKeyword = oldKeyword;
+    }
   }
 
   @override
@@ -24999,6 +25146,14 @@ abstract final class VariableDeclaration implements Declaration {
   /// Returns `null` if the AST structure hasn't been resolved or if this node
   /// represents the declaration of a top-level variable or a field.
   @experimental
+  LocalVariableElement? get declaredElement;
+
+  /// The element declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved or if this node
+  /// represents the declaration of a top-level variable or a field.
+  @Deprecated('Use declaredElement instead')
+  @experimental
   LocalVariableElement? get declaredElement2;
 
   /// The fragment declared by this declaration.
@@ -25075,8 +25230,15 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @experimental
   @override
-  LocalVariableElementImpl2? get declaredElement2 {
-    return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl2>();
+  LocalVariableElementImpl? get declaredElement {
+    return declaredFragment?.element.ifTypeOrNull<LocalVariableElementImpl>();
+  }
+
+  @Deprecated('Use declaredElement instead')
+  @experimental
+  @override
+  LocalVariableElementImpl? get declaredElement2 {
+    return declaredElement;
   }
 
   /// This overridden implementation of [documentationComment] looks in the

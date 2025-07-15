@@ -474,6 +474,26 @@ int x = List<double>.foo^;
 ''', 'int');
   }
 
+  Future<void> test_closureCallReturn() async {
+    await assertContextType('''
+void f() {
+  String f = () {
+    return ^;
+  }();
+}
+''', 'String');
+  }
+
+  Future<void> test_closureReturn() async {
+    await assertContextType('''
+void f() {
+  String Function() f = () {
+    return ^;
+  };
+}
+''', 'String');
+  }
+
   Future<void> test_fieldDeclaration_int() async {
     await assertContextType('''
 class Foo {
@@ -576,6 +596,42 @@ void f() {
   for ((var x); ^;) {}
 }
 ''', 'bool');
+  }
+
+  Future<void> test_functionExpressionCallReturn() async {
+    await assertContextType('''
+void f() {
+  String f = (() => ^)();
+}
+''', 'String');
+  }
+
+  Future<void> test_functionExpressionReturn() async {
+    await assertContextType('''
+void f() {
+  String Function() f = (() => ^);
+}
+''', 'String');
+  }
+
+  Future<void> test_futureOrRecord() async {
+    await assertContextType('''
+import 'dart:async';
+
+FutureOr<({int field})> f() => ^;
+''', 'FutureOr<({int field})>');
+  }
+
+  Future<void> test_futureType_async() async {
+    await assertContextType('''
+Future<String> f() async => ^;
+''', 'FutureOr<String>');
+  }
+
+  Future<void> test_futureType_noAsync() async {
+    await assertContextType('''
+Future<String> f() => ^;
+''', 'Future<String>');
   }
 
   Future<void> test_ifElement() async {
@@ -1050,6 +1106,15 @@ void f() {
   var s = <^int>{};
 }
 ''');
+  }
+
+  Future<void> test_switchExpression() async {
+    await assertContextType('''
+String f(num n) => switch (n) {
+  double() => ^,
+  int() => '',
+};
+''', 'String');
   }
 
   Future<void> test_topLevelVariableDeclaration_int() async {

@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class TypeConstraintGathererTest extends AbstractTypeSystemTest {
-  late final TypeParameterElementImpl2 T;
+  late final TypeParameterElementImpl T;
   late final TypeParameterTypeImpl T_none;
   late final TypeParameterTypeImpl T_question;
 
@@ -1087,7 +1087,7 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
         constraints.entries.map((e) {
           var lowerStr = e.value.lower.getDisplayString();
           var upperStr = e.value.upper.getDisplayString();
-          return '$lowerStr <: ${e.key.name3} <: $upperStr';
+          return '$lowerStr <: ${e.key.name} <: $upperStr';
         }).toList();
 
     expect(constraintsStr, unorderedEquals(expected));

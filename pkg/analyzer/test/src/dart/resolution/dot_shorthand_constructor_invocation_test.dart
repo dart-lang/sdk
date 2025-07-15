@@ -47,7 +47,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: fromIterable
     element: ConstructorMember
-      baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable#element
+      baseElement: dart:async::@class::Stream::@constructor::fromIterable
       substitution: {T: int}
     staticType: null
   argumentList: ArgumentList
@@ -56,11 +56,12 @@ DotShorthandConstructorInvocation
       SimpleIdentifier
         token: iter
         correspondingParameter: ParameterMember
-          baseElement: dart:async::@fragment::dart:async/stream.dart::@class::Stream::@constructor::fromIterable::@parameter::data#element
+          baseElement: dart:async::@class::Stream::@constructor::fromIterable::@formalParameter::data
           substitution: {T: int}
         element: iter@26
         staticType: List<int>
     rightParenthesis: )
+  isDotShorthand: true
   staticType: Stream<int>
 ''');
   }
@@ -85,16 +86,17 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -119,16 +121,17 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: false
   staticType: C
 ''');
   }
@@ -153,17 +156,18 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  isDotShorthand: true
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
   }
@@ -187,16 +191,17 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -221,16 +226,17 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -289,16 +295,17 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -325,7 +332,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: id
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::id#element
+      baseElement: <testLibrary>::@class::C::@constructor::id
       substitution: {T: dynamic}
     staticType: null
   argumentList: ArgumentList
@@ -334,10 +341,11 @@ DotShorthandConstructorInvocation
       IntegerLiteral
         literal: 2
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::id::@parameter::value#element
+          baseElement: <testLibrary>::@class::C::@constructor::id::@formalParameter::value
           substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C<dynamic>
 ''');
   }
@@ -386,17 +394,18 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  isDotShorthand: true
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: C
 ''');
   }
@@ -416,7 +425,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: filled
     element: ConstructorMember
-      baseElement: dart:core::<fragment>::@class::List::@constructor::filled#element
+      baseElement: dart:core::@class::List::@constructor::filled
       substitution: {E: String}
     staticType: null
   argumentList: ArgumentList
@@ -425,13 +434,14 @@ DotShorthandConstructorInvocation
       IntegerLiteral
         literal: 2
         correspondingParameter: ParameterMember
-          baseElement: dart:core::<fragment>::@class::List::@constructor::filled::@parameter::length#element
+          baseElement: dart:core::@class::List::@constructor::filled::@formalParameter::length
           substitution: {E: String}
         staticType: int
       SimpleStringLiteral
         literal: '2'
     rightParenthesis: )
-  correspondingParameter: dart:core::<fragment>::@class::Object::@method::==::@parameter::other#element
+  isDotShorthand: true
+  correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
   staticType: List<String>
 ''');
   }
@@ -456,16 +466,17 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: named
-    element: <testLibraryFragment>::@class::C::@constructor::named#element
+    element: <testLibrary>::@class::C::@constructor::named
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 2
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::named::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }
@@ -491,7 +502,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: new
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+      baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
   argumentList: ArgumentList
@@ -506,12 +517,14 @@ DotShorthandConstructorInvocation
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        isDotShorthand: true
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticInvokeType: C<dynamic> Function()
         staticType: C<dynamic>
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -537,7 +550,7 @@ DotShorthandConstructorInvocation
   constructorName: SimpleIdentifier
     token: new
     element: ConstructorMember
-      baseElement: <testLibraryFragment>::@class::C::@constructor::new#element
+      baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: C<dynamic>}
     staticType: null
   argumentList: ArgumentList
@@ -547,13 +560,15 @@ DotShorthandConstructorInvocation
         period: .
         propertyName: SimpleIdentifier
           token: member
-          element: <testLibraryFragment>::@class::C::@getter::member#element
+          element: <testLibrary>::@class::C::@getter::member
           staticType: C<dynamic>
+        isDotShorthand: true
         correspondingParameter: FieldFormalParameterMember
-          baseElement: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+          baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
           substitution: {T: C<dynamic>}
         staticType: C<dynamic>
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C<C<dynamic>>
 ''');
   }
@@ -577,16 +592,17 @@ DotShorthandConstructorInvocation
   period: .
   constructorName: SimpleIdentifier
     token: new
-    element: <testLibraryFragment>::@class::C::@constructor::new#element
+    element: <testLibrary>::@class::C::@constructor::new
     staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
       IntegerLiteral
         literal: 1
-        correspondingParameter: <testLibraryFragment>::@class::C::@constructor::new::@parameter::x#element
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
         staticType: int
     rightParenthesis: )
+  isDotShorthand: true
   staticType: C
 ''');
   }

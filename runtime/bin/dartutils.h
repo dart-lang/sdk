@@ -161,8 +161,6 @@ class DartUtils {
   static bool IsDartCLILibURL(const char* url_name);
   static bool IsDartHttpLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
-  static bool IsHttpSchemeURL(const char* url_name);
-  static const char* RemoveScheme(const char* url);
 
   // Returns directory name including the last path separator.
   //
@@ -258,6 +256,7 @@ class DartUtils {
     kAppJITMagicNumber,
     kKernelMagicNumber,
     kKernelListMagicNumber,
+    kBytecodeMagicNumber,
     kGzipMagicNumber,
     kAotELFMagicNumber,
     // Only the host-endian magic numbers are recognized, not the reverse-endian

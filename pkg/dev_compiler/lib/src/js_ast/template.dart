@@ -17,8 +17,12 @@ class TemplateManager {
   }
 
   Template defineExpressionTemplate(String source, Node ast) {
-    Template template =
-        Template(source, ast, isExpression: true, forceCopy: false);
+    Template template = Template(
+      source,
+      ast,
+      isExpression: true,
+      forceCopy: false,
+    );
     expressionTemplates[source] = template;
     return template;
   }
@@ -28,8 +32,12 @@ class TemplateManager {
   }
 
   Template defineStatementTemplate(String source, Node ast) {
-    Template template =
-        Template(source, ast, isExpression: false, forceCopy: false);
+    Template template = Template(
+      source,
+      ast,
+      isExpression: false,
+      forceCopy: false,
+    );
     statementTemplates[source] = template;
     return template;
   }
@@ -53,15 +61,22 @@ class Template {
 
   bool get isPositional => holeNames.isEmpty;
 
-  Template._(this.source, this.ast,
-      {required this.instantiator,
-      required this.isExpression,
-      required this.forceCopy,
-      required this.positionalArgumentCount,
-      this.holeNames = const []});
+  Template._(
+    this.source,
+    this.ast, {
+    required this.instantiator,
+    required this.isExpression,
+    required this.forceCopy,
+    required this.positionalArgumentCount,
+    this.holeNames = const [],
+  });
 
-  factory Template(String? source, Node ast,
-      {bool isExpression = true, bool forceCopy = false}) {
+  factory Template(
+    String? source,
+    Node ast, {
+    bool isExpression = true,
+    bool forceCopy = false,
+  }) {
     assert(isExpression ? ast is Expression : ast is Statement);
 
     final generator = InstantiatorGeneratorVisitor(forceCopy);
@@ -70,30 +85,39 @@ class Template {
     final names = generator.analysis.holeNames;
     final holeNames = names.toList(growable: false);
 
-    return Template._(source, ast,
-        instantiator: instantiator,
-        isExpression: isExpression,
-        forceCopy: forceCopy,
-        positionalArgumentCount: positionalArgumentCount,
-        holeNames: holeNames);
+    return Template._(
+      source,
+      ast,
+      instantiator: instantiator,
+      isExpression: isExpression,
+      forceCopy: forceCopy,
+      positionalArgumentCount: positionalArgumentCount,
+      holeNames: holeNames,
+    );
   }
 
   factory Template.withExpressionResult(Expression ast) {
     assert(_checkNoPlaceholders(ast));
-    return Template._(null, ast,
-        instantiator: (arguments) => ast,
-        isExpression: true,
-        forceCopy: false,
-        positionalArgumentCount: 0);
+    return Template._(
+      null,
+      ast,
+      instantiator: (arguments) => ast,
+      isExpression: true,
+      forceCopy: false,
+      positionalArgumentCount: 0,
+    );
   }
 
   factory Template.withStatementResult(Statement ast) {
     assert(_checkNoPlaceholders(ast));
-    return Template._(null, ast,
-        instantiator: (arguments) => ast,
-        isExpression: false,
-        forceCopy: false,
-        positionalArgumentCount: 0);
+    return Template._(
+      null,
+      ast,
+      instantiator: (arguments) => ast,
+      isExpression: false,
+      forceCopy: false,
+      positionalArgumentCount: 0,
+    );
   }
 
   static bool _checkNoPlaceholders(Node ast) {
@@ -125,8 +149,9 @@ class Template {
         throw 'Template arguments has unused mappings: $unusedNames';
       }
       if (!holeNames.every((String name) => arguments.containsKey(name))) {
-        String notFound =
-            holeNames.where((name) => !arguments.containsKey(name)).join(', ');
+        String notFound = holeNames
+            .where((name) => !arguments.containsKey(name))
+            .join(', ');
         throw 'Template arguments is missing mappings for: $notFound';
       }
       return instantiator(arguments) as Node;
@@ -157,7 +182,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return visit(node);
   }
 
-  static Instantiator<T> same<T extends Node>(T node) => (arguments) => node;
+  static Instantiator<T> same<T extends Node>(T node) =>
+      (arguments) => node;
   static Null makeNull(dynamic arguments) => null;
 
   Instantiator visit<T extends Node>(T node) {
@@ -184,14 +210,16 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<Expression> visitInterpolatedExpression(
-      InterpolatedExpression node) {
+    InterpolatedExpression node,
+  ) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Expression) return value;
       if (value is String) return Identifier(value);
       throw StateError(
-          'Interpolated value #$nameOrPosition is not an Expression: $value');
+        'Interpolated value #$nameOrPosition is not an Expression: $value',
+      );
     };
   }
 
@@ -203,8 +231,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Expression toExpression(item) {
           if (item is Expression) return item;
           if (item is String) return Identifier(item);
-          throw StateError('Interpolated value #$nameOrPosition is not '
-              'an Expression or List of Expressions: $value');
+          throw StateError(
+            'Interpolated value #$nameOrPosition is not '
+            'an Expression or List of Expressions: $value',
+          );
         }
 
         if (value is Iterable) return value.map(toExpression);
@@ -236,7 +266,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var value = arguments[nameOrPosition];
       if (value is Literal) return value;
       throw StateError(
-          'Interpolated value #$nameOrPosition is not a Literal: $value');
+        'Interpolated value #$nameOrPosition is not a Literal: $value',
+      );
     };
   }
 
@@ -250,8 +281,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         if (item is Parameter) return item;
         if (item is String) return Identifier(item);
         throw StateError(
-            'Interpolated value #$nameOrPosition is not an Identifier'
-            ' or List of Identifiers: $value');
+          'Interpolated value #$nameOrPosition is not an Identifier'
+          ' or List of Identifiers: $value',
+        );
       }
 
       if (value is Iterable) return value.map(toIdentifier);
@@ -261,7 +293,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<Expression> visitInterpolatedSelector(
-      InterpolatedSelector node) {
+    InterpolatedSelector node,
+  ) {
     // A selector is an expression, as in `a[selector]`.
     // A String argument converted into a LiteralString, so `a.#` with argument
     // 'foo' generates `a["foo"]` which prints as `a.foo`.
@@ -271,19 +304,22 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       if (value is Expression) return value;
       if (value is String) return LiteralString('"$value"');
       throw StateError(
-          'Interpolated value #$nameOrPosition is not a selector: $value');
+        'Interpolated value #$nameOrPosition is not a selector: $value',
+      );
     };
   }
 
   @override
   Instantiator<Statement> visitInterpolatedStatement(
-      InterpolatedStatement node) {
+    InterpolatedStatement node,
+  ) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var value = arguments[nameOrPosition];
       if (value is Node) return value.toStatement();
       throw StateError(
-          'Interpolated value #$nameOrPosition is not a Statement: $value');
+        'Interpolated value #$nameOrPosition is not a Statement: $value',
+      );
     };
   }
 
@@ -294,8 +330,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       var value = arguments[nameOrPosition];
       Method toMethod(item) {
         if (item is Method) return item;
-        throw StateError('Interpolated value #$nameOrPosition is not a Method '
-            'or List of Methods: $value');
+        throw StateError(
+          'Interpolated value #$nameOrPosition is not a Method '
+          'or List of Methods: $value',
+        );
       }
 
       if (value is Iterable) return value.map(toMethod);
@@ -305,14 +343,17 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<Identifier> visitInterpolatedIdentifier(
-      InterpolatedIdentifier node) {
+    InterpolatedIdentifier node,
+  ) {
     var nameOrPosition = node.nameOrPosition;
     return (arguments) {
       var item = arguments[nameOrPosition];
       if (item is Identifier) return item;
       if (item is String) return Identifier(item);
-      throw StateError('Interpolated value #$nameOrPosition is not a '
-          'Identifier or String: $item');
+      throw StateError(
+        'Interpolated value #$nameOrPosition is not a '
+        'Identifier or String: $item',
+      );
     };
   }
 
@@ -324,8 +365,10 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         Statement toStatement(item) {
           if (item is Statement) return item;
           if (item is Expression) return item.toStatement();
-          throw StateError('Interpolated value #$nameOrPosition is not '
-              'a Statement or List of Statements: $value');
+          throw StateError(
+            'Interpolated value #$nameOrPosition is not '
+            'a Statement or List of Statements: $value',
+          );
         }
 
         if (value is Iterable) return value.map(toStatement);
@@ -388,7 +431,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   Instantiator<Statement> visitIfConditionalCompilation(
-      If node, InterpolatedExpression condition) {
+    If node,
+    InterpolatedExpression condition,
+  ) {
     var makeThen = visit(node.then) as Instantiator<Statement>;
     var makeOtherwise = visit(node.otherwise) as Instantiator<Statement>;
     return (arguments) {
@@ -398,8 +443,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
       if (value is bool) {
         return value ? makeThen(arguments) : makeOtherwise(arguments);
       }
-      var newCondition =
-          value is String ? Identifier(value) : value as Expression;
+      var newCondition = value is String
+          ? Identifier(value)
+          : value as Expression;
       return If(newCondition, makeThen(arguments), makeOtherwise(arguments));
     };
   }
@@ -408,8 +454,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeCondition = visit(node.condition) as Instantiator<Expression>;
     var makeThen = visit(node.then) as Instantiator<Statement>;
     var makeOtherwise = visit(node.otherwise) as Instantiator<Statement>;
-    return (arguments) => If(makeCondition(arguments), makeThen(arguments),
-        makeOtherwise(arguments));
+    return (arguments) => If(
+      makeCondition(arguments),
+      makeThen(arguments),
+      makeOtherwise(arguments),
+    );
   }
 
   @override
@@ -419,8 +468,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
         visitNullable(node.condition) as Instantiator<Expression>;
     var makeUpdate = visitNullable(node.update) as Instantiator<Expression>;
     var makeBody = visit(node.body) as Instantiator<Statement>;
-    return (arguments) => For(makeInit(arguments), makeCondition(arguments),
-        makeUpdate(arguments).toVoidExpression(), makeBody(arguments));
+    return (arguments) => For(
+      makeInit(arguments),
+      makeCondition(arguments),
+      makeUpdate(arguments).toVoidExpression(),
+      makeBody(arguments),
+    );
   }
 
   @override
@@ -428,8 +481,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeLeftHandSide = visit(node.leftHandSide) as Instantiator<Expression>;
     var makeObject = visit(node.object) as Instantiator<Expression>;
     var makeBody = visit(node.body) as Instantiator<Statement>;
-    return (arguments) => ForIn(makeLeftHandSide(arguments),
-        makeObject(arguments), makeBody(arguments));
+    return (arguments) => ForIn(
+      makeLeftHandSide(arguments),
+      makeObject(arguments),
+      makeBody(arguments),
+    );
   }
 
   @override
@@ -437,8 +493,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeLeftHandSide = visit(node.leftHandSide) as Instantiator<Expression>;
     var makeObject = visit(node.iterable) as Instantiator<Expression>;
     var makeBody = visit(node.body) as Instantiator<Statement>;
-    return (arguments) => ForOf(makeLeftHandSide(arguments),
-        makeObject(arguments), makeBody(arguments));
+    return (arguments) => ForOf(
+      makeLeftHandSide(arguments),
+      makeObject(arguments),
+      makeBody(arguments),
+    );
   }
 
   @override
@@ -502,10 +561,13 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   @override
   Instantiator<Switch> visitSwitch(Switch node) {
     var makeKey = visit(node.key) as Instantiator<Expression>;
-    var makeCases =
-        node.cases.map((c) => visit(c) as Instantiator<SwitchClause>);
-    return (arguments) => Switch(makeKey(arguments),
-        makeCases.map((makeCase) => makeCase(arguments)).toList());
+    var makeCases = node.cases.map(
+      (c) => visit(c) as Instantiator<SwitchClause>,
+    );
+    return (arguments) => Switch(
+      makeKey(arguments),
+      makeCases.map((makeCase) => makeCase(arguments)).toList(),
+    );
   }
 
   @override
@@ -527,7 +589,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<FunctionDeclaration> visitFunctionDeclaration(
-      FunctionDeclaration node) {
+    FunctionDeclaration node,
+  ) {
     var makeName = visit(node.name) as Instantiator<Identifier>;
     var makeFunction = visit(node.function) as Instantiator<Fun>;
     return (arguments) =>
@@ -548,11 +611,15 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<VariableDeclarationList> visitVariableDeclarationList(
-      VariableDeclarationList node) {
-    var declarationMakers =
-        node.declarations.map(visitVariableInitialization).toList();
+    VariableDeclarationList node,
+  ) {
+    var declarationMakers = node.declarations
+        .map(visitVariableInitialization)
+        .toList();
     return (arguments) => VariableDeclarationList(
-        node.keyword, declarationMakers.map((m) => m(arguments)).toList());
+      node.keyword,
+      declarationMakers.map((m) => m(arguments)).toList(),
+    );
   }
 
   @override
@@ -561,19 +628,24 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     String? op = node.op;
     Instantiator makeValue = visit(node.value);
     return (arguments) {
-      return makeValue(arguments)
-          .toAssignExpression(makeLeftHandSide(arguments), op) as Expression;
+      return makeValue(
+            arguments,
+          ).toAssignExpression(makeLeftHandSide(arguments), op)
+          as Expression;
     };
   }
 
   @override
   Instantiator<VariableInitialization> visitVariableInitialization(
-      VariableInitialization node) {
+    VariableInitialization node,
+  ) {
     var makeDeclaration =
         visit(node.declaration) as Instantiator<VariableBinding>;
     var makeValue = visitNullable(node.value) as Instantiator<Expression?>;
     return (arguments) => VariableInitialization(
-        makeDeclaration(arguments), makeValue(arguments));
+      makeDeclaration(arguments),
+      makeValue(arguments),
+    );
   }
 
   @override
@@ -581,8 +653,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeCondition = visit(cond.condition) as Instantiator<Expression>;
     var makeThen = visit(cond.then) as Instantiator<Expression>;
     var makeOtherwise = visit(cond.otherwise) as Instantiator<Expression>;
-    return (arguments) => Conditional(makeCondition(arguments),
-        makeThen(arguments), makeOtherwise(arguments));
+    return (arguments) => Conditional(
+      makeCondition(arguments),
+      makeThen(arguments),
+      makeOtherwise(arguments),
+    );
   }
 
   @override
@@ -627,9 +702,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   }
 
   @override
-  Instantiator<This> visitThis(This node) => (arguments) => This();
+  Instantiator<This> visitThis(This node) =>
+      (arguments) => This();
   @override
-  Instantiator<Super> visitSuper(Super node) => (arguments) => Super();
+  Instantiator<Super> visitSuper(Super node) =>
+      (arguments) => Super();
 
   @override
   Instantiator<Identifier> visitIdentifier(Identifier node) =>
@@ -675,8 +752,11 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var paramMakers = node.params.map(visitSplayable).toList();
     var makeBody = visit(node.body) as Instantiator<Block>;
     return (arguments) => Fun(
-        splayNodes(paramMakers, arguments), makeBody(arguments),
-        isGenerator: node.isGenerator, asyncModifier: node.asyncModifier);
+      splayNodes(paramMakers, arguments),
+      makeBody(arguments),
+      isGenerator: node.isGenerator,
+      asyncModifier: node.asyncModifier,
+    );
   }
 
   @override
@@ -684,7 +764,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var paramMakers = node.params.map(visitSplayable).toList();
     Instantiator makeBody = visit(node.body);
     return (arguments) => ArrowFun(
-        splayNodes(paramMakers, arguments), makeBody(arguments) as Node);
+      splayNodes(paramMakers, arguments),
+      makeBody(arguments) as Node,
+    );
   }
 
   @override
@@ -716,7 +798,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<ObjectInitializer> visitObjectInitializer(
-      ObjectInitializer node) {
+    ObjectInitializer node,
+  ) {
     var propertyMakers = node.properties.map(visitSplayable).toList();
     return (arguments) =>
         ObjectInitializer(splayNodes(propertyMakers, arguments));
@@ -726,8 +809,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator<Property> visitProperty(Property node) {
     var makeName = visit(node.name) as Instantiator<Expression>;
     var makeValue = visit(node.value) as Instantiator<Expression>;
-    return (arguments) => Property(makeName(arguments), makeValue(arguments),
-        isStatic: node.isStatic, isClassProperty: node.isClassProperty);
+    return (arguments) => Property(
+      makeName(arguments),
+      makeValue(arguments),
+      isStatic: node.isStatic,
+      isClassProperty: node.isClassProperty,
+    );
   }
 
   @override
@@ -762,18 +849,24 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeHeritage =
         visitNullable(node.heritage) as Instantiator<Expression?>;
 
-    return (arguments) => ClassExpression(makeName(arguments),
-        makeHeritage(arguments), splayNodes(makeProperties, arguments));
+    return (arguments) => ClassExpression(
+      makeName(arguments),
+      makeHeritage(arguments),
+      splayNodes(makeProperties, arguments),
+    );
   }
 
   @override
   Instantiator<Method> visitMethod(Method node) {
     var makeName = visit(node.name) as Instantiator<Expression>;
     var makeFunction = visit(node.function) as Instantiator<Fun>;
-    return (arguments) => Method(makeName(arguments), makeFunction(arguments),
-        isGetter: node.isGetter,
-        isSetter: node.isSetter,
-        isStatic: node.isStatic);
+    return (arguments) => Method(
+      makeName(arguments),
+      makeFunction(arguments),
+      isGetter: node.isGetter,
+      isSetter: node.isSetter,
+      isStatic: node.isStatic,
+    );
   }
 
   @override
@@ -782,7 +875,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<CommentExpression> visitCommentExpression(
-      CommentExpression node) {
+    CommentExpression node,
+  ) {
     var makeExpr = visit(node.expression) as Instantiator<Expression>;
     return (arguments) => CommentExpression(node.comment, makeExpr(arguments));
   }
@@ -811,7 +905,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   @override
   Instantiator<DestructuredVariable> visitDestructuredVariable(
-      DestructuredVariable node) {
+    DestructuredVariable node,
+  ) {
     var makeName = visit(node.name) as Instantiator<Identifier>;
     var makeProperty =
         visitNullable(node.property) as Instantiator<Expression?>;
@@ -820,29 +915,33 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     var makeDefaultValue =
         visitNullable(node.defaultValue) as Instantiator<Expression?>;
     return (arguments) => DestructuredVariable(
-        name: makeName(arguments),
-        property: makeProperty(arguments),
-        structure: makeStructure(arguments),
-        defaultValue: makeDefaultValue(arguments));
+      name: makeName(arguments),
+      property: makeProperty(arguments),
+      structure: makeStructure(arguments),
+      defaultValue: makeDefaultValue(arguments),
+    );
   }
 
   @override
   Instantiator<ArrayBindingPattern> visitArrayBindingPattern(
-      ArrayBindingPattern node) {
+    ArrayBindingPattern node,
+  ) {
     List<Instantiator> makeVars = node.variables.map(visit).toList();
     return (arguments) => ArrayBindingPattern(splayNodes(makeVars, arguments));
   }
 
   @override
   Instantiator<ObjectBindingPattern> visitObjectBindingPattern(
-      ObjectBindingPattern node) {
+    ObjectBindingPattern node,
+  ) {
     List<Instantiator> makeVars = node.variables.map(visit).toList();
     return (arguments) => ObjectBindingPattern(splayNodes(makeVars, arguments));
   }
 
   @override
   Instantiator<SimpleBindingPattern> visitSimpleBindingPattern(
-          SimpleBindingPattern node) =>
+    SimpleBindingPattern node,
+  ) =>
       (arguments) => SimpleBindingPattern(Identifier(node.name.name));
 }
 

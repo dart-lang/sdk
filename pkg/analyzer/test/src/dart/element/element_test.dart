@@ -18,7 +18,8 @@ main() {
     defineReflectiveTests(ElementAnnotationImplTest);
     defineReflectiveTests(FieldElementImplTest);
     defineReflectiveTests(FunctionTypeImplTest);
-    defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
+    // TODO(scheglov): implement augmentation
+    // defineReflectiveTests(MaybeAugmentedInstanceElementMixinTest);
     defineReflectiveTests(TypeParameterTypeImplTest);
   });
 }
@@ -202,7 +203,7 @@ class A {
   int get g {}
 }
 ''');
-    var elementA = library.getClass2('A')!;
+    var elementA = library.getClass('A')!;
     var getter = elementA.getGetter('g');
     expect(elementA.lookUpGetter(name: 'g', library: library), same(getter));
   }
@@ -221,7 +222,7 @@ part 'a.dart';
 
 class A {}
 ''');
-    var elementA = library.getClass2('A')!;
+    var elementA = library.getClass('A')!;
     var getter = elementA.getGetter('g')!;
     expect(elementA.lookUpGetter(name: 'g', library: library), same(getter));
   }
@@ -233,9 +234,9 @@ class A {
 }
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var getter = classA.getGetter('g');
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
@@ -253,9 +254,9 @@ part 'a.dart';
 class A {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var getter = classA.getGetter('g');
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
@@ -266,9 +267,9 @@ mixin A {
 }
 class B with A {}
 ''');
-    var mixinA = library.getMixin2('A')!;
+    var mixinA = library.getMixin('A')!;
     var getter = mixinA.getGetter('g');
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpGetter(name: 'g', library: library), same(getter));
   }
 
@@ -276,7 +277,7 @@ class B with A {}
     var library = await buildLibrary('''
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     expect(classA.lookUpGetter(name: 'g', library: library), isNull);
   }
 
@@ -285,7 +286,7 @@ class A {}
 class A extends B {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     expect(classA.lookUpGetter(name: 'g', library: library), isNull);
   }
 
@@ -295,7 +296,7 @@ class A {
   int m() {}
 }
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var method = classA.getMethod('m')!;
     expect(classA.lookUpMethod(name: 'm', library: library), same(method));
   }
@@ -314,7 +315,7 @@ part 'a.dart';
 
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var method = classA.getMethod('m')!;
     expect(classA.lookUpMethod(name: 'm', library: library), same(method));
   }
@@ -326,9 +327,9 @@ class A {
 }
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var method = classA.getMethod('m');
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
@@ -346,9 +347,9 @@ part 'a.dart';
 class A {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var method = classA.getMethod('m');
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
@@ -359,9 +360,9 @@ mixin A {
 }
 class B with A {}
 ''');
-    var mixinA = library.getMixin2('A')!;
+    var mixinA = library.getMixin('A')!;
     var method = mixinA.getMethod('m');
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpMethod(name: 'm', library: library), same(method));
   }
 
@@ -369,7 +370,7 @@ class B with A {}
     var library = await buildLibrary('''
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     expect(classA.lookUpMethod(name: 'm', library: library), isNull);
   }
 
@@ -378,7 +379,7 @@ class A {}
 class A extends B {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     expect(classA.lookUpMethod(name: 'm', library: library), isNull);
   }
 
@@ -388,7 +389,7 @@ class A {
   set s(x) {}
 }
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var setter = classA.getSetter('s')!;
     expect(classA.lookUpSetter(name: 's', library: library), same(setter));
   }
@@ -407,7 +408,7 @@ part 'a.dart';
 
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var setter = classA.getSetter('s')!;
     expect(classA.lookUpSetter(name: 's', library: library), same(setter));
   }
@@ -419,9 +420,9 @@ class A {
 }
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var setter = classA.getSetter('s')!;
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
@@ -440,9 +441,9 @@ part 'a.dart';
 class A {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     var setter = classA.getSetter('s')!;
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
@@ -453,9 +454,9 @@ mixin A {
 }
 class B with A {}
 ''');
-    var mixinA = library.getMixin2('A')!;
+    var mixinA = library.getMixin('A')!;
     var setter = mixinA.getSetter('s')!;
-    var classB = library.getClass2('B')!;
+    var classB = library.getClass('B')!;
     expect(classB.lookUpSetter(name: 's', library: library), same(setter));
   }
 
@@ -463,7 +464,7 @@ class B with A {}
     var library = await buildLibrary('''
 class A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     expect(classA.lookUpSetter(name: 's', library: library), isNull);
   }
 
@@ -472,7 +473,7 @@ class A {}
 class A extends B {}
 class B extends A {}
 ''');
-    var classA = library.getClass2('A')!;
+    var classA = library.getClass('A')!;
     expect(classA.lookUpSetter(name: 's', library: library), isNull);
   }
 }
@@ -483,7 +484,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: listNone(intNone));
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       'Iterable<int>',
     );
   }
@@ -492,7 +493,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T', bound: numNone);
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -501,7 +502,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T, promotedBound: listNone(intNone)),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       'Iterable<int>',
     );
   }
@@ -510,7 +511,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T, promotedBound: numNone),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -519,7 +520,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     var T = typeParameter('T');
     _assert_asInstanceOf(
       typeParameterTypeNone(T),
-      typeProvider.iterableElement2,
+      typeProvider.iterableElement,
       null,
     );
   }
@@ -532,7 +533,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
   void test_getElement() {
     var element = typeParameter('E');
     TypeParameterTypeImpl type = typeParameterTypeNone(element);
-    expect(type.element3, element);
+    expect(type.element, element);
   }
 
   void _assert_asInstanceOf(
@@ -540,7 +541,7 @@ class TypeParameterTypeImplTest extends AbstractTypeSystemTest {
     ClassElement element,
     String? expected,
   ) {
-    var result = type.asInstanceOf2(element);
+    var result = type.asInstanceOf(element);
     expect(result?.getDisplayString(), expected);
   }
 }

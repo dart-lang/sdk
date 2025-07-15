@@ -10,7 +10,8 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
+import 'package:analyzer/src/generated/engine.dart'
+    show RecordingDiagnosticListener;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 
@@ -25,13 +26,14 @@ class ParseBase with ResourceProviderMixin {
 
     var featureSet = analysisOptions.contextFeatures;
 
-    var errorListener = RecordingErrorListener();
+    var diagnosticListener = RecordingDiagnosticListener();
 
     var reader = CharSequenceReader(content);
-    var scanner = Scanner(source, reader, errorListener)..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+    var scanner = Scanner(source, reader, diagnosticListener)
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
 
     var token = scanner.tokenize();
     var lineInfo = LineInfo(scanner.lineStarts);
@@ -43,7 +45,7 @@ class ParseBase with ResourceProviderMixin {
 
     var parser = Parser(
       source,
-      errorListener,
+      diagnosticListener,
       featureSet: featureSet,
       languageVersion: languageVersion,
       lineInfo: lineInfo,
@@ -56,7 +58,7 @@ class ParseBase with ResourceProviderMixin {
       content,
       unit.lineInfo,
       unit,
-      errorListener.errors,
+      diagnosticListener.diagnostics,
     );
   }
 }

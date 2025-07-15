@@ -13,7 +13,7 @@ import 'package:analyzer/src/error/codes.dart';
 /// have a redeclare annotation it is being used correctly.
 class RedeclareVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter used to report errors.
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _errorReporter;
 
   /// The current extension type.
   InterfaceElement? _currentExtensionType;

@@ -14,8 +14,8 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// A parser for the textual representation of a code fragment.
 class CodeFragmentParser {
-  /// The error reporter to which diagnostics will be reported.
-  final ErrorReporter errorReporter;
+  /// The diagnostic reporter to which diagnostics will be reported.
+  final DiagnosticReporter diagnosticReporter;
 
   /// The scope in which variables can be looked up.
   VariableScope variableScope;
@@ -30,8 +30,8 @@ class CodeFragmentParser {
   /// The index in the [_tokens] of the next token to be consumed.
   int currentIndex = 0;
 
-  /// Initialize a newly created parser to report errors to the [errorReporter].
-  CodeFragmentParser(this.errorReporter, {VariableScope? scope})
+  /// Initialize a newly created parser to report errors to the [diagnosticReporter].
+  CodeFragmentParser(this.diagnosticReporter, {VariableScope? scope})
     : variableScope = scope ?? VariableScope(null, {});
 
   /// Return the current token, or `null` if the end of the tokens has been
@@ -54,7 +54,7 @@ class CodeFragmentParser {
   List<Accessor>? parseAccessors(String content, int delta) {
     this.delta = delta;
     var scannedTokens =
-        _CodeFragmentScanner(content, delta, errorReporter).scan();
+        _CodeFragmentScanner(content, delta, diagnosticReporter).scan();
     if (scannedTokens == null) {
       // The error has already been reported.
       return null;
@@ -80,7 +80,7 @@ class CodeFragmentParser {
         }
         accessors.add(accessor);
       } else {
-        errorReporter.atOffset(
+        diagnosticReporter.atOffset(
           offset: token.offset + delta,
           length: token.length,
           diagnosticCode: TransformSetErrorCode.wrongToken,
@@ -100,7 +100,7 @@ class CodeFragmentParser {
   Expression? parseCondition(String content, int delta) {
     this.delta = delta;
     var scannedTokens =
-        _CodeFragmentScanner(content, delta, errorReporter).scan();
+        _CodeFragmentScanner(content, delta, diagnosticReporter).scan();
     if (scannedTokens == null) {
       // The error has already been reported.
       return null;
@@ -110,7 +110,7 @@ class CodeFragmentParser {
     var expression = _parseLogicalAndExpression();
     if (currentIndex < _tokens.length) {
       var token = _tokens[currentIndex];
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
         diagnosticCode: TransformSetErrorCode.unexpectedToken,
@@ -148,7 +148,7 @@ class CodeFragmentParser {
         offset = last.offset;
         length = last.length;
       }
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: offset + delta,
         length: length,
         diagnosticCode: TransformSetErrorCode.missingToken,
@@ -157,7 +157,7 @@ class CodeFragmentParser {
       return null;
     }
     if (!validKinds.contains(token.kind)) {
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
         diagnosticCode: TransformSetErrorCode.wrongToken,
@@ -230,7 +230,7 @@ class CodeFragmentParser {
       advance();
       return TypeArgumentAccessor(argumentIndex);
     } else {
-      errorReporter.atOffset(
+      diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
         diagnosticCode: TransformSetErrorCode.unknownAccessor,
@@ -310,7 +310,7 @@ class CodeFragmentParser {
         var variableName = token.lexeme;
         var generator = variableScope.lookup(variableName);
         if (generator == null) {
-          errorReporter.atOffset(
+          diagnosticReporter.atOffset(
             offset: token.offset + delta,
             length: token.length,
             diagnosticCode: TransformSetErrorCode.undefinedVariable,
@@ -341,7 +341,7 @@ class CodeFragmentParser {
       offset = token.offset + delta;
       length = token.length;
     }
-    errorReporter.atOffset(
+    diagnosticReporter.atOffset(
       offset: offset,
       length: length,
       diagnosticCode: TransformSetErrorCode.expectedPrimary,
@@ -372,11 +372,11 @@ class _CodeFragmentScanner {
   /// The offset in the file of the first character in the string being scanned.
   final int delta;
 
-  /// The error reporter to which diagnostics will be reported.
-  final ErrorReporter errorReporter;
+  /// The diagnostic reporter to which diagnostics will be reported.
+  final DiagnosticReporter _diagnosticReporter;
 
   /// Initialize a newly created scanner to scan the given [content].
-  _CodeFragmentScanner(this.content, this.delta, this.errorReporter)
+  _CodeFragmentScanner(this.content, this.delta, this._diagnosticReporter)
     : length = content.length;
 
   /// Return the tokens in the content, or `null` if there is an error in the
@@ -468,7 +468,7 @@ class _CodeFragmentScanner {
 
   /// Report the presence of an invalid character at the given [offset].
   Null _reportInvalidCharacter(int offset) {
-    errorReporter.atOffset(
+    _diagnosticReporter.atOffset(
       offset: offset + delta,
       length: 1,
       diagnosticCode: TransformSetErrorCode.invalidCharacter,

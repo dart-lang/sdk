@@ -35,14 +35,14 @@ class C<V> extends B<V> {
     var C = findElement2.unnamedConstructor('C');
     var C_key = C.superFormalParameter('key');
 
-    var B_key_member = C_key.superConstructorParameter2;
+    var B_key_member = C_key.superConstructorParameter;
     B_key_member as SuperFormalParameterMember;
 
     var B = findElement2.unnamedConstructor('B');
     var B_key = B.superFormalParameter('key');
     assertElement(B_key_member, declaration: B_key, substitution: {'U': 'V'});
 
-    var A_key_member = B_key_member.superConstructorParameter2;
+    var A_key_member = B_key_member.superConstructorParameter;
     A_key_member as ParameterMember;
 
     var A = findElement2.unnamedConstructor('A');
@@ -66,7 +66,7 @@ class B extends A {
 SuperFormalParameter
   type: NamedType
     name: T
-    element2: T@62
+    element2: #E0 T
     type: T
   superKeyword: super
   period: .
@@ -76,7 +76,7 @@ SuperFormalParameter
     typeParameters
       TypeParameter
         name: T
-        declaredElement: T@62
+        declaredElement: <testLibraryFragment> T@62
           defaultType: null
     rightBracket: >
   parameters: FormalParameterList
@@ -87,10 +87,10 @@ SuperFormalParameter
         element2: dart:core::@class::int
         type: int
       name: b
-      declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a::@formalParameter::b
+      declaredElement: <testLibraryFragment> b@69
         type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
+  declaredElement: <testLibraryFragment> a@60
     type: T Function<T>(int)
 ''');
   }
@@ -115,7 +115,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@function::f::@formalParameter::a
+  declaredElement: <testLibraryFragment> a@13
     type: dynamic
 ''');
   }
@@ -137,7 +137,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment> a@59
     type: int?
 ''');
   }
@@ -159,7 +159,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
+  declaredElement: <testLibraryFragment> a@59
     type: int?
 ''');
   }
@@ -182,7 +182,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a
+  declaredElement: <testLibraryFragment> a@76
     type: int
 ''');
   }
@@ -204,7 +204,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment>::@class::B::@constructor::new::@formalParameter::a
+  declaredElement: <testLibraryFragment> a@55
     type: int
 ''');
   }
@@ -227,7 +227,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@class::A::@getter::a#element
+  element: <testLibrary>::@class::A::@getter::a
   staticType: int
 ''');
   }
@@ -248,7 +248,7 @@ class B extends A {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: a
-  element: <testLibraryFragment>::@class::B::@constructor::new::@parameter::a#element
+  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
   staticType: int
 ''');
   }

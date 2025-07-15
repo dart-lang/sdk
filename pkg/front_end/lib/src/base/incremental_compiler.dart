@@ -67,10 +67,11 @@ import '../api_prototype/lowering_predicates.dart'
     show isExtensionThisName, syntheticThisName;
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 import '../builder/builder.dart' show Builder;
+import '../builder/compilation_unit.dart'
+    show CompilationUnit, SourceCompilationUnit;
 import '../builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, ExtensionTypeDeclarationBuilder;
-import '../builder/library_builder.dart'
-    show CompilationUnit, LibraryBuilder, SourceCompilationUnit;
+import '../builder/library_builder.dart' show LibraryBuilder;
 import '../builder/member_builder.dart' show MemberBuilder;
 import '../codes/cfe_codes.dart';
 import '../dill/dill_class_builder.dart' show DillClassBuilder;
@@ -81,11 +82,9 @@ import '../kernel/benchmarker.dart' show BenchmarkPhases, Benchmarker;
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_target.dart' show BuildResult, KernelTarget;
+import '../source/source_compilation_unit.dart' show SourceCompilationUnitImpl;
 import '../source/source_library_builder.dart'
-    show
-        ImplicitLanguageVersion,
-        SourceCompilationUnitImpl,
-        SourceLibraryBuilder;
+    show ImplicitLanguageVersion, SourceLibraryBuilder;
 import '../source/source_loader.dart';
 import '../util/error_reporter_file_copier.dart' show saveAsGzip;
 import '../util/experiment_environment_getter.dart'
@@ -1830,7 +1829,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
 
           debugLibrary.compilationUnit.addSyntheticImport(
-              uri: dependency.importedLibraryReference.canonicalName!.name,
+              importUri:
+                  dependency.importedLibraryReference.asLibrary.importUri,
               prefix: dependency.name,
               combinators: combinators,
               deferred: dependency.isDeferred);

@@ -625,7 +625,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   void prepareTypeParameters(List<TypeParameter> typeParameters) {
-    for (TypeParameter node in typeParameters) {
+    for (int i = 0; i < typeParameters.length; i++) {
+      TypeParameter node = typeParameters[i];
       TypeParameter? newNode = typeParams[node];
       if (newNode == null) {
         newNode = new TypeParameter(node.name);

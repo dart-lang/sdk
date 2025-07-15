@@ -26,11 +26,13 @@ class AddMissingEnumLikeCaseClausesTest extends FixProcessorLintTest {
   String get lintCode => LintNames.exhaustive_cases;
 
   bool Function(Diagnostic) get _filter {
-    var hasError = false;
-    return (error) {
-      var errorCode = error.errorCode;
-      if (!hasError && errorCode is LintCode && errorCode.name == lintCode) {
-        hasError = true;
+    var hasDiagnostic = false;
+    return (diagnostic) {
+      var diagnosticCode = diagnostic.diagnosticCode;
+      if (!hasDiagnostic &&
+          diagnosticCode is LintCode &&
+          diagnosticCode.name == lintCode) {
+        hasDiagnostic = true;
         return true;
       }
       return false;

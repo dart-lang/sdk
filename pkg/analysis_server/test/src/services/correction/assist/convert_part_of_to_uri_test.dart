@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertPartOfToUriTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_PART_OF_TO_URI;
+  AssistKind get kind => DartAssistKind.convertPartOfToUri;
 
   Future<void> test_nonSibling() async {
     newFile('$testPackageLibPath/foo.dart', '''

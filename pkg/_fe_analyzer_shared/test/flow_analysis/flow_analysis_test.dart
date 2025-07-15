@@ -1611,6 +1611,8 @@ main() {
       String? expectedPromotedTypeThen,
       String? expectedPromotedTypeElse, {
       bool inverted = false,
+      bool expectedReachableThen = true,
+      bool expectedReachableElse = true,
     }) {
       var x = Var('x');
       late SsaNode<SharedTypeView> ssaBeforePromotion;
@@ -1620,12 +1622,12 @@ main() {
         if_(
           x.is_(tryPromoteType, isInverted: inverted),
           [
-            checkReachable(true),
+            checkReachable(expectedReachableThen),
             checkPromoted(x, expectedPromotedTypeThen),
             getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
           ],
           [
-            checkReachable(true),
+            checkReachable(expectedReachableElse),
             checkPromoted(x, expectedPromotedTypeElse),
             getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
           ],
@@ -1642,11 +1644,18 @@ main() {
     });
 
     test('isExpression_end does not promote to a supertype', () {
-      _checkIs('int', 'int?', null, null);
+      _checkIs('int', 'int?', null, null, expectedReachableElse: false);
     });
 
     test('isExpression_end does not promote to a supertype, inverted', () {
-      _checkIs('int', 'int?', null, null, inverted: true);
+      _checkIs(
+        'int',
+        'int?',
+        null,
+        null,
+        inverted: true,
+        expectedReachableThen: false,
+      );
     });
 
     test('isExpression_end does not promote to an unrelated type', () {
@@ -2368,7 +2377,10 @@ main() {
           x.as_('int'),
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
-        ]).catch_(body: [checkNotPromoted(x), checkPromoted(y, 'int')]),
+        ]).catch_(
+          type: 'dynamic',
+          body: [checkNotPromoted(x), checkPromoted(y, 'int')],
+        ),
       ]);
     });
 
@@ -2387,6 +2399,7 @@ main() {
             checkPromoted(x, 'int'),
             getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
           ]).catch_(
+            type: 'dynamic',
             body: [
               checkNotPromoted(x),
               getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
@@ -2409,7 +2422,7 @@ main() {
         try_([
           localFunction([x.write(expr('int?'))]),
           return_(),
-        ]).catch_(body: [x.as_('int'), checkNotPromoted(x)]),
+        ]).catch_(type: 'dynamic', body: [x.as_('int'), checkNotPromoted(x)]),
       ]);
     });
 
@@ -2420,8 +2433,11 @@ main() {
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           try_([])
-              .catch_(body: [x.as_('int'), checkPromoted(x, 'int')])
-              .catch_(body: [checkNotPromoted(x)]),
+              .catch_(
+                type: 'dynamic',
+                body: [x.as_('int'), checkPromoted(x, 'int')],
+              )
+              .catch_(type: 'dynamic', body: [checkNotPromoted(x)]),
         ]);
       },
     );
@@ -2434,6 +2450,54 @@ main() {
           exception: e,
           stackTrace: st,
           body: [checkAssigned(e, true), checkAssigned(st, true)],
+        ),
+      ]);
+    });
+
+    test('Exception variable is promotable', () {
+      var e = Var('e');
+      h.run([
+        try_([]).catch_(
+          exception: e,
+          body: [checkNotPromoted(e), e.as_('int'), checkPromoted(e, 'int')],
+        ),
+      ]);
+    });
+
+    test('Exception variable is promotable', () {
+      var e = Var('e');
+      h.run([
+        try_([]).catch_(
+          type: 'Object',
+          exception: e,
+          body: [
+            e.checkType('Object'),
+            checkNotPromoted(e),
+            e.as_('String'),
+            checkPromoted(e, 'String'),
+          ],
+        ),
+      ]);
+    });
+
+    test('StackTrace variable is promotable', () {
+      TypeRegistry.addInterfaceTypeName('StackTraceSubtype');
+      h.addSuperInterfaces(
+        'StackTraceSubtype',
+        (_) => [Type('StackTrace'), Type('Object')],
+      );
+      var e = Var('e');
+      var st = Var('st');
+      h.run([
+        try_([]).catch_(
+          exception: e,
+          stackTrace: st,
+          body: [
+            st.checkType('StackTrace'),
+            checkNotPromoted(st),
+            st.as_('StackTraceSubtype'),
+            checkPromoted(st, 'StackTraceSubtype'),
+          ],
         ),
       ]);
     });
@@ -2451,7 +2515,7 @@ main() {
           try_([
             x.as_('int'),
             y.as_('int'),
-          ]).catch_(body: [x.as_('int'), z.as_('int')]),
+          ]).catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
           // Only x should be promoted, because it's the only variable
           // promoted in both the try body and the catch handler.
           checkPromoted(x, 'int'), checkNotPromoted(y), checkNotPromoted(z),
@@ -2468,8 +2532,8 @@ main() {
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(z, type: 'int?', initializer: expr('int?')),
         try_([return_()])
-            .catch_(body: [x.as_('int'), y.as_('int')])
-            .catch_(body: [x.as_('int'), z.as_('int')]),
+            .catch_(type: 'dynamic', body: [x.as_('int'), y.as_('int')])
+            .catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
         // Only x should be promoted, because it's the only variable promoted
         // in both catch handlers.
         checkPromoted(x, 'int'), checkNotPromoted(y), checkNotPromoted(z),
@@ -3706,7 +3770,7 @@ main() {
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
             chain: null,
-            ofInterest: isEmpty,
+            ofInterest: [Type('int')],
             assigned: true,
             unassigned: false,
           ),
@@ -8833,7 +8897,7 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('num')),
-          match(wildcard().as_('int'), x),
+          patternVariableDeclaration(wildcard().as_('int'), x),
           checkNotPromoted(x),
         ]);
       });
@@ -12282,324 +12346,251 @@ main() {
 
     group('Try/finally layering order:', () {
       group('Local variables:', () {
-        test('When disabled, promotions in `finally` applied first', () {
-          h.disableSoundFlowAnalysis();
-          var x = Var('x');
-          var y = Var('y');
+        late Var x, y;
+
+        setUp(() {
+          x = Var('x');
+          y = Var('y');
+        });
+
+        void checkPromotionsAfterTryFinally(List<ProtoStatement> expectations) {
           h.run([
             declare(x, initializer: expr('Object')),
             declare(y, initializer: expr('Object')),
-            if_(
-              expr('bool'),
-              [
-                x.as_('num'),
-                y.as_('num'),
-                // The promotion chains for `x` and `y` are both `[num]`.
-                checkPromoted(x, 'num'),
-                checkPromoted(y, 'num'),
-              ],
-              [
-                try_([
-                  x.as_('num'),
-                  y.as_('int'),
-                  checkPromoted(x, 'num'),
-                  checkPromoted(y, 'int'),
-                ]).finally_([
-                  // Neither `x` nor `y` is promoted at this point, because in
-                  // principle an exception could have occurred at any point in
-                  // the `try` block.
-                  checkNotPromoted(x),
-                  checkNotPromoted(y),
-                  x.as_('int'),
-                  y.as_('num'),
-                  checkPromoted(x, 'int'),
-                  checkPromoted(y, 'num'),
-                ]),
-                // After the try/finally, both `x` and `y` are fully promoted to
-                // `int`.
-                checkPromoted(x, 'int'),
-                checkPromoted(y, 'int'),
-                // But since the promotions from the `try` block are layered
-                // over the promotions from the `finally` block, `x` has
-                // promotion chain `[int]`, whereas `y` has promotion chain
-                // `[num, int]`. Therefore, after the `if` and `else` control
-                // flow paths are joined...
-              ],
-            ),
-            // `x` is no longer promoted at all (since `[num]` and `[int]` have
-            // no types in common), whereas `y` is promoted to `num` (since
-            // `[num]` and `[num, int]` both contain the type `num`).
-            checkNotPromoted(x),
-            checkPromoted(y, 'num'),
+            try_([
+              x.as_('num'),
+              y.as_('int'),
+              checkPromoted(x, 'num'),
+              checkPromoted(y, 'int'),
+            ]).finally_([
+              // Neither `x` nor `y` is promoted at this point, because in
+              // principle an exception could have occurred at any point in the
+              // `try` block.
+              checkNotPromoted(x),
+              checkNotPromoted(y),
+              x.as_('int'),
+              y.as_('num'),
+              checkPromoted(x, 'int'),
+              checkPromoted(y, 'num'),
+            ]),
+            ...expectations,
+          ]);
+        }
+
+        test('When disabled, promotions in `finally` applied first', () {
+          h.disableSoundFlowAnalysis();
+          checkPromotionsAfterTryFinally([
+            // After the try/finally, both `x` and `y` are fully promoted to
+            // `int`. But since the promotions from the `try` block are layered
+            // over the promotions from the `finally` block, `x` has promotion
+            // chain `[int]`, whereas `y` has promotion chain `[num, int]`.
+            checkPromotionChain(x, ['int']),
+            checkPromotionChain(y, ['num', 'int']),
           ]);
         });
 
         test('When enabled, promotions in `try` applied first', () {
-          var x = Var('x');
-          var y = Var('y');
-          h.run([
-            declare(x, initializer: expr('Object')),
-            declare(y, initializer: expr('Object')),
-            if_(
-              expr('bool'),
-              [
-                x.as_('num'),
-                y.as_('num'),
-                // The promotion chains for `x` and `y` are both `[num]`.
-                checkPromoted(x, 'num'),
-                checkPromoted(y, 'num'),
-              ],
-              [
-                try_([
-                  x.as_('num'),
-                  y.as_('int'),
-                  checkPromoted(x, 'num'),
-                  checkPromoted(y, 'int'),
-                ]).finally_([
-                  // Neither `x` nor `y` is promoted at this point, because in
-                  // principle an exception could have occurred at any point in
-                  // the `try` block.
-                  checkNotPromoted(x),
-                  checkNotPromoted(y),
-                  x.as_('int'),
-                  y.as_('num'),
-                  checkPromoted(x, 'int'),
-                  checkPromoted(y, 'num'),
-                ]),
-                // After the try/finally, both `x` and `y` are fully promoted to
-                // `int`.
-                checkPromoted(x, 'int'),
-                checkPromoted(y, 'int'),
-                // But since the promotions from the `finally` block are layered
-                // over the promotions from the `try` block, `x` has
-                // promotion chain `[num, int]`, whereas `y` has promotion chain
-                // `[int]`. Therefore, after the `if` and `else` control flow
-                // paths are joined...
-              ],
-            ),
-            // `x` is promoted to `num` (since `[num]` and `[num, int]` both
-            // contain the type `num`), whereas `y` is no longer promoted at all
-            // (since `[num]` and `[int]` have no types in common).
-            checkPromoted(x, 'num'),
-            checkNotPromoted(y),
+          checkPromotionsAfterTryFinally([
+            // After the try/finally, both `x` and `y` are fully promoted to
+            // `int`. But since the promotions from the `finally` block are
+            // layered over the promotions from the `try` block, `x` has
+            // promotion chain `[num, int]`, whereas `y` has promotion chain
+            // `[int]`.
+            checkPromotionChain(x, ['num', 'int']),
+            checkPromotionChain(y, ['int']),
           ]);
         });
       });
 
       group('Fields of unmodified local variables:', () {
-        test('When disabled, promotions in `finally` applied first', () {
-          h.disableSoundFlowAnalysis();
+        late Var x, y;
+
+        setUp(() {
+          x = Var('x');
+          y = Var('y');
+        });
+
+        void checkPromotionsAfterTryFinally(List<ProtoStatement> expectations) {
           h.addMember('C', '_f', 'Object', promotable: true);
-          var x = Var('x');
-          var y = Var('y');
           h.run([
             declare(x, initializer: expr('C')),
             declare(y, initializer: expr('C')),
-            if_(
-              expr('bool'),
-              [
-                x.property('_f').as_('num'),
-                y.property('_f').as_('num'),
-                // The promotion chains for `x._f` and `y._f` are both `[num]`.
-                checkPromoted(x.property('_f'), 'num'),
-                checkPromoted(y.property('_f'), 'num'),
-              ],
-              [
-                try_([
-                  x.property('_f').as_('num'),
-                  y.property('_f').as_('int'),
-                  checkPromoted(x.property('_f'), 'num'),
-                  checkPromoted(y.property('_f'), 'int'),
-                ]).finally_([
-                  // Neither `x._f` nor `y._f` is promoted at this point,
-                  // because in principle an exception could have occurred at
-                  // any point in the `try` block.
-                  checkNotPromoted(x.property('_f')),
-                  checkNotPromoted(y.property('_f')),
-                  x.property('_f').as_('int'),
-                  y.property('_f').as_('num'),
-                  checkPromoted(x.property('_f'), 'int'),
-                  checkPromoted(y.property('_f'), 'num'),
-                ]),
-                // After the try/finally, both `x._f` and `y._f` are fully
-                // promoted to `int`.
-                checkPromoted(x.property('_f'), 'int'),
-                checkPromoted(y.property('_f'), 'int'),
-                // But since the promotions from the `try` block are layered
-                // over the promotions from the `finally` block, `x._f` has
-                // promotion chain `[int]`, whereas `y._f` has promotion chain
-                // `[num, int]`. Therefore, after the `if` and `else` control
-                // flow paths are joined...
-              ],
-            ),
-            // `x._f` is no longer promoted at all (since `[num]` and `[int]`
-            // have no types in common), whereas `y._f` is promoted to `num`
-            // (since `[num]` and `[num, int]` both contain the type `num`).
-            checkNotPromoted(x.property('_f')),
-            checkPromoted(y.property('_f'), 'num'),
+            try_([
+              x.property('_f').as_('num'),
+              y.property('_f').as_('int'),
+              checkPromoted(x.property('_f'), 'num'),
+              checkPromoted(y.property('_f'), 'int'),
+            ]).finally_([
+              // Neither `x._f` nor `y._f` is promoted at this point, because in
+              // principle an exception could have occurred at any point in the
+              // `try` block.
+              checkNotPromoted(x.property('_f')),
+              checkNotPromoted(y.property('_f')),
+              x.property('_f').as_('int'),
+              y.property('_f').as_('num'),
+              checkPromoted(x.property('_f'), 'int'),
+              checkPromoted(y.property('_f'), 'num'),
+            ]),
+            ...expectations,
+          ]);
+        }
+
+        test('When disabled, promotions in `finally` applied first', () {
+          h.disableSoundFlowAnalysis();
+          checkPromotionsAfterTryFinally([
+            // After the try/finally, both `x._f` and `y._f` are fully promoted
+            // to `int`. But since the promotions from the `try` block are
+            // layered over the promotions from the `finally` block, `x._f` has
+            // promotion chain `[int]`, whereas `y._f` has promotion chain
+            // `[num, int]`.
+            checkPromotionChain(x.property('_f'), ['int']),
+            checkPromotionChain(y.property('_f'), ['num', 'int']),
           ]);
         });
 
         test('When enabled, promotions in `try` applied first', () {
-          h.addMember('C', '_f', 'Object', promotable: true);
-          var x = Var('x');
-          var y = Var('y');
-          h.run([
-            declare(x, initializer: expr('C')),
-            declare(y, initializer: expr('C')),
-            if_(
-              expr('bool'),
-              [
-                x.property('_f').as_('num'),
-                y.property('_f').as_('num'),
-                // The promotion chains for `x._f` and `y._f` are both `[num]`.
-                checkPromoted(x.property('_f'), 'num'),
-                checkPromoted(y.property('_f'), 'num'),
-              ],
-              [
-                try_([
-                  x.property('_f').as_('num'),
-                  y.property('_f').as_('int'),
-                  checkPromoted(x.property('_f'), 'num'),
-                  checkPromoted(y.property('_f'), 'int'),
-                ]).finally_([
-                  // Neither `x._f` nor `y._f` is promoted at this point,
-                  // because in principle an exception could have occurred at
-                  // any point in the `try` block.
-                  checkNotPromoted(x.property('_f')),
-                  checkNotPromoted(y.property('_f')),
-                  x.property('_f').as_('int'),
-                  y.property('_f').as_('num'),
-                  checkPromoted(x.property('_f'), 'int'),
-                  checkPromoted(y.property('_f'), 'num'),
-                ]),
-                // After the try/finally, both `x._f` and `y._f` are fully
-                // promoted to `int`.
-                checkPromoted(x.property('_f'), 'int'),
-                checkPromoted(y.property('_f'), 'int'),
-                // But since the promotions from the `finally` block are layered
-                // over the promotions from the `try` block, `x._f` has
-                // promotion chain `[num, int]`, whereas `y._f` has promotion
-                // chain `[int]`. Therefore, after the `if` and `else` control
-                // flow paths are joined...
-              ],
-            ),
-            // `x._f` is promoted to `num` (since `[num]` and `[num, int]` both
-            // contain the type `num`), whereas `y._f` is no longer promoted at
-            // all (since `[num]` and `[int]` have no types in common).
-            checkPromoted(x.property('_f'), 'num'),
-            checkNotPromoted(y.property('_f')),
+          checkPromotionsAfterTryFinally([
+            // After the try/finally, both `x._f` and `y._f` are fully promoted
+            // to `int`. But since the promotions from the `finally` block are
+            // layered over the promotions from the `try` block, `x._f` has
+            // promotion chain `[num, int]`, whereas `y._f` has promotion chain
+            // `[int]`.
+            checkPromotionChain(x.property('_f'), ['num', 'int']),
+            checkPromotionChain(y.property('_f'), ['int']),
           ]);
         });
       });
 
       group('Fields of local variables modified in try clause:', () {
-        test('When disabled, promotions in `try` applied first', () {
-          h.disableSoundFlowAnalysis();
+        late Var x, y;
+
+        setUp(() {
+          x = Var('x');
+          y = Var('y');
+        });
+
+        void checkPromotionsAfterTryFinally(List<ProtoStatement> expectations) {
           h.addMember('C', '_f', 'Object', promotable: true);
-          var x = Var('x');
-          var y = Var('y');
           h.run([
             declare(x, initializer: expr('C')),
             declare(y, initializer: expr('C')),
-            if_(
-              expr('bool'),
-              [
-                x.property('_f').as_('num'),
-                y.property('_f').as_('num'),
-                // The promotion chains for `x._f` and `y._f` are both `[num]`.
-                checkPromoted(x.property('_f'), 'num'),
-                checkPromoted(y.property('_f'), 'num'),
-              ],
-              [
-                try_([
-                  x.write(expr('C')),
-                  y.write(expr('C')),
-                  x.property('_f').as_('num'),
-                  y.property('_f').as_('int'),
-                  checkPromoted(x.property('_f'), 'num'),
-                  checkPromoted(y.property('_f'), 'int'),
-                ]).finally_([
-                  // Neither `x._f` nor `y._f` is promoted at this point,
-                  // because in principle an exception could have occurred at
-                  // any point in the `try` block.
-                  checkNotPromoted(x.property('_f')),
-                  checkNotPromoted(y.property('_f')),
-                  x.property('_f').as_('int'),
-                  y.property('_f').as_('num'),
-                  checkPromoted(x.property('_f'), 'int'),
-                  checkPromoted(y.property('_f'), 'num'),
-                ]),
-                // After the try/finally, both `x._f` and `y._f` are fully
-                // promoted to `int`.
-                checkPromoted(x.property('_f'), 'int'),
-                checkPromoted(y.property('_f'), 'int'),
-                // But since the promotions from the `finally` block are layered
-                // over the promotions from the `try` block, `x._f` has
-                // promotion chain `[num, int]`, whereas `y._f` has promotion
-                // chain `[int]`. Therefore, after the `if` and `else` control
-                // flow paths are joined...
-              ],
-            ),
-            // `x._f` is promoted to `num` (since `[num]` and `[num, int]` both
-            // contain the type `num`), whereas `y._f` is no longer promoted at
-            // all (since `[num]` and `[int]` have no types in common).
-            checkPromoted(x.property('_f'), 'num'),
-            checkNotPromoted(y.property('_f')),
+            try_([
+              x.write(expr('C')),
+              y.write(expr('C')),
+              x.property('_f').as_('num'),
+              y.property('_f').as_('int'),
+              checkPromoted(x.property('_f'), 'num'),
+              checkPromoted(y.property('_f'), 'int'),
+            ]).finally_([
+              // Neither `x._f` nor `y._f` is promoted at this point, because in
+              // principle an exception could have occurred at any point in the
+              // `try` block.
+              checkNotPromoted(x.property('_f')),
+              checkNotPromoted(y.property('_f')),
+              x.property('_f').as_('int'),
+              y.property('_f').as_('num'),
+              checkPromoted(x.property('_f'), 'int'),
+              checkPromoted(y.property('_f'), 'num'),
+            ]),
+            ...expectations,
+          ]);
+        }
+
+        test('When disabled, promotions in `try` applied first', () {
+          h.disableSoundFlowAnalysis();
+          checkPromotionsAfterTryFinally([
+            // After the try/finally, both `x._f` and `y._f` are fully promoted
+            // to `int`. But since the promotions from the `finally` block are
+            // layered over the promotions from the `try` block, `x._f` has
+            // promotion chain `[num, int]`, whereas `y._f` has promotion chain
+            // `[int]`.
+            checkPromotionChain(x.property('_f'), ['num', 'int']),
+            checkPromotionChain(y.property('_f'), ['int']),
           ]);
         });
 
         test('When enabled, promotions in `try` applied first', () {
-          h.addMember('C', '_f', 'Object', promotable: true);
+          checkPromotionsAfterTryFinally([
+            // After the try/finally, both `x._f` and `y._f` are fully promoted
+            // to `int`. But since the promotions from the `finally` block are
+            // layered over the promotions from the `try` block, `x._f` has
+            // promotion chain `[num, int]`, whereas `y._f` has promotion chain
+            // `[int]`.
+            checkPromotionChain(x.property('_f'), ['num', 'int']),
+            checkPromotionChain(y.property('_f'), ['int']),
+          ]);
+        });
+      });
+    });
+
+    test('When disabled, full demotion clears types of interest', () {
+      var x = Var('x');
+      h.disableSoundFlowAnalysis();
+      h.run([
+        declare(x, initializer: expr('Object')),
+        x.as_('num'),
+        checkPromoted(x, 'num'),
+        x.write(expr('String')),
+        checkNotPromoted(x),
+        x.write(expr('num')),
+        checkNotPromoted(x),
+      ]);
+    });
+
+    test('When enabled, full demotion preserves types of interest', () {
+      var x = Var('x');
+      h.run([
+        declare(x, initializer: expr('Object')),
+        x.as_('num'),
+        checkPromoted(x, 'num'),
+        x.write(expr('String')),
+        checkNotPromoted(x),
+        x.write(expr('num')),
+        checkPromoted(x, 'num'),
+      ]);
+    });
+
+    group('False branch for trivially satisfied "is" test:', () {
+      group('When enabled, sets unreachable:', () {
+        test('Promotable target', () {
           var x = Var('x');
-          var y = Var('y');
           h.run([
-            declare(x, initializer: expr('C')),
-            declare(y, initializer: expr('C')),
-            if_(
-              expr('bool'),
-              [
-                x.property('_f').as_('num'),
-                y.property('_f').as_('num'),
-                // The promotion chains for `x._f` and `y._f` are both `[num]`.
-                checkPromoted(x.property('_f'), 'num'),
-                checkPromoted(y.property('_f'), 'num'),
-              ],
-              [
-                try_([
-                  x.write(expr('C')),
-                  y.write(expr('C')),
-                  x.property('_f').as_('num'),
-                  y.property('_f').as_('int'),
-                  checkPromoted(x.property('_f'), 'num'),
-                  checkPromoted(y.property('_f'), 'int'),
-                ]).finally_([
-                  // Neither `x._f` nor `y._f` is promoted at this point,
-                  // because in principle an exception could have occurred at
-                  // any point in the `try` block.
-                  checkNotPromoted(x.property('_f')),
-                  checkNotPromoted(y.property('_f')),
-                  x.property('_f').as_('int'),
-                  y.property('_f').as_('num'),
-                  checkPromoted(x.property('_f'), 'int'),
-                  checkPromoted(y.property('_f'), 'num'),
-                ]),
-                // After the try/finally, both `x._f` and `y._f` are fully
-                // promoted to `int`.
-                checkPromoted(x.property('_f'), 'int'),
-                checkPromoted(y.property('_f'), 'int'),
-                // But since the promotions from the `finally` block are layered
-                // over the promotions from the `try` block, `x._f` has
-                // promotion chain `[num, int]`, whereas `y._f` has promotion
-                // chain `[int]`. Therefore, after the `if` and `else` control
-                // flow paths are joined...
-              ],
-            ),
-            // `x._f` is promoted to `num` (since `[num]` and `[num, int]` both
-            // contain the type `num`), whereas `y._f` is no longer promoted at
-            // all (since `[num]` and `[int]` have no types in common).
-            checkPromoted(x.property('_f'), 'num'),
-            checkNotPromoted(y.property('_f')),
+            declare(x, initializer: expr('int')),
+            if_(x.is_('int', isInverted: true), [
+              checkNotPromoted(x),
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('Non-promotable target', () {
+          h.run([
+            if_(expr('int').is_('int', isInverted: true), [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+      });
+
+      group('When disabled, leaves reachable:', () {
+        test('Promotable target', () {
+          h.disableSoundFlowAnalysis();
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int')),
+            if_(x.is_('int', isInverted: true), [
+              checkNotPromoted(x),
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        test('Non-promotable target', () {
+          h.disableSoundFlowAnalysis();
+          h.run([
+            if_(expr('int').is_('int', isInverted: true), [
+              checkReachable(true),
+            ]),
           ]);
         });
       });

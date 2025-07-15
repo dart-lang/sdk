@@ -60,7 +60,7 @@ class C {
       // [error column 7, length 1]
       // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
       // [cfe] Local variable 'P' can't be referenced before it is declared.
-      // [cfe] The method 'P' isn't defined for the class 'C'.
+      // [cfe] The method 'P' isn't defined for the type 'C'.
     }
 
     void P() {

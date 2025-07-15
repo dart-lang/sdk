@@ -81,9 +81,9 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     --single-root-scheme=org-dartlang-sdk \
     --single-root-base=$checkout/ \
     org-dartlang-sdk:///sdk/lib/libraries.json \
-    vm_outline_strong.dill \
-    vm_platform_strong.dill \
-    vm_outline_strong.dill
+    vm_outline.dill \
+    vm_platform.dill \
+    vm_outline.dill
 
 $checkout/tools/sdks/dart-sdk/bin/dart \
     --packages=$checkout/.dart_tool/package_config.json \
@@ -93,7 +93,7 @@ $checkout/tools/sdks/dart-sdk/bin/dart \
     --single-root-scheme=org-dartlang-sdk \
     --single-root-base=flutter/engine/src \
     org-dartlang-sdk:///flutter/lib/snapshot/libraries.json \
-    vm_outline_strong.dill \
+    vm_outline.dill \
     flutter_patched_sdk/platform_strong.dill \
     flutter_patched_sdk/outline_strong.dill
 

@@ -15,12 +15,12 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
   ConstructorInitializerScope(super.parent, ConstructorElement element) {
-    var hasWildcardVariables = element.library2.featureSet.isEnabled(
+    var hasWildcardVariables = element.library.featureSet.isEnabled(
       Feature.wildcard_variables,
     );
     for (var formalParameter in element.formalParameters) {
       // Skip wildcards.
-      if (formalParameter.name3 == '_' && hasWildcardVariables) {
+      if (formalParameter.name == '_' && hasWildcardVariables) {
         continue;
       }
       _addGetter(formalParameter);
@@ -48,10 +48,8 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
         // TODO(kallentu): Handle combinators.
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
-          var element =
-              importedLibrary.session.elementFactory.elementOfReference2(
-                reference,
-              )!;
+          var element = importedLibrary.session.elementFactory
+              .elementOfReference3(reference);
           if (element is SetterElement) {
             _addSetter(element);
           } else {
@@ -115,7 +113,7 @@ class FormalParameterScope extends EnclosedScope {
 /// Tracking information for all import in [LibraryFragmentImpl].
 class ImportsTracking {
   /// Tracking information for each import prefix.
-  final Map<PrefixElementImpl2?, ImportsTrackingOfPrefix> map;
+  final Map<PrefixElementImpl?, ImportsTrackingOfPrefix> map;
 
   ImportsTracking({required this.map});
 
@@ -180,12 +178,12 @@ class ImportsTrackingOfPrefix {
     var accessedElements = elementsOf(import);
 
     // SAFETY: the scope adds only imports with libraries.
-    var importedLibrary = import.importedLibrary2!;
+    var importedLibrary = import.importedLibrary!;
     var elementFactory = importedLibrary.session.elementFactory;
 
     for (var exportedReference in importedLibrary.exportedReferences) {
       var reference = exportedReference.reference;
-      var element = elementFactory.elementOfReference2(reference)!;
+      var element = elementFactory.elementOfReference3(reference);
 
       // Check only accessed elements.
       if (!accessedElements.contains(element)) {
@@ -247,13 +245,13 @@ class ImportsTrackingOfPrefix {
 
   void _buildElementToImportsMap() {
     for (var import in scope._importElements) {
-      var importedLibrary = import.importedLibrary2!;
+      var importedLibrary = import.importedLibrary!;
       var elementFactory = importedLibrary.session.elementFactory;
       var combinators = import.combinators.build();
       for (var exportedReference in importedLibrary.exportedReferences) {
         var reference = exportedReference.reference;
         if (combinators.allows(reference.name)) {
-          var element = elementFactory.elementOfReference2(reference)!;
+          var element = elementFactory.elementOfReference3(reference);
           (_elementImports[element] ??= []).add(import);
         }
       }
@@ -287,8 +285,8 @@ class LibraryDeclarations with _GettersAndSetters {
 
     // Add implicit 'dart:core' declarations.
     if ('${library.source.uri}' == 'dart:core') {
-      _addGetter(DynamicElementImpl2.instance);
-      _addGetter(NeverElementImpl2.instance);
+      _addGetter(DynamicElementImpl.instance);
+      _addGetter(NeverElementImpl.instance);
     }
 
     extensions = extensions.toFixedList();
@@ -312,7 +310,7 @@ class LibraryFragmentScope implements Scope {
   final LibraryFragmentImpl fragment;
   final PrefixScope noPrefixScope;
 
-  final Map<String, PrefixElementImpl2> _prefixElements = {};
+  final Map<String, PrefixElementImpl> _prefixElements = {};
 
   /// The cached result for [accessibleExtensions].
   List<ExtensionElement>? _extensions;
@@ -326,7 +324,7 @@ class LibraryFragmentScope implements Scope {
   ImportsTracking? _importsTracking;
 
   factory LibraryFragmentScope(LibraryFragmentImpl fragment) {
-    var parent = fragment.enclosingElement3?.scope;
+    var parent = fragment.enclosingElement?.scope;
     return LibraryFragmentScope._(
       parent: parent,
       fragment: fragment,
@@ -345,7 +343,7 @@ class LibraryFragmentScope implements Scope {
     required this.noPrefixScope,
   }) {
     for (var prefix in fragment.prefixes) {
-      if (prefix.name3 case var name?) {
+      if (prefix.name case var name?) {
         _prefixElements[name] = prefix;
       }
       prefix.scope = PrefixScope(
@@ -420,7 +418,7 @@ class LibraryFragmentScope implements Scope {
     _importsTracking?.notifyExtensionUsed(element);
   }
 
-  PrefixScope? _getParentPrefixScope(PrefixElementImpl2 prefix) {
+  PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
     var isDeferred = prefix.imports.any((import) {
       return import.prefix2?.isDeferred ?? false;
     });
@@ -429,7 +427,7 @@ class LibraryFragmentScope implements Scope {
     }
 
     for (var scope = parent; scope != null; scope = scope.parent) {
-      var parentPrefix = scope._prefixElements[prefix.name3];
+      var parentPrefix = scope._prefixElements[prefix.name];
       if (parentPrefix != null) {
         return parentPrefix.scope;
       }
@@ -521,7 +519,7 @@ class PrefixScope implements Scope {
         for (var exportedReference in importedLibrary.exportedReferences) {
           var reference = exportedReference.reference;
           if (combinators.allows(reference.name)) {
-            var element = elementFactory.elementOfReference2(reference)!;
+            var element = elementFactory.elementOfReference3(reference);
             if (_shouldAdd(importedLibrary, element)) {
               _add(
                 element,
@@ -557,7 +555,7 @@ class PrefixScope implements Scope {
     if (deferredLibrary != null &&
         id == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
       return ScopeLookupResultImpl(
-        getter2: deferredLibrary.loadLibraryFunction2,
+        getter2: deferredLibrary.loadLibraryFunction,
         setter2: null,
       );
     }
@@ -667,9 +665,9 @@ class PrefixScope implements Scope {
     _addElement(conflictingElements, existing);
     _addElement(conflictingElements, other);
 
-    return MultiplyDefinedElementImpl2(
+    return MultiplyDefinedElementImpl(
       libraryFragment,
-      conflictingElements.first.name3!,
+      conflictingElements.first.name!,
       conflictingElements.toList(),
     );
   }
@@ -682,7 +680,7 @@ class PrefixScope implements Scope {
     // records are released.
     if (!libraryElement.featureSet.isEnabled(Feature.records)) {
       if (importedLibrary.isInSdk &&
-          element is ClassElementImpl2 &&
+          element is ClassElementImpl &&
           element.isDartCoreRecord) {
         return false;
       }
@@ -691,7 +689,7 @@ class PrefixScope implements Scope {
   }
 
   static void _addElement(Set<Element> conflictingElements, Element element) {
-    if (element is MultiplyDefinedElementImpl2) {
+    if (element is MultiplyDefinedElementImpl) {
       conflictingElements.addAll(element.conflictingElements2);
     } else {
       conflictingElements.add(element);
@@ -699,13 +697,13 @@ class PrefixScope implements Scope {
   }
 
   static bool _isSdkElement(Element element) {
-    if (element is DynamicElementImpl2 || element is NeverElementImpl2) {
+    if (element is DynamicElementImpl || element is NeverElementImpl) {
       return true;
     }
     if (element is MultiplyDefinedElement) {
       return false;
     }
-    return element.library2!.isInSdk;
+    return element.library!.isInSdk;
   }
 }
 

@@ -6,13 +6,13 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.g.dart';
+import 'package:analyzer/src/error/codes.dart';
 
 /// Verifies various data parsed in doc comments.
 class DocCommentVerifier {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  DocCommentVerifier(this._errorReporter);
+  DocCommentVerifier(this._diagnosticReporter);
 
   void docDirective(DocDirective docDirective) {
     switch (docDirective) {
@@ -35,14 +35,14 @@ class DocCommentVerifier {
   void docImport(DocImport docImport) {
     var deferredKeyword = docImport.import.deferredKeyword;
     if (deferredKeyword != null) {
-      _errorReporter.atToken(
+      _diagnosticReporter.atToken(
         deferredKeyword,
         WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED,
       );
     }
     var configurations = docImport.import.configurations;
     if (configurations.isNotEmpty) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: configurations.first.offset,
         length: configurations.last.end - configurations.first.offset,
         diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS,
@@ -52,7 +52,7 @@ class DocCommentVerifier {
     // TODO(srawlins): Support combinators.
     var combinators = docImport.import.combinators;
     if (combinators.isNotEmpty) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: combinators.first.offset,
         length: combinators.last.end - combinators.first.offset,
         diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS,
@@ -64,7 +64,7 @@ class DocCommentVerifier {
     // reverted as it increased memory usage.
     var prefix = docImport.import.prefix;
     if (prefix != null) {
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: prefix.offset,
         length: prefix.end - prefix.offset,
         diagnosticCode: WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX,
@@ -80,7 +80,7 @@ class DocCommentVerifier {
     if (positionalArgumentCount < requiredCount) {
       var gap = requiredCount - positionalArgumentCount;
       if (gap == 1) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
           diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT,
@@ -91,7 +91,7 @@ class DocCommentVerifier {
           required[required.length - 2].name,
           required.last.name,
         ];
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
           diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS,
@@ -103,7 +103,7 @@ class DocCommentVerifier {
           required[required.length - 2].name,
           required.last.name,
         ];
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
           diagnosticCode: WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS,
@@ -121,7 +121,7 @@ class DocCommentVerifier {
     if (positionalArgumentCount > requiredCount) {
       var errorOffset = tag.positionalArguments[requiredCount].offset;
       var errorLength = tag.positionalArguments.last.end - errorOffset;
-      _errorReporter.atOffset(
+      _diagnosticReporter.atOffset(
         offset: errorOffset,
         length: errorLength,
         diagnosticCode: WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS,
@@ -131,7 +131,7 @@ class DocCommentVerifier {
 
     for (var namedArgument in tag.namedArguments) {
       if (!tag.type.namedParameters.containsNamed(namedArgument.name)) {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: namedArgument.offset,
           length: namedArgument.end - namedArgument.offset,
           diagnosticCode:
@@ -153,7 +153,7 @@ class DocCommentVerifier {
       var argument = tag.positionalArguments[i];
 
       void reportWrongFormat() {
-        _errorReporter.atOffset(
+        _diagnosticReporter.atOffset(
           offset: argument.offset,
           length: argument.end - argument.offset,
           diagnosticCode: WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT,

@@ -35,7 +35,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
+  AssistKind get assistKind => DartAssistKind.convertToSwitchExpression;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -134,7 +134,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '${functionElement!.name3}(');
+      builder.addSimpleInsertion(node.offset, '${functionElement!.name}(');
 
       var groupCount = switchType.groups.length;
       for (var i = 0; i < groupCount; ++i) {
@@ -226,7 +226,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
         node.offset,
-        '${writeElement!.name3} ${assignmentOperator!.lexeme} ',
+        '${writeElement!.name} ${assignmentOperator!.lexeme} ',
       );
 
       var groupCount = switchType.groups.length;

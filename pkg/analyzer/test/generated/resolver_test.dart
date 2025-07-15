@@ -257,7 +257,7 @@ A f(A p) {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@function::f::@parameter::p#element
+    element: <testLibrary>::@function::f::@formalParameter::p
     staticType: B
   operator: .
   methodName: SimpleIdentifier

@@ -50,7 +50,7 @@ void main() {
             ],
           );
           expect(result.exitCode, 64);
-          expect(result.stdout, contains('Observatory listening'));
+          expect(result.stdout, contains('The Dart VM service is listening'));
           expect(
             result.stderr,
             contains(
@@ -100,7 +100,7 @@ void main() {
             ],
           );
           expect(result.exitCode, 254);
-          expect(result.stdout, contains('Observatory listening'));
+          expect(result.stdout, contains('The Dart VM service is listening'));
           expect(
             result.stderr,
             contains(

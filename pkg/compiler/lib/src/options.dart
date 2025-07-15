@@ -621,6 +621,10 @@ class CompilerOptions implements DiagnosticOptions {
   /// during each phase of compilation.
   bool showInternalProgress = false;
 
+  /// Omit memory usage in the summary printed to the console at the end of
+  /// each compilation.
+  bool omitMemorySummary = false;
+
   /// Enable printing of metrics at end of compilation.
   // TODO(sra): Add command-line filtering of metrics.
   bool reportPrimaryMetrics = false;
@@ -948,6 +952,7 @@ class CompilerOptions implements DiagnosticOptions {
       ..useNewSourceInfo = _hasOption(options, Flags.useNewSourceInfo)
       ..useSimpleLoadIds = _hasOption(options, Flags.useSimpleLoadIds)
       ..verbose = _hasOption(options, Flags.verbose)
+      ..omitMemorySummary = _hasOption(options, Flags.omitMemorySummary)
       ..reportPrimaryMetrics = _hasOption(options, Flags.reportMetrics)
       ..reportSecondaryMetrics = _hasOption(options, Flags.reportAllMetrics)
       ..showInternalProgress = _hasOption(options, Flags.progress)
@@ -1155,6 +1160,8 @@ class CompilerOptions implements DiagnosticOptions {
     environment['dart.web.assertions_enabled'] = '$enableUserAssertions';
     environment['dart.tool.dart2js'] = '${true}';
     environment['dart.tool.dart2js.minify'] = '$enableMinification';
+    environment['dart.tool.dart2js.disable_rti_optimization'] =
+        '$disableRtiOptimization';
     // Eventually pragmas and commandline flags should be aligned so that users
     // setting these flag is equivalent to setting the relevant pragmas
     // globally.

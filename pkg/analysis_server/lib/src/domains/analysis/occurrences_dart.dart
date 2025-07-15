@@ -22,7 +22,7 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
     // because 'name3' may contain 'new' for constructors which doesn't match
     // what is in the source.
     var length =
-        serverElement.location?.length ?? engineElement.name3?.length ?? 0;
+        serverElement.location?.length ?? engineElement.name?.length ?? 0;
     var offsets =
         offsetLengths
             .where((offsetLength) => offsetLength.$2 == length)
@@ -39,7 +39,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
-    var element = node.element2;
+    var element = node.element;
     if (element != null) {
       _addOccurrence(element, node.name);
     }
@@ -100,10 +100,10 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    if (node.declaredElement2 case BindPatternVariableElement(:var join2?)) {
-      _addOccurrence(join2.baseElement, node.name);
+    if (node.declaredElement case BindPatternVariableElement(:var join?)) {
+      _addOccurrence(join.baseElement, node.name);
     } else {
-      _addOccurrence(node.declaredElement2!, node.name);
+      _addOccurrence(node.declaredElement!, node.name);
     }
 
     super.visitDeclaredVariablePattern(node);
@@ -134,7 +134,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    _addOccurrence(node.element2, node.name);
+    _addOccurrence(node.element, node.name);
 
     super.visitExtensionOverride(node);
   }
@@ -150,7 +150,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement is FieldFormalParameterElement) {
-      var field = declaredElement.field2;
+      var field = declaredElement.field;
       if (field != null) {
         _addOccurrence(field, node.name);
       }
@@ -182,7 +182,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitImportPrefixReference(ImportPrefixReference node) {
-    _addOccurrence(node.element2!, node.name);
+    _addOccurrence(node.element!, node.name);
 
     super.visitImportPrefixReference(node);
   }
@@ -203,7 +203,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    var element = node.element2;
+    var element = node.element;
     if (element != null) {
       _addOccurrence(element, node.name);
     }
@@ -213,7 +213,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPatternField(PatternField node) {
-    var element = node.element2;
+    var element = node.element;
     var pattern = node.pattern;
     // If no explicit field name, use the variables name.
     var name =
@@ -257,7 +257,7 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element != null) {
       _addOccurrence(element, node.token);
     }
@@ -305,11 +305,11 @@ class DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   Element? _canonicalizeElement(Element element) {
     Element? canonicalElement = element;
     if (canonicalElement is FieldFormalParameterElement) {
-      canonicalElement = canonicalElement.field2;
+      canonicalElement = canonicalElement.field;
     } else if (canonicalElement case PropertyAccessorElement(
-      :var variable3?,
-    ) when !variable3.isSynthetic) {
-      canonicalElement = variable3;
+      :var variable?,
+    ) when !variable.isSynthetic) {
+      canonicalElement = variable;
     }
     return canonicalElement?.baseElement;
   }

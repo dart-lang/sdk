@@ -19,8 +19,7 @@ class ConvertToIfCaseStatementChain extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  AssistKind get assistKind =>
-      DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT_CHAIN;
+  AssistKind get assistKind => DartAssistKind.convertToIfCaseStatementChain;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

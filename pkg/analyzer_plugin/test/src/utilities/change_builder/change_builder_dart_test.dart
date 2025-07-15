@@ -9,7 +9,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
@@ -1576,7 +1575,7 @@ a''');
     addSource(path, content);
 
     var classA = await _getClassElement(path, 'A');
-    DartType typeT = classA.typeParameters2.single.instantiate(
+    DartType typeT = classA.typeParameters.single.instantiate(
       nullabilitySuffix: NullabilitySuffix.none,
     );
 
@@ -2086,7 +2085,7 @@ A'''));
 
   Future<ClassElement> _getClassElement(String path, String name) async {
     var unitResult = await resolveFile(path);
-    return unitResult.libraryElement2.getClass2(name)!;
+    return unitResult.libraryElement2.getClass(name)!;
   }
 
   Future<PropertyAccessorElement> _getTopLevelGetter(
@@ -2435,7 +2434,7 @@ import 'package:test/all.dart';
   Future<void> test_importElementLibrary_sdkElement() async {
     var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
 
-    var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
     var cache = <Element, LibraryElement?>{};
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
@@ -2448,7 +2447,7 @@ import 'package:test/all.dart';
     expect(edits, hasLength(1));
     expect(
         edits[0].replacement, equalsIgnoringWhitespace("import 'dart:async';"));
-    expect(cache[futureOrElement], futureOrElement.library2);
+    expect(cache[futureOrElement], futureOrElement.library);
   }
 
   Future<void> test_importElementLibrary_srcElement() async {
@@ -2482,7 +2481,7 @@ import 'package:test/all.dart';
     // Create a fake file to put into the cache to verify it's being used.
     var resolvedFakeUnit = await resolveContent('/home/test/lib/fake.dart', '');
 
-    var futureOrElement = resolvedUnit.typeProvider.futureOrElement2;
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
     var cache = <Element, LibraryElement?>{
       futureOrElement: resolvedFakeUnit.libraryElement2,
     };
@@ -4131,19 +4130,15 @@ class B extends A {
     {
       var unitResult = await resolveFile(path);
       if (targetMixinName != null) {
-        targetElement = unitResult.libraryElement2.getMixin2(targetMixinName)!;
+        targetElement = unitResult.libraryElement2.getMixin(targetMixinName)!;
       } else {
-        targetElement = unitResult.libraryElement2.getClass2(targetClassName)!;
+        targetElement = unitResult.libraryElement2.getClass(targetClassName)!;
       }
     }
 
-    var inherited = InheritanceManager3().getInherited4(
-      targetElement,
-      Name(null, nameToOverride),
-    );
-
+    var inherited =
+        targetElement.getInheritedMember(Name(null, nameToOverride));
     var displayBuffer = displayText != null ? StringBuffer() : null;
-
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 2, (builder) {

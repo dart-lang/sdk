@@ -87,11 +87,23 @@ class HoverHandler
         ..writeln();
     }
 
-    // Source library.
-    var containingLibraryName = hover.containingLibraryName;
-    if (containingLibraryName != null && containingLibraryName.isNotEmpty) {
+    var declaredInDescription = StringBuffer();
+    if (hover.containingClassDescription?.isNotEmpty ?? false) {
+      declaredInDescription
+        ..write(' in `')
+        ..write(hover.containingClassDescription)
+        ..write('`');
+    }
+    if (hover.containingLibraryName?.isNotEmpty ?? false) {
+      declaredInDescription
+        ..write(' in _')
+        ..write(hover.containingLibraryName)
+        ..write('_');
+    }
+
+    if (declaredInDescription.isNotEmpty) {
       content
-        ..writeln('*$containingLibraryName*')
+        ..writeln('Declared$declaredInDescription.')
         ..writeln();
     }
 
@@ -123,8 +135,6 @@ class HoverHandler
       server.getDartdocDirectiveInfoFor(unit),
       compilationUnit,
       offset,
-      documentationPreference:
-          server.lspClientConfiguration.global.preferredDocumentation,
     );
     var hover = computer.compute();
     return success(toHover(clientCapabilities, unit.lineInfo, hover));

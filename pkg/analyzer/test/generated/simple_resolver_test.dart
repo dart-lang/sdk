@@ -451,10 +451,10 @@ export 'a.dart';
 ''');
 
     var library = result.libraryElement2;
-    var main = library.entryPoint2!;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
-    expect(main.library2, isNot(same(library)));
+    expect(main.library, isNot(same(library)));
   }
 
   test_entryPoint_local() async {
@@ -463,17 +463,17 @@ main() {}
 ''');
 
     var library = result.libraryElement2;
-    var main = library.entryPoint2!;
+    var main = library.entryPoint!;
 
     expect(main, isNotNull);
-    expect(main.library2, same(library));
+    expect(main.library, same(library));
   }
 
   test_entryPoint_none() async {
     await assertNoErrorsInCode('');
 
     var library = result.libraryElement2;
-    expect(library.entryPoint2, isNull);
+    expect(library.entryPoint, isNull);
   }
 
   test_enum_externalLibrary() async {
@@ -509,12 +509,12 @@ class A {
     var xParameter = findNode.fieldFormalParameter('this.x');
 
     var xParameterElement = xParameter.declaredFragment!.element;
-    expect(xParameterElement.field2, findElement2.field('x'));
+    expect(xParameterElement.field, findElement2.field('x'));
 
     assertResolvedNodeText(findNode.simple('x {}'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@class::A::@constructor::new::@parameter::x#element
+  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   staticType: int
 ''');
   }
@@ -577,7 +577,7 @@ class C extends B with M1, M2 {
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
 ''');
   }
@@ -605,7 +605,7 @@ void main() {
     assertResolvedNodeText(findNode.simple('x;'), r'''
 SimpleIdentifier
   token: x
-  element: <testLibraryFragment>::@mixin::M2::@getter::x#element
+  element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
 ''');
   }
@@ -875,9 +875,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -898,9 +898,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -919,9 +919,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -939,9 +939,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -991,9 +991,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1012,9 +1012,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1041,9 +1041,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1062,9 +1062,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1104,9 +1104,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1124,9 +1124,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1170,9 +1170,9 @@ Annotation
   atSign: @
   name: SimpleIdentifier
     token: A
-    element: <testLibraryFragment>::@getter::A#element
+    element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibraryFragment>::@getter::A#element
+  element2: <testLibrary>::@getter::A
 ''');
   }
 

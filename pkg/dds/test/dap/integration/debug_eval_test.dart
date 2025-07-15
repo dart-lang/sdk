@@ -694,6 +694,43 @@ void foo() {
         );
       });
     });
+
+    group('provides paging data for', () {
+      // Additional paging tests are in debug_variables_test.dart
+      test('Lists', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  var myList = List.generate(10000, (i) => i);
+  print('Hello!'); $breakpointMarker
+}''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        final evalResult = await client.expectEvalResult(
+            topFrameId, 'myList', 'List (10000 items)');
+        expect(evalResult.indexedVariables, 10000);
+      });
+
+      test('Uint8List', () async {
+        final client = dap.client;
+        final testFile = dap.createTestFile('''
+import 'dart:typed_data';
+
+void main(List<String> args) {
+  var myList = Uint8List(10000);
+  print('Hello!'); $breakpointMarker
+}''');
+        final breakpointLine = lineWith(testFile, breakpointMarker);
+
+        final stop = await client.hitBreakpoint(testFile, breakpointLine);
+        final topFrameId = await client.getTopFrameId(stop.threadId!);
+        final evalResult = await client.expectEvalResult(
+            topFrameId, 'myList', 'Uint8List (10000 items)');
+        expect(evalResult.indexedVariables, 10000);
+      });
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

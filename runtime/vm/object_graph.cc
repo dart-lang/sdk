@@ -184,6 +184,7 @@ class ObjectGraph::Stack : public ObjectPointerVisitor {
   }
 
   bool trace_values_through_fields() const override { return true; }
+  bool trace_object_id_rings() const override { return false; }
 
   // Marks and pushes. Used to initialize this stack with roots.
   // We can use ObjectIdTable normally used by serializers because it
@@ -660,6 +661,7 @@ class InboundReferencesVisitor : public ObjectVisitor,
   }
 
   bool trace_values_through_fields() const override { return true; }
+  bool trace_object_id_rings() const override { return false; }
 
   intptr_t length() const { return length_; }
 
@@ -1106,9 +1108,11 @@ static constexpr intptr_t kMaxStringElements = 128;
 enum ExtraCids {
   kRootExtraCid = 1,  // 1-origin
   kImagePageExtraCid = 2,
-  kIsolateExtraCid = 3,
+  kRootSliceExtraCid = 3,
+  kIsolateExtraCid = 4,
+  kObjectStoreExtraCid = 5,
 
-  kNumExtraCids = 3,
+  kNumExtraCids = 5,
 };
 
 class Pass2Visitor : public ObjectVisitor,
@@ -1552,7 +1556,16 @@ void HeapSnapshotWriter::Write() {
       WriteUnsigned(0);              // Field count
     }
     {
-      ASSERT(kIsolateExtraCid == 3);
+      ASSERT(kRootSliceExtraCid == 3);
+      WriteUnsigned(0);         // Flags
+      WriteUtf8("Root slice");  // Name
+      WriteUtf8("");            // Library name
+      WriteUtf8("");            // Library uri
+      WriteUtf8("");            // Reserved
+      WriteUnsigned(0);         // Field count
+    }
+    {
+      ASSERT(kIsolateExtraCid == 4);
       WriteUnsigned(0);      // Flags
       WriteUtf8("Isolate");  // Name
       WriteUtf8("");         // Library name
@@ -1569,8 +1582,43 @@ void HeapSnapshotWriter::Write() {
         WriteUtf8("");  // Reserved
       }
     }
+    {
+      ASSERT(kObjectStoreExtraCid == 5);
+      WriteUnsigned(0);          // Flags
+      WriteUtf8("ObjectStore");  // Name
+      WriteUtf8("");             // Library name
+      WriteUtf8("");             // Library uri
+      WriteUtf8("");             // Reserved
 
-    ASSERT(kNumExtraCids == 3);
+      enum {
+#define V(type, name) kObjectStore_##name,
+        OBJECT_STORE_FIELD_LIST(V, V, V, V, V, V, V, V, V)
+#undef EMIT_FIELD_NAME
+            kNumObjectStoreFields
+      };
+      WriteUnsigned(kNumObjectStoreFields);
+
+      // A strtab is smaller than an array of strings.
+      static const char* const names = ""
+#define EMIT_FIELD_NAME(type, name) #name "_\0"
+          OBJECT_STORE_FIELD_LIST(EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME, EMIT_FIELD_NAME,
+                                  EMIT_FIELD_NAME)
+#undef EMIT_FIELD_NAME
+          ;  // NOLINT
+      const char* name = names;
+      for (intptr_t i = 0; i < kNumObjectStoreFields; i++) {
+        intptr_t flags = 1;  // Strong.
+        WriteUnsigned(flags);
+        WriteUnsigned(i);  // Index.
+        WriteUtf8(name);
+        WriteUtf8("");  // Reserved
+        name += strlen(name) + 1;
+      }
+    }
+
     for (intptr_t cid = 1; cid <= class_count_; cid++) {
       if (!class_table->HasValidClassAt(cid)) {
         WriteUnsigned(0);  // Flags
@@ -1626,7 +1674,6 @@ void HeapSnapshotWriter::Write() {
     // Root "objects".
     {
       ++object_count_;
-      isolate_group()->VisitSharedPointers(&visitor);
     }
     {
       ++object_count_;
@@ -1634,6 +1681,10 @@ void HeapSnapshotWriter::Write() {
       H->old_space()->VisitObjectsImagePages(&visitor);
       num_image_objects = visitor.count();
       CountReferences(num_image_objects);
+    }
+    for (intptr_t i = 0; i < kNumRootSlices; i++) {
+      ++object_count_;
+      isolate_group()->VisitSharedPointers(&visitor, static_cast<RootSlice>(i));
     }
     {
       isolate_group()->ForEachIsolate(
@@ -1647,8 +1698,9 @@ void HeapSnapshotWriter::Write() {
           },
           /*at_safepoint=*/true);
     }
-    CountReferences(1);             // Root -> Image Pages
-    CountReferences(num_isolates);  // Root -> Isolate
+    CountReferences(1);               // Root -> Image Pages
+    CountReferences(kNumRootSlices);  // Root -> Root slices
+    CountReferences(num_isolates);    // Root -> Isolate
 
     // Heap objects.
     iteration.IterateVMIsolateObjects(&visitor);
@@ -1675,14 +1727,12 @@ void HeapSnapshotWriter::Write() {
       WriteUnsigned(0);  // shallowSize
       WriteUnsigned(kNoData);
       visitor.DoCount();
-      isolate_group()->VisitSharedPointers(&visitor);
-      visitor.CountExtraRefs(num_isolates + 1);
+      visitor.CountExtraRefs(1 + kNumRootSlices + num_isolates);
       visitor.DoWrite();
-      isolate_group()->VisitSharedPointers(&visitor);
       visitor.WriteExtraRef(2);  // Root -> Image Pages
-      for (intptr_t i = 0; i < num_isolates; i++) {
-        // 0 = sentinel, 1 = root, 2 = image pages, 2+ = isolates
-        visitor.WriteExtraRef(i + 3);
+      for (intptr_t i = 0; i < num_isolates + kNumRootSlices; i++) {
+        // 0 = sentinel, 1 = root, 2 = image pages, 3+ = slices/isolates
+        visitor.WriteExtraRef(3 + i);
       }
     }
     {
@@ -1693,6 +1743,20 @@ void HeapSnapshotWriter::Write() {
       WriteImagePageRefs visitor(this);
       H->old_space()->VisitObjectsImagePages(&visitor);
       DEBUG_ASSERT(visitor.count() == num_image_objects);
+    }
+    for (intptr_t i = 0; i < kNumRootSlices; i++) {
+      if (i == kObjectStore) {
+        WriteUnsigned(kObjectStoreExtraCid);
+      } else {
+        WriteUnsigned(kRootSliceExtraCid);
+      }
+      WriteUnsigned(0);  // shallowSize
+      WriteUnsigned(kNameData);
+      WriteUtf8(RootSliceToCString(i));
+      visitor.DoCount();
+      isolate_group()->VisitSharedPointers(&visitor, i);
+      visitor.DoWrite();
+      isolate_group()->VisitSharedPointers(&visitor, i);
     }
     isolate_group()->ForEachIsolate(
         [&](Isolate* isolate) {
@@ -1741,6 +1805,9 @@ void HeapSnapshotWriter::Write() {
 
     WriteUnsigned(0);  // Root fake object.
     WriteUnsigned(0);  // Image pages fake object.
+    for (intptr_t i = 0; i < kNumRootSlices; i++) {
+      WriteUnsigned(0);  // Root slice fake object.
+    }
     isolate_group()->ForEachIsolate(
         [&](Isolate* isolate) {
           WriteUnsigned(0);  // Isolate fake object.

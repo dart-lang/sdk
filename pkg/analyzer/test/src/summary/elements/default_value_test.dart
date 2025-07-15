@@ -26,28 +26,24 @@ class A<T> {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            X @21
-              reference: <testLibraryFragment>::@class::A::@method::X
+            #F4 X @21
               element: <testLibrary>::@class::A::@method::X
               formalParameters
-                default a @32
-                  reference: <testLibraryFragment>::@class::A::@method::X::@parameter::a
-                  element: <testLibraryFragment>::@class::A::@method::X::@parameter::a#element
+                #F5 a @32
+                  element: <testLibrary>::@class::A::@method::X::@formalParameter::a
                   initializer: expression_0
                     ListLiteral
                       constKeyword: const @36
@@ -57,23 +53,25 @@ library
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
       methods
         abstract X
           reference: <testLibrary>::@class::A::@method::X
-          firstFragment: <testLibraryFragment>::@class::A::@method::X
+          firstFragment: #F4
           hasEnclosingTypeParameterReference: true
           formalParameters
-            optionalNamed a
-              firstFragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
+            #E1 optionalNamed a
+              firstFragment: #F5
               type: List<T>
               constantInitializer
-                fragment: <testLibraryFragment>::@class::A::@method::X::@parameter::a
+                fragment: #F5
                 expression: expression_0
           returnType: dynamic
 ''');
@@ -94,27 +92,22 @@ class X {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class X @57
-          reference: <testLibraryFragment>::@class::X
+        #F1 class X @57
           element: <testLibrary>::@class::X
           fields
-            f @71
-              reference: <testLibraryFragment>::@class::X::@field::f
-              element: <testLibraryFragment>::@class::X::@field::f#element
-              getter2: <testLibraryFragment>::@class::X::@getter::f
+            #F2 f @71
+              element: <testLibrary>::@class::X::@field::f
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::X::@constructor::new
-              element: <testLibraryFragment>::@class::X::@constructor::new#element
+            #F3 const new
+              element: <testLibrary>::@class::X::@constructor::new
               typeName: X
               typeNameOffset: 82
               formalParameters
-                default this.f @90
-                  reference: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
-                  element: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f#element
+                #F4 this.f @90
+                  element: <testLibrary>::@class::X::@constructor::new::@formalParameter::f
                   initializer: expression_0
                     FunctionReference
                       function: SimpleIdentifier
@@ -125,72 +118,81 @@ library
                       typeArgumentTypes
                         dynamic
           getters
-            synthetic get f
-              reference: <testLibraryFragment>::@class::X::@getter::f
-              element: <testLibraryFragment>::@class::X::@getter::f#element
+            #F5 synthetic f
+              element: <testLibrary>::@class::X::@getter::f
+              returnType: void Function(dynamic)
+                alias: <testLibrary>::@typeAlias::F
+                  typeArguments
+                    dynamic
       typeAliases
-        F @13
-          reference: <testLibraryFragment>::@typeAlias::F
+        #F6 F @13
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            T @15
-              element: T@15
+            #F7 T @15
+              element: #E0 T
       functions
-        defaultF @30
-          reference: <testLibraryFragment>::@function::defaultF
+        #F8 defaultF @30
           element: <testLibrary>::@function::defaultF
           typeParameters
-            T @39
-              element: T@39
+            #F9 T @39
+              element: #E1 T
           formalParameters
-            v @44
-              element: <testLibraryFragment>::@function::defaultF::@parameter::v#element
+            #F10 v @44
+              element: <testLibrary>::@function::defaultF::@formalParameter::v
   classes
     class X
       reference: <testLibrary>::@class::X
-      firstFragment: <testLibraryFragment>::@class::X
+      firstFragment: #F1
       fields
         final f
-          firstFragment: <testLibraryFragment>::@class::X::@field::f
+          reference: <testLibrary>::@class::X::@field::f
+          firstFragment: #F2
           type: void Function(dynamic)
             alias: <testLibrary>::@typeAlias::F
               typeArguments
                 dynamic
-          getter: <testLibraryFragment>::@class::X::@getter::f#element
+          getter: <testLibrary>::@class::X::@getter::f
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::X::@constructor::new
+          reference: <testLibrary>::@class::X::@constructor::new
+          firstFragment: #F3
           formalParameters
-            optionalNamed final hasImplicitType f
-              firstFragment: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
+            #E2 optionalNamed final hasImplicitType f
+              firstFragment: #F4
               type: void Function(dynamic)
                 alias: <testLibrary>::@typeAlias::F
                   typeArguments
                     dynamic
               constantInitializer
-                fragment: <testLibraryFragment>::@class::X::@constructor::new::@parameter::f
+                fragment: #F4
                 expression: expression_0
       getters
-        synthetic get f
-          firstFragment: <testLibraryFragment>::@class::X::@getter::f
+        synthetic f
+          reference: <testLibrary>::@class::X::@getter::f
+          firstFragment: #F5
           returnType: void Function(dynamic)
             alias: <testLibrary>::@typeAlias::F
               typeArguments
                 dynamic
+          variable: <testLibrary>::@class::X::@field::f
   typeAliases
     F
-      firstFragment: <testLibraryFragment>::@typeAlias::F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F6
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F7
       aliasedType: void Function(T)
   functions
     defaultF
       reference: <testLibrary>::@function::defaultF
-      firstFragment: <testLibraryFragment>::@function::defaultF
+      firstFragment: #F8
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F9
       formalParameters
-        requiredPositional v
+        #E3 requiredPositional v
+          firstFragment: #F10
           type: T
       returnType: void
 ''');
@@ -209,37 +211,31 @@ class B {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 const new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
-        class B @34
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @34
           element: <testLibrary>::@class::B
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            foo @45
-              reference: <testLibraryFragment>::@class::B::@method::foo
+            #F6 foo @45
               element: <testLibrary>::@class::B::@method::foo
               formalParameters
-                default a @50
-                  reference: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
-                  element: <testLibraryFragment>::@class::B::@method::foo::@parameter::a#element
+                #F7 a @50
+                  element: <testLibrary>::@class::B::@method::foo::@formalParameter::a
                   initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @53
@@ -263,7 +259,7 @@ library
                           element2: <testLibrary>::@class::A
                           type: A<dynamic Function()>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::A::@constructor::new#element
+                          baseElement: <testLibrary>::@class::A::@constructor::new
                           substitution: {T: dynamic Function()}
                       argumentList: ArgumentList
                         leftParenthesis: ( @72
@@ -272,28 +268,31 @@ library
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F5
       methods
         foo
           reference: <testLibrary>::@class::B::@method::foo
-          firstFragment: <testLibraryFragment>::@class::B::@method::foo
+          firstFragment: #F6
           formalParameters
-            optionalNamed hasImplicitType a
-              firstFragment: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
+            #E1 optionalNamed hasImplicitType a
+              firstFragment: #F7
               type: dynamic
               constantInitializer
-                fragment: <testLibraryFragment>::@class::B::@method::foo::@parameter::a
+                fragment: #F7
                 expression: expression_0
           returnType: void
 ''');
@@ -307,24 +306,25 @@ void f( g({a: 0 is int}) ) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            g @8
-              element: <testLibraryFragment>::@function::f::@parameter::g#element
+            #F2 g @8
+              element: <testLibrary>::@function::f::@formalParameter::g
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
-        requiredPositional g
+        #E0 requiredPositional g
+          firstFragment: #F2
           type: dynamic Function({dynamic a})
           formalParameters
-            optionalNamed hasImplicitType a
+            #E1 optionalNamed hasImplicitType a
+              firstFragment: #F3
               type: dynamic
       returnType: void
 ''');
@@ -338,15 +338,14 @@ void f([Comparator<T> compare = Comparable.compare]) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            default compare @22
-              element: <testLibraryFragment>::@function::f::@parameter::compare#element
+            #F2 compare @22
+              element: <testLibrary>::@function::f::@formalParameter::compare
               initializer: expression_0
                 PrefixedIdentifier
                   prefix: SimpleIdentifier
@@ -363,14 +362,16 @@ library
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
-        optionalPositional compare
+        #E0 optionalPositional compare
+          firstFragment: #F2
           type: int Function(InvalidType, InvalidType)
             alias: dart:core::@typeAlias::Comparator
               typeArguments
                 InvalidType
           constantInitializer
+            fragment: #F2
             expression: expression_0
       returnType: void
 ''');
@@ -384,16 +385,14 @@ void f({({int f1, bool f2}) x = (f1: 1, f2: true)}) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            default x @28
-              reference: <testLibraryFragment>::@function::f::@parameter::x
-              element: <testLibraryFragment>::@function::f::@parameter::x#element
+            #F2 x @28
+              element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @32
@@ -423,13 +422,13 @@ library
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
-        optionalNamed x
-          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
+        #E0 optionalNamed x
+          firstFragment: #F2
           type: ({int f1, bool f2})
           constantInitializer
-            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            fragment: #F2
             expression: expression_0
       returnType: void
 ''');
@@ -443,16 +442,14 @@ void f({({int f1, bool f2}) x = const (f1: 1, f2: true)}) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            default x @28
-              reference: <testLibraryFragment>::@function::f::@parameter::x
-              element: <testLibraryFragment>::@function::f::@parameter::x#element
+            #F2 x @28
+              element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
                   constKeyword: const @32
@@ -483,13 +480,13 @@ library
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
-        optionalNamed x
-          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
+        #E0 optionalNamed x
+          firstFragment: #F2
           type: ({int f1, bool f2})
           constantInitializer
-            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            fragment: #F2
             expression: expression_0
       returnType: void
 ''');
@@ -503,16 +500,14 @@ void f({(int, bool) x = (1, true)}) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            default x @20
-              reference: <testLibraryFragment>::@function::f::@parameter::x
-              element: <testLibraryFragment>::@function::f::@parameter::x#element
+            #F2 x @20
+              element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
                   leftParenthesis: ( @24
@@ -528,13 +523,13 @@ library
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
-        optionalNamed x
-          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
+        #E0 optionalNamed x
+          firstFragment: #F2
           type: (int, bool)
           constantInitializer
-            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            fragment: #F2
             expression: expression_0
       returnType: void
 ''');
@@ -548,16 +543,14 @@ void f({(int, bool) x = const (1, true)}) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        f @5
-          reference: <testLibraryFragment>::@function::f
+        #F1 f @5
           element: <testLibrary>::@function::f
           formalParameters
-            default x @20
-              reference: <testLibraryFragment>::@function::f::@parameter::x
-              element: <testLibraryFragment>::@function::f::@parameter::x#element
+            #F2 x @20
+              element: <testLibrary>::@function::f::@formalParameter::x
               initializer: expression_0
                 RecordLiteral
                   constKeyword: const @24
@@ -574,13 +567,13 @@ library
   functions
     f
       reference: <testLibrary>::@function::f
-      firstFragment: <testLibraryFragment>::@function::f
+      firstFragment: #F1
       formalParameters
-        optionalNamed x
-          firstFragment: <testLibraryFragment>::@function::f::@parameter::x
+        #E0 optionalNamed x
+          firstFragment: #F2
           type: (int, bool)
           constantInitializer
-            fragment: <testLibraryFragment>::@function::f::@parameter::x
+            fragment: #F2
             expression: expression_0
       returnType: void
 ''');
@@ -598,31 +591,26 @@ extension E on A {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @6
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @6
           element: <testLibrary>::@class::A
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F2 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        extension E @21
-          reference: <testLibraryFragment>::@extension::E
+        #F3 extension E @21
           element: <testLibrary>::@extension::E
           methods
-            f @44
-              reference: <testLibraryFragment>::@extension::E::@method::f
+            #F4 f @44
               element: <testLibrary>::@extension::E::@method::f
-            g @65
-              reference: <testLibraryFragment>::@extension::E::@method::g
+            #F5 g @65
               element: <testLibrary>::@extension::E::@method::g
               formalParameters
-                default p @75
-                  element: <testLibraryFragment>::@extension::E::@method::g::@parameter::p#element
+                #F6 p @75
+                  element: <testLibrary>::@extension::E::@method::g::@formalParameter::p
                   initializer: expression_0
                     SimpleIdentifier
                       token: f @79
@@ -631,26 +619,30 @@ library
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
   extensions
     extension E
       reference: <testLibrary>::@extension::E
-      firstFragment: <testLibraryFragment>::@extension::E
+      firstFragment: #F3
+      extendedType: A
       methods
         static f
           reference: <testLibrary>::@extension::E::@method::f
-          firstFragment: <testLibraryFragment>::@extension::E::@method::f
+          firstFragment: #F4
           returnType: void
         static g
           reference: <testLibrary>::@extension::E::@method::g
-          firstFragment: <testLibraryFragment>::@extension::E::@method::g
+          firstFragment: #F5
           formalParameters
-            optionalPositional p
+            #E0 optionalPositional p
+              firstFragment: #F6
               type: Object
               constantInitializer
+                fragment: #F6
                 expression: expression_0
           returnType: void
 ''');
@@ -669,38 +661,33 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class B @6
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B @6
           element: <testLibrary>::@class::B
           typeParameters
-            T1 @8
-              element: T1@8
-            T2 @12
-              element: T2@12
+            #F2 T1 @8
+              element: #E0 T1
+            #F3 T2 @12
+              element: #E1 T2
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F4 const new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 26
-        class C @39
-          reference: <testLibraryFragment>::@class::C
+        #F5 class C @39
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F6 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            foo @50
-              reference: <testLibraryFragment>::@class::C::@method::foo
+            #F7 foo @50
               element: <testLibrary>::@class::C::@method::foo
               formalParameters
-                default b @70
-                  element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                #F8 b @70
+                  element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @74
@@ -710,7 +697,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<int, double>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T1: int, T2: double}
                       argumentList: ArgumentList
                         leftParenthesis: ( @81
@@ -719,27 +706,33 @@ library
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       typeParameters
-        T1
-        T2
+        #E0 T1
+          firstFragment: #F2
+        #E1 T2
+          firstFragment: #F3
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F5
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F6
       methods
         foo
           reference: <testLibrary>::@class::C::@method::foo
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          firstFragment: #F7
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
+              firstFragment: #F8
               type: B<int, double>
               constantInitializer
+                fragment: #F8
                 expression: expression_0
           returnType: void
 ''');
@@ -758,36 +751,32 @@ class C<T> {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class B @6
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B @6
           element: <testLibrary>::@class::B
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 const new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
-        class C @34
-          reference: <testLibraryFragment>::@class::C
+        #F4 class C @34
           element: <testLibrary>::@class::C
           typeParameters
-            T @36
-              element: T@36
+            #F5 T @36
+              element: #E1 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F6 const new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 49
               formalParameters
-                default b @57
-                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::b#element
+                #F7 b @57
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @61
@@ -797,7 +786,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @68
@@ -806,24 +795,30 @@ library
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F4
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F5
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F6
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
+              firstFragment: #F7
               type: B<T>
               constantInitializer
+                fragment: #F7
                 expression: expression_0
 ''');
   }
@@ -842,47 +837,41 @@ class C<T> implements A<Iterable<T>> {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class A @15
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A @15
           element: <testLibrary>::@class::A
           typeParameters
-            T @17
-              element: T@17
+            #F2 T @17
+              element: #E0 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        class B @29
-          reference: <testLibraryFragment>::@class::B
+        #F4 class B @29
           element: <testLibrary>::@class::B
           typeParameters
-            T @31
-              element: T@31
+            #F5 T @31
+              element: #E1 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F6 const new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 60
-        class C @73
-          reference: <testLibraryFragment>::@class::C
+        #F7 class C @73
           element: <testLibrary>::@class::C
           typeParameters
-            T @75
-              element: T@75
+            #F8 T @75
+              element: #E2 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F9 const new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 114
               formalParameters
-                default a @122
-                  element: <testLibraryFragment>::@class::C::@constructor::new::@parameter::a#element
+                #F10 a @122
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
                   initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @126
@@ -892,7 +881,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @133
@@ -901,36 +890,44 @@ library
   classes
     abstract class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F4
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F5
       interfaces
         A<T>
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F6
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F7
       typeParameters
-        T
+        #E2 T
+          firstFragment: #F8
       interfaces
         A<Iterable<T>>
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F9
           formalParameters
-            optionalPositional a
+            #E3 optionalPositional a
+              firstFragment: #F10
               type: A<T>
               constantInitializer
+                fragment: #F10
                 expression: expression_0
 ''');
   }
@@ -946,31 +943,28 @@ void foo<T>([B<T> b = const B()]) {}
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class B @6
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B @6
           element: <testLibrary>::@class::B
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 const new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
       functions
-        foo @33
-          reference: <testLibraryFragment>::@function::foo
+        #F4 foo @33
           element: <testLibrary>::@function::foo
           typeParameters
-            T @37
-              element: T@37
+            #F5 T @37
+              element: #E1 T
           formalParameters
-            default b @46
-              element: <testLibraryFragment>::@function::foo::@parameter::b#element
+            #F6 b @46
+              element: <testLibrary>::@function::foo::@formalParameter::b
               initializer: expression_0
                 InstanceCreationExpression
                   keyword: const @50
@@ -980,7 +974,7 @@ library
                       element2: <testLibrary>::@class::B
                       type: B<Never>
                     element: ConstructorMember
-                      baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                      baseElement: <testLibrary>::@class::B::@constructor::new
                       substitution: {T: Never}
                   argumentList: ArgumentList
                     leftParenthesis: ( @57
@@ -989,22 +983,27 @@ library
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
   functions
     foo
       reference: <testLibrary>::@function::foo
-      firstFragment: <testLibraryFragment>::@function::foo
+      firstFragment: #F4
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F5
       formalParameters
-        optionalPositional b
+        #E2 optionalPositional b
+          firstFragment: #F6
           type: B<T>
           constantInitializer
+            fragment: #F6
             expression: expression_0
       returnType: void
 ''');
@@ -1023,39 +1022,34 @@ class C {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class B @6
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B @6
           element: <testLibrary>::@class::B
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 const new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
-        class C @34
-          reference: <testLibraryFragment>::@class::C
+        #F4 class C @34
           element: <testLibrary>::@class::C
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F5 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            foo @45
-              reference: <testLibraryFragment>::@class::C::@method::foo
+            #F6 foo @45
               element: <testLibrary>::@class::C::@method::foo
               typeParameters
-                T @49
-                  element: T@49
+                #F7 T @49
+                  element: #E1 T
               formalParameters
-                default b @58
-                  element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                #F8 b @58
+                  element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @62
@@ -1065,7 +1059,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @69
@@ -1074,28 +1068,34 @@ library
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F4
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F5
       methods
         foo
           reference: <testLibrary>::@class::C::@method::foo
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          firstFragment: #F6
           typeParameters
-            T
+            #E1 T
+              firstFragment: #F7
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
+              firstFragment: #F8
               type: B<T>
               constantInitializer
+                fragment: #F8
                 expression: expression_0
           returnType: void
 ''');
@@ -1114,44 +1114,39 @@ class C<E1> {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class B @6
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B @6
           element: <testLibrary>::@class::B
           typeParameters
-            T1 @8
-              element: T1@8
-            T2 @12
-              element: T2@12
+            #F2 T1 @8
+              element: #E0 T1
+            #F3 T2 @12
+              element: #E1 T2
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F4 const new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 26
-        class C @39
-          reference: <testLibraryFragment>::@class::C
+        #F5 class C @39
           element: <testLibrary>::@class::C
           typeParameters
-            E1 @41
-              element: E1@41
+            #F6 E1 @41
+              element: #E2 E1
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F7 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            foo @54
-              reference: <testLibraryFragment>::@class::C::@method::foo
+            #F8 foo @54
               element: <testLibrary>::@class::C::@method::foo
               typeParameters
-                E2 @58
-                  element: E2@58
+                #F9 E2 @58
+                  element: #E3 E2
               formalParameters
-                default b @73
-                  element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                #F10 b @73
+                  element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @77
@@ -1161,7 +1156,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never, Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T1: Never, T2: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @84
@@ -1170,32 +1165,40 @@ library
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       typeParameters
-        T1
-        T2
+        #E0 T1
+          firstFragment: #F2
+        #E1 T2
+          firstFragment: #F3
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F4
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F5
       typeParameters
-        E1
+        #E2 E1
+          firstFragment: #F6
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F7
       methods
         foo
           reference: <testLibrary>::@class::C::@method::foo
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          firstFragment: #F8
           hasEnclosingTypeParameterReference: true
           typeParameters
-            E2
+            #E3 E2
+              firstFragment: #F9
           formalParameters
-            optionalPositional b
+            #E4 optionalPositional b
+              firstFragment: #F10
               type: B<E1, E2>
               constantInitializer
+                fragment: #F10
                 expression: expression_0
           returnType: void
 ''');
@@ -1214,39 +1217,34 @@ class C<T> {
 library
   reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        class B @6
-          reference: <testLibraryFragment>::@class::B
+        #F1 class B @6
           element: <testLibrary>::@class::B
           typeParameters
-            T @8
-              element: T@8
+            #F2 T @8
+              element: #E0 T
           constructors
-            const new
-              reference: <testLibraryFragment>::@class::B::@constructor::new
-              element: <testLibraryFragment>::@class::B::@constructor::new#element
+            #F3 const new
+              element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 21
-        class C @34
-          reference: <testLibraryFragment>::@class::C
+        #F4 class C @34
           element: <testLibrary>::@class::C
           typeParameters
-            T @36
-              element: T@36
+            #F5 T @36
+              element: #E1 T
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::C::@constructor::new
-              element: <testLibraryFragment>::@class::C::@constructor::new#element
+            #F6 synthetic new
+              element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            foo @48
-              reference: <testLibraryFragment>::@class::C::@method::foo
+            #F7 foo @48
               element: <testLibrary>::@class::C::@method::foo
               formalParameters
-                default b @58
-                  element: <testLibraryFragment>::@class::C::@method::foo::@parameter::b#element
+                #F8 b @58
+                  element: <testLibrary>::@class::C::@method::foo::@formalParameter::b
                   initializer: expression_0
                     InstanceCreationExpression
                       keyword: const @62
@@ -1256,7 +1254,7 @@ library
                           element2: <testLibrary>::@class::B
                           type: B<Never>
                         element: ConstructorMember
-                          baseElement: <testLibraryFragment>::@class::B::@constructor::new#element
+                          baseElement: <testLibrary>::@class::B::@constructor::new
                           substitution: {T: Never}
                       argumentList: ArgumentList
                         leftParenthesis: ( @69
@@ -1265,29 +1263,35 @@ library
   classes
     class B
       reference: <testLibrary>::@class::B
-      firstFragment: <testLibraryFragment>::@class::B
+      firstFragment: #F1
       typeParameters
-        T
+        #E0 T
+          firstFragment: #F2
       constructors
         const new
-          firstFragment: <testLibraryFragment>::@class::B::@constructor::new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F3
     class C
       reference: <testLibrary>::@class::C
-      firstFragment: <testLibraryFragment>::@class::C
+      firstFragment: #F4
       typeParameters
-        T
+        #E1 T
+          firstFragment: #F5
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::C::@constructor::new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F6
       methods
         foo
           reference: <testLibrary>::@class::C::@method::foo
-          firstFragment: <testLibraryFragment>::@class::C::@method::foo
+          firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           formalParameters
-            optionalPositional b
+            #E2 optionalPositional b
+              firstFragment: #F8
               type: B<T>
               constantInitializer
+                fragment: #F8
                 expression: expression_0
           returnType: void
 ''');

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -36,10 +37,7 @@ class AvoidSlowAsyncIo extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.avoid_slow_async_io;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addMethodInvocation(this, visitor);
   }
@@ -83,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var target = node.target;
     if (target is Identifier) {
       var element = target.element;
-      if (element is ClassElement && element.name3 == 'FileSystemEntity') {
+      if (element is ClassElement && element.name == 'FileSystemEntity') {
         if (_fileSystemEntityMethodNames.contains(node.methodName.name)) {
           rule.reportAtNode(node);
         }

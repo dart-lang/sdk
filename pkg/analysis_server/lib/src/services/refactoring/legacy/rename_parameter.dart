@@ -43,7 +43,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         result.addError(
           format(
             "The parameter '{0}' is named and can not be private.",
-            element.name3,
+            element.name,
           ),
         );
         break;
@@ -103,7 +103,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       }
       var fieldRenamed = false;
       if (element is analyzer.FieldFormalParameterElement) {
-        var field = element.field2;
+        var field = element.field;
         if (field != null) {
           await processor.renameElement(field);
           fieldRenamed = true;

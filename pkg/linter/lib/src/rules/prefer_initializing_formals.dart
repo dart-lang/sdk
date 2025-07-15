@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -34,7 +35,7 @@ _getConstructorFieldInitializersInInitializers(ConstructorDeclaration node) =>
     node.initializers.whereType<ConstructorFieldInitializer>();
 
 Element? _getLeftElement(AssignmentExpression assignment) =>
-    assignment.writeElement2?.canonicalElement2;
+    assignment.writeElement?.canonicalElement2;
 
 Iterable<FormalParameterElement?> _getParameters(ConstructorDeclaration node) =>
     node.parameters.parameters.map((e) => e.declaredFragment?.element);
@@ -51,10 +52,7 @@ class PreferInitializingFormals extends LintRule {
       LinterLintCode.prefer_initializing_formals;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
   }
@@ -82,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var rightElement = _getRightElement(assignment);
       return leftElement != null &&
           rightElement != null &&
-          leftElement.name3 == rightElement.name3 &&
+          leftElement.name == rightElement.name &&
           !leftElement.isPrivate &&
           leftElement is FieldElement &&
           !leftElement.isSynthetic &&
@@ -91,7 +89,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           parameters.contains(rightElement) &&
           (!parametersUsedMoreThanOnce.contains(rightElement) &&
                   !(rightElement as FormalParameterElement).isNamed ||
-              leftElement.name3 == rightElement.name3);
+              leftElement.name == rightElement.name);
     }
 
     bool isConstructorFieldInitializerToLint(
@@ -110,8 +108,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             parameters.contains(staticElement) &&
             (!parametersUsedMoreThanOnce.contains(expression.element) &&
                     !staticElement.isNamed ||
-                (constructorFieldInitializer.fieldName.element?.name3 ==
-                    expression.element?.name3));
+                (constructorFieldInitializer.fieldName.element?.name ==
+                    expression.element?.name));
       }
       return false;
     }
@@ -154,7 +152,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     for (var initializer in initializers) {
       if (isConstructorFieldInitializerToLint(initializer)) {
-        var name = initializer.fieldName.element!.name3!;
+        var name = initializer.fieldName.element!.name!;
         rule.reportAtNode(initializer, arguments: [name]);
       }
     }

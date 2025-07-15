@@ -17,7 +17,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// minimum version required by the SDK constraints in `pubspec.yaml`.
 class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter to be used to report errors.
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _errorReporter;
 
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;
@@ -70,8 +70,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    _checkSinceSdkVersion(node.readElement2, node);
-    _checkSinceSdkVersion(node.writeElement2, node);
+    _checkSinceSdkVersion(node.readElement, node);
+    _checkSinceSdkVersion(node.writeElement, node);
     super.visitAssignmentExpression(node);
   }
 
@@ -131,7 +131,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _checkSinceSdkVersion(node.element2, node);
+    _checkSinceSdkVersion(node.element, node);
     super.visitNamedType(node);
   }
 
@@ -165,7 +165,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     AstNode target, {
     SyntacticEntity? errorEntity,
   }) {
-    element = element?.nonSynthetic2;
+    element = element?.nonSynthetic;
     if (element case HasSinceSdkVersion hasSince) {
       var sinceSdkVersion = hasSince.sinceSdkVersion;
       if (sinceSdkVersion != null) {
@@ -220,7 +220,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// concrete enum. The `index` was always available for concrete enums,
   /// but there was no common `Enum` supertype for all enums.
   static bool _shouldReportEnumIndex(AstNode node, Element element) {
-    if (element is PropertyAccessorElement && element.name3 == 'index') {
+    if (element is PropertyAccessorElement && element.name == 'index') {
       DartType? targetType;
       if (node is PrefixedIdentifier) {
         targetType = node.prefix.staticType;
@@ -228,7 +228,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
         targetType = node.realTarget.staticType;
       }
       if (targetType != null) {
-        var targetElement = targetType.element3;
+        var targetElement = targetType.element;
         return targetElement is ClassElement && targetElement.isDartCoreEnum;
       }
       return false;

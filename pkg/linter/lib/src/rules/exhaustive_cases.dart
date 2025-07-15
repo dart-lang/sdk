@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -21,10 +22,7 @@ class ExhaustiveCases extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.exhaustive_cases;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
@@ -39,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitSwitchStatement(SwitchStatement statement) {
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
-      var interfaceElement = expressionType.element3;
+      var interfaceElement = expressionType.element;
       // Handled in analyzer.
       if (interfaceElement is! ClassElement) {
         return;
@@ -70,6 +68,11 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (variable is VariableElement) {
             enumConstants.remove(variable.computeConstantValue());
           }
+        } else if (expression is DotShorthandPropertyAccess) {
+          var variable = expression.propertyName.element.variableElement;
+          if (variable is VariableElement) {
+            enumConstants.remove(variable.computeConstantValue());
+          }
         }
         if (member is SwitchDefault) {
           return;
@@ -85,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           (element) => !element.metadata.hasDeprecated,
           orElse: () => elements.first,
         );
-        if (preferredElement.name3 case var name?) {
+        if (preferredElement.name case var name?) {
           rule.reportAtOffset(offset, end - offset, arguments: [name]);
         }
       }
@@ -97,7 +100,7 @@ extension on Element? {
   Element? get variableElement {
     var self = this;
     if (self is GetterElement) {
-      var variable = self.variable3;
+      var variable = self.variable;
       if (variable != null) {
         return variable;
       }

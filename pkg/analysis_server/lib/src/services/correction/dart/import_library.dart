@@ -119,7 +119,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var namesInThisLibrary = <String>[
       name,
       for (var otherName in otherNames)
-        if (getExportedElement(libraryElement, otherName)?.name3
+        if (getExportedElement(libraryElement, otherName)?.name
             case var exportedName?)
           exportedName,
     ];
@@ -238,7 +238,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var alreadyImportedWithPrefix = <LibraryElement>{};
     for (var import in unitResult.libraryFragment.libraryImports2) {
       // Prepare the element.
-      var libraryElement = import.importedLibrary2;
+      var libraryElement = import.importedLibrary;
       if (libraryElement == null) {
         continue;
       }
@@ -247,7 +247,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         continue;
       }
       if (element is PropertyAccessorElement) {
-        element = element.variable3;
+        element = element.variable;
         if (element == null) {
           continue;
         }
@@ -327,7 +327,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             prefix.isEmptyOrNull
                 ? DartFixKind.IMPORT_LIBRARY_PROJECT3_SHOW
                 : DartFixKind.IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW;
-      } else if (declaration.library2 != libraryElement) {
+      } else if (declaration.library != libraryElement) {
         // Ugly: exports.
         fixKind =
             prefix.isEmptyOrNull
@@ -402,7 +402,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     var names = <_PrefixedName>[];
     for (var import in unitResult.libraryFragment.libraryImports2) {
       // prepare element
-      var importedLibrary = import.importedLibrary2;
+      var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
         continue;
       }
@@ -416,13 +416,13 @@ class ImportLibrary extends MultiCorrectionProducer {
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
         // to update it.
-        var libraryElement = import.importedLibrary2;
+        var libraryElement = import.importedLibrary;
         if (libraryElement == null) {
           continue;
         }
         names.add(
           _PrefixedName(
-            name: instantiatedExtension.extension.name3!,
+            name: instantiatedExtension.extension.name!,
             ignorePrefix: true,
             producerGenerators: (prefix, name) async {
               var producers = <ResolvedCorrectionProducer>[];
@@ -722,18 +722,18 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// names where this fix can be applied besides the current diagnostic.
   Future<Set<String>> _otherUnresolvedNames(String? prefix, String name) async {
     var errorsForThisFix = _codesWhereThisIsValid;
-    var errors =
+    var diagnostics =
         <Diagnostic, List<MultiProducerGenerator>>{}..addEntries(
-          unitResult.errors.map((error) {
-            if (error == diagnostic) return null;
-            var generators = errorsForThisFix[error.errorCode];
+          unitResult.diagnostics.map((d) {
+            if (d == diagnostic) return null;
+            var generators = errorsForThisFix[d.diagnosticCode];
             if (generators == null) return null;
-            return MapEntry(error, generators);
+            return MapEntry(d, generators);
           }).nonNulls,
         );
     var otherNames = <String>{};
-    if (errors.isNotEmpty) {
-      for (var MapEntry(:key, :value) in errors.entries) {
+    if (diagnostics.isNotEmpty) {
+      for (var MapEntry(:key, :value) in diagnostics.entries) {
         for (var generator in value) {
           DartFixContext? dartFixContext;
           if (context.dartFixContext case var context?) {
@@ -1022,7 +1022,7 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
-  String get _prefixName => _importPrefix.name3!;
+  String get _prefixName => _importPrefix.name!;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

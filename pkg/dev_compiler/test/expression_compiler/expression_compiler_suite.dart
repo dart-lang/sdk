@@ -9,50 +9,81 @@ import 'package:test/test.dart';
 import '../shared_test_options.dart';
 import 'test_compiler.dart';
 
+typedef AdditionalLibrary = ({String name, String source});
+
 class ExpressionCompilerTestDriver {
   final SetupCompilerOptions setup;
-  late Directory testDir;
+  late Directory _testRootDirectory;
   String source;
   late Uri input;
   late Uri output;
   late Uri packages;
   late int line;
+  final List<AdditionalLibrary> additionalLibraries;
 
-  ExpressionCompilerTestDriver(this.setup, this.source) {
+  ExpressionCompilerTestDriver(
+    this.setup,
+    this.source, {
+    this.additionalLibraries = const [],
+  }) {
     line = _getEvaluationLine(source);
     var systemTempDir = Directory.systemTemp;
-    testDir = systemTempDir.createTempSync('foo bar');
+    _testRootDirectory = systemTempDir.createTempSync('expression_eval_test');
+    var testPackageDirectory = Directory.fromUri(
+      _testRootDirectory.uri.resolve('test_package/'),
+    );
 
-    output = testDir.uri.resolve('test.js');
-    input = testDir.uri.resolve('test.dart');
+    output = testPackageDirectory.uri.resolve('test.js');
+    input = testPackageDirectory.uri.resolve('test.dart');
     File.fromUri(input)
-      ..createSync()
+      ..createSync(recursive: true)
       ..writeAsStringSync(source);
 
-    packages = testDir.uri.resolve('package_config.json');
+    packages = _testRootDirectory.uri.resolve('package_config.json');
+    var packageDescriptors = [_createPackageDescriptor('test_package')];
+    for (var library in additionalLibraries) {
+      var name = library.name;
+      var source = library.source;
+      var additionalPackageDirectory = Directory.fromUri(
+        _testRootDirectory.uri.resolve('$name/'),
+      );
+      var additionalFile = additionalPackageDirectory.uri.resolve('$name.dart');
+      File.fromUri(additionalFile)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(source);
+      packageDescriptors.add(_createPackageDescriptor(name));
+    }
     File.fromUri(packages)
       ..createSync()
       ..writeAsStringSync('''
       {
         "configVersion": 2,
         "packages": [
-          {
-            "name": "foo",
-            "rootUri": "./",
-            "packageUri": "./"
-          }
+          ${packageDescriptors.join(',\n          ')}
         ]
       }
       ''');
   }
 
+  /// Creates a `packages_config.json` entry for a test package called [name].
+  static String _createPackageDescriptor(String name) =>
+      '''{
+            "name": "$name",
+            "rootUri": "./$name",
+            "packageUri": "./"
+          }''';
+
   void delete() {
-    testDir.deleteSync(recursive: true);
+    _testRootDirectory.deleteSync(recursive: true);
   }
 
   Future<TestExpressionCompiler> createCompiler() =>
-      TestExpressionCompiler.init(setup,
-          input: input, output: output, packages: packages);
+      TestExpressionCompiler.init(
+        setup,
+        input: input,
+        output: output,
+        packages: packages,
+      );
 
   Future<TestCompilationResult> compile({
     required TestExpressionCompiler compiler,
@@ -60,11 +91,12 @@ class ExpressionCompilerTestDriver {
     required String expression,
   }) async {
     return compiler.compileExpression(
-        libraryUri: input,
-        line: line,
-        column: 1,
-        scope: scope,
-        expression: expression);
+      libraryUri: input,
+      line: line,
+      column: 1,
+      scope: scope,
+      expression: expression,
+    );
   }
 
   void checkResult(
@@ -76,10 +108,11 @@ class ExpressionCompilerTestDriver {
     var message = success ? expectedResult! : expectedError;
 
     expect(
-        result,
-        const TypeMatcher<TestCompilationResult>()
-            .having((r) => r.result!, 'result', _matches(message))
-            .having((r) => r.isSuccess, 'isSuccess', success));
+      result,
+      const TypeMatcher<TestCompilationResult>()
+          .having((r) => r.result!, 'result', _matches(message))
+          .having((r) => r.isSuccess, 'isSuccess', success),
+    );
   }
 
   Future<void> check({
@@ -90,11 +123,17 @@ class ExpressionCompilerTestDriver {
     dynamic expectedResult,
   }) async {
     compiler ??= await createCompiler();
-    var result =
-        await compile(compiler: compiler, scope: scope, expression: expression);
+    var result = await compile(
+      compiler: compiler,
+      scope: scope,
+      expression: expression,
+    );
 
-    checkResult(result,
-        expectedError: expectedError, expectedResult: expectedResult);
+    checkResult(
+      result,
+      expectedError: expectedError,
+      expectedResult: expectedResult,
+    );
   }
 
   Matcher _matches(dynamic matcher) {

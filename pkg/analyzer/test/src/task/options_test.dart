@@ -34,7 +34,7 @@ class ErrorCodeValuesTest {
     // split the codes by class is to find all of the classes that need to be
     // checked against `errorCodeValues`.
     var errorTypeMap = <Type, List<DiagnosticCode>>{};
-    for (DiagnosticCode code in errorCodeValues) {
+    for (DiagnosticCode code in diagnosticCodeValues) {
       Type type = code.runtimeType;
       errorTypeMap.putIfAbsent(type, () => <DiagnosticCode>[]).add(code);
     }
@@ -585,7 +585,7 @@ plugins:
     var options = optionsProvider.getOptionsFromString(source);
     var diagnostics = validator.validate(options);
     expect(
-      diagnostics.map((Diagnostic e) => e.errorCode),
+      diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),
     );
     return diagnostics;
@@ -604,9 +604,10 @@ class OptionsProviderTest with ResourceProviderMixin {
     List<Diagnostic> diagnostics,
     List<ExpectedError> expectedErrors,
   ) {
-    GatheringErrorListener errorListener = GatheringErrorListener();
-    errorListener.addAll(diagnostics);
-    errorListener.assertErrors(expectedErrors);
+    GatheringDiagnosticListener diagnosticListener =
+        GatheringDiagnosticListener();
+    diagnosticListener.addAll(diagnostics);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 
   void assertErrorsInOptionsFile(
@@ -808,7 +809,7 @@ analyzer:
       null /*sdkVersionConstraint*/,
     );
     expect(
-      diagnostics.map((Diagnostic e) => e.errorCode),
+      diagnostics.map((Diagnostic e) => e.diagnosticCode),
       unorderedEquals(expected),
     );
     return diagnostics;

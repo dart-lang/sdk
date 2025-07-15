@@ -50,7 +50,7 @@ Map<Object, FormalParameterElementMixin> _computeParameterMap(
   int unnamedParameterIndex = 0;
   return {
     for (var parameter in parameters)
-      parameter.isNamed ? parameter.name3 ?? '' : unnamedParameterIndex++:
+      parameter.isNamed ? parameter.name ?? '' : unnamedParameterIndex++:
           parameter,
   };
 }
@@ -96,45 +96,17 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
     FunctionType? invokeType,
   ) {
     if (invokeType != null) {
-      var elementOrMember = node.element2 as ConstructorElementMixin2;
+      var elementOrMember = node.element as ConstructorElementMixin2;
       var constructorElement = ConstructorMember.from2(
         elementOrMember.baseElement,
         invokeType.returnType as InterfaceType,
       );
       constructorName?.element = constructorElement;
-      node.element2 = constructorElement;
+      node.element = constructorElement;
       return constructorElement.formalParameters;
     }
     return null;
   }
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [AugmentedInvocation].
-class AugmentedInvocationInferrer
-    extends FullInvocationInferrer<AugmentedInvocationImpl> {
-  AugmentedInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-  }) : super._();
-
-  @override
-  SyntacticEntity get _errorEntity {
-    return node.augmentedKeyword;
-  }
-
-  @override
-  bool get _needsTypeArgumentBoundsCheck => true;
-
-  @override
-  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
-
-  @override
-  DiagnosticCode get _wrongNumberOfTypeArgumentsErrorCode =>
-      CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
@@ -236,9 +208,9 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     GenericInferrer? inferrer;
     Substitution? substitution;
     if (_isGenericInferenceDisabled) {
-      if (rawType != null && rawType.typeFormals.isNotEmpty) {
+      if (rawType != null && rawType.typeParameters.isNotEmpty) {
         typeArgumentTypes = List.filled(
-          rawType.typeFormals.length,
+          rawType.typeParameters.length,
           DynamicTypeImpl.instance,
         );
         substitution = Substitution.fromPairs2(
@@ -250,7 +222,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       }
     } else if (typeArgumentList != null) {
       if (rawType != null &&
-          typeArgumentList.arguments.length != rawType.typeFormals.length) {
+          typeArgumentList.arguments.length != rawType.typeParameters.length) {
         var typeParameters = rawType.typeParameters;
         _reportWrongNumberOfTypeArguments(
           typeArgumentList,
@@ -278,10 +250,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
               bound = substitution.substituteType(bound);
               var typeArgument = typeArgumentTypes[i];
               if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
-                resolver.errorReporter.atNode(
+                resolver.diagnosticReporter.atNode(
                   typeArgumentList.arguments[i],
                   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                  arguments: [typeArgument, typeParameter.name3!, bound],
+                  arguments: [typeArgument, typeParameter.name!, bound],
                 );
               }
             }
@@ -295,11 +267,11 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           typeArgumentTypes,
         );
       }
-    } else if (rawType == null || rawType.typeFormals.isEmpty) {
+    } else if (rawType == null || rawType.typeParameters.isEmpty) {
       typeArgumentTypes = const <TypeImpl>[];
     } else {
-      var typeParameters = [for (var tp in rawType.typeFormals) tp.element];
-      rawType = getFreshTypeParameters2(
+      var typeParameters = rawType.typeParameters;
+      rawType = getFreshTypeParameters(
         typeParameters,
       ).applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(
@@ -312,7 +284,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         declaredReturnType: rawType.returnType,
         contextReturnType: contextType,
         isConst: _isConst,
-        errorReporter: resolver.errorReporter,
+        diagnosticReporter: resolver.diagnosticReporter,
         errorEntity: _errorEntity,
         genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: resolver.inferenceUsingBoundsIsEnabled,
@@ -379,11 +351,11 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
     var parameters = _storeResult(typeArgumentTypes, invokeType);
     if (parameters != null) {
-      argumentList.correspondingStaticParameters2 =
+      argumentList.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(
             argumentList: argumentList,
             formalParameters: parameters,
-            errorReporter: resolver.errorReporter,
+            diagnosticReporter: resolver.diagnosticReporter,
           );
     }
     var returnType = _refineReturnType(
@@ -419,7 +391,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     FunctionType rawType,
     List<TypeParameterElement> typeParameters,
   ) {
-    resolver.errorReporter.atNode(
+    resolver.diagnosticReporter.atNode(
       typeArgumentList,
       _wrongNumberOfTypeArgumentsErrorCode,
       arguments: [
@@ -643,7 +615,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         inferrer?.constrainArgument(
           argument.typeOrThrow,
           parameter.type,
-          parameter.name3 ?? '',
+          parameter.name ?? '',
           nodeForTesting: node,
         );
       }
@@ -718,7 +690,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           inferrer?.constrainArgument(
             argument.typeOrThrow,
             parameter.type,
-            parameter.name3 ?? '',
+            parameter.name ?? '',
             nodeForTesting: node,
           );
         }
@@ -763,7 +735,7 @@ class MethodInvocationInferrer
     var argumentContextType = super._computeContextForArgument(parameterType);
     var targetType = node.realTarget?.staticType;
     if (targetType != null) {
-      argumentContextType = resolver.typeSystem.refineNumericInvocationContext2(
+      argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
         targetType,
         node.methodName.element,
         contextType,
@@ -843,7 +815,7 @@ class _FunctionLiteralDependencies
       for (var entry in parameterMap.entries) {
         if (explicitlyTypedParameters.contains(entry.key)) continue;
         result.addAll(
-          _typeSystem.getFreeParameters2(
+          _typeSystem.getFreeParameters(
                 entry.value.type,
                 candidates: _typeVariables,
               ) ??
@@ -862,13 +834,13 @@ class _FunctionLiteralDependencies
   ) {
     var type = paramInfo.parameter?.type;
     if (type is FunctionTypeImpl) {
-      return _typeSystem.getFreeParameters2(
+      return _typeSystem.getFreeParameters(
             type.returnType,
             candidates: _typeVariables,
           ) ??
           const [];
     } else if (type != null) {
-      return _typeSystem.getFreeParameters2(type, candidates: _typeVariables) ??
+      return _typeSystem.getFreeParameters(type, candidates: _typeVariables) ??
           const [];
     } else {
       return const [];

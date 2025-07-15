@@ -38,8 +38,10 @@ ListPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: a@41
+      declaredFragment: isPublic a@41
         type: int
+        element: isPublic
+          type: int
       matchedValueType: dynamic
   rightBracket: ]
   matchedValueType: dynamic
@@ -67,8 +69,10 @@ ListPattern
     DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@41
-        type: dynamic
+      declaredFragment: isPublic a@41
+        type: null
+        element: hasImplicitType isPublic
+          type: dynamic
       matchedValueType: dynamic
   rightBracket: ]
   matchedValueType: dynamic
@@ -104,8 +108,10 @@ ListPattern
     DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@46
-        type: int
+      declaredFragment: isPublic a@46
+        type: null
+        element: hasImplicitType isPublic
+          type: int
       matchedValueType: int
   rightBracket: ]
   matchedValueType: dynamic
@@ -161,8 +167,10 @@ ListPattern
       pattern: DeclaredVariablePattern
         keyword: var
         name: rest
-        declaredElement: hasImplicitType rest@46
-          type: List<int>
+        declaredFragment: isPublic rest@46
+          type: null
+          element: hasImplicitType isPublic
+            type: List<int>
         matchedValueType: List<int>
   rightBracket: ]
   matchedValueType: List<int>
@@ -190,8 +198,10 @@ ListPattern
     DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@51
-        type: int
+      declaredFragment: isPublic a@51
+        type: null
+        element: hasImplicitType isPublic
+          type: int
       matchedValueType: int
   rightBracket: ]
   matchedValueType: List<int>
@@ -227,8 +237,10 @@ ListPattern
     DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@56
-        type: int
+      declaredFragment: isPublic a@56
+        type: null
+        element: hasImplicitType isPublic
+          type: int
       matchedValueType: int
   rightBracket: ]
   matchedValueType: List<num>
@@ -303,8 +315,10 @@ ListPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: a@48
+      declaredFragment: isPublic a@48
         type: int
+        element: isPublic
+          type: int
       matchedValueType: Object?
   rightBracket: ]
   matchedValueType: Object
@@ -332,8 +346,10 @@ ListPattern
     DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@48
-        type: Object?
+      declaredFragment: isPublic a@48
+        type: null
+        element: hasImplicitType isPublic
+          type: Object?
       matchedValueType: Object?
   rightBracket: ]
   matchedValueType: Object
@@ -405,8 +421,10 @@ ListPattern
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: a@53
+      declaredFragment: isPublic a@53
         type: int
+        element: isPublic
+          type: int
       matchedValueType: num
   rightBracket: ]
   matchedValueType: Object
@@ -442,8 +460,10 @@ ListPattern
     DeclaredVariablePattern
       keyword: var
       name: a
-      declaredElement: hasImplicitType a@53
-        type: int
+      declaredFragment: isPublic a@53
+        type: null
+        element: hasImplicitType isPublic
+          type: int
       matchedValueType: int
   rightBracket: ]
   matchedValueType: Object
@@ -469,8 +489,10 @@ PatternVariableDeclaration
     elements
       DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@29
-          type: int
+        declaredFragment: isPublic a@29
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>
@@ -478,7 +500,7 @@ PatternVariableDeclaration
   equals: =
   expression: SimpleIdentifier
     token: x
-    element: <testLibraryFragment>::@function::f::@parameter::x#element
+    element: <testLibrary>::@function::f::@formalParameter::x
     staticType: List<int>
   patternTypeSchema: List<_>
 ''');
@@ -512,8 +534,10 @@ PatternVariableDeclaration
     elements
       DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType a@23
-          type: int
+        declaredFragment: isPublic a@23
+          type: null
+          element: hasImplicitType isPublic
+            type: int
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>
@@ -559,8 +583,10 @@ PatternVariableDeclaration
           element2: dart:core::@class::int
           type: int
         name: a
-        declaredElement: a@22
+        declaredFragment: isPublic a@22
           type: int
+          element: isPublic
+            type: int
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>

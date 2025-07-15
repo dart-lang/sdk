@@ -20,7 +20,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// `if` statement.
 class JoinElseWithIf extends _JoinIfWithElseBlock {
   JoinElseWithIf({required super.context})
-    : super(DartAssistKind.JOIN_ELSE_WITH_IF);
+    : super(DartAssistKind.joinElseWithIf);
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -66,7 +66,7 @@ class JoinElseWithIf extends _JoinIfWithElseBlock {
 /// `if` statement.
 class JoinIfWithElse extends _JoinIfWithElseBlock {
   JoinIfWithElse({required super.context})
-    : super(DartAssistKind.JOIN_IF_WITH_ELSE);
+    : super(DartAssistKind.joinIfWithElse);
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

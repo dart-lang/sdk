@@ -15,9 +15,9 @@ import 'package:analyzer/src/error/codes.dart';
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
 /// actually constant.
 class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
-  final ErrorReporter _errorReporter;
+  final DiagnosticReporter _diagnosticReporter;
 
-  ConstArgumentsVerifier(this._errorReporter);
+  ConstArgumentsVerifier(this._diagnosticReporter);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -31,7 +31,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         false) {
       // If the operator is not `=`, then the argument cannot be const, as it
       // depends on the value of the left hand side.
-      _errorReporter.atNode(
+      _diagnosticReporter.atNode(
         node.rightHandSide,
         WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER,
         arguments: [node.rightHandSide],
@@ -98,7 +98,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         continue;
       }
 
-      var parameterName = parameter.name3;
+      var parameterName = parameter.name;
       if (parameterName == null) {
         continue;
       }
@@ -111,7 +111,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
           resolvedArgument = argument;
         }
         if (!_isConst(resolvedArgument)) {
-          _errorReporter.atNode(
+          _diagnosticReporter.atNode(
             argument,
             WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER,
             arguments: [parameterName],
@@ -143,7 +143,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
     } else if (expression is Identifier) {
       var element = expression.element;
       switch (element) {
-        case GetterElement(variable3: var variable?):
+        case GetterElement(:var variable?):
           return variable.isConst;
         case VariableElement():
           return element.isConst;

@@ -26,7 +26,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  AssistKind get assistKind => DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
+  AssistKind get assistKind => DartAssistKind.addDiagnosticPropertyReference;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
@@ -212,11 +212,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
     ClassDeclaration declaration,
   ) async {
-    var propertyErrors = _getAllDiagnosticsInClass(declaration);
+    var propertyDiagnostics = _getAllDiagnosticsInClass(declaration);
 
-    // Create fixes only when its the first error.
-    if (propertyErrors.isNotEmpty &&
-        errorOffset != propertyErrors.first.offset) {
+    // Create fixes only when its the first diagnostic.
+    if (propertyDiagnostics.isNotEmpty &&
+        diagnosticOffset != propertyDiagnostics.first.offset) {
       return;
     }
 
@@ -252,10 +252,10 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     var properties = <_PropertyInfo>[];
 
     // Compute the information for all the properties to be added.
-    for (var error in propertyErrors) {
+    for (var diagnostic in propertyDiagnostics) {
       var node = unitResult.unit.nodeCovering(
-        offset: error.offset,
-        length: error.length,
+        offset: diagnostic.offset,
+        length: diagnostic.length,
       );
       if (node == null) {
         continue;
@@ -329,13 +329,13 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     var propertyDiagnostics = <Diagnostic>[];
     var startOffset = declaration.offset;
     var endOffset = startOffset + declaration.length;
-    for (var error in unitResult.errors) {
-      var errorCode = error.errorCode;
-      if (errorCode.type == DiagnosticType.LINT &&
-          errorCode == LinterLintCode.diagnostic_describe_all_properties &&
-          error.offset > startOffset &&
-          error.offset < endOffset) {
-        propertyDiagnostics.add(error);
+    for (var diagnostic in unitResult.diagnostics) {
+      var diagnosticCode = diagnostic.diagnosticCode;
+      if (diagnosticCode.type == DiagnosticType.LINT &&
+          diagnosticCode == LinterLintCode.diagnostic_describe_all_properties &&
+          diagnostic.offset > startOffset &&
+          diagnostic.offset < endOffset) {
+        propertyDiagnostics.add(diagnostic);
       }
     }
 
@@ -425,11 +425,11 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   bool _isEnum(DartType type) {
-    return type is InterfaceType && type.element3 is EnumElement;
+    return type is InterfaceType && type.element is EnumElement;
   }
 
   bool _isIterable(DartType type) {
-    return type.asInstanceOf2(typeProvider.iterableElement2) != null;
+    return type.asInstanceOf(typeProvider.iterableElement) != null;
   }
 
   ({int offset, String prefix}) _offsetAndPrefixOfBlock(Block block) {

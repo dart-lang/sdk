@@ -37,9 +37,9 @@ import 'server_abstract.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CompletionTest);
-    defineReflectiveTests(CompletionLabelDetailsTest);
     defineReflectiveTests(CompletionDocumentationResolutionTest);
+    defineReflectiveTests(CompletionLabelDetailsTest);
+    defineReflectiveTests(CompletionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
   });
@@ -87,6 +87,16 @@ abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     failTestOnErrorDiagnostic = false;
 
     setApplyEditSupport();
+  }
+
+  void _enableLints(List<String> lintNames) {
+    registerLintRules();
+    var lintsYaml = lintNames.map((name) => '    - $name\n').join();
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+$lintsYaml
+''');
   }
 }
 
@@ -243,6 +253,178 @@ void f() {
 
     var resolved = await resolveCompletion(completion);
     expectDocumentation(resolved, contains('Enum Member.'));
+  }
+
+  /// We should not show `var`, `final` or the member type on the display text.
+  Future<void> test_pattern_member_name_only() async {
+    content = '''
+void f(({int name, int other}) r) {
+  if (r case (:^)) {}
+}
+''';
+    await initializeServer();
+
+    var code = TestCode.parse(content);
+    var completion = await getCompletionItem('name');
+    expect(completion, isNotNull);
+
+    // Resolve the completion item to get its edits.
+    var resolved = await resolveCompletion(completion);
+
+    // Apply all current-document edits.
+    var newContent = applyTextEdits(code.code, [
+      toTextEdit(resolved.textEdit!),
+    ]);
+    expect(
+      newContent,
+      equals('''
+void f(({int name, int other}) r) {
+  if (r case (:var name)) {}
+}
+'''),
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60751')
+  Future<void> test_pattern_member_type_with_hide_combinator_and_lint() async {
+    newFile(join(projectFolderPath, 'lib', 'my_types.dart'), '''
+class MyType {}
+class MyType2 {}
+typedef Other = ({MyType name,});
+''');
+    content = '''
+import 'my_types.dart' hide MyType, MyType2;
+
+void f(Other r) {
+  if (r case (:^)) {}
+}
+''';
+    _enableLints([LintNames.always_specify_types]);
+    await initializeServer();
+    var code = TestCode.parse(content);
+    var completion = await getCompletionItem('name');
+    expect(completion, isNotNull);
+    var resolved = await resolveCompletion(completion);
+    var newContent = applyTextEdits(code.code, [
+      toTextEdit(resolved.textEdit!),
+    ]);
+    expect(
+      newContent,
+      equals('''
+import 'my_types.dart' hide MyType2;
+
+void f(Other r) {
+  if (r case (:MyType name)) {}
+}
+'''),
+    );
+  }
+
+  Future<void> test_pattern_member_type_with_new_import_and_lint() async {
+    newFile(join(projectFolderPath, 'lib', 'my_types.dart'), '''
+class MyType {}
+''');
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+import 'my_types.dart';
+typedef Other = ({MyType name,});
+''');
+    content = '''
+import 'other.dart';
+
+void f(Other r) {
+  if (r case (:^)) {}
+}
+''';
+    _enableLints([LintNames.always_specify_types]);
+    await initializeServer();
+    var code = TestCode.parse(content);
+    var completion = await getCompletionItem('name');
+    var resolved = await resolveCompletion(completion);
+    var newContent = applyTextEdits(
+      code.code,
+      [
+        toTextEdit(resolved.textEdit!),
+      ].followedBy(resolved.additionalTextEdits!).toList(),
+    );
+    expect(
+      newContent,
+      equals('''
+import 'package:test/my_types.dart';
+
+import 'other.dart';
+
+void f(Other r) {
+  if (r case (:MyType name)) {}
+}
+'''),
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/60751')
+  Future<void> test_pattern_member_type_with_show_combinator_and_lint() async {
+    newFile(join(projectFolderPath, 'lib', 'my_types.dart'), '''
+class MyType {}
+typedef Other = ({MyType name,});
+''');
+    content = '''
+import 'my_types.dart' show Other;
+
+void f(Other r) {
+  if (r case (:^)) {}
+}
+''';
+    _enableLints([LintNames.always_specify_types]);
+    await initializeServer();
+    var code = TestCode.parse(content);
+    var completion = await getCompletionItem('name');
+    expect(completion, isNotNull);
+    var resolved = await resolveCompletion(completion);
+    var newContent = applyTextEdits(code.code, [
+      toTextEdit(resolved.textEdit!),
+    ]);
+    expect(
+      newContent,
+      equals('''
+import 'my_types.dart' show Other, MyType;
+
+void f(Other r) {
+  if (r case (:MyType name)) {}
+}
+'''),
+    );
+  }
+
+  Future<void> test_pattern_type_with_aliased_import_and_lint() async {
+    newFile(join(projectFolderPath, 'lib', 'my_types.dart'), '''
+class MyType {}
+typedef Other = ({MyType name,});
+''');
+    content = '''
+import 'my_types.dart' as t;
+
+void f(t.Other r) {
+  if (r case (:^)) {}
+}
+''';
+    _enableLints([LintNames.always_specify_types]);
+    await initializeServer();
+    var code = TestCode.parse(content);
+    var completion = await getCompletionItem('name');
+    expect(completion, isNotNull);
+    var resolved = await resolveCompletion(completion);
+    var newContent = applyTextEdits(code.code, [
+      toTextEdit(resolved.textEdit!),
+    ]);
+    expect(
+      newContent,
+      equals('''
+import 'my_types.dart' as t;
+
+void f(t.Other r) {
+  if (r case (:t.MyType name)) {}
+}
+'''),
+    );
   }
 }
 
@@ -1840,30 +2022,35 @@ var a = 1 /^
         getCompletion(mainFileUri, position),
       ];
 
-      // Ensure all requests started, then let them continue.
-      await pumpEventQueue(times: 5000);
-      completer.complete();
+      var expectationFutures = [
+        expectLater(
+          responseFutures[0],
+          throwsA(
+            isResponseError(
+              ErrorCodes.RequestCancelled,
+              message: 'Another textDocument/completion request was started',
+            ),
+          ),
+        ),
+        expectLater(
+          responseFutures[1],
+          throwsA(
+            isResponseError(
+              ErrorCodes.RequestCancelled,
+              message: 'Another textDocument/completion request was started',
+            ),
+          ),
+        ),
+        expectLater(responseFutures[2], completion(isNotEmpty)),
+      ];
 
-      expect(
-        responseFutures[0],
-        throwsA(
-          isResponseError(
-            ErrorCodes.RequestCancelled,
-            message: 'Another textDocument/completion request was started',
-          ),
-        ),
-      );
-      expect(
-        responseFutures[1],
-        throwsA(
-          isResponseError(
-            ErrorCodes.RequestCancelled,
-            message: 'Another textDocument/completion request was started',
-          ),
-        ),
-      );
-      var results = await responseFutures[2];
-      expect(results, isNotEmpty);
+      // Ensure all requests started, then let them continue. This must be done
+      // after the expectations are set up above, because otherwise if the
+      // exceptions occur too quickly, they will be unhandled (whereas the
+      // expectations attach error handlers to them).
+      await pumpEventQueue(times: 50000);
+      completer.complete();
+      await Future.wait(expectationFutures);
     } finally {
       CompletionHandler.delayAfterResolveForTests = null;
     }
@@ -4401,16 +4588,6 @@ void f() {
         reason: 'No completions when using $triggerCharacter',
       );
     }
-  }
-
-  void _enableLints(List<String> lintNames) {
-    registerLintRules();
-    var lintsYaml = lintNames.map((name) => '    - $name\n').join();
-    newFile(analysisOptionsPath, '''
-linter:
-  rules:
-$lintsYaml
-''');
   }
 }
 

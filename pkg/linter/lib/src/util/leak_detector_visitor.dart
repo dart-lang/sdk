@@ -200,7 +200,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     // Being assigned another reference.
     if (node.rightHandSide is SimpleIdentifier) {
       if (_isElementEqualToVariable(
-        node.writeElement2,
+        node.writeElement,
         variable.declaredFragment?.element,
       )) {
         containsValidUse = true;
@@ -231,7 +231,7 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
     if (variableType == _VariableType.field) {
       var staticElement = node.declaredFragment?.element;
       if (staticElement is FieldFormalParameterElement &&
-          staticElement.field2 == variableElement) {
+          staticElement.field == variableElement) {
         containsValidUse = true;
         return;
       }
@@ -310,8 +310,8 @@ class _ValidUseVisitor extends RecursiveAstVisitor<void> {
 enum _VariableType { field, local }
 
 extension on Element? {
-  bool matches(VariableElement? variable) => switch (this) {
-    PropertyAccessorElement(:var variable3) => variable3 == variable,
+  bool matches(VariableElement? requested) => switch (this) {
+    PropertyAccessorElement(:var variable) => variable == requested,
     _ => false,
   };
 }

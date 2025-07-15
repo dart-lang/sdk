@@ -32,6 +32,7 @@ import 'records.dart';
 import 'reference_extensions.dart';
 import 'serialization.dart';
 import 'static_dispatch_table.dart';
+import 'symbols.dart';
 import 'tags.dart';
 import 'types.dart';
 import 'util.dart' as util;
@@ -121,6 +122,8 @@ class TranslatorOptions {
 class Translator with KernelNodes {
   // Options for the translation.
   final TranslatorOptions options;
+
+  final Symbols symbols;
 
   // Kernel input and context.
   @override
@@ -448,7 +451,8 @@ class Translator with KernelNodes {
       this._moduleOutputData, this.options,
       {bool enableDynamicModules = false,
       required MainModuleMetadata mainModuleMetadata})
-      : libraries = component.libraries,
+      : symbols = Symbols(options.minify),
+        libraries = component.libraries,
         hierarchy =
             ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
     if (enableDynamicModules) {
@@ -1506,9 +1510,7 @@ class Translator with KernelNodes {
 
       // Check that type of the receiver is a subtype of
       if (!typeEnvironment.isSubtypeOf(
-          lambdaDartType,
-          node.receiver.getStaticType(typeContext),
-          SubtypeCheckMode.withNullabilities)) {
+          lambdaDartType, node.receiver.getStaticType(typeContext))) {
         return null;
       }
 
@@ -1530,9 +1532,7 @@ class Translator with KernelNodes {
           functions.getLambdaFunction(lambda, member, enclosingMemberClosures);
 
       if (!typeEnvironment.isSubtypeOf(
-          lambdaDartType,
-          node.receiver.getStaticType(typeContext),
-          SubtypeCheckMode.withNullabilities)) {
+          lambdaDartType, node.receiver.getStaticType(typeContext))) {
         return null;
       }
 
@@ -1726,16 +1726,14 @@ class Translator with KernelNodes {
       if (name == 'iterator' && nodeCount <= 20) {
         if (typeEnvironment.isSubtypeOf(
             klass.getThisType(coreTypes, Nullability.nonNullable),
-            coreTypes.iterableRawType(Nullability.nonNullable),
-            SubtypeCheckMode.ignoringNullabilities)) {
+            coreTypes.iterableRawType(Nullability.nonNullable))) {
           return true;
         }
       }
       if (name == 'current' && nodeCount <= 5) {
         if (typeEnvironment.isSubtypeOf(
             klass.getThisType(coreTypes, Nullability.nonNullable),
-            coreTypes.iteratorRawType(Nullability.nonNullable),
-            SubtypeCheckMode.ignoringNullabilities)) {
+            coreTypes.iteratorRawType(Nullability.nonNullable))) {
           return true;
         }
       }
@@ -1895,10 +1893,12 @@ class CompilationTask {
   CompilationTask(this.function, this._codeGenerator);
 
   void run(Translator translator, bool printKernel, bool printWasm) {
-    _codeGenerator.generate(function.body, function.locals.toList(), null);
     if (printWasm) {
       print("#${function.name} (synthetic)");
       print(function.type);
+    }
+    _codeGenerator.generate(function.body, function.locals.toList(), null);
+    if (printWasm) {
       print(function.body.trace);
     }
   }
@@ -1915,9 +1915,6 @@ class AstCompilationTask extends CompilationTask {
   void run(Translator translator, bool printKernel, bool printWasm) {
     final member = reference.asMember;
 
-    final codeGen = getMemberCodeGenerator(translator, function, reference);
-    codeGen.generate(function.body, function.locals.toList(), null);
-
     if (printKernel || printWasm) {
       final (:name, :exportName) = _getNames(translator);
 
@@ -1929,6 +1926,7 @@ class AstCompilationTask extends CompilationTask {
         header = "$header (type checker)";
       }
       print(header);
+      print(function.type);
       print(member.function
           ?.computeFunctionType(Nullability.nonNullable)
           .toStringInternal());
@@ -1952,8 +1950,10 @@ class AstCompilationTask extends CompilationTask {
       if (!printWasm) print("");
     }
 
+    final codeGen = getMemberCodeGenerator(translator, function, reference);
+    codeGen.generate(function.body, function.locals.toList(), null);
+
     if (printWasm) {
-      print(function.type);
       print(function.body.trace);
     }
   }
@@ -2156,7 +2156,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       b.local_get(namedArgsListLocal);
       translator.constants.instantiateConstant(
           b,
-          SymbolConstant(paramName, null),
+          translator.symbols.symbolForNamedParameter(paramName),
           translator.classInfo[translator.symbolClass]!.nonNullableType);
       translator.callReference(translator.getNamedParameterIndex.reference, b);
       b.local_set(namedArgValueIndexLocal);

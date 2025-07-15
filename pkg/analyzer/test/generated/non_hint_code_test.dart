@@ -212,8 +212,8 @@ import 'package:somepackage/other.dart';
     var file = newFile(path, content);
     result = await resolveFile(file);
 
-    var errorListener = GatheringErrorListener();
-    errorListener.addAll(result.errors);
-    errorListener.assertErrors(expectedErrors);
+    var diagnosticListener = GatheringDiagnosticListener();
+    diagnosticListener.addAll(result.diagnostics);
+    diagnosticListener.assertErrors(expectedErrors);
   }
 }

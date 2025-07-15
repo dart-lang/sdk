@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class FlutterConvertToStatefulWidgetTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.FLUTTER_CONVERT_TO_STATEFUL_WIDGET;
+  AssistKind get kind => DartAssistKind.flutterConvertToStatefulWidget;
 
   @override
   void setUp() {

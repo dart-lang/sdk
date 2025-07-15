@@ -739,7 +739,7 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     await suite.compiler.batchCompile(
         new CompilerOptions()
           ..sdkSummary = computePlatformBinariesLocation(forceBuildDir: true)
-              .resolve("vm_platform_strong.dill")
+              .resolve("vm_platform.dill")
           ..explicitExperimentalFlags = example.experimentalFlags ?? {}
           ..target = new VmTarget(new TargetFlags())
           ..fileSystem = new HybridFileSystem(suite.fileSystem)

@@ -79,7 +79,7 @@ final class ExpectedError extends ExpectedDiagnostic {
 
   ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
     : super(
-        (error) => error.errorCode == _code,
+        (error) => error.diagnosticCode == _code,
         offset,
         length,
         messageContains: messageContains,
@@ -96,7 +96,7 @@ final class ExpectedLint extends ExpectedDiagnostic {
     int length, {
     super.messageContains,
     super.correctionContains,
-  }) : super((error) => error.errorCode.name == _lintName, offset, length);
+  }) : super((error) => error.diagnosticCode.name == _lintName, offset, length);
 }
 
 class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
@@ -183,8 +183,10 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// The diagnostics that were computed during analysis.
   List<Diagnostic> get _diagnostics =>
-      result.errors
-          .where((e) => !ignoredDiagnosticCodes.any((c) => e.errorCode == c))
+      result.diagnostics
+          .where(
+            (e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c),
+          )
           .toList();
 
   Folder get _sdkRoot => newFolder('/sdk');
@@ -270,7 +272,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       buffer.writeln('Found but did not expect:');
       for (var actual in unmatchedActual) {
         buffer.write('  ');
-        buffer.write(actual.errorCode);
+        buffer.write(actual.diagnosticCode);
         buffer.write(' [');
         buffer.write(actual.offset);
         buffer.write(', ');
@@ -293,11 +295,11 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       for (var actual in diagnostics) {
         late String diagnosticKind;
         Object? description;
-        if (actual.errorCode is LintCode) {
+        if (actual.diagnosticCode is LintCode) {
           diagnosticKind = 'lint';
         } else {
           diagnosticKind = 'error';
-          description = actual.errorCode;
+          description = actual.diagnosticCode;
         }
         buffer.write('  $diagnosticKind(');
         if (description != null) {
@@ -357,7 +359,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ) async {
     for (var (path, expectedDiagnostics) in unitsAndDiagnostics) {
       result = await resolveFile(convertPath(path));
-      assertDiagnosticsIn(result.errors, expectedDiagnostics);
+      assertDiagnosticsIn(result.diagnostics, expectedDiagnostics);
     }
   }
 

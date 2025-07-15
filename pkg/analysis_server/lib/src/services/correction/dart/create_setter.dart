@@ -51,7 +51,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
     var staticModifier = false;
     InstanceElement? targetElement;
     if (target is ExtensionOverride) {
-      targetElement = target.element2;
+      targetElement = target.element;
     } else if (target is Identifier && target.element is ExtensionElement) {
       targetElement = target.element as ExtensionElement;
       staticModifier = true;
@@ -61,7 +61,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
       if (targetType is! InterfaceType) {
         return;
       }
-      targetElement = targetType.element3;
+      targetElement = targetType.element;
       // maybe static
       if (target is Identifier) {
         var targetIdentifier = target;
@@ -77,7 +77,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
     }
     var targetFragment = targetElement.firstFragment;
     var targetSource = targetFragment.libraryFragment.source;
-    if (targetElement.library2.isInSdk == true) {
+    if (targetElement.library.isInSdk == true) {
       return;
     }
     // prepare target declaration

@@ -43,7 +43,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
     var libraryElement = libraryFragment.element;
 
     var nodeName = Name(libraryElement.uri, node.name);
-    var extensions = libraryFragment.accessibleExtensions2
+    var extensions = libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(nodeName)
         .applicableTo(
           targetLibrary: libraryElement,
@@ -51,7 +51,7 @@ class AddExtensionOverride extends MultiCorrectionProducer {
         );
     var producers = <ResolvedCorrectionProducer>[];
     for (var extension in extensions) {
-      var name = extension.extension.name3;
+      var name = extension.extension.name;
       if (name != null) {
         producers.add(_AddOverride(target, name, context: context));
       }

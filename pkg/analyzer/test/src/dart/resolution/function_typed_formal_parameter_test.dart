@@ -25,7 +25,7 @@ void f<V>(T p<T, U>(U a, V b)) {}
 FunctionTypedFormalParameter
   returnType: NamedType
     name: T
-    element2: T@14
+    element2: #E0 T
     type: T
   name: p
   typeParameters: TypeParameterList
@@ -33,11 +33,11 @@ FunctionTypedFormalParameter
     typeParameters
       TypeParameter
         name: T
-        declaredElement: T@14
+        declaredElement: <testLibraryFragment> T@14
           defaultType: null
       TypeParameter
         name: U
-        declaredElement: U@17
+        declaredElement: <testLibraryFragment> U@17
           defaultType: null
     rightBracket: >
   parameters: FormalParameterList
@@ -45,21 +45,21 @@ FunctionTypedFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: U@17
+        element2: #E1 U
         type: U
       name: a
-      declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p::@formalParameter::a
+      declaredElement: <testLibraryFragment> a@22
         type: U
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
-        element2: V@7
+        element2: #E2 V
         type: V
       name: b
-      declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p::@formalParameter::b
+      declaredElement: <testLibraryFragment> b@27
         type: V
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p
+  declaredElement: <testLibraryFragment> p@12
     type: T Function<T, U>(U, V)
 ''');
   }
@@ -85,10 +85,10 @@ FunctionTypedFormalParameter
         element2: dart:core::@class::int
         type: int
       name: a
-      declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p::@formalParameter::a
+      declaredElement: <testLibraryFragment> a@18
         type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment>::@function::f::@formalParameter::p
+  declaredElement: <testLibraryFragment> p@12
     type: void Function(int)
 ''');
   }

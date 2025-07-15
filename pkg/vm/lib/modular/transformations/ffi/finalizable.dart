@@ -903,11 +903,7 @@ ${parent?.toStringIndented(indentation: indentation + 2)}
     }
     final catches = node_.catches;
     for (final catch_ in catches) {
-      if (typeEnvironment.isSubtypeOf(
-        exceptionType,
-        catch_.guard,
-        SubtypeCheckMode.withNullabilities,
-      )) {
+      if (typeEnvironment.isSubtypeOf(exceptionType, catch_.guard)) {
         return true;
       }
     }
@@ -1037,11 +1033,7 @@ extension FinalizableDartType on DartType {
       InterfaceType(finalizableClass, Nullability.nullable),
       Nullability.nullable,
     );
-    if (!typeEnvironment.isSubtypeOf(
-      type,
-      finalizableType,
-      SubtypeCheckMode.withNullabilities,
-    )) {
+    if (!typeEnvironment.isSubtypeOf(type, finalizableType)) {
       cache?[type] = false;
       return false;
     }
@@ -1051,12 +1043,7 @@ extension FinalizableDartType on DartType {
       NeverType.nullable(),
       Nullability.nullable,
     );
-    final result =
-        !typeEnvironment.isSubtypeOf(
-          type,
-          futureOfNeverType,
-          SubtypeCheckMode.ignoringNullabilities,
-        );
+    final result = !typeEnvironment.isSubtypeOf(type, futureOfNeverType);
     cache?[type] = result;
     return result;
   }

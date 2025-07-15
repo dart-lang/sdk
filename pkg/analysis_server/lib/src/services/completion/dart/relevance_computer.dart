@@ -103,6 +103,39 @@ class RelevanceComputer {
   int computeRelevance(CandidateSuggestion suggestion) {
     var neverType = request.libraryElement.typeProvider.neverType;
     switch (suggestion) {
+      case TypedSuggestionCompletionMixin():
+        return switch (suggestion) {
+          MethodSuggestion() => _computeMethodRelevance(
+            suggestion.element,
+            suggestion.inheritanceDistance(featureComputer),
+            suggestion.isNotImported,
+          ),
+          GetterSuggestion() => _computePropertyAccessorRelevance(
+            suggestion.element,
+            suggestion.inheritanceDistance(featureComputer),
+            suggestion.isNotImported,
+          ),
+          SetStateMethodSuggestion() => _computeMethodRelevance(
+            suggestion.element,
+            suggestion.inheritanceDistance(featureComputer),
+            suggestion.isNotImported,
+          ),
+          // This is a placeholder that can be overridden above with the exact
+          // type. Only needed because mixins can't be `sealed`.
+          TypedSuggestionCompletionMixin() => computeScore(
+            contextType: featureComputer.contextTypeFeature(
+              request.contextType,
+              suggestion.type,
+            ),
+          ),
+        };
+      case RecordFieldSuggestion():
+        return computeScore(
+          contextType: featureComputer.contextTypeFeature(
+            request.contextType,
+            suggestion.field.type,
+          ),
+        );
       case ClassSuggestion():
         return computeTopLevelRelevance2(
           suggestion.element,
@@ -192,12 +225,6 @@ class RelevanceComputer {
         );
       case LocalVariableSuggestion():
         return _computeLocalVariableRelevance(suggestion);
-      case MethodSuggestion():
-        return _computeMethodRelevance(
-          suggestion.element,
-          suggestion.inheritanceDistance(featureComputer),
-          suggestion.isNotImported,
-        );
       case MixinSuggestion():
         return computeTopLevelRelevance(
           suggestion.element,
@@ -218,32 +245,14 @@ class RelevanceComputer {
         return 500;
       case OverrideSuggestion():
         return Relevance.override;
-      case GetterSuggestion():
-        return _computePropertyAccessorRelevance(
-          suggestion.element,
-          suggestion.inheritanceDistance(featureComputer),
-          suggestion.isNotImported,
-        );
       case SetterSuggestion():
         return _computePropertyAccessorRelevance(
           suggestion.element,
           suggestion.inheritanceDistance(featureComputer),
           suggestion.isNotImported,
         );
-      case RecordFieldSuggestion():
-        var contextType = featureComputer.contextTypeFeature(
-          request.contextType,
-          suggestion.field.type,
-        );
-        return computeScore(contextType: contextType);
       case RecordLiteralNamedFieldSuggestion():
         return Relevance.requiredNamedArgument;
-      case SetStateMethodSuggestion():
-        return _computeMethodRelevance(
-          suggestion.element,
-          suggestion.inheritanceDistance(featureComputer),
-          suggestion.isNotImported,
-        );
       case StaticFieldSuggestion():
         return _computeStaticFieldRelevance(
           suggestion.element,
@@ -613,7 +622,7 @@ class RelevanceComputer {
   ) {
     if (accessor.isSynthetic) {
       if (accessor is GetterElement) {
-        var variable = accessor.variable3;
+        var variable = accessor.variable;
         if (variable is FieldElement) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
@@ -646,9 +655,9 @@ class RelevanceComputer {
     bool isNotImportedLibrary,
   ) {
     if (element.isSynthetic) {
-      var getter = element.getter2;
+      var getter = element.getter;
       if (getter != null) {
-        var variable = getter.variable3;
+        var variable = getter.variable;
         if (variable is FieldElement) {
           return computeFieldElementRelevance(variable, inheritanceDistance);
         }
@@ -670,7 +679,7 @@ class RelevanceComputer {
   ) {
     if (accessor.isSynthetic) {
       if (accessor is GetterElement) {
-        var variable = accessor.variable3;
+        var variable = accessor.variable;
         if (variable is TopLevelVariableElement) {
           return computeTopLevelRelevance(
             variable,
@@ -719,7 +728,7 @@ class RelevanceComputer {
 
   /// Return the [DartType] for an instantiated [TypeAlias].
   DartType _instantiateTypeAlias(TypeAliasElement element) {
-    var typeParameters = element.typeParameters2;
+    var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
       var neverType = request.libraryElement.typeProvider.neverType;

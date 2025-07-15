@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the class 'Class<A>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the type 'Class<A>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'method'.
@@ -278,7 +278,7 @@ library;
 // final field29 = Extension<B>(classB).genericMethod<B>(a);
 //                                                       ^
 //
-// pkg/front_end/testcases/extensions/check_bounds.dart:24:10: Error: The method 'method' isn't defined for the class 'Class<A>'.
+// pkg/front_end/testcases/extensions/check_bounds.dart:24:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'method'.
@@ -547,7 +547,7 @@ library;
 //   Extension<B>(classB).genericMethod<B>(a);
 //                                         ^
 //
-// pkg/front_end/testcases/extensions/check_bounds_lib.dart:11:10: Error: The method 'method' isn't defined for the class 'Class<A>'.
+// pkg/front_end/testcases/extensions/check_bounds_lib.dart:11:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
 //  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 //  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'method'.
@@ -844,7 +844,7 @@ extension Extension<T extends self::B> on self::Class<T> {
 static final field self::A a = new self::A::•();
 static final field self::Class<self::A> classA = new self::Class::•<self::A>();
 static final field self::Class<self::B> classB = new self::Class::•<self::B>();
-static final field dynamic field1 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the class 'Class<A>'.
+static final field dynamic field1 = invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:61:23: Error: The method 'method' isn't defined for the type 'Class<A>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
@@ -969,7 +969,7 @@ static method main() → dynamic {}
 static method test(self::A a) → dynamic {
   self::Class<self::A> classA = new self::Class::•<self::A>();
   self::Class<self::B> classB = new self::Class::•<self::B>();
-  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:24:10: Error: The method 'method' isn't defined for the class 'Class<A>'.
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:24:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.
@@ -1083,7 +1083,7 @@ Try correcting the name to the name of an existing method, or defining a method 
 static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPart(self::A a) → dynamic {
   self::Class<self::A> classA = new self::Class::•<self::A>();
   self::Class<self::B> classB = new self::Class::•<self::B>();
-  invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:11:10: Error: The method 'method' isn't defined for the class 'Class<A>'.
+  invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:11:10: Error: The method 'method' isn't defined for the type 'Class<A>'.
  - 'Class' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'method'.

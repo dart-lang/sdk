@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart'
     show PrefixExpression, PrefixedIdentifier, PropertyAccess, SimpleIdentifier;
 import 'package:analyzer/dart/ast/token.dart';
@@ -21,10 +22,7 @@ class PreferIsNotEmpty extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.prefer_is_not_empty;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addPrefixExpression(this, visitor);
   }
@@ -58,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // Element identifier should be "isEmpty".
     var propertyElement = isEmptyIdentifier.element;
-    if (propertyElement == null || 'isEmpty' != propertyElement.name3) {
+    if (propertyElement == null || 'isEmpty' != propertyElement.name) {
       return;
     }
 

@@ -195,6 +195,14 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, e.g. set-literals.',
       hide: true)
+  ..addMultiOption(
+    'extra-ddc-options',
+    help:
+        'A comma-separated list of additional command line arguments that will'
+        'be passed directly to DDC. Example: '
+        '"--extra-ddc-options=--canary".',
+    hide: true,
+  )
   ..addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -694,9 +702,14 @@ class FrontendCompiler implements CompilerInterface {
       transformer?.transform(results.component!);
 
       if (_compilerOptions.target!.name == 'dartdevc') {
+        List<String>? extraDdcOptions = options.wasParsed('extra-ddc-options')
+            ? options.multiOption('extra-ddc-options')
+            : null;
         await writeJavaScriptBundle(results, _kernelBinaryFilename,
             options['filesystem-scheme'], options['dartdevc-module-format'],
-            fullComponent: true, recompileRestart: false);
+            fullComponent: true,
+            recompileRestart: false,
+            extraDdcOptions: extraDdcOptions);
       }
       await writeDillFile(
         results,
@@ -838,7 +851,9 @@ class FrontendCompiler implements CompilerInterface {
   /// `recompile-restart` request.
   Future<void> writeJavaScriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat,
-      {required bool fullComponent, required bool recompileRestart}) async {
+      {required bool fullComponent,
+      required bool recompileRestart,
+      List<String>? extraDdcOptions}) async {
     PackageConfig packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             new File('.dart_tool/package_config.json').absolute.uri);
@@ -853,6 +868,7 @@ class FrontendCompiler implements CompilerInterface {
       emitDebugMetadata: emitDebugMetadata,
       moduleFormat: moduleFormat,
       canaryFeatures: canaryFeatures,
+      extraDdcOptions: extraDdcOptions ?? [],
     );
     if (fullComponent) {
       await bundler.initialize(component, _mainSource, packageConfig);
@@ -1048,9 +1064,14 @@ class FrontendCompiler implements CompilerInterface {
 
     if (_compilerOptions.target!.name == 'dartdevc') {
       try {
+        List<String>? extraDdcOptions = _options.wasParsed('extra-ddc-options')
+            ? _options.multiOption('extra-ddc-options')
+            : null;
         await writeJavaScriptBundle(results, _kernelBinaryFilename,
             _options['filesystem-scheme'], _options['dartdevc-module-format'],
-            fullComponent: false, recompileRestart: recompileRestart);
+            fullComponent: false,
+            recompileRestart: recompileRestart,
+            extraDdcOptions: extraDdcOptions);
       } catch (e) {
         _outputStream.writeln('$e');
         errors.add(e.toString());
@@ -1125,9 +1146,7 @@ class FrontendCompiler implements CompilerInterface {
       Map<String, String> jsModules,
       Map<String, String> jsFrameValues,
       String expression) async {
-    _generator.accept();
     errors.clear();
-
     if (_bundler == null) {
       reportError('JavaScript bundler is null');
       return;
@@ -1145,9 +1164,7 @@ class FrontendCompiler implements CompilerInterface {
     final Compiler kernel2jsCompiler = cachedProgramCompilers[libraryUri]!;
     IncrementalCompilerResult compilerResult = _generator.lastKnownGoodResult!;
     Component component = compilerResult.component;
-    component.computeCanonicalNames();
-
-    _processedOptions.ticker.logMs('Computed component');
+    _processedOptions.ticker.logMs('Retrieved cached component');
 
     ModuleFormat moduleFormat =
         parseModuleFormat(_options['dartdevc-module-format'] as String);

@@ -125,7 +125,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Check for duplicate declarations.
     if (!result.hasFatalError) {
-      for (var element in resolveResult.libraryElement2.children2) {
+      for (var element in resolveResult.libraryElement2.children) {
         if (element.displayName == name) {
           var message = format(
             "Library already declares {0} with name '{1}'.",
@@ -315,7 +315,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
           if (parameter is NormalFormalParameter) {
             var element = parameter.declaredFragment!.element;
             _parameters.add(
-              _Parameter(element.name3!, element.type, isMethodParameter: true),
+              _Parameter(element.name!, element.type, isMethodParameter: true),
             );
           }
         }
@@ -622,7 +622,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.writeOrReadElement2;
+    var element = node.writeOrReadElement;
     if (element == null) {
       return;
     }
@@ -644,7 +644,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         }
       }
     } else if (element is PropertyAccessorElement) {
-      var field = element.variable3;
+      var field = element.variable;
       if (field == null) {
         return;
       }
@@ -672,7 +672,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
       var enclosingClasses =
           this.enclosingClasses ??= <InterfaceElement>[
             enclosingClass,
-            ...enclosingClass.allSupertypes.map((t) => t.element3),
+            ...enclosingClass.allSupertypes.map((t) => t.element),
           ];
       return enclosingClasses.contains(element.enclosingElement);
     }

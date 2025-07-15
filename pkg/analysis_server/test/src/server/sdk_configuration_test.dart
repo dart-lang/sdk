@@ -13,7 +13,9 @@ void main() {
     Directory? tempDir;
 
     Directory createTempDir() {
-      return tempDir = Directory.systemTemp.createTempSync('SdkConfiguration');
+      return tempDir = Directory.systemTemp.createTempSync(
+        'analysisServer_test_sdkConfiguration',
+      );
     }
 
     tearDown(() {

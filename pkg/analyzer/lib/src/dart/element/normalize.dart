@@ -42,7 +42,7 @@ class NormalizeHelper {
   ///   * and B1 = NORM(B)
   ///   * and S1 = NORM(S)
   FunctionTypeImpl _functionType(FunctionTypeImpl functionType) {
-    var fresh = getFreshTypeParameters2(functionType.typeParameters);
+    var fresh = getFreshTypeParameters(functionType.typeParameters);
     for (var typeParameter in fresh.freshTypeParameters) {
       var bound = typeParameter.firstFragment.bound;
       if (bound != null) {
@@ -83,7 +83,7 @@ class NormalizeHelper {
 
     // * if S is Never then Future<Never>
     if (identical(S, NeverTypeImpl.instance)) {
-      return typeProvider.futureElement2.instantiateImpl(
+      return typeProvider.futureElement.instantiateImpl(
         typeArguments: [NeverTypeImpl.instance],
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -91,14 +91,14 @@ class NormalizeHelper {
 
     // * if S is Null then Future<Null>?
     if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-      return typeProvider.futureElement2.instantiateImpl(
+      return typeProvider.futureElement.instantiateImpl(
         typeArguments: [typeSystem.nullNone],
         nullabilitySuffix: NullabilitySuffix.question,
       );
     }
 
     // * else FutureOr<S>
-    return typeProvider.futureOrElement2.instantiateImpl(
+    return typeProvider.futureOrElement.instantiateImpl(
       typeArguments: [S],
       nullabilitySuffix: NullabilitySuffix.none,
     );
@@ -140,7 +140,7 @@ class NormalizeHelper {
 
     // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
     if (T is InterfaceTypeImpl) {
-      return T.element3.instantiateImpl(
+      return T.element.instantiateImpl(
         typeArguments: T.typeArguments.map(_normalize).toFixedList(),
         nullabilitySuffix: NullabilitySuffix.none,
       );
@@ -210,7 +210,7 @@ class NormalizeHelper {
   /// NORM(X & T)
   /// NORM(X extends T)
   TypeImpl _typeParameterType(TypeParameterTypeImpl T) {
-    var element = T.element3;
+    var element = T.element;
 
     // NORM(X & T)
     var promotedBound = T.promotedBound;
@@ -245,10 +245,7 @@ class NormalizeHelper {
 
   /// NORM(X & T)
   /// * let S be NORM(T)
-  TypeImpl _typeParameterType_promoted(
-    TypeParameterElementImpl2 X,
-    TypeImpl S,
-  ) {
+  TypeImpl _typeParameterType_promoted(TypeParameterElementImpl X, TypeImpl S) {
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;
@@ -262,7 +259,7 @@ class NormalizeHelper {
     // * if S is X then X
     if (S is TypeParameterType &&
         S.nullabilitySuffix == NullabilitySuffix.none &&
-        S.element3 == X) {
+        S.element == X) {
       return X.instantiate(nullabilitySuffix: NullabilitySuffix.none);
     }
 
@@ -280,7 +277,7 @@ class NormalizeHelper {
 
     // * else X & S
     return TypeParameterTypeImpl(
-      element3: X,
+      element: X,
       nullabilitySuffix: NullabilitySuffix.none,
       promotedBound: S,
     );

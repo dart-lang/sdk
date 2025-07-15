@@ -53,8 +53,11 @@ analyzer:
     - another
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(
+      unignorableCodeNames,
+      unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']),
+    );
   }
 
   test_analyzer_cannotIgnore_severity() {
@@ -64,9 +67,9 @@ analyzer:
     - error
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, contains('INVALID_ANNOTATION'));
-    expect(unignorableNames.length, greaterThan(500));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('INVALID_ANNOTATION'));
+    expect(unignorableCodeNames.length, greaterThan(500));
   }
 
   test_analyzer_cannotIgnore_severity_withProcessor() {
@@ -78,8 +81,8 @@ analyzer:
     - error
 ''');
 
-    var unignorableNames = analysisOptions.unignorableNames;
-    expect(unignorableNames, contains('UNUSED_IMPORT'));
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, contains('UNUSED_IMPORT'));
   }
 
   test_analyzer_chromeos_checks() {
@@ -114,7 +117,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
       arguments: [
         ['x'],
         ['y'],
@@ -139,7 +142,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+      diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
       arguments: [
         ['x'],
       ],
@@ -164,7 +167,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
       arguments: [
         ['x'],
         ['y'],
@@ -190,7 +193,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      errorCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
       arguments: [
         ['x'],
         ['y'],

@@ -32,8 +32,10 @@ void f(int x) {
 DeclaredVariablePattern
   keyword: final
   name: y
-  declaredElement: hasImplicitType isFinal y@46
-    type: int
+  declaredFragment: isFinal isPublic y@46
+    type: null
+    element: hasImplicitType isFinal isPublic
+      type: int
   matchedValueType: int
 ''');
   }
@@ -59,8 +61,10 @@ DeclaredVariablePattern
     element2: dart:core::@class::int
     type: int
   name: y
-  declaredElement: isFinal y@46
+  declaredFragment: isFinal isPublic y@46
     type: int
+    element: isFinal isPublic
+      type: int
   matchedValueType: dynamic
 ''');
   }
@@ -79,8 +83,10 @@ ListPattern
   elements
     DeclaredVariablePattern
       name: a
-      declaredElement: hasImplicitType isFinal a@54
-        type: int
+      declaredFragment: isFinal isPublic a@54
+        type: null
+        element: hasImplicitType isFinal isPublic
+          type: int
       matchedValueType: int
   rightBracket: ]
   matchedValueType: List<int>
@@ -104,8 +110,10 @@ ListPattern
       operator: ...
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType isFinal a@57
-          type: List<int>
+        declaredFragment: isFinal isPublic a@57
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: List<int>
         matchedValueType: List<int>
   rightBracket: ]
   matchedValueType: List<int>
@@ -132,8 +140,10 @@ MapPattern
       separator: :
       value: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType isFinal a@57
-          type: int
+        declaredFragment: isFinal isPublic a@57
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: int
         matchedValueType: int
   rightBracket: }
   matchedValueType: Map<int, int>
@@ -163,10 +173,12 @@ ObjectPattern
         colon: :
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType isFinal a@63
-          type: int
+        declaredFragment: isFinal isPublic a@63
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: int
         matchedValueType: int
-      element2: dart:core::<fragment>::@class::int::@getter::sign#element
+      element2: dart:core::@class::int::@getter::sign
   rightParenthesis: )
   matchedValueType: int
 ''');
@@ -185,8 +197,10 @@ ParenthesizedPattern
   leftParenthesis: (
   pattern: DeclaredVariablePattern
     name: a
-    declaredElement: hasImplicitType isFinal a@54
-      type: int
+    declaredFragment: isFinal isPublic a@54
+      type: null
+      element: hasImplicitType isFinal isPublic
+        type: int
     matchedValueType: int
   rightParenthesis: )
   matchedValueType: int
@@ -208,8 +222,10 @@ RecordPattern
     PatternField
       pattern: DeclaredVariablePattern
         name: a
-        declaredElement: hasImplicitType isFinal a@54
-          type: int
+        declaredFragment: isFinal isPublic a@54
+          type: null
+          element: hasImplicitType isFinal isPublic
+            type: int
         matchedValueType: int
       element2: <null>
   rightParenthesis: )
@@ -237,8 +253,10 @@ DeclaredVariablePattern
     element2: dart:core::@class::int
     type: int
   name: y
-  declaredElement: y@40
+  declaredFragment: isPublic y@40
     type: int
+    element: isPublic
+      type: int
   matchedValueType: dynamic
 ''');
   }
@@ -260,8 +278,10 @@ void f<T>(T x) {
 DeclaredVariablePattern
   keyword: var
   name: y
-  declaredElement: hasImplicitType y@54
-    type: T
+  declaredFragment: isPublic y@54
+    type: null
+    element: hasImplicitType isPublic
+      type: T
   matchedValueType: T & int
 ''');
   }
@@ -280,8 +300,10 @@ void f(int x) {
 DeclaredVariablePattern
   keyword: var
   name: y
-  declaredElement: hasImplicitType y@33
-    type: int
+  declaredFragment: isPublic y@33
+    type: null
+    element: hasImplicitType isPublic
+      type: int
   matchedValueType: int
 ''');
   }
@@ -300,8 +322,10 @@ void f(Never? x) {
 DeclaredVariablePattern
   keyword: var
   name: y
-  declaredElement: hasImplicitType y@36
-    type: dynamic
+  declaredFragment: isPublic y@36
+    type: null
+    element: hasImplicitType isPublic
+      type: dynamic
   matchedValueType: Never?
 ''');
   }
@@ -320,8 +344,10 @@ void f(Null x) {
 DeclaredVariablePattern
   keyword: var
   name: y
-  declaredElement: hasImplicitType y@34
-    type: dynamic
+  declaredFragment: isPublic y@34
+    type: null
+    element: hasImplicitType isPublic
+      type: dynamic
   matchedValueType: Null
 ''');
   }
@@ -343,8 +369,10 @@ void f(int x) {
 DeclaredVariablePattern
   keyword: var
   name: y
-  declaredElement: hasImplicitType y@44
-    type: int
+  declaredFragment: isPublic y@44
+    type: null
+    element: hasImplicitType isPublic
+      type: int
   matchedValueType: int
 ''');
   }
@@ -367,8 +395,10 @@ CastPattern
   pattern: DeclaredVariablePattern
     keyword: var
     name: y
-    declaredElement: hasImplicitType y@44
-      type: int
+    declaredFragment: isPublic y@44
+      type: null
+      element: hasImplicitType isPublic
+        type: int
     matchedValueType: int
   asToken: as
   type: NamedType

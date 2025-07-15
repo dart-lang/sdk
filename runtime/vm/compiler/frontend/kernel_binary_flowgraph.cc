@@ -352,7 +352,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           ReadCanonicalNameReference();
           instructions += BuildFieldInitializer(
               Field::ZoneHandle(Z, initializer_fields[i]->ptr()),
-              /*only_for_size_effects=*/false);
+              /*only_for_side_effects=*/false);
           break;
         }
         case kAssertInitializer: {
@@ -371,7 +371,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           intptr_t argument_count;
           instructions += BuildArguments(
               &argument_names, &argument_count,
-              /* positional_parameter_count = */ nullptr);  // read arguments.
+              /*positional_argument_count=*/nullptr);  // read arguments.
           argument_count += 1;
 
           Class& parent_klass = GetSuperOrDie();
@@ -397,7 +397,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           intptr_t argument_count;
           instructions += BuildArguments(
               &argument_names, &argument_count,
-              /* positional_parameter_count = */ nullptr);  // read arguments.
+              /*positional_argument_count=*/nullptr);  // read arguments.
           argument_count += 1;
 
           const Function& target = Function::ZoneHandle(
@@ -876,7 +876,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
       prologue += type_args_handling;
       prologue += explicit_type_checks;
       extra_entry = B->BuildSharedUncheckedEntryPoint(
-          /*shared_prologue_linked_in=*/prologue,
+          /*prologue_from_normal_entry=*/prologue,
           /*skippable_checks=*/implicit_type_checks,
           /*redefinitions_if_skipped=*/implicit_redefinitions,
           /*body=*/body);
@@ -2385,7 +2385,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
     instructions +=
         StaticCall(position, direct_call.target_, 2, Array::null_array(),
                    ICData::kNoRebind, /*result_type=*/nullptr,
-                   /*type_args_count=*/0,
+                   /*type_args_len=*/0,
                    /*use_unchecked_entry=*/is_unchecked_call);
   } else {
     const intptr_t kTypeArgsLen = 0;
@@ -2397,7 +2397,7 @@ Fragment StreamingFlowGraphBuilder::BuildInstanceSet(TokenPosition* p) {
         Function::null_function(),
         /*result_type=*/nullptr,
         /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes,
-        /*receiver_not_smi=*/false, is_call_on_this);
+        /*receiver_is_not_smi=*/false, is_call_on_this);
   }
 
   instructions += Drop();  // Drop result of the setter invocation.
@@ -2452,7 +2452,7 @@ Fragment StreamingFlowGraphBuilder::BuildDynamicSet(TokenPosition* p) {
     instructions +=
         StaticCall(position, *direct_call_target, 2, Array::null_array(),
                    ICData::kNoRebind, /*result_type=*/nullptr,
-                   /*type_args_count=*/0,
+                   /*type_args_len=*/0,
                    /*use_unchecked_entry=*/is_unchecked_call);
   } else {
     const intptr_t kTypeArgsLen = 0;
@@ -3328,7 +3328,7 @@ Fragment StreamingFlowGraphBuilder::BuildSuperMethodInvocation(
            StaticCall(position, Function::ZoneHandle(Z, function.ptr()),
                       argument_count, argument_names, ICData::kSuper,
                       &result_type, type_args_len,
-                      /*use_unchecked_entry_point=*/true);
+                      /*use_unchecked_entry=*/true);
   }
 }
 
@@ -6074,8 +6074,8 @@ Fragment StreamingFlowGraphBuilder::BuildLoadStoreAbiSpecificInt(
   if (at_index) {
     code += BuildExpression();  // Argument 3: index
     code += IntConstant(native_type->SizeInBytes());
-    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /* truncate= */ true);
-    code += B->BinaryIntegerOp(Token::kADD, kTagged, /* truncate= */ true);
+    code += B->BinaryIntegerOp(Token::kMUL, kTagged, /*is_truncating=*/true);
+    code += B->BinaryIntegerOp(Token::kADD, kTagged, /*is_truncating=*/true);
   }
   if (is_store) {
     code += BuildExpression();  // Argument 4: value

@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/constants.dart' // ignore: implementation_imports
-    show ExpressionExtension;
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -26,10 +25,7 @@ class AvoidRedundantArgumentValues extends LintRule {
       LinterLintCode.avoid_redundant_argument_values;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addEnumConstantArguments(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
@@ -78,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     //   rule.reportLint(arg);
     // } else ...
     if (value != null && value.hasKnownValue) {
-      var expressionValue = arg.computeConstantValue().value;
+      var expressionValue = arg.computeConstantValue()?.value;
       if ((expressionValue?.hasKnownValue ?? false) &&
           expressionValue == value) {
         rule.reportAtNode(arg);
@@ -104,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var redirectedConstructor = constructor?.redirectedConstructor2;
+    var redirectedConstructor = constructor?.redirectedConstructor;
     if (constructor == null || redirectedConstructor == null) {
       check(node.argumentList);
       return;
@@ -118,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       visitedConstructors.add(redirectedConstructor);
       constructor = redirectedConstructor;
-      redirectedConstructor = redirectedConstructor.redirectedConstructor2;
+      redirectedConstructor = redirectedConstructor.redirectedConstructor;
     }
 
     var parameters = constructor!.formalParameters;
@@ -138,7 +134,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       FormalParameterElement? param;
       if (arg is NamedExpression) {
         param = parameters.firstWhereOrNull(
-          (p) => p.isNamed && p.name3 == arg.name.label.name,
+          (p) => p.isNamed && p.name == arg.name.label.name,
         );
       } else {
         // Count which positional argument we're at.

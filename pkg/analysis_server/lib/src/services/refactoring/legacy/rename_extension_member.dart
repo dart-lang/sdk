@@ -81,8 +81,8 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
     // Update the declaration.
     var renameElement = element;
     if (renameElement.isSynthetic && renameElement is FieldElement) {
-      processor.addDeclarationEdit(renameElement.getter2);
-      processor.addDeclarationEdit(renameElement.setter2);
+      processor.addDeclarationEdit(renameElement.getter);
+      processor.addDeclarationEdit(renameElement.setter);
     } else {
       processor.addDeclarationEdit(renameElement);
     }
@@ -114,7 +114,7 @@ class _ExtensionMemberValidator {
     this.element,
     this.name,
   ) : isRename = true,
-      library = elementExtension.library2,
+      library = elementExtension.library,
       elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {

@@ -16,9 +16,15 @@
 
 /// @docImport 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
 /// @docImport 'package:analyzer/src/error/inference_error.dart';
+@Deprecated(
+  // This library is deprecated to prevent it from being accidentally imported
+  // It should only be imported by the corresponding non-code-generated library
+  // (which suppresses the deprecation warning using an "ignore" comment).
+  'Use package:analyzer/src/error/codes.dart instead',
+)
 library;
 
-import "package:analyzer/error/error.dart";
+import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class CompileTimeErrorCode extends DiagnosticCode {
   ///  No parameters.
@@ -1396,6 +1402,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
       CompileTimeErrorCode(
         'DOT_SHORTHAND_MISSING_CONTEXT',
         "A dot shorthand can't be used where there is no context type.",
+        hasPublishedDocs: true,
       );
 
   ///  Parameters:
@@ -1408,6 +1415,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     correctionMessage:
         "Try correcting the name to the name of an existing static getter, or "
         "defining a getter or field named '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'DOT_SHORTHAND_UNDEFINED_GETTER',
   );
 
@@ -1417,10 +1425,12 @@ class CompileTimeErrorCode extends DiagnosticCode {
   static const CompileTimeErrorCode
   DOT_SHORTHAND_UNDEFINED_INVOCATION = CompileTimeErrorCode(
     'DOT_SHORTHAND_UNDEFINED_MEMBER',
-    "The static method or constructor '{0}' isn't defined for the type '{1}'.",
+    "The static method or constructor '{0}' isn't defined for the context type "
+        "'{1}'.",
     correctionMessage:
         "Try correcting the name to the name of an existing static method or "
         "constructor, or defining a static method or constructor named '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'DOT_SHORTHAND_UNDEFINED_INVOCATION',
   );
 
@@ -3971,8 +3981,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   static const CompileTimeErrorCode
   NON_EXHAUSTIVE_SWITCH_EXPRESSION = CompileTimeErrorCode(
     'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
-    "The type '{0}' is not exhaustively matched by the switch cases since it "
-        "doesn't match '{1}'.",
+    "The type '{0}' isn't exhaustively matched by the switch cases since it "
+        "doesn't match the pattern '{1}'.",
     correctionMessage:
         "Try adding a wildcard pattern or cases that match '{2}'.",
     hasPublishedDocs: true,
@@ -3985,8 +3995,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   static const CompileTimeErrorCode
   NON_EXHAUSTIVE_SWITCH_STATEMENT = CompileTimeErrorCode(
     'NON_EXHAUSTIVE_SWITCH_STATEMENT',
-    "The type '{0}' is not exhaustively matched by the switch cases since it "
-        "doesn't match '{1}'.",
+    "The type '{0}' isn't exhaustively matched by the switch cases since it "
+        "doesn't match the pattern '{1}'.",
     correctionMessage: "Try adding a default case or cases that match '{2}'.",
     hasPublishedDocs: true,
   );
@@ -6505,24 +6515,28 @@ class WarningCode extends DiagnosticCode {
     'DOC_IMPORT_CANNOT_BE_DEFERRED',
     "Doc imports can't be deferred.",
     correctionMessage: "Try removing the 'deferred' keyword.",
+    hasPublishedDocs: true,
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_COMBINATORS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
     "Doc imports can't have show or hide combinators.",
     correctionMessage: "Try removing the combinator.",
+    hasPublishedDocs: true,
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
     correctionMessage: "Try removing the configurations.",
+    hasPublishedDocs: true,
   );
 
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_PREFIX = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_PREFIX',
     "Doc imports can't have prefixes.",
     correctionMessage: "Try removing the prefix.",
+    hasPublishedDocs: true,
   );
 
   ///  Duplicate exports.
@@ -6894,6 +6908,7 @@ class WarningCode extends DiagnosticCode {
     "The annotation '@reopen' can only be applied to a class that opens "
         "capabilities that the supertype intentionally disallows.",
     correctionMessage: "Try removing the '@reopen' annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  This warning is generated anywhere where `@required` annotates a named
@@ -6960,6 +6975,7 @@ class WarningCode extends DiagnosticCode {
     'INVALID_USE_OF_PROTECTED_MEMBER',
     "The member '{0}' can only be used within instance members of subclasses "
         "of '{1}'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -7196,6 +7212,7 @@ class WarningCode extends DiagnosticCode {
     'NON_NULLABLE_EQUALS_PARAMETER',
     "The parameter type of '==' operators should be non-nullable.",
     correctionMessage: "Try using a non-nullable type.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -7650,6 +7667,7 @@ class WarningCode extends DiagnosticCode {
     'UNNECESSARY_WILDCARD_PATTERN',
     "Unnecessary wildcard pattern.",
     correctionMessage: "Try removing the wildcard pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.

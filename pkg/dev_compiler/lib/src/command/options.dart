@@ -100,151 +100,181 @@ class Options {
   /// Whether the compiler is generating a dynamic module.
   final bool dynamicModule;
 
-  /// Raw precompiled macro options, each of the format
-  /// `<program-uri>;<macro-library-uri>`.
-  ///
-  /// Multiple library URIs may be provided separated by additional semicolons.
-  final List<String> precompiledMacros;
-
-  /// The serialization mode to use for macro communication.
-  final String? macroSerializationMode;
-
-  Options(
-      {this.sourceMap = true,
-      this.inlineSourceMap = false,
-      this.summarizeApi = true,
-      this.enableAsserts = true,
-      this.replCompile = false,
-      this.emitDebugMetadata = false,
-      this.emitDebugSymbols = false,
-      this.emitFullCompiledKernel = false,
-      this.reloadLastAcceptedKernel,
-      this.reloadDeltaKernel,
-      this.summaryModules = const {},
-      this.nonHotReloadablePackages = const {},
-      this.moduleFormats = const [],
-      required this.moduleName,
-      this.multiRootScheme = 'org-dartlang-app',
-      this.multiRootOutputPath,
-      this.experiments = const {},
-      this.canaryFeatures = false,
-      this.dynamicModule = false,
-      this.precompiledMacros = const [],
-      this.macroSerializationMode})
-      : emitLibraryBundle = canaryFeatures &&
-            moduleFormats.length == 1 &&
-            moduleFormats.single == ModuleFormat.ddc;
+  Options({
+    this.sourceMap = true,
+    this.inlineSourceMap = false,
+    this.summarizeApi = true,
+    this.enableAsserts = true,
+    this.replCompile = false,
+    this.emitDebugMetadata = false,
+    this.emitDebugSymbols = false,
+    this.emitFullCompiledKernel = false,
+    this.reloadLastAcceptedKernel,
+    this.reloadDeltaKernel,
+    this.summaryModules = const {},
+    this.nonHotReloadablePackages = const {},
+    this.moduleFormats = const [],
+    required this.moduleName,
+    this.multiRootScheme = 'org-dartlang-app',
+    this.multiRootOutputPath,
+    this.experiments = const {},
+    this.canaryFeatures = false,
+    this.dynamicModule = false,
+  }) : emitLibraryBundle =
+           canaryFeatures &&
+           moduleFormats.length == 1 &&
+           moduleFormats.single == ModuleFormat.ddc;
 
   Options.fromArguments(ArgResults args)
-      : this(
-            sourceMap: args['source-map'] as bool,
-            inlineSourceMap: args['inline-source-map'] as bool,
-            summarizeApi: args['summarize'] as bool,
-            enableAsserts: args['enable-asserts'] as bool,
-            replCompile: args['repl-compile'] as bool,
-            emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
-            emitDebugSymbols: args['emit-debug-symbols'] as bool,
-            emitFullCompiledKernel:
-                args['experimental-output-compiled-kernel'] as bool,
-            reloadLastAcceptedKernel:
-                args['reload-last-accepted-kernel'] as String?,
-            reloadDeltaKernel: args['reload-delta-kernel'] as String?,
-            summaryModules:
-                _parseCustomSummaryModules(args['summary'] as List<String>),
-            moduleFormats: parseModuleFormatOption(args),
-            moduleName: _getModuleName(args),
-            multiRootScheme: args['multi-root-scheme'] as String,
-            multiRootOutputPath: args['multi-root-output-path'] as String?,
-            experiments: parseExperimentalArguments(
-                args['enable-experiment'] as List<String>),
-            canaryFeatures: args['canary'] as bool,
-            dynamicModule: args['dynamic-module'] as bool,
-            precompiledMacros: args['precompiled-macro'] as List<String>,
-            macroSerializationMode:
-                args['macro-serialization-mode'] as String?);
+    : this(
+        sourceMap: args['source-map'] as bool,
+        inlineSourceMap: args['inline-source-map'] as bool,
+        summarizeApi: args['summarize'] as bool,
+        enableAsserts: args['enable-asserts'] as bool,
+        replCompile: args['repl-compile'] as bool,
+        emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
+        emitDebugSymbols: args['emit-debug-symbols'] as bool,
+        emitFullCompiledKernel:
+            args['experimental-output-compiled-kernel'] as bool,
+        reloadLastAcceptedKernel:
+            args['reload-last-accepted-kernel'] as String?,
+        reloadDeltaKernel: args['reload-delta-kernel'] as String?,
+        summaryModules: _parseCustomSummaryModules(
+          args['summary'] as List<String>,
+        ),
+        nonHotReloadablePackages: Set.from(
+          args['non-hot-reloadable-package'] as List<String>,
+        ),
+        moduleFormats: parseModuleFormatOption(args),
+        moduleName: _getModuleName(args),
+        multiRootScheme: args['multi-root-scheme'] as String,
+        multiRootOutputPath: args['multi-root-output-path'] as String?,
+        experiments: parseExperimentalArguments(
+          args['enable-experiment'] as List<String>,
+        ),
+        canaryFeatures: args['canary'] as bool,
+        dynamicModule: args['dynamic-module'] as bool,
+      );
 
   Options.fromSdkRequiredArguments(ArgResults args)
-      : this(
-            summarizeApi: false,
-            moduleFormats: parseModuleFormatOption(args),
-            // When compiling the SDK use dart_sdk as the default. This is the
-            // assumed name in various places around the build systems.
-            moduleName:
-                args['module-name'] != null ? _getModuleName(args) : 'dart_sdk',
-            multiRootScheme: args['multi-root-scheme'] as String,
-            multiRootOutputPath: args['multi-root-output-path'] as String?,
-            experiments: parseExperimentalArguments(
-                args['enable-experiment'] as List<String>),
-            canaryFeatures: args['canary'] as bool);
+    : this(
+        summarizeApi: false,
+        moduleFormats: parseModuleFormatOption(args),
+        // When compiling the SDK use dart_sdk as the default. This is the
+        // assumed name in various places around the build systems.
+        moduleName: args['module-name'] != null
+            ? _getModuleName(args)
+            : 'dart_sdk',
+        multiRootScheme: args['multi-root-scheme'] as String,
+        multiRootOutputPath: args['multi-root-output-path'] as String?,
+        experiments: parseExperimentalArguments(
+          args['enable-experiment'] as List<String>,
+        ),
+        canaryFeatures: args['canary'] as bool,
+      );
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
     addSdkRequiredArguments(parser, hide: hide);
 
     parser
-      ..addMultiOption('summary',
-          abbr: 's',
-          help: 'API summary file(s) of imported libraries, optionally\n'
-              'with module import path: -s path.dill=js/import/path')
-      ..addFlag('summarize',
-          help: 'Emit an API summary file.', defaultsTo: true, hide: hide)
-      ..addFlag('source-map',
-          help: 'Emit source mapping.', defaultsTo: true, hide: hide)
-      ..addFlag('inline-source-map',
-          help: 'Emit source mapping inline.', defaultsTo: false, hide: hide)
-      ..addFlag('enable-asserts',
-          help: 'Enable assertions.', defaultsTo: true, hide: hide)
-      ..addFlag('repl-compile',
-          help: 'Compile in a more permissive REPL mode, allowing access'
-              ' to private members across library boundaries. This should'
-              ' only be used by debugging tools.',
-          defaultsTo: false,
-          hide: hide)
+      ..addMultiOption(
+        'summary',
+        abbr: 's',
+        help:
+            'API summary file(s) of imported libraries, optionally\n'
+            'with module import path: -s path.dill=js/import/path',
+      )
+      ..addMultiOption(
+        'non-hot-reloadable-package',
+        help:
+            'Specifies that a package should not be hot reloaded.\n'
+            'Hot reload will be rejected when any such package is modified. '
+            'This allows the compiler to emit these packages with better '
+            'performance.',
+      )
+      ..addFlag(
+        'summarize',
+        help: 'Emit an API summary file.',
+        defaultsTo: true,
+        hide: hide,
+      )
+      ..addFlag(
+        'source-map',
+        help: 'Emit source mapping.',
+        defaultsTo: true,
+        hide: hide,
+      )
+      ..addFlag(
+        'inline-source-map',
+        help: 'Emit source mapping inline.',
+        defaultsTo: false,
+        hide: hide,
+      )
+      ..addFlag(
+        'enable-asserts',
+        help: 'Enable assertions.',
+        defaultsTo: true,
+        hide: hide,
+      )
+      ..addFlag(
+        'repl-compile',
+        help:
+            'Compile in a more permissive REPL mode, allowing access'
+            ' to private members across library boundaries. This should'
+            ' only be used by debugging tools.',
+        defaultsTo: false,
+        hide: hide,
+      )
       // TODO(41852) Define a process for breaking changes before graduating from
       // experimental.
-      ..addFlag('experimental-emit-debug-metadata',
-          help: 'Experimental option for compiler development.\n'
-              'Output a metadata file for debug tools next to the .js output.',
-          defaultsTo: false,
-          hide: true)
-      ..addFlag('emit-debug-symbols',
-          help: 'Experimental option for compiler development.\n'
-              'Output a symbols file for debug tools next to the .js output.',
-          defaultsTo: false,
-          hide: true)
-      ..addFlag('experimental-output-compiled-kernel',
-          help: 'Experimental option for compiler development.\n'
-              'Output a full kernel file for currently compiled module next to '
-              'the .js output.',
-          defaultsTo: false,
-          hide: true)
-      ..addOption('reload-last-accepted-kernel',
-          help: 'Provides a file path to read a dill file. The enclosed kernel '
-              'will be diffed against the kernel produced by this compilation '
-              'as an incremental hot reload step.',
-          hide: true)
-      ..addOption('reload-delta-kernel',
-          help: 'Provides a file path to write a dill file to. The resulting '
-              'kernel can be passed to future compilations via '
-              '`reload-last-accepted-kernel` to get incremental hot reload '
-              'checks.',
-          hide: true)
-      ..addMultiOption('precompiled-macro',
-          help:
-              'Configuration for precompiled macro binaries or kernel files.\n'
-              'The expected format of this option is as follows: '
-              '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
-              '--precompiled-macro="/path/to/compiled/macro;'
-              'package:some_macro/some_macro.dart". Multiple library uris may be '
-              'passed as well (separated by semicolons).',
-          hide: true)
-      ..addOption('macro-serialization-mode',
-          help: 'The serialization mode for communicating with macros.',
-          allowed: ['bytedata', 'json'],
-          defaultsTo: 'bytedata')
-      ..addFlag('dynamic-module',
-          help: 'Compile to generate a dynamic module',
-          negatable: false,
-          defaultsTo: false);
+      ..addFlag(
+        'experimental-emit-debug-metadata',
+        help:
+            'Experimental option for compiler development.\n'
+            'Output a metadata file for debug tools next to the .js output.',
+        defaultsTo: false,
+        hide: true,
+      )
+      ..addFlag(
+        'emit-debug-symbols',
+        help:
+            'Experimental option for compiler development.\n'
+            'Output a symbols file for debug tools next to the .js output.',
+        defaultsTo: false,
+        hide: true,
+      )
+      ..addFlag(
+        'experimental-output-compiled-kernel',
+        help:
+            'Experimental option for compiler development.\n'
+            'Output a full kernel file for currently compiled module next to '
+            'the .js output.',
+        defaultsTo: false,
+        hide: true,
+      )
+      ..addOption(
+        'reload-last-accepted-kernel',
+        help:
+            'Provides a file path to read a dill file. The enclosed kernel '
+            'will be diffed against the kernel produced by this compilation '
+            'as an incremental hot reload step.',
+        hide: true,
+      )
+      ..addOption(
+        'reload-delta-kernel',
+        help:
+            'Provides a file path to write a dill file to. The resulting '
+            'kernel can be passed to future compilations via '
+            '`reload-last-accepted-kernel` to get incremental hot reload '
+            'checks.',
+        hide: true,
+      )
+      ..addFlag(
+        'dynamic-module',
+        help: 'Compile to generate a dynamic module',
+        negatable: false,
+        defaultsTo: false,
+      );
   }
 
   /// Adds only the arguments used to compile the SDK from a full dill file.
@@ -256,30 +286,47 @@ class Options {
     addModuleFormatOptions(parser, hide: hide);
     parser
       ..addMultiOption('out', abbr: 'o', help: 'Output file (required).')
-      ..addOption('module-name',
-          help: 'The output module name, used in some JS module formats.\n'
-              'Defaults to the output file name (without .js).')
-      ..addOption('multi-root-scheme',
-          help: 'The custom scheme to indicate a multi-root uri.',
-          defaultsTo: 'org-dartlang-app')
-      ..addOption('multi-root-output-path',
-          help: 'Path to set multi-root files relative to when generating'
-              ' source-maps.',
-          hide: true)
-      ..addMultiOption('enable-experiment',
-          help: 'Enable/disable experimental language features.', hide: hide)
-      ..addFlag('sound-null-safety',
-          help: 'Ignored and will be removed in a future version. '
-              'Sound null safety is always used.',
-          negatable: false,
-          defaultsTo: true)
-      ..addFlag('canary',
-          help: 'Enable all compiler features under active development. '
-              'This option is intended for compiler development only. '
-              'Canary features are likely to be unstable and can be removed '
-              'without warning.',
-          defaultsTo: false,
-          hide: true);
+      ..addOption(
+        'module-name',
+        help:
+            'The output module name, used in some JS module formats.\n'
+            'Defaults to the output file name (without .js).',
+      )
+      ..addOption(
+        'multi-root-scheme',
+        help: 'The custom scheme to indicate a multi-root uri.',
+        defaultsTo: 'org-dartlang-app',
+      )
+      ..addOption(
+        'multi-root-output-path',
+        help:
+            'Path to set multi-root files relative to when generating'
+            ' source-maps.',
+        hide: true,
+      )
+      ..addMultiOption(
+        'enable-experiment',
+        help: 'Enable/disable experimental language features.',
+        hide: hide,
+      )
+      ..addFlag(
+        'sound-null-safety',
+        help:
+            'Ignored and will be removed in a future version. '
+            'Sound null safety is always used.',
+        negatable: false,
+        defaultsTo: true,
+      )
+      ..addFlag(
+        'canary',
+        help:
+            'Enable all compiler features under active development. '
+            'This option is intended for compiler development only. '
+            'Canary features are likely to be unstable and can be removed '
+            'without warning.',
+        defaultsTo: false,
+        hide: true,
+      );
   }
 
   static String _getModuleName(ArgResults args) {
@@ -288,8 +335,9 @@ class Options {
       var outPaths = args['out'] as List<String>;
       if (outPaths.isEmpty) {
         throw UnsupportedError(
-            'No module name provided and unable to synthesize one without any '
-            'output paths.');
+          'No module name provided and unable to synthesize one without any '
+          'output paths.',
+        );
       }
       var outPath = outPaths.first;
       moduleName = p.basenameWithoutExtension(outPath);
@@ -301,6 +349,63 @@ class Options {
     // that build systems do not depend on passing windows-style paths here.
     return p.toUri(moduleName).toString();
   }
+
+  /// Returns an `ArgParser` for arguments compatible with non-SDK DDC
+  /// compilations.
+  static ArgParser nonSdkArgParser() {
+    // TODO(jmesserly): refactor options to share code with dartdevc CLI.
+    var argParser = ArgParser(allowTrailingOptions: true)
+      ..addFlag(
+        'help',
+        abbr: 'h',
+        help: 'Display this message.',
+        negatable: false,
+      )
+      ..addOption('packages', help: 'The package spec file to use.')
+      // TODO(jmesserly): is this still useful for us, or can we remove it now?
+      ..addFlag(
+        'summarize-text',
+        help: 'Emit API summary and AST in .js.txt and .ast.xml files.',
+        defaultsTo: false,
+        hide: true,
+      )
+      ..addFlag(
+        'track-widget-creation',
+        help: 'Enable inspecting of Flutter widgets.',
+        defaultsTo: false,
+        hide: true,
+      )
+      // TODO(jmesserly): add verbose help to show hidden options
+      ..addOption(
+        'dart-sdk-summary',
+        help: 'The path to the Dart SDK summary file.',
+        hide: true,
+      )
+      ..addMultiOption(
+        'multi-root',
+        help:
+            'The directories to search when encountering uris with the '
+            'specified multi-root scheme.',
+        defaultsTo: [Uri.base.path],
+      )
+      ..addFlag(
+        'compile-sdk',
+        help: 'Build an SDK module.',
+        defaultsTo: false,
+        hide: true,
+      )
+      ..addOption(
+        'libraries-file',
+        help: 'The path to the libraries.json file for the sdk.',
+      )
+      ..addOption(
+        'used-inputs-file',
+        help: 'If set, the file to record inputs used.',
+        hide: true,
+      );
+    Options.addArguments(argParser);
+    return argParser;
+  }
 }
 
 /// Finds explicit module names of the form `path=name` in [summaryPaths],
@@ -309,8 +414,11 @@ class Options {
 /// A summary path can contain "=" followed by an explicit module name to
 /// allow working with summaries whose physical location is outside of the
 /// module root directory.
-Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
-    [String? moduleRoot, String? summaryExt]) {
+Map<String, String> _parseCustomSummaryModules(
+  List<String> summaryPaths, [
+  String? moduleRoot,
+  String? summaryExt,
+]) {
   var pathToModule = <String, String>{};
   for (var summaryPath in summaryPaths) {
     var equalSign = summaryPath.indexOf('=');
@@ -319,7 +427,8 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
         ? summaryPath.substring(
             0,
             // Strip off the extension, including the last `.`.
-            summaryPath.length - (summaryExt.length + 1))
+            summaryPath.length - (summaryExt.length + 1),
+          )
         : p.withoutExtension(summaryPath);
     if (equalSign != -1) {
       modulePath = summaryPath.substring(equalSign + 1);
@@ -327,7 +436,8 @@ Map<String, String> _parseCustomSummaryModules(List<String> summaryPaths,
     } else if (moduleRoot != null && p.isWithin(moduleRoot, summaryPath)) {
       // TODO: Determine if this logic is still needed.
       modulePath = p.url.joinAll(
-          p.split(p.relative(summaryPathWithoutExt, from: moduleRoot)));
+        p.split(p.relative(summaryPathWithoutExt, from: moduleRoot)),
+      );
     } else {
       modulePath = p.basename(summaryPathWithoutExt);
     }

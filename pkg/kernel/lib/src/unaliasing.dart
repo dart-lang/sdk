@@ -5,7 +5,6 @@
 import 'package:kernel/type_algebra.dart';
 
 import '../ast.dart';
-import 'legacy_erasure.dart';
 import 'replacement_visitor.dart';
 
 /// Replaces all occurrences of [TypedefType] in [type] with the corresponding
@@ -13,8 +12,8 @@ import 'replacement_visitor.dart';
 ///
 /// If [legacyEraseAliases] is `true`, the unaliased types will be legacy
 /// erased. This used when the [TypedefType] was used in a legacy library.
-DartType unalias(DartType type, {required bool legacyEraseAliases}) {
-  return rawUnalias(type, legacyEraseAliases: legacyEraseAliases) ?? type;
+DartType unalias(DartType type) {
+  return rawUnalias(type) ?? type;
 }
 
 /// Replaces all occurrences of [TypedefType] in [types] with the corresponding
@@ -22,11 +21,9 @@ DartType unalias(DartType type, {required bool legacyEraseAliases}) {
 ///
 /// If [legacyEraseAliases] is `true`, the unaliased types will be legacy
 /// erased. This used when the [TypedefType] was used in a legacy library.
-List<DartType>? unaliasTypes(List<DartType>? types,
-    {required bool legacyEraseAliases}) {
+List<DartType>? unaliasTypes(List<DartType>? types) {
   if (types == null) return null;
-  return rawUnaliasTypes(types, legacyEraseAliases: legacyEraseAliases) ??
-      types;
+  return rawUnaliasTypes(types) ?? types;
 }
 
 /// Replaces all occurrences of [TypedefType] in [type] with the corresponding
@@ -34,12 +31,8 @@ List<DartType>? unaliasTypes(List<DartType>? types,
 ///
 /// If [legacyEraseAliases] is `true`, the unaliased types will be legacy
 /// erased. This used when the [TypedefType] was used in a legacy library.
-DartType? rawUnalias(DartType type, {required bool legacyEraseAliases}) {
-  return type.accept1(
-      legacyEraseAliases
-          ? const _Unalias(legacyEraseAliases: true)
-          : const _Unalias(legacyEraseAliases: false),
-      Variance.covariant);
+DartType? rawUnalias(DartType type) {
+  return type.accept1(const _Unalias(), Variance.covariant);
 }
 
 /// Replaces all occurrences of [TypedefType] in [types] with the corresponding
@@ -47,13 +40,11 @@ DartType? rawUnalias(DartType type, {required bool legacyEraseAliases}) {
 ///
 /// If [legacyEraseAliases] is `true`, the unaliased types will be legacy
 /// erased. This used when the [TypedefType] was used in a legacy library.
-List<DartType>? rawUnaliasTypes(List<DartType> types,
-    {required bool legacyEraseAliases}) {
+List<DartType>? rawUnaliasTypes(List<DartType> types) {
   List<DartType>? newTypes;
   for (int i = 0; i < types.length; i++) {
     DartType typeArgument = types[i];
-    DartType? newTypeArgument =
-        rawUnalias(typeArgument, legacyEraseAliases: legacyEraseAliases);
+    DartType? newTypeArgument = rawUnalias(typeArgument);
     if (newTypeArgument != null) {
       newTypes ??= types.toList(growable: false);
       newTypes[i] = newTypeArgument;
@@ -68,9 +59,7 @@ List<DartType>? rawUnaliasTypes(List<DartType> types,
 /// If [legacyEraseAliases] is `true`, the unaliased types will be legacy
 /// erased. This used when the [TypedefType] was used in a legacy library.
 class _Unalias extends ReplacementVisitor {
-  final bool legacyEraseAliases;
-
-  const _Unalias({required this.legacyEraseAliases});
+  const _Unalias();
 
   @override
   DartType visitTypedefType(TypedefType node, Variance variance) {
@@ -94,18 +83,8 @@ class _Unalias extends ReplacementVisitor {
     } else {
       result = node.unalias;
     }
-    if (node.nullability == Nullability.legacy ||
-        node.typedefNode.type!.nullability == Nullability.legacy) {
-      // The typedef is defined or used in an opt-out library so the nullability
-      // is based on the use site alone.
-      result = result.withDeclaredNullability(node.declaredNullability);
-    } else {
-      result = result.withDeclaredNullability(uniteNullabilities(
-          node.declaredNullability, result.declaredNullability));
-    }
-    if (legacyEraseAliases) {
-      result = legacyErasure(result);
-    }
+    result = result.withDeclaredNullability(uniteNullabilities(
+        node.declaredNullability, result.declaredNullability));
     return result;
   }
 }

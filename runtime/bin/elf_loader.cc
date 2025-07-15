@@ -4,164 +4,26 @@
 
 #include "bin/elf_loader.h"
 
+#include <memory>
+#include <utility>
+
 #include "platform/globals.h"
+
 #if defined(DART_HOST_OS_FUCHSIA)
 #include <sys/mman.h>
 #endif
 
-#include <memory>
-#include <utility>
+#include "platform/elf.h"
+#include "platform/unwinding_records.h"
 
 #include "bin/file.h"
+#include "bin/mappable.h"
 #include "bin/virtual_memory.h"
-#include "platform/elf.h"
-
-#include "platform/unwinding_records.h"
 
 namespace dart {
 namespace bin {
 
 namespace elf {
-
-class Mappable {
- public:
-  static Mappable* FromPath(const char* path);
-#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
-  static Mappable* FromFD(int fd);
-#endif
-  static Mappable* FromMemory(const uint8_t* memory, size_t size);
-
-  virtual MappedMemory* Map(File::MapType type,
-                            uint64_t position,
-                            uint64_t length,
-                            void* start = nullptr) = 0;
-
-  virtual bool SetPosition(uint64_t position) = 0;
-  virtual bool ReadFully(void* dest, int64_t length) = 0;
-
-  virtual ~Mappable() {}
-
- protected:
-  Mappable() {}
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(Mappable);
-};
-
-class FileMappable : public Mappable {
- public:
-  explicit FileMappable(File* file) : Mappable(), file_(file) {}
-
-  ~FileMappable() override { file_->Release(); }
-
-  MappedMemory* Map(File::MapType type,
-                    uint64_t position,
-                    uint64_t length,
-                    void* start = nullptr) override {
-    return file_->Map(type, position, length, start);
-  }
-
-  bool SetPosition(uint64_t position) override {
-    return file_->SetPosition(position);
-  }
-
-  bool ReadFully(void* dest, int64_t length) override {
-    return file_->ReadFully(dest, length);
-  }
-
- private:
-  File* const file_;
-  DISALLOW_COPY_AND_ASSIGN(FileMappable);
-};
-
-class MemoryMappable : public Mappable {
- public:
-  MemoryMappable(const uint8_t* memory, size_t size)
-      : Mappable(), memory_(memory), size_(size), position_(memory) {}
-
-  ~MemoryMappable() override {}
-
-  MappedMemory* Map(File::MapType type,
-                    uint64_t position,
-                    uint64_t length,
-                    void* start = nullptr) override {
-    if (position > size_) return nullptr;
-    MappedMemory* result = nullptr;
-    const uword map_size = Utils::RoundUp(length, VirtualMemory::PageSize());
-    if (start == nullptr) {
-      auto* memory = VirtualMemory::Allocate(
-          map_size, type == File::kReadExecute, "dart-compiled-image");
-      if (memory == nullptr) return nullptr;
-      result = new MappedMemory(memory->address(), memory->size());
-      memory->release();
-      delete memory;
-    } else {
-      result = new MappedMemory(start, map_size,
-                                /*should_unmap=*/false);
-    }
-
-    size_t remainder = 0;
-    if ((position + length) > size_) {
-      remainder = position + length - size_;
-      length = size_ - position;
-    }
-    memcpy(result->address(), memory_ + position, length);  // NOLINT
-    memset(reinterpret_cast<uint8_t*>(result->address()) + length, 0,
-           remainder);
-
-    auto mode = VirtualMemory::kReadOnly;
-    switch (type) {
-      case File::kReadExecute:
-        mode = VirtualMemory::kReadExecute;
-        break;
-      case File::kReadWrite:
-        mode = VirtualMemory::kReadWrite;
-        break;
-      case File::kReadOnly:
-        mode = VirtualMemory::kReadOnly;
-        break;
-      default:
-        UNREACHABLE();
-    }
-
-    VirtualMemory::Protect(result->address(), result->size(), mode);
-
-    return result;
-  }
-
-  bool SetPosition(uint64_t position) override {
-    if (position > size_) return false;
-    position_ = memory_ + position;
-    return true;
-  }
-
-  bool ReadFully(void* dest, int64_t length) override {
-    if ((position_ + length) > (memory_ + size_)) return false;
-    memcpy(dest, position_, length);
-    return true;
-  }
-
- private:
-  const uint8_t* const memory_;
-  const size_t size_;
-  const uint8_t* position_;
-  DISALLOW_COPY_AND_ASSIGN(MemoryMappable);
-};
-
-Mappable* Mappable::FromPath(const char* path) {
-  return new FileMappable(File::Open(/*namespc=*/nullptr, path, File::kRead,
-                                     /*executable=*/true));
-}
-
-#if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
-Mappable* Mappable::FromFD(int fd) {
-  return new FileMappable(File::OpenFD(fd));
-}
-#endif
-
-Mappable* Mappable::FromMemory(const uint8_t* memory, size_t size) {
-  return new MemoryMappable(memory, size);
-}
 
 /// A loader for a subset of ELF which may be used to load objects produced by
 /// Dart_CreateAppAOTSnapshotAsElf.
@@ -242,7 +104,7 @@ class LoadedElf {
   const dart::elf::Symbol* dynamic_symbol_table_ = nullptr;
   uword dynamic_symbol_count_ = 0;
 
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
   // Dynamic table for looking up unwinding exceptions info.
   // Initialized by LoadSegments as we load executable segment.
   MallocGrowableArray<void*> dynamic_runtime_function_tables_;
@@ -295,7 +157,7 @@ bool LoadedElf::Load() {
 }
 
 LoadedElf::~LoadedElf() {
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
   for (intptr_t i = 0; i < dynamic_runtime_function_tables_.length(); i++) {
     UnwindingRecordsPlatform::UnregisterDynamicTable(
         dynamic_runtime_function_tables_[i]);
@@ -464,7 +326,7 @@ bool LoadedElf::LoadSegments() {
     CHECK_ERROR(memory != nullptr, "Could not map segment.");
     CHECK_ERROR(memory->address() == memory_start,
                 "Mapping not at requested address.");
-#if defined(DART_HOST_OS_WINDOWS) && defined(ARCH_IS_64_BIT)
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
     // For executable pages register unwinding information that should be
     // present on the page.
     if (map_type == File::kReadExecute) {
@@ -560,6 +422,7 @@ MappedMemory* LoadedElf::MapFilePiece(uword file_start,
 }  // namespace dart
 
 using namespace dart::bin::elf;  // NOLINT
+using Mappable = dart::bin::Mappable;
 
 #if defined(DART_HOST_OS_FUCHSIA) || defined(DART_HOST_OS_LINUX)
 DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Fd(int fd,
@@ -624,7 +487,7 @@ DART_EXPORT Dart_LoadedElf* Dart_LoadELF_Memory(
     return nullptr;
   }
   std::unique_ptr<LoadedElf> elf(
-      new LoadedElf(std::move(mappable), /*file_offset=*/0));
+      new LoadedElf(std::move(mappable), /*elf_data_offset=*/0));
 
   if (!elf->Load() ||
       !elf->ResolveSymbols(vm_snapshot_data, vm_snapshot_instrs,

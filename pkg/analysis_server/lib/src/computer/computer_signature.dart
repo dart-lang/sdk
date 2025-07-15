@@ -42,7 +42,7 @@ class DartUnitSignatureComputer {
     var parent = argumentList.parent;
     if (parent is MethodInvocation) {
       name = parent.methodName.name;
-      element = ElementLocator.locate2(parent);
+      element = ElementLocator.locate(parent);
       parameters =
           element is FunctionTypedElement ? element.formalParameters : null;
     } else if (parent is InstanceCreationExpression) {
@@ -51,7 +51,7 @@ class DartUnitSignatureComputer {
       if (constructorName != null) {
         name += '.${constructorName.name}';
       }
-      element = ElementLocator.locate2(parent);
+      element = ElementLocator.locate(parent);
       parameters =
           element is FunctionTypedElement ? element.formalParameters : null;
     } else if (parent case FunctionExpressionInvocation(

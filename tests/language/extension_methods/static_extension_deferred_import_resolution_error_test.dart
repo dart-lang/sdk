@@ -15,5 +15,5 @@ void main() {
   o.onObject;
   //^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
-  // [cfe] The getter 'onObject' isn't defined for the class 'Object'.
+  // [cfe] The getter 'onObject' isn't defined for the type 'Object'.
 }

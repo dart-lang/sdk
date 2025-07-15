@@ -125,7 +125,9 @@ abstract class BodyBuilderContext {
   /// member whose body is being built.
   FormalParameterBuilder? getFormalParameterByName(Identifier identifier) {
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
+      List<FormalParameterBuilder> formals = this.formals!;
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder formal = formals[i];
         if (formal.isWildcard &&
             identifier.name == '_' &&
             formal.fileOffset == identifier.nameOffset) {

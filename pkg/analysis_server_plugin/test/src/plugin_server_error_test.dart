@@ -8,11 +8,12 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/plugin.dart';
 import 'package:analysis_server_plugin/registry.dart';
 import 'package:analysis_server_plugin/src/plugin_server.dart';
+import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -270,7 +271,7 @@ class _ThrowsAsyncErrorRule extends AnalysisRule {
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
     var visitor = _ThrowsAsyncErrorVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }
@@ -317,7 +318,7 @@ class _ThrowsSyncErrorRule extends AnalysisRule {
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, LinterContext context) {
+      RuleVisitorRegistry registry, RuleContext context) {
     var visitor = _ThrowsSyncErrorVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }

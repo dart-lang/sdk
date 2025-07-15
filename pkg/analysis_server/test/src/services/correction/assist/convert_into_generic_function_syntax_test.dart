@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoGenericFunctionSyntaxTest extends AssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.CONVERT_INTO_GENERIC_FUNCTION_SYNTAX;
+  AssistKind get kind => DartAssistKind.convertIntoGenericFunctionSyntax;
 
   Future<void> test_functionTypeAlias_insideParameterList() async {
     await resolveTestCode('''

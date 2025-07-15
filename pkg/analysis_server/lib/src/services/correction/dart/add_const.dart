@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -177,19 +176,20 @@ class AddConst extends ResolvedCorrectionProducer {
   /// If other diagnostics are to be fixed with this CorrectionProducer the
   /// inner test for `prefer_const_constructors` will need to be amended.
   bool _declarationListIsFullyConst(NodeList<VariableDeclaration> variables) {
-    var errors = [
-      ...unitResult.errors.where(
-        (error) => error.errorCode == LinterLintCode.prefer_const_constructors,
+    var diagnostics = [
+      ...unitResult.diagnostics.where(
+        (error) =>
+            error.diagnosticCode == LinterLintCode.prefer_const_constructors,
       ),
     ];
-    var errorsRanges = errors.map(range.error);
+    var ranges = diagnostics.map(range.diagnostic);
     var variablesRanges = variables.map((v) {
       var initializer = v.initializer;
       if (initializer == null) return range.node(v);
       return range.node(initializer);
     });
     // If each of the variable ranges is contained in the list of error ranges.
-    return variablesRanges.every(errorsRanges.contains);
+    return variablesRanges.every(ranges.contains);
   }
 
   /// Inserts `const ` before [targetNode].

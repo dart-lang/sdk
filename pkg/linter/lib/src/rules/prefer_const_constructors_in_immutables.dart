@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -25,10 +26,7 @@ class PreferConstConstructorsInImmutables extends LintRule {
       LinterLintCode.prefer_const_constructors_in_immutables;
 
   @override
-  void registerNodeProcessors(
-    NodeLintRegistry registry,
-    LinterContext context,
-  ) {
+  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addExtensionTypeDeclaration(this, visitor);
@@ -51,8 +49,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (enclosingElement.mixins.isNotEmpty) return;
     if (!_hasImmutableAnnotation(enclosingElement)) return;
     var isRedirected =
-        element.isFactory && element.redirectedConstructor2 != null;
-    if (isRedirected && (element.redirectedConstructor2?.isConst ?? false)) {
+        element.isFactory && element.redirectedConstructor != null;
+    if (isRedirected && (element.redirectedConstructor?.isConst ?? false)) {
       rule.reportAtToken(node.firstTokenAfterCommentAndMetadata);
     }
     if (!isRedirected &&
@@ -76,7 +74,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     InterfaceElement? current = self;
     var seenElements = <InterfaceElement>{};
     while (current != null && seenElements.add(current)) {
-      current = current.supertype?.element3;
+      current = current.supertype?.element;
     }
     return seenElements.toList();
   }
@@ -103,12 +101,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (clazz is ExtensionTypeElement) {
-      return clazz.primaryConstructor2.isConst;
+      return clazz.primaryConstructor.isConst;
     }
 
     // Constructor with implicit `super()` call.
-    var unnamedSuperConstructor = clazz.supertype?.constructors2
-        .firstWhereOrNull((e) => e.name3 == 'new');
+    var unnamedSuperConstructor = clazz.supertype?.constructors
+        .firstWhereOrNull((e) => e.name == 'new');
     return unnamedSuperConstructor != null && unnamedSuperConstructor.isConst;
   }
 

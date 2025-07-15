@@ -183,7 +183,7 @@ Running the CFE on a Dart file can be done with the following configuration.
         "request": "launch",
         "program": "pkg/vm/bin/gen_kernel.dart",
         "args": [
-          "--platform=${workspaceFolder}/xcodebuild/ReleaseARM64/vm_platform_strong.dill",
+          "--platform=${workspaceFolder}/xcodebuild/ReleaseARM64/vm_platform.dill",
           "third_party/pkg/native/pkgs/ffi/test/allocation_test.dart",
         ],
         "toolArgs": [],

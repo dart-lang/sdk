@@ -140,7 +140,7 @@ class NamespaceBuilder {
   /// Create a namespace representing the export namespace of the given
   /// [export].
   Namespace createExportNamespaceForDirective2(LibraryExportImpl export) {
-    var exportedLibrary = export.exportedLibrary2;
+    var exportedLibrary = export.exportedLibrary;
     if (exportedLibrary == null) {
       //
       // The exported library will be null if the URI does not reference a valid
@@ -169,7 +169,7 @@ class NamespaceBuilder {
   }) {
     var exportedNames = _getExportMapping(importedLibrary);
     exportedNames = _applyCombinators(exportedNames, combinators);
-    if (prefix?.name2 case var name?) {
+    if (prefix?.name case var name?) {
       return PrefixedNamespace(name, exportedNames);
     }
     return Namespace(exportedNames);
@@ -212,8 +212,8 @@ class NamespaceBuilder {
     // true of, for instance, `Object`, because `Object` has a source definition
     // which is not possible for `dynamic`.
     if (library.isDartCore) {
-      definedNames['dynamic'] = DynamicElementImpl2.instance;
-      definedNames['Never'] = NeverElementImpl2.instance;
+      definedNames['dynamic'] = DynamicElementImpl.instance;
+      definedNames['Never'] = NeverElementImpl.instance;
     }
 
     return Namespace(definedNames);
@@ -222,7 +222,7 @@ class NamespaceBuilder {
   /// Add the given [element] to the table of [definedNames] if it has a
   /// publicly visible name.
   void _addIfPublic(Map<String, Element> definedNames, Element element) {
-    var name = element.name3;
+    var name = element.name;
     if (name != null && name.isNotEmpty && !Identifier.isPrivateName(name)) {
       definedNames[name] = element;
     }

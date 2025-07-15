@@ -751,8 +751,7 @@ void GCMarker::Epilogue() {}
 
 enum RootSlices {
   kIsolate = 0,
-  kObjectIdRing = 1,
-  kNumFixedRootSlices = 2,
+  kNumFixedRootSlices = 1,
 };
 
 void GCMarker::ResetSlices() {
@@ -774,16 +773,11 @@ void GCMarker::IterateRoots(ObjectPointerVisitor* visitor) {
 
     switch (slice) {
       case kIsolate: {
+        // TODO(gc): Split this by isolate?
         TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                       "ProcessIsolateGroupRoots");
         isolate_group_->VisitObjectPointers(
             visitor, ValidationPolicy::kDontValidateFrames);
-        break;
-      }
-      case kObjectIdRing: {
-        TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
-                                      "ProcessObjectIdTable");
-        isolate_group_->VisitPointersInAllServiceIdZones(*visitor);
         break;
       }
     }

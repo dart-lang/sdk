@@ -29,8 +29,8 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
-import 'class_declaration.dart';
 import 'name_scheme.dart';
+import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
@@ -38,14 +38,11 @@ import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 import 'source_type_parameter_builder.dart';
-import 'type_parameter_scope_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with SourceDeclarationBuilderMixin
-    implements
-        Comparable<SourceExtensionTypeDeclarationBuilder>,
-        ClassDeclarationBuilder {
+    with SourceDeclarationBuilderBaseMixin, SourceDeclarationBuilderMixin
+    implements Comparable<SourceExtensionTypeDeclarationBuilder> {
   @override
   final SourceLibraryBuilder parent;
 
@@ -184,7 +181,8 @@ class SourceExtensionTypeDeclarationBuilder
         containerType: ContainerType.ExtensionType,
         containerName: new ClassName(name),
         constructorBuilders: _constructorBuilders,
-        memberBuilders: _memberBuilders);
+        memberBuilders: _memberBuilders,
+        typeParameterFactory: libraryBuilder.typeParameterFactory);
   }
 
   @override
@@ -409,11 +407,8 @@ class SourceExtensionTypeDeclarationBuilder
     if (typeBuilder != null) {
       typeBuilder.build(
           libraryBuilder, TypeUse.extensionTypeRepresentationType);
-      unaliased = typeBuilder.unalias(
-          usedTypeAliasBuilders: usedTypeAliasBuilders,
-          // We allow creating new type parameters during unaliasing. This type
-          // variables are short-lived and therefore don't need to be bound.
-          unboundTypeParameters: []);
+      unaliased =
+          typeBuilder.unalias(usedTypeAliasBuilders: usedTypeAliasBuilders);
     }
     switch (unaliased) {
       case NamedTypeBuilder(
@@ -580,8 +575,8 @@ class SourceExtensionTypeDeclarationBuilder
         DartType interface = typeBuilder.build(
             libraryBuilder, TypeUse.extensionTypeImplementsType);
         if (interface is InterfaceType) {
-          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
-              interface, SubtypeCheckMode.withNullabilities)) {
+          if (!hierarchyBuilder.types
+              .isSubtypeOf(declaredRepresentationType, interface)) {
             libraryBuilder.addProblem(
                 templateInvalidExtensionTypeSuperInterface.withArguments(
                     interface, declaredRepresentationType, name),
@@ -590,16 +585,14 @@ class SourceExtensionTypeDeclarationBuilder
                 typeBuilder.fileUri);
           }
         } else if (interface is ExtensionType) {
-          if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
-              interface, SubtypeCheckMode.withNullabilities)) {
+          if (!hierarchyBuilder.types
+              .isSubtypeOf(declaredRepresentationType, interface)) {
             DartType instantiatedImplementedRepresentationType =
                 Substitution.fromExtensionType(interface).substituteType(
                     interface
                         .extensionTypeDeclaration.declaredRepresentationType);
-            if (!hierarchyBuilder.types.isSubtypeOf(
-                declaredRepresentationType,
-                instantiatedImplementedRepresentationType,
-                SubtypeCheckMode.withNullabilities)) {
+            if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
+                instantiatedImplementedRepresentationType)) {
               libraryBuilder.addProblem(
                   templateInvalidExtensionTypeSuperExtensionType.withArguments(
                       declaredRepresentationType,
@@ -662,8 +655,7 @@ class SourceExtensionTypeDeclarationBuilder
       case TypeAliasBuilder():
         return combineNullabilitiesForSubstitution(
             inner: _computeNullabilityFromType(
-                declaration.unalias(typeBuilder.typeArguments,
-                    unboundTypeParameters: [])!,
+                declaration.unalias(typeBuilder.typeArguments)!,
                 traversalState: traversalState),
             outer: nullability);
       case ExtensionTypeDeclarationBuilder():
@@ -860,14 +852,14 @@ class SourceExtensionTypeDeclarationBuilder
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilderImpl? lookupConstructor(Name name) {
+  SourceConstructorBuilder? lookupConstructor(Name name) {
     if (name.text == "new") {
       // Coverage-ignore-block(suite): Not run.
       name = new Name("", name.library);
     }
 
     Builder? builder = nameSpace.lookupConstructor(name.text);
-    if (builder is SourceConstructorBuilderImpl) {
+    if (builder is SourceConstructorBuilder) {
       return builder;
     }
     return null;

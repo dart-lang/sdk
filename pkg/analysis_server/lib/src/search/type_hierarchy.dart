@@ -68,7 +68,7 @@ class TypeHierarchyComputer {
       }
       // create a subclass item
       var subMemberElement = helper.findMemberElement(subElement);
-      var subMemberElementDeclared = subMemberElement?.nonSynthetic2;
+      var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
         convertElement(subElement),
         memberElement:
@@ -120,7 +120,7 @@ class TypeHierarchyComputer {
         displayName = '${classElement.displayName}<$typeArgumentsStr>';
       }
       var memberElement = helper.findMemberElement(classElement);
-      var memberElementDeclared = memberElement?.nonSynthetic2;
+      var memberElementDeclared = memberElement?.nonSynthetic;
       item = TypeHierarchyItem(
         convertElement(classElement),
         displayName: displayName,
@@ -139,19 +139,19 @@ class TypeHierarchyComputer {
       var superType = classElement.supertype;
       if (superType != null) {
         item.superclass = _createSuperItem(
-          superType.element3,
+          superType.element,
           superType.typeArguments,
         );
       }
     }
     // mixins
     for (var type in classElement.mixins) {
-      var id = _createSuperItem(type.element3, type.typeArguments);
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.mixins.add(id);
     }
     // interfaces
     for (var type in classElement.interfaces) {
-      var id = _createSuperItem(type.element3, type.typeArguments);
+      var id = _createSuperItem(type.element, type.typeArguments);
       item.interfaces.add(id);
     }
     // done
@@ -194,9 +194,9 @@ class TypeHierarchyComputerHelper {
 
     return TypeHierarchyComputerHelper(
       pivotElement,
-      pivotElement.library2!,
+      pivotElement.library!,
       pivotElement.kind,
-      pivotElement.name3,
+      pivotElement.name,
       pivotFieldFinal,
       pivotClass,
     );
@@ -227,12 +227,12 @@ class TypeHierarchyComputerHelper {
         result = clazz.getSetter(pivotName);
       }
     }
-    if (result != null && result.isAccessibleIn2(pivotLibrary)) {
+    if (result != null && result.isAccessibleIn(pivotLibrary)) {
       return result;
     }
     // try to find in the class mixin
     for (var mixin in clazz.mixins.reversed) {
-      var mixinElement = mixin.element3;
+      var mixinElement = mixin.element;
       if (pivotKind == ElementKind.METHOD) {
         result = mixinElement.lookUpMethod(
           name: pivotName,

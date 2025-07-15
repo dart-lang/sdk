@@ -24,9 +24,7 @@ class FunctionExpressionResolver {
 
   void resolve(FunctionExpressionImpl node, {required DartType contextType}) {
     var parent = node.parent;
-    // Note: `isFunctionDeclaration` must have an explicit type to work around
-    // https://github.com/dart-lang/language/issues/1785.
-    bool isFunctionDeclaration = parent is FunctionDeclaration;
+    var isFunctionDeclaration = parent is FunctionDeclaration;
     var body = node.body;
 
     if (_resolver.flowAnalysis.flow != null && !isFunctionDeclaration) {
@@ -77,7 +75,7 @@ class FunctionExpressionResolver {
       //
       // This is only needed for local functions because top-level and
       checkForTypeParameterBoundRecursion(
-        _resolver.errorReporter,
+        _resolver.diagnosticReporter,
         typeParameterList.typeParameters,
       );
       var map = <Fragment, TypeParameter>{};
@@ -115,6 +113,7 @@ class FunctionExpressionResolver {
           inferredType = _typeSystem.objectQuestion;
         }
         if (inferredType is! DynamicType) {
+          p.type = inferredType;
           p.firstFragment.type = inferredType;
         }
       }
@@ -145,12 +144,12 @@ class FunctionExpressionResolver {
           .map((fragment) => fragment.element)
           .where((element) => element.isNamed);
       for (var element in nodeNamed) {
-        if (!contextNamedTypes.containsKey(element.name3)) {
+        if (!contextNamedTypes.containsKey(element.name)) {
           continue;
         }
         inferType(
           element as FormalParameterElementImpl,
-          contextNamedTypes[element.name3]!,
+          contextNamedTypes[element.name]!,
         );
       }
     }

@@ -307,13 +307,13 @@ class _SuggestionBuilder {
     // exceptions to handle getter/setter pairs).
     var types = _getTypeOrdering(type);
     for (var targetType in types) {
-      for (var method in targetType.methods2) {
+      for (var method in targetType.methods) {
         // Exclude static methods when completion on an instance
         if (!method.isStatic) {
           // Boost the relevance of a super expression
           // calling a method of the same name as the containing method
           _addSuggestion(method,
-              relevance: method.name3 == containingMethodName
+              relevance: method.name == containingMethodName
                   ? DART_RELEVANCE_HIGH
                   : null);
         }
@@ -326,7 +326,7 @@ class _SuggestionBuilder {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor is GetterElement) {
-              if (propertyAccessor.variable3 case var variable?) {
+              if (propertyAccessor.variable case var variable?) {
                 _addSuggestion(variable);
               }
             }
@@ -345,7 +345,7 @@ class _SuggestionBuilder {
   /// shadowed by a previously added suggestion.
   void _addSuggestion(Element element, {int? relevance}) {
     if (element.isPrivate) {
-      if (element.library2 != containingLibrary) {
+      if (element.library != containingLibrary) {
         // Do not suggest private members for imported libraries
         return;
       }
@@ -424,7 +424,7 @@ class _SuggestionBuilder {
     var typesToVisit = <InterfaceType>[type];
     while (typesToVisit.isNotEmpty) {
       var nextType = typesToVisit.removeLast();
-      if (!classesSeen.add(nextType.element3)) {
+      if (!classesSeen.add(nextType.element)) {
         // Class had already been seen, so ignore this type.
         continue;
       }

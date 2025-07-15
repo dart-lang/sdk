@@ -290,7 +290,7 @@ class _WidgetDescriptionComputer {
         Expression valueExpression;
         if (argumentExpression is NamedExpression) {
           valueExpression = argumentExpression.expression;
-          existingNamed.add(parameter.name3!);
+          existingNamed.add(parameter.name!);
         } else {
           valueExpression = argumentExpression;
         }
@@ -309,7 +309,7 @@ class _WidgetDescriptionComputer {
 
     for (var parameter in constructorElement.formalParameters) {
       if (!parameter.isNamed) continue;
-      if (existingNamed.contains(parameter.name3)) continue;
+      if (existingNamed.contains(parameter.name)) continue;
 
       _addProperty(
         properties: properties,
@@ -363,7 +363,7 @@ class _WidgetDescriptionComputer {
         PropertyDescription.nextId(),
         parameter.isRequiredPositional,
         isSafeToUpdate,
-        parameter.name3!,
+        parameter.name!,
         documentation: documentation,
         editor: _getEditor(parameter.type),
         expression: valueExpressionCode,
@@ -388,7 +388,7 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression == null) {
       var type = parameter.type;
       if (type is InterfaceType) {
-        var classDescription = classRegistry.get(type.element3);
+        var classDescription = classRegistry.get(type.element);
         if (classDescription != null) {
           _addProperties(
             properties: propertyDescription.children,
@@ -450,7 +450,7 @@ class _WidgetDescriptionComputer {
       );
     }
     if (type is InterfaceType) {
-      var classElement = type.element3;
+      var classElement = type.element;
       if (classElement is EnumElement) {
         return protocol.FlutterWidgetPropertyEditor(
           protocol.FlutterWidgetPropertyEditorKind.ENUM,
@@ -514,8 +514,8 @@ class _WidgetDescriptionComputer {
 
     return protocol.FlutterWidgetPropertyValueEnumItem(
       libraryUriStr,
-      interfaceElement.name3!,
-      field.name3!,
+      interfaceElement.name!,
+      field.name!,
       documentation: documentation,
     );
   }
@@ -532,7 +532,7 @@ class _WidgetDescriptionComputer {
     } else if (valueExpression is Identifier) {
       var element = valueExpression.element;
       if (element is GetterElement) {
-        var field = element.variable3!;
+        var field = element.variable!;
         if (field is FieldElement && field.isStatic) {
           var enclosingClass = field.enclosingElement as InterfaceElement;
           if (field.isEnumConstant ||

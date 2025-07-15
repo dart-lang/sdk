@@ -192,9 +192,9 @@ final class ExportRequirementShowCombinator
   }
 }
 
-/// Requirements for [InstanceElementImpl2].
+/// Requirements for [InstanceElementImpl].
 ///
-/// If [InterfaceElementImpl2], there are additional requirements in form
+/// If [InterfaceElementImpl], there are additional requirements in form
 /// of [InterfaceItemRequirements].
 class InstanceItemRequirements {
   final Map<LookupName, ManifestItemId?> requestedFields;
@@ -256,7 +256,7 @@ class InstanceItemRequirements {
   }
 }
 
-/// Requirements for [InterfaceElementImpl2], in addition to those that
+/// Requirements for [InterfaceElementImpl], in addition to those that
 /// we already record as [InstanceItemRequirements].
 ///
 /// Includes all requirements from class-like items: classes, enums,
@@ -665,17 +665,17 @@ class RequirementsManifest {
     return null;
   }
 
-  void record_classElement_allSubtypes({required ClassElementImpl2 element}) {
+  void record_classElement_allSubtypes({required ClassElementImpl element}) {
     // TODO(scheglov): implement.
   }
 
   void record_classElement_hasNonFinalField({
-    required ClassElementImpl2 element,
+    required ClassElementImpl element,
   }) {
     // TODO(scheglov): implement.
   }
 
-  void record_classElement_isEnumLike({required ClassElementImpl2 element}) {
+  void record_classElement_isEnumLike({required ClassElementImpl element}) {
     // TODO(scheglov): implement.
   }
 
@@ -699,7 +699,7 @@ class RequirementsManifest {
     }
   }
 
-  void record_instanceElement_fields({required InstanceElementImpl2 element}) {
+  void record_instanceElement_fields({required InstanceElementImpl element}) {
     if (_recordingLockLevel != 0) {
       return;
     }
@@ -718,7 +718,7 @@ class RequirementsManifest {
   }
 
   void record_instanceElement_getField({
-    required InstanceElementImpl2 element,
+    required InstanceElementImpl element,
     required String name,
   }) {
     var itemRequirements = _getInstanceItem(element);
@@ -735,7 +735,7 @@ class RequirementsManifest {
   }
 
   void record_instanceElement_getGetter({
-    required InstanceElementImpl2 element,
+    required InstanceElementImpl element,
     required String name,
   }) {
     var itemRequirements = _getInstanceItem(element);
@@ -752,7 +752,7 @@ class RequirementsManifest {
   }
 
   void record_instanceElement_getMethod({
-    required InstanceElementImpl2 element,
+    required InstanceElementImpl element,
     required String name,
   }) {
     var itemRequirements = _getInstanceItem(element);
@@ -769,7 +769,7 @@ class RequirementsManifest {
   }
 
   void record_instanceElement_getSetter({
-    required InstanceElementImpl2 element,
+    required InstanceElementImpl element,
     required String name,
   }) {
     assert(!name.endsWith('='));
@@ -786,7 +786,7 @@ class RequirementsManifest {
     requirements.requestedSetters[methodName] = methodId;
   }
 
-  void record_instanceElement_getters({required InstanceElementImpl2 element}) {
+  void record_instanceElement_getters({required InstanceElementImpl element}) {
     if (_recordingLockLevel != 0) {
       return;
     }
@@ -804,7 +804,7 @@ class RequirementsManifest {
     );
   }
 
-  void record_instanceElement_methods({required InstanceElementImpl2 element}) {
+  void record_instanceElement_methods({required InstanceElementImpl element}) {
     if (_recordingLockLevel != 0) {
       return;
     }
@@ -822,7 +822,7 @@ class RequirementsManifest {
     );
   }
 
-  void record_instanceElement_setters({required InstanceElementImpl2 element}) {
+  void record_instanceElement_setters({required InstanceElementImpl element}) {
     if (_recordingLockLevel != 0) {
       return;
     }
@@ -840,7 +840,7 @@ class RequirementsManifest {
     );
   }
 
-  void record_interface_all({required InterfaceElementImpl2 element}) {
+  void record_interface_all({required InterfaceElementImpl element}) {
     var itemRequirements = _getInterfaceItem(element);
     if (itemRequirements == null) {
       return;
@@ -853,7 +853,7 @@ class RequirementsManifest {
   /// Record that a member with [nameObj] was requested from the interface
   /// of [element]. The [methodElement] is used for consistency checking.
   void record_interface_getMember({
-    required InterfaceElementImpl2 element,
+    required InterfaceElementImpl element,
     required Name nameObj,
     required ExecutableElement? methodElement,
   }) {
@@ -889,7 +889,7 @@ class RequirementsManifest {
   }
 
   void record_interfaceElement_getNamedConstructor({
-    required InterfaceElementImpl2 element,
+    required InterfaceElementImpl element,
     required String name,
   }) {
     var itemRequirements = _getInterfaceItem(element);
@@ -906,7 +906,7 @@ class RequirementsManifest {
   }
 
   void record_propertyAccessorElement_variable({
-    required PropertyAccessorElementImpl2 element,
+    required PropertyAccessorElementImpl element,
     required String? name,
   }) {
     if (name == null) {
@@ -914,7 +914,7 @@ class RequirementsManifest {
     }
 
     switch (element.enclosingElement) {
-      case InstanceElementImpl2 instanceElement:
+      case InstanceElementImpl instanceElement:
         record_instanceElement_getField(element: instanceElement, name: name);
       default:
       // TODO(scheglov): support for top-level variables
@@ -980,7 +980,7 @@ class RequirementsManifest {
 
   void _addExports(LibraryElementImpl libraryElement) {
     var declaredTopNames =
-        libraryElement.children2
+        libraryElement.children
             .map((element) => element.lookupName)
             .nonNulls
             .map((nameStr) => nameStr.asLookupName)
@@ -990,7 +990,7 @@ class RequirementsManifest {
 
     for (var fragment in libraryElement.fragments) {
       for (var export in fragment.libraryExports) {
-        var exportedLibrary = export.exportedLibrary2;
+        var exportedLibrary = export.exportedLibrary;
 
         // If no library, then there is nothing to re-export.
         if (exportedLibrary == null) {
@@ -1052,10 +1052,8 @@ class RequirementsManifest {
     }
   }
 
-  _InstanceItemWithRequirements? _getInstanceItem(
-    InstanceElementImpl2 element,
-  ) {
-    var libraryElement = element.library2;
+  _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {
+    var libraryElement = element.library;
     var manifest = libraryElement.manifest;
 
     // If we are linking the library, its manifest is not set yet.
@@ -1089,9 +1087,9 @@ class RequirementsManifest {
   }
 
   _InterfaceItemWithRequirements? _getInterfaceItem(
-    InterfaceElementImpl2 element,
+    InterfaceElementImpl element,
   ) {
-    var libraryElement = element.library2;
+    var libraryElement = element.library;
     var manifest = libraryElement.manifest;
 
     // If we are linking the library, its manifest is not set yet.
@@ -1124,10 +1122,10 @@ class RequirementsManifest {
   }
 
   String _qualifiedMethodName(
-    InterfaceElementImpl2 element,
+    InterfaceElementImpl element,
     LookupName methodName,
   ) {
-    return '${element.library2.uri} '
+    return '${element.library.uri} '
         '${element.displayName}.'
         '${methodName.asString}';
   }

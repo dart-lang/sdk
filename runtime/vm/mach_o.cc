@@ -10,13 +10,25 @@
 
 #include "openssl/sha.h"
 #include "platform/mach_o.h"
+#include "platform/unwinding_records.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dwarf.h"
 #include "vm/dwarf_so_writer.h"
+#include "vm/flags.h"
 #include "vm/hash_map.h"
+#include "vm/image_snapshot.h"
 #include "vm/os.h"
+#include "vm/unwinding_records.h"
 #include "vm/zone_text_buffer.h"
 
 namespace dart {
+
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+DEFINE_FLAG(charp,
+            macho_min_os_version,
+            nullptr,
+            "The minimum OS version required for MacOS/iOS Mach-O snapshots");
+#endif
 
 static constexpr intptr_t kLinearInitValue = -1;
 
@@ -49,17 +61,24 @@ static constexpr intptr_t kLinearInitValue = -1;
     return true;                                                               \
   }
 
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+#define FOR_EACH_MACOS_ONLY_CONCRETE_MACHO_CONTENTS_TYPE(V)                    \
+  V(MachOBuildVersion)                                                         \
+  V(MachOLoadDylib)
+#else
+#define FOR_EACH_MACOS_ONLY_CONCRETE_MACHO_CONTENTS_TYPE(V)
+#endif
+
 // All concrete subclasses of MachOContents should go here:
 #define FOR_EACH_CONCRETE_MACHO_CONTENTS_TYPE(V)                               \
+  FOR_EACH_MACOS_ONLY_CONCRETE_MACHO_CONTENTS_TYPE(V)                          \
   V(MachOHeader)                                                               \
   V(MachOSegment)                                                              \
   V(MachOSection)                                                              \
   V(MachOSymbolTable)                                                          \
   V(MachODynamicSymbolTable)                                                   \
   V(MachOUuid)                                                                 \
-  V(MachOBuildVersion)                                                         \
   V(MachOIdDylib)                                                              \
-  V(MachOLoadDylib)                                                            \
   V(MachOCodeSignature)
 
 #define DECLARE_CONTENTS_TYPE_CLASS(Type) class Type;
@@ -596,12 +615,13 @@ class MachOSection : public MachOContents {
 
   const GrowableArray<Portion>& portions() const { return portions_; }
 
-  void AddPortion(const uint8_t* bytes,
-                  intptr_t size,
-                  const SharedObjectWriter::RelocationArray* relocations,
-                  const SharedObjectWriter::SymbolDataArray* symbols = nullptr,
-                  const char* symbol_name = nullptr,
-                  intptr_t label = 0) {
+  void AddPortion(
+      const uint8_t* bytes,
+      intptr_t size,
+      const SharedObjectWriter::RelocationArray* relocations = nullptr,
+      const SharedObjectWriter::SymbolDataArray* symbols = nullptr,
+      const char* symbol_name = nullptr,
+      intptr_t label = 0) {
     // Any named portion should also have a valid symbol label.
     ASSERT(symbol_name == nullptr || label > 0);
     ASSERT(!HasContents() || bytes != nullptr);
@@ -741,6 +761,10 @@ class MachOSegment : public MachOCommand {
   bool HasContents() const override { return next_contents_index_ > 0; }
   bool IsAllocated() const override { return true; }
 
+  bool HasZerofillSections() const {
+    return next_contents_index_ != contents_.length();
+  }
+
   uint32_t cmdsize() const override {
     uword size = sizeof(SegmentCommandType);
     // The header information for sections is nested within the
@@ -777,14 +801,18 @@ class MachOSegment : public MachOCommand {
     return file_size;
   }
 
-  intptr_t MemorySize() const override {
+  intptr_t UnpaddedMemorySize() const {
     intptr_t memory_size = SelfMemorySize();
     for (auto* const c : contents_) {
       ASSERT(c->IsAllocated());  // Segments never contain unallocated contents.
       memory_size = Utils::RoundUp(memory_size, c->Alignment());
       memory_size += c->MemorySize();
     }
-    return Utils::RoundUp(memory_size, Alignment());
+    return memory_size;
+  }
+
+  intptr_t MemorySize() const override {
+    return Utils::RoundUp(UnpaddedMemorySize(), Alignment());
   }
 
   // The initial segment of the Mach-O file always includes the header
@@ -911,70 +939,6 @@ class MachOUuid : public MachOCommand {
 #define MACHO_XYZ_VERSION_ENCODING(x, y, z)                                    \
   static_cast<uint32_t>(((x) << 16) | ((y) << 8) | (z))
 
-class MachOBuildVersion : public MachOCommand {
- public:
-  static constexpr uint32_t kCommandCode = mach_o::LC_BUILD_VERSION;
-
-  MachOBuildVersion()
-      : MachOCommand(kCommandCode,
-                     /*needs_offset=*/false,
-                     /*in_segment=*/false) {}
-
-  uint32_t cmdsize() const override {
-    return sizeof(mach_o::build_version_command);
-  }
-
-  uint32_t platform() const {
-#if defined(DART_TARGET_OS_MACOS_IOS)
-    return mach_o::PLATFORM_IOS;
-#elif defined(DART_TARGET_OS_MACOS)
-    return mach_o::PLATFORM_MACOS;
-#else
-    return mach_o::PLATFORM_UNKNOWN;
-#endif
-  }
-
-  uint32_t minos() const {
-#if defined(DART_TARGET_OS_MACOS_IOS)
-    // TODO(sstrickl): No minimum version for iOS currently defined.
-    UNIMPLEMENTED();
-#elif defined(DART_TARGET_OS_MACOS)
-    return kMinMacOSVersion;
-#else
-    return 0;  // No version for the unknown platform.
-#endif
-  }
-
-  uint32_t sdk() const {
-#if defined(DART_TARGET_OS_MACOS_IOS)
-    // TODO(sstrickl): No SDK version for iOS currently defined.
-    UNIMPLEMENTED();
-#elif defined(DART_TARGET_OS_MACOS)
-    return kMacOSSdkVersion;
-#else
-    return 0;  // No version for the unknown platform.
-#endif
-  }
-
-  void WriteLoadCommand(MachOWriteStream* stream) const override {
-    MachOCommand::WriteLoadCommand(stream);
-    stream->Write32(platform());
-    stream->Write32(minos());
-    stream->Write32(sdk());
-    stream->Write32(0);  // No tool versions.
-  }
-
-  void Accept(Visitor* visitor) override {
-    visitor->VisitMachOBuildVersion(this);
-  }
-
- private:
-  static constexpr auto kMinMacOSVersion = MACHO_XYZ_VERSION_ENCODING(15, 0, 0);
-  static constexpr auto kMacOSSdkVersion = MACHO_XYZ_VERSION_ENCODING(15, 4, 0);
-
-  DISALLOW_COPY_AND_ASSIGN(MachOBuildVersion);
-};
-
 class MachODylib : public MachOCommand {
  public:
   uint32_t cmdsize() const override {
@@ -1045,6 +1009,7 @@ class MachOIdDylib : public MachODylib {
   DISALLOW_COPY_AND_ASSIGN(MachOIdDylib);
 };
 
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 class MachOLoadDylib : public MachODylib {
  public:
   static constexpr uint32_t kCommandCode = mach_o::LC_LOAD_DYLIB;
@@ -1076,6 +1041,139 @@ class MachOLoadDylib : public MachODylib {
   DISALLOW_COPY_AND_ASSIGN(MachOLoadDylib);
 };
 
+class Version {
+ public:
+  explicit Version(intptr_t major) : Version(major, 0, 0) {}
+
+  Version(intptr_t major, intptr_t minor) : Version(major, minor, 0) {}
+
+  Version(intptr_t major, intptr_t minor, intptr_t patch)
+      : major_(major), minor_(minor), patch_(patch) {
+    ASSERT(Utils::IsUint(16, major));
+    ASSERT(Utils::IsUint(8, minor));
+    ASSERT(Utils::IsUint(8, patch));
+  }
+
+  Version(const Version& other)
+      : major_(other.major_), minor_(other.minor_), patch_(other.patch_) {}
+
+  static Version FromString(const char* str) {
+    ASSERT(str != nullptr);
+    int64_t major = 0;
+    int64_t minor = 0;
+    int64_t patch = 0;
+    char* current = nullptr;
+    if (!OS::ParseInitialInt64(str, &major, &current)) {
+      FATAL("Expected an integer, got %s", str);
+    }
+    if (!Utils::IsUint(16, major)) {
+      FATAL("Major version is too large to represent in 16 bits: %" Pd64,
+            major);
+    }
+    if (*current != '\0' && *current != '.') {
+      FATAL("Unexpected characters when parsing version: %s", current);
+    }
+    if (*current == '.') {
+      if (!OS::ParseInitialInt64(current + 1, &minor, &current)) {
+        FATAL("Expected an integer, got %s", str);
+      }
+      if (!Utils::IsUint(8, minor)) {
+        FATAL("Minor version is too large to represent in 8 bits: %" Pd64,
+              minor);
+      }
+      if (*current != '\0' && *current != '.') {
+        FATAL("Unexpected characters when parsing version: %s", current);
+      }
+      if (*current == '.') {
+        if (!OS::ParseInitialInt64(current + 1, &patch, &current)) {
+          FATAL("Expected an integer, got %s", str);
+        }
+        if (!Utils::IsUint(8, patch)) {
+          FATAL("Patch version is too large to represent in 8 bits: %" Pd64,
+                patch);
+        }
+        if (*current != '\0') {
+          FATAL("Unexpected characters when parsing version: %s", current);
+        }
+      }
+    }
+    return Version(major, minor, patch);
+  }
+
+  void Write(MachOWriteStream* stream) const {
+    stream->Write32(MACHO_XYZ_VERSION_ENCODING(major_, minor_, patch_));
+  }
+
+  const char* ToCString() const {
+    return OS::SCreate(Thread::Current()->zone(), "%" Pd ".%" Pd ".%" Pd "",
+                       major_, minor_, patch_);
+  }
+
+ private:
+  const intptr_t major_;
+  const intptr_t minor_;
+  const intptr_t patch_;
+  DISALLOW_ALLOCATION();
+  void operator=(const Version&) = delete;
+};
+
+// These defaults were taken from Flutter at the time of editing, but can be
+// overridden using the --min-ios-version and --min-macos-version flags.
+#if defined(DART_TARGET_OS_MACOS_IOS)
+static const Version kDefaultMinOSVersion(13, 0, 0);  // iOS 13
+#else
+static const Version kDefaultMinOSVersion(10, 15, 0);  // MacOS Catalina (10.15)
+#endif
+
+class MachOBuildVersion : public MachOCommand {
+ public:
+  static constexpr uint32_t kCommandCode = mach_o::LC_BUILD_VERSION;
+
+  MachOBuildVersion()
+      : MachOCommand(kCommandCode,
+                     /*needs_offset=*/false,
+                     /*in_segment=*/false),
+        min_os_(FLAG_macho_min_os_version != nullptr
+                    ? Version::FromString(FLAG_macho_min_os_version)
+                    : kDefaultMinOSVersion) {}
+
+  uint32_t cmdsize() const override {
+    return sizeof(mach_o::build_version_command);
+  }
+
+  uint32_t platform() const {
+#if defined(DART_TARGET_OS_MACOS_IOS)
+    return mach_o::PLATFORM_IOS;
+#else
+    return mach_o::PLATFORM_MACOS;
+#endif
+  }
+
+  const Version& minos() const { return min_os_; }
+
+  const Version& sdk() const {
+    // Just use the minimum version as the targeted version.
+    return minos();
+  }
+
+  void WriteLoadCommand(MachOWriteStream* stream) const override {
+    MachOCommand::WriteLoadCommand(stream);
+    stream->Write32(platform());
+    minos().Write(stream);
+    sdk().Write(stream);
+    stream->Write32(0);  // No tool versions.
+  }
+
+  void Accept(Visitor* visitor) override {
+    visitor->VisitMachOBuildVersion(this);
+  }
+
+ private:
+  const Version min_os_;
+
+  DISALLOW_COPY_AND_ASSIGN(MachOBuildVersion);
+};
+#endif
 #undef MACHO_XYZ_VERSION_ENCODING
 
 class MachOSymbolTable : public MachOCommand {
@@ -1216,7 +1314,8 @@ class MachOSymbolTable : public MachOCommand {
     return &symbols_[symbols_index];
   }
 
-  void Initialize(const GrowableArray<MachOSection*>& sections,
+  void Initialize(const char* path,
+                  const GrowableArray<MachOSection*>& sections,
                   bool is_stripped);
 
   void UpdateSectionIndices(const GrowableArray<intptr_t>& index_map) {
@@ -1507,12 +1606,14 @@ class MachOHeader : public MachOContents {
               SnapshotType type,
               bool is_stripped,
               const char* identifier,
+              const char* path,
               Dwarf* dwarf)
       : MachOContents(),
         zone_(zone),
         type_(type),
         is_stripped_(is_stripped),
         identifier_(identifier != nullptr ? identifier : ""),
+        path_(path),
         dwarf_(dwarf),
         commands_(zone, 0),
         full_symtab_(zone) {
@@ -1737,11 +1838,18 @@ class MachOHeader : public MachOContents {
  private:
   void GenerateUuid();
   void CreateBSS();
+  void GenerateUnwindingInformation();
   void GenerateMiscellaneousCommands();
   void InitializeSymbolTables();
   void FinalizeDwarfSections();
   void FinalizeCommands();
   void ComputeOffsets();
+
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
+  void GenerateCompactUnwindingInformation(
+      DwarfSharedObjectStream& stream,
+      const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes);
+#endif
 
   // Returns the symbol table that is included in the output, which
   // may or may not be the full symbol table.
@@ -1762,6 +1870,9 @@ class MachOHeader : public MachOContents {
   bool const is_stripped_;
   // The identifier, used in the LC_ID_DYLIB command and the code signature.
   const char* const identifier_;
+  // The absolute path, used to create an N_OSO symbolic debugging variable
+  // in unstripped snapshots.
+  const char* const path_;
   Dwarf* const dwarf_;
   GrowableArray<MachOCommand*> commands_;
   // Contains all symbols for relocation calculations.
@@ -1819,10 +1930,12 @@ MachOWriter::MachOWriter(Zone* zone,
                          BaseWriteStream* stream,
                          Type type,
                          const char* id,
+                         const char* path,
                          Dwarf* dwarf)
     : SharedObjectWriter(zone, stream, type, dwarf),
       header_(*new (zone)
-                  MachOHeader(zone, type, IsStripped(dwarf), id, dwarf)) {}
+                  MachOHeader(zone, type, IsStripped(dwarf), id, path, dwarf)) {
+}
 
 void MachOWriter::AddText(const char* name,
                           intptr_t label,
@@ -1913,11 +2026,18 @@ void MachOHeader::Finalize() {
 
   FinalizeDwarfSections();
 
-  // Create and initialize the dynamic and static symbol tables.
-  InitializeSymbolTables();
-
   // Generate miscellenous load commands needed for the final output.
   GenerateMiscellaneousCommands();
+
+  // Generate appropriate unwinding information for the target platform,
+  // for example, unwinding records on Windows.
+  GenerateUnwindingInformation();
+
+  // Initialize both the static and dynamic symbol tables. Calls to methods
+  // that change section numbering (by either adding or reordering sections
+  // and/or segments) after this point must update the section numbers on
+  // section symbols to match.
+  InitializeSymbolTables();
 
   // Reorders the added commands as well as adding segments and commands
   // that must appear at the end of the file.
@@ -2062,16 +2182,227 @@ void MachOHeader::CreateBSS() {
   }
 }
 
-void MachOHeader::GenerateMiscellaneousCommands() {
-  // Not idempotent;
-  ASSERT(!HasCommand(MachOBuildVersion::kCommandCode));
-  ASSERT(!HasCommand(MachOIdDylib::kCommandCode));
-  ASSERT(!HasCommand(MachOLoadDylib::kCommandCode));
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
+void MachOHeader::GenerateCompactUnwindingInformation(
+    DwarfSharedObjectStream& stream,
+    const GrowableArray<Dwarf::FrameDescriptionEntry>& fdes) {
+  // Since we currently generate only regular second level pages, there's
+  // no need for common encodings as those are only used by compressed
+  // second level pages.
+  const intptr_t common_encodings_offset = sizeof(mach_o::unwind_info_header);
+  GrowableArray<uint32_t> common_encodings(zone(), 0);
 
-  commands_.Add(new (zone_) MachOBuildVersion());
+  const intptr_t personalities_offset =
+      common_encodings_offset + common_encodings.length() * kInt32Size;
+  GrowableArray<uint32_t> personalities(zone(), 0);
+
+  // For N FDEs, we generate 2N entries:
+  // * One at the start of the text section with the none encoding.
+  // * One at the start of each FDE's InstructionsSection payload with
+  //   the frame encoding.
+  // * For all but the last FDE, one at the end of the InstructionsSection
+  //   payload with the none encoding.
+  // No entry is needed for the end of the last FDE, since it is
+  // already recorded as the end of the instructions in the first
+  // page index sentinel entry.
+  const intptr_t second_level_page_entry_count = 2 * fdes.length();
+  const bool second_level_pages_count =
+      (second_level_page_entry_count +
+       (mach_o::UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE_MAX_ENTRIES - 1)) /
+      mach_o::UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE_MAX_ENTRIES;
+
+  const intptr_t first_level_page_indices_offset =
+      personalities_offset + personalities.length() * kInt32Size;
+  // There is one first level page index per second level page, plus an
+  // additional first level page index that serves as as a sentinel and
+  // contains the ending offset of the LSDA entries.
+  const intptr_t first_level_page_indices_count = second_level_pages_count + 1;
+
+  // Align the LSDA indices to the target word size, as the first level page
+  // indices are 12 bytes long and so may not end on a word boundary
+  // on 64-bit systems.
+  const intptr_t lsda_indices_offset =
+      Utils::RoundUp(first_level_page_indices_offset +
+                         first_level_page_indices_count *
+                             sizeof(mach_o::unwind_info_first_level_page_index),
+                     compiler::target::kWordSize);
+  GrowableArray<mach_o::unwind_info_lsda_index> lsda_indices(zone(), 0);
+
+  const intptr_t second_level_pages_offset =
+      lsda_indices_offset +
+      lsda_indices.length() * sizeof(mach_o::unwind_info_lsda_index);
+  // We should only generate at most 2 FDEs and thus 4 entries, so there
+  // should only be one second level page that, if placed right after
+  // the other content, is wholly contained in a 4 * KB page.
+  ASSERT_EQUAL(1, second_level_pages_count);
+  const intptr_t second_level_pages_size =
+      mach_o::UnwindInfoRegularSecondLevelPageSize(
+          second_level_page_entry_count);
+  const intptr_t unwind_info_size =
+      second_level_pages_offset + second_level_pages_size;
+  ASSERT(static_cast<size_t>(unwind_info_size) <=
+         mach_o::UNWIND_INFO_SECOND_LEVEL_PAGE_MAX_SIZE);
+
+  stream.u4(mach_o::UNWIND_INFO_VERSION);
+  stream.u4(common_encodings_offset);
+  stream.u4(common_encodings.length());
+  stream.u4(personalities_offset);
+  stream.u4(personalities.length());
+  stream.u4(first_level_page_indices_offset);
+  stream.u4(first_level_page_indices_count);
+
+  ASSERT_EQUAL(common_encodings_offset, stream.Position());
+  for (const auto& encoding : common_encodings) {
+    stream.u4(encoding);
+  }
+
+  ASSERT_EQUAL(personalities_offset, stream.Position());
+  for (const auto& personality : personalities) {
+    stream.u4(personality);
+  }
+
+  ASSERT_EQUAL(first_level_page_indices_offset, stream.Position());
+  ASSERT_EQUAL(2, first_level_page_indices_count);
+  const auto& first_fde = fdes[0];
+  const auto& last_fde = fdes.Last();
+  stream.OffsetFromSymbol(first_fde.label, 0, kInt32Size);
+  stream.u4(second_level_pages_offset);
+  stream.u4(lsda_indices_offset);
+  // Sentinel that includes the end of the function space as the offset
+  // and has an LSDA index offset at the end of the LSDA index array.
+  stream.OffsetFromSymbol(last_fde.label, last_fde.size, kInt32Size);
+  stream.u4(0);  // No second level page.
+  stream.u4(lsda_indices_offset +
+            lsda_indices.length() * sizeof(mach_o::unwind_info_lsda_index));
+
+  stream.Align(compiler::target::kWordSize);
+  ASSERT_EQUAL(lsda_indices_offset, stream.Position());
+  for (const auto& lsda_index : lsda_indices) {
+    stream.u4(lsda_index.function_offset);
+    stream.u4(lsda_index.lsda_offset);
+  }
+
+  ASSERT_EQUAL(second_level_pages_offset, stream.Position());
+  ASSERT_EQUAL(1, second_level_pages_count);
+  stream.u4(mach_o::UNWIND_INFO_REGULAR_SECOND_LEVEL_PAGE);
+  stream.u2(sizeof(mach_o::unwind_info_regular_second_level_page_header));
+  stream.u2(second_level_page_entry_count);
+  // Each instructions image starts with the Image header and the
+  // InstructionsSection header.
+  const intptr_t header_size =
+      Image::kHeaderSize + compiler::target::InstructionsSection::HeaderSize();
+  // There are no instructions until the first InstructionsSection payload.
+  stream.OffsetFromSymbol(fdes[0].label, 0, kInt32Size);
+  stream.u4(mach_o::UNWIND_INFO_ENCODING_NONE);
+  for (intptr_t i = 0, n = fdes.length(); i < n - 1; i++) {
+    const auto& fde = fdes[i];
+    // The payload of the InstructionsSection.
+    stream.OffsetFromSymbol(fde.label, header_size, kInt32Size);
+    stream.u4(mach_o::UNWIND_INFO_ENCODING_ARM64_MODE_FRAME);
+    // The padding (if any) between this Image and the next.
+    stream.OffsetFromSymbol(fde.label, fde.size, kInt32Size);
+    stream.u4(mach_o::UNWIND_INFO_ENCODING_NONE);
+  }
+  // The payload of the last InstructionsSection.
+  stream.OffsetFromSymbol(fdes.Last().label, header_size, kInt32Size);
+  stream.u4(mach_o::UNWIND_INFO_ENCODING_ARM64_MODE_FRAME);
+  ASSERT_EQUAL(unwind_info_size, stream.Position());
+}
+#endif
+
+void MachOHeader::GenerateUnwindingInformation() {
+#if !defined(TARGET_ARCH_IA32)
+  // Unwinding information is added to the text segment in Mach-O files.
+  // Thus, we need the size of the unwinding information even for debugging
+  // information, since adding the unwinding information changes the memory size
+  // of the initial text segment and thus changes the values for symbols
+  // of sections in later segments.
+  //
+  // However, since the debugging information should never be loaded by
+  // the Mach-O loader, we don't actually need to generate the instructions,
+  // just use an appropriate zerofill section for it.
+  const bool use_zerofill = type_ == SnapshotType::DebugInfo;
+  const intptr_t alignment = compiler::target::kWordSize;
+  auto add_unwind_section =
+      [&](MachOSegment* segment, const char* sectname,
+          const ZoneWriteStream& stream,
+          const SharedObjectWriter::RelocationArray* relocations = nullptr) {
+        // Not idempotent.
+        ASSERT(segment->FindSection(sectname) == nullptr);
+        auto* const section = new (zone())
+            MachOSection(zone(), sectname,
+                         use_zerofill ? mach_o::S_ZEROFILL : mach_o::S_REGULAR,
+                         mach_o::S_NO_ATTRIBUTES, !use_zerofill, alignment);
+        section->AddPortion(use_zerofill ? nullptr : stream.buffer(),
+                            stream.bytes_written(),
+                            use_zerofill ? nullptr : relocations);
+        segment->AddContents(section);
+      };
+
+  ASSERT(text_segment_ != nullptr);
+  if (auto* const text_section =
+          text_segment_->FindSection(mach_o::SECT_TEXT)) {
+    // Generate the DWARF FDEs even for MacOS, because the same information
+    // is used to create the compact unwinding info.
+    GrowableArray<Dwarf::FrameDescriptionEntry> fdes(zone_, 0);
+    for (const auto& portion : text_section->portions()) {
+      ASSERT(portion.label != 0);
+      fdes.Add({portion.label, portion.size});
+    }
+
+    // Even if the unwinding information is not written to the output, it is
+    // generated so a zerofill section of the appropriate size can be created.
+    ZoneWriteStream stream(zone(), DwarfSharedObjectStream::kInitialBufferSize);
+    DwarfSharedObjectStream dwarf_stream(zone(), &stream);
+
+#if defined(DART_TARGET_OS_MACOS) && defined(TARGET_ARCH_ARM64)
+    GenerateCompactUnwindingInformation(dwarf_stream, fdes);
+    auto* const sectname = mach_o::SECT_UNWIND_INFO;
+#else
+    Dwarf::WriteCallFrameInformationRecords(&dwarf_stream, fdes);
+    auto* const sectname = mach_o::SECT_EH_FRAME;
+#endif
+
+    add_unwind_section(text_segment_, sectname, stream,
+                       dwarf_stream.relocations());
+  }
+
+#if defined(UNWINDING_RECORDS_WINDOWS_PRECOMPILER)
+  // Append Windows unwinding instructions as a __unwind_info section at
+  // the end of any executable segments.
+  for (auto* const command : commands_) {
+    if (auto* const segment = command->AsMachOSegment()) {
+      if (segment->IsExecutable()) {
+        // Only more zerofill sections can come after zerofill sections, and
+        // the unwinding instructions cover the entire executable segment up
+        // to the unwinding instructions including zerofill sections.
+        ASSERT(use_zerofill || !segment->HasZerofillSections());
+        const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
+        ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
+        uint8_t* unwinding_instructions = zone()->Alloc<uint8_t>(records_size);
+        const intptr_t section_start =
+            Utils::RoundUp(segment->UnpaddedMemorySize(), alignment);
+        stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
+                              section_start, unwinding_instructions),
+                          records_size);
+        ASSERT_EQUAL(records_size, stream.Position());
+        add_unwind_section(segment, mach_o::SECT_UNWIND_INFO, stream);
+      }
+    }
+  }
+#endif  // defined(DART_TARGET_OS_WINDOWS) && defined(TARGET_ARCH_IS_64_BIT)
+#endif  // !defined(TARGET_ARCH_IA32)
+}
+
+void MachOHeader::GenerateMiscellaneousCommands() {
   if (type_ == SnapshotType::Snapshot) {
+    // Not idempotent;
+    ASSERT(!HasCommand(MachOIdDylib::kCommandCode));
     commands_.Add(new (zone_) MachOIdDylib(identifier_));
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+    ASSERT(!HasCommand(MachOBuildVersion::kCommandCode));
+    ASSERT(!HasCommand(MachOLoadDylib::kCommandCode));
+    commands_.Add(new (zone_) MachOBuildVersion());
     commands_.Add(MachOLoadDylib::CreateLoadSystemDylib(zone_));
 #endif
   }
@@ -2098,13 +2429,13 @@ void MachOHeader::InitializeSymbolTables() {
 
   // This symbol table is for the MachOWriter's internal use. All symbols
   // should be added to it so the writer can resolve relocations.
-  full_symtab_.Initialize(sections, /*is_stripped=*/false);
+  full_symtab_.Initialize(path_, sections, /*is_stripped=*/false);
   auto* table = &full_symtab_;
   if (is_stripped_) {
     // Create a separate symbol table that is actually written to the output.
     // This one will only contain what's needed for the dynamic symbol table.
     auto* const table = new (zone()) MachOSymbolTable(zone());
-    table->Initialize(sections, is_stripped_);
+    table->Initialize(path_, sections, is_stripped_);
   }
   commands_.Add(table);
 
@@ -2136,6 +2467,7 @@ void MachOHeader::FinalizeDwarfSections() {
   const intptr_t alignment = 1;  // No extra padding.
   auto add_debug = [&](const char* name,
                        const DwarfSharedObjectStream& stream) {
+    ASSERT(!dwarf_segment->FindSection(name));
     auto* const section = new (zone())
         MachOSection(zone(), name, mach_o::S_REGULAR, mach_o::S_ATTR_DEBUG,
                      /*has_contents=*/true, alignment);
@@ -2417,7 +2749,8 @@ void MachOHeader::ComputeOffsets() {
   }
 }
 
-void MachOSymbolTable::Initialize(const GrowableArray<MachOSection*>& sections,
+void MachOSymbolTable::Initialize(const char* path,
+                                  const GrowableArray<MachOSection*>& sections,
                                   bool is_stripped) {
   // Not idempotent.
   ASSERT(!num_local_symbols_is_set());
@@ -2445,17 +2778,27 @@ void MachOSymbolTable::Initialize(const GrowableArray<MachOSection*>& sections,
 
     // In the second pass, we add appropriate symbolic debugging symbols.
     using Type = SharedObjectWriter::SymbolData::Type;
+    if (path != nullptr) {
+      // The value of the OSO symbolic debugging symbol is the mtime of the
+      // object file. However, clang may warn about a mismatch if this is not
+      // 0 and differs from the actual mtime of the object file, so just use 0.
+      AddSymbol(path, mach_o::N_OSO, /*section_index=*/0,
+                /*description=*/1, /*value=*/0);
+    }
     auto add_symbolic_debugging_symbols =
         [&](const char* name, Type type, intptr_t section_index,
             intptr_t offset, intptr_t size, bool is_global) {
           switch (type) {
             case Type::Function: {
-              AddSymbol("", mach_o::N_BNSYM, section_index, /*desc=*/0, offset);
-              AddSymbol(name, mach_o::N_FUN, section_index, /*desc=*/0, offset);
+              AddSymbol("", mach_o::N_BNSYM, section_index, /*description=*/0,
+                        offset);
+              AddSymbol(name, mach_o::N_FUN, section_index, /*description=*/0,
+                        offset);
               // The size is output as an unnamed N_FUN symbol with no section
               // following the actual N_FUN symbol.
-              AddSymbol("", mach_o::N_FUN, mach_o::NO_SECT, /*desc=*/0, size);
-              AddSymbol("", mach_o::N_ENSYM, section_index, /*desc=*/0,
+              AddSymbol("", mach_o::N_FUN, mach_o::NO_SECT, /*description=*/0,
+                        size);
+              AddSymbol("", mach_o::N_ENSYM, section_index, /*description=*/0,
                         offset + size);
 
               break;
@@ -2463,11 +2806,12 @@ void MachOSymbolTable::Initialize(const GrowableArray<MachOSection*>& sections,
             case Type::Section:
             case Type::Object: {
               if (is_global) {
-                AddSymbol(name, mach_o::N_GSYM, mach_o::NO_SECT, /*desc=*/0,
+                AddSymbol(name, mach_o::N_GSYM, mach_o::NO_SECT,
+                          /*description=*/0,
                           /*value=*/0);
               } else {
                 AddSymbol(name, mach_o::N_STSYM, section_index,
-                          /*desc=*/0, offset);
+                          /*description=*/0, offset);
               }
               break;
             }

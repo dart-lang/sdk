@@ -42,7 +42,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
+  correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -74,7 +74,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
   staticInvokeType: int Function()
   staticType: int
   typeArgumentTypes
@@ -109,7 +109,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
   staticInvokeType: num Function()
   staticType: num
   typeArgumentTypes
@@ -141,7 +141,7 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+  correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
   staticInvokeType: String Function()
   staticType: String
   typeArgumentTypes
@@ -212,12 +212,12 @@ void f(A a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@class::A::@method::[]
@@ -242,7 +242,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@class::A::@method::[]
@@ -255,7 +255,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@class::A::@method::[]
@@ -281,13 +281,13 @@ void f(A<double> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A<double>
   leftBracket: [
   index: IntegerLiteral
     literal: 0
     correspondingParameter: ParameterMember
-      baseElement: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
+      baseElement: <testLibrary>::@class::A::@method::[]::@formalParameter::index
       substitution: {T: double}
     staticType: int
   rightBracket: ]
@@ -343,13 +343,13 @@ void f(List<int> a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: List<int>
   leftBracket: [
   index: SimpleIdentifier
     token: b
     correspondingParameter: ParameterMember
-      baseElement: dart:core::<fragment>::@class::List::@method::[]::@parameter::index#element
+      baseElement: dart:core::@class::List::@method::[]::@formalParameter::index
       substitution: {E: int}
     element: <null>
     staticType: InvalidType
@@ -377,13 +377,13 @@ void f(A? a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   question: ?
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@class::A::@method::[]
@@ -411,7 +411,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@extension::E::@method::[]
@@ -478,7 +478,7 @@ IndexExpression
     leftParenthesis: (
     expression: SimpleIdentifier
       token: x
-      element: <testLibraryFragment>::@function::f::@parameter::x#element
+      element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
     rightParenthesis: )
     leftBracket: {
@@ -495,7 +495,7 @@ IndexExpression
               name: A
               element2: <testLibrary>::@class::A
               type: A
-            element: <testLibraryFragment>::@class::A::@constructor::new#element
+            element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
@@ -505,7 +505,7 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::index#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
   element: <testLibrary>::@class::A::@method::[]
@@ -525,7 +525,7 @@ void f(dynamic a) {
 IndexExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: dynamic
   leftBracket: [
   index: IntegerLiteral
@@ -584,12 +584,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -597,7 +597,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
   readElement2: <testLibrary>::@class::A::@method::[]
   readType: num
@@ -627,13 +627,13 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
       literal: 0
       correspondingParameter: ParameterMember
-        baseElement: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+        baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
         substitution: {T: double}
       staticType: int
     rightBracket: ]
@@ -642,7 +642,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: dart:core::<fragment>::@class::double::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
     staticType: double
   readElement2: MethodMember
     baseElement: <testLibrary>::@class::A::@method::[]
@@ -676,13 +676,13 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     question: ?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -690,7 +690,7 @@ AssignmentExpression
   operator: +=
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: dart:core::<fragment>::@class::num::@method::+::@parameter::other#element
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
   readElement2: <testLibrary>::@class::A::@method::[]
   readType: num
@@ -718,18 +718,18 @@ int Function(int)? f(B? b) => b?.a[0];
     target: PropertyAccess
       target: SimpleIdentifier
         token: b
-        element: <testLibraryFragment>::@function::f::@parameter::b#element
+        element: <testLibrary>::@function::f::@formalParameter::b
         staticType: B?
       operator: ?.
       propertyName: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@class::B::@getter::a#element
+        element: <testLibrary>::@class::B::@getter::a
         staticType: A
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]::@parameter::i#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::i
       staticType: int
     rightBracket: ]
     element: <testLibrary>::@class::A::@method::[]
@@ -758,12 +758,12 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -771,7 +771,7 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
   readElement2: <null>
   readType: null
@@ -798,7 +798,7 @@ void f(A? a) {
 CascadeExpression
   target: SimpleIdentifier
     token: a
-    element: <testLibraryFragment>::@function::f::@parameter::a#element
+    element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
   cascadeSections
     AssignmentExpression
@@ -807,7 +807,7 @@ CascadeExpression
         leftBracket: [
         index: IntegerLiteral
           literal: 0
-          correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
           staticType: int
         rightBracket: ]
         element: <null>
@@ -815,8 +815,8 @@ CascadeExpression
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a#element
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
       readElement2: <null>
       readType: null
@@ -830,7 +830,7 @@ CascadeExpression
         leftBracket: [
         index: IntegerLiteral
           literal: 1
-          correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+          correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
           staticType: int
         rightBracket: ]
         element: <null>
@@ -838,8 +838,8 @@ CascadeExpression
       operator: =
       rightHandSide: SimpleIdentifier
         token: a
-        correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::a#element
-        element: <testLibraryFragment>::@function::f::@parameter::a#element
+        correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
+        element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
       readElement2: <null>
       readType: null
@@ -869,13 +869,13 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A<double>
     leftBracket: [
     index: IntegerLiteral
       literal: 0
       correspondingParameter: ParameterMember
-        baseElement: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+        baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
         substitution: {T: double}
       staticType: int
     rightBracket: ]
@@ -885,7 +885,7 @@ AssignmentExpression
   rightHandSide: DoubleLiteral
     literal: 1.2
     correspondingParameter: ParameterMember
-      baseElement: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value#element
+      baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
       substitution: {T: double}
     staticType: double
   readElement2: <null>
@@ -917,13 +917,13 @@ AssignmentExpression
   leftHandSide: IndexExpression
     target: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@function::f::@parameter::a#element
+      element: <testLibrary>::@function::f::@formalParameter::a
       staticType: A?
     question: ?
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -931,7 +931,7 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
   readElement2: <null>
   readType: null
@@ -963,7 +963,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 1
-      correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -971,7 +971,7 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 2.3
-    correspondingParameter: <testLibraryFragment>::@extension::E::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: double
   readElement2: <null>
   readType: null
@@ -1057,7 +1057,7 @@ AssignmentExpression
       leftParenthesis: (
       expression: SimpleIdentifier
         token: x
-        element: <testLibraryFragment>::@function::f::@parameter::x#element
+        element: <testLibrary>::@function::f::@formalParameter::x
         staticType: Object?
       rightParenthesis: )
       leftBracket: {
@@ -1074,7 +1074,7 @@ AssignmentExpression
                 name: A
                 element2: <testLibrary>::@class::A
                 type: A
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+              element: <testLibrary>::@class::A::@constructor::new
             argumentList: ArgumentList
               leftParenthesis: (
               rightParenthesis: )
@@ -1084,7 +1084,7 @@ AssignmentExpression
     leftBracket: [
     index: IntegerLiteral
       literal: 0
-      correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::index#element
+      correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::index
       staticType: int
     rightBracket: ]
     element: <null>
@@ -1092,7 +1092,7 @@ AssignmentExpression
   operator: =
   rightHandSide: DoubleLiteral
     literal: 1.2
-    correspondingParameter: <testLibraryFragment>::@class::A::@method::[]=::@parameter::value#element
+    correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
   readElement2: <null>
   readType: null

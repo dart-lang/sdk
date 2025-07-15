@@ -1,3 +1,12 @@
+## 4.0.0
+- **Breaking Change**: rename `EventParameters` constants to `DtdParameters`.
+- **Breaking Change**: delete the `kFileSystemServiceName` constant in favor of
+`FileSystemServiceConstants.serviceName`.
+- **Breaking Change**: delete the `kUnifiedAnalyticsServiceName` constant in
+favor of `UnifiedAnalyticsServiceConstants.serviceName`.
+- Added `CoreDtdServiceConstants` and `FileSystemServiceConstants` for shared
+use among DTD clients.
+
 ## 3.0.0
 
 - Added `ConnectedAppService` to store the connections to Dart and Flutter

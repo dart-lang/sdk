@@ -5,12 +5,13 @@
 // dart2wasmOptions=--extra-compiler-option=--delete-tostring-package-uri=package:smith
 
 import 'package:expect/expect.dart';
+import 'package:smith/configuration.dart' show Architecture;
 
 import 'delete_tostring_test.dart' show archX64, archArm;
 
 main() {
   // The `toString()` was replaced with `super.toString()` which defaults to the
   // one from `Object.toString()`:
-  Expect.equals('Instance of \'Architecture\'', archX64.toString());
-  Expect.equals('Instance of \'Architecture\'', archArm.toString());
+  Expect.equals('Instance of \'$Architecture\'', archX64.toString());
+  Expect.equals('Instance of \'$Architecture\'', archArm.toString());
 }

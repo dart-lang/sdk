@@ -43,12 +43,12 @@ const Map<String, String> _extraMethodsOnElement = {
 /// Type references in the spec that are named something else in Java.
 const Map<String, String> _typeRenames = {'Override': 'OverrideMember'};
 
-final String pathToGenTypes = 'tool/spec/generated/java/types';
+final String pathToGenTypes = 'analysis_server/tool/spec/generated/java/types';
 
 final GeneratedDirectory targetDir = GeneratedDirectory(pathToGenTypes, (
-  String pkgPath,
+  pkgRoot,
 ) {
-  var api = readApi(pkgPath);
+  var api = readApi(pkgRoot);
   var impliedTypes = computeImpliedTypes(api);
   var map = <String, FileContentsComputer>{};
   for (var impliedType in impliedTypes.values) {
@@ -67,7 +67,7 @@ final GeneratedDirectory targetDir = GeneratedDirectory(pathToGenTypes, (
         if (renamedTo != null) {
           typeNameInJava = renamedTo;
         }
-        map['$typeNameInJava.java'] = (String pkgPath) async {
+        map['$typeNameInJava.java'] = (pkgRoot) async {
           String? superclassName;
           if (isRefactoringFeedback) {
             superclassName = 'RefactoringFeedback';

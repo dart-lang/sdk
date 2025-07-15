@@ -60,7 +60,7 @@ library;
 //   nullableClass1.method(0);
 //                  ^^^^^^
 //
-// pkg/front_end/testcases/none/method_invocation.dart:102:21: Error: The method 'unresolved' isn't defined for the class 'Class1'.
+// pkg/front_end/testcases/none/method_invocation.dart:102:21: Error: The method 'unresolved' isn't defined for the type 'Class1'.
 //  - 'Class1' is from 'pkg/front_end/testcases/none/method_invocation.dart'.
 // Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
 //   nonNullableClass1.unresolved();
@@ -201,7 +201,7 @@ Try calling using ?. instead.
   never{Never}.method(0);
   never{Never}.toString();
   core::print("DynamicInvocation (Unresolved)");
-  invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:102:21: Error: The method 'unresolved' isn't defined for the class 'Class1'.
+  invalid-expression "pkg/front_end/testcases/none/method_invocation.dart:102:21: Error: The method 'unresolved' isn't defined for the type 'Class1'.
  - 'Class1' is from 'pkg/front_end/testcases/none/method_invocation.dart'.
 Try correcting the name to the name of an existing method, or defining a method named 'unresolved'.
   nonNullableClass1.unresolved();

@@ -52,7 +52,7 @@ class BaseVariable {
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
-// [cfe] The getter 'mixin' isn't defined for the class 'BaseVariable'.
+// [cfe] The getter 'mixin' isn't defined for the type 'BaseVariable'.
     return x;
   }
 }

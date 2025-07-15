@@ -25,17 +25,22 @@ class MyClass<T>                     // pos:20
 
 void main() {
   var intType = ClassSymbol(
-      name: 'int',
-      localId: 'int',
-      scopeId: 'dart:core',
-      location: SourceLocation(
-          scriptId: 'sdkIdForTest', tokenPos: 42, endTokenPos: 42));
+    name: 'int',
+    localId: 'int',
+    scopeId: 'dart:core',
+    location: SourceLocation(
+      scriptId: 'sdkIdForTest',
+      tokenPos: 42,
+      endTokenPos: 42,
+    ),
+  );
 
   var libraryId = 'lib1';
   var main = Script(
-      uri: 'package:example/hello_world.dart',
-      localId: '1',
-      libraryId: libraryId);
+    uri: 'package:example/hello_world.dart',
+    localId: '1',
+    libraryId: libraryId,
+  );
   var myClassId = 'MyClass<T>';
   var fooId = 'foo';
   var scopeId = '1';
@@ -246,16 +251,20 @@ void main() {
 
   test('Read supported version', () {
     var version = SemanticVersion(0, 2, 3).version;
-    var json = ModuleSymbols(version: version, moduleName: 'moduleNameForTest')
-        .toJson();
+    var json = ModuleSymbols(
+      version: version,
+      moduleName: 'moduleNameForTest',
+    ).toJson();
 
     expect(ModuleSymbols.fromJson(json).version, equals(version));
   });
 
   test('Read unsupported version', () {
     var version = SemanticVersion(1, 2, 3).version;
-    var json = ModuleSymbols(version: version, moduleName: 'moduleNameForTest')
-        .toJson();
+    var json = ModuleSymbols(
+      version: version,
+      moduleName: 'moduleNameForTest',
+    ).toJson();
 
     expect(() => ModuleSymbols.fromJson(json), throwsException);
   });
@@ -268,15 +277,16 @@ TypeMatcher<SourceLocation> matchesLocation(SourceLocation other) =>
         .having((loc) => loc.endTokenPos, 'endTokenPos', other.endTokenPos);
 
 TypeMatcher<LibrarySymbolDependency> matchesDependency(
-        LibrarySymbolDependency other) =>
-    isA<LibrarySymbolDependency>()
-        .having((dep) => dep.isDeferred, 'isDeferred', other.isDeferred)
-        .having((dep) => dep.isImport, 'isImport', other.isImport)
-        .having((dep) => dep.prefix, 'prefix', other.prefix)
-        .having((dep) => dep.targetId, 'targetId', other.targetId);
+  LibrarySymbolDependency other,
+) => isA<LibrarySymbolDependency>()
+    .having((dep) => dep.isDeferred, 'isDeferred', other.isDeferred)
+    .having((dep) => dep.isImport, 'isImport', other.isImport)
+    .having((dep) => dep.prefix, 'prefix', other.prefix)
+    .having((dep) => dep.targetId, 'targetId', other.targetId);
 
-Iterable<Matcher> matchDependencies(List<LibrarySymbolDependency> list) =>
-    [for (var e in list) matchesDependency(e)];
+Iterable<Matcher> matchDependencies(List<LibrarySymbolDependency> list) => [
+  for (var e in list) matchesDependency(e),
+];
 
 TypeMatcher<LibrarySymbol> matchesLibrary(LibrarySymbol other) =>
     isA<LibrarySymbol>()
@@ -288,8 +298,11 @@ TypeMatcher<LibrarySymbol> matchesLibrary(LibrarySymbol other) =>
         .having((lib) => lib.scopeIds, 'scopeIds', other.scopeIds)
         .having((lib) => lib.variableIds, 'variableIds', other.variableIds)
         .having((lib) => lib.location, 'location', isNull)
-        .having((lib) => lib.dependencies, 'dependencies',
-            matchDependencies(other.dependencies));
+        .having(
+          (lib) => lib.dependencies,
+          'dependencies',
+          matchDependencies(other.dependencies),
+        );
 
 TypeMatcher<ClassSymbol> matchesClass(ClassSymbol other) => isA<ClassSymbol>()
     .having((cls) => cls.name, 'name', other.name)
@@ -306,7 +319,10 @@ TypeMatcher<ClassSymbol> matchesClass(ClassSymbol other) => isA<ClassSymbol>()
     .having((cls) => cls.scopeIds, 'scopeIds', other.scopeIds)
     .having((cls) => cls.variableIds, 'variableIds', other.variableIds)
     .having(
-        (cls) => cls.location, 'location', matchesLocation(other.location!));
+      (cls) => cls.location,
+      'location',
+      matchesLocation(other.location!),
+    );
 
 TypeMatcher<FunctionTypeSymbol> matchesFunctionType(FunctionTypeSymbol other) =>
     isA<FunctionTypeSymbol>()
@@ -314,15 +330,30 @@ TypeMatcher<FunctionTypeSymbol> matchesFunctionType(FunctionTypeSymbol other) =>
         .having((fun) => fun.localId, 'localId', other.localId)
         .having((fun) => fun.scopeId, 'scopeId', other.scopeId)
         .having(
-            (fun) => fun.typeParameters, 'typeParameters', other.typeParameters)
-        .having((fun) => fun.parameterTypeIds, 'parameterTypeIds',
-            other.parameterTypeIds)
-        .having((fun) => fun.optionalParameterTypeIds,
-            'optionalParameterTypeIds', other.optionalParameterTypeIds)
-        .having((fun) => fun.namedParameterTypeIds, 'namedParameterTypeIds',
-            other.namedParameterTypeIds)
-        .having((fun) => fun.location, 'location',
-            matchesLocation(other.location!));
+          (fun) => fun.typeParameters,
+          'typeParameters',
+          other.typeParameters,
+        )
+        .having(
+          (fun) => fun.parameterTypeIds,
+          'parameterTypeIds',
+          other.parameterTypeIds,
+        )
+        .having(
+          (fun) => fun.optionalParameterTypeIds,
+          'optionalParameterTypeIds',
+          other.optionalParameterTypeIds,
+        )
+        .having(
+          (fun) => fun.namedParameterTypeIds,
+          'namedParameterTypeIds',
+          other.namedParameterTypeIds,
+        )
+        .having(
+          (fun) => fun.location,
+          'location',
+          matchesLocation(other.location!),
+        );
 
 TypeMatcher<FunctionSymbol> matchesFunction(FunctionSymbol other) =>
     isA<FunctionSymbol>()
@@ -335,8 +366,11 @@ TypeMatcher<FunctionSymbol> matchesFunction(FunctionSymbol other) =>
         .having((fun) => fun.typeId, 'typeId', other.typeId)
         .having((fun) => fun.scopeIds, 'scopeIds', other.scopeIds)
         .having((fun) => fun.variableIds, 'variableIds', other.variableIds)
-        .having((fun) => fun.location, 'location',
-            matchesLocation(other.location!));
+        .having(
+          (fun) => fun.location,
+          'location',
+          matchesLocation(other.location!),
+        );
 
 TypeMatcher<ScopeSymbol> matchesScope(ScopeSymbol other) => isA<ScopeSymbol>()
     .having((scope) => scope.localId, 'localId', other.localId)
@@ -344,8 +378,11 @@ TypeMatcher<ScopeSymbol> matchesScope(ScopeSymbol other) => isA<ScopeSymbol>()
     .having((scope) => scope.id, 'id', other.id)
     .having((scope) => scope.scopeIds, 'scopeIds', other.scopeIds)
     .having((scope) => scope.variableIds, 'variableIds', other.variableIds)
-    .having((scope) => scope.location, 'location',
-        matchesLocation(other.location!));
+    .having(
+      (scope) => scope.location,
+      'location',
+      matchesLocation(other.location!),
+    );
 
 TypeMatcher<VariableSymbol> matchesVariable(VariableSymbol other) =>
     isA<VariableSymbol>()
@@ -356,8 +393,11 @@ TypeMatcher<VariableSymbol> matchesVariable(VariableSymbol other) =>
         .having((variable) => variable.isConst, 'isConst', other.isConst)
         .having((variable) => variable.isStatic, 'isStatic', other.isStatic)
         .having((variable) => variable.isFinal, 'isFinal', other.isFinal)
-        .having((variable) => variable.location, 'location',
-            matchesLocation(other.location!));
+        .having(
+          (variable) => variable.location,
+          'location',
+          matchesLocation(other.location!),
+        );
 
 TypeMatcher<Script> matchesScript(Script other) => isA<Script>()
     .having((script) => script.uri, 'uri', other.uri)
