@@ -40,5 +40,5 @@ abstract class Base extends core::Object {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   new self::Z::•();
-  [@vm.direct-call.metadata=#lib::A.doTest] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::doTest}(new self::X::•()){(self::Z) → void};
+  [@vm.direct-call.metadata=#lib::A.doTest] [@vm.inferred-type.metadata=? (skip check)] new self::A::•().{self::A::doTest}(new self::X::•()){(self::Z) → void};
 }

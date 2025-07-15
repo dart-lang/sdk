@@ -55,14 +55,14 @@ class C<T extends core::Object? = dynamic> extends core::Object {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
   dynamic c = new self::C::•<core::int>();
-  [@vm.direct-call.metadata=#lib::C.test2c] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test2c(3);
-  [@vm.direct-call.metadata=#lib::C.test3c] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test3c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int>] asy::Future::value<core::int>(3));
-  [@vm.direct-call.metadata=#lib::C.test4c] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test4c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int>] asy::Future::value<core::int>(3));
-  [@vm.direct-call.metadata=#lib::C.test2r] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test2r(new self::C::•<core::int>());
-  [@vm.direct-call.metadata=#lib::C.test3r] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test3r(new self::C::•<asy::Future<core::int>>());
-  [@vm.direct-call.metadata=#lib::C.test4r] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test4r(new self::C::•<asy::Future<core::int>>());
-  [@vm.direct-call.metadata=#lib::C.test5r] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test5r(new self::C::•<FutureOr<core::int>>());
-  [@vm.direct-call.metadata=#lib::C.test6r] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test6r(new self::C::•<FutureOr<core::int>>());
-  [@vm.direct-call.metadata=#lib::C.test7r] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test7r(new self::C::•<FutureOr<core::int>>());
-  [@vm.direct-call.metadata=#lib::C.test8r] [@vm.inferred-type.metadata=!? (receiver not int)] c{dynamic}.test8r(new self::C::•<asy::Future<core::int>>());
+  [@vm.direct-call.metadata=#lib::C.test2c] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test2c(3);
+  [@vm.direct-call.metadata=#lib::C.test3c] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test3c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int>] asy::Future::value<core::int>(3));
+  [@vm.direct-call.metadata=#lib::C.test4c] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test4c([@vm.inferred-type.metadata=dart.async::_Future<dart.core::int>] asy::Future::value<core::int>(3));
+  [@vm.direct-call.metadata=#lib::C.test2r] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test2r(new self::C::•<core::int>());
+  [@vm.direct-call.metadata=#lib::C.test3r] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test3r(new self::C::•<asy::Future<core::int>>());
+  [@vm.direct-call.metadata=#lib::C.test4r] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test4r(new self::C::•<asy::Future<core::int>>());
+  [@vm.direct-call.metadata=#lib::C.test5r] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test5r(new self::C::•<FutureOr<core::int>>());
+  [@vm.direct-call.metadata=#lib::C.test6r] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test6r(new self::C::•<FutureOr<core::int>>());
+  [@vm.direct-call.metadata=#lib::C.test7r] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test7r(new self::C::•<FutureOr<core::int>>());
+  [@vm.direct-call.metadata=#lib::C.test8r] [@vm.inferred-type.metadata=? (receiver not int)] c{dynamic}.test8r(new self::C::•<asy::Future<core::int>>());
 }

@@ -194,8 +194,10 @@ const char* StackFrame::ToCString() const {
       code.IsNull()
           ? "Cannot find code object"
           : code.QualifiedName(NameFormattingParams(Object::kInternalName));
-  return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp " %s",
-                             pc(), fp(), sp(), name);
+  uword offset = code.IsNull() ? 0 : pc() - code.PayloadStart();
+  return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp
+                             " %s+0x%" Px,
+                             pc(), fp(), sp(), name, offset);
 }
 
 void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -561,6 +563,17 @@ bool StackFrame::IsValid() const {
 
 void StackFrame::DumpCurrentTrace() {
   StackFrameIterator frames(ValidationPolicy::kDontValidateFrames,
+                            Thread::Current(),
+                            StackFrameIterator::kNoCrossThreadIteration);
+  StackFrame* frame = frames.NextFrame();
+  while (frame != nullptr) {
+    OS::PrintErr("%s\n", frame->ToCString());
+    frame = frames.NextFrame();
+  }
+}
+
+void StackFrame::DumpCurrentTrace(uword sp, uword fp, uword pc) {
+  StackFrameIterator frames(fp, sp, pc, ValidationPolicy::kDontValidateFrames,
                             Thread::Current(),
                             StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();

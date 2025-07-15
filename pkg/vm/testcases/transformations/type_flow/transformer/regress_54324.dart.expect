@@ -7,7 +7,7 @@ import "file:pkg/vm/testcases/transformations/type_flow/transformer/regress_5432
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/regress_54324_b.lib.dart::BazClass.run] [@vm.inferred-type.metadata=!? (skip check)] #C1.{lib::BazClass::run}(){() → void};
+  [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/regress_54324_b.lib.dart::BazClass.run] [@vm.inferred-type.metadata=? (skip check)] #C1.{lib::BazClass::run}(){() → void};
 }
 constants  {
   #C1 = lib::BazClass {}

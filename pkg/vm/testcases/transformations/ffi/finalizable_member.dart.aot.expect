@@ -12,7 +12,7 @@ import "dart:io";
 class A extends core::Object implements ffi::Finalizable {
   constructor •() → self::A
     : super core::Object::•() {
-    let final ffi::NativeFinalizer #t1 = [@vm.inferred-type.metadata=dart.ffi::_NativeFinalizer] self::_nativeFinalizer in let final ffi::Pointer<ffi::Void> #t2 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::Void>() in let final core::int #t3 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<<] [@vm.inferred-type.metadata=int (skip check)] 1.{core::int::<<}(32){(core::int) → core::int} in [@vm.direct-call.metadata=dart.ffi::_NativeFinalizer.attach] [@vm.inferred-type.metadata=!? (skip check)] #t1.{ffi::NativeFinalizer::attach}(this, #t2, this, #t3){(ffi::Finalizable, ffi::Pointer<ffi::Void>, {detach: core::Object?, externalSize: core::int?}) → void};
+    let final ffi::NativeFinalizer #t1 = [@vm.inferred-type.metadata=dart.ffi::_NativeFinalizer] self::_nativeFinalizer in let final ffi::Pointer<ffi::Void> #t2 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::Void>() in let final core::int #t3 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<<] [@vm.inferred-type.metadata=int (skip check)] 1.{core::int::<<}(32){(core::int) → core::int} in [@vm.direct-call.metadata=dart.ffi::_NativeFinalizer.attach] [@vm.inferred-type.metadata=? (skip check)] #t1.{ffi::NativeFinalizer::attach}(this, #t2, this, #t3){(ffi::Finalizable, ffi::Pointer<ffi::Void>, {detach: core::Object?, externalSize: core::int?}) → void};
     _in::reachabilityFence(this);
   }
 }
@@ -41,7 +41,7 @@ static method main() → asy::Future<void> async /* emittedValueType= void */ {
   final self::B b = new self::B::•(new self::A::•());
   [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] final core::List<core::int> l = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0);
   asy::Future::doWhile([@vm.closure-id=1]() → core::bool {
-    [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::int>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=!? (skip check)] l.{core::List::add}(1){(core::int) → void};
+    [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::int>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=? (skip check)] l.{core::List::add}(1){(core::int) → void};
     return true;
   });
   await block {

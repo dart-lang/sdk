@@ -1868,9 +1868,11 @@ DirectCallMetadataHelper::GetDirectTargetForFunctionInvocation(
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
     KernelReaderHelper* helper,
     ConstantReader* constant_reader,
+    TypeTranslator* type_translator,
     InferredTypeMetadataHelper::Kind kind)
     : MetadataHelper(helper, tag(kind), /* precompiler_only = */ true),
-      constant_reader_(constant_reader) {}
+      constant_reader_(constant_reader),
+      type_translator_(type_translator) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     intptr_t node_offset,
@@ -1884,8 +1886,33 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   AlternativeReadingScopeWithNewData alt(&helper_->reader_,
                                          &H.metadata_payloads(), md_offset);
 
-  const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
-  const uint8_t flags = helper_->ReadByte();
+  const intptr_t flags = helper_->ReadUInt();
+
+  intptr_t cid = kDynamicCid;
+  const AbstractType* exact_type = &Object::null_abstract_type();
+  if ((flags & InferredTypeMetadata::kFlagExactType) != 0) {
+    exact_type = &type_translator_->BuildType();
+    if (exact_type->IsType()) {
+      cid = exact_type->type_class_id();
+      ASSERT(cid != kIllegalCid);
+    } else {
+      // Not useful.
+      exact_type = &Object::null_abstract_type();
+    }
+  } else {
+    const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
+
+    if (H.IsRoot(kernel_name)) {
+      ASSERT((flags & InferredTypeMetadata::kFlagConstant) == 0);
+      return InferredTypeMetadata(kDynamicCid, flags);
+    }
+
+    const Class& klass =
+        Class::Handle(helper_->zone_, H.LookupClassByKernelClass(kernel_name));
+    ASSERT(!klass.IsNull());
+
+    cid = klass.id();
+  }
 
   const Object* constant_value = &Object::null_object();
   if ((flags & InferredTypeMetadata::kFlagConstant) != 0) {
@@ -1896,23 +1923,13 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     }
   }
 
-  if (H.IsRoot(kernel_name)) {
-    ASSERT((flags & InferredTypeMetadata::kFlagConstant) == 0);
-    return InferredTypeMetadata(kDynamicCid, flags);
-  }
-
-  const Class& klass =
-      Class::Handle(helper_->zone_, H.LookupClassByKernelClass(kernel_name));
-  ASSERT(!klass.IsNull());
-
-  intptr_t cid = klass.id();
   if (cid == kClosureCid) {
     // VM uses more specific function types and doesn't expect instances of
     // _Closure class, so inferred _Closure class doesn't make sense for the VM.
     cid = kDynamicCid;
   }
 
-  return InferredTypeMetadata(cid, flags, *constant_value);
+  return InferredTypeMetadata(cid, flags, *constant_value, *exact_type);
 }
 
 void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {
@@ -3283,7 +3300,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       type_parameter_scope_(nullptr),
-      inferred_type_metadata_helper_(helper_, constant_reader_),
+      inferred_type_metadata_helper_(helper_, constant_reader_, this),
       unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),

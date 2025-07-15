@@ -2917,7 +2917,13 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       break;
     case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kArray_type_arguments:
       ASSERT(!calls_initializer());
+      if (orig_instance->Type()->is_exact_type()) {
+        return flow_graph->GetConstant(TypeArguments::Handle(
+            Type::Cast(*orig_instance->Type()->ToAbstractType())
+                .GetInstanceTypeArguments(flow_graph->thread())));
+      }
       if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
         if (call->is_known_list_constructor()) {
           return call->ArgumentAt(0);

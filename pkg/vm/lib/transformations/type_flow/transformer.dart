@@ -468,6 +468,7 @@ class AnnotateKernel extends RecursiveVisitor {
     bool skipCheck = false,
     bool receiverNotInt = false,
   }) {
+    InterfaceType? exactType;
     Class? concreteClass;
     Constant? constantValue;
     Member? closureMember;
@@ -515,21 +516,28 @@ class AnnotateKernel extends RecursiveVisitor {
       }
     }
 
-    List<DartType?>? typeArgs;
     if (type is ConcreteType && type.typeArgs != null) {
-      typeArgs =
-          type.typeArgs!
-              .take(type.numImmediateTypeArgs)
-              .map(
-                (t) =>
-                    t is UnknownType
-                        ? null
-                        : (t as RuntimeType).representedType,
-              )
-              .toList();
+      final typeArgs = <DartType>[];
+      bool allKnown = true;
+      for (int i = 0, n = type.numImmediateTypeArgs; i < n; ++i) {
+        final t = type.typeArgs![i];
+        if (t is UnknownType) {
+          allKnown = false;
+          break;
+        }
+        typeArgs.add((t as RuntimeType).representedType);
+      }
+      if (allKnown) {
+        exactType = InterfaceType(
+          concreteClass!,
+          nullable ? Nullability.nullable : Nullability.nonNullable,
+          typeArgs,
+        );
+      }
     }
 
-    if (concreteClass != null ||
+    if (exactType != null ||
+        concreteClass != null ||
         !nullable ||
         isInt ||
         constantValue != null ||
@@ -537,13 +545,13 @@ class AnnotateKernel extends RecursiveVisitor {
         receiverNotInt ||
         closureMember != null) {
       return new InferredType(
+        exactType,
         concreteClass,
         nullable,
         isInt,
         constantValue,
         closureMember,
         closureId,
-        exactTypeArguments: typeArgs,
         skipCheck: skipCheck,
         receiverNotInt: receiverNotInt,
       );

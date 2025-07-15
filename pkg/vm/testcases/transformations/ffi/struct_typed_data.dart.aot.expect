@@ -23,9 +23,9 @@ final class Coordinate extends ffi::Struct {
   static factory •({[@vm.inferred-arg-type.metadata=dart.core::_Double?] core::double? x = #C4, [@vm.inferred-arg-type.metadata=dart.core::_Double?] core::double? y = #C4}) → self::Coordinate {
     final self::Coordinate result = new self::Coordinate::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 16)] self::Coordinate::#sizeOf));
     if(!(x == null))
-      [@vm.direct-call.metadata=#lib::Coordinate.x] [@vm.inferred-type.metadata=!? (skip check)] result.{self::Coordinate::x} = x{core::double};
+      [@vm.direct-call.metadata=#lib::Coordinate.x] [@vm.inferred-type.metadata=? (skip check)] result.{self::Coordinate::x} = x{core::double};
     if(!(y == null))
-      [@vm.direct-call.metadata=#lib::Coordinate.y] [@vm.inferred-type.metadata=!? (skip check)] result.{self::Coordinate::y} = y{core::double};
+      [@vm.direct-call.metadata=#lib::Coordinate.y] [@vm.inferred-type.metadata=? (skip check)] result.{self::Coordinate::y} = y{core::double};
     return result;
   }
 
@@ -90,14 +90,14 @@ static method main() → void {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testStructAllocateDart() → void {
   final self::Coordinate c1 = let final self::Coordinate #t3 = [@vm.inferred-type.metadata=#lib::Coordinate] self::Coordinate::•() in block {
-    [@vm.direct-call.metadata=#lib::Coordinate.x] [@vm.inferred-type.metadata=!? (skip check)] #t3.{self::Coordinate::x} = 10.0;
-    [@vm.direct-call.metadata=#lib::Coordinate.y] [@vm.inferred-type.metadata=!? (skip check)] #t3.{self::Coordinate::y} = 20.0;
+    [@vm.direct-call.metadata=#lib::Coordinate.x] [@vm.inferred-type.metadata=? (skip check)] #t3.{self::Coordinate::x} = 10.0;
+    [@vm.direct-call.metadata=#lib::Coordinate.y] [@vm.inferred-type.metadata=? (skip check)] #t3.{self::Coordinate::y} = 20.0;
   } =>#t3;
   exp::Expect::equals(10.0, [@vm.direct-call.metadata=#lib::Coordinate.x] [@vm.inferred-type.metadata=dart.core::_Double] c1.{self::Coordinate::x}{core::double});
   exp::Expect::equals(20.0, [@vm.direct-call.metadata=#lib::Coordinate.y] [@vm.inferred-type.metadata=dart.core::_Double] c1.{self::Coordinate::y}{core::double});
   final typ::Float64List typedList = [@vm.inferred-type.metadata=dart.typed_data::_Float64List] typ::Float64List::•(2);
-  [@vm.call-site-attributes.metadata=receiverType:dart.typed_data::Float64List] [@vm.direct-call.metadata=dart.typed_data::_Float64List.[]=] [@vm.inferred-type.metadata=!? (skip check)] typedList.{core::List::[]=}(0, 30.0){(core::int, core::double) → void};
-  [@vm.call-site-attributes.metadata=receiverType:dart.typed_data::Float64List] [@vm.direct-call.metadata=dart.typed_data::_Float64List.[]=] [@vm.inferred-type.metadata=!? (skip check)] typedList.{core::List::[]=}(1, 40.0){(core::int, core::double) → void};
+  [@vm.call-site-attributes.metadata=receiverType:dart.typed_data::Float64List] [@vm.direct-call.metadata=dart.typed_data::_Float64List.[]=] [@vm.inferred-type.metadata=? (skip check)] typedList.{core::List::[]=}(0, 30.0){(core::int, core::double) → void};
+  [@vm.call-site-attributes.metadata=receiverType:dart.typed_data::Float64List] [@vm.direct-call.metadata=dart.typed_data::_Float64List.[]=] [@vm.inferred-type.metadata=? (skip check)] typedList.{core::List::[]=}(1, 40.0){(core::int, core::double) → void};
   final self::Coordinate c2 = [@vm.inferred-type.metadata=#lib::Coordinate] self::Coordinate::fromTypedList(typedList);
   exp::Expect::equals(30.0, [@vm.direct-call.metadata=#lib::Coordinate.x] [@vm.inferred-type.metadata=dart.core::_Double] c2.{self::Coordinate::x}{core::double});
   exp::Expect::equals(40.0, [@vm.direct-call.metadata=#lib::Coordinate.y] [@vm.inferred-type.metadata=dart.core::_Double] c2.{self::Coordinate::y}{core::double});

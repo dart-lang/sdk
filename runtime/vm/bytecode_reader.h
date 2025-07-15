@@ -31,7 +31,13 @@ class BytecodeLoader {
   }
 
   void SetOffset(const Object& obj, intptr_t offset);
-  intptr_t GetOffset(const Object& obj);
+  intptr_t GetOffset(const Object& obj) const;
+  bool HasOffset(const Object& obj) const;
+
+  void FindModifiedLibraries(BitVector* modified_libs,
+                             intptr_t* p_num_libraries,
+                             intptr_t* p_num_classes,
+                             intptr_t* p_num_procedures);
 
  private:
   Thread* thread_;
@@ -204,6 +210,7 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadLibraryDeclaration(const Library& library,
                               const GrowableObjectArray& pending_classes);
   void ReadLibraryDeclarations(intptr_t num_libraries);
+  void FindModifiedLibraries(BitVector* modified_libs, intptr_t num_libraries);
 
   LibraryPtr ReadMain();
 

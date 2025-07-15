@@ -37,7 +37,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                          active_class_,
                          /* finalize= */ true),
         direct_call_metadata_helper_(this),
-        inferred_type_metadata_helper_(this, &constant_reader_),
+        inferred_type_metadata_helper_(this,
+                                       &constant_reader_,
+                                       &type_translator_),
         procedure_attributes_metadata_helper_(this),
         call_site_attributes_metadata_helper_(this, &type_translator_),
         closure_owner_(Object::Handle(flow_graph_builder->zone_)) {}

@@ -558,8 +558,15 @@ void CompileType::Union(CompileType* other) {
     return;
   }
 
-  can_be_null_ = can_be_null_ || other->can_be_null_;
-  can_be_sentinel_ = can_be_sentinel_ || other->can_be_sentinel_;
+  const bool can_be_null = this->is_nullable() || other->is_nullable();
+  const bool can_be_sentinel =
+      this->can_be_sentinel() || other->can_be_sentinel();
+  const bool is_exact_type =
+      this->is_exact_type() && other->is_exact_type() &&
+      this->ToAbstractType()->Equals(*other->ToAbstractType());
+  flags_ = CanBeNullBit::encode(can_be_null) |
+           CanBeSentinelBit::encode(can_be_sentinel) |
+           ExactTypeBit::encode(is_exact_type);
 
   ToNullableCid();  // Ensure cid_ is set.
   if ((cid_ == kNullCid) || (cid_ == kSentinelCid)) {
@@ -787,8 +794,8 @@ intptr_t CompileType::ToCid() {
     }
   }
 
-  if ((cid_ == kDynamicCid) || (can_be_null_ && (cid_ != kNullCid)) ||
-      (can_be_sentinel_ && (cid_ != kSentinelCid))) {
+  if ((cid_ == kDynamicCid) || (is_nullable() && (cid_ != kNullCid)) ||
+      (can_be_sentinel() && (cid_ != kSentinelCid))) {
     return kDynamicCid;
   }
 
@@ -797,7 +804,10 @@ intptr_t CompileType::ToCid() {
 
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
-    if (type_ == nullptr) {
+    if (is_exact_type()) {
+      cid_ = type_->type_class_id();
+      ASSERT(cid_ != kIllegalCid);
+    } else if (type_ == nullptr) {
       // Type propagation is turned off or has not yet run.
       return kDynamicCid;
     } else if (type_->IsVoidType()) {
@@ -824,7 +834,7 @@ intptr_t CompileType::ToNullableCid() {
     }
   }
 
-  if (can_be_sentinel_ && (cid_ != kSentinelCid)) {
+  if (can_be_sentinel() && (cid_ != kSentinelCid)) {
     return kDynamicCid;
   }
 
@@ -832,7 +842,7 @@ intptr_t CompileType::ToNullableCid() {
 }
 
 bool CompileType::HasDecidableNullability() {
-  return !can_be_null_ || IsNull();
+  return !is_nullable() || IsNull();
 }
 
 bool CompileType::IsNull() {
@@ -896,10 +906,10 @@ bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {
   if (type_ != nullptr && type_->type_class_id() != kIllegalCid) {
     const Class& type_class = Class::Handle(type_->type_class());
     if (!CHA::ConcreteSubclasses(type_class, class_ids)) return false;
-    if (can_be_null_) {
+    if (is_nullable()) {
       class_ids->Add(kNullCid);
     }
-    if (can_be_sentinel_) {
+    if (can_be_sentinel()) {
       class_ids->Add(kSentinelCid);
     }
   }
@@ -999,32 +1009,37 @@ void CompileType::PrintTo(JSONWriter* writer) const {
     writer->PrintPropertyStr("t", String::Handle(type_->ScrubbedName()));
   }
 
-  if (can_be_null_) {
+  if (is_nullable()) {
     writer->PrintPropertyBool("n", true);
   }
 
-  if (can_be_sentinel_) {
+  if (can_be_sentinel()) {
     writer->PrintPropertyBool("s", true);
   }
 }
 
 void CompileType::PrintTo(BaseTextBuffer* f) const {
   const char* type_name = "?";
+  const char* prefix = "";
   if (IsNone()) {
     f->AddString("T{}");
     return;
+  } else if (is_exact_type()) {
+    prefix = "==";
+    type_name = type_->ScrubbedNameCString();
   } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
         Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
     type_name = cls.ScrubbedNameCString();
   } else if (type_ != nullptr) {
+    prefix = "<:";
     type_name = type_->IsDynamicType() ? "*" : type_->ScrubbedNameCString();
   } else if (!is_nullable()) {
     type_name = "!null";
   }
 
-  f->Printf("T{%s%s%s}", type_name, can_be_null_ ? "?" : "",
-            can_be_sentinel_ ? "~" : "");
+  f->Printf("T{%s%s%s%s}", prefix, type_name, is_nullable() ? "?" : "",
+            can_be_sentinel() ? "~" : "");
 }
 
 const char* CompileType::ToCString() const {
@@ -1600,7 +1615,12 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   bool is_nullable = true;
   intptr_t cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
 
-  AbstractType* abstract_type = &AbstractType::ZoneHandle(field.type());
+  AbstractType* abstract_type = &AbstractType::ZoneHandle(field.exact_type());
+  bool is_exact_type = true;
+  if (abstract_type->IsNull()) {
+    *abstract_type = field.type();
+    is_exact_type = false;
+  }
   TraceStrongModeType(this, *abstract_type);
   if (abstract_type->IsStrictlyNonNullable()) {
     is_nullable = false;
@@ -1612,7 +1632,9 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     if (!field.is_nullable()) {
       is_nullable = false;
     }
-    abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
+    if (!is_exact_type) {
+      abstract_type = nullptr;  // Cid is known, calculate abstract type lazily.
+    }
   }
 
   if (field.needs_load_guard()) {
@@ -1623,7 +1645,8 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
 
   const bool can_be_sentinel = !calls_initializer() && field.is_late() &&
                                field.is_final() && !field.has_initializer();
-  return CompileType(is_nullable, can_be_sentinel, cid, abstract_type);
+  return CompileType(is_nullable, can_be_sentinel, cid, abstract_type,
+                     is_exact_type);
 }
 
 CompileType CreateArrayInstr::ComputeType() const {

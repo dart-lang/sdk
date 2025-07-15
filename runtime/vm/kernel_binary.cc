@@ -173,37 +173,6 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   return program;
 }
 
-std::unique_ptr<Program> Program::ReadFromFile(
-    const char* script_uri,
-    const char** error /* = nullptr */) {
-  Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-  if (script_uri == nullptr) {
-    return nullptr;
-  }
-  if (!isolate_group->HasTagHandler()) {
-    return nullptr;
-  }
-  std::unique_ptr<kernel::Program> kernel_program;
-
-  const String& uri = String::Handle(String::New(script_uri));
-  const Object& ret = Object::Handle(isolate_group->CallTagHandler(
-      Dart_kKernelTag, Object::null_object(), uri));
-  if (ret.IsExternalTypedData()) {
-    const auto& typed_data = ExternalTypedData::Cast(ret);
-    kernel_program = kernel::Program::ReadFromTypedData(typed_data);
-    return kernel_program;
-  } else if (error != nullptr) {
-    Api::Scope api_scope(thread);
-    Dart_Handle retval = Api::NewHandle(thread, ret.ptr());
-    {
-      TransitionVMToNative transition(thread);
-      *error = Dart_GetError(retval);
-    }
-  }
-  return kernel_program;
-}
-
 std::unique_ptr<Program> Program::ReadFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length,
                                                  const char** error) {

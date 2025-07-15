@@ -499,6 +499,13 @@ void ClassFinalizer::FinalizeMemberTypes(const Class& cls) {
       field.set_static_type_exactness_state(
           StaticTypeExactnessState::Uninitialized());
     }
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    type = field.exact_type();
+    if (!type.IsNull()) {
+      type = FinalizeType(type);
+      field.set_exact_type(type);
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     function = field.InitializerFunction();
     if (!function.IsNull()) {
       // TODO(regis): It looks like the initializer is never set at this point.

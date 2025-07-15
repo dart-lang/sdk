@@ -180,7 +180,7 @@ static method main() → dynamic {
     synthesized core::Iterator<self::C4> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::C4>] z4.{core::Iterable::iterator}{core::Iterator<self::C4>};
     for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       self::C4 o = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=!] :sync-for-iterator.{core::Iterator::current}{self::C4};
-      [@vm.direct-call.metadata=#lib::C4.foo] [@vm.inferred-type.metadata=!? (skip check)] o.{self::C4::foo}(){() → void};
+      [@vm.direct-call.metadata=#lib::C4.foo] [@vm.inferred-type.metadata=? (skip check)] o.{self::C4::foo}(){() → void};
     }
   }
 }

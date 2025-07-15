@@ -35,8 +35,8 @@ class OtherClass extends core::Object {
   [@vm.unboxing-info.metadata=(b,b,b,b,i)->b]
   @#C2
   static method generate([@vm.inferred-arg-type.metadata=#lib::AssetBundle] self::AssetBundle bundle, [@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dynamic>] core::List<dynamic> args, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "somestring")] core::String string, [@vm.inferred-arg-type.metadata=#lib::AnotherClass] self::AnotherClass object, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int index) → asy::Future<core::String> async /* emittedValueType= core::String */ {
-    final self::Message message = await [@vm.direct-call.metadata=#lib::AssetBundle.byIndex] [@vm.inferred-type.metadata=!? (skip check)] bundle.{self::AssetBundle::byIndex}(){({required index: core::int, required string: core::String}) → self::Message} /* runtimeCheckType= asy::Future<self::Message> */ ;
-    return [@vm.direct-call.metadata=#lib::Message.generateString] [@vm.inferred-type.metadata=!? (skip check)] message.{self::Message::generateString}(args){(core::List<dynamic>, {required object: self::AnotherClass}) → asy::Future<core::String>};
+    final self::Message message = await [@vm.direct-call.metadata=#lib::AssetBundle.byIndex] [@vm.inferred-type.metadata=? (skip check)] bundle.{self::AssetBundle::byIndex}(){({required index: core::int, required string: core::String}) → self::Message} /* runtimeCheckType= asy::Future<self::Message> */ ;
+    return [@vm.direct-call.metadata=#lib::Message.generateString] [@vm.inferred-type.metadata=? (skip check)] message.{self::Message::generateString}(args){(core::List<dynamic>, {required object: self::AnotherClass}) → asy::Future<core::String>};
   }
 }
 class AssetBundle extends core::Object {

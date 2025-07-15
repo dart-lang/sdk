@@ -47,7 +47,7 @@ class Point extends core::Object /*hasConstConstructor*/  {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method getX([@vm.inferred-arg-type.metadata=#lib::Point] dynamic point) → dynamic {
-  [@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=!? (receiver not int)] point{dynamic}.x;
+  [@vm.direct-call.metadata=#lib::Point.x] [@vm.inferred-type.metadata=? (receiver not int)] point{dynamic}.x;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
