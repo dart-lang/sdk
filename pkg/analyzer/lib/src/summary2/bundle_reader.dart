@@ -266,6 +266,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ClassFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = ClassElementImpl(reference, fragments.first);
+      element.readModifiers(_reader);
 
       // Configure for reading members lazily.
       _lazyRead((offset) {
@@ -974,6 +975,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<MixinFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = MixinElementImpl(reference, fragments.first);
+      element.readModifiers(_reader);
 
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {

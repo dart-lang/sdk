@@ -660,75 +660,71 @@ class InstanceMemberInferrer {
     var interfaces = classElement.interfaces;
     var mixins = classElement.mixins;
 
-    if (mixins.any((type) => type.elementImpl.isFinal)) {
+    if (mixins.any((type) => type.element.isFinal)) {
       // A sealed declaration is considered 'final' if it has a direct
       // superclass which is 'final'.
-      classElement.isFinal = true;
+      classElement.element.isFinal = true;
       return;
     }
 
     if (supertype != null) {
-      if (supertype.elementImpl.isFinal) {
+      if (supertype.element.isFinal) {
         // A sealed declaration is considered 'final' if it has a direct
         // superclass which is 'final'.
-        classElement.isFinal = true;
+        classElement.element.isFinal = true;
         return;
       }
-      if (supertype.elementImpl.isBase) {
+      if (supertype.element.isBase) {
         // A sealed declaration is considered 'final' if it has a
         // direct superclass which is 'interface' and it has a direct
         // superinterface which is 'base'.
-        if (mixins.any((type) => type.elementImpl.isInterface)) {
-          classElement.isFinal = true;
+        if (mixins.any((type) => type.element.isInterface)) {
+          classElement.element.isFinal = true;
           return;
         }
 
         // Otherwise, a sealed declaration is considered 'base' if it has a
         // direct superinterface which is 'base' or 'final'.
-        classElement.isBase = true;
+        classElement.element.isBase = true;
         return;
       }
-      if (supertype.elementImpl.isInterface) {
+      if (supertype.element.isInterface) {
         // A sealed declaration is considered 'final' if it has a
         // direct superclass which is 'interface' and it has a direct
         // superinterface which is 'base'.
-        if (interfaces.any((type) => type.elementImpl.isBase) ||
-            mixins.any((type) => type.elementImpl.isBase)) {
-          classElement.isFinal = true;
+        if (interfaces.any((type) => type.element.isBase) ||
+            mixins.any((type) => type.element.isBase)) {
+          classElement.element.isFinal = true;
           return;
         }
 
         // Otherwise, a sealed declaration is considered 'interface' if it has a
         // direct superclass which is 'interface'
-        classElement.isInterface = true;
+        classElement.element.isInterface = true;
         return;
       }
     }
 
-    if (interfaces.any(
-          (type) => type.elementImpl.isBase || type.elementImpl.isFinal,
-        ) ||
-        mixins.any(
-          (type) => type.elementImpl.isBase || type.elementImpl.isFinal,
-        )) {
+    if (interfaces.any((type) => type.element.isBase || type.element.isFinal) ||
+        mixins.any((type) => type.element.isBase || type.element.isFinal)) {
       // A sealed declaration is considered 'base' if it has a direct
       // superinterface which is 'base' or 'final'.
-      classElement.isBase = true;
+      classElement.element.isBase = true;
       return;
     }
 
-    if (mixins.any((type) => type.elementImpl.isInterface)) {
+    if (mixins.any((type) => type.element.isInterface)) {
       // A sealed declaration is considered 'final' if it has a
       // direct superclass which is 'interface' and it has a direct
       // superinterface which is 'base'.
-      if (interfaces.any((type) => type.elementImpl.isBase)) {
-        classElement.isFinal = true;
+      if (interfaces.any((type) => type.element.isBase)) {
+        classElement.element.isFinal = true;
         return;
       }
 
       // Otherwise, a sealed declaration is considered 'interface' if it has a
       // direct superclass which is 'interface'
-      classElement.isInterface = true;
+      classElement.element.isInterface = true;
       return;
     }
   }
@@ -789,12 +785,12 @@ class InstanceMemberInferrer {
 /// A class of exception that is not used anywhere else.
 class _CycleException implements Exception {}
 
-extension on InterfaceFragmentImpl {
+extension on InterfaceElementImpl {
   bool get isBase {
     switch (this) {
-      case ClassFragmentImpl self:
+      case ClassElementImpl self:
         return self.isBase;
-      case MixinFragmentImpl self:
+      case MixinElementImpl self:
         return self.isBase;
       default:
         return false;
@@ -803,7 +799,7 @@ extension on InterfaceFragmentImpl {
 
   bool get isFinal {
     switch (this) {
-      case ClassFragmentImpl self:
+      case ClassElementImpl self:
         return self.isFinal;
       default:
         return false;
@@ -812,7 +808,7 @@ extension on InterfaceFragmentImpl {
 
   bool get isInterface {
     switch (this) {
-      case ClassFragmentImpl self:
+      case ClassElementImpl self:
         return self.isInterface;
       default:
         return false;

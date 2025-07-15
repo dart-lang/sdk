@@ -151,6 +151,7 @@ class BundleWriter {
       _sink.writeList(element.fragments, (fragment) {
         _writeFragmentId(fragment);
       });
+      element.writeModifiers(_sink);
 
       // We read members lazily.
       _writeForLazyRead(() {
@@ -571,6 +572,7 @@ class BundleWriter {
       _sink.writeList(element.fragments, (fragment) {
         _writeFragmentId(fragment);
       });
+      element.writeModifiers(_sink);
 
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {

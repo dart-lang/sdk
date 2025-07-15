@@ -149,6 +149,13 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   ClassElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
     firstFragment.element = this;
+
+    isAbstract = firstFragment.isAbstract;
+    isBase = firstFragment.isBase;
+    isFinal = firstFragment.isFinal;
+    isInterface = firstFragment.isInterface;
+    isMixinClass = firstFragment.isMixinClass;
+    isSealed = firstFragment.isSealed;
   }
 
   /// If we can find all possible subtypes of this class, return them.
@@ -269,11 +276,23 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedIntoId
-  bool get isAbstract => firstFragment.isAbstract;
+  bool get isAbstract {
+    return hasModifier(Modifier.ABSTRACT);
+  }
+
+  set isAbstract(bool isAbstract) {
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
 
   @override
   @trackedIncludedIntoId
-  bool get isBase => firstFragment.isBase;
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
+  }
 
   @override
   @trackedIncludedIntoId
@@ -335,11 +354,23 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedIntoId
-  bool get isFinal => firstFragment.isFinal;
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
 
   @override
   @trackedIncludedIntoId
-  bool get isInterface => firstFragment.isInterface;
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
 
   @override
   @trackedIncludedIntoId
@@ -347,11 +378,23 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedIntoId
-  bool get isMixinClass => firstFragment.isMixinClass;
+  bool get isMixinClass {
+    return hasModifier(Modifier.MIXIN_CLASS);
+  }
+
+  set isMixinClass(bool isMixinClass) {
+    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
+  }
 
   @override
   @trackedIncludedIntoId
-  bool get isSealed => firstFragment.isSealed;
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
+  }
 
   @override
   @trackedIncludedIntoId
@@ -1899,6 +1942,10 @@ abstract class ElementImpl implements Element {
     return isAccessibleIn(library);
   }
 
+  void readModifiers(SummaryDataReader reader) {
+    _modifiers = EnumSet(reader.readInt64());
+  }
+
   /// Update [modifier] of this element to [value].
   void setModifier(Modifier modifier, bool value) {
     _modifiers = _modifiers.updated(modifier, value);
@@ -1956,6 +2003,10 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren2<T>(ElementVisitor2<T> visitor) {
     visitChildren(visitor);
+  }
+
+  void writeModifiers(BufferedSink writer) {
+    _modifiers.write(writer);
   }
 }
 
@@ -3820,7 +3871,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
 
   @override
   List<FormalParameterElement> get formalParameters =>
-        _wrappedElement.formalParameters
+      _wrappedElement.formalParameters
           .map((fragment) => fragment.element)
           .toList();
 
@@ -7671,6 +7722,8 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   MixinElementImpl(this.reference, this.firstFragment) {
     reference.element = this;
     firstFragment.element = this;
+
+    isBase = firstFragment.isBase;
   }
 
   @override
@@ -7686,7 +7739,13 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   }
 
   @override
-  bool get isBase => firstFragment.isBase;
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
+  }
 
   @override
   ElementKind get kind => ElementKind.MIXIN;
