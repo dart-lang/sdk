@@ -212,7 +212,9 @@ KernelLoader::KernelLoader(Program* program,
                        &constant_reader_,
                        &active_class_,
                        /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_type_metadata_helper_(&helper_,
+                                     &constant_reader_,
+                                     &type_translator_),
       static_field_value_(Object::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -473,7 +475,9 @@ KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
                        &constant_reader_,
                        &active_class_,
                        /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_type_metadata_helper_(&helper_,
+                                     &constant_reader_,
+                                     &type_translator_),
       static_field_value_(Object::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -731,6 +735,7 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_guarded_cid(type.cid);
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
+  field.set_exact_type(type.exact_type);
   if (FLAG_precompiled_mode) {
     field.set_is_unboxed(!field.is_late() && !field.is_static() &&
                          !field.is_nullable() &&

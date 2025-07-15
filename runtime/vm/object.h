@@ -4608,6 +4608,11 @@ class Field : public Object {
   void SetFieldType(const AbstractType& value) const;
   void SetFieldTypeSafe(const AbstractType& value) const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  AbstractTypePtr exact_type() const { return untag()->exact_type(); }
+  void set_exact_type(const AbstractType& value) const;
+#endif
+
   DART_WARN_UNUSED_RESULT
   ErrorPtr VerifyEntryPoint(EntryPointPragma kind) const;
 

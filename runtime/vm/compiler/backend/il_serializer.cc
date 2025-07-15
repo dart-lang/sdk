@@ -559,8 +559,7 @@ CompileType* FlowGraphDeserializer::ReadTrait<CompileType*>::Read(
 }
 
 void CompileType::Write(FlowGraphSerializer* s) const {
-  s->Write<bool>(can_be_null_);
-  s->Write<bool>(can_be_sentinel_);
+  s->Write<uint8_t>(flags_);
   s->Write<classid_t>(cid_);
   if (type_ == nullptr) {
     s->Write<bool>(false);
@@ -571,10 +570,7 @@ void CompileType::Write(FlowGraphSerializer* s) const {
 }
 
 CompileType::CompileType(FlowGraphDeserializer* d)
-    : can_be_null_(d->Read<bool>()),
-      can_be_sentinel_(d->Read<bool>()),
-      cid_(d->Read<classid_t>()),
-      type_(nullptr) {
+    : flags_(d->Read<uint8_t>()), cid_(d->Read<classid_t>()), type_(nullptr) {
   if (d->Read<bool>()) {
     type_ = &d->Read<const AbstractType&>();
   }
