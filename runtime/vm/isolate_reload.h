@@ -45,6 +45,7 @@ DECLARE_FLAG(bool, trace_reload_verbose);
 namespace dart {
 
 class BitVector;
+class DeltaProgram;
 class GrowableObjectArray;
 class Isolate;
 class Library;
@@ -202,10 +203,12 @@ class IsolateGroupReloadContext {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void GetRootLibUrl(const char* root_script_url);
+  ExternalTypedDataPtr ReadFile(const char* script_uri);
   char* CompileToKernel(bool force_reload,
                         const char* packages_url,
                         const uint8_t** kernel_buffer,
                         intptr_t* kernel_buffer_size);
+  void MarkAllLibrariesAsModified(BitVector* modified_libs);
   void BuildModifiedLibrariesClosure(BitVector* modified_libs);
   void FindModifiedSources(bool force_reload,
                            Dart_SourceFile** modified_sources,
@@ -324,8 +327,8 @@ class ProgramReloadContext {
 
   void ReloadPhase1AllocateStorageMapsAndCheckpoint();
   void CheckpointClasses();
-  ObjectPtr ReloadPhase2LoadKernel(kernel::Program* program,
-                                   const String& root_lib_url);
+  ObjectPtr ReloadPhase2LoadDeltaProgram(std::unique_ptr<DeltaProgram> program,
+                                         const String& root_lib_url);
   void ReloadPhase3FinalizeLoading();
   void ReloadPhase4CommitPrepare();
   ErrorPtr ReloadPhase4CommitFinish();
@@ -414,6 +417,7 @@ class CallSiteResetter : public ValueObject {
   void ResetCaches(const ObjectPool& pool);
   void Reset(const ICData& ic);
   void ResetSwitchableCalls(const Code& code);
+  void RebindBytecode(const Bytecode& bytecode);
 
  private:
   Zone* zone_;

@@ -840,6 +840,71 @@ void CallSiteResetter::Reset(const ICData& ic) {
   }
 }
 
+void CallSiteResetter::RebindBytecode(const Bytecode& bytecode) {
+#if defined(DART_DYNAMIC_MODULES)
+  pool_ = bytecode.object_pool();
+  ASSERT(!pool_.IsNull());
+
+  // Iterate over bytecode instructions and update
+  // references to static methods and fields.
+  const KBCInstr* instr =
+      reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+  const KBCInstr* end = reinterpret_cast<const KBCInstr*>(
+      bytecode.PayloadStart() + bytecode.Size());
+  while (instr < end) {
+    switch (KernelBytecode::DecodeOpcode(instr)) {
+      case KernelBytecode::kDirectCall:
+      case KernelBytecode::kDirectCall_Wide:
+      case KernelBytecode::kUncheckedDirectCall:
+      case KernelBytecode::kUncheckedDirectCall_Wide: {
+        const intptr_t idx = KernelBytecode::DecodeD(instr);
+        old_target_ ^= pool_.ObjectAt(idx);
+        args_desc_array_ ^= pool_.ObjectAt(idx + 1);
+        ArgumentsDescriptor args_desc(args_desc_array_);
+        name_ = old_target_.name();
+        new_cls_ = old_target_.Owner();
+        new_target_ = Resolver::ResolveFunction(zone_, new_cls_, name_);
+        if (new_target_.ptr() != old_target_.ptr()) {
+          if (!new_target_.IsNull() &&
+              (new_target_.is_static() == old_target_.is_static()) &&
+              (new_target_.kind() == old_target_.kind()) &&
+              new_target_.AreValidArguments(args_desc, nullptr)) {
+            pool_.SetObjectAt(idx, new_target_);
+          } else {
+            VTIR_Print("Cannot rebind function %s\n",
+                       old_target_.ToFullyQualifiedCString());
+          }
+        }
+        break;
+      }
+      case KernelBytecode::kLoadStatic:
+      case KernelBytecode::kLoadStatic_Wide:
+      case KernelBytecode::kStoreStaticTOS:
+      case KernelBytecode::kStoreStaticTOS_Wide: {
+        const intptr_t idx = KernelBytecode::DecodeD(instr);
+        object_ = pool_.ObjectAt(idx);
+        const Field& old_field = Field::Cast(object_);
+        name_ = old_field.name();
+        new_cls_ = old_field.Owner();
+        new_field_ = new_cls_.LookupField(name_);
+        if (!new_field_.IsNull() &&
+            (new_field_.is_static() == old_field.is_static())) {
+          pool_.SetObjectAt(idx, new_field_);
+        } else {
+          VTIR_Print("Cannot rebind field %s\n", old_field.ToCString());
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    instr = KernelBytecode::Next(instr);
+  }
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

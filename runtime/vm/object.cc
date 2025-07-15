@@ -13134,6 +13134,18 @@ ObjectPtr Field::EvaluateInitializer() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() && is_const()) {
+#if defined(DART_DYNAMIC_MODULES)
+    if (is_declared_in_bytecode()) {
+      const auto& initializer = Function::Handle(InitializerFunction());
+      ASSERT(!initializer.IsNull());
+      const auto& bytecode = Bytecode::Handle(initializer.GetBytecode());
+      ASSERT(!bytecode.IsNull());
+      const auto& pool = ObjectPool::Handle(bytecode.object_pool());
+      ASSERT(!pool.IsNull());
+      ASSERT(pool.Length() == 1);
+      return pool.ObjectAt(0);
+    }
+#endif  // defined(DART_DYNAMIC_MODULES)
     return kernel::EvaluateStaticConstFieldInitializer(*this);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
