@@ -568,6 +568,9 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
       StackFrame::DumpCurrentTrace();
     } else if (thread->execution_state() == Thread::kThreadInVM) {
       StackFrame::DumpCurrentTrace();
+    } else if (thread->execution_state() == Thread::kThreadInGenerated) {
+      // No exit frame, walk from the crash's registers.
+      StackFrame::DumpCurrentTrace(sp, fp, pc);
     }
   }
 
