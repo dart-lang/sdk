@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.9.0-0
+  sdk: ^3.10.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:

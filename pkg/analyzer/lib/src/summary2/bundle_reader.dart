@@ -266,6 +266,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ClassFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = ClassElementImpl(reference, fragments.first);
+      element.readModifiers(_reader);
 
       // Configure for reading members lazily.
       _lazyRead((offset) {
@@ -359,6 +360,7 @@ class LibraryReader {
           var enclosingElement =
               element.enclosingElement as InstanceElementImpl;
           reader._addTypeParameters2(enclosingElement.typeParameters);
+          element.returnType = reader.readRequiredType();
           element.superConstructor = reader.readConstructorElementMixin();
           element.redirectedConstructor = reader.readConstructorElementMixin();
         }),
@@ -400,7 +402,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
           fragment.constantInitializers = reader.readNodeList();
         },
       );
@@ -745,6 +746,7 @@ class LibraryReader {
       parameter.metadata = reader._readMetadata(unitElement: unitElement);
       _readTypeParameters2(unitElement, reader, parameter.typeParameters);
       _readFormalParameters2(unitElement, reader, parameter.parameters);
+      parameter.element.inheritsCovariant = reader.readBool();
       var type = reader.readType() ?? InvalidTypeImpl.instance;
       parameter.element.type = type;
       parameter.constantInitializer = reader.readOptionalExpression();
@@ -832,7 +834,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });
@@ -916,6 +917,7 @@ class LibraryReader {
         reference: reference,
         firstFragment: fragments.first,
       );
+      element.typeInferenceError = _readTopLevelInferenceError();
 
       // TODO(scheglov): type parameters
       // TODO(scheglov): formal parameters
@@ -943,7 +945,6 @@ class LibraryReader {
           var fragment = MethodFragmentImpl(name: name, firstTokenOffset: null);
 
           fragment.readModifiers(_reader);
-          fragment.typeInferenceError = _readTopLevelInferenceError();
           fragment.typeParameters = _readTypeParameters();
           fragment.parameters = _readParameters();
           return fragment;
@@ -964,7 +965,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });
@@ -976,6 +976,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<MixinFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = MixinElementImpl(reference, fragments.first);
+      element.readModifiers(_reader);
 
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {
@@ -1160,7 +1161,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });
@@ -1243,7 +1243,6 @@ class LibraryReader {
             fragment.parameters,
           );
           _readFragmentMetadata(fragment, reader);
-          fragment.returnType = reader.readRequiredType();
         },
       );
     });
@@ -1305,8 +1304,16 @@ class LibraryReader {
     _libraryElement.typeAliases = _reader.readTypedList(() {
       var reference = _readReference();
       var fragments = _readFragmentsById<TypeAliasFragmentImpl>();
-      // TODO(scheglov): link fragments.
       var element = TypeAliasElementImpl(reference, fragments.first);
+
+      element.deferReadResolution(
+        _createDeferredReadResolutionCallback((reader) {
+          // TODO(scheglov): remove cast
+          reader._addTypeParameters2(element.typeParameters.cast());
+          element.aliasedType = reader.readRequiredType();
+        }),
+      );
+
       return element;
     });
   }
@@ -1335,7 +1342,6 @@ class LibraryReader {
           );
           _readFragmentMetadata(fragment, reader);
           fragment.aliasedElement = reader._readAliasedElement(unitElement);
-          fragment.aliasedType = reader.readRequiredType();
         },
       );
     });

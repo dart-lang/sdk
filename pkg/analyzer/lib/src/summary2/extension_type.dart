@@ -159,7 +159,6 @@ class _Node extends graph.Node<_Node> {
     representationElement.type = type;
     // TODO(scheglov): we repeat similar code in many places
     representationElement.getter!.returnType = type;
-    representationElement.getter!.firstFragment.returnType = type;
 
     element.firstFragment.typeErasure = type.extensionTypeErasure;
     element.firstFragment.interfaces =

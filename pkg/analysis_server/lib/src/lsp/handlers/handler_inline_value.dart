@@ -336,6 +336,12 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    // Don't descent into function types or we may generate values
+    // for their parameters.
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (experimentalInlineValuesProperties) {
       // Don't create values for excluded types or access of their properties.

@@ -178,7 +178,7 @@ class TypesBuilder {
       }
       var fragment = node.declaredFragment!;
       var element = fragment.element;
-      fragment.returnType = returnType;
+      element.returnType = returnType;
 
       switch (element) {
         case GetterElementImpl():
@@ -224,7 +224,6 @@ class TypesBuilder {
       }
       var fragment = node.declaredFragment!;
       var element = fragment.element;
-      fragment.returnType = returnType;
       switch (element) {
         case GetterElementImpl():
           element.returnType = returnType;
@@ -266,11 +265,9 @@ class TypesBuilder {
           if (variableElement is PropertyInducingElementImpl) {
             if (variableElement.getter case var getterElement?) {
               getterElement.returnType = type;
-              getterElement.firstFragment.returnType = type;
             }
             if (variableElement.setter case var setterElement?) {
               setterElement.returnType = VoidTypeImpl.instance;
-              setterElement.firstFragment.returnType = VoidTypeImpl.instance;
               (setterElement.formalParameters.single
                       as FormalParameterElementImpl)
                   .type = type;
@@ -346,7 +343,7 @@ class TypesBuilder {
     var fragment = node.declaredFragment!;
     var function = fragment.aliasedElement as GenericFunctionTypeFragmentImpl;
     function.returnType = node.returnType?.type ?? _dynamicType;
-    fragment.aliasedType = function.type;
+    fragment.element.aliasedType = function.type;
   }
 
   void _functionTypedFormalParameter(FunctionTypedFormalParameterImpl node) {
@@ -367,15 +364,16 @@ class TypesBuilder {
 
   void _genericTypeAlias(GenericTypeAliasImpl node) {
     var fragment = node.declaredFragment!;
-    var featureSet = fragment.library.featureSet;
+    var element = fragment.element;
+    var featureSet = element.library.featureSet;
 
     var typeNode = node.type;
     if (featureSet.isEnabled(Feature.nonfunction_type_aliases)) {
-      fragment.aliasedType = typeNode.typeOrThrow;
+      element.aliasedType = typeNode.typeOrThrow;
     } else if (typeNode is GenericFunctionType) {
-      fragment.aliasedType = typeNode.typeOrThrow;
+      element.aliasedType = typeNode.typeOrThrow;
     } else {
-      fragment.aliasedType = _errorFunctionType();
+      element.aliasedType = _errorFunctionType();
     }
   }
 

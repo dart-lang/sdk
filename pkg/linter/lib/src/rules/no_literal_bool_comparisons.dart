@@ -25,7 +25,6 @@ class NoLiteralBoolComparisons extends LintRule {
   void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
-    registry.addConditionalExpression(this, visitor);
   }
 }
 
@@ -42,14 +41,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    if (node.operator.type
-        case TokenType.EQ_EQ ||
-            TokenType.BANG_EQ ||
-            TokenType.BAR ||
-            TokenType.BAR_BAR ||
-            TokenType.AMPERSAND ||
-            TokenType.AMPERSAND_AMPERSAND ||
-            TokenType.CARET) {
+    if (node.operator.type == TokenType.EQ_EQ ||
+        node.operator.type == TokenType.BANG_EQ) {
       var left = node.leftOperand;
       var right = node.rightOperand;
       if (right is BooleanLiteral && isBool(left.staticType)) {
@@ -57,20 +50,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (left is BooleanLiteral && isBool(right.staticType)) {
         rule.reportAtNode(left);
       }
-    }
-  }
-
-  @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    if (node.thenExpression case BooleanLiteral(:var offset) && var literal) {
-      if (node.elseExpression case BooleanLiteral(:var end)) {
-        rule.reportAtOffset(offset, end - offset);
-      } else if (isBool(node.elseExpression.staticType)) {
-        rule.reportAtNode(literal);
-      }
-    } else if (node.elseExpression case BooleanLiteral literal
-        when isBool(node.thenExpression.staticType)) {
-      rule.reportAtNode(literal);
     }
   }
 }

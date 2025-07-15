@@ -937,7 +937,7 @@ class _ClassVerifier {
   bool _reportNoCombinedSuperSignature(MethodDeclarationImpl node) {
     var fragment = node.declaredFragment;
     if (fragment is MethodFragmentImpl) {
-      var inferenceError = fragment.typeInferenceError;
+      var inferenceError = fragment.element.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
         reporter.atToken(

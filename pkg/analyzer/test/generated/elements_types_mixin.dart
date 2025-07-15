@@ -469,13 +469,13 @@ mixin ElementsTypesMixin {
         MethodFragmentImpl(name: name, firstTokenOffset: null)
           ..isStatic = isStatic
           ..parameters = formalParameters.map((e) => e.asElement).toList()
-          ..returnType = returnType
           ..typeParameters = typeParameters.map((e) => e.asElement).toList();
-    MethodElementImpl(
+    var element = MethodElementImpl(
       name: name,
       reference: Reference.root(),
       firstFragment: fragment,
     );
+    element.returnType = returnType;
     return fragment;
   }
 
@@ -659,9 +659,10 @@ mixin ElementsTypesMixin {
     var fragment = TypeAliasFragmentImpl(name: name, firstTokenOffset: null);
     fragment.enclosingElement = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.aliasedType = aliasedType;
 
-    return TypeAliasElementImpl(Reference.root(), fragment);
+    var element = TypeAliasElementImpl(Reference.root(), fragment);
+    element.aliasedType = aliasedType;
+    return element;
   }
 
   TypeImpl typeAliasTypeNone(

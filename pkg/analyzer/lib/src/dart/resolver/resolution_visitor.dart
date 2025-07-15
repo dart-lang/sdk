@@ -759,7 +759,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
             node.returnType?.accept(this);
             if (_elementWalker == null) {
-              fragment.returnType = node.returnType?.type ?? _dynamicType;
+              fragment.element.returnType =
+                  node.returnType?.type ?? _dynamicType;
             }
 
             _defineFormalParameters(fragment.element.formalParameters);
@@ -793,7 +794,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.declaredFragment = fragment;
 
     fragment.hasImplicitReturnType = true;
-    fragment.returnType = DynamicTypeImpl.instance;
+    fragment.element.returnType = DynamicTypeImpl.instance;
 
     FunctionBody body = node.body;
     fragment.isAsynchronous = body.isAsynchronous;

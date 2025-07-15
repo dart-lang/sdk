@@ -120,6 +120,20 @@ void f(List list1, List<int> /*[0*/list2/*0]*/, Iterable iterable1, Iterable ite
     await verify_values(code, ofType: InlineValueVariableLookup);
   }
 
+  Future<void> test_parameter_nestedInFunctionType() async {
+    // A parameter nested inside a function type should not produce a value.
+    code = TestCode.parse(r'''
+void f(
+  int /*[0*/value/*0]*/, {
+  required void Function(int value) /*[1*/func/*1]*/,
+}) {
+  ^
+}
+''');
+
+    await verify_values(code, ofType: InlineValueVariableLookup);
+  }
+
   Future<void> test_parameter_read() async {
     code = TestCode.parse(r'''
 void f(int aaa, int bbb) {

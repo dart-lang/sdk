@@ -18,11 +18,6 @@ import 'abstract_context.dart';
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
-  /// Whether the test code should parse carrets as position shorthands.
-  ///
-  /// Set this to `true` when the test code is using the carret operator.
-  bool keepCaret = false;
-
   TestCode? _parsedTestCode;
   late ParsedUnitResult testParsedResult;
   late ResolvedLibraryResult? testLibraryResult;
@@ -43,10 +38,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   String get testCode => parsedTestCode.code;
   set testCode(String value) {
-    parsedTestCode = TestCode.parse(
-      normalizeSource(value),
-      positionShorthand: !keepCaret,
-    );
+    parsedTestCode = TestCode.parse(normalizeSource(value));
   }
 
   void addTestSource(String code) {

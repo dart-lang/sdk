@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element {
@@ -151,10 +150,6 @@ extension Element2Extension on Element {
   }
 }
 
-extension ElementImplExtension on FragmentImpl {
-  FragmentImpl? get enclosingElementImpl => enclosingElement;
-}
-
 extension ElementOrNullExtension on FragmentImpl? {
   Element? get asElement2 {
     var self = this;
@@ -200,8 +195,7 @@ extension EnumElementImplExtension on EnumFragmentImpl {
 }
 
 extension ExecutableElement2OrMemberExtension on ExecutableElement2OrMember {
-  ExecutableFragmentImpl get declarationImpl =>
-      baseElement.firstFragment as ExecutableFragmentImpl;
+  ExecutableFragmentImpl get declarationImpl => baseElement.firstFragment;
 }
 
 extension ExecutableElementImpl2Extension on ExecutableElementImpl {
@@ -301,10 +295,6 @@ extension InterfaceElementImplExtension on InterfaceFragmentImpl {
   InterfaceElementImpl get asElement2 {
     return element;
   }
-}
-
-extension InterfaceTypeImplExtension on InterfaceTypeImpl {
-  InterfaceFragmentImpl get elementImpl => element.firstFragment;
 }
 
 extension JoinPatternVariableElementImplExtension

@@ -3587,7 +3587,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
           FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
   __ movq(RDI, FieldAddress(IC_DATA_REG,
                             target::MegamorphicCache::buckets_offset()));
-  // R9: mask as a smi.
+  // R9: mask as a smi - load first to support insertion w/o stopping Dart code.
   // RDI: cache buckets array.
 
   // Tag cid as a smi.

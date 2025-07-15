@@ -991,7 +991,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeFormalParameter2(this);
+    builder.writeFormalParameterElement(this);
   }
 
   @override
