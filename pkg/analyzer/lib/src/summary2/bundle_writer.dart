@@ -545,6 +545,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+      _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
       _writeElementResolution(() {
         // TODO(scheglov): avoid cast
@@ -558,7 +559,6 @@ class BundleWriter {
 
   void _writeMethodFragment(MethodFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _sink._writeTopLevelInferenceError(fragment.typeInferenceError);
       _writeTypeParameters(fragment.typeParameters, () {
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
@@ -643,6 +643,7 @@ class BundleWriter {
 
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
+      _resolutionSink.writeBool(element.element.inheritsCovariant);
       _resolutionSink.writeType(element.element.type);
       _resolutionSink._writeOptionalNode(element.constantInitializer);
 

@@ -1217,7 +1217,6 @@ class AstBinaryReader {
           AstBinaryFlags.isRequired(flags) ? Tokens.required_() : null,
     );
     var actualType = _reader.readRequiredType();
-    _reader.readByte(); // TODO(scheglov): inherits covariant
 
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,

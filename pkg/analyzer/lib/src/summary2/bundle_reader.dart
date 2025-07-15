@@ -746,6 +746,7 @@ class LibraryReader {
       parameter.metadata = reader._readMetadata(unitElement: unitElement);
       _readTypeParameters2(unitElement, reader, parameter.typeParameters);
       _readFormalParameters2(unitElement, reader, parameter.parameters);
+      parameter.element.inheritsCovariant = reader.readBool();
       var type = reader.readType() ?? InvalidTypeImpl.instance;
       parameter.element.type = type;
       parameter.constantInitializer = reader.readOptionalExpression();
@@ -916,6 +917,7 @@ class LibraryReader {
         reference: reference,
         firstFragment: fragments.first,
       );
+      element.typeInferenceError = _readTopLevelInferenceError();
 
       // TODO(scheglov): type parameters
       // TODO(scheglov): formal parameters
@@ -943,7 +945,6 @@ class LibraryReader {
           var fragment = MethodFragmentImpl(name: name, firstTokenOffset: null);
 
           fragment.readModifiers(_reader);
-          fragment.typeInferenceError = _readTopLevelInferenceError();
           fragment.typeParameters = _readTypeParameters();
           fragment.parameters = _readParameters();
           return fragment;

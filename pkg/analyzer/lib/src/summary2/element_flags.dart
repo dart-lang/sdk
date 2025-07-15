@@ -332,9 +332,8 @@ class MixinElementFlags {
 
 class ParameterElementFlags {
   static const int _hasImplicitType = 1 << 0;
-  static const int _inheritsCovariant = 1 << 1;
-  static const int _isExplicitlyCovariant = 1 << 2;
-  static const int _isFinal = 1 << 3;
+  static const int _isExplicitlyCovariant = 1 << 1;
+  static const int _isFinal = 1 << 2;
 
   static void read(
     SummaryDataReader reader,
@@ -342,7 +341,6 @@ class ParameterElementFlags {
   ) {
     var byte = reader.readByte();
     element.hasImplicitType = (byte & _hasImplicitType) != 0;
-    element.inheritsCovariant = (byte & _inheritsCovariant) != 0;
     element.isExplicitlyCovariant = (byte & _isExplicitlyCovariant) != 0;
     element.isFinal = (byte & _isFinal) != 0;
   }
@@ -350,7 +348,6 @@ class ParameterElementFlags {
   static void write(BufferedSink sink, FormalParameterFragmentImpl element) {
     var result = 0;
     result |= element.hasImplicitType ? _hasImplicitType : 0;
-    result |= element.inheritsCovariant ? _inheritsCovariant : 0;
     result |= element.isExplicitlyCovariant ? _isExplicitlyCovariant : 0;
     result |= element.isFinal ? _isFinal : 0;
     sink.writeByte(result);

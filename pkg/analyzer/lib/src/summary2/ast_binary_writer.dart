@@ -751,9 +751,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     _writeOptionalNode(node.type);
     _storeNormalFormalParameter(node, node.keyword);
-
-    var element = node.declaredFragment!;
-    _sink.writeByte(element.inheritsCovariant ? 1 : 0);
   }
 
   @override

@@ -2973,6 +2973,11 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   late TypeImpl type;
 
+  /// Whether this formal parameter inherits from a covariant formal parameter.
+  /// This happens when it overrides a method in a supertype that has a
+  /// corresponding covariant formal parameter.
+  bool inheritsCovariant = false;
+
   FormalParameterElementImpl(this.wrappedElement) {
     FormalParameterFragmentImpl? fragment = wrappedElement;
     while (fragment != null) {
@@ -3033,8 +3038,12 @@ class FormalParameterElementImpl extends PromotableElementImpl
   bool get isConst => wrappedElement.isConst;
 
   @override
-  // TODO(augmentations): Implement the merge of formal parameters.
-  bool get isCovariant => wrappedElement.isCovariant;
+  bool get isCovariant {
+    if (firstFragment.isExplicitlyCovariant || inheritsCovariant) {
+      return true;
+    }
+    return false;
+  }
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -3210,11 +3219,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// Prefer using `isXyz` instead, e.g. [isRequiredNamed].
   final ParameterKind parameterKind;
 
-  /// True if this parameter inherits from a covariant parameter. This happens
-  /// when it overrides a method in a supertype that has a corresponding
-  /// covariant parameter.
-  bool inheritsCovariant = false;
-
   /// The element corresponding to this fragment.
   FormalParameterElementImpl? _element;
 
@@ -3276,15 +3280,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
 
   @override
   Fragment? get enclosingFragment => enclosingElement as Fragment?;
-
-  /// Whether the parameter is covariant, meaning it is allowed to have a
-  /// narrower type in an override.
-  bool get isCovariant {
-    if (isExplicitlyCovariant || inheritsCovariant) {
-      return true;
-    }
-    return false;
-  }
 
   /// Return true if this parameter is explicitly marked as being covariant.
   bool get isExplicitlyCovariant {
@@ -4829,6 +4824,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
+  /// A flag indicating whether the types associated with the instance members
+  /// of this class have been inferred.
+  bool hasBeenInferred = false;
+
   @override
   List<InterfaceTypeImpl> get allSupertypes {
     return _allSupertypes ??= library.session.classHierarchy
@@ -5184,10 +5183,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   List<InterfaceType>? Function(InterfaceFragmentImpl)? mixinInferenceCallback;
 
   InterfaceTypeImpl? _supertype;
-
-  /// A flag indicating whether the types associated with the instance members
-  /// of this class have been inferred.
-  bool hasBeenInferred = false;
 
   List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorFragment;
 
@@ -7553,6 +7548,15 @@ class MethodElementImpl extends ExecutableElementImpl
   @override
   final MethodFragmentImpl firstFragment;
 
+  /// Is `true` if this method is `operator==`, and there is no explicit
+  /// type specified for its formal parameter, in this method or in any
+  /// overridden methods other than the one declared in `Object`.
+  bool isOperatorEqualWithParameterTypeFromObject = false;
+
+  /// The error reported during type inference for this variable, or `null` if
+  /// this variable is not a subject of type inference, or there was no error.
+  TopLevelInferenceError? typeInferenceError;
+
   MethodElementImpl({
     required this.name,
     required this.reference,
@@ -7644,15 +7648,6 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
 
   @override
   MethodFragmentImpl? nextFragment;
-
-  /// Is `true` if this method is `operator==`, and there is no explicit
-  /// type specified for its formal parameter, in this method or in any
-  /// overridden methods other than the one declared in `Object`.
-  bool isOperatorEqualWithParameterTypeFromObject = false;
-
-  /// The error reported during type inference for this variable, or `null` if
-  /// this variable is not a subject of type inference, or there was no error.
-  TopLevelInferenceError? typeInferenceError;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
