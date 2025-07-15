@@ -1,0 +1,8 @@
+name: runtime_tools
+description: Internal runtime tools.
+
+environment:
+  sdk: ^3.9.0
+
+resolution: workspace
+publish_to: none
