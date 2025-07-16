@@ -2500,13 +2500,13 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                   : compiler::target::Thread::field_table_values_offset()));
   // Note: static fields ids won't be changed by hot-reload.
   if (field().is_shared()) {
-    __ movq(compiler::Address(temp,
-                              compiler::target::FieldTable::OffsetOf(field())),
-            value);
-  } else {
     __ StoreRelease(value,
                     compiler::Address(
                         temp, compiler::target::FieldTable::OffsetOf(field())));
+  } else {
+    __ movq(compiler::Address(temp,
+                              compiler::target::FieldTable::OffsetOf(field())),
+            value);
   }
 }
 
