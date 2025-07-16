@@ -3302,7 +3302,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: ClassElement)
     nextFragment (getter: ClassFragment?)
     previousFragment (getter: ClassFragment?)
-  ConstructorElement (class extends Object implements ExecutableElement, HasSinceSdkVersion):
+  ConstructorElement (class extends Object implements ExecutableElement):
     new (constructor: ConstructorElement Function())
     baseElement (getter: ConstructorElement)
     enclosingElement (getter: InterfaceElement)
@@ -3373,6 +3373,7 @@ package:analyzer/dart/element/element.dart:
     nonSynthetic (getter: Element)
     nonSynthetic2 (getter: Element, deprecated)
     session (getter: AnalysisSession?)
+    sinceSdkVersion (getter: Version?)
     accept (method: T? Function<T>(ElementVisitor2<T>))
     accept2 (method: T? Function<T>(ElementVisitor2<T>), deprecated)
     displayString (method: String Function({bool multiline, bool preferTypeAlias}))
@@ -3591,7 +3592,7 @@ package:analyzer/dart/element/element.dart:
     nextFragment (getter: FieldFragment?)
     offset (getter: int)
     previousFragment (getter: FieldFragment?)
-  FormalParameterElement (class extends Object implements VariableElement, Annotatable, HasSinceSdkVersion, LocalElement):
+  FormalParameterElement (class extends Object implements VariableElement, Annotatable, LocalElement):
     new (constructor: FormalParameterElement Function())
     baseElement (getter: FormalParameterElement)
     defaultValueCode (getter: String?)
@@ -3670,13 +3671,10 @@ package:analyzer/dart/element/element.dart:
     nextFragment (getter: GetterFragment?)
     offset (getter: int)
     previousFragment (getter: GetterFragment?)
-  HasSinceSdkVersion (class extends Object):
-    new (constructor: HasSinceSdkVersion Function())
-    sinceSdkVersion (getter: Version?)
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
     hiddenNames (getter: List<String>)
-  InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement, HasSinceSdkVersion):
+  InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement):
     new (constructor: InstanceElement Function())
     baseElement (getter: InstanceElement)
     enclosingElement (getter: LibraryElement)
@@ -3782,7 +3780,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: LabelElement)
     nextFragment (getter: LabelFragment?)
     previousFragment (getter: LabelFragment?)
-  LibraryElement (class extends Object implements Element, Annotatable, HasSinceSdkVersion):
+  LibraryElement (class extends Object implements Element, Annotatable):
     new (constructor: LibraryElement Function())
     classes (getter: List<ClassElement>)
     entryPoint (getter: TopLevelFunctionElement?)
@@ -3945,7 +3943,7 @@ package:analyzer/dart/element/element.dart:
     hasVisibleForTesting (getter: bool)
     hasVisibleOutsideTemplate (getter: bool)
     hasWidgetFactory (getter: bool)
-  MethodElement (class extends Object implements ExecutableElement, HasSinceSdkVersion):
+  MethodElement (class extends Object implements ExecutableElement):
     CALL_METHOD_NAME (static getter: String)
     NO_SUCH_METHOD_METHOD_NAME (static getter: String)
     new (constructor: MethodElement Function())
@@ -4048,7 +4046,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: PropertyAccessorElement)
     nextFragment (getter: PropertyAccessorFragment?)
     previousFragment (getter: PropertyAccessorFragment?)
-  PropertyInducingElement (class extends Object implements VariableElement, Annotatable, HasSinceSdkVersion):
+  PropertyInducingElement (class extends Object implements VariableElement, Annotatable):
     new (constructor: PropertyInducingElement Function())
     firstFragment (getter: PropertyInducingFragment)
     fragments (getter: List<PropertyInducingFragment>)
@@ -4095,7 +4093,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: SuperFormalParameterElement)
     nextFragment (getter: SuperFormalParameterFragment?)
     previousFragment (getter: SuperFormalParameterFragment?)
-  TopLevelFunctionElement (class extends Object implements ExecutableElement, HasSinceSdkVersion):
+  TopLevelFunctionElement (class extends Object implements ExecutableElement):
     LOAD_LIBRARY_NAME (static getter: String)
     MAIN_FUNCTION_NAME (static getter: String)
     new (constructor: TopLevelFunctionElement Function())
@@ -4120,7 +4118,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: TopLevelVariableElement)
     nextFragment (getter: TopLevelVariableFragment?)
     previousFragment (getter: TopLevelVariableFragment?)
-  TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement, HasSinceSdkVersion):
+  TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement):
     new (constructor: TypeAliasElement Function())
     aliasedElement (getter: Element?)
     aliasedElement2 (getter: Element?, deprecated)
@@ -4264,7 +4262,6 @@ package:analyzer/dart/element/element2.dart:
   GenericFunctionTypeFragment (see above)
   GetterElement (see above)
   GetterFragment (see above)
-  HasSinceSdkVersion (see above)
   HideElementCombinator (see above)
   InstanceElement (see above)
   InstanceFragment (see above)

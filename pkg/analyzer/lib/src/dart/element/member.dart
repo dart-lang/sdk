@@ -1078,6 +1078,9 @@ abstract class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorFragment get firstFragment;
 
   @override
+  Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
+
+  @override
   PropertyInducingElement2OrMember? get variable {
     var variable = baseElement.variable;
     switch (variable) {

@@ -14,6 +14,7 @@
 * Remove deprecated `VariableElement.constantInitializer2`.
 * Remove deprecated `VariableFragment.initializer`.
 * Remove deprecated `ConstantInitializer`.
+* Remove deprecated `HasSinceSdkVersion`.
 * `LibraryFragment` is not `Annotatable` anymore.
 * Stop implementing `ConstantEvaluationTarget` by `ElementAnnotation`.
   This is an internal interface that should not have been exposed.

@@ -1636,11 +1636,8 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeSinceSdkVersion(Element element) {
-    if (element case HasSinceSdkVersion hasSince) {
-      var version = hasSince.sinceSdkVersion;
-      if (version != null) {
-        _sink.writelnWithIndent('sinceSdkVersion: $version');
-      }
+    if (element.sinceSdkVersion case var sinceSdkVersion?) {
+      _sink.writelnWithIndent('sinceSdkVersion: $sinceSdkVersion');
     }
   }
 
