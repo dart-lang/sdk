@@ -2960,11 +2960,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
         FragmentedAnnotatableElementMixin<FormalParameterFragmentImpl>,
         FragmentedElementMixin<FormalParameterFragmentImpl>,
         FormalParameterElementMixin,
-        _HasSinceSdkVersionMixin,
-        _NonTopLevelVariableOrParameter {
+        _HasSinceSdkVersionMixin {
   @override
   Reference? reference;
-
   final FormalParameterFragmentImpl wrappedElement;
 
   @override
@@ -3001,6 +2999,15 @@ class FormalParameterElementImpl extends PromotableElementImpl
   String? get defaultValueCode {
     return constantInitializer2?.expression.toSource();
   }
+
+  @override
+  Element? get enclosingElement {
+    return wrappedElement.enclosingElement?.element;
+  }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   FormalParameterFragmentImpl get firstFragment => wrappedElement;
@@ -3126,9 +3133,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   TypeImpl get typeShared => type;
-
-  @override
-  FragmentImpl? get _enclosingFunction => wrappedElement.enclosingElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -6970,7 +6974,6 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
 }
 
 class LocalVariableElementImpl extends PromotableElementImpl
-    with _NonTopLevelVariableOrParameter
     implements LocalVariableElement {
   final LocalVariableFragmentImpl _wrappedElement;
 
@@ -6984,6 +6987,15 @@ class LocalVariableElementImpl extends PromotableElementImpl
 
   @override
   String? get documentationComment => null;
+
+  @override
+  Element? get enclosingElement {
+    return _wrappedElement.enclosingElement.element;
+  }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   LocalVariableFragmentImpl get firstFragment => _wrappedElement;
@@ -7034,9 +7046,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
-
-  @override
-  FragmentImpl? get _enclosingFunction => _wrappedElement.enclosingElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -9932,8 +9941,7 @@ abstract class TypeDefiningElementImpl extends ElementImpl
 class TypeParameterElementImpl extends TypeDefiningElementImpl
     with
         FragmentedAnnotatableElementMixin<TypeParameterFragmentImpl>,
-        FragmentedElementMixin<TypeParameterFragmentImpl>,
-        _NonTopLevelVariableOrParameter
+        FragmentedElementMixin<TypeParameterFragmentImpl>
     implements TypeParameterElement, SharedTypeParameter {
   @override
   final TypeParameterFragmentImpl firstFragment;
@@ -9973,6 +9981,15 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   TypeImpl? get defaultType => firstFragment.defaultType;
 
   @override
+  Element? get enclosingElement {
+    return firstFragment.enclosingElement?.element;
+  }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
+
+  @override
   List<TypeParameterFragmentImpl> get fragments {
     return [
       for (
@@ -10005,9 +10022,6 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   set variance(shared.Variance? value) {
     firstFragment.variance = value;
   }
-
-  @override
-  FragmentImpl? get _enclosingFunction => firstFragment.enclosingElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -10548,20 +10562,6 @@ mixin _HasSinceSdkVersionMixin on ElementImpl, Annotatable
     }
     return null;
   }
-}
-
-mixin _NonTopLevelVariableOrParameter on Element {
-  @override
-  Element? get enclosingElement {
-    // TODO(dantup): Can we simplify this code and inline it into each class?
-    return _enclosingFunction?.element;
-  }
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
-  FragmentImpl? get _enclosingFunction;
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
