@@ -73,7 +73,7 @@ class CommentReferenceResolver {
     if (prefixElement is PrefixElement) {
       var prefixScope = prefixElement.scope;
       var lookupResult = prefixScope.lookup(name.name);
-      var element = lookupResult.getter2 ?? lookupResult.setter2;
+      var element = lookupResult.getter ?? lookupResult.setter;
       name.element = element;
       return;
     }
@@ -133,7 +133,7 @@ class CommentReferenceResolver {
     var name = target.identifier;
     var prefixScope = prefixElement.scope;
     var lookupResult = prefixScope.lookup(name.name);
-    var element = lookupResult.getter2 ?? lookupResult.setter2;
+    var element = lookupResult.getter ?? lookupResult.setter;
     name.element = element;
 
     var propertyName = expression.propertyName;
@@ -163,7 +163,7 @@ class CommentReferenceResolver {
   /// resolved. This does not record the results of the resolution.
   Element? _resolveSimpleIdentifier(SimpleIdentifierImpl identifier) {
     var lookupResult = identifier.scopeLookupResult!;
-    var element = lookupResult.getter2 ?? lookupResult.setter2;
+    var element = lookupResult.getter ?? lookupResult.setter;
 
     // Usually referencing just an import prefix is an error.
     // But we allow this in documentation comments.

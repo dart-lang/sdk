@@ -517,7 +517,7 @@ class BundleWriter {
     _resolutionSink._writeMetadata(element.metadata);
     _sink.writeBool(element.isSynthetic);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
-    _writeLibraryImportPrefixFragment(element.prefix2);
+    _writeLibraryImportPrefixFragment(element.prefix);
     _writeDirectiveUri(element.uri);
   }
 

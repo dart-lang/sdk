@@ -440,7 +440,7 @@ class FunctionReferenceResolver {
     FunctionReferenceImpl node,
     PrefixedIdentifierImpl function,
   ) {
-    var prefixElement = function.prefix.scopeLookupResult!.getter2;
+    var prefixElement = function.prefix.scopeLookupResult!.getter;
 
     if (prefixElement == null) {
       _diagnosticReporter.atNode(
@@ -465,7 +465,7 @@ class FunctionReferenceResolver {
     var functionName = function.identifier.name;
 
     if (prefixElement is PrefixElement) {
-      var functionElement = prefixElement.scope.lookup(functionName).getter2;
+      var functionElement = prefixElement.scope.lookup(functionName).getter;
       if (functionElement == null) {
         _diagnosticReporter.atNode(
           function.identifier,
@@ -541,7 +541,7 @@ class FunctionReferenceResolver {
     } else if (target is ThisExpressionImpl) {
       targetType = target.typeOrThrow;
     } else if (target is SimpleIdentifierImpl) {
-      var targetElement = target.scopeLookupResult!.getter2;
+      var targetElement = target.scopeLookupResult!.getter;
       if (targetElement is VariableElement2OrMember) {
         targetType = targetElement.type;
       } else if (targetElement is PropertyAccessorElement2OrMember) {
@@ -632,7 +632,7 @@ class FunctionReferenceResolver {
   ) {
     if (element is MultiplyDefinedElement) {
       MultiplyDefinedElement multiply = element;
-      element = multiply.conflictingElements2[0];
+      element = multiply.conflictingElements[0];
 
       // TODO(srawlins): Add a resolution test for this case.
     }
@@ -698,7 +698,7 @@ class FunctionReferenceResolver {
     FunctionReferenceImpl node,
     SimpleIdentifierImpl function,
   ) {
-    var element = function.scopeLookupResult!.getter2;
+    var element = function.scopeLookupResult!.getter;
 
     if (element == null) {
       TypeImpl receiverType;

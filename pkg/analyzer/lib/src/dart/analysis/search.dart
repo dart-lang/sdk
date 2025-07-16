@@ -241,7 +241,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     if (importedElements.contains(node.element)) {
-      var prefixFragment = import.prefix2;
+      var prefixFragment = import.prefix;
       var importPrefix = node.importPrefix;
       if (prefixFragment == null) {
         if (importPrefix == null) {
@@ -266,8 +266,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (import.prefix2 != null) {
-      if (node.element == import.prefix2?.element) {
+    if (import.prefix != null) {
+      if (node.element == import.prefix?.element) {
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
           var element = parent.writeOrReadElement?.baseElement;

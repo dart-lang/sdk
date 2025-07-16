@@ -319,7 +319,7 @@ extension DartTypeExtension on DartType? {
 }
 
 extension ElementAnnotationExtension on ElementAnnotation {
-  bool get isReflectiveTest => switch (element2) {
+  bool get isReflectiveTest => switch (element) {
     GetterElement(:var name, :var library) =>
       name == 'reflectiveTest' &&
           library.uri.toString() ==

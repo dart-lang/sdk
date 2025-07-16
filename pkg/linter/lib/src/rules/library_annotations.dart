@@ -86,7 +86,7 @@ extension on ElementAnnotation {
     required String libraryName,
     required String className,
   }) {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
         element.library.name == libraryName;

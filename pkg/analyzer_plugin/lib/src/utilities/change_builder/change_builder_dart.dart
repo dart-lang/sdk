@@ -419,7 +419,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write('.');
       }
     } else {
-      var prefix = import.prefix2;
+      var prefix = import.prefix;
       if (prefix != null) {
         write(prefix.element.displayName);
         write('.');
@@ -1072,8 +1072,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         return firstDefinesName ? -1 : 1;
       }
       // Prefer imports without prefixes.
-      var firstHasPrefix = first.prefix2 != null;
-      var secondHasPrefix = second.prefix2 != null;
+      var firstHasPrefix = first.prefix != null;
+      var secondHasPrefix = second.prefix != null;
       if (firstHasPrefix != secondHasPrefix) {
         return firstHasPrefix ? 1 : -1;
       }
@@ -1705,7 +1705,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
-        var importPrefix = import.prefix2?.element.name;
+        var importPrefix = import.prefix?.element.name;
         if (import.hasCombinator) {
           if (importPrefix == null && showName != null) {
             _handleCombinators(import, showName);
@@ -2338,7 +2338,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
                 if (combinator is HideElementCombinator)
                   combinator.hiddenNames.toList(),
             ],
-            prefix: import.prefix2?.name ?? '',
+            prefix: import.prefix?.name ?? '',
           );
         }
       }
@@ -2479,7 +2479,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         if (library == null) {
           continue;
         }
-        if ((element.prefix2?.element.name ?? '') != (prefix ?? '')) {
+        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
           // Imports need to have the same prefix to be replaced.
           continue;
         }

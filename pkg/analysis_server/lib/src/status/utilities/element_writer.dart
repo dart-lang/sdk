@@ -164,8 +164,8 @@ class ElementWriter with TreeWriter {
         for (var import in fragment.libraryImports)
           {
             'combinators': import.combinators,
-            if (import.prefix2 != null) 'prefix': import.prefix2?.name,
-            'isDeferred': import.prefix2?.isDeferred ?? false,
+            if (import.prefix != null) 'prefix': import.prefix?.name,
+            'isDeferred': import.prefix?.isDeferred ?? false,
             'library': import.importedLibrary,
           },
       };

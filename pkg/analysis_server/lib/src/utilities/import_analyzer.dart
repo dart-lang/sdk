@@ -183,7 +183,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   _ReferenceFinder(this.unit, this.recorder) {
     for (var import in unit.libraryElement2.firstFragment.libraryImports) {
       _importsByPrefix
-          .putIfAbsent(import.prefix2?.element.name ?? '', () => {})
+          .putIfAbsent(import.prefix?.element.name ?? '', () => {})
           .add(import);
     }
   }
@@ -352,7 +352,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
                     // allowed), use the imports own prefix when checking for the
                     // element.
                     import.namespace.getPrefixed2(
-                      import.prefix2?.element.name ?? '',
+                      import.prefix?.element.name ?? '',
                       lookupName,
                     ) ==
                     element,

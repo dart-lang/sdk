@@ -50,7 +50,7 @@ LibraryImport? _getImportElement(
       continue;
     }
     // required prefix
-    var prefixElement = libraryImport.prefix2?.element;
+    var prefixElement = libraryImport.prefix?.element;
     if (prefixElement == null) {
       continue;
     }

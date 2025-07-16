@@ -192,7 +192,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     covariant AssignedVariablePatternImpl node,
   ) {
     var name = node.name.lexeme;
-    var element = _nameScope.lookup(name).getter2;
+    var element = _nameScope.lookup(name).getter;
     node.element = element;
 
     if (element == null) {

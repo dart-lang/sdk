@@ -235,7 +235,7 @@ extension on Expression? {
       _ => null,
     };
     return element is PrefixElement &&
-        element.imports.any((e) => e.prefix2?.isDeferred ?? false);
+        element.imports.any((e) => e.prefix?.isDeferred ?? false);
   }
 }
 

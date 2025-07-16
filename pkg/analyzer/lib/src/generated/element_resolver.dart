@@ -551,7 +551,7 @@ class ElementResolver {
       var elementAnnotation =
           annotation.elementAnnotation as ElementAnnotationImpl?;
       if (elementAnnotation != null) {
-        elementAnnotation.element2 = annotation.element;
+        elementAnnotation.element = annotation.element;
       }
     }
   }

@@ -211,7 +211,7 @@ class DeclarationHelper {
         prefix: null,
       );
 
-      if (importElement.prefix2 case var importPrefix?) {
+      if (importElement.prefix case var importPrefix?) {
         if (importPrefix.isDeferred) {
           var matcherScore = state.matcher.score('loadLibrary');
           if (matcherScore != -1) {
@@ -318,7 +318,7 @@ class DeclarationHelper {
   void addImportPrefixes() {
     var library = request.libraryElement;
     for (var element in library.firstFragment.libraryImports) {
-      var importPrefix = element.prefix2;
+      var importPrefix = element.prefix;
       if (importPrefix == null) {
         continue;
       }
@@ -946,7 +946,7 @@ class DeclarationHelper {
         _addConstructorsImportedFrom(
           library: importedLibrary,
           namespace: importElement.namespace,
-          prefix: importElement.prefix2?.element.name,
+          prefix: importElement.prefix?.element.name,
         );
       }
     }
@@ -964,7 +964,7 @@ class DeclarationHelper {
         _addDeclarationsImportedFrom(
           library: importedLibrary,
           namespace: importElement.namespace,
-          prefix: importElement.prefix2?.element.name,
+          prefix: importElement.prefix?.element.name,
         );
         if (importedLibrary.isDartCore && mustBeType) {
           var name = 'Never';

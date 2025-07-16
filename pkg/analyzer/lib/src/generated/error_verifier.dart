@@ -1115,7 +1115,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     if (importElement != null) {
       _checkForImportInternalLibrary(node, importElement);
-      if (importElement.prefix2?.isDeferred ?? false) {
+      if (importElement.prefix?.isDeferred ?? false) {
         _checkForDeferredImportOfExtensions(node, importElement);
       }
     }
@@ -1991,7 +1991,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required Element? element,
   }) {
     if (element is MultiplyDefinedElementImpl) {
-      var conflictingMembers = element.conflictingElements2;
+      var conflictingMembers = element.conflictingElements;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();

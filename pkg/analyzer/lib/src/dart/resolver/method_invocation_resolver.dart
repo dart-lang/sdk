@@ -752,11 +752,11 @@ class MethodInvocationResolver with ScopeHelpers {
       nameToken: nameNode.token,
     );
 
-    var element = scopeLookupResult.getter2;
+    var element = scopeLookupResult.getter;
     if (element != null) {
       nameNode.element = element;
       if (element is MultiplyDefinedElement) {
-        element = element.conflictingElements2[0];
+        element = element.conflictingElements[0];
       }
       if (element is PropertyAccessorElement2OrMember) {
         return _rewriteAsFunctionExpressionInvocation(
@@ -828,7 +828,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
-    element = scopeLookupResult.setter2;
+    element = scopeLookupResult.setter;
     if (element != null) {
       // If the scope lookup reveals a setter, but no getter, then we may still
       // find the getter by looking up the inheritance chain (via
@@ -893,7 +893,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (name == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
       var imports = prefix.imports;
       if (imports.length == 1) {
-        var firstPrefix = imports[0].prefix2;
+        var firstPrefix = imports[0].prefix;
         if (firstPrefix != null && firstPrefix.isDeferred) {
           var importedLibrary = imports[0].importedLibrary;
           var element = importedLibrary?.loadLibraryFunction;
@@ -917,11 +917,11 @@ class MethodInvocationResolver with ScopeHelpers {
       nameToken: nameNode.token,
     );
 
-    var element = scopeLookupResult.getter2;
+    var element = scopeLookupResult.getter;
     nameNode.element = element;
 
     if (element is MultiplyDefinedElement) {
-      element = element.conflictingElements2[0];
+      element = element.conflictingElements[0];
     }
 
     if (element is PropertyAccessorElement2OrMember) {

@@ -553,7 +553,7 @@ class InformativeDataApplier {
   void _applyToImports(List<LibraryImportImpl> imports, _InfoUnit info) {
     forCorrespondingPairs(imports, info.imports, (element, info) {
       element.importKeywordOffset = info.nameOffset;
-      if (element.prefix2 case var prefixFragment?) {
+      if (element.prefix case var prefixFragment?) {
         prefixFragment.nameOffset = info.prefixOffset2;
         prefixFragment.offset = info.prefixOffset;
       }

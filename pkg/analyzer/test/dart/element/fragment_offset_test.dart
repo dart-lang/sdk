@@ -793,7 +793,7 @@ import 'dart:async' as a;
     var importDirective = findNode.import('as a');
     checkOffset<PrefixFragment>(
       importDirective,
-      importDirective.libraryImport!.prefix2!,
+      importDirective.libraryImport!.prefix!,
       importDirective.prefix!.offset,
     );
   }
@@ -808,7 +808,7 @@ import 'dart:math' as a; // second
     var firstImportDirective = findNode.import('as a; // first');
     checkOffset<PrefixFragment>(
       firstImportDirective,
-      firstImportDirective.libraryImport!.prefix2!,
+      firstImportDirective.libraryImport!.prefix!,
       firstImportDirective.prefix!.offset,
     );
   }
@@ -824,7 +824,7 @@ import 'dart:async' as;
     var importDirective = findNode.import('as;');
     checkOffsetInRange<PrefixFragment>(
       importDirective,
-      importDirective.libraryImport!.prefix2!,
+      importDirective.libraryImport!.prefix!,
     );
   }
 

@@ -488,7 +488,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library2: exportedLibrary,
+            library: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -507,7 +507,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library2: exportedLibrary,
+            library: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -568,7 +568,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library2: importedLibrary,
+            library: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -587,7 +587,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library2: importedLibrary,
+            library: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -617,7 +617,7 @@ class LibraryBuilder {
       isSynthetic: state.isSyntheticDartCore,
       combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
-      prefix2: prefixFragment,
+      prefix: prefixFragment,
       uri: uri,
     );
   }

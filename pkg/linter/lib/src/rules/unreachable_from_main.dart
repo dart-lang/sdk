@@ -596,10 +596,10 @@ extension on ElementAnnotation {
   );
 
   bool get isWidgetPreview {
-    var element2 = this.element2;
-    return element2 is ConstructorElement &&
-        element2.enclosingElement.name == 'Preview' &&
-        element2.library.uri == _flutterWidgetPreviewLibraryUri;
+    var element = this.element;
+    return element is ConstructorElement &&
+        element.enclosingElement.name == 'Preview' &&
+        element.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -653,7 +653,7 @@ extension on Annotation {
   }
 
   DartType? get _elementType {
-    var element = elementAnnotation?.element2;
+    var element = elementAnnotation?.element;
     DartType? type;
     if (element is ConstructorElement) {
       type = element.returnType;

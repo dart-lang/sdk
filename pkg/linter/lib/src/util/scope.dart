@@ -23,9 +23,9 @@ LinterNameInScopeResolutionResult resolveNameInScope(
   }
 
   if (scope != null) {
-    var ScopeLookupResult(:setter2, :getter2) = scope.lookup(id);
-    var requestedElement = shouldResolveSetter ? setter2 : getter2;
-    var differentElement = shouldResolveSetter ? getter2 : setter2;
+    var ScopeLookupResult(:setter, :getter) = scope.lookup(id);
+    var requestedElement = shouldResolveSetter ? setter : getter;
+    var differentElement = shouldResolveSetter ? getter : setter;
 
     if (requestedElement != null) {
       return LinterNameInScopeResolutionResult._requestedName(requestedElement);

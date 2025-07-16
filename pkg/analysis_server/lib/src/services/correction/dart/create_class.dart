@@ -201,7 +201,7 @@ class _CreateClass extends ResolvedCorrectionProducer {
     } else {
       for (var import in libraryElement2.firstFragment.libraryImports) {
         if (_prefixElement is PrefixElement &&
-            import.prefix2?.element == _prefixElement) {
+            import.prefix?.element == _prefixElement) {
           var library = import.importedLibrary;
           if (library != null) {
             targetUnit = library.firstFragment;

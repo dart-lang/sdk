@@ -233,7 +233,7 @@ class AnnotationResolver {
     }
     var argumentList = node.arguments;
 
-    var element1 = name1.scopeLookupResult!.getter2;
+    var element1 = name1.scopeLookupResult!.getter;
     name1.element = element1;
 
     if (element1 == null) {
@@ -275,7 +275,7 @@ class AnnotationResolver {
     // prefix.*
     if (element1 is PrefixElement) {
       if (name2 != null) {
-        var element = element1.scope.lookup(name2.name).getter2;
+        var element = element1.scope.lookup(name2.name).getter;
         name2.element = element;
         // prefix.Class(args) or prefix.Class.CONST
         if (element is InterfaceElementImpl) {

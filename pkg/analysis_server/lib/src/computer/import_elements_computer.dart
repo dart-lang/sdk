@@ -361,7 +361,7 @@ class ImportElementsComputer {
     var scope = libraryResult.libraryElement2.firstFragment.scope;
 
     if (prefix.isNotEmpty) {
-      var prefixElement = scope.lookup(prefix).getter2;
+      var prefixElement = scope.lookup(prefix).getter;
       if (prefixElement is PrefixElement) {
         scope = prefixElement.scope;
       } else {
@@ -370,7 +370,7 @@ class ImportElementsComputer {
     }
 
     var lookupResult = scope.lookup(name);
-    return lookupResult.getter2 != null || lookupResult.setter2 != null;
+    return lookupResult.getter != null || lookupResult.setter != null;
   }
 
   /// Return `true` if the given [import] matches the given specification of

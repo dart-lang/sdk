@@ -267,7 +267,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     var annotation = element.metadataAnnotations.firstWhereOrNull(
       (e) => e.isDeprecated,
     );
-    if (annotation == null || annotation.element2 is PropertyAccessorElement) {
+    if (annotation == null || annotation.element is PropertyAccessorElement) {
       return null;
     }
     var constantValue = annotation.computeConstantValue();

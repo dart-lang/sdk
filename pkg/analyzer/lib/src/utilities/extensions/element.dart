@@ -27,7 +27,7 @@ class MockLibraryImportElement implements Element {
   LibraryFragmentImpl get libraryFragment => import.libraryFragment;
 
   @override
-  String? get name => import.prefix2?.name;
+  String? get name => import.prefix?.name;
 
   @override
   noSuchMethod(invocation) => super.noSuchMethod(invocation);

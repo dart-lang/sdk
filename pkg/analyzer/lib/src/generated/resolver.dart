@@ -5495,7 +5495,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       return;
     }
     // Prepare VariableElement.
-    var element = scopeLookupResult.getter2;
+    var element = scopeLookupResult.getter;
     if (element is! VariableElement) {
       return;
     }

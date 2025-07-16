@@ -879,8 +879,8 @@ class PropertyElementResolver with ScopeHelpers {
       hasWrite: hasWrite,
     );
 
-    var readElement = lookupResult.getter2;
-    var writeElement = lookupResult.setter2;
+    var readElement = lookupResult.getter;
+    var writeElement = lookupResult.setter;
     DartType? getType;
     if (hasRead && readElement is PropertyAccessorElement) {
       getType = readElement.returnType;

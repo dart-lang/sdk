@@ -104,7 +104,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
-    var element = element2;
+    var element = this.element;
     InterfaceElement? interfaceElement;
 
     if (element is GetterElement) {
