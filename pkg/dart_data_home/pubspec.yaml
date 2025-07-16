@@ -3,7 +3,7 @@ version: 0.1.0-wip
 description: >-
   A package providing a standardized way to access a user-specific data
   directory for Dart and Flutter tooling, defaulting to OS-conventions
-  and configurable via the `DART_USER_HOME` environment variable.
+  and configurable via the `DART_DATA_HOME` environment variable.
 
 # This package will be published at some point to be able to use it for Dart and
 # Flutter tooling that does not live in the Dart SDK.
