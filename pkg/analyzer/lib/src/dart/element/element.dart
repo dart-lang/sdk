@@ -719,26 +719,12 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   }
 }
 
-class ConstantInitializerImpl implements ConstantInitializer {
-  @override
+// TODO(scheglov): remove this
+class ConstantInitializerImpl {
   final VariableFragmentImpl fragment;
-
-  @override
   final ExpressionImpl expression;
 
-  /// The cached result of [evaluate].
-  Constant? _evaluationResult;
-
   ConstantInitializerImpl({required this.fragment, required this.expression});
-
-  @override
-  DartObject? evaluate() {
-    if (_evaluationResult case DartObjectImpl result) {
-      return result;
-    }
-    // TODO(scheglov): implement it
-    throw UnimplementedError();
-  }
 }
 
 class ConstructorElementImpl extends ExecutableElementImpl
@@ -3013,7 +2999,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   String? get defaultValueCode {
-    return constantInitializer?.expression.toSource();
+    return constantInitializer2?.expression.toSource();
   }
 
   @override
@@ -6919,7 +6905,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
 
   @override
   List<TypeParameterElementImpl> get typeParameters {
-    return firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+    return firstFragment.typeParameters
+        .map((fragment) => fragment.element)
+        .toList();
   }
 
   @Deprecated('Use typeParameters instead')
@@ -9188,7 +9176,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
       return null;
     }
 
-    var constantInitializer = this.constantInitializer?.expression;
+    var constantInitializer = constantInitializer2?.expression;
     if (constantInitializer != null) {
       return constantInitializer.toSource();
     }
@@ -9202,7 +9190,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @override
   Constant? get evaluationResult {
-    if (constantInitializer != null) {
+    if (constantInitializer2 != null) {
       return super.evaluationResult;
     }
 
@@ -9285,7 +9273,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @override
   DartObject? computeConstantValue() {
-    if (constantInitializer != null) {
+    if (constantInitializer2 != null) {
       return super.computeConstantValue();
     }
 
@@ -10306,34 +10294,34 @@ abstract class VariableElementImpl extends ElementImpl
     implements VariableElement2OrMember, ConstantEvaluationTarget {
   ConstantInitializerImpl? _constantInitializer;
 
-  /// The result of evaluating [constantInitializer].
+  /// The result of evaluating [constantInitializer2].
   ///
-  /// Is `null` if [constantInitializer] is `null`, or if the value could not
+  /// Is `null` if [constantInitializer2] is `null`, or if the value could not
   /// be computed because of errors.
   Constant? evaluationResult;
 
   @override
-  ConstantInitializerImpl? get constantInitializer {
+  ExpressionImpl? get constantInitializer {
+    return constantInitializer2?.expression;
+  }
+
+  // TODO(scheglov): remove this
+  ConstantInitializerImpl? get constantInitializer2 {
     if (_constantInitializer case var result?) {
       return result;
     }
 
     for (var fragment in fragments.reversed) {
+      fragment as VariableFragmentImpl;
       if (fragment.initializer case ExpressionImpl expression) {
         return _constantInitializer = ConstantInitializerImpl(
-          fragment: fragment as VariableFragmentImpl,
+          fragment: fragment,
           expression: expression,
         );
       }
     }
 
     return null;
-  }
-
-  @Deprecated('Use constantInitializer instead')
-  @override
-  ConstantInitializer? get constantInitializer2 {
-    return constantInitializer;
   }
 
   @override
@@ -10425,7 +10413,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
   }
 
-  @override
+  // TODO(scheglov): remove this
   ExpressionImpl? get initializer {
     return constantInitializer;
   }

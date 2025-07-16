@@ -58,7 +58,7 @@ class ConstantInitializersResolver {
       return;
     }
 
-    var constantInitializer = element.constantInitializer;
+    var constantInitializer = element.constantInitializer2;
     if (constantInitializer == null) {
       return;
     }
@@ -204,7 +204,6 @@ class _PropertyInducingElementTypeInference
     }
 
     if (initializerFragment == null || variableDeclaration == null) {
-      _element.constantInitializer;
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
     }

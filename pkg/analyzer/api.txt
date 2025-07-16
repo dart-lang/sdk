@@ -3302,11 +3302,6 @@ package:analyzer/dart/element/element.dart:
     element (getter: ClassElement)
     nextFragment (getter: ClassFragment?)
     previousFragment (getter: ClassFragment?)
-  ConstantInitializer (class extends Object):
-    new (constructor: ConstantInitializer Function())
-    expression (getter: Expression)
-    fragment (getter: VariableFragment)
-    evaluate (method: DartObject? Function())
   ConstructorElement (class extends Object implements ExecutableElement, HasSinceSdkVersion):
     new (constructor: ConstructorElement Function())
     baseElement (getter: ConstructorElement)
@@ -4181,8 +4176,7 @@ package:analyzer/dart/element/element.dart:
     typeParameters2 (getter: List<TypeParameterFragment>, deprecated)
   VariableElement (class extends Object implements Element):
     new (constructor: VariableElement Function())
-    constantInitializer (getter: ConstantInitializer?)
-    constantInitializer2 (getter: ConstantInitializer?, deprecated)
+    constantInitializer (getter: Expression?)
     firstFragment (getter: VariableFragment)
     fragments (getter: List<VariableFragment>)
     hasImplicitType (getter: bool)
@@ -4195,7 +4189,6 @@ package:analyzer/dart/element/element.dart:
   VariableFragment (class extends Object implements Fragment):
     new (constructor: VariableFragment Function())
     element (getter: VariableElement)
-    initializer (getter: Expression?)
     nextFragment (getter: VariableFragment?)
     previousFragment (getter: VariableFragment?)
   BindPatternVariableElement2 (type alias for BindPatternVariableElement, deprecated)
@@ -4237,7 +4230,6 @@ package:analyzer/dart/element/element2.dart:
   BindPatternVariableFragment (see above)
   ClassElement (see above)
   ClassFragment (see above)
-  ConstantInitializer (see above)
   ConstructorElement (see above)
   ConstructorFragment (see above)
   DirectiveUri (see above)

@@ -659,7 +659,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFormalParameterElement(FormalParameterElement e) {
-    e as FormalParameterElementMixin;
+    e as FormalParameterElementImpl;
     // if (e.isNamed && e.enclosingElement is ExecutableElement) {
     //   expect(e.reference, isNotNull);
     // } else {
@@ -1974,8 +1974,8 @@ class _Element2Writer extends _AbstractElementWriter {
     // _assertNonSyntheticElementSelf(f);
   }
 
-  void _writeVariableElementConstantInitializer(VariableElement2OrMember e) {
-    if (e.constantInitializer case var initializer?) {
+  void _writeVariableElementConstantInitializer(VariableElementImpl e) {
+    if (e.constantInitializer2 case var initializer?) {
       _sink.writelnWithIndent('constantInitializer');
       _sink.withIndent(() {
         _writeFragmentReference('fragment', initializer.fragment);
@@ -1988,6 +1988,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeVariableFragmentInitializer(VariableFragment f) {
+    f as VariableFragmentImpl;
     if (f.initializer case var initializer?) {
       _writeConstantInitializerExpression('initializer', initializer);
     }

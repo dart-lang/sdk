@@ -358,27 +358,6 @@ abstract class ClassFragment implements InterfaceFragment {
   ClassFragment? get previousFragment;
 }
 
-/// The initializer of a constant variable, or the default value for a formal
-/// parameter.
-abstract class ConstantInitializer {
-  /// The expression of the initializer.
-  ///
-  /// For variables that have multiple fragments, this is the expression from
-  /// the last fragment. For formal parameters, only the first fragment can
-  /// have the default value.
-  Expression get expression;
-
-  /// The [VariableFragment] that has [expression].
-  ///
-  /// The offsets are inside the [LibraryFragment] that contains [fragment].
-  VariableFragment get fragment;
-
-  /// Returns the result of evaluating [expression], computes it if necessary.
-  ///
-  /// Returns `null` if the value could not be computed because of errors.
-  DartObject? evaluate();
-}
-
 /// An element representing a constructor defined by a class, enum, or extension
 /// type.
 ///
@@ -4052,15 +4031,7 @@ abstract class VariableElement implements Element {
   ///
   /// Is `null` if this variable is not a constant, or does not have the
   /// initializer or the default value specified.
-  ConstantInitializer? get constantInitializer;
-
-  /// The constant initializer for this constant variable, or the default
-  /// value for this formal parameter.
-  ///
-  /// Is `null` if this variable is not a constant, or does not have the
-  /// initializer or the default value specified.
-  @Deprecated('Use constantInitializer instead')
-  ConstantInitializer? get constantInitializer2;
+  Expression? get constantInitializer;
 
   @override
   VariableFragment get firstFragment;
@@ -4115,13 +4086,6 @@ abstract class VariableElement implements Element {
 abstract class VariableFragment implements Fragment {
   @override
   VariableElement get element;
-
-  /// The initializer for this constant variable fragment, or the default value
-  /// for this formal parameter fragment.
-  ///
-  /// Is `null` if this variable fragment is not a constant, or does not have
-  /// the initializer or the default value specified.
-  Expression? get initializer;
 
   @override
   VariableFragment? get nextFragment;
