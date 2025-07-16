@@ -4547,8 +4547,21 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           : compiler::target::Thread::field_table_values_offset();
   const intptr_t field_offset = compiler::target::FieldTable::OffsetOf(field());
 
-  __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
-  __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
+  if (field().is_shared()) {
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    const auto field_table_offset_reg = TMP;
+#else
+    const auto field_table_offset_reg = result;
+#endif
+    __ LoadMemoryValue(field_table_offset_reg, THR,
+                       static_cast<int32_t>(field_table_offset));
+    __ LoadAcquire(result,
+                   compiler::Address(field_table_offset_reg,
+                                     static_cast<int32_t>(field_offset)));
+  } else {
+    __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
+    __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
+  }
 
   if (does_throw_access_error_or_call_initializer()) {
     if (calls_initializer() && throw_exception_on_initialization()) {
