@@ -983,7 +983,7 @@ class InheritanceManager3 {
           transformedParameters.map((e) => e.firstFragment).toList();
       resultFragment.typeParameters =
           executable.typeParameters
-              .map((e) => e.firstFragment as TypeParameterFragmentImpl)
+              .map((e) => e.firstFragment)
               .toList();
 
       var elementName = executable.name!;

@@ -927,8 +927,7 @@ class LibraryReader {
               element.enclosingElement as InstanceElementImpl;
           reader._addTypeParameters2(enclosingElement.typeParameters);
 
-          // TODO(scheglov): remove cast
-          reader._addTypeParameters2(element.typeParameters.cast());
+          reader._addTypeParameters2(element.typeParameters);
 
           element.returnType = reader.readRequiredType();
         }),
@@ -1206,8 +1205,7 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          // TODO(scheglov): remove cast
-          reader._addTypeParameters2(element.typeParameters.cast());
+          reader._addTypeParameters2(element.typeParameters);
 
           element.returnType = reader.readRequiredType();
         }),
@@ -1308,8 +1306,7 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          // TODO(scheglov): remove cast
-          reader._addTypeParameters2(element.typeParameters.cast());
+          reader._addTypeParameters2(element.typeParameters);
           element.aliasedType = reader.readRequiredType();
         }),
       );

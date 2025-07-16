@@ -331,9 +331,7 @@ class TypedLiteralResolver {
       var iterableType = unwrappedContextType.asInstanceOf(
         _typeProvider.iterableElement,
       );
-      var mapType = unwrappedContextType.asInstanceOf(
-        _typeProvider.mapElement,
-      );
+      var mapType = unwrappedContextType.asInstanceOf(_typeProvider.mapElement);
       var isIterable = iterableType != null;
       var isMap = mapType != null;
 
@@ -474,12 +472,7 @@ class TypedLiteralResolver {
   }) {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
-    inferenceLogWriter?.enterGenericInference(
-      // TODO(paulberry): make this cast unnecessary by changing
-      // `TypeProviderImpl.listElement2` to `ClassElementImpl2`.
-      typeParameters.cast(),
-      element.thisType,
-    );
+    inferenceLogWriter?.enterGenericInference(typeParameters, element.thisType);
 
     return _typeSystem.setupGenericTypeInference(
       typeParameters: typeParameters,
@@ -549,9 +542,7 @@ class TypedLiteralResolver {
   ) {
     var element = _typeProvider.mapElement;
     inferenceLogWriter?.enterGenericInference(
-      // TODO(paulberry): make this cast unnecessary by changing
-      // `TypeProviderImpl.mapElement2` to `ClassElementImpl2`.
-      element.typeParameters.cast(),
+      element.typeParameters,
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
@@ -662,9 +653,7 @@ class TypedLiteralResolver {
   ) {
     var element = _typeProvider.setElement;
     inferenceLogWriter?.enterGenericInference(
-      // TODO(paulberry): make this cast unnecessary by changing
-      // `TypeProviderImpl.setElement2` to `ClassElementImpl2`.
-      element.typeParameters.cast(),
+      element.typeParameters,
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
