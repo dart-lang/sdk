@@ -8909,7 +8909,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement2(this);
+    builder.writeVariableElement(this);
   }
 }
 
@@ -10337,7 +10337,7 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement2(this);
+    builder.writeVariableElement(this);
   }
 
   /// Return a representation of the value of this variable, forcing the value

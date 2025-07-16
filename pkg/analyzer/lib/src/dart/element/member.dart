@@ -1286,7 +1286,7 @@ abstract class VariableMember extends Member
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement2(this);
+    builder.writeVariableElement(this);
   }
 
   @override
