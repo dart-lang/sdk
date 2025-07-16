@@ -384,7 +384,7 @@ class ExtensionMemberResolver {
       }
     } else {
       inferenceLogWriter?.enterGenericInference(
-        typeParameters.cast(),
+        typeParameters,
         element.extendedType,
       );
       var inferrer = GenericInferrer(

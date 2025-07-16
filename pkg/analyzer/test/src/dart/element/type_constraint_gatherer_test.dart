@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
@@ -1058,14 +1057,14 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   }
 
   void _checkMatch(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     TypeImpl P,
     TypeImpl Q,
     bool leftSchema,
     List<String> expected,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeParameters: typeParameters.cast(),
+      typeParameters: typeParameters,
       typeSystemOperations: TypeSystemOperations(
         typeSystem,
         strictCasts: false,
@@ -1094,13 +1093,13 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   }
 
   void _checkNotMatch(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     TypeImpl P,
     TypeImpl Q,
     bool leftSchema,
   ) {
     var gatherer = TypeConstraintGatherer(
-      typeParameters: typeParameters.cast(),
+      typeParameters: typeParameters,
       typeSystemOperations: TypeSystemOperations(
         typeSystem,
         strictCasts: false,

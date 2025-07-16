@@ -2130,6 +2130,9 @@ abstract class ExecutableElement2OrMember implements ExecutableElement {
 
   @override
   FunctionTypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 }
 
 abstract class ExecutableElementImpl extends FunctionTypedElementImpl
@@ -2223,7 +2226,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   FunctionTypeImpl get type {
     return _type ??= FunctionTypeImpl(
-      typeParameters: typeParameters.cast(),
+      typeParameters: typeParameters,
       parameters: formalParameters,
       returnType: returnType,
       nullabilitySuffix: NullabilitySuffix.none,
@@ -3127,13 +3130,13 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElement> get typeParameters =>
+  List<TypeParameterElementImpl> get typeParameters =>
       firstFragment.typeParameters.map((fragment) => fragment.element).toList();
 
   @Deprecated('Use typeParameters instead')
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
-  List<TypeParameterElement> get typeParameters2 => typeParameters;
+  List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   @override
   TypeImpl get typeShared => type;
@@ -3181,6 +3184,9 @@ mixin FormalParameterElementMixin
 
   @override
   TypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 
   @override
   void appendToWithoutDelimiters(StringBuffer buffer) {
@@ -3533,18 +3539,18 @@ mixin FragmentedTypeParameterizedElementMixin<E extends FragmentImpl>
     return true;
   }
 
-  List<TypeParameterElement> get typeParameters {
+  List<TypeParameterElementImpl> get typeParameters {
     var fragment = firstFragment;
     if (fragment is TypeParameterizedFragmentMixin) {
       return fragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterFragment).element)
+          .map((fragment) => fragment.element)
           .toList();
     }
     return const [];
   }
 
   @Deprecated('Use typeParameters instead')
-  List<TypeParameterElement> get typeParameters2 {
+  List<TypeParameterElementImpl> get typeParameters2 {
     return typeParameters;
   }
 }
@@ -6912,10 +6918,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   String? get name3 => name;
 
   @override
-  List<TypeParameterElement> get typeParameters =>
-      _wrappedFragment.typeParameters
-          .map((fragment) => (fragment as TypeParameterFragment).element)
-          .toList();
+  List<TypeParameterElementImpl> get typeParameters {
+    return firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+  }
 
   @Deprecated('Use typeParameters instead')
   @override
@@ -8692,6 +8697,9 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
 
   @override
   @trackedDirectly

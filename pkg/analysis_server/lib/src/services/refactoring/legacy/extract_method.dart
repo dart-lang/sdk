@@ -609,17 +609,16 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       for (var other in _parameters) {
         if (!identical(parameter, other) && other.name == parameter.name) {
           result.addError(
-            format("Parameter '{0}' already exists", parameter.name),
+            formatList("Parameter '{0}' already exists", [parameter.name]),
           );
           return result;
         }
       }
       if (_isParameterNameConflictWithBody(parameter)) {
         result.addError(
-          format(
-            "'{0}' is already used as a name in the selected code",
+          formatList("'{0}' is already used as a name in the selected code", [
             parameter.name,
-          ),
+          ]),
         );
         return result;
       }
@@ -998,10 +997,10 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         sb.write('\n');
       }
       result.addFatalError(
-        format(
+        formatList(
           'Ambiguous return value: Selected block contains more than one '
           'assignment to local variables. Affected variables are:\n\n{0}',
-          sb.toString().trim(),
+          [sb.toString().trim()],
         ),
       );
     }

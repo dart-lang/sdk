@@ -383,7 +383,7 @@ class FieldFormalParameterMember extends ParameterMember
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters.cast(),
+      baseElement.typeParameters,
       substitution,
     );
     return FieldFormalParameterMember._(
@@ -767,8 +767,7 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      // TODO(scheglov): avoid the cast
-      baseElement.typeParameters.cast(),
+      baseElement.typeParameters,
       substitution,
     );
     return MethodMember._(
@@ -846,7 +845,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters.cast(),
+      baseElement.typeParameters,
       substitution,
     );
     return ParameterMember._(
@@ -1041,8 +1040,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      // TODO(scheglov): avoid the cast
-      baseElement.typeParameters.cast(),
+      baseElement.typeParameters,
       substitution,
     );
     if (baseElement is GetterElementImpl) {
@@ -1191,7 +1189,7 @@ class SuperFormalParameterMember extends ParameterMember
     required MapSubstitution substitution,
   }) {
     var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters.cast(),
+      baseElement.typeParameters,
       substitution,
     );
     return SuperFormalParameterMember._(

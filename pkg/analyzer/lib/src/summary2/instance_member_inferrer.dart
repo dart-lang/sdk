@@ -759,8 +759,7 @@ class InstanceMemberInferrer {
 
     return replaceTypeParameters(
       overriddenType,
-      // TODO(scheglov): remove this cast
-      elementTypeParameters.cast(),
+      elementTypeParameters,
     );
   }
 

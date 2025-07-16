@@ -80,9 +80,9 @@ namespace dart {
   V(CompactHashLibrary, _HashVMBase, set:_index, LinkedHashBase_setIndex,      \
     0xcf36944c)                                                                \
   V(CompactHashLibrary, _HashVMBase, get:_data, LinkedHashBase_getData,        \
-    0x372bf7ad)                                                                \
+    0x82aeadd7)                                                                \
   V(CompactHashLibrary, _HashVMBase, set:_data, LinkedHashBase_setData,        \
-    0x4b9888e9)                                                                \
+    0xc1465c93)                                                                \
   V(CompactHashLibrary, _HashVMBase, get:_usedData,                            \
     LinkedHashBase_getUsedData, 0x74808f38)                                    \
   V(CompactHashLibrary, _HashVMBase, set:_usedData,                            \
@@ -96,7 +96,7 @@ namespace dart {
   V(CompactHashLibrary, _HashVMBase, set:_deletedKeys,                         \
     LinkedHashBase_setDeletedKeys, 0xe2aeac51)                                 \
   V(CompactHashLibrary, _HashVMImmutableBase, get:_data,                       \
-    ImmutableLinkedHashBase_getData, 0x372bf7ad)                               \
+    ImmutableLinkedHashBase_getData, 0x82aeadd7)                               \
   V(CompactHashLibrary, _HashVMImmutableBase, get:_indexNullable,              \
     ImmutableLinkedHashBase_getIndex, 0xfe7649ae)                              \
   V(CompactHashLibrary, _HashVMImmutableBase, set:_index,                      \
@@ -104,7 +104,7 @@ namespace dart {
   V(CompactHashLibrary, ::, get:_uninitializedIndex,                           \
     CompactHash_uninitializedIndex, 0xa25a79e6)                                \
   V(CompactHashLibrary, ::, get:_uninitializedData,                            \
-    CompactHash_uninitializedData, 0x06a56b3b)                                 \
+    CompactHash_uninitializedData, 0x52282165)                                 \
   V(DeveloperLibrary, ::, get:extensionStreamHasListener,                      \
     ExtensionStreamHasListener, 0xfa975305)                                    \
   V(DeveloperLibrary, ::, debugger, Debugger, 0xf0aaff14)                      \

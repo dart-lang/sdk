@@ -200,8 +200,7 @@ class BundleWriter {
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
-        // TODO(scheglov): avoid cast
-        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink.writeType(element.returnType);
           _resolutionSink.writeElement(element.superConstructor);
           _resolutionSink.writeElement(element.redirectedConstructor);
@@ -548,8 +547,7 @@ class BundleWriter {
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
       _writeElementResolution(() {
-        // TODO(scheglov): avoid cast
-        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink.writeType(element.returnType);
           // TODO(scheglov): formal parameters
         });
@@ -720,7 +718,7 @@ class BundleWriter {
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
-        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink.writeType(element.returnType);
         });
       });
@@ -749,7 +747,7 @@ class BundleWriter {
       _sink.writeList(element.fragments, _writeFragmentId);
 
       _writeElementResolution(() {
-        _resolutionSink.withTypeParameters(element.typeParameters.cast(), () {
+        _resolutionSink.withTypeParameters(element.typeParameters, () {
           _resolutionSink.writeType(element.aliasedType);
         });
       });
@@ -1034,7 +1032,7 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeFormalParameterKind2(parameter);
       writeBool(parameter.hasImplicitType);
       writeBool(parameter.isInitializingFormal);
-      _writeTypeParameters2(parameter.typeParameters.cast(), () {
+      _writeTypeParameters2(parameter.typeParameters, () {
         writeType(parameter.type);
         _writeElementName(parameter);
         _writeFormalParameters2(

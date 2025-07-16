@@ -127,10 +127,9 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     if (!result.hasFatalError) {
       for (var element in resolveResult.libraryElement2.children) {
         if (element.displayName == name) {
-          var message = format(
+          var message = formatList(
             "Library already declares {0} with name '{1}'.",
-            element.kind.displayName,
-            name,
+            [element.kind.displayName, name],
           );
           result.addError(message, newLocation_fromElement(element));
         }

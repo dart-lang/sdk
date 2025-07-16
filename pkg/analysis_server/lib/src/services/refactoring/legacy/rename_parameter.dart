@@ -41,10 +41,9 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     for (var element in elements) {
       if (newName.startsWith('_') && element.isNamed) {
         result.addError(
-          format(
-            "The parameter '{0}' is named and can not be private.",
+          formatList("The parameter '{0}' is named and can not be private.", [
             element.name,
-          ),
+          ]),
         );
         break;
       }
