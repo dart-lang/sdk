@@ -170,6 +170,7 @@
       "tests/ffi/",
       "pkg/_fe_analyzer_shared/",
       "pkg/build_integration/",
+      "pkg/dart_data_home/",
       "pkg/dart_internal/",
       "pkg/dart2native/",
       "pkg/dart2js_tools/",
@@ -310,12 +311,12 @@
     },
     "vm-aot-mac-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
-        "gen-snapshot-format" : "macho-dylib"
+        "gen-snapshot-format": "macho-dylib"
       }
     },
     "vm-aot-(linux|mac|win)-(debug|product|release)-(simarm|simarm_x64|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "gen-snapshot-format" : "elf"
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-asan-(linux|mac|win)-(debug|product|release)-(ia32|x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {},
@@ -330,12 +331,12 @@
     },
     "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "gen-snapshot-format" : "elf"
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-aot-msan-linux-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
       "options": {
-        "gen-snapshot-format" : "elf"
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|arm64|simarm64|simriscv64)": {
@@ -345,27 +346,37 @@
     },
     "vm-aot-ubsan-(linux|mac|win)-(debug|product|release)-(x64|arm64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
-        "gen-snapshot-format" : "elf"
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-linux-(debug|product|release)-simarm64_arm64": {
       "options": {
-        "vm-options": ["--use_simulator=true"], "use-qemu": true
+        "vm-options": [
+          "--use_simulator=true"
+        ],
+        "use-qemu": true
       }
     },
     "vm-linux-(debug|product|release)-simarm64_arm64-nosim": {
       "options": {
-        "vm-options": ["--use_simulator=false"], "use-qemu": true
+        "vm-options": [
+          "--use_simulator=false"
+        ],
+        "use-qemu": true
       }
     },
     "vm-mac-(debug|product|release)-simarm64_arm64": {
       "options": {
-        "vm-options": ["--use_simulator=true"]
+        "vm-options": [
+          "--use_simulator=true"
+        ]
       }
     },
     "vm-mac-(debug|product|release)-simarm64_arm64-nosim": {
       "options": {
-        "vm-options": ["--use_simulator=false"]
+        "vm-options": [
+          "--use_simulator=false"
+        ]
       }
     },
     "dart2js-(linux|win)-chrome": {
@@ -501,12 +512,12 @@
     "vm-aot-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
-        "gen-snapshot-format" : "elf"
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-aot-android-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|riscv64)": {
       "options": {
-        "gen-snapshot-format" : "elf"
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-aot-dwarf-linux-(debug|release|product)-x64": {
@@ -515,7 +526,7 @@
         "vm-options": [
           "--dwarf_stack_traces"
         ],
-        "gen-snapshot-format" : "elf"
+        "gen-snapshot-format": "elf"
       }
     },
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
@@ -2667,7 +2678,7 @@
         },
         {
           "name": "dart2wasm unit tests",
-          "script":  "out/ReleaseX64/dart-sdk/bin/dart",
+          "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
             "pkg/dart2wasm/test/dry_run/dry_run_test.dart",
