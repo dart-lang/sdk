@@ -9,6 +9,8 @@
 * Remove deprecated `LocalVariableElement.hasInitializer`.
 * Remove deprecated `LocalVariableFragment.hasInitializer`.
 * Remove deprecated `LocalVariableFragment.nameOffset`.
+* Remove deprecated `JoinPatternVariableFragment.isConsistent`.
+* Remove deprecated `JoinPatternVariableFragment.variables2`.
 * `LibraryFragment` is not `Annotatable` anymore.
 * Stop implementing `ConstantEvaluationTarget` by `ElementAnnotation`.
   This is an internal interface that should not have been exposed.

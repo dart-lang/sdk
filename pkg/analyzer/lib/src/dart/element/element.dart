@@ -2960,8 +2960,8 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
 class FormalParameterElementImpl extends PromotableElementImpl
     with
-        FragmentedAnnotatableElementMixin<FormalParameterFragment>,
-        FragmentedElementMixin<FormalParameterFragment>,
+        FragmentedAnnotatableElementMixin<FormalParameterFragmentImpl>,
+        FragmentedElementMixin<FormalParameterFragmentImpl>,
         FormalParameterElementMixin,
         _HasSinceSdkVersionMixin,
         _NonTopLevelVariableOrParameter {
@@ -3413,7 +3413,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
 }
 
-mixin FragmentedAnnotatableElementMixin<E extends Fragment>
+mixin FragmentedAnnotatableElementMixin<E extends FragmentImpl>
     implements FragmentedElementMixin<E> {
   String? get documentationComment {
     var buffer = StringBuffer();
@@ -3457,14 +3457,9 @@ mixin FragmentedAnnotatableElementMixin<E extends Fragment>
   }
 }
 
-mixin FragmentedElementMixin<E extends Fragment> implements _Fragmented<E> {
+mixin FragmentedElementMixin<E extends FragmentImpl> implements _Fragmented<E> {
   bool get isSynthetic {
-    if (firstFragment is FragmentImpl) {
-      return (firstFragment as FragmentImpl).isSynthetic;
-    }
-    // We should never get to this point.
-    assert(false, 'Fragment does not implement ElementImpl');
-    return false;
+    return firstFragment.isSynthetic;
   }
 
   /// A list of all of the fragments from which this element is composed.
@@ -3520,9 +3515,7 @@ mixin FragmentedExecutableElementMixin<E extends ExecutableFragmentImpl>
   bool get isStatic => (firstFragment as ExecutableFragmentImpl).isStatic;
 }
 
-mixin FragmentedTypeParameterizedElementMixin<
-  E extends TypeParameterizedFragment
->
+mixin FragmentedTypeParameterizedElementMixin<E extends FragmentImpl>
     implements FragmentedElementMixin<E> {
   bool get isSimplyBounded {
     var fragment = firstFragment;
@@ -5345,7 +5338,10 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
       _wrappedElement.inconsistency = value;
 
   @override
-  bool get isConsistent => _wrappedElement.isConsistent;
+  bool get isConsistent {
+    return _wrappedElement.inconsistency ==
+        shared.JoinedPatternVariableInconsistency.none;
+  }
 
   set isFinal(bool value) => _wrappedElement.isFinal = value;
 
@@ -5411,11 +5407,6 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
       super.element as JoinPatternVariableElementImpl;
 
   @override
-  bool get isConsistent {
-    return inconsistency == shared.JoinedPatternVariableInconsistency.none;
-  }
-
-  @override
   JoinPatternVariableFragmentImpl? get nextFragment =>
       super.nextFragment as JoinPatternVariableFragmentImpl?;
 
@@ -5442,10 +5433,6 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
     append(this);
     return result;
   }
-
-  @override
-  List<PatternVariableFragment> get variables2 =>
-      variables.cast<PatternVariableFragment>();
 }
 
 class LabelElementImpl extends ElementImpl implements LabelElement {
@@ -9597,8 +9584,8 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
 
 class TypeAliasElementImpl extends TypeDefiningElementImpl
     with
-        FragmentedAnnotatableElementMixin<TypeAliasFragment>,
-        FragmentedElementMixin<TypeAliasFragment>,
+        FragmentedAnnotatableElementMixin<TypeAliasFragmentImpl>,
+        FragmentedElementMixin<TypeAliasFragmentImpl>,
         DeferredResolutionReadingMixin,
         _HasSinceSdkVersionMixin
     implements AnnotatableElementImpl, TypeAliasElement {
@@ -9932,8 +9919,8 @@ abstract class TypeDefiningElementImpl extends ElementImpl
 
 class TypeParameterElementImpl extends TypeDefiningElementImpl
     with
-        FragmentedAnnotatableElementMixin<TypeParameterFragment>,
-        FragmentedElementMixin<TypeParameterFragment>,
+        FragmentedAnnotatableElementMixin<TypeParameterFragmentImpl>,
+        FragmentedElementMixin<TypeParameterFragmentImpl>,
         _NonTopLevelVariableOrParameter
     implements TypeParameterElement, SharedTypeParameter {
   @override
@@ -9956,7 +9943,7 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   }
 
   @override
-  TypeParameterElement get baseElement => this;
+  TypeParameterElementImpl get baseElement => this;
 
   @override
   TypeImpl? get bound => firstFragment.bound;

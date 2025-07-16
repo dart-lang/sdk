@@ -3769,11 +3769,9 @@ package:analyzer/dart/element/element.dart:
   JoinPatternVariableFragment (class extends Object implements PatternVariableFragment):
     new (constructor: JoinPatternVariableFragment Function())
     element (getter: JoinPatternVariableElement)
-    isConsistent (getter: bool)
     nextFragment (getter: JoinPatternVariableFragment?)
     offset (getter: int)
     previousFragment (getter: JoinPatternVariableFragment?)
-    variables2 (getter: List<PatternVariableFragment>)
   LabelElement (class extends Object implements Element):
     new (constructor: LabelElement Function())
     enclosingElement (getter: ExecutableElement?)
