@@ -138,7 +138,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     result.addStatus(validateVariableName(name));
     if (_excludedVariableNames.contains(name)) {
       result.addError(
-        format("The name '{0}' is already used in the scope.", name),
+        formatList("The name '{0}' is already used in the scope.", [name]),
       );
     }
     return result;

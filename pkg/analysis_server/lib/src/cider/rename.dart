@@ -84,11 +84,9 @@ class CanRenameResponse {
     }
     // check if there are members with "newName" in the same ClassElement
     for (var newNameMember in getChildren(parentClass, newName)) {
-      var message = format(
+      var message = formatList(
         "Class '{0}' already declares {1} with name '{2}'.",
-        parentClass.displayName,
-        getElementKindName(newNameMember),
-        newName,
+        [parentClass.displayName, getElementKindName(newNameMember), newName],
       );
       result.addError(message, newLocation_fromElement(newNameMember));
     }
@@ -99,8 +97,7 @@ class CanRenameResponse {
       var oldStateName = '${element.displayName}State';
       var library = element.library;
       var state =
-          library.getClass(oldStateName) ??
-          library.getClass('_$oldStateName');
+          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
       if (state != null) {
         var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.

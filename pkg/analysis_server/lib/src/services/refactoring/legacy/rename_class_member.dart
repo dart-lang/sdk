@@ -236,13 +236,12 @@ class _BaseClassMemberValidator {
     // check if there is a member with "newName" in the same ClassElement
     for (var newNameMember in getChildren(interfaceElement, name)) {
       result.addError(
-        format(
-          "{0} '{1}' already declares {2} with name '{3}'.",
+        formatList("{0} '{1}' already declares {2} with name '{3}'.", [
           capitalize(interfaceElement.kind.displayName),
           interfaceElement.displayName,
           getElementKindName(newNameMember),
           name,
-        ),
+        ]),
         newLocation_fromElement(newNameMember),
       );
     }
@@ -262,13 +261,15 @@ class _BaseClassMemberValidator {
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
-          format(
+          formatList(
             isRename
                 ? "Renamed {0} will shadow {1} '{2}'."
                 : "Created {0} will shadow {1} '{2}'.",
-            elementKind.displayName,
-            getElementKindName(nameElement),
-            getElementQualifiedName(nameElement),
+            [
+              elementKind.displayName,
+              getElementKindName(nameElement),
+              getElementQualifiedName(nameElement),
+            ],
           ),
           newLocation_fromElement(nameElement),
         );
@@ -276,12 +277,11 @@ class _BaseClassMemberValidator {
       // the renamed Element is shadowed by a member of a subclass
       if (isRename && subClasses.contains(nameClass)) {
         result.addError(
-          format(
-            "Renamed {0} will be shadowed by {1} '{2}'.",
+          formatList("Renamed {0} will be shadowed by {1} '{2}'.", [
             elementKind.displayName,
             getElementKindName(nameElement),
             getElementQualifiedName(nameElement),
-          ),
+          ]),
           newLocation_fromElement(nameElement),
         );
       }
@@ -454,12 +454,11 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       if (conflict != null) {
         var element = conflict.element;
         result.addError(
-          format(
-            "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+          formatList("Usage of renamed {0} will be shadowed by {1} '{2}'.", [
             elementKind.displayName,
             getElementKindName(element),
             element.displayName,
-          ),
+          ]),
           newLocation_fromMatch(conflict.match),
         );
       }
@@ -558,11 +557,10 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var refElement = reference.element;
       var refLibrary = refElement.library!;
       if (refLibrary != library) {
-        var message = format(
-          "Renamed {0} will be invisible in '{1}'.",
+        var message = formatList("Renamed {0} will be invisible in '{1}'.", [
           getElementKindName(element),
           getElementQualifiedName(refLibrary),
-        );
+        ]);
         result.addError(message, newLocation_fromMatch(reference));
       }
     }

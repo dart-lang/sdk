@@ -116,18 +116,16 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
     if (element.library?.isInSdk == true) {
-      var message = format(
+      var message = formatList(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        [getElementKindName(element), getElementQualifiedName(element)],
       );
       result.addFatalError(message);
     }
     if (!workspace.containsElement(element)) {
-      var message = format(
+      var message = formatList(
         "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        [getElementKindName(element), getElementQualifiedName(element)],
       );
       result.addFatalError(message);
     }
