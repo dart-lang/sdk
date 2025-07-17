@@ -88,7 +88,7 @@ class ConstantEvaluationEngine {
     var libraryFragment = constant.libraryFragment!;
     var library = libraryFragment.element;
     if (constant is FormalParameterElementImpl) {
-      var defaultValue = constant.constantInitializer?.expression;
+      var defaultValue = constant.constantInitializer;
       if (defaultValue != null) {
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
@@ -106,7 +106,7 @@ class ConstantEvaluationEngine {
         constant.evaluationResult = _nullObject(library);
       }
     } else if (constant is VariableElementImpl) {
-      var constantInitializer = constant.constantInitializer?.expression;
+      var constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         var diagnosticReporter = DiagnosticReporter(
           RecordingDiagnosticListener(),
@@ -260,7 +260,7 @@ class ConstantEvaluationEngine {
 
     if (constant is VariableElementImpl) {
       var declaration = constant;
-      var initializer = declaration.constantInitializer?.expression;
+      var initializer = declaration.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
       }
@@ -3063,7 +3063,7 @@ class _InstanceCreationEvaluator {
         var fieldType = substitution.substituteType(field.type);
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           var isRuntimeException = hasTypeParameterReference(field.type);
-          var errorNode = field.constantInitializer?.expression ?? _errorNode;
+          var errorNode = field.constantInitializer ?? _errorNode;
           return InvalidConstant.forEntity(
             entity: errorNode,
             diagnosticCode:

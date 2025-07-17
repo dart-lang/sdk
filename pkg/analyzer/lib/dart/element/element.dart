@@ -358,33 +358,11 @@ abstract class ClassFragment implements InterfaceFragment {
   ClassFragment? get previousFragment;
 }
 
-/// The initializer of a constant variable, or the default value for a formal
-/// parameter.
-abstract class ConstantInitializer {
-  /// The expression of the initializer.
-  ///
-  /// For variables that have multiple fragments, this is the expression from
-  /// the last fragment. For formal parameters, only the first fragment can
-  /// have the default value.
-  Expression get expression;
-
-  /// The [VariableFragment] that has [expression].
-  ///
-  /// The offsets are inside the [LibraryFragment] that contains [fragment].
-  VariableFragment get fragment;
-
-  /// Returns the result of evaluating [expression], computes it if necessary.
-  ///
-  /// Returns `null` if the value could not be computed because of errors.
-  DartObject? evaluate();
-}
-
 /// An element representing a constructor defined by a class, enum, or extension
 /// type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorElement
-    implements ExecutableElement, HasSinceSdkVersion {
+abstract class ConstructorElement implements ExecutableElement {
   @override
   ConstructorElement get baseElement;
 
@@ -736,6 +714,23 @@ abstract class Element {
 
   /// The analysis session in which this element is defined.
   AnalysisSession? get session;
+
+  /// The version where the associated SDK API was added.
+  ///
+  /// A `@Since()` annotation can be applied to a library declaration,
+  /// any public declaration in a library, or in a class, or to an optional
+  /// parameter, etc.
+  ///
+  /// The returned version is "effective", so that if a library is annotated
+  /// then all elements of the library inherit it; or if a class is annotated
+  /// then all members and constructors of the class inherit it.
+  ///
+  /// If multiple `@Since()` annotations apply to the same element, the latest
+  /// version takes precedence.
+  ///
+  /// Returns `null` if the element is not declared in the SDK, or doesn't have
+  /// a `@Since()` annotation applied to it.
+  Version? get sinceSdkVersion;
 
   /// Uses the given [visitor] to visit this element.
   ///
@@ -1586,7 +1581,7 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements VariableElement, Annotatable, HasSinceSdkVersion, LocalElement {
+    implements VariableElement, Annotatable, LocalElement {
   @override
   FormalParameterElement get baseElement;
 
@@ -1979,27 +1974,6 @@ abstract class GetterFragment implements PropertyAccessorFragment {
   GetterFragment? get previousFragment;
 }
 
-/// The interface that is implemented by elements that can have `@Since()`
-/// annotation.
-abstract class HasSinceSdkVersion {
-  /// The version where the associated SDK API was added.
-  ///
-  /// A `@Since()` annotation can be applied to a library declaration,
-  /// any public declaration in a library, or in a class, or to an optional
-  /// parameter, etc.
-  ///
-  /// The returned version is "effective", so that if a library is annotated
-  /// then all elements of the library inherit it; or if a class is annotated
-  /// then all members and constructors of the class inherit it.
-  ///
-  /// If multiple `@Since()` annotations apply to the same element, the latest
-  /// version takes precedence.
-  ///
-  /// Returns `null` if the element is not declared in the SDK, or doesn't have
-  /// a `@Since()` annotation applied to it.
-  Version? get sinceSdkVersion;
-}
-
 /// A combinator that causes some of the names in a namespace to be hidden when
 /// being imported.
 ///
@@ -2014,10 +1988,7 @@ abstract class HideElementCombinator implements NamespaceCombinator {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement
-    implements
-        TypeDefiningElement,
-        TypeParameterizedElement,
-        HasSinceSdkVersion {
+    implements TypeDefiningElement, TypeParameterizedElement {
   @override
   InstanceElement get baseElement;
 
@@ -2593,8 +2564,7 @@ abstract class LabelFragment implements Fragment {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement
-    implements Element, Annotatable, HasSinceSdkVersion {
+abstract class LibraryElement implements Element, Annotatable {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -3214,7 +3184,7 @@ abstract class Metadata {
 /// method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MethodElement implements ExecutableElement, HasSinceSdkVersion {
+abstract class MethodElement implements ExecutableElement {
   /// The name of the method that can be implemented by a class to allow its
   /// instances to be invoked as if they were a function.
   static final String CALL_METHOD_NAME = "call";
@@ -3553,8 +3523,7 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 ///   [PropertyInducingElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PropertyInducingElement
-    implements VariableElement, Annotatable, HasSinceSdkVersion {
+abstract class PropertyInducingElement implements VariableElement, Annotatable {
   @override
   PropertyInducingFragment get firstFragment;
 
@@ -3751,8 +3720,7 @@ abstract class SuperFormalParameterFragment implements FormalParameterFragment {
 /// A top-level function.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TopLevelFunctionElement
-    implements ExecutableElement, HasSinceSdkVersion {
+abstract class TopLevelFunctionElement implements ExecutableElement {
   /// The name of the function used as an entry point.
   static const String MAIN_FUNCTION_NAME = "main";
 
@@ -3829,10 +3797,7 @@ abstract class TopLevelVariableFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class TypeAliasElement
-    implements
-        TypeParameterizedElement,
-        TypeDefiningElement,
-        HasSinceSdkVersion {
+    implements TypeParameterizedElement, TypeDefiningElement {
   /// If the aliased type has structure, return the corresponding element.
   /// For example, it could be [GenericFunctionTypeElement].
   ///
@@ -4052,15 +4017,7 @@ abstract class VariableElement implements Element {
   ///
   /// Is `null` if this variable is not a constant, or does not have the
   /// initializer or the default value specified.
-  ConstantInitializer? get constantInitializer;
-
-  /// The constant initializer for this constant variable, or the default
-  /// value for this formal parameter.
-  ///
-  /// Is `null` if this variable is not a constant, or does not have the
-  /// initializer or the default value specified.
-  @Deprecated('Use constantInitializer instead')
-  ConstantInitializer? get constantInitializer2;
+  Expression? get constantInitializer;
 
   @override
   VariableFragment get firstFragment;
@@ -4115,13 +4072,6 @@ abstract class VariableElement implements Element {
 abstract class VariableFragment implements Fragment {
   @override
   VariableElement get element;
-
-  /// The initializer for this constant variable fragment, or the default value
-  /// for this formal parameter fragment.
-  ///
-  /// Is `null` if this variable fragment is not a constant, or does not have
-  /// the initializer or the default value specified.
-  Expression? get initializer;
 
   @override
   VariableFragment? get nextFragment;

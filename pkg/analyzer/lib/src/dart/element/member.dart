@@ -7,6 +7,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -1077,6 +1078,9 @@ abstract class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorFragment get firstFragment;
 
   @override
+  Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
+
+  @override
   PropertyInducingElement2OrMember? get variable {
     var variable = baseElement.variable;
     switch (variable) {
@@ -1255,14 +1259,8 @@ abstract class VariableMember extends Member
       super.baseElement as VariableElementImpl;
 
   @override
-  ConstantInitializer? get constantInitializer {
+  ExpressionImpl? get constantInitializer {
     return baseElement.constantInitializer;
-  }
-
-  @Deprecated('Use constantInitializer instead')
-  @override
-  ConstantInitializer? get constantInitializer2 {
-    return constantInitializer;
   }
 
   @override
@@ -1291,7 +1289,7 @@ abstract class VariableMember extends Member
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement2(this);
+    builder.writeVariableElement(this);
   }
 
   @override

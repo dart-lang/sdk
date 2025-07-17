@@ -29,14 +29,8 @@ class SinceSdkVersionComputer {
       specified = _specifiedVersion(element as Annotatable);
     }
 
-    if (element is LibraryElement) {
-      return specified;
-    } else if (element.enclosingElement case HasSinceSdkVersion hasSince?) {
-      var enclosing = hasSince.sinceSdkVersion;
-      return specified.maxWith(enclosing);
-    } else {
-      return specified;
-    }
+    var enclosing = element.enclosingElement?.sinceSdkVersion;
+    return specified.maxWith(enclosing);
   }
 
   /// Returns the parsed [Version], or `null` if wrong format.

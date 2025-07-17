@@ -166,48 +166,45 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     SyntacticEntity? errorEntity,
   }) {
     element = element?.nonSynthetic;
-    if (element case HasSinceSdkVersion hasSince) {
-      var sinceSdkVersion = hasSince.sinceSdkVersion;
-      if (sinceSdkVersion != null) {
-        if (!_versionConstraint.requiresAtLeast(sinceSdkVersion)) {
-          if (errorEntity == null) {
-            if (!_shouldReportEnumIndex(target, element!)) {
-              return;
-            }
-            if (target is AssignmentExpression) {
-              target = target.leftHandSide;
-            }
-            if (target is ConstructorName) {
-              errorEntity = target.name?.token ?? target.type.name;
-            } else if (target is ExtensionOverride) {
-              errorEntity = target.name;
-            } else if (target is FunctionExpressionInvocation) {
-              errorEntity = target.argumentList;
-            } else if (target is IndexExpression) {
-              errorEntity = target.leftBracket;
-            } else if (target is MethodInvocation) {
-              errorEntity = target.methodName;
-            } else if (target is NamedType) {
-              errorEntity = target.name;
-            } else if (target is PrefixedIdentifier) {
-              errorEntity = target.identifier;
-            } else if (target is PropertyAccess) {
-              errorEntity = target.propertyName;
-            } else if (target is SimpleIdentifier) {
-              errorEntity = target;
-            } else {
-              throw UnimplementedError('(${target.runtimeType}) $target');
-            }
+    if (element?.sinceSdkVersion case var sinceSdkVersion?) {
+      if (!_versionConstraint.requiresAtLeast(sinceSdkVersion)) {
+        if (errorEntity == null) {
+          if (!_shouldReportEnumIndex(target, element!)) {
+            return;
           }
-          _errorReporter.atEntity(
-            errorEntity,
-            WarningCode.SDK_VERSION_SINCE,
-            arguments: [
-              sinceSdkVersion.toString(),
-              _versionConstraint.toString(),
-            ],
-          );
+          if (target is AssignmentExpression) {
+            target = target.leftHandSide;
+          }
+          if (target is ConstructorName) {
+            errorEntity = target.name?.token ?? target.type.name;
+          } else if (target is ExtensionOverride) {
+            errorEntity = target.name;
+          } else if (target is FunctionExpressionInvocation) {
+            errorEntity = target.argumentList;
+          } else if (target is IndexExpression) {
+            errorEntity = target.leftBracket;
+          } else if (target is MethodInvocation) {
+            errorEntity = target.methodName;
+          } else if (target is NamedType) {
+            errorEntity = target.name;
+          } else if (target is PrefixedIdentifier) {
+            errorEntity = target.identifier;
+          } else if (target is PropertyAccess) {
+            errorEntity = target.propertyName;
+          } else if (target is SimpleIdentifier) {
+            errorEntity = target;
+          } else {
+            throw UnimplementedError('(${target.runtimeType}) $target');
+          }
         }
+        _errorReporter.atEntity(
+          errorEntity,
+          WarningCode.SDK_VERSION_SINCE,
+          arguments: [
+            sinceSdkVersion.toString(),
+            _versionConstraint.toString(),
+          ],
+        );
       }
     }
   }

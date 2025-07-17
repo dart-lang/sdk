@@ -38,9 +38,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required EncodeContext context,
     required ClassElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ClassItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -103,9 +101,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     required EncodeContext context,
     required EnumElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return EnumItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -168,9 +164,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     required EncodeContext context,
     required ExtensionElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -239,9 +233,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required EncodeContext context,
     required ExtensionTypeElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionTypeItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -525,9 +517,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
       metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
       type: element.type.encode(context),
-      constInitializer: element.constantInitializer?.expression.encode(
-        context,
-      ),
+      constInitializer: element.constantInitializer?.encode(context),
     );
   }
 
@@ -545,10 +535,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   bool match(MatchContext context, FieldElementImpl element) {
     return super.match(context, element) &&
         type.match(context, element.type) &&
-        constInitializer.match(
-          context,
-          element.constantInitializer?.expression,
-        );
+        constInitializer.match(context, element.constantInitializer);
   }
 
   @override
@@ -1153,9 +1140,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required EncodeContext context,
     required MixinElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return MixinItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -1366,9 +1351,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
-      constInitializer: element.constantInitializer?.expression.encode(
-        context,
-      ),
+      constInitializer: element.constantInitializer?.encode(context),
     );
   }
 
@@ -1385,10 +1368,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   bool match(MatchContext context, TopLevelVariableElementImpl element) {
     return super.match(context, element) &&
         type.match(context, element.type) &&
-        constInitializer.match(
-          context,
-          element.constantInitializer?.expression,
-        );
+        constInitializer.match(context, element.constantInitializer);
   }
 
   @override
@@ -1415,9 +1395,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
     required EncodeContext context,
     required TypeAliasElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return TypeAliasItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),

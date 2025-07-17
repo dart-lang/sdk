@@ -60,7 +60,7 @@ class ElementDisplayStringBuilder {
     _write('class ');
     _write(element.displayName);
 
-    _writeTypeParameters2(element.typeParameters);
+    _writeTypeParameters(element.typeParameters);
 
     _writeTypeIfNotObject(' extends ', element.supertype);
     _writeTypesIfNotEmpty(' with ', element.mixins);
@@ -72,7 +72,7 @@ class ElementDisplayStringBuilder {
 
     _write(' ${element.displayName}');
 
-    _writeFormalParameters2(
+    _writeFormalParameters(
       element.formalParameters,
       forElement: true,
       allowMultiline: true,
@@ -90,7 +90,7 @@ class ElementDisplayStringBuilder {
   void writeEnumElement(EnumElementImpl element) {
     _write('enum ');
     _write(element.displayName);
-    _writeTypeParameters2(element.typeParameters);
+    _writeTypeParameters(element.typeParameters);
     _writeTypesIfNotEmpty(' with ', element.mixins);
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
@@ -104,8 +104,8 @@ class ElementDisplayStringBuilder {
     _write(name);
 
     if (element.kind != ElementKind.GETTER) {
-      _writeTypeParameters2(element.typeParameters);
-      _writeFormalParameters2(
+      _writeTypeParameters(element.typeParameters);
+      _writeFormalParameters(
         element.formalParameters,
         forElement: true,
         allowMultiline: true,
@@ -118,7 +118,7 @@ class ElementDisplayStringBuilder {
     if (element.name case var name?) {
       _write(' $name');
     }
-    _writeTypeParameters2(element.typeParameters);
+    _writeTypeParameters(element.typeParameters);
     _write(' on ');
     _writeType(element.extendedType);
   }
@@ -127,7 +127,7 @@ class ElementDisplayStringBuilder {
     _write('extension type ');
     _write(element.displayName);
 
-    _writeTypeParameters2(element.typeParameters);
+    _writeTypeParameters(element.typeParameters);
     _write('(');
     _writeType(element.representation.type);
     _write(' ');
@@ -139,14 +139,14 @@ class ElementDisplayStringBuilder {
 
   void writeFormalParameterElement(FormalParameterElementMixin element) {
     if (element.isRequiredPositional) {
-      _writeWithoutDelimiters2(element, forElement: true);
+      _writeWithoutDelimiters(element, forElement: true);
     } else if (element.isOptionalPositional) {
       _write('[');
-      _writeWithoutDelimiters2(element, forElement: true);
+      _writeWithoutDelimiters(element, forElement: true);
       _write(']');
     } else if (element.isNamed) {
       _write('{');
-      _writeWithoutDelimiters2(element, forElement: true);
+      _writeWithoutDelimiters(element, forElement: true);
       _write('}');
     }
   }
@@ -160,16 +160,16 @@ class ElementDisplayStringBuilder {
 
     _writeType(type.returnType);
     _write(' Function');
-    _writeTypeParameters2(type.typeParameters);
-    _writeFormalParameters2(type.parameters, forElement: false);
+    _writeTypeParameters(type.typeParameters);
+    _writeFormalParameters(type.parameters, forElement: false);
     _writeNullability(type.nullabilitySuffix);
   }
 
   void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
     _writeType(element.returnType);
     _write(' Function');
-    _writeTypeParameters2(element.typeParameters);
-    _writeFormalParameters2(element.formalParameters.cast(), forElement: true);
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(element.formalParameters.cast(), forElement: true);
   }
 
   void writeGetterElement(GetterElementImpl element) {
@@ -212,16 +212,16 @@ class ElementDisplayStringBuilder {
   void writeLocalFunctionElement(LocalFunctionElementImpl element) {
     _writeType(element.returnType);
     _write(element.name ?? ' <null-name>');
-    _writeTypeParameters2(element.typeParameters);
-    _writeFormalParameters2(element.formalParameters, forElement: true);
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(element.formalParameters, forElement: true);
   }
 
   void writeMethodElement(MethodElementImpl element) {
     _writeType(element.returnType);
     _write(' ');
     _write(element.name ?? '<null-name>');
-    _writeTypeParameters2(element.typeParameters);
-    _writeFormalParameters2(
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(
       element.formalParameters,
       forElement: true,
       allowMultiline: true,
@@ -234,7 +234,7 @@ class ElementDisplayStringBuilder {
     }
     _write('mixin ');
     _write(element.displayName);
-    _writeTypeParameters2(element.typeParameters);
+    _writeTypeParameters(element.typeParameters);
     _writeTypesIfNotEmpty(' on ', element.superclassConstraints);
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
@@ -318,8 +318,8 @@ class ElementDisplayStringBuilder {
     _writeType(element.returnType);
     _write(' ');
     _write(element.name ?? ' <null-name>');
-    _writeTypeParameters2(element.typeParameters);
-    _writeFormalParameters2(
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(
       element.formalParameters,
       forElement: true,
       allowMultiline: true,
@@ -329,7 +329,7 @@ class ElementDisplayStringBuilder {
   void writeTypeAliasElement(TypeAliasElementImpl element) {
     _write('typedef ');
     _write(element.displayName);
-    _writeTypeParameters2(element.typeParameters);
+    _writeTypeParameters(element.typeParameters);
     _write(' = ');
 
     var aliasedElement = element.aliasedElement;
@@ -378,7 +378,7 @@ class ElementDisplayStringBuilder {
     _write('_');
   }
 
-  void writeVariableElement2(VariableElement2OrMember element) {
+  void writeVariableElement(VariableElement2OrMember element) {
     _writeType(element.type);
     _write(' ${element.displayName}');
   }
@@ -413,7 +413,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeFormalParameters2(
+  void _writeFormalParameters(
     List<FormalParameterElementMixin> parameters, {
     required bool forElement,
     bool allowMultiline = false,
@@ -464,7 +464,7 @@ class ElementDisplayStringBuilder {
         openGroup(_WriteFormalParameterKind.named, '{', '}');
       }
       _write(parameterPrefix);
-      _writeWithoutDelimiters2(parameter, forElement: forElement);
+      _writeWithoutDelimiters(parameter, forElement: forElement);
     }
 
     _write(trailingComma);
@@ -510,7 +510,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeTypeParameters2(List<TypeParameterElement> elements) {
+  void _writeTypeParameters(List<TypeParameterElement> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -539,7 +539,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeWithoutDelimiters2(
+  void _writeWithoutDelimiters(
     FormalParameterElementMixin element, {
     required bool forElement,
   }) {

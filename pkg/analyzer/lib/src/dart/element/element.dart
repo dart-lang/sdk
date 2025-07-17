@@ -719,26 +719,12 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   }
 }
 
-class ConstantInitializerImpl implements ConstantInitializer {
-  @override
+// TODO(scheglov): remove this
+class ConstantInitializerImpl {
   final VariableFragmentImpl fragment;
-
-  @override
   final ExpressionImpl expression;
 
-  /// The cached result of [evaluate].
-  Constant? _evaluationResult;
-
   ConstantInitializerImpl({required this.fragment, required this.expression});
-
-  @override
-  DartObject? evaluate() {
-    if (_evaluationResult case DartObjectImpl result) {
-      return result;
-    }
-    // TODO(scheglov): implement it
-    throw UnimplementedError();
-  }
 }
 
 class ConstructorElementImpl extends ExecutableElementImpl
@@ -747,8 +733,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
         FragmentedTypeParameterizedElementMixin<ConstructorFragmentImpl>,
         FragmentedAnnotatableElementMixin<ConstructorFragmentImpl>,
         FragmentedElementMixin<ConstructorFragmentImpl>,
-        ConstructorElementMixin2,
-        _HasSinceSdkVersionMixin
+        ConstructorElementMixin2
     implements ConstantEvaluationTarget, ConstructorElement {
   @override
   final Reference reference;
@@ -1820,6 +1805,14 @@ sealed class ElementDirectiveImpl implements ElementDirective {
 }
 
 abstract class ElementImpl implements Element {
+  /// Cached values for [sinceSdkVersion].
+  ///
+  /// Only very few elements have `@Since()` annotations, so instead of adding
+  /// an instance field to [ElementImpl], we attach this information this way.
+  /// We ask it only when [Modifier.HAS_SINCE_SDK_VERSION_VALUE] is `true`, so
+  /// don't pay for a hash lookup when we know that the result is `null`.
+  static final Expando<Version> _sinceSdkVersion = Expando<Version>();
+
   @override
   final int id = FragmentImpl._NEXT_ID++;
 
@@ -1885,6 +1878,22 @@ abstract class ElementImpl implements Element {
   @override
   AnalysisSession? get session {
     return enclosingElement?.session;
+  }
+
+  @override
+  Version? get sinceSdkVersion {
+    if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
+      setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
+      var result = SinceSdkVersionComputer().compute(this);
+      if (result != null) {
+        _sinceSdkVersion[this] = result;
+        setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
+      }
+    }
+    if (hasModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE)) {
+      return _sinceSdkVersion[this];
+    }
+    return null;
   }
 
   @override
@@ -2402,7 +2411,6 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
 }
 
 class ExtensionElementImpl extends InstanceElementImpl
-    with _HasSinceSdkVersionMixin
     implements ExtensionElement {
   @override
   final Reference reference;
@@ -2673,8 +2681,7 @@ abstract class FieldElement2OrMember
 class FieldElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<FieldFragmentImpl>,
-        FragmentedElementMixin<FieldFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        FragmentedElementMixin<FieldFragmentImpl>
     implements FieldElement2OrMember {
   @override
   final Reference reference;
@@ -2973,12 +2980,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
     with
         FragmentedAnnotatableElementMixin<FormalParameterFragmentImpl>,
         FragmentedElementMixin<FormalParameterFragmentImpl>,
-        FormalParameterElementMixin,
-        _HasSinceSdkVersionMixin,
-        _NonTopLevelVariableOrParameter {
+        FormalParameterElementMixin {
   @override
   Reference? reference;
-
   final FormalParameterFragmentImpl wrappedElement;
 
   @override
@@ -3013,8 +3017,17 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   String? get defaultValueCode {
-    return constantInitializer?.expression.toSource();
+    return constantInitializer2?.expression.toSource();
   }
+
+  @override
+  Element? get enclosingElement {
+    return wrappedElement.enclosingElement?.element;
+  }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   FormalParameterFragmentImpl get firstFragment => wrappedElement;
@@ -3140,9 +3153,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   TypeImpl get typeShared => type;
-
-  @override
-  FragmentImpl? get _enclosingFunction => wrappedElement.enclosingElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -3722,7 +3732,7 @@ abstract class FragmentImpl implements Fragment {
   /// Returns `null` if the element is not declared in SDK, or does not have
   /// a `@Since()` annotation applicable to it.
   Version? get sinceSdkVersion {
-    return asElement2.ifTypeOrNull<HasSinceSdkVersion>()?.sinceSdkVersion;
+    return asElement2?.sinceSdkVersion;
   }
 
   /// Return the source associated with this target, or `null` if this target is
@@ -4069,8 +4079,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
         FragmentedExecutableElementMixin<GetterFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<GetterFragmentImpl>,
         FragmentedAnnotatableElementMixin<GetterFragmentImpl>,
-        FragmentedElementMixin<GetterFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        FragmentedElementMixin<GetterFragmentImpl>
     implements GetterElement2OrMember {
   @override
   Reference reference;
@@ -4814,7 +4823,6 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
 }
 
 abstract class InterfaceElementImpl extends InstanceElementImpl
-    with _HasSinceSdkVersionMixin
     implements InterfaceElement {
   /// The non-nullable instance of this element, without alias.
   /// Should be used only when the element has no type parameters.
@@ -6919,7 +6927,9 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
 
   @override
   List<TypeParameterElementImpl> get typeParameters {
-    return firstFragment.typeParameters.map((fragment) => fragment.element).toList();
+    return firstFragment.typeParameters
+        .map((fragment) => fragment.element)
+        .toList();
   }
 
   @Deprecated('Use typeParameters instead')
@@ -6982,7 +6992,6 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
 }
 
 class LocalVariableElementImpl extends PromotableElementImpl
-    with _NonTopLevelVariableOrParameter
     implements LocalVariableElement {
   final LocalVariableFragmentImpl _wrappedElement;
 
@@ -6996,6 +7005,15 @@ class LocalVariableElementImpl extends PromotableElementImpl
 
   @override
   String? get documentationComment => null;
+
+  @override
+  Element? get enclosingElement {
+    return _wrappedElement.enclosingElement.element;
+  }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
 
   @override
   LocalVariableFragmentImpl get firstFragment => _wrappedElement;
@@ -7046,9 +7064,6 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @Deprecated('Use name instead')
   @override
   String? get name3 => name;
-
-  @override
-  FragmentImpl? get _enclosingFunction => _wrappedElement.enclosingElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -7540,8 +7555,7 @@ class MethodElementImpl extends ExecutableElementImpl
         FragmentedExecutableElementMixin<MethodFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<MethodFragmentImpl>,
         FragmentedAnnotatableElementMixin<MethodFragmentImpl>,
-        FragmentedElementMixin<MethodFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        FragmentedElementMixin<MethodFragmentImpl>
     implements MethodElement2OrMember {
   @override
   final Reference reference;
@@ -8921,7 +8935,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement2(this);
+    builder.writeVariableElement(this);
   }
 }
 
@@ -9014,8 +9028,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
         FragmentedExecutableElementMixin<SetterFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<SetterFragmentImpl>,
         FragmentedAnnotatableElementMixin<SetterFragmentImpl>,
-        FragmentedElementMixin<SetterFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        FragmentedElementMixin<SetterFragmentImpl>
     implements SetterElement2OrMember {
   @override
   Reference reference;
@@ -9188,7 +9201,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
       return null;
     }
 
-    var constantInitializer = this.constantInitializer?.expression;
+    var constantInitializer = constantInitializer2?.expression;
     if (constantInitializer != null) {
       return constantInitializer.toSource();
     }
@@ -9202,7 +9215,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @override
   Constant? get evaluationResult {
-    if (constantInitializer != null) {
+    if (constantInitializer2 != null) {
       return super.evaluationResult;
     }
 
@@ -9285,7 +9298,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @override
   DartObject? computeConstantValue() {
-    if (constantInitializer != null) {
+    if (constantInitializer2 != null) {
       return super.computeConstantValue();
     }
 
@@ -9353,8 +9366,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
         FragmentedExecutableElementMixin<FunctionFragmentImpl>,
         FragmentedTypeParameterizedElementMixin<FunctionFragmentImpl>,
         FragmentedAnnotatableElementMixin<FunctionFragmentImpl>,
-        FragmentedElementMixin<FunctionFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        FragmentedElementMixin<FunctionFragmentImpl>
     implements TopLevelFunctionElement {
   @override
   final Reference reference;
@@ -9473,8 +9485,7 @@ class TopLevelFunctionFragmentImpl extends FunctionFragmentImpl
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     with
         FragmentedAnnotatableElementMixin<TopLevelVariableFragmentImpl>,
-        FragmentedElementMixin<TopLevelVariableFragmentImpl>,
-        _HasSinceSdkVersionMixin
+        FragmentedElementMixin<TopLevelVariableFragmentImpl>
     implements TopLevelVariableElement {
   @override
   final Reference reference;
@@ -9610,8 +9621,7 @@ class TypeAliasElementImpl extends TypeDefiningElementImpl
     with
         FragmentedAnnotatableElementMixin<TypeAliasFragmentImpl>,
         FragmentedElementMixin<TypeAliasFragmentImpl>,
-        DeferredResolutionReadingMixin,
-        _HasSinceSdkVersionMixin
+        DeferredResolutionReadingMixin
     implements AnnotatableElementImpl, TypeAliasElement {
   @override
   final Reference reference;
@@ -9944,8 +9954,7 @@ abstract class TypeDefiningElementImpl extends ElementImpl
 class TypeParameterElementImpl extends TypeDefiningElementImpl
     with
         FragmentedAnnotatableElementMixin<TypeParameterFragmentImpl>,
-        FragmentedElementMixin<TypeParameterFragmentImpl>,
-        _NonTopLevelVariableOrParameter
+        FragmentedElementMixin<TypeParameterFragmentImpl>
     implements TypeParameterElement, SharedTypeParameter {
   @override
   final TypeParameterFragmentImpl firstFragment;
@@ -9985,6 +9994,15 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   TypeImpl? get defaultType => firstFragment.defaultType;
 
   @override
+  Element? get enclosingElement {
+    return firstFragment.enclosingElement?.element;
+  }
+
+  @Deprecated('Use enclosingElement instead')
+  @override
+  Element? get enclosingElement2 => enclosingElement;
+
+  @override
   List<TypeParameterFragmentImpl> get fragments {
     return [
       for (
@@ -10017,9 +10035,6 @@ class TypeParameterElementImpl extends TypeDefiningElementImpl
   set variance(shared.Variance? value) {
     firstFragment.variance = value;
   }
-
-  @override
-  FragmentImpl? get _enclosingFunction => firstFragment.enclosingElement;
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -10306,34 +10321,34 @@ abstract class VariableElementImpl extends ElementImpl
     implements VariableElement2OrMember, ConstantEvaluationTarget {
   ConstantInitializerImpl? _constantInitializer;
 
-  /// The result of evaluating [constantInitializer].
+  /// The result of evaluating [constantInitializer2].
   ///
-  /// Is `null` if [constantInitializer] is `null`, or if the value could not
+  /// Is `null` if [constantInitializer2] is `null`, or if the value could not
   /// be computed because of errors.
   Constant? evaluationResult;
 
   @override
-  ConstantInitializerImpl? get constantInitializer {
+  ExpressionImpl? get constantInitializer {
+    return constantInitializer2?.expression;
+  }
+
+  // TODO(scheglov): remove this
+  ConstantInitializerImpl? get constantInitializer2 {
     if (_constantInitializer case var result?) {
       return result;
     }
 
     for (var fragment in fragments.reversed) {
+      fragment as VariableFragmentImpl;
       if (fragment.initializer case ExpressionImpl expression) {
         return _constantInitializer = ConstantInitializerImpl(
-          fragment: fragment as VariableFragmentImpl,
+          fragment: fragment,
           expression: expression,
         );
       }
     }
 
     return null;
-  }
-
-  @Deprecated('Use constantInitializer instead')
-  @override
-  ConstantInitializer? get constantInitializer2 {
-    return constantInitializer;
   }
 
   @override
@@ -10349,7 +10364,7 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeVariableElement2(this);
+    builder.writeVariableElement(this);
   }
 
   /// Return a representation of the value of this variable, forcing the value
@@ -10425,7 +10440,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitType);
   }
 
-  @override
+  // TODO(scheglov): remove this
   ExpressionImpl? get initializer {
     return constantInitializer;
   }
@@ -10533,47 +10548,6 @@ mixin _HasLibraryMixin on FragmentImpl {
 
   @override
   Source get source => enclosingElement!.source!;
-}
-
-mixin _HasSinceSdkVersionMixin on ElementImpl, Annotatable
-    implements HasSinceSdkVersion {
-  /// Cached values for [sinceSdkVersion].
-  ///
-  /// Only very few elements have `@Since()` annotations, so instead of adding
-  /// an instance field to [ElementImpl], we attach this information this way.
-  /// We ask it only when [Modifier.HAS_SINCE_SDK_VERSION_VALUE] is `true`, so
-  /// don't pay for a hash lookup when we know that the result is `null`.
-  static final Expando<Version> _sinceSdkVersion = Expando<Version>();
-
-  @override
-  Version? get sinceSdkVersion {
-    if (!hasModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED)) {
-      setModifier(Modifier.HAS_SINCE_SDK_VERSION_COMPUTED, true);
-      var result = SinceSdkVersionComputer().compute(this);
-      if (result != null) {
-        _sinceSdkVersion[this] = result;
-        setModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE, true);
-      }
-    }
-    if (hasModifier(Modifier.HAS_SINCE_SDK_VERSION_VALUE)) {
-      return _sinceSdkVersion[this];
-    }
-    return null;
-  }
-}
-
-mixin _NonTopLevelVariableOrParameter on Element {
-  @override
-  Element? get enclosingElement {
-    // TODO(dantup): Can we simplify this code and inline it into each class?
-    return _enclosingFunction?.element;
-  }
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement2 => enclosingElement;
-
-  FragmentImpl? get _enclosingFunction;
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
