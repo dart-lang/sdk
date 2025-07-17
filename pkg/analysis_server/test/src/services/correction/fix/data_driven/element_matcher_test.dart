@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,6 +20,47 @@ void main() {
 }
 
 abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
+  /// Assert that there is exactly one [ElementMatcher] for the node described
+  /// by [search] that satisfies `expectedXyz` requirements.
+  void _assertHasMatcher(
+    String search, {
+    List<String>? expectedComponents,
+    List<ElementKind>? expectedKinds,
+    List<String>? expectedUris,
+  }) {
+    var node = findNode.any(search);
+    var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
+    var matchedMatchers = <ElementMatcher>[];
+    for (var matcher in matchers) {
+      if (expectedUris != null) {
+        if (!const UnorderedIterableEquality<Uri>().equals(
+          matcher.importedUris,
+          expectedUris.map((uri) => Uri.parse(uri)),
+        )) {
+          continue;
+        }
+      }
+      if (expectedComponents != null) {
+        if (!const ListEquality<String>().equals(
+          matcher.components,
+          expectedComponents,
+        )) {
+          continue;
+        }
+      }
+      if (expectedKinds != null) {
+        if (!const ListEquality<ElementKind>().equals(
+          matcher.validKinds,
+          expectedKinds,
+        )) {
+          continue;
+        }
+      }
+      matchedMatchers.add(matcher);
+    }
+    expect(matchedMatchers, hasLength(1));
+  }
+
   void _assertMatcher(
     String search, {
     List<String>? expectedComponents,
@@ -145,7 +187,7 @@ void f(String s) {
   s.length;
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'length',
       expectedComponents: ['length', 'String'],
       expectedKinds: accessorKinds,
@@ -158,7 +200,7 @@ void f(String s) {
   s.foo;
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
       expectedKinds: accessorKinds,
@@ -245,7 +287,7 @@ void f(String s) {
   s.substring(2);
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'substring',
       expectedComponents: ['substring', 'String'],
       expectedKinds: methodKinds,
@@ -258,7 +300,7 @@ void f(String s) {
   s.foo(2);
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
       expectedKinds: methodKinds,
@@ -297,7 +339,7 @@ class C {
   set s(String s) {}
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       's =',
       expectedComponents: ['s', 'C'],
       expectedKinds: accessorKinds,
@@ -310,7 +352,7 @@ void f(String s) {
   s.foo = '';
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
       expectedKinds: accessorKinds,

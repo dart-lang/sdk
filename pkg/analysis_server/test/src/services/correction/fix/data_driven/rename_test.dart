@@ -1168,6 +1168,33 @@ void f(C c) {
 ''');
   }
 
+  Future<void> test_instance_reference_direct_deprecated_viaSubclass() async {
+    setPackageContent('''
+class A {
+  @deprecated
+  int get old => 0;
+  int get replacement => 1;
+}
+
+class B extends A {}
+''');
+    setPackageData(_rename(['old', 'A'], 'replacement'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(B b) {
+  b.old;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(B b) {
+  b.replacement;
+}
+''');
+  }
+
   Future<void> test_instance_reference_direct_removed() async {
     setPackageContent('''
 class C {
@@ -1390,6 +1417,33 @@ import '$importUri';
 
 void f(C c) {
   c.b();
+}
+''');
+  }
+
+  Future<void> test_instance_reference_direct_deprecated_viaSubclass() async {
+    setPackageContent('''
+class A {
+  @deprecated
+  void old() {}
+  void replacement() {}
+}
+
+class B extends A {}
+''');
+    setPackageData(_rename(['old', 'A'], 'replacement'));
+    await resolveTestCode('''
+import '$importUri';
+
+void f(B b) {
+  b.old();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(B b) {
+  b.replacement();
 }
 ''');
   }
