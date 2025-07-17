@@ -1,3 +1,6 @@
+# 5.0.5
+- [DAP] The change in DDS 5.0.4 to individually add/remove breakpoints has been reverted and may be restored in a future version.
+
 # 5.0.4
 - [DAP] Breakpoints are now added/removed individually instead of all being cleared and re-added during a `setBreakpoints` request. This improves performance and can avoid breakpoints flickering between unresolved/resolved when adding new breakpoints in the same file.
 
