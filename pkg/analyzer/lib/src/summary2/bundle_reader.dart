@@ -885,12 +885,12 @@ class LibraryReader {
       var reference = _readReference();
       var isDeferred = _reader.readBool();
       var fragment = PrefixFragmentImpl(
-        enclosingFragment: libraryFragment,
         name: fragmentName,
         firstTokenOffset: null,
         nameOffset: null,
         isDeferred: isDeferred,
       );
+      fragment.enclosingFragment = libraryFragment;
 
       var element = reference.element as PrefixElementImpl?;
       if (element == null) {

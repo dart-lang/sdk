@@ -131,7 +131,7 @@ mixin ElementsTypesMixin {
     fragment.isAbstract = isAbstract;
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.supertype = superType ?? typeProvider.objectType;
     fragment.interfaces = interfaces;
@@ -158,7 +158,7 @@ mixin ElementsTypesMixin {
     fragment.isAbstract = isAbstract;
     fragment.isAugmentation = isAugmentation;
     fragment.isSealed = isSealed;
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters =
         typeParameters.map((e) => e.firstFragment).toList();
     fragment.supertype = superType ?? typeProvider.objectType;
@@ -194,7 +194,7 @@ mixin ElementsTypesMixin {
   }) {
     var fragment = EnumFragmentImpl(name: name, firstTokenOffset: null);
     EnumElementImpl(Reference.root(), fragment);
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.fields = constants;
     return fragment;
   }
@@ -205,7 +205,7 @@ mixin ElementsTypesMixin {
   }) {
     var fragment = EnumFragmentImpl(name: name, firstTokenOffset: null);
     var element = EnumElementImpl(Reference.root(), fragment);
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.fields = constants;
     return element;
   }
@@ -226,7 +226,7 @@ mixin ElementsTypesMixin {
     ExtensionElementImpl(Reference.root(), element);
     element.element.extendedType = extendedType;
     element.isAugmentation = isAugmentation;
-    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.enclosingFragment = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.methods = methods;
     return element;
@@ -243,7 +243,7 @@ mixin ElementsTypesMixin {
       name: name,
       firstTokenOffset: null,
     );
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
@@ -276,7 +276,7 @@ mixin ElementsTypesMixin {
       name: name,
       firstTokenOffset: null,
     );
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.interfaces = interfaces;
 
@@ -488,7 +488,7 @@ mixin ElementsTypesMixin {
   }) {
     var fragment = MixinFragmentImpl(name: name, firstTokenOffset: null);
     fragment.isAugmentation = isAugmentation;
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
     fragment.interfaces = interfaces;
@@ -507,7 +507,7 @@ mixin ElementsTypesMixin {
   }) {
     var fragment = MixinFragmentImpl(name: name, firstTokenOffset: null);
     fragment.isAugmentation = isAugmentation;
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
     fragment.superclassConstraints = constraints ?? [typeProvider.objectType];
     fragment.interfaces = interfaces;
@@ -657,7 +657,7 @@ mixin ElementsTypesMixin {
     required TypeImpl aliasedType,
   }) {
     var fragment = TypeAliasFragmentImpl(name: name, firstTokenOffset: null);
-    fragment.enclosingElement = testLibrary.definingCompilationUnit;
+    fragment.enclosingFragment = testLibrary.definingCompilationUnit;
     fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
 
     var element = TypeAliasElementImpl(Reference.root(), fragment);

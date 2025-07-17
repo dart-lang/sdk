@@ -192,7 +192,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var container = fragment.enclosingFragment!.element;
+    var container = fragment.enclosingFragment.element;
     var noOverride =
         node.isStatic ||
         container is ExtensionElement ||
