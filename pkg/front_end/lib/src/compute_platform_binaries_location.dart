@@ -55,6 +55,7 @@ Uri computePlatformBinariesLocation({bool forceBuildDir = false}) {
           new Uri.file(resolvedExecutable ?? Platform.resolvedExecutable))
       .resolve(".");
   if (vmDirectory.path.endsWith("/bin/")) {
+    // Coverage-ignore-block(suite): Not run.
     // Looks like the VM is in a `/bin/` directory, so this is running from a
     // built SDK.
     return vmDirectory.resolve(forceBuildDir ? "../../" : "../lib/_internal/");

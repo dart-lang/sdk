@@ -3,52 +3,53 @@ library from "org-dartlang-test:///lib.dart" as lib {
 
   import "dart:ffi";
 
-  @#C7
+  @#C3
+  @#C9
   final class Coordinate extends dart.ffi::Struct {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → lib::Coordinate
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
       ;
-    @#C9
+    @#C11
     constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → lib::Coordinate
       : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
       ;
-    @#C10
-    @#C9
+    @#C12
+    @#C11
     get x() → dart.core::double
       return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::x#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C10
-    @#C9
+    @#C12
+    @#C11
     set x(synthesized dart.core::double #externalFieldValue) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::x#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C10
-    @#C9
+    @#C12
+    @#C11
     get y() → dart.core::double
       return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::y#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C10
-    @#C9
+    @#C12
+    @#C11
     set y(synthesized dart.core::double #externalFieldValue) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::y#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C9
+    @#C11
     get next() → dart.ffi::Pointer<lib::Coordinate>
       return dart.ffi::_loadPointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::next#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set next(synthesized dart.ffi::Pointer<lib::Coordinate> #externalFieldValue) → void
       return dart.ffi::_storePointer<lib::Coordinate>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, lib::Coordinate::next#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
     static factory allocate(dart.core::double x, dart.core::double y, dart.ffi::Pointer<lib::Coordinate>? next) → lib::Coordinate {
       throw "";
     }
-    @#C9
+    @#C11
     static synthetic get x#offsetOf() → dart.core::int
-      return #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
-    static synthetic get y#offsetOf() → dart.core::int
       return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
-    static synthetic get next#offsetOf() → dart.core::int
+    @#C11
+    static synthetic get y#offsetOf() → dart.core::int
       return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
+    @#C11
+    static synthetic get next#offsetOf() → dart.core::int
+      return #C18.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+    @#C11
     static get #sizeOf() → dart.core::int
-      return #C19.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+      return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
@@ -64,25 +65,27 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 constants  {
-  #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(dart.ffi::Double)
-  #C3 = TypeLiteralConstant(dart.ffi::Pointer<dart.core::Object>)
-  #C4 = <dart.core::Type>[#C2, #C2, #C3]
-  #C5 = null
-  #C6 = dart.ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
-  #C7 = dart.core::pragma {name:#C1, options:#C6}
-  #C8 = "vm:prefer-inline"
-  #C9 = dart.core::pragma {name:#C8, options:#C5}
-  #C10 = dart.ffi::Double {}
-  #C11 = 0
-  #C12 = <dart.core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = 8
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(dart.ffi::Double)
+  #C6 = TypeLiteralConstant(dart.ffi::Pointer<dart.core::Object>)
+  #C7 = <dart.core::Type>[#C5, #C5, #C6]
+  #C8 = dart.ffi::_FfiStructLayout {fieldTypes:#C7, packing:#C2}
+  #C9 = dart.core::pragma {name:#C4, options:#C8}
+  #C10 = "vm:prefer-inline"
+  #C11 = dart.core::pragma {name:#C10, options:#C2}
+  #C12 = dart.ffi::Double {}
+  #C13 = 0
   #C14 = <dart.core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
-  #C15 = 16
+  #C15 = 8
   #C16 = <dart.core::int>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
-  #C17 = 24
-  #C18 = 20
-  #C19 = <dart.core::int>[#C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C18, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C17 = 16
+  #C18 = <dart.core::int>[#C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
+  #C19 = 24
+  #C20 = 20
+  #C21 = <dart.core::int>[#C19, #C19, #C20, #C19, #C19, #C19, #C19, #C19, #C20, #C19, #C19, #C19, #C19, #C20, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19]
 }
 
 

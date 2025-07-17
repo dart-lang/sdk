@@ -425,7 +425,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/compute_platform_binaries_location.dart": (
-    hitCount: 46,
+    hitCount: 45,
     missCount: 0,
   ),
   // 100.0%.

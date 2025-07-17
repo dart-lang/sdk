@@ -318,6 +318,24 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       return node;
     }
 
+    var superClass = node.superclass;
+    while (superClass != null) {
+      if (superClass == structClass || superClass == unionClass) {
+        // Structs and unions gets implict 'vm:deeply-immutable' annotation
+        // to allow those values flow seamlessly through shared static fields.
+        node.addAnnotation(
+          ConstantExpression(
+            InstanceConstant(pragmaClass.reference, [], {
+              pragmaName.fieldReference: StringConstant("vm:deeply-immutable"),
+              pragmaOptions.fieldReference: NullConstant(),
+            }),
+          ),
+        );
+        break;
+      }
+      superClass = superClass.superclass;
+    }
+
     final packing = _checkCompoundClass(node);
 
     final IndexedClass? indexedClass = currentLibraryIndex?.lookupIndexedClass(
