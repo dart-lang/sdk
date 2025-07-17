@@ -1233,7 +1233,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
-class DynamicElementImpl extends TypeDefiningElementImpl {
+class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
@@ -8221,7 +8221,7 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
-class NeverElementImpl extends TypeDefiningElementImpl {
+class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
@@ -9617,7 +9617,7 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
   }
 }
 
-class TypeAliasElementImpl extends TypeDefiningElementImpl
+class TypeAliasElementImpl extends ElementImpl
     with
         FragmentedAnnotatableElementMixin<TypeAliasFragmentImpl>,
         FragmentedElementMixin<TypeAliasFragmentImpl>,
@@ -9948,10 +9948,7 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
   }
 }
 
-abstract class TypeDefiningElementImpl extends ElementImpl
-    implements TypeDefiningElement {}
-
-class TypeParameterElementImpl extends TypeDefiningElementImpl
+class TypeParameterElementImpl extends ElementImpl
     with
         FragmentedAnnotatableElementMixin<TypeParameterFragmentImpl>,
         FragmentedElementMixin<TypeParameterFragmentImpl>
