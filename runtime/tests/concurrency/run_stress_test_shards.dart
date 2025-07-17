@@ -144,6 +144,9 @@ void writeUnexpectedCrashesFile(List<PotentialCrash> crashes) {
   File(unexpectedCrashesFile).writeAsStringSync(buffer.toString());
 }
 
+Iterable<String> filterSlowFlags(Iterable<String> flags) =>
+    flags.where((flag) => !flag.startsWith('--gc_at_throw'));
+
 const int tsanShards = 64;
 
 late final List<TestRunner> configurations;
@@ -176,12 +179,12 @@ main(List<String> arguments) async {
   configurations = <TestRunner>[
     JitTestRunner('out/Debug$arch', [
       '--disable-dart-dev',
-      ...someJitRuntimeFlags(),
+      ...filterSlowFlags(someJitRuntimeFlags()),
       'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
     JitTestRunner('out/Release$arch', [
       '--disable-dart-dev',
-      ...someJitRuntimeFlags(),
+      ...filterSlowFlags(someJitRuntimeFlags()),
       'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
     AotTestRunner(
@@ -190,7 +193,7 @@ main(List<String> arguments) async {
         ...someGenSnapshotFlags(),
         'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
       ],
-      [...someAotRuntimeFlags()],
+      [...filterSlowFlags(someAotRuntimeFlags())],
     ),
     AotTestRunner(
       'out/Release$arch',
@@ -198,15 +201,14 @@ main(List<String> arguments) async {
         ...someGenSnapshotFlags(),
         'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
       ],
-      [...someAotRuntimeFlags()],
+      [...filterSlowFlags(someAotRuntimeFlags())],
     ),
     // TSAN last so the other steps are evenly distributed.
     for (int i = 0; i < tsanShards; ++i)
       JitTestRunner('out/ReleaseTSAN$arch', [
         '--disable-dart-dev',
-        ...someJitRuntimeFlags(),
+        ...filterSlowFlags(someJitRuntimeFlags()),
         '--no-profiler', // TODO(https://github.com/dart-lang/sdk/issues/60804, https://github.com/dart-lang/sdk/issues/60805)
-        '--no-gc_at_throw', // Too slow under TSAN
         '-Drepeat=4',
         '-Dshard=$i',
         '-Dshards=$tsanShards',

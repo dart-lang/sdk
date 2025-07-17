@@ -306,8 +306,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     LookupName lookupName,
     InterfaceItemConstructorItem item,
   ) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 
@@ -331,8 +330,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void addDeclaredGetter(LookupName lookupName, InstanceItemGetterItem item) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 
@@ -364,8 +362,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void addDeclaredMethod(LookupName lookupName, InstanceItemMethodItem item) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 
@@ -391,8 +388,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void addDeclaredSetter(LookupName lookupName, InstanceItemSetterItem item) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 

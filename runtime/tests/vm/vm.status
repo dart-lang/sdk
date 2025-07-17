@@ -113,6 +113,8 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
+dart/symbolized_crash_test: Skip # Stack dump code excluded from product mode
+dart/symbolized_dart_crash_test: Skip # Stack dump code excluded from product mode
 
 [ $sanitizer == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
@@ -207,6 +209,7 @@ dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is no
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
 dart/sendport_api_test: SkipByDesign # No FFI on simulators
+dart/symbolized_dart_crash_test: Skip # Stack dump code doesn't see simulated stack
 dart/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
