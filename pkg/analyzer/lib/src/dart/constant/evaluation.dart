@@ -362,7 +362,7 @@ class ConstantEvaluationEngine {
     List<Expression> arguments,
     ConstructorElementMixin2 constructor,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocation? invocation,
+    ConstructorInvocationImpl? invocation,
   }) {
     var result = _InstanceCreationEvaluator.evaluate(
       this,
@@ -411,7 +411,7 @@ class ConstantEvaluationEngine {
     List<Expression> arguments,
     ConstructorElementMixin2 constructor,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocation? invocation,
+    ConstructorInvocationImpl? invocation,
   }) {
     return _InstanceCreationEvaluator.evaluate(
       this,
@@ -2848,7 +2848,7 @@ class _InstanceCreationEvaluator {
 
   final List<TypeImpl>? _typeArguments;
 
-  final ConstructorInvocation _invocation;
+  final ConstructorInvocationImpl _invocation;
 
   final Map<String, NamedExpression> _namedNodes;
 
@@ -2877,7 +2877,7 @@ class _InstanceCreationEvaluator {
     required Map<String, NamedExpression> namedNodes,
     required Map<String, DartObjectImpl> namedValues,
     required List<DartObjectImpl> argumentValues,
-    required ConstructorInvocation invocation,
+    required ConstructorInvocationImpl invocation,
   }) : _namedNodes = namedNodes,
        _namedValues = namedValues,
        _argumentValues = argumentValues,
@@ -3577,7 +3577,7 @@ class _InstanceCreationEvaluator {
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocation? invocation,
+    ConstructorInvocationImpl? invocation,
   }) {
     if (!constructor.isConst) {
       Token? keyword;
@@ -3604,7 +3604,7 @@ class _InstanceCreationEvaluator {
       );
     }
 
-    var argumentValues = <DartObjectImpl>[];
+    var positionalValues = <DartObjectImpl>[];
     var namedNodes = <String, NamedExpression>{};
     var namedValues = <String, DartObjectImpl>{};
     for (var i = 0; i < arguments.length; i++) {
@@ -3639,13 +3639,13 @@ class _InstanceCreationEvaluator {
           return argumentConstant;
         }
 
-        argumentValues.add(argumentConstant);
+        positionalValues.add(argumentConstant);
       }
     }
 
-    invocation ??= ConstructorInvocation(
+    invocation ??= ConstructorInvocationImpl(
       constructor,
-      argumentValues,
+      positionalValues,
       namedValues,
     );
 
@@ -3659,7 +3659,7 @@ class _InstanceCreationEvaluator {
       typeArguments,
       namedNodes: namedNodes,
       namedValues: namedValues,
-      argumentValues: argumentValues,
+      argumentValues: positionalValues,
       invocation: invocation,
     );
 
