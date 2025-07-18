@@ -104,12 +104,16 @@ const E x2 = .v2;
 E
   _name: String v1
   index: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
     assertDartObjectText(_topLevelVar('x2'), r'''
 E
   _name: String v2
   index: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::x2
 ''');
   }
@@ -241,6 +245,8 @@ const A a = .field;
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -255,6 +261,8 @@ const E e = .a;
 E
   _name: String a
   index: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::e
 ''');
   }
@@ -289,8 +297,24 @@ E
     _name: String v1
     a: int 42
     index: int 0
+    constructorInvocation
+      constructor: <testLibrary>::@enum::E::@constructor::new
+      positionalArguments
+        0: int 42
     variable: <testLibrary>::@enum::E::@field::v1
   index: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
+    positionalArguments
+      0: E
+        _name: String v1
+        a: int 42
+        index: int 0
+        constructorInvocation
+          constructor: <testLibrary>::@enum::E::@constructor::new
+          positionalArguments
+            0: int 42
+        variable: <testLibrary>::@enum::E::@field::v1
   variable: <testLibrary>::@enum::E::@field::v2
 ''');
   }
@@ -312,6 +336,12 @@ E<double>
   _name: String v1
   f: double 10.0
   index: int 0
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@enum::E::@constructor::named
+      substitution: {T: double}
+    positionalArguments
+      0: double 10.0
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
     assertDartObjectText(_topLevelVar('x2'), r'''
@@ -319,6 +349,12 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@enum::E::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 20
   variable: <testLibrary>::@topLevelVariable::x2
 ''');
   }
@@ -342,6 +378,12 @@ E<int>
   _name: String v1
   f: int 10
   index: int 0
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@enum::E::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 10
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
     assertDartObjectText(_topLevelVar('x2'), r'''
@@ -349,6 +391,12 @@ E<int>
   _name: String v2
   f: int 20
   index: int 1
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@enum::E::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 20
   variable: <testLibrary>::@topLevelVariable::x2
 ''');
     assertDartObjectText(_topLevelVar('x3'), r'''
@@ -356,6 +404,12 @@ E<String>
   _name: String v3
   f: String abc
   index: int 2
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@enum::E::@constructor::new
+      substitution: {T: String}
+    positionalArguments
+      0: String abc
   variable: <testLibrary>::@topLevelVariable::x3
 ''');
   }
@@ -370,12 +424,16 @@ const x2 = E.v2;
 E
   _name: String v1
   index: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::x1
 ''');
     assertDartObjectText(_topLevelVar('x2'), r'''
 E
   _name: String v2
   index: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@topLevelVariable::x2
 ''');
   }
@@ -908,6 +966,8 @@ const v = A();
     assertDartObjectText(result, r'''
 A
   f: Null null
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
   variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
@@ -1093,6 +1153,12 @@ const b = a;
     assertDartObjectText(result, r'''
 A<int>
   t: int 0
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 0
   variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
@@ -1110,6 +1176,10 @@ const x = C<E>();
     var result = _topLevelVar('x');
     assertDartObjectText(result, '''
 C<int>
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: E}
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -1129,6 +1199,12 @@ const x = C(E(42));
     assertDartObjectText(result, '''
 C<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::C::@constructor::new
+      substitution: {T: E}
+    positionalArguments
+      0: int 42
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -2691,6 +2767,8 @@ const a = A();
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -2722,6 +2800,10 @@ const a = A(1);
     var result = _topLevelVar('a');
     assertDartObjectText(result, r'''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -3482,6 +3564,12 @@ A<int>
     positionalFields
       $1: int 42
       $2: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -3584,6 +3672,10 @@ Map
     entry
       key: A
         x: int 0
+        constructorInvocation
+          constructor: <testLibrary>::@class::A::@constructor::new
+          positionalArguments
+            0: int 0
       value: int 1
     entry
       key: void Function()
@@ -3734,9 +3826,17 @@ Set
   elements
     C
       x: double 0.0
+      constructorInvocation
+        constructor: <testLibrary>::@class::C::@constructor::new
+        positionalArguments
+          0: double 0.0
       variable: <testLibrary>::@topLevelVariable::cp0
     C
       x: double -0.0
+      constructorInvocation
+        constructor: <testLibrary>::@class::C::@constructor::new
+        positionalArguments
+          0: double -0.0
       variable: <testLibrary>::@topLevelVariable::cm0
   variable: <testLibrary>::@topLevelVariable::a
 ''');
@@ -3928,6 +4028,11 @@ C
     element: <testLibrary>::@function::f
     typeArguments
       int
+  constructorInvocation
+    constructor: <testLibrary>::@class::C::@constructor::new
+    positionalArguments
+      0: void Function<T>(T, {T? b})
+        element: <testLibrary>::@function::f
   variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
@@ -5673,6 +5778,10 @@ const a = const A(null);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: Null null
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -5716,6 +5825,15 @@ const c = const A(E.b);
     var result = _topLevelVar('c');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: E
+        _name: String b
+        index: int 1
+        constructorInvocation
+          constructor: <testLibrary>::@enum::E::@constructor::new
+        variable: <testLibrary>::@enum::E::@field::b
   variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
@@ -5773,6 +5891,10 @@ const a = const A(0);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: double 0.0
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -5814,6 +5936,10 @@ const v = const A(0);
     var result = _topLevelVar('v');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: double 0.0
   variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
@@ -5858,6 +5984,8 @@ const a = const A();
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -5916,6 +6044,10 @@ const b = const B();
     assertDartObjectText(result, '''
 B
   (super): A
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
   variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
@@ -6014,6 +6146,10 @@ const a = const A(1);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6325,6 +6461,8 @@ const A a = .new();
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6368,6 +6506,15 @@ const A a = .new(.b);
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: E
+        _name: String b
+        index: int 1
+        constructorInvocation
+          constructor: <testLibrary>::@enum::E::@constructor::new
+        variable: <testLibrary>::@enum::E::@field::b
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6389,6 +6536,10 @@ const B b = .new();
     assertDartObjectText(result, '''
 B
   (super): A
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
   variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
@@ -6453,6 +6604,8 @@ const B b = .new(A());
     var result = _topLevelVar('b');
     assertDartObjectText(result, '''
 A
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
   variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
@@ -6544,6 +6697,10 @@ A<int>
     element: <testLibrary>::@function::g
     typeArguments
       T
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6560,6 +6717,10 @@ const a = const A<int>();
     assertDartObjectText(result, '''
 A<int>
   f: Type int
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6576,6 +6737,10 @@ const a = const A();
     assertDartObjectText(result, '''
 A<dynamic>
   f: Type dynamic
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: dynamic}
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6594,6 +6759,10 @@ const a = const B<String>();
 A<int, String>
   f: Type int
   g: Type String
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int, U: String}
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6770,6 +6939,10 @@ const a = const A<int>();
     assertDartObjectText(result, '''
 A<int>
   f: Type int
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -6812,7 +6985,18 @@ B
   (super): A
     a: int 1
     b: int 2
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        a: int 1
+        b: int 2
   c: int 3
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 3
+    namedArguments
+      b: int 2
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -6839,7 +7023,19 @@ B
   (super): A
     a: int 1
     b: int 2
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
+      namedArguments
+        b: int 2
   c: int 3
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
+    namedArguments
+      c: int 3
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -6864,7 +7060,17 @@ const x = B(2, a: 1);
 B
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        a: int 1
   b: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 2
+    namedArguments
+      a: int 1
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -6889,7 +7095,19 @@ const x = B<int>(2, a: 1);
 B<int>
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        a: int 1
   b: int 2
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 2
+    namedArguments
+      a: int 1
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -6914,7 +7132,16 @@ const x = B(1, 2);
 B
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
   b: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
+      1: int 2
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -6939,7 +7166,18 @@ const x = B<int>(1, 2);
 B<int>
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
   b: int 2
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 1
+      1: int 2
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -6964,7 +7202,17 @@ const x = B(2, a: 1);
 B
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        a: int 1
   b: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 2
+    namedArguments
+      a: int 1
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -6989,7 +7237,19 @@ const x = B<int>(2, a: 1);
 B<int>
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      namedArguments
+        a: int 1
   b: int 2
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 2
+    namedArguments
+      a: int 1
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -7014,7 +7274,16 @@ const x = B(1, 2);
 B
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
   b: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
+      1: int 2
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -7039,7 +7308,18 @@ const x = B<int>(1, 2);
 B<int>
   (super): A
     a: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
   b: int 2
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 1
+      1: int 2
   variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
@@ -7108,6 +7388,16 @@ const a = const B<int>();
 B<int>
   (super): A<int>
     f: Type int
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: Type int
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -7128,6 +7418,14 @@ const a = const B<int>();
 B<int>
   (super): A
     f: Type int
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: Type int
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -7145,6 +7443,10 @@ const a = const A(1);
     assertDartObjectText(result, '''
 A
   _: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 1
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -7186,6 +7488,14 @@ const a = const B(1);
 B
   (super): A
     _: int 1
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 1
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -7209,6 +7519,16 @@ B
   (super): A
     _: int 2
     y: int 2
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 2
+        1: int 2
+  constructorInvocation
+    constructor: <testLibrary>::@class::B::@constructor::new
+    positionalArguments
+      0: int 1
+      1: int 2
   variable: <testLibrary>::@topLevelVariable::a
 ''');
   }

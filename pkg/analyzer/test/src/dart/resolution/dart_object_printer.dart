@@ -60,9 +60,42 @@ class DartObjectPrinter {
       } else {
         throw UnimplementedError();
       }
+      _writeConstructorInvocation(object);
       _writeVariable(object);
     } else {
       _sink.writeln('<null>');
+    }
+  }
+
+  void _writeConstructorInvocation(DartObjectImpl object) {
+    var constructorInvocation = object.constructorInvocation;
+    if (constructorInvocation != null) {
+      _sink.withIndent(() {
+        _sink.writelnWithIndent('constructorInvocation');
+        _sink.withIndent(() {
+          _elementPrinter.writeNamedElement2(
+            'constructor',
+            constructorInvocation.constructor,
+          );
+          _sink.writeElements(
+            'positionalArguments',
+            constructorInvocation.positionalArguments.indexed.toList(),
+            (indexValue) {
+              _sink.writeWithIndent('${indexValue.$1}: ');
+              write(indexValue.$2);
+            },
+          );
+          _sink.writeElements(
+            'namedArguments',
+            constructorInvocation.namedArguments.entries.toList(),
+            (entry) {
+              _sink.writeIndent();
+              _sink.write('${entry.key}: ');
+              write(entry.value);
+            },
+          );
+        });
+      });
     }
   }
 

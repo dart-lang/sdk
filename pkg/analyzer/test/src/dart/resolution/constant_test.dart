@@ -197,6 +197,10 @@ C<double Function(int)>
       alias: package:test/a.dart::@typeAlias::F
         typeArguments
           double
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::C::@constructor::new
+      substitution: {T: double Function(int)}
   variable: <testLibrary>::@topLevelVariable::v
 ''');
   }

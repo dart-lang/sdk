@@ -114,6 +114,8 @@ Annotation
 E
   _name: String v
   index: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@enum::E::@constructor::new
   variable: <testLibrary>::@enum::E::@field::v
 ''');
   }
@@ -175,6 +177,19 @@ Annotation
 A
   f: A
     f: int 0
+    constructorInvocation
+      constructor: <testLibrary>::@class::A::@constructor::new
+      positionalArguments
+        0: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: A
+        f: int 0
+        constructorInvocation
+          constructor: <testLibrary>::@class::A::@constructor::new
+          positionalArguments
+            0: int 0
 ''');
   }
 
@@ -260,6 +275,10 @@ Annotation
     _assertElementAnnotationValueText(annotationOnElement, '''
 A
   a: int 3
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 3
 ''');
   }
 
@@ -360,6 +379,10 @@ Annotation
     _assertAnnotationValueText(node, r'''
 A
   f: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 0
 ''');
   }
 
@@ -393,6 +416,10 @@ Annotation
     _assertAnnotationValueText(node, r'''
 A
   f: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 0
 ''');
   }
 
@@ -458,6 +485,10 @@ Annotation
     _assertAnnotationValueText(annotation, '''
 A
   f: int 42
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::named
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -502,6 +533,10 @@ Annotation
     _assertAnnotationValueText(node, r'''
 A
   f: int 42
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::named
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -572,6 +607,10 @@ Annotation
     _assertAnnotationValueText(node, r'''
 A
   f: int 42
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -621,6 +660,14 @@ Annotation
     _assertAnnotationValueText(node, r'''
 D
   c: C
+    constructorInvocation
+      constructor: <testLibrary>::@class::C::@constructor::new
+  constructorInvocation
+    constructor: <testLibrary>::@class::D::@constructor::new
+    positionalArguments
+      0: C
+        constructorInvocation
+          constructor: <testLibrary>::@class::C::@constructor::new
 ''');
   }
 
@@ -746,6 +793,13 @@ Annotation
 A<Object?>
   f: List
     elementType: List<Object?>
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: Object?}
+    positionalArguments
+      0: List
+        elementType: List<Object?>
 ''');
   }
 
@@ -787,6 +841,13 @@ Annotation
 A<Object?>
   f: List
     elementType: List<Object?>
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: Object?}
+    positionalArguments
+      0: List
+        elementType: List<Object?>
 ''');
   }
 
@@ -838,6 +899,12 @@ Annotation
     _assertAnnotationValueText(annotation, '''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -877,6 +944,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -957,6 +1030,12 @@ Annotation
     _assertAnnotationValueText(annotation, '''
 A<dynamic>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: dynamic}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1044,6 +1123,12 @@ Annotation
     _assertAnnotationValueText(annotation, '''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1091,6 +1176,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1131,6 +1222,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<dynamic>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: dynamic}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1175,6 +1272,18 @@ Annotation
 B<int>
   (super): A<int>
     f: int 42
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1222,6 +1331,18 @@ Annotation
 B<int>
   (super): A<int>
     f: int 42
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1266,6 +1387,18 @@ Annotation
 B<int>
   (super): A<int>
     f: int 42
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1309,6 +1442,18 @@ Annotation
 B<int>
   (super): A<int>
     f: int 42
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1353,6 +1498,18 @@ Annotation
 B<int>
   (super): A<int>
     f: int 42
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1399,6 +1556,18 @@ Annotation
 B<int>
   (super): A<int>
     f: int 42
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1451,6 +1620,18 @@ Annotation
 B<int>
   (super): A<int>
     f: int 42
+    constructorInvocation
+      constructor: ConstructorMember
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::B::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1482,6 +1663,19 @@ void f(C c) {}
 B
   a: A
     f: int 42
+    constructorInvocation
+      constructor: package:test/a.dart::@class::A::@constructor::new
+      positionalArguments
+        0: int 42
+  constructorInvocation
+    constructor: package:test/a.dart::@class::B::@constructor::new
+    positionalArguments
+      0: A
+        f: int 42
+        constructorInvocation
+          constructor: package:test/a.dart::@class::A::@constructor::new
+          positionalArguments
+            0: int 42
 ''');
   }
 
@@ -1511,6 +1705,10 @@ void f(B b) {}
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
+  constructorInvocation
+    constructor: package:test/a.dart::@class::A::@constructor::named
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1540,6 +1738,10 @@ void f(B b) {}
     _assertElementAnnotationValueText(annotation, r'''
 A
   f: int 42
+  constructorInvocation
+    constructor: package:test/a.dart::@class::A::@constructor::new
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1593,6 +1795,10 @@ Annotation
     _assertAnnotationValueText(node, '''
 A
   f: int 42
+  constructorInvocation
+    constructor: package:test/a.dart::@class::A::@constructor::named
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1684,6 +1890,10 @@ Annotation
     _assertAnnotationValueText(node, '''
 A
   f: int 42
+  constructorInvocation
+    constructor: package:test/a.dart::@class::A::@constructor::new
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1824,6 +2034,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::A::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1876,6 +2092,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -1943,6 +2165,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::A::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2003,6 +2231,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2114,6 +2348,13 @@ Annotation
 A<int, double>
   t: int 42
   u: double 1.2
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int, U: double}
+    positionalArguments
+      0: int 42
+      1: double 1.2
 ''');
   }
 
@@ -2171,6 +2412,13 @@ Annotation
 A<int, double>
   t: int 42
   u: double 1.2
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int, U: double}
+    positionalArguments
+      0: int 42
+      1: double 1.2
 ''');
   }
 
@@ -2224,6 +2472,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2265,6 +2519,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2321,6 +2581,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2370,6 +2636,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2423,6 +2695,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::named
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2464,6 +2742,12 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A<int>
   f: int 42
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: <testLibrary>::@class::A::@constructor::new
+      substitution: {T: int}
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2509,6 +2793,10 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A
   f: int 42
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::named
+    positionalArguments
+      0: int 42
 ''');
   }
 
@@ -2546,6 +2834,10 @@ Annotation
     _assertAnnotationValueText(annotation, r'''
 A
   f: int 42
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int 42
 ''');
   }
 

@@ -16,6 +16,22 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
+/// Information about a const constructor invocation.
+abstract class ConstructorInvocation {
+  /// The constructor that was called.
+  ConstructorElement get constructor;
+
+  /// The constructor that was called.
+  @Deprecated('Use constructor instead')
+  ConstructorElement get constructor2;
+
+  /// The values of named arguments.
+  Map<String, DartObject> get namedArguments;
+
+  /// The values of positional arguments.
+  List<DartObject> get positionalArguments;
+}
+
 /// A representation of the value of a compile-time constant expression.
 ///
 /// Note that, unlike the mirrors system, the object being represented does *not*
@@ -26,6 +42,10 @@ import 'package:meta/meta.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartObject {
+  /// If this object was created by invoking a const constructor, information
+  /// about how the const constructor was invoked; otherwise `null`.
+  ConstructorInvocation? get constructorInvocation;
+
   /// Return `true` if the value of the object being represented is known.
   ///
   /// This method will return `false` if

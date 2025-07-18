@@ -50,6 +50,8 @@ class SharedInteropTransformer extends Transformer {
   final TypeEnvironment _typeEnvironment;
   final Procedure _typeofEquals;
 
+  int exportNameIdentifierCounter = 0;
+
   StaticInvocation get invocation => _invocation!;
 
   SharedInteropTransformer(
@@ -395,7 +397,9 @@ class SharedInteropTransformer extends Transformer {
         // A new map VariableDeclaration is created and added to the block of
         // statements for each export name.
         var getSetMap = VariableDeclaration(
-          '#${exportName}Mapping',
+          // Don't use the exportName here because it might not be a valid JS
+          // identifier.
+          '#${exportNameIdentifierCounter++}Mapping',
           initializer: getLiteral(),
           type: ExtensionType(_jsObject, Nullability.nonNullable),
           isSynthesized: true,

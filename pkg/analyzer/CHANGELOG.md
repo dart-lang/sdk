@@ -1,3 +1,6 @@
+## 8.1.0-dev
+* Add `DartObject.constructorInvocation` with the constructor and arguments.
+
 ## 8.0.0
 * Remove deprecated element model V1.
 * Remove deprecated `DartType.isStructurallyEqualTo`.

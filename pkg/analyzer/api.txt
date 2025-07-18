@@ -3241,8 +3241,15 @@ package:analyzer/dart/ast/visitor.dart:
     visitWithClause (method: R? Function(WithClause))
     visitYieldStatement (method: R? Function(YieldStatement))
 package:analyzer/dart/constant/value.dart:
+  ConstructorInvocation (class extends Object):
+    new (constructor: ConstructorInvocation Function())
+    constructor (getter: ConstructorElement)
+    constructor2 (getter: ConstructorElement, deprecated)
+    namedArguments (getter: Map<String, DartObject>)
+    positionalArguments (getter: List<DartObject>)
   DartObject (class extends Object):
     new (constructor: DartObject Function())
+    constructorInvocation (getter: ConstructorInvocation?)
     hasKnownValue (getter: bool)
     isNull (getter: bool)
     type (getter: DartType?)
