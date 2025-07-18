@@ -9,6 +9,13 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 
 /// Whether the expression is a dot shorthand or has a dot shorthand in its
 /// arguments that relies on type inference.
+///
+/// Note: Use [isDotShorthand] for determining whether the general [node] is a
+/// dot shorthand. For this helper, [node] should be a for-loop iterable or a
+/// variable initializer that we're attempting to remove a declared type for.
+///
+/// Example of fixes that use this helper are extract local refactoring and
+/// `omit_local_variable_types`.
 bool hasDependentDotShorthand(AstNode node) {
   if (node case DotShorthandMixin(
     isDotShorthand: true,
@@ -110,6 +117,11 @@ bool hasDependentDotShorthand(AstNode node) {
   }
   return false;
 }
+
+/// Whether the [node] is a dot shorthand expression that relies on a context
+/// type.
+bool isDotShorthand(AstNode node) =>
+    node is DotShorthandMixin && node.isDotShorthand;
 
 /// Finds and returns all the type parameter elements in the formal parameter,
 /// [parameter].

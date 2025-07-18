@@ -2592,6 +2592,37 @@ void f() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
+  Future<void> test_statements_dotShorthand() async {
+    await _createRefactoring('''
+class A {
+  static A get getter => A();
+}
+
+void f() {
+  A a;
+  [!a = .getter;!]
+  print(a);
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A {
+  static A get getter => A();
+}
+
+void f() {
+  A a;
+  a = res(a);
+  print(a);
+}
+
+A res(A a) {
+  a = .getter;
+  return a;
+}
+''');
+  }
+
   Future<void> test_statements_duplicate_absolutelySame() async {
     await _createRefactoring('''
 myFunctionA() {
@@ -3379,6 +3410,82 @@ void f() {
     );
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61146')
+  Future<void> test_const_singleExpression() async {
+    await _createRefactoring('''
+enum E {
+  v;
+  void foo() {
+    const e = [!E.v!];
+  }
+}
+''');
+    return _assertConditionsError(
+      "'E.v' is in a constant context and can't be extracted to a function.",
+    );
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61146')
+  Future<void> test_const_singleExpression_dotShorthand() async {
+    await _createRefactoring('''
+enum E {
+  v;
+  void foo() {
+    const E e = [!.v!];
+  }
+}
+''');
+    return _assertConditionsError(
+      "'.v' is in a constant context and can't be extracted to a function.",
+    );
+  }
+
+  Future<void> test_singleExpression_dotShorthand() async {
+    await _createRefactoring('''
+enum E {
+  v;
+  void foo() {
+    E e = [!.v!];
+  }
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum E {
+  v;
+  void foo() {
+    E e = res();
+  }
+
+  E res() => .v;
+}
+''');
+  }
+
+  Future<void> test_singleExpression_dotShorthand_inferred() async {
+    await _createRefactoring('''
+T f<T>(T arg) => arg;
+enum E {
+  v;
+  void foo() {
+    E e = [!f(.v)!];
+  }
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+T f<T>(T arg) => arg;
+enum E {
+  v;
+  void foo() {
+    E e = res();
+  }
+
+  E res() => f(.v);
+}
+''');
+  }
+
   Future<void> test_singleExpression_method() async {
     await _createRefactoring('''
 enum E {
@@ -3503,6 +3610,56 @@ extension type E(A it) implements A {
     return _assertConditionsError("Created method will shadow method 'A.res'.");
   }
 
+  Future<void> test_singleExpression_dotShorthand() async {
+    await _createRefactoring('''
+extension type E(int it) {
+  static E get getter => E(1);
+  void foo() {
+    E a = [!.getter!];
+    print(a);
+  }
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+extension type E(int it) {
+  static E get getter => E(1);
+  void foo() {
+    E a = res();
+    print(a);
+  }
+
+  E res() => .getter;
+}
+''');
+  }
+
+  Future<void> test_singleExpression_dotShorthand_inferred() async {
+    await _createRefactoring('''
+T f<T>(T arg) => arg;
+extension type E(int it) {
+  static E get getter => E(1);
+  void foo() {
+    E a = [!f(.getter)!];
+    print(a);
+  }
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+T f<T>(T arg) => arg;
+extension type E(int it) {
+  static E get getter => E(1);
+  void foo() {
+    E a = res();
+    print(a);
+  }
+
+  E res() => f(.getter);
+}
+''');
+  }
+
   Future<void> test_singleExpression_method() async {
     await _createRefactoring('''
 extension type E(int it) {
@@ -3576,6 +3733,70 @@ mixin B implements A {
 }
 ''');
     return _assertConditionsError("Created method will shadow method 'A.res'.");
+  }
+
+  Future<void> test_singleExpression_dotShorthand() async {
+    await _createRefactoring('''
+class A {}
+
+class B extends A with AMixin {}
+
+mixin AMixin on A {
+  static AMixin get getter => B();
+  void foo() {
+    AMixin a = [!.getter!];
+  }
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A {}
+
+class B extends A with AMixin {}
+
+mixin AMixin on A {
+  static AMixin get getter => B();
+  void foo() {
+    AMixin a = res();
+  }
+
+  AMixin res() => .getter;
+}
+''');
+  }
+
+  Future<void> test_singleExpression_dotShorthand_inferred() async {
+    await _createRefactoring('''
+class A {}
+
+class B extends A with AMixin {}
+
+T f<T>(T arg) => arg;
+
+mixin AMixin on A {
+  static AMixin get getter => B();
+  void foo() {
+    AMixin a = [!f(.getter)!];
+  }
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A {}
+
+class B extends A with AMixin {}
+
+T f<T>(T arg) => arg;
+
+mixin AMixin on A {
+  static AMixin get getter => B();
+  void foo() {
+    AMixin a = res();
+  }
+
+  AMixin res() => f(.getter);
+}
+''');
   }
 
   Future<void> test_singleExpression_method() async {

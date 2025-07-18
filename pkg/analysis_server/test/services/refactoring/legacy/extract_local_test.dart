@@ -344,6 +344,24 @@ void f() {
 ''');
   }
 
+  Future<void> test_const_enum() async {
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const A vvv = A.a;
+}
+''');
+    _createRefactoringForString('A.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const res = A.a;
+  const A vvv = res;
+}
+''');
+  }
+
   Future<void> test_const_inList() async {
     await indexTestUnit('''
 void f() {
@@ -608,6 +626,94 @@ int foo({int ppp = 0}) => ppp + 1;
     expect(subExpressions, ['foo(ppp: 42)']);
   }
 
+  Future<void> test_dotShorthand() async {
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  A vvv = .a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  A res = .a;
+  A vvv = res;
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_const() async {
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const A vvv = .a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const A res = .a;
+  const A vvv = res;
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_inferred() async {
+    await indexTestUnit('''
+enum A { a }
+T f<T>(T arg) => arg;
+
+void g() {
+  A a = f(.a);
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+T f<T>(T arg) => arg;
+
+void g() {
+  A res = .a;
+  A a = f(res);
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_inferred_chain() async {
+    await indexTestUnit('''
+class A {
+  A.named();
+  A fn() => A.named();
+}
+
+T f<T>(T arg) => arg;
+
+void g() {
+  A a = f(.named().fn());
+}
+''');
+    _createRefactoringForString('.named().fn()');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A {
+  A.named();
+  A fn() => A.named();
+}
+
+T f<T>(T arg) => arg;
+
+void g() {
+  A res = .named().fn();
+  A a = f(res);
+}
+''');
+  }
+
   Future<void> test_fragmentExpression() async {
     await indexTestUnit('''
 void f() {
@@ -830,6 +936,32 @@ void f() {
 ''');
   }
 
+  // Enabling the lint should not impact the result -- which is keeping the type
+  // in the extracted local.
+  Future<void> test_lint_alwaysSpecifyTypes_dotShorthand() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.always_specify_types],
+    );
+    await indexTestUnit('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  fn(.a);
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  A res = .a;
+  fn(res);
+}
+''');
+  }
+
   Future<void> test_lint_alwaysSpecifyTypes_final() async {
     createAnalysisOptionsFile(
       lints: [LintNames.always_specify_types, LintNames.prefer_final_locals],
@@ -912,6 +1044,74 @@ void f() {
 void f() {
   final res = 1 + 2;
   print(res);
+}
+''');
+  }
+
+  Future<void> test_lint_preferFinalLocals_const() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.prefer_final_locals],
+    );
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const a = A.a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const res = A.a;
+  const a = res;
+}
+''');
+  }
+
+  Future<void> test_lint_preferFinalLocals_dotShorthand() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.prefer_final_locals],
+    );
+    await indexTestUnit('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  fn(.a);
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  final A res = .a;
+  fn(res);
+}
+''');
+  }
+
+  Future<void> test_lint_preferFinalLocals_dotShorthand_const() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.prefer_final_locals],
+    );
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const A a = .a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const A res = .a;
+  const A a = res;
 }
 ''');
   }
