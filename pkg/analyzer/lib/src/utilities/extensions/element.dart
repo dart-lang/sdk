@@ -66,7 +66,7 @@ extension CompilationUnitElementImplExtension on LibraryFragmentImpl {
     var current = this;
     while (true) {
       result.add(current);
-      if (current.enclosingElement case var enclosing?) {
+      if (current.enclosingFragment case var enclosing?) {
         current = enclosing;
       } else {
         break;

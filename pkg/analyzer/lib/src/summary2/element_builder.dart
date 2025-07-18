@@ -420,7 +420,7 @@ class ElementBuilder {
     FragmentImpl? lastFragment,
     MethodFragmentImpl fragment,
   ) {
-    var instanceFragment = fragment.enclosingFragment as InstanceFragmentImpl;
+    var instanceFragment = fragment.enclosingFragment;
     instanceFragment.addMethod(fragment);
 
     if (lastFragment is MethodFragmentImpl && fragment.isAugmentation) {
@@ -1044,7 +1044,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       );
       _linker.elementNodes[field] = variableDeclaration;
 
-      field.enclosingElement = fragment;
+      field.enclosingFragment = fragment;
       _libraryBuilder.addFragmentChild(fragment, field);
 
       AstNodeImpl.linkNodeTokens(initializer);
@@ -1107,7 +1107,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     );
     _linker.elementNodes[valuesField] = variableDeclaration;
 
-    valuesField.enclosingElement = fragment;
+    valuesField.enclosingFragment = fragment;
     _libraryBuilder.addFragmentChild(fragment, valuesField);
 
     _libraryBuilder.implicitEnumNodes[fragment] = ImplicitEnumNodes(
@@ -1254,7 +1254,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       _linker.elementNodes[fragment] = variable;
 
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement = parentFragment;
+      fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
     }
     _buildType(node.fields.type);
@@ -1328,7 +1328,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       getterFragment.isAugmentation = node.augmentKeyword != null;
       getterFragment.isStatic = true;
 
-      getterFragment.enclosingElement = _unitElement;
+      getterFragment.enclosingFragment = _unitElement;
       executableFragment = getterFragment;
 
       _libraryBuilder.addTopFragment(_unitElement, getterFragment);
@@ -1340,7 +1340,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       setterFragment.isAugmentation = node.augmentKeyword != null;
       setterFragment.isStatic = true;
 
-      setterFragment.enclosingElement = _unitElement;
+      setterFragment.enclosingFragment = _unitElement;
       executableFragment = setterFragment;
 
       _libraryBuilder.addTopFragment(_unitElement, setterFragment);
@@ -1563,7 +1563,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement = parentFragment;
+      fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
 
       executableFragment = fragment;
@@ -1578,7 +1578,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement = parentFragment;
+      fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
 
       executableFragment = fragment;
@@ -1603,7 +1603,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
-      fragment.enclosingElement = parentFragment;
+      fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
 
       executableFragment = fragment;
@@ -1911,7 +1911,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     representation.fieldFragment = fieldFragment;
     _linker.elementNodes[fieldFragment] = representation;
 
-    fieldFragment.enclosingElement = extensionFragment;
+    fieldFragment.enclosingFragment = extensionFragment;
     _libraryBuilder.addFragmentChild(extensionFragment, fieldFragment);
 
     var formalParameterElement =

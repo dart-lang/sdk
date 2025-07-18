@@ -143,7 +143,7 @@ class LibraryBuilder {
   }
 
   void addTopFragment(LibraryFragmentImpl parent, FragmentImpl fragment) {
-    fragment.enclosingElement = parent;
+    fragment.enclosingFragment = parent;
     (_topFragments[parent] ??= []).add(fragment);
   }
 
@@ -629,12 +629,12 @@ class LibraryBuilder {
     required bool isDeferred,
   }) {
     var fragment = PrefixFragmentImpl(
-      enclosingFragment: libraryFragment,
       name: unlinkedName?.name,
       firstTokenOffset: null,
       nameOffset: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;
+    fragment.enclosingFragment = libraryFragment;
 
     var refName = getReferenceName(unlinkedName?.name);
     var reference = this.reference

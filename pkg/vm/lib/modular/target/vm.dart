@@ -173,14 +173,6 @@ class VmTarget extends Target {
     void Function(String msg)? logger,
     ChangedStructureNotifier? changedStructureNotifier,
   }) {
-    deeply_immutable.validateLibraries(
-      component,
-      libraries,
-      coreTypes,
-      diagnosticReporter,
-    );
-    logger?.call("Validated deeply immutable");
-
     transformMixins.transformLibraries(
       this,
       coreTypes,
@@ -234,6 +226,14 @@ class VmTarget extends Target {
       );
       logger?.call("Transformed ffi use sites");
     }
+
+    deeply_immutable.validateLibraries(
+      component,
+      libraries,
+      coreTypes,
+      diagnosticReporter,
+    );
+    logger?.call("Validated deeply immutable");
 
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformLibraries(
