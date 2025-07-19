@@ -7,7 +7,6 @@ import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
@@ -187,10 +186,9 @@ extension on InvocationExpressionImpl {
       _ => null,
     };
 
-    return switch (element) {
-      FragmentedAnnotatableElementMixin(:var metadata) =>
-        metadata.hasWidgetFactory,
-      _ => false,
-    };
+    if (element case Annotatable annotatable) {
+      return annotatable.metadata.hasWidgetFactory;
+    }
+    return false;
   }
 }
