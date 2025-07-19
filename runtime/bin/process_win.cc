@@ -585,7 +585,7 @@ class ProcessStarter {
     return 0;
   }
 
-  int StartForExec() {
+  int StartForExec(HANDLE hjob) {
     ASSERT(mode_ == kInheritStdio);
     ASSERT(Process::ModeIsAttached(mode_));
     ASSERT(!Process::ModeHasStdio(mode_));
@@ -642,13 +642,19 @@ class ProcessStarter {
         reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
 
     if (result == 0) {
-      return SetOsErrorMessage(os_error_message_);
+      return CleanupAndReturnError();
     }
     child_process_handle_ = process_info.hProcess;
     CloseHandle(process_info.hThread);
     CloseHandle(stdin_handle);
     CloseHandle(stdout_handle);
     CloseHandle(stderr_handle);
+
+    // Put this new process into the job object of the parent so that it
+    // is killed when the parent is killed.
+    if (!AssignProcessToJobObject(hjob, child_process_handle_)) {
+      return CleanupAndReturnError();
+    }
 
     // Return process id.
     *id_ = process_info.dwProcessId;
@@ -978,7 +984,8 @@ int Process::Exec(Namespace* namespc,
     f.Printf("Process::Exec - CreateJobObject failed %d\n", GetLastError());
     return -1;
   }
-  JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
+  JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = {
+      {{{0, 0}}, {{0, 0}}, 0, 0, 0, 0, 0, 0, 0}, {0}, 0, 0, 0, 0};
   DWORD qresult;
   if (!QueryInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
                                  sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION),
@@ -988,7 +995,13 @@ int Process::Exec(Namespace* namespc,
              GetLastError());
     return -1;
   }
-  info.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+  // Ensure that a child process that adds itself to this job object will
+  // be killed when the parent dies and child processes that do not add
+  // themselves to this job object will not get killed when the parent
+  // dies.
+  info.BasicLimitInformation.LimitFlags |=
+      (JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE |
+       JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK);
   if (!SetInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
                                sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION))) {
     BufferFormatter f(errmsg, errmsg_len);
@@ -1019,7 +1032,7 @@ int Process::Exec(Namespace* namespc,
   ProcessStarter starter(path, &(arguments[1]), (arguments_length - 1),
                          working_directory, nullptr, 0, kInheritStdio, nullptr,
                          nullptr, nullptr, &pid, nullptr, &os_error_message);
-  int result = starter.StartForExec();
+  int result = starter.StartForExec(hjob);
   if (result != 0) {
     BufferFormatter f(errmsg, errmsg_len);
     f.Printf("Process::Exec - %s\n", os_error_message);
