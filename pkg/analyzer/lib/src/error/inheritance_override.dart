@@ -644,7 +644,7 @@ class _ClassVerifier {
     if (implementsDartCoreEnum) {
       var classElement = this.classElement;
       if (classElement is ClassFragmentImpl &&
-              !classElement.isDartCoreEnumImpl ||
+              !classElement.element.isDartCoreEnumImpl ||
           classElement is EnumFragmentImpl ||
           classElement is MixinFragmentImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {

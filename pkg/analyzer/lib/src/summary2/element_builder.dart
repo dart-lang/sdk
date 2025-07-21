@@ -384,6 +384,16 @@ class ElementBuilder {
     );
     instanceElement.addGetter(getterElement);
 
+    // `class Enum {}` in `dart:core` declares `int get index` as abstract.
+    // But the specification says that practically a different class
+    // implementing `Enum` is used as a superclass, so `index` should be
+    // considered to have non-abstract implementation.
+    if (instanceElement is ClassElementImpl &&
+        instanceElement.isDartCoreEnum &&
+        getterFragment.name == 'index') {
+      getterFragment.isAbstract = false;
+    }
+
     // If `getter` is already set, this is a compile-time error.
     // Reset to `null`, so create a new variable.
     if (lastFieldElement != null) {
@@ -1540,7 +1550,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var nameToken = node.name;
-    var name = nameToken.lexeme;
 
     Reference reference;
     ExecutableFragmentImpl executableFragment;
@@ -1552,14 +1561,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isAbstract = node.isAbstract;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
-
-      // `class Enum {}` in `dart:core` declares `int get index` as abstract.
-      // But the specification says that practically a different class
-      // implementing `Enum` is used as a superclass, so `index` should be
-      // considered to have non-abstract implementation.
-      if (_enclosingContext.isDartCoreEnum && name == 'index') {
-        fragment.isAbstract = false;
-      }
 
       reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
@@ -1583,16 +1584,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
       executableFragment = fragment;
     } else {
-      var isUnaryMinus = false;
-      if (nameToken.lexeme == '-') {
-        var parameters = node.parameters;
-        isUnaryMinus = parameters != null && parameters.parameters.isEmpty;
-      }
-
-      if (isUnaryMinus) {
-        name = 'unary-';
-      }
-
       var fragment = MethodFragmentImpl(
         name: _getFragmentName(nameToken),
         firstTokenOffset: null,
@@ -1994,11 +1985,6 @@ class _EnclosingContext {
     required this.fragment,
     this.hasDefaultFormalParameters = false,
   });
-
-  bool get isDartCoreEnum {
-    var fragment = this.fragment;
-    return fragment is ClassFragmentImpl && fragment.isDartCoreEnum;
-  }
 
   void addFunction(String name, TopLevelFunctionFragmentImpl fragment) {}
 

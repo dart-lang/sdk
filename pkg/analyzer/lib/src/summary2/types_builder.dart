@@ -124,7 +124,7 @@ class TypesBuilder {
       if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
         element.supertype = type;
       }
-    } else if (element.isDartCoreObject) {
+    } else if (element.element.isDartCoreObject) {
       element.setModifier(Modifier.DART_CORE_OBJECT, true);
     }
 
@@ -300,8 +300,9 @@ class TypesBuilder {
 
   void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
 
-    var typeSystem = fragment.library.typeSystem;
+    var typeSystem = element.library.typeSystem;
     var interfaces =
         node.implementsClause?.interfaces
             .map((e) => e.type)
@@ -471,7 +472,7 @@ class _MixinInference {
     this.element,
     this.featureSet, {
     required this.typeSystemOperations,
-  }) : typeSystem = element.library.typeSystem,
+  }) : typeSystem = element.element.library.typeSystem,
        classType = element.element.thisType {
     interfacesMerger = InterfacesMerger(typeSystem);
     interfacesMerger.addWithSupertypes(element.supertype);
@@ -663,20 +664,20 @@ class _MixinsInference {
     var element = declaration.element;
     element.mixinInferenceCallback = _callbackWhenLoop;
 
-    var featureSet = element.library.featureSet;
+    var library = element.element.library;
     var declarationMixins = <InterfaceTypeImpl>[];
 
     try {
       // Casts aren't relevant for mixin inference.
       var typeSystemOperations = TypeSystemOperations(
-        element.library.typeSystem,
+        library.typeSystem,
         strictCasts: false,
       );
 
       if (declaration.withClause case var withClause?) {
         var inference = _MixinInference(
           element,
-          featureSet,
+          library.featureSet,
           typeSystemOperations: typeSystemOperations,
         );
         var inferred = inference.perform(withClause);
@@ -687,7 +688,7 @@ class _MixinsInference {
       for (var augmentation in declaration.augmentations) {
         var inference = _MixinInference(
           element,
-          featureSet,
+          library.featureSet,
           typeSystemOperations: typeSystemOperations,
         );
         inference.addTypes(
@@ -710,8 +711,8 @@ class _MixinsInference {
   /// hierarchies for all classes being linked, indiscriminately.
   void _resetHierarchies() {
     for (var declaration in _declarations.values) {
-      var element = declaration.element;
-      element.library.session.classHierarchy.remove(element.asElement2);
+      var element = declaration.element.element;
+      element.library.session.classHierarchy.remove(element);
     }
   }
 }

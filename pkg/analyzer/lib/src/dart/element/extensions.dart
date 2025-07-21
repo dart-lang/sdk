@@ -232,7 +232,7 @@ extension RecordTypeExtension on RecordType {
   }
 }
 
-extension TypeParameterElementImplExtension on TypeParameterFragmentImpl {
+extension TypeParameterElementImplExtension on TypeParameterElementImpl {
   bool get isWildcardVariable {
     return name == '_' && library.hasWildcardVariablesFeatureEnabled;
   }

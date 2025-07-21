@@ -388,7 +388,7 @@ class LibraryBuilder {
     for (var interfaceFragment in element.topLevelElements) {
       switch (interfaceFragment) {
         case ClassFragmentImpl():
-          if (interfaceFragment.isDartCoreObject) continue;
+          if (interfaceFragment.element.isDartCoreObject) continue;
           if (interfaceFragment.supertype == null) {
             shouldResetClassHierarchies = true;
             interfaceFragment.supertype = objectType;
