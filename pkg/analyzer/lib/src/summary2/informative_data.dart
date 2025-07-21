@@ -354,7 +354,6 @@ class InformativeDataApplier {
     representationField.deferConstantOffsets(infoRep.fieldConstantOffsets, (
       applier,
     ) {
-      _copyOffsetsIntoSyntheticGetterSetter(representationField);
       applier.applyToMetadata(representationField.metadata);
     });
 
@@ -402,7 +401,6 @@ class InformativeDataApplier {
       element.documentationComment = info.documentationComment;
 
       element.deferConstantOffsets(info.constantOffsets, (applier) {
-        _copyOffsetsIntoSyntheticGetterSetter(element);
         applier.applyToMetadata(element.metadata);
         applier.applyToConstantInitializer(element);
       });
@@ -575,7 +573,6 @@ class InformativeDataApplier {
     element.documentationComment = info.documentationComment;
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
-      _copyOffsetsIntoSyntheticGetterSetter(element);
       applier.applyToMetadata(element.metadata);
       applier.applyToConstantInitializer(element);
     });
@@ -590,25 +587,6 @@ class InformativeDataApplier {
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameOffset = info.nameOffset2;
     });
-  }
-
-  void _copyOffsetsIntoSyntheticGetterSetter(
-    PropertyInducingFragmentImpl element,
-  ) {
-    // TODO(scheglov): can we move this sooner than applying constants?
-    assert(!element.isSynthetic);
-
-    var getterFragment = element.element.getter?.firstFragment;
-    if (getterFragment != null && getterFragment.isSynthetic) {
-      getterFragment.firstTokenOffset = element.firstTokenOffset;
-    }
-
-    var setterFragment = element.element.setter?.firstFragment;
-    if (setterFragment != null && setterFragment.isSynthetic) {
-      setterFragment.firstTokenOffset = element.firstTokenOffset;
-      setterFragment.valueFormalParameter?.firstTokenOffset =
-          element.firstTokenOffset;
-    }
   }
 
   /// Either defer, or eagerly invoke [callback].
