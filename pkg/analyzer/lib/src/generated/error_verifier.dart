@@ -2247,7 +2247,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // method declared in the enclosing class vs. inherited getter/setter
     for (var method in fragment.methods) {
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
 

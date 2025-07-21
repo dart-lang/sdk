@@ -3688,12 +3688,6 @@ abstract class FragmentImpl implements Fragment {
     return asElement2?.sinceSdkVersion;
   }
 
-  /// Return the source associated with this target, or `null` if this target is
-  /// not associated with a source.
-  Source? get source {
-    return enclosingFragment?.source;
-  }
-
   /// Whether to include the [nameOffset] in [identifier] to disambiguate
   /// elements that might otherwise have the same identifier.
   bool get _includeNameOffsetInIdentifier {
@@ -6127,7 +6121,6 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
 class LibraryFragmentImpl extends _ExistingFragmentImpl
     with DeferredResolutionReadingMixin
     implements LibraryFragment {
-  /// The source that corresponds to this compilation unit.
   @override
   final Source source;
 
@@ -8218,9 +8211,6 @@ abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
   set hasInitializer(bool hasInitializer) {
     setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
   }
-
-  @override
-  Source get source => enclosingFragment.source!;
 }
 
 class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
@@ -10371,9 +10361,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
 abstract class _ExistingFragmentImpl extends FragmentImpl {
   _ExistingFragmentImpl({required super.firstTokenOffset});
-
-  @override
-  Source get source => enclosingFragment!.source!;
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
