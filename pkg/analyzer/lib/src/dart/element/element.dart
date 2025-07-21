@@ -2500,10 +2500,6 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
     }
     _parameters = parameters;
   }
-
-  List<FormalParameterFragmentImpl> get parameters_unresolved {
-    return _parameters;
-  }
 }
 
 class ExtensionElementImpl extends InstanceElementImpl
@@ -6367,10 +6363,6 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   @override
   List<LibraryExport> get libraryExports2 => libraryExports;
 
-  List<LibraryExportImpl> get libraryExports_unresolved {
-    return _libraryExports;
-  }
-
   @override
   LibraryFragment get libraryFragment => this;
 
@@ -6390,10 +6382,6 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   @Deprecated('Use libraryImports instead')
   @override
   List<LibraryImport> get libraryImports2 => libraryImports;
-
-  List<LibraryImportImpl> get libraryImports_unresolved {
-    return _libraryImports;
-  }
 
   @override
   List<MixinFragmentImpl> get mixins => _mixins;
@@ -9756,10 +9744,6 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
     aliasedElement?.enclosingFragment = this;
   }
 
-  FragmentImpl? get aliasedElement_unresolved {
-    return _aliasedElement;
-  }
-
   @override
   List<Fragment> get children => const [];
 
@@ -10153,10 +10137,6 @@ mixin TypeParameterizedFragmentMixin on FragmentImpl
   @Deprecated('Use typeParameters instead')
   @override
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
-
-  List<TypeParameterFragmentImpl> get typeParameters_unresolved {
-    return _typeParameters;
-  }
 
   void _ensureReadResolution();
 }

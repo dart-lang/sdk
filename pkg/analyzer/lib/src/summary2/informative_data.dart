@@ -69,8 +69,10 @@ class InformativeDataApplier {
     unitElement.setCodeRange(unitInfo.codeOffset, unitInfo.codeLength);
     unitElement.lineInfo = LineInfo(unitInfo.lineStarts);
 
-    _applyToImports(unitElement.libraryImports_unresolved, unitInfo);
-    _applyToExports(unitElement.libraryExports_unresolved, unitInfo);
+    unitElement.withoutLoadingResolution(() {
+      _applyToImports(unitElement.libraryImports, unitInfo);
+      _applyToExports(unitElement.libraryExports, unitInfo);
+    });
 
     unitElement.deferConstantOffsets(unitInfo.libraryConstantOffsets, (
       applier,
@@ -169,12 +171,15 @@ class InformativeDataApplier {
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
-      _applyToFormalParameters(element.parameters_unresolved, info.parameters);
+
+      element.withoutLoadingResolution(() {
+        _applyToFormalParameters(element.parameters, info.parameters);
+      });
 
       element.deferConstantOffsets(info.constantOffsets, (applier) {
         applier.applyToMetadata(element.metadata);
         applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.parameters_unresolved);
+        applier.applyToFormalParameters(element.parameters);
       });
     });
   }
@@ -187,10 +192,10 @@ class InformativeDataApplier {
     element.firstTokenOffset = info.firstTokenOffset;
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
+
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+    });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
@@ -216,10 +221,10 @@ class InformativeDataApplier {
     element.firstTokenOffset = info.firstTokenOffset;
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
+
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+    });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
@@ -260,7 +265,9 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
 
-      _applyToFormalParameters(element.parameters_unresolved, info.parameters);
+      element.withoutLoadingResolution(() {
+        _applyToFormalParameters(element.parameters, info.parameters);
+      });
 
       element.deferConstantOffsets(info.constantOffsets, (applier) {
         applier.applyToMetadata(element.metadata);
@@ -279,7 +286,6 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
-    // TODO(scheglov): use it everywhere
     element.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToConstructors(element.constructors, info.constructors);
@@ -310,10 +316,11 @@ class InformativeDataApplier {
     element.firstTokenOffset = info.firstTokenOffset;
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
+
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+    });
+
     _applyToFields(element.fields, info.fields);
     _applyToAccessors(element.getters, info.getters);
     _applyToAccessors(element.setters, info.setters);
@@ -333,10 +340,10 @@ class InformativeDataApplier {
     element.firstTokenOffset = info.firstTokenOffset;
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
+
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+    });
 
     var representationField = element.fields.first;
     var infoRep = info.representation;
@@ -360,14 +367,12 @@ class InformativeDataApplier {
       primaryConstructor.nameOffset = infoRep.constructorNameOffset2;
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
 
-      var primaryConstructorParameter =
-          primaryConstructor.parameters_unresolved.first;
-      primaryConstructorParameter.firstTokenOffset = infoRep.firstTokenOffset;
-      primaryConstructorParameter.nameOffset = infoRep.fieldNameOffset2;
-      primaryConstructorParameter.setCodeRange(
-        infoRep.codeOffset,
-        infoRep.codeLength,
-      );
+      primaryConstructor.withoutLoadingResolution(() {
+        var representation = primaryConstructor.parameters.first;
+        representation.firstTokenOffset = infoRep.firstTokenOffset;
+        representation.nameOffset = infoRep.fieldNameOffset2;
+        representation.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
+      });
 
       var restFields = element.fields.skip(1).toList();
       _applyToFields(restFields, info.fields);
@@ -425,11 +430,11 @@ class InformativeDataApplier {
     element.firstTokenOffset = info.firstTokenOffset;
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
-    _applyToFormalParameters(element.parameters_unresolved, info.parameters);
+
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      _applyToFormalParameters(element.parameters, info.parameters);
+    });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
@@ -446,14 +451,13 @@ class InformativeDataApplier {
     element.firstTokenOffset = info.firstTokenOffset;
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
-    if (element.aliasedElement_unresolved
-        case GenericFunctionTypeFragmentImpl aliased) {
-      _applyToFormalParameters(aliased.parameters, info.parameters);
-    }
+
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
+        _applyToFormalParameters(aliased.parameters, info.parameters);
+      }
+    });
 
     _setupApplyConstantOffsetsForTypeAlias(
       element,
@@ -470,21 +474,20 @@ class InformativeDataApplier {
     element.firstTokenOffset = info.firstTokenOffset;
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
-    if (element.aliasedElement_unresolved
-        case GenericFunctionTypeFragmentImpl aliased) {
-      _applyToTypeParameters(
-        aliased.typeParameters,
-        info.aliasedTypeParameters,
-      );
-      _applyToFormalParameters(
-        aliased.parameters,
-        info.aliasedFormalParameters,
-      );
-    }
+
+    element.withoutLoadingResolution(() {
+      _applyToTypeParameters(element.typeParameters, info.typeParameters);
+      if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
+        _applyToTypeParameters(
+          aliased.typeParameters,
+          info.aliasedTypeParameters,
+        );
+        _applyToFormalParameters(
+          aliased.parameters,
+          info.aliasedFormalParameters,
+        );
+      }
+    });
 
     _setupApplyConstantOffsetsForTypeAlias(
       element,
@@ -524,11 +527,11 @@ class InformativeDataApplier {
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
-      _applyToTypeParameters(
-        element.typeParameters_unresolved,
-        info.typeParameters,
-      );
-      _applyToFormalParameters(element.parameters_unresolved, info.parameters);
+
+      element.withoutLoadingResolution(() {
+        _applyToTypeParameters(element.typeParameters, info.typeParameters);
+        _applyToFormalParameters(element.parameters, info.parameters);
+      });
 
       element.deferConstantOffsets(info.constantOffsets, (applier) {
         applier.applyToMetadata(element.metadata);
@@ -547,7 +550,6 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
-    // TODO(scheglov): use it everywhere
     element.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       _applyToConstructors(element.constructors, info.constructors);
