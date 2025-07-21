@@ -162,6 +162,7 @@ class FindElement2 extends _FindElementBase {
   }
 
   @override
+  // TODO(fshcheglov): rename to formalParameter()
   FormalParameterElement parameter(String name) {
     FormalParameterElement? result;
 

@@ -1795,6 +1795,20 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
+
+  /// Append a textual representation to the given [builder].
+  void appendTo(ElementDisplayStringBuilder builder);
+
+  String displayString() {
+    var builder = ElementDisplayStringBuilder(preferTypeAlias: false);
+    appendTo(builder);
+    return builder.toString();
+  }
+
+  @override
+  String toString() {
+    return displayString();
+  }
 }
 
 abstract class ElementImpl implements Element {
@@ -6126,6 +6140,11 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
   LibraryElementImpl? get exportedLibrary2 {
     return exportedLibrary;
   }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLibraryExport(this);
+  }
 }
 
 /// A concrete implementation of [LibraryFragment].
@@ -6706,6 +6725,11 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
   @Deprecated('Use prefix instead')
   @override
   PrefixFragment? get prefix2 => prefix;
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLibraryImport(this);
+  }
 }
 
 /// The provider for the lazily created `loadLibrary` function.
@@ -8225,6 +8249,11 @@ class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
       return uri.libraryFragment;
     }
     return null;
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writePartInclude(this);
   }
 }
 

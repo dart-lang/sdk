@@ -3233,7 +3233,7 @@ class B<T2, U2> {
     assertType(typeName.type, 'A<T2, U2>');
 
     var constructorMember = redirected.element!;
-    expect(constructorMember.displayString(), 'A<T2, U2> A.named()');
+    expect(constructorMember.displayString(), 'A<T2, U2>.named()');
     expect(redirected.name!.element, constructorMember);
   }
 
@@ -3266,7 +3266,7 @@ class B<T2, U2> {
     assertType(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
-    expect(redirected.element!.displayString(), 'A<T2, U2> A()');
+    expect(redirected.element!.displayString(), 'A<T2, U2>()');
   }
 
   test_redirectingConstructor_propagation() async {
