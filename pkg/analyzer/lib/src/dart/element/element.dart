@@ -2358,7 +2358,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   }
 }
 
-abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
+abstract class ExecutableFragmentImpl extends FragmentImpl
     with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
@@ -3804,7 +3804,7 @@ abstract class FunctionTypedElementImpl extends ElementImpl
 /// Common internal interface shared by elements whose type is a function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class FunctionTypedFragmentImpl implements _ExistingFragmentImpl {
+abstract class FunctionTypedFragmentImpl implements FragmentImpl {
   /// The parameters defined by this executable element.
   List<FormalParameterFragmentImpl> get parameters;
 
@@ -3916,7 +3916,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
 /// The element used for a generic function type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class GenericFunctionTypeFragmentImpl extends _ExistingFragmentImpl
+class GenericFunctionTypeFragmentImpl extends FragmentImpl
     with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements FunctionTypedFragmentImpl, GenericFunctionTypeFragment {
   /// The declared return type of the function.
@@ -4611,7 +4611,7 @@ recorded above.
   }
 }
 
-abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
+abstract class InstanceFragmentImpl extends FragmentImpl
     with
         DeferredMembersReadingMixin,
         DeferredResolutionReadingMixin,
@@ -6148,7 +6148,7 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
 }
 
 /// A concrete implementation of [LibraryFragment].
-class LibraryFragmentImpl extends _ExistingFragmentImpl
+class LibraryFragmentImpl extends FragmentImpl
     with DeferredResolutionReadingMixin
     implements LibraryFragment {
   @override
@@ -9731,7 +9731,7 @@ class TypeAliasElementImpl extends ElementImpl
 /// An element that represents [GenericTypeAlias].
 ///
 /// Clients may not extend, implement or mix-in this class.
-class TypeAliasFragmentImpl extends _ExistingFragmentImpl
+class TypeAliasFragmentImpl extends FragmentImpl
     with DeferredResolutionReadingMixin, TypeParameterizedFragmentMixin
     implements TypeAliasFragment {
   @override
@@ -10127,10 +10127,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
 
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedFragmentMixin on FragmentImpl
-    implements
-        _ExistingFragmentImpl,
-        AnnotatableFragmentImpl,
-        TypeParameterizedFragment {
+    implements AnnotatableFragmentImpl, TypeParameterizedFragment {
   List<TypeParameterFragmentImpl> _typeParameters = const [];
 
   @override
@@ -10381,10 +10378,6 @@ abstract class VariableFragmentImpl extends FragmentImpl
     }
     throw StateError('($runtimeType) $this');
   }
-}
-
-abstract class _ExistingFragmentImpl extends FragmentImpl {
-  _ExistingFragmentImpl({required super.firstTokenOffset});
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
