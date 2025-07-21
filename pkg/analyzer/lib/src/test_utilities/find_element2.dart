@@ -207,13 +207,6 @@ class FindElement2 extends _FindElementBase {
       findInExecutables(extension_.methods);
     }
 
-    for (var alias in libraryElement.typeAliases) {
-      var aliasedElement = alias.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        findIn(aliasedElement.formalParameters);
-      }
-    }
-
     unit.accept(
       FunctionAstVisitor(
         functionExpression: (node, local) {

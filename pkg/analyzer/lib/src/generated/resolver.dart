@@ -1761,7 +1761,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
-     if (node is IndexExpression) {
+    if (node is IndexExpression) {
       if (element is MethodElement2OrMember) {
         var parameters = element.formalParameters;
         if (parameters.length == 2) {
@@ -5149,12 +5149,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = parent.declaredFragment!.element;
       nameScope = FormalParameterScope(nameScope, element.formalParameters);
     } else if (parent is FunctionTypeAlias) {
-      var aliasedElement = parent.declaredFragment!.element.aliasedElement;
-      var functionElement = aliasedElement as GenericFunctionTypeElement;
-      nameScope = FormalParameterScope(
-        nameScope,
-        functionElement.formalParameters,
-      );
+      var scope = nameScope = LocalScope(nameScope);
+      scope.addFormalParameters(parent.parameters);
     } else if (parent is MethodDeclaration) {
       var element = parent.declaredFragment!.element;
       nameScope = FormalParameterScope(nameScope, element.formalParameters);
@@ -5293,12 +5289,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.typeParameters?.accept(this);
       node.type.accept(this);
 
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElementImpl) {
-        nameScope = FormalParameterScope(
-          TypeParameterScope(nameScope, aliasedElement.typeParameters),
-          aliasedElement.formalParameters,
-        );
+      if (node.type case GenericFunctionType functionTypeNode) {
+        if (functionTypeNode.typeParameters case var typeParameterList?) {
+          nameScope = TypeParameterScope(
+            nameScope,
+            typeParameterList.typeParameters
+                .map((n) => n.declaredFragment!.element)
+                .toList(),
+          );
+        }
+        var scope = nameScope = LocalScope(nameScope);
+        scope.addFormalParameters(functionTypeNode.parameters);
       }
       _visitDocumentationComment(node.documentationComment);
     } finally {
@@ -6098,4 +6099,12 @@ extension on Element {
       this is LocalFunctionElement &&
       name == '_' &&
       library.hasWildcardVariablesFeatureEnabled;
+}
+
+extension on LocalScope {
+  void addFormalParameters(FormalParameterList formalParameterList) {
+    for (var formalParameter in formalParameterList.parameters) {
+      add(formalParameter.declaredFragment!.element);
+    }
+  }
 }
