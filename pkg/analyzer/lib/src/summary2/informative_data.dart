@@ -26,12 +26,44 @@ Uint8List writeUnitInformative(CompilationUnit unit) {
 }
 
 class InformativeDataApplier {
-  final LinkedElementFactory _elementFactory;
-  final Map<Uri, Uint8List> _unitsInformativeBytes2;
+  void applyFromNode(LibraryFragmentImpl fragment, CompilationUnit node) {
+    var unitInfo = _InfoBuilder().build(node);
+    _applyFromInfo(fragment, unitInfo);
 
-  InformativeDataApplier(this._elementFactory, this._unitsInformativeBytes2);
+    // TODO(scheglov): generalize
+    for (var classFragment in fragment.classes) {
+      classFragment.applyMembersConstantOffsets?.call();
+      classFragment.applyMembersConstantOffsets = null;
+    }
+  }
 
-  void applyFromInfoUnit(LibraryFragmentImpl unitElement, _InfoUnit unitInfo) {
+  void applyToLibrary(
+    LinkedElementFactory elementFactory,
+    LibraryElementImpl libraryElement,
+    Map<Uri, Uint8List> unitsInformativeBytes,
+  ) {
+    if (elementFactory.isApplyingInformativeData) {
+      throw StateError('Unexpected recursion.');
+    }
+    elementFactory.isApplyingInformativeData = true;
+
+    for (var unitElement in libraryElement.units) {
+      var uri = unitElement.source.uri;
+      if (unitsInformativeBytes[uri] case var infoBytes?) {
+        _applyFromBytes(unitElement, infoBytes);
+      }
+    }
+
+    elementFactory.isApplyingInformativeData = false;
+  }
+
+  void _applyFromBytes(LibraryFragmentImpl unitElement, Uint8List infoBytes) {
+    var unitReader = SummaryDataReader(infoBytes);
+    var unitInfo = _InfoUnit.read(unitReader);
+    _applyFromInfo(unitElement, unitInfo);
+  }
+
+  void _applyFromInfo(LibraryFragmentImpl unitElement, _InfoUnit unitInfo) {
     var libraryElement = unitElement.library;
     if (identical(libraryElement.definingCompilationUnit, unitElement)) {
       _applyToLibrary(libraryElement, unitInfo);
@@ -129,43 +161,6 @@ class InformativeDataApplier {
       unitInfo.genericTypeAliases,
       _applyToGenericTypeAlias,
     );
-  }
-
-  void applyFromUnit(LibraryFragmentImpl unitElement, CompilationUnit unit) {
-    var unitInfo = _InfoBuilder().build(unit);
-    applyFromInfoUnit(unitElement, unitInfo);
-
-    // TODO(scheglov): generalize
-    for (var classFragment in unitElement.classes) {
-      classFragment.applyMembersConstantOffsets?.call();
-      classFragment.applyMembersConstantOffsets = null;
-    }
-  }
-
-  void applyTo(LibraryElementImpl libraryElement) {
-    if (_elementFactory.isApplyingInformativeData) {
-      throw StateError('Unexpected recursion.');
-    }
-    _elementFactory.isApplyingInformativeData = true;
-
-    var unitElements = libraryElement.units;
-    for (var i = 0; i < unitElements.length; i++) {
-      var unitElement = unitElements[i];
-      var unitInfoBytes = _getInfoUnitBytes(unitElement);
-      if (unitInfoBytes != null) {
-        applyToUnit(unitElement, unitInfoBytes);
-      } else {
-        unitElement.lineInfo = LineInfo([0]);
-      }
-    }
-
-    _elementFactory.isApplyingInformativeData = false;
-  }
-
-  void applyToUnit(LibraryFragmentImpl unitElement, Uint8List unitInfoBytes) {
-    var unitReader = SummaryDataReader(unitInfoBytes);
-    var unitInfo = _InfoUnit.read(unitReader);
-    applyFromInfoUnit(unitElement, unitInfo);
   }
 
   void _applyToAccessors(
@@ -615,11 +610,6 @@ class InformativeDataApplier {
       setterFragment.valueFormalParameter?.firstTokenOffset =
           element.firstTokenOffset;
     }
-  }
-
-  Uint8List? _getInfoUnitBytes(LibraryFragmentImpl element) {
-    var uri = element.source.uri;
-    return _unitsInformativeBytes2[uri];
   }
 
   void _setupApplyConstantOffsetsForTypeAlias(

@@ -199,12 +199,8 @@ class LibraryBuilder {
       parentChildFragments: _parentChildFragments,
     );
 
-    var informativeDataApplier = InformativeDataApplier(
-      linker.elementFactory,
-      {}, // No bytes from summary, we are building from source.
-    );
     for (var linkingUnit in units) {
-      informativeDataApplier.applyFromUnit(
+      InformativeDataApplier().applyFromNode(
         linkingUnit.element,
         linkingUnit.node,
       );

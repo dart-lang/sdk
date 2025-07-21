@@ -217,10 +217,11 @@ class LibraryReader {
 
     _declareDartCoreDynamicNever();
 
-    InformativeDataApplier(
+    InformativeDataApplier().applyToLibrary(
       _elementFactory,
+      _libraryElement,
       _unitsInformativeBytes,
-    ).applyTo(_libraryElement);
+    );
 
     return _libraryElement;
   }
