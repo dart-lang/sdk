@@ -9,35 +9,7 @@ import '../../../../client/completion_driver_test.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DotShorthandPropertyAccessTest);
-    defineReflectiveTests(DotShorthandPropertyAccessExperimentDisabledTest);
   });
-}
-
-@reflectiveTest
-class DotShorthandPropertyAccessExperimentDisabledTest
-    extends AbstractCompletionDriverTest
-    with DotShorthandPropertyAccessExperimentDisabledTestCases {}
-
-mixin DotShorthandPropertyAccessExperimentDisabledTestCases
-    on AbstractCompletionDriverTest {
-  @override
-  List<String> get experiments => [];
-
-  Future<void> test_class() async {
-    allowedIdentifiers = {'getter', 'notStatic'};
-    await computeSuggestions('''
-class C {
-  static C get getter => C();
-  C get notStatic => C();
-}
-void f() {
-  C c = .^
-}
-''');
-    assertResponse(r'''
-suggestions
-''');
-  }
 }
 
 @reflectiveTest

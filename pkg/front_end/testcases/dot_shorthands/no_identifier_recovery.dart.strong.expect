@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dot_shorthands/no_identifier_recovery.dart:2:12: Error: Expected an identifier, but got ';'.
+// Try inserting an identifier before ';'.
+//   var c = .;
+//            ^
+//
+// pkg/front_end/testcases/dot_shorthands/no_identifier_recovery.dart:2:12: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
+//   var c = .;
+//            ^
+//
+import self as self;
+
+static method f() → void {
+  invalid-type c = invalid-expression "pkg/front_end/testcases/dot_shorthands/no_identifier_recovery.dart:2:12: Error: Expected an identifier, but got ''.
+Try inserting an identifier before ''.
+  var c = .;
+           ^";
+}

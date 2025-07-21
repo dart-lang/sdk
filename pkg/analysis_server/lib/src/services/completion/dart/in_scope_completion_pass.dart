@@ -2297,16 +2297,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null && type is! InvalidType) {
         _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       } else {
-        Element? element;
-        if (target.name.isEmpty &&
-            featureSet.isEnabled(Feature.dot_shorthands)) {
-          var contextType = _computeContextType(node);
-          if (contextType == null) return;
-          element = contextType.element;
-        } else {
-          element = target.element;
-        }
-
+        var element = target.element;
         if (element != null) {
           var parent = node.parent;
           var mustBeAssignable =
