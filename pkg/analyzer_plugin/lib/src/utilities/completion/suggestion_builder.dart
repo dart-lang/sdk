@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
@@ -139,13 +140,10 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       var type = element.type;
       return type.getDisplayString();
     } else if (element is TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        var returnType = aliasedElement.returnType;
-        return returnType.getDisplayString();
-      } else {
-        return null;
+      if (element.aliasedType case FunctionType aliasedType) {
+        return aliasedType.returnType.getDisplayString();
       }
+      return null;
     } else {
       return null;
     }

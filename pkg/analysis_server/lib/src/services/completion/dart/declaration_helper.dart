@@ -709,7 +709,7 @@ class DeclarationHelper {
     TypeAliasElement alias,
     ImportData? importData,
   ) {
-    var aliasedElement = alias.aliasedElement;
+    var aliasedElement = alias.aliasedType.element;
     if (aliasedElement is ClassElement) {
       _suggestConstructors(
         aliasedElement.constructors,
