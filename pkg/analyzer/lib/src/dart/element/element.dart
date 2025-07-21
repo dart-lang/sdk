@@ -3676,10 +3676,6 @@ abstract class FragmentImpl implements Fragment {
 
   LibraryElementImpl? get library;
 
-  /// If this target is associated with a library, return the source of the
-  /// library's defining compilation unit; otherwise return `null`.
-  Source? get librarySource => library?.source;
-
   String? get lookupName {
     return name;
   }
@@ -6439,9 +6435,6 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   }
 
   @override
-  Source get librarySource => library.source;
-
-  @override
   List<MixinFragmentImpl> get mixins => _mixins;
 
   /// Set the mixins contained in this compilation unit to the given [mixins].
@@ -8257,8 +8250,7 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 }
 
 /// A [VariableFragmentImpl], which is not a parameter.
-abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl
-    with _HasLibraryMixin {
+abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
   NonParameterVariableFragmentImpl({required super.firstTokenOffset});
@@ -8276,6 +8268,18 @@ abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl
   set hasInitializer(bool hasInitializer) {
     setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
   }
+
+  @override
+  LibraryElementImpl get library {
+    var thisFragment = this as Fragment;
+    var enclosingFragment = thisFragment.enclosingFragment!;
+    var libraryFragment = enclosingFragment.libraryFragment;
+    libraryFragment as LibraryFragmentImpl;
+    return libraryFragment.element;
+  }
+
+  @override
+  Source get source => enclosingFragment.source!;
 }
 
 class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
@@ -10438,12 +10442,9 @@ abstract class VariableFragmentImpl extends FragmentImpl
   }
 }
 
-abstract class _ExistingFragmentImpl extends FragmentImpl
-    with _HasLibraryMixin {
+abstract class _ExistingFragmentImpl extends FragmentImpl {
   _ExistingFragmentImpl({required super.firstTokenOffset});
-}
 
-mixin _HasLibraryMixin on FragmentImpl {
   @override
   LibraryElementImpl get library {
     var thisFragment = this as Fragment;
@@ -10452,9 +10453,6 @@ mixin _HasLibraryMixin on FragmentImpl {
     libraryFragment as LibraryFragmentImpl;
     return libraryFragment.element;
   }
-
-  @override
-  Source get librarySource => library.source;
 
   @override
   Source get source => enclosingFragment!.source!;
