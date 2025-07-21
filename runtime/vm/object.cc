@@ -5410,6 +5410,12 @@ void Class::EnsureDeclarationLoaded() const {
     // Loading of class declaration can be postponed until needed
     // if class comes from bytecode.
     if (is_declared_in_bytecode()) {
+      Thread* thread = Thread::Current();
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      if (is_declaration_loaded()) {
+        return;
+      }
       bytecode::BytecodeReader::LoadClassDeclaration(*this);
       ASSERT(is_declaration_loaded());
       ASSERT(is_type_finalized());

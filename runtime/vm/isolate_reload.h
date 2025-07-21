@@ -327,11 +327,11 @@ class ProgramReloadContext {
 
   void ReloadPhase1AllocateStorageMapsAndCheckpoint();
   void CheckpointClasses();
-  ObjectPtr ReloadPhase2LoadDeltaProgram(std::unique_ptr<DeltaProgram> program,
+  ObjectPtr ReloadPhase2LoadDeltaProgram(DeltaProgram* program,
                                          const String& root_lib_url);
   void ReloadPhase3FinalizeLoading();
   void ReloadPhase4CommitPrepare();
-  ErrorPtr ReloadPhase4CommitFinish();
+  ErrorPtr ReloadPhase4CommitFinish(DeltaProgram* program);
   void ReloadPhase4Rollback();
 
   void CheckpointLibraries();
