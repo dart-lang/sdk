@@ -786,7 +786,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    var fragment = LocalFunctionFragmentImpl.forOffset(
+    var fragment = LocalFunctionFragmentImpl(
+      name: null,
       firstTokenOffset: node.offset,
     );
 
@@ -901,7 +902,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    var fragment = GenericFunctionTypeFragmentImpl.forOffset(
+    var fragment = GenericFunctionTypeFragmentImpl(
       firstTokenOffset: node.offset,
     );
     _unitElement.encloseElement(fragment);

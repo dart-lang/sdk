@@ -1714,7 +1714,7 @@ class ResolutionReader {
       _localElements.length -= typeParameters.length;
 
       var fragment =
-          GenericFunctionTypeFragmentImpl.forOffset(firstTokenOffset: null)
+          GenericFunctionTypeFragmentImpl(firstTokenOffset: null)
             ..typeParameters = typeParameters
             ..parameters = formalParameters
             ..returnType = returnType;

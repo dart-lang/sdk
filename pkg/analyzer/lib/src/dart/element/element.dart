@@ -3779,11 +3779,6 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
   /// [offset].
   FunctionFragmentImpl({required this.name, required super.firstTokenOffset});
 
-  /// Initialize a newly created function element to have no name and the given
-  /// [nameOffset]. This is used for function expressions, that have no name.
-  FunctionFragmentImpl.forOffset({required super.firstTokenOffset})
-    : name = null;
-
   @override
   ExecutableFragmentImpl get declaration => this;
 }
@@ -3936,7 +3931,7 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
-  GenericFunctionTypeFragmentImpl.forOffset({required super.firstTokenOffset});
+  GenericFunctionTypeFragmentImpl({required super.firstTokenOffset});
 
   @override
   List<Fragment> get children => [...typeParameters, ...parameters];
@@ -6841,9 +6836,6 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
     required super.name,
     required super.firstTokenOffset,
   });
-
-  LocalFunctionFragmentImpl.forOffset({required super.firstTokenOffset})
-    : super.forOffset();
 
   @override
   bool get _includeNameOffsetInIdentifier {

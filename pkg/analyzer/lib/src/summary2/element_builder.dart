@@ -1414,7 +1414,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       node.parameters.accept(this);
     });
 
-    var aliasedElement = GenericFunctionTypeFragmentImpl.forOffset(
+    var aliasedElement = GenericFunctionTypeFragmentImpl(
       firstTokenOffset: null,
     );
     aliasedElement.parameters = holder.parameters;
@@ -1470,9 +1470,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
-    var fragment = GenericFunctionTypeFragmentImpl.forOffset(
-      firstTokenOffset: null,
-    );
+    var fragment = GenericFunctionTypeFragmentImpl(firstTokenOffset: null);
     _unitElement.encloseElement(fragment);
 
     node.declaredFragment = fragment;
