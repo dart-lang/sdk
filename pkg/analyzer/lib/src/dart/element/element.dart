@@ -3806,7 +3806,7 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
   ExecutableFragmentImpl get declaration => this;
 }
 
-abstract class FunctionTypedElementImpl extends TypeParameterizedElementImpl
+abstract class FunctionTypedElementImpl extends ElementImpl
     implements FunctionTypedElement {
   @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {
@@ -10175,9 +10175,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
     return element.instantiate(nullabilitySuffix: nullabilitySuffix);
   }
 }
-
-abstract class TypeParameterizedElementImpl extends ElementImpl
-    implements TypeParameterizedElement {}
 
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedFragmentMixin on FragmentImpl
