@@ -10064,21 +10064,28 @@ class BodyBuilder extends StackListenerImpl
           token.length);
     }
 
-    assert(checkState(token, [ValueKinds.Selector]));
-    Selector selector = pop() as Selector;
-    if (selector is InvocationSelector) {
+    assert(checkState(token, [
+      unionOfKinds([ValueKinds.Selector, ValueKinds.ParserRecovery]),
+    ]));
+    Object? node = pop();
+    if (node is InvocationSelector) {
       // e.g. `.parse(2)`
       push(forest.createDotShorthandInvocation(
-          offsetForToken(token), selector.name, selector.arguments,
+          offsetForToken(token), node.name, node.arguments,
           nameOffset: offsetForToken(token.next),
           isConst: constantContext == ConstantContext.inferred));
-    } else if (selector is PropertySelector) {
+    } else if (node is PropertySelector) {
       // e.g. `.zero`
       push(forest.createDotShorthandPropertyGet(
         offsetForToken(token),
-        selector.name,
+        node.name,
         nameOffset: offsetForToken(token.next),
       ));
+    } else if (node is ParserRecovery) {
+      // Recovery for cases like `var x = .;` where we're missing an identifier.
+      token = token.next!;
+      push(buildProblem(cfe.templateExpectedIdentifier.withArguments(token),
+          offsetForToken(token), lengthForToken(token)));
     }
   }
 

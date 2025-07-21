@@ -670,7 +670,7 @@ class MemberDuplicateDefinitionVerifier {
       if (accessor.isStatic) {
         continue;
       }
-      if (accessor.source != _currentUnit.source) {
+      if (accessor.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = accessor.displayName;
@@ -692,7 +692,7 @@ class MemberDuplicateDefinitionVerifier {
       if (method.isStatic) {
         continue;
       }
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = method.displayName;
@@ -720,7 +720,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     for (var accessor in fragment.accessors) {
-      if (accessor.source != _currentUnit.source) {
+      if (accessor.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = accessor.displayName;
@@ -737,7 +737,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     for (var method in fragment.methods) {
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = method.displayName;

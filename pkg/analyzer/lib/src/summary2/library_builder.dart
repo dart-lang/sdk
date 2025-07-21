@@ -199,12 +199,8 @@ class LibraryBuilder {
       parentChildFragments: _parentChildFragments,
     );
 
-    var informativeDataApplier = InformativeDataApplier(
-      linker.elementFactory,
-      {}, // No bytes from summary, we are building from source.
-    );
     for (var linkingUnit in units) {
-      informativeDataApplier.applyFromUnit(
+      InformativeDataApplier().applyFromNode(
         linkingUnit.element,
         linkingUnit.node,
       );
@@ -388,7 +384,7 @@ class LibraryBuilder {
     for (var interfaceFragment in element.topLevelElements) {
       switch (interfaceFragment) {
         case ClassFragmentImpl():
-          if (interfaceFragment.isDartCoreObject) continue;
+          if (interfaceFragment.element.isDartCoreObject) continue;
           if (interfaceFragment.supertype == null) {
             shouldResetClassHierarchies = true;
             interfaceFragment.supertype = objectType;

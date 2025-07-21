@@ -217,10 +217,11 @@ class LibraryReader {
 
     _declareDartCoreDynamicNever();
 
-    InformativeDataApplier(
+    InformativeDataApplier().applyToLibrary(
       _elementFactory,
+      _libraryElement,
       _unitsInformativeBytes,
-    ).applyTo(_libraryElement);
+    );
 
     return _libraryElement;
   }
@@ -315,12 +316,6 @@ class LibraryReader {
                 fragment.methods = _readMethodFragments();
                 if (!fragment.isMixinApplication) {
                   fragment.constructors = _readConstructorFragments();
-                }
-
-                // TODO(scheglov): this is ugly
-                if (fragment.applyMembersConstantOffsets case var callback?) {
-                  fragment.applyMembersConstantOffsets = null;
-                  callback();
                 }
               });
             });

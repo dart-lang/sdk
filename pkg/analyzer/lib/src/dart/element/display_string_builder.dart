@@ -70,7 +70,10 @@ class ElementDisplayStringBuilder {
   void writeConstructorElement(ConstructorElementMixin2 element) {
     _writeType(element.returnType);
 
-    _write(' ${element.displayName}');
+    var displayName = element.name ?? '<null-name>';
+    if (displayName != 'new') {
+      _write('.$displayName');
+    }
 
     _writeFormalParameters(
       element.formalParameters,
@@ -130,8 +133,7 @@ class ElementDisplayStringBuilder {
     _writeTypeParameters(element.typeParameters);
     _write('(');
     _writeType(element.representation.type);
-    _write(' ');
-    _write(element.representation.name ?? '<null-name}>');
+    _write(' ${element.representation.name ?? '<null-name>'}');
     _write(')');
 
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
@@ -195,8 +197,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeLibraryElement(LibraryElementImpl element) {
-    _write('library ');
-    _write('${element.source.uri}');
+    _write('library ${element.uri}');
   }
 
   void writeLibraryExport(LibraryExportImpl element) {
@@ -211,15 +212,14 @@ class ElementDisplayStringBuilder {
 
   void writeLocalFunctionElement(LocalFunctionElementImpl element) {
     _writeType(element.returnType);
-    _write(element.name ?? ' <null-name>');
+    _write(' ${element.name ?? '<null-name>'}');
     _writeTypeParameters(element.typeParameters);
     _writeFormalParameters(element.formalParameters, forElement: true);
   }
 
   void writeMethodElement(MethodElementImpl element) {
     _writeType(element.returnType);
-    _write(' ');
-    _write(element.name ?? '<null-name>');
+    _write(' ${element.name ?? '<null-name>'}');
     _writeTypeParameters(element.typeParameters);
     _writeFormalParameters(
       element.formalParameters,
@@ -256,11 +256,7 @@ class ElementDisplayStringBuilder {
   void writePrefixElement(PrefixElementImpl element) {
     var libraryImports = element.imports;
     var displayName = element.displayName;
-    if (libraryImports.isEmpty) {
-      _write('as ');
-      _write(displayName);
-      return;
-    }
+
     var first = libraryImports.first;
     _write("import '${first.libraryName}' as $displayName;");
     if (libraryImports.length == 1) {
@@ -316,8 +312,7 @@ class ElementDisplayStringBuilder {
 
   void writeTopLevelFunctionElement(TopLevelFunctionElementImpl element) {
     _writeType(element.returnType);
-    _write(' ');
-    _write(element.name ?? ' <null-name>');
+    _write(' ${element.name ?? '<null-name>'}');
     _writeTypeParameters(element.typeParameters);
     _writeFormalParameters(
       element.formalParameters,
@@ -331,13 +326,7 @@ class ElementDisplayStringBuilder {
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
     _write(' = ');
-
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement != null) {
-      aliasedElement.appendTo(this);
-    } else {
-      _writeType(element.aliasedType);
-    }
+    _writeType(element.aliasedType);
   }
 
   void writeTypeParameterElement(TypeParameterElementImpl element) {
@@ -404,10 +393,8 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithUnitImpl) {
-      _write('unit ${uri.libraryFragment.source.uri}');
-    } else if (uri is DirectiveUriWithSourceImpl) {
-      _write('source ${uri.source}');
+    if (uri is DirectiveUriWithSourceImpl) {
+      _write('${uri.source.uri}');
     } else {
       _write('<unknown>');
     }

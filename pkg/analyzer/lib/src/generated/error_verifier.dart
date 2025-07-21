@@ -499,7 +499,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement.asElement2;
 
       List<ClassMember> members = node.members;
-      if (!declarationElement.isDartCoreFunctionImpl) {
+      if (!declarationElement.element.isDartCoreFunctionImpl) {
         _checkForBuiltInIdentifierAsName(
           node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
@@ -2247,7 +2247,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // method declared in the enclosing class vs. inherited getter/setter
     for (var method in fragment.methods) {
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
 
@@ -2472,7 +2472,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeFragmentImpl fragment,
   ) {
     for (var typeParameter in fragment.typeParameters) {
-      if (typeParameter.isWildcardVariable) continue;
+      if (typeParameter.element.isWildcardVariable) continue;
 
       var name = typeParameter.name ?? '';
       // name is same as the name of the enclosing class

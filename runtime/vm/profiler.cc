@@ -44,7 +44,7 @@ DEFINE_FLAG(int,
 DEFINE_FLAG(int,
             max_profile_depth,
             Sample::kPCArraySizeInWords* kMaxSamplesPerTick,
-            "Maximum number stack frames walked. Minimum 1. Maximum 255.");
+            "Maximum number stack frames walked. Minimum 2. Maximum 255.");
 #if defined(DART_INCLUDE_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
 #else
@@ -666,8 +666,12 @@ intptr_t Profiler::CalculateSampleBufferCapacity() {
   // Deeper stacks require more than a single Sample object to be represented
   // correctly. These samples are chained, so we need to determine the worst
   // case sample chain length for a single stack.
+  //
+  // We use the fact that `ceil((float)a / (float)b) == (a + b - 1) / b` when
+  // `a` and `b` are positive integers below.
   const intptr_t max_sample_chain_length =
-      FLAG_max_profile_depth / kMaxSamplesPerTick;
+      (FLAG_max_profile_depth + Sample::kPCArraySizeInWords - 1) /
+      Sample::kPCArraySizeInWords;
   const intptr_t sample_count = FLAG_sample_buffer_duration *
                                 SamplesPerSecond() * max_sample_chain_length;
   return (sample_count / SampleBlock::kSamplesPerBlock) + 1;

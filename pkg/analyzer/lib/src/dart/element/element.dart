@@ -50,7 +50,6 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -300,11 +299,21 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   @override
   @trackedIncludedIntoId
-  bool get isDartCoreEnum => firstFragment.isDartCoreEnum;
+  bool get isDartCoreEnum {
+    return name == 'Enum' && library.isDartCore;
+  }
+
+  /// Return `true` if this class represents the class 'Function' defined in the
+  /// dart:core library.
+  bool get isDartCoreFunctionImpl {
+    return name == 'Function' && library.isDartCore;
+  }
 
   @override
   @trackedIncludedIntoId
-  bool get isDartCoreObject => firstFragment.isDartCoreObject;
+  bool get isDartCoreObject {
+    return name == 'Object' && library.isDartCore;
+  }
 
   @trackedIncludedIntoId
   bool get isDartCoreRecord {
@@ -634,18 +643,6 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
 
   bool get isConstructable => !isSealed && !isAbstract;
 
-  bool get isDartCoreEnum {
-    return name == 'Enum' && library.isDartCore;
-  }
-
-  bool get isDartCoreObject {
-    return name == 'Object' && library.isDartCore;
-  }
-
-  bool get isDartCoreRecord {
-    return name == 'Record' && library.isDartCore;
-  }
-
   bool get isExhaustive => isSealed;
 
   bool get isFinal {
@@ -900,7 +897,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// Ensures that dependencies of this constructor, such as default values
   /// of formal parameters, are evaluated.
   void computeConstantDependencies() {
-    firstFragment.computeConstantDependencies();
+    if (!isConstantEvaluated) {
+      computeConstants(
+        declaredVariables: library.context.declaredVariables,
+        constants: [this],
+        featureSet: library.featureSet,
+        configuration: ConstantEvaluationConfiguration(),
+      );
+    }
   }
 
   @override
@@ -1070,19 +1074,6 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       typeNameOffset ??
       firstTokenOffset ??
       enclosingFragment.offset;
-
-  /// Ensures that dependencies of this constructor, such as default values
-  /// of formal parameters, are evaluated.
-  void computeConstantDependencies() {
-    if (!isConstantEvaluated) {
-      computeConstants(
-        declaredVariables: context.declaredVariables,
-        constants: [element],
-        featureSet: library.featureSet,
-        configuration: ConstantEvaluationConfiguration(),
-      );
-    }
-  }
 }
 
 /// This mixin is used to set up loading class members from summaries only when
@@ -1096,6 +1087,12 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 /// element is the simplest way to do this.
 mixin DeferredMembersReadingMixin {
   void Function()? _readMembersCallback;
+  void Function()? _applyMembersOffsets;
+
+  void deferApplyMembersOffsets(void Function() callback) {
+    assert(_applyMembersOffsets == null);
+    _applyMembersOffsets = callback;
+  }
 
   void deferReadMembers(void Function()? callback) {
     assert(_readMembersCallback == null);
@@ -1105,6 +1102,11 @@ mixin DeferredMembersReadingMixin {
   void ensureReadMembers() {
     if (_readMembersCallback case var callback?) {
       _readMembersCallback = null;
+      callback();
+    }
+
+    if (_applyMembersOffsets case var callback?) {
+      _applyMembersOffsets = null;
       callback();
     }
   }
@@ -1118,11 +1120,16 @@ mixin DeferredResolutionReadingMixin {
   // TODO(scheglov): review whether we need this
   int _lockResolutionLoading = 0;
   void Function()? _readResolutionCallback;
-  ApplyConstantOffsets? applyConstantOffsets;
+  void Function()? _applyResolutionConstantOffsets;
 
   void deferReadResolution(void Function()? callback) {
     assert(_readResolutionCallback == null);
     _readResolutionCallback = callback;
+  }
+
+  void deferResolutionConstantOffsets(void Function() callback) {
+    assert(_applyResolutionConstantOffsets == null);
+    _applyResolutionConstantOffsets = callback;
   }
 
   void withoutLoadingResolution(void Function() operation) {
@@ -1141,8 +1148,10 @@ mixin DeferredResolutionReadingMixin {
       callback();
 
       // The callback read all AST nodes, apply offsets.
-      applyConstantOffsets?.perform();
-      applyConstantOffsets = null;
+      if (_applyResolutionConstantOffsets case var callback?) {
+        _applyResolutionConstantOffsets = null;
+        callback();
+      }
     }
   }
 }
@@ -1321,9 +1330,6 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 
   @override
   Null get enclosingFragment => null;
-
-  @override
-  Null get library => null;
 
   @override
   Null get libraryFragment => null;
@@ -1789,6 +1795,20 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @Deprecated('Use metadata instead')
   @override
   MetadataImpl get metadata2 => metadata;
+
+  /// Append a textual representation to the given [builder].
+  void appendTo(ElementDisplayStringBuilder builder);
+
+  String displayString() {
+    var builder = ElementDisplayStringBuilder(preferTypeAlias: false);
+    appendTo(builder);
+    return builder.toString();
+  }
+
+  @override
+  String toString() {
+    return displayString();
+  }
 }
 
 abstract class ElementImpl implements Element {
@@ -1864,6 +1884,11 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPublic => !isPrivate;
+
+  @override
+  LibraryElementImpl? get library {
+    return firstFragment.libraryFragment?.element as LibraryElementImpl?;
+  }
 
   @override
   String? get lookupName {
@@ -2259,12 +2284,6 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     }
   }
 
-  @override
-  LibraryElementImpl get library {
-    var firstFragment = this.firstFragment;
-    return firstFragment.library;
-  }
-
   @Deprecated('Use library instead')
   @override
   LibraryElement get library2 => library;
@@ -2494,10 +2513,6 @@ abstract class ExecutableFragmentImpl extends _ExistingFragmentImpl
       parameter.enclosingFragment = this;
     }
     _parameters = parameters;
-  }
-
-  List<FormalParameterFragmentImpl> get parameters_unresolved {
-    return _parameters;
   }
 }
 
@@ -2866,9 +2881,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   ElementKind get kind => ElementKind.FIELD;
 
-  @override
-  LibraryElementImpl get library => firstFragment.library;
-
   @Deprecated('Use library instead')
   @override
   LibraryElementImpl get library2 => library;
@@ -3224,9 +3236,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   ElementKind get kind => ElementKind.PARAMETER;
 
-  @override
-  LibraryElementImpl? get library => wrappedElement.library;
-
   @Deprecated('Use library instead')
   @override
   LibraryElementImpl? get library2 => library;
@@ -3491,12 +3500,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   bool get isSuperFormal => false;
 
   @override
-  LibraryElementImpl? get library {
-    var library = libraryFragment?.element;
-    return library as LibraryElementImpl?;
-  }
-
-  @override
   LibraryFragment? get libraryFragment {
     return enclosingFragment?.libraryFragment;
   }
@@ -3602,11 +3605,6 @@ abstract class FragmentImpl implements Fragment {
   /// contains the element, or `null` if the element is synthetic.
   int? get codeOffset => _codeOffset;
 
-  /// The analysis context in which this element is defined.
-  AnalysisContext get context {
-    return library!.context;
-  }
-
   /// The declaration of this element.
   ///
   /// If the element is a view on an element, e.g. a method from an interface
@@ -3636,10 +3634,6 @@ abstract class FragmentImpl implements Fragment {
 
   set isAugmentation(bool value) {
     setModifier(Modifier.AUGMENTATION, value);
-  }
-
-  bool get isNonFunctionTypeAliasesEnabled {
-    return library!.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
 
   /// Whether the element is private.
@@ -3673,12 +3667,6 @@ abstract class FragmentImpl implements Fragment {
   set isSynthetic(bool isSynthetic) {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
-
-  LibraryElementImpl? get library;
-
-  /// If this target is associated with a library, return the source of the
-  /// library's defining compilation unit; otherwise return `null`.
-  Source? get librarySource => library?.source;
 
   String? get lookupName {
     return name;
@@ -3725,12 +3713,6 @@ abstract class FragmentImpl implements Fragment {
   /// a `@Since()` annotation applicable to it.
   Version? get sinceSdkVersion {
     return asElement2?.sinceSdkVersion;
-  }
-
-  /// Return the source associated with this target, or `null` if this target is
-  /// not associated with a source.
-  Source? get source {
-    return enclosingFragment?.source;
   }
 
   /// Whether to include the [nameOffset] in [identifier] to disambiguate
@@ -3809,6 +3791,9 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
 abstract class FunctionTypedElementImpl extends ElementImpl
     implements FunctionTypedElement {
   @override
+  LibraryElementImpl get library => super.library!;
+
+  @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {
     for (var child in children) {
       child.accept(visitor);
@@ -3878,9 +3863,6 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
 
   @override
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
-
-  @override
-  LibraryElementImpl get library => _wrappedElement.library;
 
   @Deprecated('Use library instead')
   @override
@@ -4207,7 +4189,7 @@ abstract class InstanceElementImpl extends ElementImpl
   String? get documentationComment => firstFragment.documentationComment;
 
   @override
-  LibraryElement get enclosingElement => firstFragment.library;
+  LibraryElementImpl get enclosingElement => library;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -4259,7 +4241,7 @@ abstract class InstanceElementImpl extends ElementImpl
   bool get isSynthetic => firstFragment.isSynthetic;
 
   @override
-  LibraryElementImpl get library => firstFragment.library;
+  LibraryElementImpl get library => super.library!;
 
   @Deprecated('Use library instead')
   @override
@@ -4635,8 +4617,6 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
         DeferredResolutionReadingMixin,
         TypeParameterizedFragmentMixin
     implements InstanceFragment {
-  void Function()? applyMembersConstantOffsets;
-
   @override
   final String? name;
 
@@ -4877,6 +4857,12 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   List<InterfaceTypeImpl> get interfaces {
     return firstFragment.interfaces;
+  }
+
+  /// Return `true` if this class represents the class '_Enum' defined in the
+  /// dart:core library.
+  bool get isDartCoreEnumImpl {
+    return name == '_Enum' && library.isDartCore;
   }
 
   set isSimplyBounded(bool value) {
@@ -5221,18 +5207,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     _interfaces = interfaces.cast();
   }
 
-  /// Return `true` if this class represents the class '_Enum' defined in the
-  /// dart:core library.
-  bool get isDartCoreEnumImpl {
-    return name == '_Enum' && library.isDartCore;
-  }
-
-  /// Return `true` if this class represents the class 'Function' defined in the
-  /// dart:core library.
-  bool get isDartCoreFunctionImpl {
-    return name == 'Function' && library.isDartCore;
-  }
-
   @override
   bool get isSimplyBounded {
     return hasModifier(Modifier.SIMPLY_BOUNDED);
@@ -5450,7 +5424,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   ElementKind get kind => ElementKind.LABEL;
 
   @override
-  LibraryElement get library => _wrappedFragment.library;
+  LibraryElementImpl get library => super.library!;
 
   @Deprecated('Use library instead')
   @override
@@ -5531,11 +5505,6 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   /// Return `true` if this label is associated with a `switch` member (`case`
   /// or `default`).
   bool get isOnSwitchMember => _onSwitchMember;
-
-  @override
-  LibraryElementImpl get library {
-    return libraryFragment.element;
-  }
 
   @override
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
@@ -6171,20 +6140,23 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
   LibraryElementImpl? get exportedLibrary2 {
     return exportedLibrary;
   }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLibraryExport(this);
+  }
 }
 
 /// A concrete implementation of [LibraryFragment].
 class LibraryFragmentImpl extends _ExistingFragmentImpl
     with DeferredResolutionReadingMixin
     implements LibraryFragment {
-  /// The source that corresponds to this compilation unit.
   @override
   final Source source;
 
   @override
   LineInfo lineInfo;
 
-  @override
   final LibraryElementImpl library;
 
   /// The libraries exported by this unit.
@@ -6410,10 +6382,6 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   @override
   List<LibraryExport> get libraryExports2 => libraryExports;
 
-  List<LibraryExportImpl> get libraryExports_unresolved {
-    return _libraryExports;
-  }
-
   @override
   LibraryFragment get libraryFragment => this;
 
@@ -6433,13 +6401,6 @@ class LibraryFragmentImpl extends _ExistingFragmentImpl
   @Deprecated('Use libraryImports instead')
   @override
   List<LibraryImport> get libraryImports2 => libraryImports;
-
-  List<LibraryImportImpl> get libraryImports_unresolved {
-    return _libraryImports;
-  }
-
-  @override
-  Source get librarySource => library.source;
 
   @override
   List<MixinFragmentImpl> get mixins => _mixins;
@@ -6764,6 +6725,11 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
   @Deprecated('Use prefix instead')
   @override
   PrefixFragment? get prefix2 => prefix;
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeLibraryImport(this);
+  }
 }
 
 /// The provider for the lazily created `loadLibrary` function.
@@ -6941,7 +6907,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
-  LibraryElementImpl get library => _wrappedElement.library;
+  LibraryElementImpl get library => super.library!;
 
   @Deprecated('Use library instead')
   @override
@@ -7947,7 +7913,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.ERROR;
 
   @override
-  LibraryElement get library => libraryFragment.element;
+  LibraryElementImpl get library => libraryFragment.element;
 
   @Deprecated('Use library instead')
   @override
@@ -8215,9 +8181,6 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   Null get enclosingFragment => null;
 
   @override
-  Null get library => null;
-
-  @override
   Null get libraryFragment => null;
 
   @Deprecated('Use metadata instead')
@@ -8257,8 +8220,7 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 }
 
 /// A [VariableFragmentImpl], which is not a parameter.
-abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl
-    with _HasLibraryMixin {
+abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
   NonParameterVariableFragmentImpl({required super.firstTokenOffset});
@@ -8287,6 +8249,11 @@ class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
       return uri.libraryFragment;
     }
     return null;
+  }
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writePartInclude(this);
   }
 }
 
@@ -8437,7 +8404,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   ElementKind get kind => ElementKind.PREFIX;
 
   @override
-  LibraryElementImpl get library => firstFragment.libraryFragment.element;
+  LibraryElementImpl get library => super.library!;
 
   @Deprecated('Use library instead')
   @override
@@ -8536,9 +8503,6 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   @override
   LibraryFragmentImpl get enclosingFragment =>
       super.enclosingFragment as LibraryFragmentImpl;
-
-  @override
-  LibraryElementImpl? get library => libraryFragment.element;
 
   @override
   LibraryFragmentImpl get libraryFragment => enclosingFragment;
@@ -8738,6 +8702,9 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   bool get hasInitializer {
     return _fragments.any((f) => f.hasInitializer);
   }
+
+  @override
+  LibraryElementImpl get library => super.library!;
 
   @override
   Element get nonSynthetic {
@@ -9240,9 +9207,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   TopLevelFunctionElementImpl get baseElement => this;
 
   @override
-  LibraryElementImpl get enclosingElement {
-    return firstFragment.library;
-  }
+  LibraryElementImpl get enclosingElement => library;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -9277,9 +9242,6 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   TopLevelFunctionFragmentImpl get lastFragment {
     return super.lastFragment as TopLevelFunctionFragmentImpl;
   }
-
-  @override
-  LibraryElementImpl get library => firstFragment.library;
 
   @Deprecated('Use library instead')
   @override
@@ -9356,7 +9318,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   TopLevelVariableElement get baseElement => this;
 
   @override
-  LibraryElementImpl get enclosingElement => firstFragment.library;
+  LibraryElementImpl get enclosingElement => library;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -9399,9 +9361,6 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
-
-  @override
-  LibraryElement get library => firstFragment.libraryFragment.element;
 
   @Deprecated('Use library instead')
   @override
@@ -9552,8 +9511,7 @@ class TypeAliasElementImpl extends ElementImpl
   TypeAliasElementImpl get baseElement => this;
 
   @override
-  LibraryElement get enclosingElement =>
-      firstFragment.library as LibraryElement;
+  LibraryElementImpl get enclosingElement => library;
 
   @Deprecated('Use enclosingElement instead')
   @override
@@ -9569,6 +9527,10 @@ class TypeAliasElementImpl extends ElementImpl
       )
         fragment,
     ];
+  }
+
+  bool get isNonFunctionTypeAliasesEnabled {
+    return library.featureSet.isEnabled(Feature.nonfunction_type_aliases);
   }
 
   /// Whether this alias is a "proper rename" of [aliasedType], as defined in
@@ -9621,7 +9583,7 @@ class TypeAliasElementImpl extends ElementImpl
   ElementKind get kind => ElementKind.TYPE_ALIAS;
 
   @override
-  LibraryElementImpl get library => firstFragment.library;
+  LibraryElementImpl get library => super.library!;
 
   @Deprecated('Use library instead')
   @override
@@ -9696,7 +9658,7 @@ class TypeAliasElementImpl extends ElementImpl
     required NullabilitySuffix nullabilitySuffix,
   }) {
     if (firstFragment.hasSelfReference) {
-      if (firstFragment.isNonFunctionTypeAliasesEnabled) {
+      if (isNonFunctionTypeAliasesEnabled) {
         return DynamicTypeImpl.instance;
       } else {
         return _errorFunctionType(nullabilitySuffix);
@@ -9811,10 +9773,6 @@ class TypeAliasFragmentImpl extends _ExistingFragmentImpl
     aliasedElement?.enclosingFragment = this;
   }
 
-  FragmentImpl? get aliasedElement_unresolved {
-    return _aliasedElement;
-  }
-
   @override
   List<Fragment> get children => const [];
 
@@ -9926,9 +9884,6 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
-
-  @override
-  LibraryElementImpl? get library => firstFragment.library;
 
   @Deprecated('Use library instead')
   @override
@@ -10090,12 +10045,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
   }
 
   @override
-  LibraryElementImpl? get library {
-    var library = libraryFragment?.element;
-    return library as LibraryElementImpl?;
-  }
-
-  @override
   LibraryFragment? get libraryFragment {
     return enclosingFragment?.libraryFragment;
   }
@@ -10217,10 +10166,6 @@ mixin TypeParameterizedFragmentMixin on FragmentImpl
   @Deprecated('Use typeParameters instead')
   @override
   List<TypeParameterFragmentImpl> get typeParameters2 => typeParameters;
-
-  List<TypeParameterFragmentImpl> get typeParameters_unresolved {
-    return _typeParameters;
-  }
 
   void _ensureReadResolution();
 }
@@ -10438,26 +10383,8 @@ abstract class VariableFragmentImpl extends FragmentImpl
   }
 }
 
-abstract class _ExistingFragmentImpl extends FragmentImpl
-    with _HasLibraryMixin {
+abstract class _ExistingFragmentImpl extends FragmentImpl {
   _ExistingFragmentImpl({required super.firstTokenOffset});
-}
-
-mixin _HasLibraryMixin on FragmentImpl {
-  @override
-  LibraryElementImpl get library {
-    var thisFragment = this as Fragment;
-    var enclosingFragment = thisFragment.enclosingFragment!;
-    var libraryFragment = enclosingFragment.libraryFragment;
-    libraryFragment as LibraryFragmentImpl;
-    return libraryFragment.element;
-  }
-
-  @override
-  Source get librarySource => library.source;
-
-  @override
-  Source get source => enclosingFragment!.source!;
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they

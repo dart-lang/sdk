@@ -112,7 +112,7 @@ var a = A() + A();
 ''');
     var hover = await prepareHover('A() +');
     // element
-    expect(hover.elementDescription, '(new) A A()');
+    expect(hover.elementDescription, '(new) A()');
     // don't show parameter information for binary operators
     expect(hover.parameter, isNull);
   }
@@ -128,7 +128,7 @@ var a = A() + A(); // 1
 ''');
     var hover = await prepareHover('A(); // 1');
     // element
-    expect(hover.elementDescription, '(new) A A()');
+    expect(hover.elementDescription, '(new) A()');
     // don't show parameter information for binary operators
     expect(hover.parameter, isNull);
   }
@@ -149,7 +149,7 @@ void f() {
       expect(hover.length, 'A.named'.length);
       // element
       expect(hover.dartdoc, 'my doc');
-      expect(hover.elementDescription, 'A A.named()');
+      expect(hover.elementDescription, 'A.named()');
       expect(hover.elementKind, 'constructor');
     }
 
@@ -176,7 +176,7 @@ class A {
       expect(hover.length, 'A.named'.length);
       // element
       expect(hover.dartdoc, 'my doc');
-      expect(hover.elementDescription, 'A A.named()');
+      expect(hover.elementDescription, 'A.named()');
       expect(hover.elementKind, 'constructor');
     }
 
@@ -207,7 +207,7 @@ void f() {
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, '(const) A A(int i)');
+    expect(hover.elementDescription, '(const) A(int i)');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -231,7 +231,7 @@ void f() {
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, '(new) A A()');
+    expect(hover.elementDescription, '(new) A()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -256,7 +256,7 @@ void f() {
     expect(hover.containingLibraryName, 'package:test/test.dart');
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, 'A A()');
+    expect(hover.elementDescription, 'A()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -280,7 +280,7 @@ void f() {
       expect(hover.containingLibraryName, 'package:test/test.dart');
       expect(hover.containingLibraryPath, testFile.path);
       expect(hover.dartdoc, isNull);
-      expect(hover.elementDescription, 'A<String> A()');
+      expect(hover.elementDescription, 'A<String>()');
       expect(hover.elementKind, 'constructor');
       // types
       expect(hover.staticType, isNull);
@@ -324,7 +324,7 @@ void f() {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, 'doc aaa\ndoc bbb');
-    expect(hover.elementDescription, 'A<double> A.named()');
+    expect(hover.elementDescription, 'A<double>.named()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -351,7 +351,7 @@ void f() {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, 'doc aaa\ndoc bbb');
-    expect(hover.elementDescription, 'A<double> A()');
+    expect(hover.elementDescription, 'A<double>()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -378,7 +378,7 @@ void f() {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, 'doc aaa\ndoc bbb');
-    expect(hover.elementDescription, 'A<double> A()');
+    expect(hover.elementDescription, 'A<double>()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -401,7 +401,7 @@ void f() {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, isNull);
-    expect(hover.elementDescription, 'A<double> A()');
+    expect(hover.elementDescription, 'A<double>()');
     expect(hover.elementKind, 'constructor');
     // types
     expect(hover.staticType, isNull);
@@ -1786,7 +1786,7 @@ typedef void A(int a);
     var hover = await prepareHover('A');
     _assertHover(
       hover,
-      elementDescription: 'typedef A = void Function(int a)',
+      elementDescription: 'typedef A = void Function(int)',
       elementKind: 'type alias',
     );
   }

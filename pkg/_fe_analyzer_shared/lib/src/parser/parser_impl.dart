@@ -6592,13 +6592,27 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
 
-    bool isDotShorthand = _isDotShorthand(token.next!);
+    Token nextToken = token.next!;
+    bool isDotShorthand = _isDotShorthand(nextToken);
     if (!isDotShorthand) {
-      token = parseUnaryExpression(
-        token,
-        allowCascades,
-        constantPatternContext,
-      );
+      if (nextToken.isA(TokenType.PERIOD)) {
+        // Recovery.
+        // This is an incomplete dot shorthand like `var x = .`.
+        // This allows for better code completion, assuming the user wanted to
+        // write a dot shorthand.
+        token = ensureIdentifier(
+          nextToken,
+          IdentifierContext.expressionContinuation,
+        );
+        listener.handleDotShorthandHead(nextToken);
+        listener.handleDotShorthandContext(nextToken);
+      } else {
+        token = parseUnaryExpression(
+          token,
+          allowCascades,
+          constantPatternContext,
+        );
+      }
     }
 
     Token bangToken = token;

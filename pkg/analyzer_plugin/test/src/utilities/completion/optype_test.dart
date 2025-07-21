@@ -1016,6 +1016,14 @@ main() {new core.String.from^CharCodes([]);}
         typeNames: true);
   }
 
+  Future<void> test_dotShorthand_noTarget() async {
+    addTestSource('main() {.^}');
+    await assertOpType(
+        completionLocation: 'DotShorthandPropertyAccess_propertyName',
+        constructors: true,
+        returnValue: true);
+  }
+
   Future<void> test_doubleLiteral() async {
     addTestSource('main() { print(1.2^); }');
     await assertOpType();
@@ -2184,12 +2192,6 @@ void f(int a, {int b}) {}
         prefixed: true,
         returnValue: true,
         voidReturn: true);
-  }
-
-  Future<void> test_propertyAccess_noTarget() async {
-    // SimpleIdentifier  PropertyAccess  ExpressionStatement
-    addTestSource('main() {.^}');
-    await assertOpType();
   }
 
   Future<void> test_propertyAccess_noTarget2() async {
