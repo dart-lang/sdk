@@ -81,8 +81,6 @@ constraint][language version] lower bound to 3.9 or greater (`sdk: '^3.9.0'`).
 Added [cross-compilation][] support for
 target architectures of `arm` (ARM32) and `riscv64` (RV64GC)
 when the target OS is Linux.
-Note that Linux ARM cross-compilation is
-not available on Windows host platforms.
 
 [cross-compilation]: https://dart.dev/tools/dart-compile#cross-compilation-exe
 
