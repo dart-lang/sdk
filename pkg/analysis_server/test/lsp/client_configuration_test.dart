@@ -10,6 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClientConfigurationTest);
+    defineReflectiveTests(InlayHintsConfigurationTest);
   });
 }
 
@@ -58,5 +59,177 @@ class ClientConfigurationTest with ResourceProviderMixin {
     var config = LspClientConfiguration(resourceProvider.pathContext);
     config.replace({'lineLength': 100}, {});
     expect(config.global.lineLength, equals(100));
+  }
+}
+
+/// Verifies all the different ways of expressions the config resolve to the
+/// same values, so the inlay hint handler tests can simply test one combination
+/// for each kind of hint.
+@reflectiveTest
+class InlayHintsConfigurationTest {
+  void test_parameterNames_all() {
+    var options = [
+      LspClientInlayHintsConfiguration(null),
+      LspClientInlayHintsConfiguration(true),
+      LspClientInlayHintsConfiguration({'parameterNames': true}),
+      LspClientInlayHintsConfiguration({'parameterNames': 'all'}),
+      LspClientInlayHintsConfiguration({
+        'parameterNames': {'enabled': true},
+      }),
+      LspClientInlayHintsConfiguration({
+        'parameterNames': {'enabled': 'all'},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.parameterNamesMode, InlayHintsParameterNamesMode.all);
+    }
+  }
+
+  void test_parameterNames_literal() {
+    var options = [
+      LspClientInlayHintsConfiguration({'parameterNames': 'literal'}),
+      LspClientInlayHintsConfiguration({
+        'parameterNames': {'enabled': 'literal'},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.parameterNamesMode, InlayHintsParameterNamesMode.literal);
+    }
+  }
+
+  void test_parameterNames_none() {
+    var options = [
+      LspClientInlayHintsConfiguration(false),
+      LspClientInlayHintsConfiguration({'parameterNames': false}),
+      LspClientInlayHintsConfiguration({'parameterNames': 'none'}),
+      LspClientInlayHintsConfiguration({
+        'parameterNames': {'enabled': false},
+      }),
+      LspClientInlayHintsConfiguration({
+        'parameterNames': {'enabled': 'none'},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.parameterNamesMode, InlayHintsParameterNamesMode.none);
+    }
+  }
+
+  void test_parameterTypes_disabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(false),
+      LspClientInlayHintsConfiguration({'parameterTypes': false}),
+      LspClientInlayHintsConfiguration({
+        'parameterTypes': {'enabled': false},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.parameterTypesEnabled, false);
+    }
+  }
+
+  void test_parameterTypes_enabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(null),
+      LspClientInlayHintsConfiguration(true),
+      LspClientInlayHintsConfiguration({'parameterTypes': true}),
+      LspClientInlayHintsConfiguration({
+        'parameterTypes': {'enabled': true},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.parameterTypesEnabled, true);
+    }
+  }
+
+  void test_returnTypes_disabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(false),
+      LspClientInlayHintsConfiguration({'returnTypes': false}),
+      LspClientInlayHintsConfiguration({
+        'returnTypes': {'enabled': false},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.returnTypesEnabled, false);
+    }
+  }
+
+  void test_returnTypes_enabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(null),
+      LspClientInlayHintsConfiguration(true),
+      LspClientInlayHintsConfiguration({'returnTypes': true}),
+      LspClientInlayHintsConfiguration({
+        'returnTypes': {'enabled': true},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.returnTypesEnabled, true);
+    }
+  }
+
+  void test_typeArguments_disabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(false),
+      LspClientInlayHintsConfiguration({'typeArguments': false}),
+      LspClientInlayHintsConfiguration({
+        'typeArguments': {'enabled': false},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.typeArgumentsEnabled, false);
+    }
+  }
+
+  void test_typeArguments_enabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(null),
+      LspClientInlayHintsConfiguration(true),
+      LspClientInlayHintsConfiguration({'typeArguments': true}),
+      LspClientInlayHintsConfiguration({
+        'typeArguments': {'enabled': true},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.typeArgumentsEnabled, true);
+    }
+  }
+
+  void test_variableTypes_disabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(false),
+      LspClientInlayHintsConfiguration({'variableTypes': false}),
+      LspClientInlayHintsConfiguration({
+        'variableTypes': {'enabled': false},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.variableTypesEnabled, false);
+    }
+  }
+
+  void test_variableTypes_enabled() {
+    var options = [
+      LspClientInlayHintsConfiguration(null),
+      LspClientInlayHintsConfiguration(true),
+      LspClientInlayHintsConfiguration({'variableTypes': true}),
+      LspClientInlayHintsConfiguration({
+        'variableTypes': {'enabled': true},
+      }),
+    ];
+
+    for (var option in options) {
+      expect(option.variableTypesEnabled, true);
+    }
   }
 }

@@ -55,7 +55,8 @@ class InlayHintHandler
           return success([]);
         }
 
-        var computer = DartInlayHintComputer(pathContext, result);
+        var config = server.lspClientConfiguration.global.inlayHints;
+        var computer = DartInlayHintComputer(pathContext, result, config);
         var hints = computer.compute();
 
         return success(hints);
