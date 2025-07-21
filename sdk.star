@@ -54,12 +54,14 @@ dart.try_builder(
     "dart-sdk-linux",
     properties = {
         "archs": ["x64"],
+        "clobber": True,  # To match the regular SDK builder
         "dartdoc_arch": "x64",
         "disable_bcid": True,
         "upload_version": True,
     },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
 )
 
 dart.try_builder(
@@ -67,53 +69,74 @@ dart.try_builder(
     dimensions = [arm64],
     properties = {
         "archs": ["arm", "arm64"],
+        "clobber": True,  # To match the regular SDK builder
         "disable_bcid": True,
     },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
 )
 
 dart.try_builder(
     "dart-sdk-linux-riscv64",
     properties = {
         "archs": ["riscv64"],
+        "clobber": True,  # To match the regular SDK builder
         "disable_bcid": True,
     },
     recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
 )
 
 dart.try_builder(
     "dart-sdk-mac",
     dimensions = [mac, arm64],
-    properties = [{"archs": ["x64"], "disable_bcid": True}],
+    properties = {
+        "archs": ["x64"],
+        "clobber": True,  # To match the regular SDK builder
+        "disable_bcid": True,
+    },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
 )
 
 dart.try_builder(
     "dart-sdk-mac-arm64",
     dimensions = [mac, arm64],
-    properties = [
-        no_android,
-        {"archs": ["arm64"], "disable_bcid": True},
-    ],
+    properties = [no_android, {
+        "archs": ["arm64"],
+        "clobber": True,  # To match the regular SDK builder
+        "disable_bcid": True,
+    }],
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
 )
 
 dart.try_builder(
     "dart-sdk-win",
     dimensions = windows,
-    properties = {"archs": ["x64"], "disable_bcid": True},
+    properties = {
+        "archs": ["x64"],
+        "clobber": True,  # To match the regular SDK builder
+        "disable_bcid": True,
+    },
     recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
 )
 
 dart.try_builder(
     "dart-sdk-win-arm64",
     dimensions = windows,
-    properties = {"archs": ["arm64"], "disable_bcid": True},
+    properties = {
+        "archs": ["arm64"],
+        "clobber": True,  # To match the regular SDK builder
+        "disable_bcid": True,
+    },
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
+    rbe = False,  # To match the regular SDK builder
 )
 
 dart.ci_sandbox_builder(
