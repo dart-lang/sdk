@@ -26,15 +26,12 @@ Uint8List writeUnitInformative(CompilationUnit unit) {
 }
 
 class InformativeDataApplier {
+  bool _shouldDeferApplyMembersOffsets = true;
+
   void applyFromNode(LibraryFragmentImpl fragment, CompilationUnit node) {
+    _shouldDeferApplyMembersOffsets = false;
     var unitInfo = _InfoBuilder().build(node);
     _applyFromInfo(fragment, unitInfo);
-
-    // TODO(scheglov): generalize
-    for (var classFragment in fragment.classes) {
-      classFragment.applyMembersConstantOffsets?.call();
-      classFragment.applyMembersConstantOffsets = null;
-    }
   }
 
   void applyToLibrary(
@@ -200,7 +197,7 @@ class InformativeDataApplier {
       applier.applyToTypeParameters(element.typeParameters);
     });
 
-    element.applyMembersConstantOffsets = () {
+    _scheduleApplyMembersOffsets(element, () {
       element.withoutLoadingResolution(() {
         _applyToConstructors(element.constructors, info.constructors);
         _applyToFields(element.fields, info.fields);
@@ -208,7 +205,7 @@ class InformativeDataApplier {
         _applyToAccessors(element.setters, info.setters);
         _applyToMethods(element.methods, info.methods);
       });
-    };
+    });
   }
 
   void _applyToClassTypeAlias(
@@ -609,6 +606,18 @@ class InformativeDataApplier {
       setterFragment.firstTokenOffset = element.firstTokenOffset;
       setterFragment.valueFormalParameter?.firstTokenOffset =
           element.firstTokenOffset;
+    }
+  }
+
+  /// Either defer, or eagerly invoke [callback].
+  void _scheduleApplyMembersOffsets(
+    InstanceFragmentImpl fragment,
+    void Function() callback,
+  ) {
+    if (_shouldDeferApplyMembersOffsets) {
+      fragment.deferApplyMembersOffsets(callback);
+    } else {
+      callback();
     }
   }
 

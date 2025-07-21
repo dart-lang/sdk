@@ -1087,6 +1087,12 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 /// element is the simplest way to do this.
 mixin DeferredMembersReadingMixin {
   void Function()? _readMembersCallback;
+  void Function()? _applyMembersOffsets;
+
+  void deferApplyMembersOffsets(void Function() callback) {
+    assert(_applyMembersOffsets == null);
+    _applyMembersOffsets = callback;
+  }
 
   void deferReadMembers(void Function()? callback) {
     assert(_readMembersCallback == null);
@@ -1096,6 +1102,11 @@ mixin DeferredMembersReadingMixin {
   void ensureReadMembers() {
     if (_readMembersCallback case var callback?) {
       _readMembersCallback = null;
+      callback();
+    }
+
+    if (_applyMembersOffsets case var callback?) {
+      _applyMembersOffsets = null;
       callback();
     }
   }
@@ -4596,8 +4607,6 @@ abstract class InstanceFragmentImpl extends _ExistingFragmentImpl
         DeferredResolutionReadingMixin,
         TypeParameterizedFragmentMixin
     implements InstanceFragment {
-  void Function()? applyMembersConstantOffsets;
-
   @override
   final String? name;
 

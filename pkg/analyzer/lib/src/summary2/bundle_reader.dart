@@ -317,12 +317,6 @@ class LibraryReader {
                 if (!fragment.isMixinApplication) {
                   fragment.constructors = _readConstructorFragments();
                 }
-
-                // TODO(scheglov): this is ugly
-                if (fragment.applyMembersConstantOffsets case var callback?) {
-                  fragment.applyMembersConstantOffsets = null;
-                  callback();
-                }
               });
             });
           });
