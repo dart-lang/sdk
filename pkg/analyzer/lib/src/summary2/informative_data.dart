@@ -25,31 +25,6 @@ Uint8List writeUnitInformative(CompilationUnit unit) {
   return sink.takeBytes();
 }
 
-/// We want to have actual offsets for tokens of various constants in the
-/// element model, such as metadata and constant initializers. But we read
-/// these additional pieces of resolution data later, on demand. So, these
-/// offsets are different from `nameOffset` for example, which are applied
-/// directly after creating corresponding elements during a library loading.
-class ApplyConstantOffsets {
-  Uint32List? _offsets;
-  void Function(_OffsetsApplier)? _function;
-
-  ApplyConstantOffsets(this._offsets, this._function);
-
-  void perform() {
-    var offsets = _offsets;
-    var function = _function;
-    if (offsets != null && function != null) {
-      var applier = _OffsetsApplier(_SafeListIterator(offsets));
-      function.call(applier);
-      // Clear the references to possible closure data.
-      // TODO(scheglov): We want to null the whole `linkedData` instead.
-      _offsets = null;
-      _function = null;
-    }
-  }
-}
-
 class InformativeDataApplier {
   final LinkedElementFactory _elementFactory;
   final Map<Uri, Uint8List> _unitsInformativeBytes2;
@@ -68,14 +43,13 @@ class InformativeDataApplier {
     _applyToImports(unitElement.libraryImports_unresolved, unitInfo);
     _applyToExports(unitElement.libraryExports_unresolved, unitInfo);
 
-    unitElement.applyConstantOffsets = ApplyConstantOffsets(
-      unitInfo.libraryConstantOffsets,
-      (applier) {
-        applier.applyToImports(unitElement.libraryImports);
-        applier.applyToExports(unitElement.libraryExports);
-        applier.applyToParts(unitElement.parts);
-      },
-    );
+    unitElement.deferConstantOffsets(unitInfo.libraryConstantOffsets, (
+      applier,
+    ) {
+      applier.applyToImports(unitElement.libraryImports);
+      applier.applyToExports(unitElement.libraryExports);
+      applier.applyToParts(unitElement.parts);
+    });
 
     _applyToAccessors(
       unitElement.getters.notSynthetic,
@@ -205,14 +179,11 @@ class InformativeDataApplier {
       element.documentationComment = info.documentationComment;
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-      element.applyConstantOffsets = ApplyConstantOffsets(
-        info.constantOffsets,
-        (applier) {
-          applier.applyToMetadata(element.metadata);
-          applier.applyToTypeParameters(element.typeParameters);
-          applier.applyToFormalParameters(element.parameters_unresolved);
-        },
-      );
+      element.deferConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(element.metadata);
+        applier.applyToTypeParameters(element.typeParameters);
+        applier.applyToFormalParameters(element.parameters_unresolved);
+      });
     });
   }
 
@@ -229,9 +200,7 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
@@ -260,9 +229,7 @@ class InformativeDataApplier {
       info.typeParameters,
     );
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
@@ -303,14 +270,11 @@ class InformativeDataApplier {
 
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-      element.applyConstantOffsets = ApplyConstantOffsets(
-        info.constantOffsets,
-        (applier) {
-          applier.applyToMetadata(element.metadata);
-          applier.applyToFormalParameters(element.parameters);
-          applier.applyToConstructorInitializers(element);
-        },
-      );
+      element.deferConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(element.metadata);
+        applier.applyToFormalParameters(element.parameters);
+        applier.applyToConstructorInitializers(element);
+      });
     });
   }
 
@@ -333,9 +297,7 @@ class InformativeDataApplier {
       _applyToMethods(element.methods, info.methods);
     });
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
@@ -365,9 +327,7 @@ class InformativeDataApplier {
     _applyToAccessors(element.setters, info.setters);
     _applyToMethods(element.methods, info.methods);
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
@@ -392,13 +352,12 @@ class InformativeDataApplier {
     representationField.nameOffset = infoRep.fieldNameOffset2;
     representationField.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
 
-    representationField.applyConstantOffsets = ApplyConstantOffsets(
-      infoRep.fieldConstantOffsets,
-      (applier) {
-        _copyOffsetsIntoSyntheticGetterSetter(representationField);
-        applier.applyToMetadata(representationField.metadata);
-      },
-    );
+    representationField.deferConstantOffsets(infoRep.fieldConstantOffsets, (
+      applier,
+    ) {
+      _copyOffsetsIntoSyntheticGetterSetter(representationField);
+      applier.applyToMetadata(representationField.metadata);
+    });
 
     element.withoutLoadingResolution(() {
       var primaryConstructor = element.constructors.first;
@@ -429,9 +388,7 @@ class InformativeDataApplier {
       _applyToMethods(element.methods, info.methods);
     });
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
@@ -447,14 +404,11 @@ class InformativeDataApplier {
       element.nameOffset = info.nameOffset2;
       element.documentationComment = info.documentationComment;
 
-      element.applyConstantOffsets = ApplyConstantOffsets(
-        info.constantOffsets,
-        (applier) {
-          _copyOffsetsIntoSyntheticGetterSetter(element);
-          applier.applyToMetadata(element.metadata);
-          applier.applyToConstantInitializer(element);
-        },
-      );
+      element.deferConstantOffsets(info.constantOffsets, (applier) {
+        _copyOffsetsIntoSyntheticGetterSetter(element);
+        applier.applyToMetadata(element.metadata);
+        applier.applyToConstantInitializer(element);
+      });
     });
   }
 
@@ -485,9 +439,7 @@ class InformativeDataApplier {
     );
     _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
       applier.applyToFormalParameters(element.parameters);
@@ -566,12 +518,9 @@ class InformativeDataApplier {
     element.nameLength = info.libraryName.length;
     element.documentationComment = info.docComment;
 
-    element.applyConstantOffsets = ApplyConstantOffsets(
-      info.libraryConstantOffsets,
-      (applier) {
-        applier.applyToMetadata(element.metadata);
-      },
-    );
+    element.deferConstantOffsets(info.libraryConstantOffsets, (applier) {
+      applier.applyToMetadata(element.metadata);
+    });
   }
 
   void _applyToMethods(
@@ -589,14 +538,11 @@ class InformativeDataApplier {
       );
       _applyToFormalParameters(element.parameters_unresolved, info.parameters);
 
-      element.applyConstantOffsets = ApplyConstantOffsets(
-        info.constantOffsets,
-        (applier) {
-          applier.applyToMetadata(element.metadata);
-          applier.applyToTypeParameters(element.typeParameters);
-          applier.applyToFormalParameters(element.parameters);
-        },
-      );
+      element.deferConstantOffsets(info.constantOffsets, (applier) {
+        applier.applyToMetadata(element.metadata);
+        applier.applyToTypeParameters(element.typeParameters);
+        applier.applyToFormalParameters(element.parameters);
+      });
     });
   }
 
@@ -619,9 +565,7 @@ class InformativeDataApplier {
       _applyToMethods(element.methods, info.methods);
     });
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
     });
@@ -636,9 +580,7 @@ class InformativeDataApplier {
     element.nameOffset = info.nameOffset2;
     element.documentationComment = info.documentationComment;
 
-    element.applyConstantOffsets = ApplyConstantOffsets(info.constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(info.constantOffsets, (applier) {
       _copyOffsetsIntoSyntheticGetterSetter(element);
       applier.applyToMetadata(element.metadata);
       applier.applyToConstantInitializer(element);
@@ -686,9 +628,7 @@ class InformativeDataApplier {
     List<_InfoFormalParameter>? aliasedFormalParameters,
     List<_InfoTypeParameter>? aliasedTypeParameters,
   }) {
-    element.applyConstantOffsets = ApplyConstantOffsets(constantOffsets, (
-      applier,
-    ) {
+    element.deferConstantOffsets(constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
 
@@ -2537,6 +2477,23 @@ extension on Token {
 extension on String {
   String? get nullIfEmpty {
     return isNotEmpty ? this : null;
+  }
+}
+
+extension on DeferredResolutionReadingMixin {
+  /// We want to have actual offsets for tokens of various constants in the
+  /// element model, such as metadata and constant initializers. But we read
+  /// these additional pieces of resolution data later, on demand. So, these
+  /// offsets are different from `nameOffset` for example, which are applied
+  /// directly after creating corresponding elements during a library loading.
+  void deferConstantOffsets(
+    Uint32List constantOffsets,
+    void Function(_OffsetsApplier applier) callback,
+  ) {
+    deferResolutionConstantOffsets(() {
+      var applier = _OffsetsApplier(_SafeListIterator(constantOffsets));
+      callback(applier);
+    });
   }
 }
 

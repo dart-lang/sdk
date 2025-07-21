@@ -50,7 +50,6 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -1110,11 +1109,16 @@ mixin DeferredResolutionReadingMixin {
   // TODO(scheglov): review whether we need this
   int _lockResolutionLoading = 0;
   void Function()? _readResolutionCallback;
-  ApplyConstantOffsets? applyConstantOffsets;
+  void Function()? _applyResolutionConstantOffsets;
 
   void deferReadResolution(void Function()? callback) {
     assert(_readResolutionCallback == null);
     _readResolutionCallback = callback;
+  }
+
+  void deferResolutionConstantOffsets(void Function() callback) {
+    assert(_applyResolutionConstantOffsets == null);
+    _applyResolutionConstantOffsets = callback;
   }
 
   void withoutLoadingResolution(void Function() operation) {
@@ -1133,8 +1137,10 @@ mixin DeferredResolutionReadingMixin {
       callback();
 
       // The callback read all AST nodes, apply offsets.
-      applyConstantOffsets?.perform();
-      applyConstantOffsets = null;
+      if (_applyResolutionConstantOffsets case var callback?) {
+        _applyResolutionConstantOffsets = null;
+        callback();
+      }
     }
   }
 }
