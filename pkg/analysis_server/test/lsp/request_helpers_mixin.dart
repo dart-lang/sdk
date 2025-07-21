@@ -783,6 +783,14 @@ mixin LspRequestHelpersMixin {
     return expectSuccessfulResponseTo(request, SignatureHelp.fromJson);
   }
 
+  Future<DocumentSummary> getSummary(Uri uri) {
+    var request = makeRequest(
+      CustomMethods.summary,
+      DartTextDocumentSummaryParams(uri: uri),
+    );
+    return expectSuccessfulResponseTo(request, DocumentSummary.fromJson);
+  }
+
   Future<Location> getSuper(Uri uri, Position pos) {
     var request = makeRequest(
       CustomMethods.super_,
