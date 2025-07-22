@@ -358,6 +358,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isExternal, 'external ');
       _sink.writeIf(e.isConst, 'const ');
       _sink.writeIf(e.isFactory, 'factory ');
+      _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
       expect(e.isAbstract, isFalse);
       _writeElementName(e);
     });
@@ -953,6 +954,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
 
       _writeElementName(e);
     });
@@ -1370,6 +1372,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
 
       _writeElementName(e);
     });
@@ -1548,6 +1551,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
       _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isExtensionTypeMember, 'isExtensionTypeMember ');
 
       _writeElementName(e);
     });
