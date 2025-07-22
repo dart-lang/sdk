@@ -625,6 +625,14 @@ List<LspEntity> getCustomClasses() {
     interface('DartTextDocumentContentDidChangeParams', [
       field('uri', type: 'DocumentUri'),
     ]),
+
+    // Types for `dart/textDocument/summary`.
+    interface('DartTextDocumentSummaryParams', [
+      field('uri', type: 'DocumentUri'),
+    ]),
+    interface('DocumentSummary', [
+      field('summary', type: 'String', canBeNull: true),
+    ]),
   ];
   return customTypes;
 }

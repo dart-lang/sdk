@@ -694,9 +694,7 @@ class AstBinaryReader {
     var type = _reader.readRequiredType() as FunctionTypeImpl;
     node.type = type;
 
-    var fragment = GenericFunctionTypeFragmentImpl.forOffset(
-      firstTokenOffset: null,
-    );
+    var fragment = GenericFunctionTypeFragmentImpl(firstTokenOffset: null);
     fragment.parameters =
         formalParameters.parameters
             .map((parameter) => parameter.declaredFragment!)

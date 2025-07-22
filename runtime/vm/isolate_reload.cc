@@ -704,6 +704,7 @@ class DeltaProgram {
                                      intptr_t* p_num_procedures) = 0;
 
   virtual ObjectPtr Load() = 0;
+  virtual void LoadPendingCode() = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DeltaProgram);
@@ -728,6 +729,7 @@ class KernelDeltaProgram : public DeltaProgram {
   ObjectPtr Load() override {
     return kernel::KernelLoader::LoadEntireProgram(kernel_program_.get()).ptr();
   }
+  void LoadPendingCode() override {}
 
  private:
   std::unique_ptr<kernel::Program> kernel_program_;
@@ -750,11 +752,18 @@ class BytecodeDeltaProgram : public DeltaProgram {
   ObjectPtr Load() override {
     Thread* thread = Thread::Current();
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
-    const auto& function = Function::Handle(loader_.LoadBytecode());
+    const auto& function =
+        Function::Handle(loader_.LoadBytecode(/*load_code=*/false));
     if (!function.IsNull()) {
       return Class::Handle(function.Owner()).library();
     }
     return Object::null();
+  }
+
+  void LoadPendingCode() override {
+    Thread* thread = Thread::Current();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    loader_.LoadPendingCode();
   }
 
  private:
@@ -965,7 +974,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   // will either commit or reject the reload request.
   const auto& result = Object::Handle(
       Z, IG->program_reload_context()->ReloadPhase2LoadDeltaProgram(
-             std::move(delta_program), root_lib_url_));
+             delta_program.get(), root_lib_url_));
 
   if (result.IsError()) {
     TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
@@ -1079,7 +1088,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         IG->DropOriginalClassTable();
       }
       const Error& error = Error::Handle(
-          isolate_group_->program_reload_context()->ReloadPhase4CommitFinish());
+          isolate_group_->program_reload_context()->ReloadPhase4CommitFinish(
+              delta_program.get()));
       if (error.IsNull()) {
         TIR_Print("---- DONE COMMIT\n");
         isolate_group_->set_last_reload_timestamp(reload_timestamp_);
@@ -1090,6 +1100,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       TIR_Print("---- ROLLING BACK");
       isolate_group_->program_reload_context()->ReloadPhase4Rollback();
     }
+    delta_program.reset();
 
     // ValidateReload mutates the direct subclass information and does
     // not remove dead subclasses.
@@ -1343,7 +1354,7 @@ void ProgramReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
 }
 
 ObjectPtr ProgramReloadContext::ReloadPhase2LoadDeltaProgram(
-    std::unique_ptr<DeltaProgram> program,
+    DeltaProgram* program,
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
@@ -1377,8 +1388,12 @@ void ProgramReloadContext::ReloadPhase4CommitPrepare() {
   CommitBeforeInstanceMorphing();
 }
 
-ErrorPtr ProgramReloadContext::ReloadPhase4CommitFinish() {
+ErrorPtr ProgramReloadContext::ReloadPhase4CommitFinish(DeltaProgram* program) {
+  // Should be before RehashConstants as it looks at the new constants.
+  program->LoadPendingCode();
+
   CommitAfterInstanceMorphing();
+
   return PostCommit();
 }
 

@@ -509,14 +509,17 @@ class Search {
     InterfaceElement? type,
     SubtypeResult? subtype,
   }) async {
-    var type1 = type;
     String name;
     String id;
-    if (type1 != null) {
-      name = type1.name!;
-      var librarySource = type1.library.firstFragment.source;
-      var source = type1.firstFragment.libraryFragment.source;
-      id = '${librarySource.uri};${source.uri};$name';
+    if (type != null) {
+      if (type.name case var elementName?) {
+        name = elementName;
+        var librarySource = type.library.firstFragment.source;
+        var source = type.firstFragment.libraryFragment.source;
+        id = '${librarySource.uri};${source.uri};$name';
+      } else {
+        return [];
+      }
     } else {
       name = subtype!.name;
       id = subtype.id;

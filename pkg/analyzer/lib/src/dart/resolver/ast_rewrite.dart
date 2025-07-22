@@ -54,7 +54,7 @@ class AstRewriter {
           function: SimpleIdentifierImpl(token: typeNode.name),
         );
       } else if (element is TypeAliasElementImpl &&
-          element.aliasedElement is GenericFunctionTypeElement) {
+          element.aliasedType is FunctionType) {
         return _toMethodInvocationOfAliasedTypeLiteral(
           node: node,
           function: SimpleIdentifierImpl(token: typeNode.name),
@@ -77,7 +77,7 @@ class AstRewriter {
             ),
           );
         } else if (element is TypeAliasElementImpl &&
-            element.aliasedElement is GenericFunctionTypeElement) {
+            element.aliasedType is FunctionType) {
           return _toMethodInvocationOfAliasedTypeLiteral(
             node: node,
             function: PrefixedIdentifierImpl(

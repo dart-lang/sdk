@@ -3282,6 +3282,15 @@ class A {}
     expect(c.id, endsWith('c.dart;C'));
   }
 
+  test_subtypes_class_missingName() async {
+    await resolveTestCode('''
+class {}
+''');
+    var a = findElement2.libraryElement.classes.single;
+    var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
+    expect(subtypes, isEmpty);
+  }
+
   test_subtypes_enum() async {
     await resolveTestCode('''
 class A {}

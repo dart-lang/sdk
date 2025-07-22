@@ -1,6 +1,12 @@
+## 0.13.5
+- Require version `^8.0.0` of the `analyzer` package.
+
+## 0.13.4
+- Require version `^7.5.1` of the `analyzer` package.
+
 ## 0.13.2
 - Deprecated: `RangeFactory.error` is replaced by `RangeFactory.diagnostic`.
-- Require version `8.x.x` of the `analyzer` package.
+- Require version `^7.4.6` of the `analyzer` package.
 
 ## 0.13.1
 - Updated SDK constraint to `^3.5.0`.

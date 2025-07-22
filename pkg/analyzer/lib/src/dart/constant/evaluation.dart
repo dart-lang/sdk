@@ -80,11 +80,6 @@ class ConstantEvaluationEngine {
 
   /// Compute the constant value associated with the given [constant].
   void computeConstantValue(ConstantEvaluationTarget constant) {
-    if (constant is FragmentImpl) {
-      var element = constant as FragmentImpl;
-      constant = element.declaration as ConstantEvaluationTarget;
-    }
-
     var libraryFragment = constant.libraryFragment!;
     var library = libraryFragment.element;
     if (constant is FormalParameterElementImpl) {

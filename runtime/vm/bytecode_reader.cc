@@ -65,6 +65,8 @@ BytecodeLoader::BytecodeLoader(Thread* thread, const TypedDataBase& binary)
     : thread_(thread),
       binary_(binary),
       bytecode_component_array_(Array::Handle(thread->zone())),
+      pending_classes_(GrowableObjectArray::Handle(thread->zone(),
+                                                   GrowableObjectArray::New())),
       bytecode_offsets_map_(
           Array::Handle(thread->zone(),
                         HashTables::New<BytecodeOffsetsMap>(16))) {
@@ -81,7 +83,7 @@ BytecodeLoader::~BytecodeLoader() {
   thread_->set_bytecode_loader(nullptr);
 }
 
-FunctionPtr BytecodeLoader::LoadBytecode() {
+FunctionPtr BytecodeLoader::LoadBytecode(bool load_code) {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
 
   if (bytecode_component_array_.IsNull()) {
@@ -93,7 +95,8 @@ FunctionPtr BytecodeLoader::LoadBytecode() {
   BytecodeReaderHelper bytecode_reader(thread_, &bytecode_component);
   AlternativeReadingScope alt(&bytecode_reader.reader(),
                               bytecode_component.GetLibraryIndexOffset());
-  bytecode_reader.ReadLibraryDeclarations(bytecode_component.GetNumLibraries());
+  bytecode_reader.ReadLibraryDeclarations(bytecode_component.GetNumLibraries(),
+                                          pending_classes_, load_code);
 
   if (bytecode_component.GetMainOffset() == 0) {
     return Function::null();
@@ -102,6 +105,15 @@ FunctionPtr BytecodeLoader::LoadBytecode() {
   AlternativeReadingScope alt2(&bytecode_reader.reader(),
                                bytecode_component.GetMainOffset());
   return Function::RawCast(bytecode_reader.ReadObject());
+}
+
+void BytecodeLoader::LoadPendingCode() {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(!bytecode_component_array_.IsNull());
+
+  BytecodeComponentData bytecode_component(bytecode_component_array_);
+  BytecodeReaderHelper bytecode_reader(thread_, &bytecode_component);
+  bytecode_reader.ReadPendingCode(pending_classes_);
 }
 
 void BytecodeLoader::SetOffset(const Object& obj, intptr_t offset) {
@@ -2261,11 +2273,12 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
   library.SetLoaded();
 }
 
-void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
+void BytecodeReaderHelper::ReadLibraryDeclarations(
+    intptr_t num_libraries,
+    const GrowableObjectArray& pending_classes,
+    bool load_code) {
   auto& library = Library::Handle(Z);
   auto& uri = String::Handle(Z);
-  auto& pending_classes =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
 
   // Verify that libraries in the dynamic module are not loaded yet.
   {
@@ -2297,6 +2310,13 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
     ReadLibraryDeclaration(library, pending_classes);
   }
 
+  if (load_code) {
+    ReadPendingCode(pending_classes);
+  }
+}
+
+void BytecodeReaderHelper::ReadPendingCode(
+    const GrowableObjectArray& pending_classes) {
   auto& cls = Class::Handle(Z);
   auto& error = Error::Handle(Z);
   auto& members = Array::Handle(Z);
