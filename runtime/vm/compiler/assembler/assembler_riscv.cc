@@ -4691,8 +4691,10 @@ void Assembler::LeaveDartFrame() {
   }
   set_constant_pool_allowed(false);
   subi(SP, FP, 2 * target::kWordSize);
-  lx(FP, Address(SP, 0 * target::kWordSize));
+  // Update RA first so the profiler can identify the frame as the entry frame
+  // after FP is updated but before the return instruction.
   lx(RA, Address(SP, 1 * target::kWordSize));
+  lx(FP, Address(SP, 0 * target::kWordSize));
   addi(SP, SP, 2 * target::kWordSize);
 }
 

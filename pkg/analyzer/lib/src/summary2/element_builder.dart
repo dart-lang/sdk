@@ -106,8 +106,7 @@ class ElementBuilder {
       if (instanceElement is ExtensionTypeElementImpl) {
         for (var executable in instanceElement.children) {
           if (executable case ExecutableElementImpl executable) {
-            // TODO(scheglov): should be a flag on the element instead
-            executable.firstFragment.isExtensionTypeMember = true;
+            executable.isExtensionTypeMember = true;
           }
         }
       }

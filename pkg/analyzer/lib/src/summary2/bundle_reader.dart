@@ -347,6 +347,7 @@ class LibraryReader {
         reference: reference,
         firstFragment: fragments.first,
       );
+      element.readModifiers(_reader);
 
       // TODO(scheglov): type parameters
       // TODO(scheglov): formal parameters
@@ -785,6 +786,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<GetterFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = GetterElementImpl(reference, fragments.first);
+      element.readModifiers(_reader);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -912,6 +914,7 @@ class LibraryReader {
         reference: reference,
         firstFragment: fragments.first,
       );
+      element.readModifiers(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
 
       // TODO(scheglov): type parameters
@@ -1108,6 +1111,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<SetterFragmentImpl>();
       // TODO(scheglov): link fragments.
       var element = SetterElementImpl(reference, fragments.first);
+      element.readModifiers(_reader);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {

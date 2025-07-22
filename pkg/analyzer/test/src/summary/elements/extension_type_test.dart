@@ -65,7 +65,7 @@ library
           type: int?
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int?
@@ -91,7 +91,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: int
@@ -141,7 +141,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        const new
+        const isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -149,7 +149,7 @@ library
               firstFragment: #F4
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F5
           returnType: int
@@ -203,7 +203,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        named
+        isExtensionTypeMember named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F3
           formalParameters
@@ -211,7 +211,7 @@ library
               firstFragment: #F4
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F5
           returnType: int
@@ -271,14 +271,14 @@ library
           type: num
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
             #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: num
-        named
+        isExtensionTypeMember named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -286,7 +286,7 @@ library
               firstFragment: #F6
               type: num
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F7
           returnType: num
@@ -346,14 +346,14 @@ library
           type: num
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
             #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: num
-        named
+        isExtensionTypeMember named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -361,7 +361,7 @@ library
               firstFragment: #F6
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F7
           returnType: num
@@ -421,14 +421,14 @@ library
           type: num
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
             #E0 requiredPositional final hasImplicitType it
               firstFragment: #F4
               type: num
-        const named
+        const isExtensionTypeMember named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F5
           formalParameters
@@ -447,7 +447,7 @@ library
                 element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::a
                 staticType: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F7
           returnType: num
@@ -500,7 +500,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -508,7 +508,7 @@ library
               firstFragment: #F4
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F5
           returnType: int
@@ -561,7 +561,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -569,7 +569,7 @@ library
               firstFragment: #F4
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F5
           returnType: int
@@ -630,12 +630,12 @@ library
             expression: expression_0
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
-        synthetic static foo
+        synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
           firstFragment: #F5
           returnType: int
@@ -696,12 +696,12 @@ library
             expression: expression_0
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
-        synthetic static foo
+        synthetic static isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
           firstFragment: #F5
           returnType: int
@@ -755,12 +755,12 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
-        synthetic foo
+        synthetic isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
           firstFragment: #F5
           returnType: int
@@ -817,7 +817,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -825,7 +825,7 @@ library
               firstFragment: #F4
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F5
           returnType: int
@@ -879,12 +879,12 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::foo
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
-        foo
+        isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@getter::foo
           firstFragment: #F5
           returnType: int
@@ -953,7 +953,7 @@ library
           type: C
           getter: <testLibrary>::@extensionType::X::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::X::@getter::it
           firstFragment: #F6
           returnType: C
@@ -1007,7 +1007,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
@@ -1027,7 +1027,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: int
@@ -1072,7 +1072,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
@@ -1124,7 +1124,7 @@ library
           type: num
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: num
@@ -1144,7 +1144,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: int
@@ -1189,7 +1189,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
@@ -1232,7 +1232,7 @@ library
           type: int?
           getter: <testLibrary>::@extensionType::X::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::X::@getter::it
           firstFragment: #F3
           returnType: int?
@@ -1282,7 +1282,7 @@ library
           type: T
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           hasEnclosingTypeParameterReference: true
@@ -1332,7 +1332,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::X::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::X::@getter::it
           firstFragment: #F3
           returnType: int
@@ -1436,7 +1436,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1444,7 +1444,7 @@ library
               firstFragment: #F4
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F5
           returnType: int
@@ -1495,13 +1495,13 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        foo
+        isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F4
           formalParameters
@@ -1559,13 +1559,13 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       methods
-        foo
+        isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@method::foo
           firstFragment: #F4
           formalParameters
@@ -1614,7 +1614,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::0::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::0::@getter::it
           firstFragment: #F3
           returnType: int
@@ -1667,7 +1667,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::1
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -1675,7 +1675,7 @@ library
               firstFragment: #F4
               type: InvalidType
       getters
-        synthetic <null-name>
+        synthetic isExtensionTypeMember <null-name>
           reference: <testLibrary>::@extensionType::A::@getter::1
           firstFragment: #F5
           returnType: InvalidType
@@ -1725,7 +1725,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
@@ -1783,13 +1783,13 @@ library
           type: double
           setter: <testLibrary>::@extensionType::A::@setter::foo
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
       setters
-        foo
+        isExtensionTypeMember foo
           reference: <testLibrary>::@extensionType::A::@setter::foo
           firstFragment: #F5
           formalParameters
@@ -1845,7 +1845,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: InvalidType
@@ -1863,7 +1863,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: InvalidType
@@ -1916,7 +1916,7 @@ library
           type: B
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: B
@@ -1934,7 +1934,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: InvalidType
@@ -1977,7 +1977,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: InvalidType
@@ -2030,7 +2030,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
@@ -2048,7 +2048,7 @@ library
           type: A Function(A)
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: A Function(A)
@@ -2108,7 +2108,7 @@ library
           type: T
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           hasEnclosingTypeParameterReference: true
@@ -2127,7 +2127,7 @@ library
           type: A<double>
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F7
           returnType: A<double>
@@ -2180,7 +2180,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
@@ -2198,7 +2198,7 @@ library
           type: List<A>
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: List<A>
@@ -2241,7 +2241,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F3
           returnType: int
@@ -2303,7 +2303,7 @@ library
           type: Map<T, U>
           getter: <testLibrary>::@extensionType::A::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
           formalParameters
@@ -2311,7 +2311,7 @@ library
               firstFragment: #F6
               type: Map<T, U>
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true

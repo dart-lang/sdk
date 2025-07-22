@@ -1348,18 +1348,33 @@ void Simulator::HandleRList(Instr* instr, bool load) {
     if (instr->HasW()) {
       set_register(rn, rn_val);
     }
-    int reg = 0;
-    while (rlist != 0) {
-      if ((rlist & 1) != 0) {
-        if (load) {
-          set_register(static_cast<Register>(reg), ReadW(address, instr));
-        } else {
-          WriteW(address, get_register(static_cast<Register>(reg)), instr);
+
+    if (rlist == ((1 << FP) | (1 << PC))) {
+      // Special case `ldmia {fp, pc}` for LeaveDartFrame so that the profiler
+      // does not get confused by observing the update to fp before pc when our
+      // caller is the entry stub, i.e., failing to identify the entry frame. On
+      // real hardware, the profiler's signal handler cannot observe a partially
+      // executued load-multiple instruction.
+      int32_t new_fp = ReadW(address, instr);
+      address += 4;
+      int32_t new_pc = ReadW(address, instr);
+      address += 4;
+      set_register(PC, new_pc);
+      set_register(FP, new_fp);
+    } else {
+      int reg = 0;
+      while (rlist != 0) {
+        if ((rlist & 1) != 0) {
+          if (load) {
+            set_register(static_cast<Register>(reg), ReadW(address, instr));
+          } else {
+            WriteW(address, get_register(static_cast<Register>(reg)), instr);
+          }
+          address += 4;
         }
-        address += 4;
+        reg++;
+        rlist >>= 1;
       }
-      reg++;
-      rlist >>= 1;
     }
     ASSERT(end_address == address);
   }

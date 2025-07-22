@@ -131,25 +131,25 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "61ba1ea081dbc83c89b62bd65336328a71fda858",
+  "ai_rev": "40607dca1b7b72d13483db3dc6f30f31d42584ef",
   "core_rev": "b59ecf4ceebe6153e1c0166b7c9a7fdd9458a89d",
   "dartdoc_rev": "882aea9351262d618c955322f4c9aafe9540b848",
   "ecosystem_rev": "d5233c6dd0767cffa5742e32c4bc7c230c9c4b12",
   "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
-  "http_rev": "2d9681d0eee20492ef956887b992d70d7119f16e",
+  "http_rev": "4a90d162d526602418f64dc5f83f603c2bfe213e",
   "i18n_rev": "c45e050426bdeaaa120e5ce856abb486863d0476",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "cc5539fe3fd782629f13e05b0c83093862baf7ca", # rolled manually while native assets are experimental
-  "protobuf_rev": "04bd6ace9326616a41a6a6bef93355f73fa28faf",
+  "protobuf_rev": "4916e6f7d34443869c27d997749d4362870fd7ce",
   "pub_rev": "c3e50919d11896f014cb971e1776d00a0e2d18b3", # rolled manually
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "c07f96f89a7eec7e3daac641fa6c587224fcfbaa",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "2be5ca067bdf09e999be2ad760ab8efab854e789",
-  "tools_rev": "a4335eb80c55c3944a6af1a5ce20f5694298afdc",
+  "test_rev": "c201cc98cc969c3632b2b0b4eee469330fc3ed9b",
+  "tools_rev": "2a2a2d611f2b98888bb6a93b03aa350c97310d87",
   "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
-  "web_rev": "7e0853d6255d988a5813e680853565b4317da729",
+  "web_rev": "767151eede2670dbfc6ea4f3a2b4edb007b0f94b",
   "webdev_rev": "7f376d242709e933fff70610503d0c5c09b2e17e",
   "webdriver_rev": "cfab787b30fbfb5509f9fc45cfce51157fb9f369",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",

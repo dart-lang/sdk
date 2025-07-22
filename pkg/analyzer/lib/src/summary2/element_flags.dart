@@ -267,11 +267,10 @@ class MethodElementFlags {
   static const int _isAbstract = 1 << 3;
   static const int _isAsynchronous = 1 << 4;
   static const int _isAugmentation = 1 << 5;
-  static const int _isExtensionTypeMember = 1 << 6;
-  static const int _isExternal = 1 << 7;
-  static const int _isGenerator = 1 << 8;
-  static const int _isStatic = 1 << 9;
-  static const int _isSynthetic = 1 << 10;
+  static const int _isExternal = 1 << 6;
+  static const int _isGenerator = 1 << 7;
+  static const int _isStatic = 1 << 8;
+  static const int _isSynthetic = 1 << 9;
 
   static void read(SummaryDataReader reader, MethodFragmentImpl element) {
     var bits = reader.readUInt30();
@@ -282,7 +281,6 @@ class MethodElementFlags {
     element.isAbstract = (bits & _isAbstract) != 0;
     element.isAsynchronous = (bits & _isAsynchronous) != 0;
     element.isAugmentation = (bits & _isAugmentation) != 0;
-    element.isExtensionTypeMember = (bits & _isExtensionTypeMember) != 0;
     element.isExternal = (bits & _isExternal) != 0;
     element.isGenerator = (bits & _isGenerator) != 0;
     element.isStatic = (bits & _isStatic) != 0;
@@ -300,7 +298,6 @@ class MethodElementFlags {
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
     result |= element.isAugmentation ? _isAugmentation : 0;
-    result |= element.isExtensionTypeMember ? _isExtensionTypeMember : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
@@ -363,11 +360,10 @@ class PropertyAccessorElementFlags {
   static const int _hasImplicitReturnType = 1 << 5;
   static const int _isAbstract = 1 << 6;
   static const int _isAsynchronous = 1 << 7;
-  static const int _isExtensionTypeMember = 1 << 8;
-  static const int _isExternal = 1 << 9;
-  static const int _isGenerator = 1 << 10;
-  static const int _isStatic = 1 << 11;
-  static const int _isSynthetic = 1 << 12;
+  static const int _isExternal = 1 << 8;
+  static const int _isGenerator = 1 << 9;
+  static const int _isStatic = 1 << 10;
+  static const int _isSynthetic = 1 << 11;
 
   static bool isGetter(int flags) => (flags & _isGetter) != 0;
 
@@ -390,7 +386,6 @@ class PropertyAccessorElementFlags {
     element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isAsynchronous = (byte & _isAsynchronous) != 0;
-    element.isExtensionTypeMember = (byte & _isExtensionTypeMember) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isGenerator = (byte & _isGenerator) != 0;
     element.isStatic = (byte & _isStatic) != 0;
@@ -410,7 +405,6 @@ class PropertyAccessorElementFlags {
     result |= element.hasImplicitReturnType ? _hasImplicitReturnType : 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
-    result |= element.isExtensionTypeMember ? _isExtensionTypeMember : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;

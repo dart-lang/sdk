@@ -940,7 +940,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::E::@def::0::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::E::@def::0::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -948,7 +948,7 @@ library
               firstFragment: #F4
               type: int
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::E::@def::0::@getter::it
           firstFragment: #F5
           returnType: int
@@ -966,7 +966,7 @@ library
           type: double
           getter: <testLibrary>::@extensionType::E::@def::1::@getter::it
       constructors
-        new
+        isExtensionTypeMember new
           reference: <testLibrary>::@extensionType::E::@def::1::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -974,7 +974,7 @@ library
               firstFragment: #F9
               type: double
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::E::@def::1::@getter::it
           firstFragment: #F10
           returnType: double

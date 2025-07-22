@@ -95,7 +95,12 @@ class AddConst extends ResolvedCorrectionProducer {
       await _insertBeforeNode(builder, targetNode);
       return;
     }
-    if (targetNode case InstanceCreationExpression(:var parent, :var keyword)) {
+    if (targetNode
+        case InstanceCreationExpression(:var parent, :var keyword) ||
+            DotShorthandConstructorInvocation(
+              :var parent,
+              constKeyword: var keyword,
+            )) {
       var constDeclarations =
           getCodeStyleOptions(unitResult.file).preferConstDeclarations;
 
@@ -110,7 +115,7 @@ class AddConst extends ResolvedCorrectionProducer {
           return;
         }
       }
-      if (keyword == null) {
+      if (keyword == null && targetNode is Expression) {
         await _insertBeforeNode(builder, targetNode);
         return;
       }

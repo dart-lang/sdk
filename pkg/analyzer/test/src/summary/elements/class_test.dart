@@ -11788,7 +11788,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F6
           returnType: int
@@ -13377,7 +13377,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F4
           returnType: int
@@ -16659,7 +16659,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
