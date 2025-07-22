@@ -1,5 +1,6 @@
 ## 8.1.0-dev
 * Add `DartObject.constructorInvocation` with the constructor and arguments.
+* Fix draining analysis events when used by `package:build`.
 
 ## 8.0.0
 * Remove deprecated element model V1.

@@ -57,7 +57,10 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
 
   var logger = PerformanceLog(null);
   byteStore ??= MemoryByteStore();
+
   var scheduler = AnalysisDriverScheduler(logger);
+  scheduler.events.drain<void>().ignore();
+
   var sharedOptions = analysisOptions as AnalysisOptionsImpl;
   var optionsMap = AnalysisOptionsMap.forSharedOptions(sharedOptions);
   var driver = AnalysisDriver(
