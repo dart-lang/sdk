@@ -2250,7 +2250,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   bool get isExtensionTypeMember {
-    return firstFragment.isExtensionTypeMember;
+    return hasModifier(Modifier.EXTENSION_TYPE_MEMBER);
+  }
+
+  set isExtensionTypeMember(bool value) {
+    setModifier(Modifier.EXTENSION_TYPE_MEMBER, value);
   }
 
   @override
@@ -2436,15 +2440,6 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
   /// Set whether this executable element's body is asynchronous.
   set isAsynchronous(bool isAsynchronous) {
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
-  }
-
-  /// Whether the executable element is an extension type member.
-  bool get isExtensionTypeMember {
-    return hasModifier(Modifier.EXTENSION_TYPE_MEMBER);
-  }
-
-  set isExtensionTypeMember(bool value) {
-    setModifier(Modifier.EXTENSION_TYPE_MEMBER, value);
   }
 
   /// Whether the executable element is external.

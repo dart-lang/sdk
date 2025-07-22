@@ -198,6 +198,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+      element.writeModifiers(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -476,6 +477,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+      element.writeModifiers(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.writeType(element.returnType);
@@ -544,6 +546,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+      element.writeModifiers(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
       _writeElementResolution(() {
@@ -682,6 +685,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _sink.writeList(element.fragments, _writeFragmentId);
+      element.writeModifiers(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.writeType(element.returnType);
