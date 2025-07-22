@@ -693,16 +693,10 @@ class _HttpHeaders implements HttpHeaders {
 
 class _HeaderValue implements HeaderValue {
   String _value;
-  Map<String, String?>? _parameters;
+  final Map<String, String?> _parameters;
   Map<String, String?>? _unmodifiableParameters;
 
-  _HeaderValue([this._value = "", Map<String, String?> parameters = const {}]) {
-    // TODO(40614): Remove once non-nullability is sound.
-    Map<String, String?>? nullableParameters = parameters;
-    if (nullableParameters != null && nullableParameters.isNotEmpty) {
-      _parameters = HashMap<String, String?>.from(nullableParameters);
-    }
-  }
+  _HeaderValue([this._value = "", this._parameters = const {}]);
 
   static _HeaderValue parse(
     String value, {
@@ -711,18 +705,15 @@ class _HeaderValue implements HeaderValue {
     bool preserveBackslash = false,
   }) {
     // Parse the string.
-    var result = _HeaderValue();
+    var result = _HeaderValue('', {});
     result._parse(value, parameterSeparator, valueSeparator, preserveBackslash);
     return result;
   }
 
   String get value => _value;
 
-  Map<String, String?> _ensureParameters() =>
-      _parameters ??= <String, String?>{};
-
   Map<String, String?> get parameters =>
-      _unmodifiableParameters ??= UnmodifiableMapView(_ensureParameters());
+      _unmodifiableParameters ??= UnmodifiableMapView(_parameters);
 
   static bool _isToken(String token) {
     if (token.isEmpty) {
@@ -741,36 +732,33 @@ class _HeaderValue implements HeaderValue {
   String toString() {
     StringBuffer sb = StringBuffer();
     sb.write(_value);
-    var parameters = _parameters;
-    if (parameters != null && parameters.isNotEmpty) {
-      parameters.forEach((String name, String? value) {
-        sb
-          ..write("; ")
-          ..write(name);
-        if (value != null) {
-          sb.write("=");
-          if (_isToken(value)) {
-            sb.write(value);
-          } else {
-            sb.write('"');
-            int start = 0;
-            for (int i = 0; i < value.length; i++) {
-              // Can use codeUnitAt here instead.
-              int codeUnit = value.codeUnitAt(i);
-              if (codeUnit == 92 /* backslash */ ||
-                  codeUnit == 34 /* double quote */ ) {
-                sb.write(value.substring(start, i));
-                sb.write(r'\');
-                start = i;
-              }
+    _parameters.forEach((String name, String? value) {
+      sb
+        ..write("; ")
+        ..write(name);
+      if (value != null) {
+        sb.write("=");
+        if (_isToken(value)) {
+          sb.write(value);
+        } else {
+          sb.write('"');
+          int start = 0;
+          for (int i = 0; i < value.length; i++) {
+            // Can use codeUnitAt here instead.
+            int codeUnit = value.codeUnitAt(i);
+            if (codeUnit == 92 /* backslash */ ||
+                codeUnit == 34 /* double quote */ ) {
+              sb.write(value.substring(start, i));
+              sb.write(r'\');
+              start = i;
             }
-            sb
-              ..write(value.substring(start))
-              ..write('"');
           }
+          sb
+            ..write(value.substring(start))
+            ..write('"');
         }
-      });
-    }
+      }
+    });
     return sb.toString();
   }
 
@@ -821,8 +809,6 @@ class _HeaderValue implements HeaderValue {
     }
 
     void parseParameters() {
-      var parameters = _ensureParameters();
-
       String parseParameterName() {
         int start = index;
         while (!done()) {
@@ -880,10 +866,10 @@ class _HeaderValue implements HeaderValue {
             // Charset parameter of ContentTypes are always lower-case.
             value = value.toLowerCase();
           }
-          parameters[name] = value;
+          _parameters[name] = value;
           skipWS();
         } else if (name.isNotEmpty) {
-          parameters[name] = null;
+          _parameters[name] = null;
         }
         if (done()) return;
         // TODO: Implement support for multi-valued parameters.
@@ -907,36 +893,32 @@ class _ContentType extends _HeaderValue implements ContentType {
   String _subType = "";
 
   _ContentType(
-    String primaryType,
-    String subType,
+    this._primaryType,
+    this._subType,
     String? charset,
     Map<String, String?> parameters,
-  ) : _primaryType = primaryType,
-      _subType = subType,
-      super("") {
-    // TODO(40614): Remove once non-nullability is sound.
-    String emptyIfNull(String? string) => string ?? "";
-    _primaryType = emptyIfNull(_primaryType);
-    _subType = emptyIfNull(_subType);
-    _value = "$_primaryType/$_subType";
-    // TODO(40614): Remove once non-nullability is sound.
-    Map<String, String?>? nullableParameters = parameters;
-    if (nullableParameters != null) {
-      var parameterMap = _ensureParameters();
-      nullableParameters.forEach((String key, String? value) {
-        String lowerCaseKey = key.toLowerCase();
-        if (lowerCaseKey == "charset") {
-          value = value?.toLowerCase();
-        }
-        parameterMap[lowerCaseKey] = value;
-      });
-    }
+  ) : super("$_primaryType/$_subType", _createParams(parameters, charset));
+
+  static Map<String, String?> _createParams(
+    Map<String, String?> parameters,
+    String? charset,
+  ) {
+    var result = <String, String?>{};
+    parameters.forEach((String key, String? value) {
+      String lowerCaseKey = key.toLowerCase();
+      if (lowerCaseKey == "charset") {
+        value = value?.toLowerCase();
+      }
+      result[lowerCaseKey] = value;
+    });
     if (charset != null) {
-      _ensureParameters()["charset"] = charset.toLowerCase();
+      result["charset"] = charset.toLowerCase();
     }
+
+    return result;
   }
 
-  _ContentType._();
+  _ContentType._() : super('', {});
 
   static _ContentType parse(String value) {
     var result = _ContentType._();
@@ -1145,7 +1127,6 @@ class _Cookie implements Cookie {
       "{",
       "}",
     ];
-    if (newName == null) throw ArgumentError.notNull("name");
     for (int i = 0; i < newName.length; i++) {
       int codeUnit = newName.codeUnitAt(i);
       if (codeUnit <= 32 ||
@@ -1162,7 +1143,6 @@ class _Cookie implements Cookie {
   }
 
   static String _validateValue(String newValue) {
-    if (newValue == null) throw ArgumentError.notNull("value");
     // Per RFC 6265, consider surrounding "" as part of the value, but otherwise
     // double quotes are not allowed.
     int start = 0;
