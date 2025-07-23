@@ -12,14 +12,22 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
+/// Used to record the type of error in Flutter telemetry.
+///
+/// DO NOT alter the numeric values or change the meaning of these entries.
+///
+/// It is MUCH better to add new values and deprecate old values.
+/// Consider commenting out the old value line as a tombstone.
+///
+/// Please notify folks in charge of Flutter Web analytics before making any
+/// changes.
 enum _DryRunErrorCode {
   noDartHtml(0),
   noDartJs(1),
   interopChecksError(2),
   isTestValueError(3),
   isTestTypeError(4),
-  isTestGenericTypeError(5),
-  ;
+  isTestGenericTypeError(5);
 
   const _DryRunErrorCode(this.code);
 
