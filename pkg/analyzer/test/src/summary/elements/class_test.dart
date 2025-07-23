@@ -2027,6 +2027,155 @@ library
 ''');
   }
 
+  test_class_constructor_initializers_field_stringInterpolation_expression() async {
+    var library = await buildLibrary(r'''
+class C {
+  final f;
+  const C() : f = '${42}';
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C @6
+          element: <testLibrary>::@class::C
+          fields
+            #F2 f @18
+              element: <testLibrary>::@class::C::@field::f
+          constructors
+            #F3 const new
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 29
+          getters
+            #F4 synthetic f
+              element: <testLibrary>::@class::C::@getter::f
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      fields
+        final f
+          reference: <testLibrary>::@class::C::@field::f
+          firstFragment: #F2
+          type: dynamic
+          getter: <testLibrary>::@class::C::@getter::f
+      constructors
+        const new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: f @35
+                element: <testLibrary>::@class::C::@field::f
+                staticType: null
+              equals: = @37
+              expression: StringInterpolation
+                elements
+                  InterpolationString
+                    contents: ' @39
+                  InterpolationExpression
+                    leftBracket: ${ @40
+                    expression: IntegerLiteral
+                      literal: 42 @42
+                      staticType: int
+                    rightBracket: } @44
+                  InterpolationString
+                    contents: ' @45
+                staticType: String
+                stringValue: null
+      getters
+        synthetic f
+          reference: <testLibrary>::@class::C::@getter::f
+          firstFragment: #F4
+          returnType: dynamic
+          variable: <testLibrary>::@class::C::@field::f
+''');
+  }
+
+  test_class_constructor_initializers_field_stringInterpolation_identifier() async {
+    var library = await buildLibrary(r'''
+class C {
+  final f;
+  const C(int x) : f = '$x';
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C @6
+          element: <testLibrary>::@class::C
+          fields
+            #F2 f @18
+              element: <testLibrary>::@class::C::@field::f
+          constructors
+            #F3 const new
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 29
+              formalParameters
+                #F4 x @35
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          getters
+            #F5 synthetic f
+              element: <testLibrary>::@class::C::@getter::f
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      fields
+        final f
+          reference: <testLibrary>::@class::C::@field::f
+          firstFragment: #F2
+          type: dynamic
+          getter: <testLibrary>::@class::C::@getter::f
+      constructors
+        const new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional x
+              firstFragment: #F4
+              type: int
+          constantInitializers
+            ConstructorFieldInitializer
+              fieldName: SimpleIdentifier
+                token: f @40
+                element: <testLibrary>::@class::C::@field::f
+                staticType: null
+              equals: = @42
+              expression: StringInterpolation
+                elements
+                  InterpolationString
+                    contents: ' @44
+                  InterpolationExpression
+                    leftBracket: $ @45
+                    expression: SimpleIdentifier
+                      token: x @46
+                      element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+                      staticType: int
+                  InterpolationString
+                    contents: ' @47
+                staticType: String
+                stringValue: null
+      getters
+        synthetic f
+          reference: <testLibrary>::@class::C::@getter::f
+          firstFragment: #F5
+          returnType: dynamic
+          variable: <testLibrary>::@class::C::@field::f
+''');
+  }
+
   test_class_constructor_initializers_field_withParameter() async {
     var library = await buildLibrary('''
 class C {
