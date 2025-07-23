@@ -984,9 +984,9 @@ int Process::Exec(Namespace* namespc,
     f.Printf("Process::Exec - CreateJobObject failed %d\n", GetLastError());
     return -1;
   }
-  JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = {
-      {{{0, 0}}, {{0, 0}}, 0, 0, 0, 0, 0, 0, 0}, {0}, 0, 0, 0, 0};
+  JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
   DWORD qresult;
+  memset(&info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
   if (!QueryInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
                                  sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION),
                                  &qresult)) {
