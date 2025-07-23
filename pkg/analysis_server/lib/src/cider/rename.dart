@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/naming_conventio
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/change_builder.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -376,6 +377,7 @@ class CheckNameResponse {
       return null;
     }
 
+    var utils = CorrectionUtils(resolvedUnit);
     var node = result.node;
     if (node is! NamedCompilationUnitMember) {
       return null;
@@ -389,6 +391,7 @@ class CheckNameResponse {
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),
+      eol: utils.endOfLine,
     );
     if (edit == null) {
       return null;

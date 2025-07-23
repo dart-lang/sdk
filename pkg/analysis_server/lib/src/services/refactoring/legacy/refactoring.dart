@@ -483,6 +483,7 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameConstructorRefactoringImpl(
         workspace,
         sessionHelper,
+        resolvedUnit,
         element,
       );
     }

@@ -111,6 +111,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   /// Checks that all conditions of [refactoring] are OK and the result of
   /// applying the [Change] to [testUnit] is [expectedCode].
   Future<void> assertSuccessfulRefactoring(String expectedCode) async {
+    expectedCode = normalizeSource(expectedCode);
     await assertRefactoringConditionsOK();
     var change = await refactoring.createChange();
     refactoringChange = change;
@@ -120,6 +121,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   /// Checks that all conditions of [refactoring] are OK, and the computed
   /// [SourceChange] matches the expectations.
   Future<void> assertSuccessfulRefactoring2(String expected) async {
+    expected = normalizeSource(expected);
     await assertRefactoringConditionsOK();
     var change = await refactoring.createChange();
     assertSourceChange(change, expected);
@@ -158,8 +160,6 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
   @override
   void verifyCreatedCollection() {
     super.verifyCreatedCollection();
-    // TODO(dantup): Get these tests passing with either line ending and change this to true.
-    useLineEndingsForPlatform = false;
     var drivers = [driverFor(testFile)];
     searchEngine = SearchEngineImpl(drivers);
     refactoringWorkspace = RefactoringWorkspace(drivers, searchEngine);

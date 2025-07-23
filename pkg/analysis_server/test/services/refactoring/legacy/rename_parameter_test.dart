@@ -104,8 +104,6 @@ void f() {
   }
 
   Future<void> test_createChange_inOtherFile() async {
-    useLineEndingsForPlatform = false;
-
     var b = convertPath('$testPackageLibPath/b.dart');
 
     addTestSource(r'''
@@ -222,8 +220,6 @@ class B extends A {
   }
 
   Future<void> test_createChange_updateHierarchy() async {
-    useLineEndingsForPlatform = false;
-
     await indexUnit('$testPackageLibPath/test2.dart', '''
 library test2;
 class A {
