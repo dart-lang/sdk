@@ -1510,9 +1510,6 @@ class ElementAnnotationImpl
       'visibleOutsideTemplate';
 
   @override
-  Element? element;
-
-  @override
   LibraryFragmentImpl libraryFragment;
 
   /// The AST of the annotation itself, cloned from the resolved AST for the
@@ -1559,6 +1556,9 @@ class ElementAnnotationImpl
     }
     return additionalErrors ?? const <Diagnostic>[];
   }
+
+  @override
+  Element? get element => annotationAst.element;
 
   @override
   @Deprecated('Use element instead')

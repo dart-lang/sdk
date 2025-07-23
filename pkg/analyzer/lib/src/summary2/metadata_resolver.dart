@@ -35,7 +35,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
         analysisOptions,
       );
       astResolver.resolveAnnotation(node);
-      annotationElement.element = node.element;
     }
   }
 
