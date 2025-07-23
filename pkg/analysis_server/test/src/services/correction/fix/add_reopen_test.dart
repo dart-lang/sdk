@@ -22,8 +22,6 @@ class AddReopenBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.implicit_reopen;
 
   Future<void> test_singleFile() async {
-    useLineEndingsForPlatform = false;
-
     await resolveTestCode('''
 final class F {}
 sealed class S extends F {}
