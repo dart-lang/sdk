@@ -35,7 +35,13 @@ String unsupportedTargetError(Target target) =>
     'Unsupported target platform $target';
 
 void defineCompileTests() {
-  final isRunningOnIA32 = Platform.version.contains('ia32');
+  final host = Target.current;
+  // AOT compilation is not available on IA32.
+  final bool isRunningOnIA32 = host.architecture == Architecture.ia32;
+  // Cross compilation is not available on 32-bit architectures.
+  final bool isRunningOn32Bit = isRunningOnIA32 ||
+      host.architecture == Architecture.arm ||
+      host.architecture == Architecture.riscv32;
 
   if (Platform.isMacOS) {
     test('Compile exe for MacOS signing', () async {
@@ -411,6 +417,65 @@ void defineCompileTests() {
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
+
+  Future<void> basicCrossCompileTest(Target target) async {
+    final p = project(
+        mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+    final result = await p.run(
+      [
+        'compile',
+        'exe',
+        '-v',
+        '--target-os',
+        target.os.name,
+        '--target-arch',
+        target.architecture.name,
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    if (result.exitCode != 0) {
+      print('Subcommand terminated with exit code ${result.exitCode}.');
+      if (result.stdout.isNotEmpty) {
+        print('Subcommand stdout:');
+        print(result.stdout);
+      }
+      if (result.stderr.isNotEmpty) {
+        print('Subcommand stderr:');
+        print(result.stderr);
+      }
+    }
+
+    expect(result.stdout,
+        contains(usingTargetOSMessageForPlatform(target.os.name)));
+    expect(result.stderr, isNot(contains(unsupportedTargetError(target))));
+    expect(result.exitCode, 0);
+  }
+
+  final crossCompileOSes = [
+    OS.linux,
+  ];
+
+  final crossCompileArchitectures = [
+    Architecture.arm,
+    Architecture.arm64,
+    Architecture.riscv64,
+    Architecture.x64,
+  ];
+
+  for (final os in crossCompileOSes) {
+    for (final arch in crossCompileArchitectures) {
+      if (os == host.os && arch == host.architecture) continue;
+      final target = Target.fromArchitectureAndOS(arch, os);
+      test('Compile executable can cross compile to $os $arch',
+          () async => basicCrossCompileTest(target),
+          skip: isRunningOn32Bit);
+    }
+  }
 
   test('Compile executable cannot compile cross-OS', () async {
     final p = project(
