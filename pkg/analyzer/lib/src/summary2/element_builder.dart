@@ -770,10 +770,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     required LibraryFragmentImpl unitElement,
   }) : _libraryBuilder = libraryBuilder,
        _unitElement = unitElement,
-       _enclosingContext = _EnclosingContext(
-         instanceElementBuilder: null,
-         fragment: unitElement,
-       );
+       _enclosingContext = _EnclosingContext(fragment: unitElement);
 
   Linker get _linker => _libraryBuilder.linker;
 
@@ -853,10 +850,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       node.members.accept(this);
@@ -894,10 +888,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
@@ -943,13 +934,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    var reference = Reference.root(); // TODO(scheglov): remove this
     var parentFragment = _enclosingContext.fragment;
     _libraryBuilder.addFragmentChild(parentFragment, fragment);
     (parentFragment as InterfaceFragmentImpl).addConstructor(fragment);
 
     _buildExecutableElementChildren(
-      reference: reference,
       fragment: fragment,
       formalParameters: node.parameters,
     );
@@ -974,10 +963,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
 
     // Build fields for all enum constants.
     var constants = node.constants;
@@ -1167,10 +1153,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       node.members.accept(this);
@@ -1204,10 +1187,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _builtRepresentationDeclaration(
@@ -1291,10 +1271,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
 
     // TODO(scheglov): check that we don't set reference for parameters
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
@@ -1375,7 +1352,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[executableFragment] = node;
 
     _buildExecutableElementChildren(
-      reference: Reference.root(), // TODO(scheglov): remove this
       fragment: executableFragment,
       formalParameters: functionExpression.parameters,
       typeParameters: functionExpression.typeParameters,
@@ -1401,10 +1377,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       node.returnType?.accept(this);
@@ -1446,10 +1419,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredFragment = fragment;
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
@@ -1473,10 +1443,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
@@ -1509,10 +1476,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
     });
@@ -1546,7 +1510,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var nameToken = node.name;
 
-    Reference reference;
     ExecutableFragmentImpl executableFragment;
     if (node.isGetter) {
       var fragment = GetterFragmentImpl(
@@ -1557,7 +1520,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
 
-      reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
       fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
@@ -1572,7 +1534,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
 
-      reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
       fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
@@ -1587,7 +1548,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = node.isStatic;
 
-      reference = Reference.root(); // TODO(scheglov): remove this
       var parentFragment = _enclosingContext.fragment;
       fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
@@ -1606,7 +1566,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[executableFragment] = node;
 
     _buildExecutableElementChildren(
-      reference: reference,
       fragment: executableFragment,
       formalParameters: node.parameters,
       typeParameters: node.typeParameters,
@@ -1633,10 +1592,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     _libraryBuilder.addTopFragment(_unitElement, fragment);
 
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       node.members.accept(this);
@@ -1752,10 +1708,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     node.declaredFragment = fragment;
 
     // TODO(scheglov): check that we don't set reference for parameters
-    var holder = _EnclosingContext(
-      instanceElementBuilder: null,
-      fragment: fragment,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
@@ -1848,13 +1801,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _buildExecutableElementChildren({
-    required Reference reference,
     required ExecutableFragmentImpl fragment,
     FormalParameterList? formalParameters,
     TypeParameterList? typeParameters,
   }) {
     var holder = _EnclosingContext(
-      instanceElementBuilder: null,
       fragment: fragment,
       hasDefaultFormalParameters: true,
     );
@@ -1968,7 +1919,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 }
 
 class _EnclosingContext {
-  final Object? instanceElementBuilder; // TODO(scheglov): remove it
   final FragmentImpl fragment;
   final bool hasDefaultFormalParameters;
 
@@ -1976,7 +1926,6 @@ class _EnclosingContext {
   final List<TypeParameterFragmentImpl> typeParameters = [];
 
   _EnclosingContext({
-    required this.instanceElementBuilder,
     required this.fragment,
     this.hasDefaultFormalParameters = false,
   });
