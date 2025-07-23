@@ -1,10 +1,3 @@
-> [!IMPORTANT]
-> This page was copied from https://github.com/dart-lang/sdk/wiki and needs review.
-> Please [contribute](../CONTRIBUTING.md) changes to bring it up-to-date -
-> removing this header - or send a CL to delete the file.
-
----
-
 # Live program changes in the Dart VM ("Hot reload")
 
 The Dart VM can apply changes to a running (live) program, which it calls _hot reload_. The semantics are very close to those of Smalltalk, which doesn't have a name for this feature since in most Smalltalk implementations program changes can only be made in a live programming environment.

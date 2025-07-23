@@ -99,30 +99,21 @@ Note: If you do not have emscripten, you can update your `.gclient` file to pull
 
 **IMPORTANT: You must follow instructions for [Getting the source](#source) before attempting to build. Just cloning a GitHub repo or downloading and unpacking a ZIP of the SDK repository would not work.**
 
-Build the 64-bit SDK:
+Build the SDK:
 
 ```bash
 # From within the "dart-sdk" directory.
 cd sdk
-./tools/build.py --mode release --arch x64 create_sdk
+./tools/build.py --mode release create_sdk
 ```
 
 The output will be in `out/ReleaseX64/dart-sdk` on Linux and Windows, and `xcodebuild/ReleaseX64/dart-sdk` on macOS.
-
-Build the 32-bit SDK:
-
-```bash
-# From within the "dart-sdk" directory.
-cd sdk
-./tools/build.py --mode release --arch ia32 create_sdk
-```
-The output will be in `out/ReleaseIA32/dart-sdk` on Linux and Windows, or `xcodebuild/ReleaseIA32/dart-sdk` on macOS.
 
 See also [Building Dart SDK for ARM or RISC-V](Building-Dart-SDK-for-ARM-or-RISC-V.md).
 
 ## Tips
 
-By default the build and test scripts select the debug binaries. You can build and test the release version of the VM by specifying `--mode=release` or both debug and release by specifying `--mode=all` on the respective `build.py` and `test.py` command lines.  This can be shortened to `-mrelease` or `-m release`, and the architecture can be specified with `--arch=x64` or `-a x64`, the default.  Other architectures, like `ia32`, `arm`, and `arm64` are also supported.
+By default the build and test scripts select the debug binaries. You can build and test the release version of the VM by specifying `--mode=release` or both debug and release by specifying `--mode=all` on the respective `build.py` and `test.py` command lines.  This can be shortened to `-mrelease` or `-m release`, and the architecture can be specified with `--arch=x64` or `-a x64`, the default.  Other architectures, like `arm`, `arm64` and `riscv64` are also supported.
 
 We recommend that you use a local file system at least for the output of the builds. The output directory is `out` on linux, `xcodebuild` on macOS, and `build` on Windows.  If your code is in some NFS partition, you can link the `out` directory to a local directory:
 ```bash
@@ -155,22 +146,22 @@ gclient runhooks
 
 All tests are executed using the `test.py` script under `tools/`.  You need to use `build.py` to build the `most` and `run_ffi_unit_tests` targets before testing, e.g.
 ```bash
-$ ./tools/build.py --mode release --arch ia32 most run_ffi_unit_tests
+$ ./tools/build.py --mode release most run_ffi_unit_tests
 ```
 
 Now you can run all tests as follows (Safari, Firefox, and Chrome must be installed, if you want to run the tests on them):
 ```bash
-$ ./tools/test.py -mrelease --arch=ia32 --compiler=dartk,dart2js --runtime=vm,d8,chrome,firefox,[safari]
+$ ./tools/test.py -mrelease --compiler=dartk,dart2js --runtime=vm,d8,chrome,firefox,[safari]
 ```
 Specify the compiler used (optional -- only necessary if you are compiling to JavaScript (required for most browsers), the default is "none") and a runtime (where the code will be run).
 
 You can run a specific test by specifying its full name or a prefix. For instance, the following runs only tests from the core libraries:
 ```bash
-$ ./tools/test.py -mrelease --arch=ia32 --runtime=vm corelib
+$ ./tools/test.py -mrelease --runtime=vm corelib
 ```
 The following runs a single test:
 ```bash
-$ ./tools/test.py -mrelease --arch=ia32 --runtime=vm corelib/ListTest
+$ ./tools/test.py -mrelease --runtime=vm corelib/ListTest
 ```
 
 Make sure to run tests using the release VM if you have built the release VM, and for the same architecture as you have built.
@@ -235,7 +226,7 @@ Some common problems you might get when running tests for the first time:
     * Use `xvfb`:
 
       ```bash
-      xvfb-run ./tools/test.py --arch=ia32 --compiler=dart2js --runtime=drt ...
+      xvfb-run ./tools/test.py --compiler=dart2js --runtime=drt ...
       ```
 
     * Other options include using ssh X tunneling (`ssh -Y`), NX, VNC, setting up `xhost` and exporting the DISPLAY environment variable, or simply running tests locally.
