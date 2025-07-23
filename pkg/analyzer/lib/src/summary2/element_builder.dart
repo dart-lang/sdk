@@ -335,8 +335,7 @@ class ElementBuilder {
       instanceFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
-        // TODO(scheglov): replace with null
-        name: '_${fieldFragment.name ?? ''}',
+        name: 'value',
         firstTokenOffset: null,
         nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
@@ -700,8 +699,7 @@ class ElementBuilder {
       libraryFragment.addSetter(setterFragment);
 
       var valueFragment = FormalParameterFragmentImpl(
-        // TODO(scheglov): replace with null
-        name: '_${variableFragment.name ?? ''}',
+        name: 'value',
         firstTokenOffset: null,
         nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,

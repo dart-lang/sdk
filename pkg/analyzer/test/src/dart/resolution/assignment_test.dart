@@ -378,7 +378,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::@setter::v::@formalParameter::_v
+    correspondingParameter: package:test/a.dart::@setter::v::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -2453,7 +2453,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -4066,7 +4066,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -4099,7 +4099,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -4882,7 +4882,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -5176,7 +5176,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -5210,7 +5210,7 @@ AssignmentExpression
   operator: =
   rightHandSide: BooleanLiteral
     literal: true
-    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::value
     staticType: bool
   readElement2: <null>
   readType: null

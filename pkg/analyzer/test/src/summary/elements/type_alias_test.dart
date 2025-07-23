@@ -1768,8 +1768,8 @@ library
             #F5 synthetic f
               element: <testLibrary>::@class::A::@setter::f
               formalParameters
-                #F6 _f
-                  element: <testLibrary>::@class::A::@setter::f::@formalParameter::_f
+                #F6 value
+                  element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
       typeAliases
         #F7 Foo @8
           element: <testLibrary>::@typeAlias::Foo
@@ -1808,7 +1808,7 @@ library
           reference: <testLibrary>::@class::A::@setter::f
           firstFragment: #F5
           formalParameters
-            #E1 requiredPositional _f
+            #E1 requiredPositional value
               firstFragment: #F6
               type: int Function<T>(T)
                 alias: <testLibrary>::@typeAlias::Foo

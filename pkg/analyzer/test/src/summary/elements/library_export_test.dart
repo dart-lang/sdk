@@ -1311,8 +1311,8 @@ library
         #F4 synthetic a
           element: <testLibrary>::@setter::a
           formalParameters
-            #F5 _a
-              element: <testLibrary>::@setter::a::@formalParameter::_a
+            #F5 value
+              element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
     hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1331,7 +1331,7 @@ library
       reference: <testLibrary>::@setter::a
       firstFragment: #F4
       formalParameters
-        #E0 requiredPositional _a
+        #E0 requiredPositional value
           firstFragment: #F5
           type: int
       returnType: void

@@ -890,7 +890,7 @@ void f(A a) {
     // Synthetic getters are now shown as getters to avoid confusing
     // users by hiding them.
     // https://github.com/dart-lang/sdk/issues/55956
-    expect(hover.elementDescription, 'set fff(String _fff)');
+    expect(hover.elementDescription, 'set fff(String value)');
     expect(hover.elementKind, 'setter');
     // types
     expect(hover.staticType, 'String');

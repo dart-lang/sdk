@@ -669,7 +669,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_foo
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -2533,7 +2533,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_foo
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null

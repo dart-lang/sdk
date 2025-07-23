@@ -235,8 +235,8 @@ library
             #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 _x
-                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+                #F6 value
+                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -273,7 +273,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _x
+            #E0 requiredPositional value
               firstFragment: #F6
               type: int
           returnType: void
@@ -1676,8 +1676,8 @@ library
             #F5 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F6 _x
-                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+                #F6 value
+                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F7 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -1714,7 +1714,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _x
+            #E0 requiredPositional value
               firstFragment: #F6
               type: int
           returnType: void
@@ -1779,8 +1779,8 @@ library
             #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 _x
-                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+                #F7 value
+                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F8 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -1829,7 +1829,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F6
           formalParameters
-            #E1 requiredPositional _x
+            #E1 requiredPositional value
               firstFragment: #F7
               type: dynamic
           returnType: void
@@ -1894,8 +1894,8 @@ library
             #F6 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 _x
-                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+                #F7 value
+                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
       topLevelVariables
         #F8 hasInitializer a @6
           element: <testLibrary>::@topLevelVariable::a
@@ -1947,7 +1947,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F6
           formalParameters
-            #E1 requiredPositional _x
+            #E1 requiredPositional value
               firstFragment: #F7
               type: dynamic
           returnType: void
@@ -4379,13 +4379,13 @@ library
             #F9 synthetic isStatic
               element: <testLibrary>::@class::A::@setter::isStatic
               formalParameters
-                #F10 _isStatic
-                  element: <testLibrary>::@class::A::@setter::isStatic::@formalParameter::_isStatic
+                #F10 value
+                  element: <testLibrary>::@class::A::@setter::isStatic::@formalParameter::value
             #F11 synthetic isInstance
               element: <testLibrary>::@class::A::@setter::isInstance
               formalParameters
-                #F12 _isInstance
-                  element: <testLibrary>::@class::A::@setter::isInstance::@formalParameter::_isInstance
+                #F12 value
+                  element: <testLibrary>::@class::A::@setter::isInstance::@formalParameter::value
       topLevelVariables
         #F13 hasInitializer foo @6
           element: <testLibrary>::@topLevelVariable::foo
@@ -4446,7 +4446,7 @@ library
           reference: <testLibrary>::@class::A::@setter::isStatic
           firstFragment: #F9
           formalParameters
-            #E0 requiredPositional _isStatic
+            #E0 requiredPositional value
               firstFragment: #F10
               type: int
           returnType: void
@@ -4454,7 +4454,7 @@ library
           reference: <testLibrary>::@class::A::@setter::isInstance
           firstFragment: #F11
           formalParameters
-            #E1 requiredPositional _isInstance
+            #E1 requiredPositional value
               firstFragment: #F12
               type: int
           returnType: void
@@ -5203,8 +5203,8 @@ library
         #F7 synthetic isNotConst
           element: <testLibrary>::@setter::isNotConst
           formalParameters
-            #F8 _isNotConst
-              element: <testLibrary>::@setter::isNotConst::@formalParameter::_isNotConst
+            #F8 value
+              element: <testLibrary>::@setter::isNotConst::@formalParameter::value
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -5265,7 +5265,7 @@ library
       reference: <testLibrary>::@setter::isNotConst
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _isNotConst
+        #E0 requiredPositional value
           firstFragment: #F8
           type: int
       returnType: void
@@ -6068,8 +6068,8 @@ library
         #F5 synthetic v
           element: <testLibrary>::@setter::v
           formalParameters
-            #F6 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F6 value
+              element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6109,7 +6109,7 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F6
           type: int
       returnType: void
@@ -6477,8 +6477,8 @@ library
         #F5 synthetic x
           element: <testLibrary>::@setter::x
           formalParameters
-            #F6 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F6 value
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6518,7 +6518,7 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F6
           type: int
       returnType: void

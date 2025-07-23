@@ -302,13 +302,13 @@ library
             #F7 synthetic foo
               element: <testLibrary>::@class::A::@setter::foo::@def::0
               formalParameters
-                #F8 _foo
-                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::_foo
+                #F8 value
+                  element: <testLibrary>::@class::A::@setter::foo::@def::0::@formalParameter::value
             #F9 synthetic foo
               element: <testLibrary>::@class::A::@setter::foo::@def::1
               formalParameters
-                #F10 _foo
-                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::_foo
+                #F10 value
+                  element: <testLibrary>::@class::A::@setter::foo::@def::1::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -346,7 +346,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo::@def::0
           firstFragment: #F7
           formalParameters
-            #E0 requiredPositional _foo
+            #E0 requiredPositional value
               firstFragment: #F8
               type: int
           returnType: void
@@ -354,7 +354,7 @@ library
           reference: <testLibrary>::@class::A::@setter::foo::@def::1
           firstFragment: #F9
           formalParameters
-            #E1 requiredPositional _foo
+            #E1 requiredPositional value
               firstFragment: #F10
               type: double
           returnType: void
@@ -805,8 +805,8 @@ library
             #F5 synthetic x
               element: <testLibrary>::@extension::E::@def::1::@setter::x
               formalParameters
-                #F6 _x
-                  element: <testLibrary>::@extension::E::@def::1::@setter::x::@formalParameter::_x
+                #F6 value
+                  element: <testLibrary>::@extension::E::@def::1::@setter::x::@formalParameter::value
         #F7 extension E @71
           element: <testLibrary>::@extension::E::@def::2
           fields
@@ -819,8 +819,8 @@ library
             #F10 synthetic y
               element: <testLibrary>::@extension::E::@def::2::@setter::y
               formalParameters
-                #F11 _y
-                  element: <testLibrary>::@extension::E::@def::2::@setter::y::@formalParameter::_y
+                #F11 value
+                  element: <testLibrary>::@extension::E::@def::2::@setter::y::@formalParameter::value
   extensions
     extension E
       reference: <testLibrary>::@extension::E::@def::0
@@ -848,7 +848,7 @@ library
           reference: <testLibrary>::@extension::E::@def::1::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _x
+            #E0 requiredPositional value
               firstFragment: #F6
               type: dynamic
           returnType: void
@@ -874,7 +874,7 @@ library
           reference: <testLibrary>::@extension::E::@def::2::@setter::y
           firstFragment: #F10
           formalParameters
-            #E1 requiredPositional _y
+            #E1 requiredPositional value
               firstFragment: #F11
               type: int
           returnType: void
@@ -1139,8 +1139,8 @@ library
             #F5 synthetic x
               element: <testLibrary>::@mixin::A::@def::1::@setter::x
               formalParameters
-                #F6 _x
-                  element: <testLibrary>::@mixin::A::@def::1::@setter::x::@formalParameter::_x
+                #F6 value
+                  element: <testLibrary>::@mixin::A::@def::1::@setter::x::@formalParameter::value
         #F7 mixin A @38
           element: <testLibrary>::@mixin::A::@def::2
           fields
@@ -1153,8 +1153,8 @@ library
             #F10 synthetic y
               element: <testLibrary>::@mixin::A::@def::2::@setter::y
               formalParameters
-                #F11 _y
-                  element: <testLibrary>::@mixin::A::@def::2::@setter::y::@formalParameter::_y
+                #F11 value
+                  element: <testLibrary>::@mixin::A::@def::2::@setter::y::@formalParameter::value
   mixins
     mixin A
       reference: <testLibrary>::@mixin::A::@def::0
@@ -1184,7 +1184,7 @@ library
           reference: <testLibrary>::@mixin::A::@def::1::@setter::x
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _x
+            #E0 requiredPositional value
               firstFragment: #F6
               type: dynamic
           returnType: void
@@ -1211,7 +1211,7 @@ library
           reference: <testLibrary>::@mixin::A::@def::2::@setter::y
           firstFragment: #F10
           formalParameters
-            #E1 requiredPositional _y
+            #E1 requiredPositional value
               firstFragment: #F11
               type: int
           returnType: void
@@ -1254,18 +1254,18 @@ library
         #F9 synthetic x
           element: <testLibrary>::@setter::x::@def::0
           formalParameters
-            #F10 _x
-              element: <testLibrary>::@setter::x::@def::0::@formalParameter::_x
+            #F10 value
+              element: <testLibrary>::@setter::x::@def::0::@formalParameter::value
         #F11 synthetic x
           element: <testLibrary>::@setter::x::@def::1
           formalParameters
-            #F12 _x
-              element: <testLibrary>::@setter::x::@def::1::@formalParameter::_x
+            #F12 value
+              element: <testLibrary>::@setter::x::@def::1::@formalParameter::value
         #F13 synthetic x
           element: <testLibrary>::@setter::x::@def::2
           formalParameters
-            #F14 _x
-              element: <testLibrary>::@setter::x::@def::2::@formalParameter::_x
+            #F14 value
+              element: <testLibrary>::@setter::x::@def::2::@formalParameter::value
   topLevelVariables
     x
       reference: <testLibrary>::@topLevelVariable::x::@def::0
@@ -1316,7 +1316,7 @@ library
       reference: <testLibrary>::@setter::x::@def::0
       firstFragment: #F9
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F10
           type: bool
       returnType: void
@@ -1324,7 +1324,7 @@ library
       reference: <testLibrary>::@setter::x::@def::1
       firstFragment: #F11
       formalParameters
-        #E1 requiredPositional _x
+        #E1 requiredPositional value
           firstFragment: #F12
           type: dynamic
       returnType: void
@@ -1332,7 +1332,7 @@ library
       reference: <testLibrary>::@setter::x::@def::2
       firstFragment: #F13
       formalParameters
-        #E2 requiredPositional _x
+        #E2 requiredPositional value
           firstFragment: #F14
           type: double
       returnType: void

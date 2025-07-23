@@ -6972,11 +6972,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   LocalVariableElementImpl get element => _element2;
 
   @override
-  set enclosingFragment(FragmentImpl? value) {
-    super.enclosingFragment = value;
-  }
-
-  @override
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
   @Deprecated('Use metadata instead')
