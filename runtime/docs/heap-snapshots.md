@@ -1,11 +1,6 @@
-> [!IMPORTANT]
-> This page was copied from https://github.com/dart-lang/sdk/wiki and needs review.
-> Please [contribute](../CONTRIBUTING.md) changes to bring it up-to-date -
-> removing this header - or send a CL to delete the file.
+# Heap snapshots
 
----
-
-The [VM service protocol](https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md) provides access to _heap snapshots_, a description of all the objects and references in the heap at some point in time. Tools such as Observatory provide analysis and visualization of these snapshots to help developers understand the memory usage of their applications.
+The [VM service protocol](../vm/service/service.md) provides access to _heap snapshots_, a description of all the objects and references in the heap at some point in time. Tools such as Observatory provide analysis and visualization of these snapshots to help developers understand the memory usage of their applications.
 
 * [Concepts](#concepts)
 * [Advice](#concepts)

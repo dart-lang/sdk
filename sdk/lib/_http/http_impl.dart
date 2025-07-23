@@ -5,8 +5,6 @@
 part of dart._http;
 
 abstract final class HttpProfiler {
-  static const _kType = 'HttpProfile';
-
   static final Map<String, _HttpProfileData> _profile = {};
 
   static _HttpProfileData? startRequest(
@@ -285,17 +283,6 @@ mixin _ServiceObject {
   int get _serviceId {
     if (__serviceId == 0) __serviceId = _nextServiceId++;
     return __serviceId;
-  }
-
-  String get _servicePath => "$_serviceTypePath/$_serviceId";
-
-  String get _serviceTypePath;
-
-  String get _serviceTypeName;
-
-  String _serviceType(bool ref) {
-    if (ref) return "@$_serviceTypeName";
-    return _serviceTypeName;
   }
 }
 
@@ -2334,7 +2321,7 @@ class _HttpClientConnection {
         proxyCreds.authorize(request);
       }
     }
-    if (uri.userInfo != null && uri.userInfo.isNotEmpty) {
+    if (uri.userInfo.isNotEmpty) {
       // If the URL contains user information use that for basic
       // authorization.
       String auth = base64Encode(utf8.encode(uri.userInfo));
@@ -2952,27 +2939,6 @@ class _HttpClient implements HttpClient {
 
   set findProxy(String Function(Uri uri)? f) => _findProxy = f;
 
-  static void _startRequestTimelineEvent(
-    TimelineTask? timeline,
-    String method,
-    Uri uri,
-  ) {
-    timeline?.start(
-      'HTTP CLIENT ${method.toUpperCase()}',
-      arguments: {'method': method.toUpperCase(), 'uri': uri.toString()},
-    );
-  }
-
-  bool _isLoopback(String host) {
-    if (host.isEmpty) return false;
-    if ("localhost" == host) return true;
-    try {
-      return InternetAddress(host).isLoopback;
-    } on ArgumentError {
-      return false;
-    }
-  }
-
   bool _isValidToken(String token) {
     checkNotNullable(token, "token");
     // from https://www.rfc-editor.org/rfc/rfc2616#page-15
@@ -3461,10 +3427,6 @@ final class _HttpConnection extends LinkedListEntry<_HttpConnection>
   bool get _isActive => _state == _ACTIVE;
   bool get _isIdle => _state == _IDLE;
   bool get _isClosing => _state == _CLOSING;
-  bool get _isDetached => _state == _DETACHED;
-
-  String get _serviceTypePath => 'io/http/serverconnections';
-  String get _serviceTypeName => 'HttpServerConnection';
 }
 
 // Common interface of [ServerSocket] and [SecureServerSocket] used by
@@ -3702,9 +3664,6 @@ class _HttpServer extends Stream<HttpRequest>
     return result;
   }
 
-  String get _serviceTypePath => 'io/http/servers';
-  String get _serviceTypeName => 'HttpServer';
-
   _HttpSessionManager? _sessionManagerInstance;
 
   // Indicated if the http server has been closed.
@@ -3726,9 +3685,6 @@ class _ProxyConfiguration {
   static const String DIRECT_PREFIX = "DIRECT";
 
   _ProxyConfiguration(String configuration) : proxies = <_Proxy>[] {
-    if (configuration == null) {
-      throw HttpException("Invalid proxy configuration $configuration");
-    }
     List<String> list = configuration.split(";");
     for (var proxy in list) {
       proxy = proxy.trim();
@@ -3811,7 +3767,6 @@ class _HttpConnectionInfo implements HttpConnectionInfo {
   _HttpConnectionInfo(this.remoteAddress, this.remotePort, this.localPort);
 
   static _HttpConnectionInfo? create(Socket socket) {
-    if (socket == null) return null;
     try {
       return _HttpConnectionInfo(
         socket.remoteAddress,

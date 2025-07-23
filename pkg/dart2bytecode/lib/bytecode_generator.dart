@@ -3372,8 +3372,14 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   bool _hasNonTrivialInitializer(Field field) {
-    if (field.initializer == null) return false;
-    return !_isTrivialInitializer(field.initializer);
+    final initializer = field.initializer;
+    if (initializer == null) return false;
+    if (options.emitInstanceFieldInitializers && !field.isStatic) {
+      // Hot reload needs initializers for all instance fields
+      // except fields initialized with null.
+      return !_isNullInitializer(initializer);
+    }
+    return !_isTrivialInitializer(initializer);
   }
 
   bool _isTrivialInitializer(Expression? initializer) {
@@ -3391,6 +3397,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     return false;
   }
+
+  bool _isNullInitializer(Expression? initializer) =>
+      initializer is NullLiteral ||
+      (initializer is ConstantExpression &&
+          initializer.constant is NullConstant);
 
   @override
   void visitStaticGet(StaticGet node) {
