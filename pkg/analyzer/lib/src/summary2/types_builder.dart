@@ -45,11 +45,11 @@ bool _isInterfaceTypeInterface(InterfaceType type) {
   return true;
 }
 
-List<InterfaceType> _toInterfaceTypeList(List<NamedType>? nodeList) {
+List<InterfaceTypeImpl> _toInterfaceTypeList(List<NamedType>? nodeList) {
   if (nodeList != null) {
     return nodeList
         .map((e) => e.type)
-        .whereType<InterfaceType>()
+        .whereType<InterfaceTypeImpl>()
         .where(_isInterfaceTypeInterface)
         .toList();
   }
@@ -187,8 +187,7 @@ class TypesBuilder {
         case SetterElementImpl():
           element.returnType = returnType;
           var valueElement =
-              element.formalParameters.singleOrNull
-                  as FormalParameterElementImpl?;
+              element.formalParameters.singleOrNull;
           var valueNode =
               node.functionExpression.parameters?.parameters.firstOrNull;
           var valueNodeElement = valueNode?.declaredFragment!.element;
@@ -231,8 +230,7 @@ class TypesBuilder {
         case SetterElementImpl():
           element.returnType = returnType;
           var valueElement =
-              element.formalParameters.singleOrNull
-                  as FormalParameterElementImpl?;
+              element.formalParameters.singleOrNull;
           var valueNode = node.parameters?.parameters.firstOrNull;
           var valueNodeElement = valueNode?.declaredFragment!.element;
           var valueNodeType = valueNodeElement?.type;
@@ -268,8 +266,7 @@ class TypesBuilder {
             }
             if (variableElement.setter case var setterElement?) {
               setterElement.returnType = VoidTypeImpl.instance;
-              (setterElement.formalParameters.single
-                      as FormalParameterElementImpl)
+              setterElement.formalParameters.single
                   .type = type;
             }
           }
@@ -644,14 +641,14 @@ class _MixinsInference {
   /// we are inferring the [element] now, i.e. there is a loop.
   ///
   /// This is an error. So, we return the empty list, and break the loop.
-  List<InterfaceType> _callbackWhenLoop(InterfaceFragmentImpl element) {
+  List<InterfaceTypeImpl> _callbackWhenLoop(InterfaceFragmentImpl element) {
     element.mixinInferenceCallback = null;
-    return <InterfaceType>[];
+    return <InterfaceTypeImpl>[];
   }
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
-  List<InterfaceType>? _callbackWhenRecursion(InterfaceFragmentImpl element) {
+  List<InterfaceTypeImpl>? _callbackWhenRecursion(InterfaceFragmentImpl element) {
     var declaration = _declarations[element];
     if (declaration != null) {
       _inferDeclaration(declaration);

@@ -259,7 +259,7 @@ class InstanceMemberInferrer {
       if (setter != null) {
         if (overriddenSetters.any((s) => _isCovariantSetter(s.baseElement))) {
           var formalParameter = setter.formalParameters[0];
-          (formalParameter as FormalParameterElementImpl).inheritsCovariant =
+          formalParameter.inheritsCovariant =
               true;
         }
       }
@@ -492,7 +492,7 @@ class InstanceMemberInferrer {
     for (var index = 0; index < formalParameters.length; index++) {
       var formalParameter = formalParameters[index];
       _inferParameterCovariance(
-        formalParameter as FormalParameterElementImpl,
+        formalParameter,
         index,
         overriddenElements,
       );

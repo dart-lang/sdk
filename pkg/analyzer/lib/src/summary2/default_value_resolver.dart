@@ -70,7 +70,7 @@ class DefaultValueResolver {
   }) {
     for (var formalParameter in element.formalParameters) {
       _formalParameterElement(
-        formalParameter as FormalParameterElementImpl,
+        formalParameter,
         enclosingInterfaceElement: enclosingInterfaceElement,
         enclosingExecutableElement: element,
       );

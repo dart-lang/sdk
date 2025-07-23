@@ -171,7 +171,7 @@ class ElementDisplayStringBuilder {
     _writeType(element.returnType);
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
-    _writeFormalParameters(element.formalParameters.cast(), forElement: true);
+    _writeFormalParameters(element.formalParameters, forElement: true);
   }
 
   void writeGetterElement(GetterElementImpl element) {

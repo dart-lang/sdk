@@ -157,8 +157,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
       if (fragment != null) {
         var element = fragment.element;
         constantsToCompute.add(element);
-        // TODO(scheglov): remove cast
-        constantsToCompute.addAll(element.baseElement.formalParameters.cast());
+        constantsToCompute.addAll(element.baseElement.formalParameters);
       }
     }
   }
