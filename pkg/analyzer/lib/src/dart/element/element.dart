@@ -1535,7 +1535,9 @@ class ElementAnnotationImpl
 
   /// Initialize a newly created annotation. The given [libraryFragment] is the
   /// compilation unit in which the annotation appears.
-  ElementAnnotationImpl(this.libraryFragment);
+  ElementAnnotationImpl(this.libraryFragment, this.annotationAst) {
+    annotationAst.elementAnnotation = this;
+  }
 
   @override
   List<Diagnostic> get constantEvaluationErrors {

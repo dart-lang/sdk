@@ -180,7 +180,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     if (_elementWalker == null) {
-      _createElementAnnotation(node);
+      ElementAnnotationImpl(_unitElement, node);
     }
     _withElementWalker(null, () {
       super.visitAnnotation(node);
@@ -1594,13 +1594,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       _setOrCreateMetadataElements(fragment, typeParameter.metadata);
     }
-  }
-
-  /// Create a new [ElementAnnotation] for the [node].
-  void _createElementAnnotation(AnnotationImpl node) {
-    var element = ElementAnnotationImpl(_unitElement);
-    element.annotationAst = node;
-    node.elementAnnotation = element;
   }
 
   void _define(Element element) {

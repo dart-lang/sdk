@@ -13,6 +13,7 @@ import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -1813,8 +1814,12 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     });
   }
 
-  MetadataImpl _buildMetadata(List<Annotation> nodeList) {
-    var annotations = _buildAnnotationsWithUnit(_unitElement, nodeList);
+  MetadataImpl _buildMetadata(List<AnnotationImpl> nodeList) {
+    var annotations =
+        nodeList.map((ast) {
+          return ElementAnnotationImpl(_unitElement, ast);
+        }).toFixedList();
+
     return MetadataImpl(annotations);
   }
 
@@ -1884,24 +1889,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     } finally {
       _enclosingContext = previous;
     }
-  }
-
-  static List<ElementAnnotationImpl> _buildAnnotationsWithUnit(
-    LibraryFragmentImpl unitElement,
-    List<Annotation> nodeList,
-  ) {
-    var length = nodeList.length;
-    if (length == 0) {
-      return const <ElementAnnotationImpl>[];
-    }
-
-    return List<ElementAnnotationImpl>.generate(length, (index) {
-      var ast = nodeList[index] as AnnotationImpl;
-      var element = ElementAnnotationImpl(unitElement);
-      element.annotationAst = ast;
-      ast.elementAnnotation = element;
-      return element;
-    }, growable: false);
   }
 }
 

@@ -1863,9 +1863,7 @@ class ResolutionReader {
     currentLibraryFragment = unitElement;
     var annotations = readTypedList(() {
       var ast = _readRequiredNode() as AnnotationImpl;
-      return ElementAnnotationImpl(unitElement)
-        ..annotationAst = ast
-        ..element = ast.element;
+      return ElementAnnotationImpl(unitElement, ast)..element = ast.element;
     });
 
     return MetadataImpl(annotations);
