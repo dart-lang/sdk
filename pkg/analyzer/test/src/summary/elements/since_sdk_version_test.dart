@@ -111,8 +111,8 @@ library
             #F4 synthetic foo
               element: dart:foo::@class::A::@setter::foo
               formalParameters
-                #F5 _foo
-                  element: dart:foo::@class::A::@setter::foo::@formalParameter::_foo
+                #F5 value
+                  element: dart:foo::@class::A::@setter::foo::@formalParameter::value
   classes
     class A
       reference: dart:foo::@class::A
@@ -139,7 +139,7 @@ library
           firstFragment: #F4
           sinceSdkVersion: 2.15.0
           formalParameters
-            #E0 requiredPositional _foo
+            #E0 requiredPositional value
               firstFragment: #F5
               type: int
           returnType: void

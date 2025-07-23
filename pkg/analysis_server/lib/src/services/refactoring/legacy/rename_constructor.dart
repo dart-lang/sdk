@@ -12,7 +12,9 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/utilities/change_builder.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -21,11 +23,16 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// A [Refactoring] for renaming [ConstructorElement]s.
 class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+  final CorrectionUtils utils;
+
   RenameConstructorRefactoringImpl(
     super.workspace,
     super.sessionHelper,
+    this.resolvedUnit,
     ConstructorElement super.element,
-  ) : super();
+  ) : utils = CorrectionUtils(resolvedUnit),
+      super();
 
   @override
   ConstructorElement get element => super.element as ConstructorElement;
@@ -108,7 +115,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     _replaceInReferenceFile(
       reference: reference,
       range: range.endLength(classDeclaration.leftBracket, 0),
-      replacement: '\n  $className() : super.$newName();',
+      replacement: '${utils.endOfLine}  $className() : super.$newName();',
     );
   }
 
@@ -220,6 +227,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),
+      eol: utils.endOfLine,
     );
     if (edit == null) {
       return;

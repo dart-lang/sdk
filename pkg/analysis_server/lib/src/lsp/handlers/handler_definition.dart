@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
+import 'package:analysis_server/src/utilities/navigation/keyword_navigation_computer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -77,6 +78,18 @@ class DefinitionHandler
       offset,
       0,
     );
+
+    // If there are no results, then try keyword navigation.
+    if (collector.regions.isEmpty) {
+      var keywordNavigationComputer = KeywordNavigationComputer(
+        collector,
+        result.libraryFragment,
+      );
+      keywordNavigationComputer.compute(
+        result.unit.nodeCovering(offset: offset),
+      );
+    }
+
     if (supportsLocationLink) {
       await _updateTargetsWithCodeLocations(collector);
     }

@@ -830,7 +830,7 @@ class AstBinaryReader {
     return InterpolationExpressionImpl(
       leftBracket:
           isIdentifier
-              ? Tokens.openCurlyBracket()
+              ? Tokens.stringInterpolationIdentifier()
               : Tokens.stringInterpolationExpression(),
       expression: expression,
       rightBracket: isIdentifier ? null : Tokens.closeCurlyBracket(),

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,53 +18,57 @@ void main() {
 
 @reflectiveTest
 class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
+  late TestCode code;
+
+  late List<int> offsets = code.positions.map((p) => p.offset).toList();
+
   LibraryFragment get testUnitFragment => testUnit.declaredFragment!;
 
   @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
+  Future<void> resolveTestCode(String content) {
+    code = TestCode.parse(normalizeSource(content));
+    return super.resolveTestCode(code.code);
   }
 
   Future<void> test_class() async {
     await resolveTestCode(r'''
-class AAA {}
-class BBB {}
+class /*0*/AAA {}
+class /*1*/BBB {}
 ''');
-    _assertElement(6, ElementKind.CLASS, 'AAA');
-    _assertElement(19, ElementKind.CLASS, 'BBB');
+    _assertElement(offsets[0], ElementKind.CLASS, 'AAA');
+    _assertElement(offsets[1], ElementKind.CLASS, 'BBB');
   }
 
   Future<void> test_function() async {
     await resolveTestCode(r'''
-void aaa() {}
-void bbb() {}
+void /*0*/aaa() {}
+void /*1*/bbb() {}
 ''');
-    _assertElement(5, ElementKind.FUNCTION, 'aaa');
-    _assertElement(19, ElementKind.FUNCTION, 'bbb');
+    _assertElement(offsets[0], ElementKind.FUNCTION, 'aaa');
+    _assertElement(offsets[1], ElementKind.FUNCTION, 'bbb');
   }
 
   Future<void> test_null() async {
     await resolveTestCode(r'''
-class AAA {}
+/*0*/c/*1*/lass/*2*/ A/*3*/AA {}
 class BBB {}
 ''');
 
-    expect(findFragmentByNameOffset(testUnitFragment, 0), isNull);
-    expect(findFragmentByNameOffset(testUnitFragment, 1), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, offsets[0]), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, offsets[1]), isNull);
 
-    expect(findFragmentByNameOffset(testUnitFragment, 5), isNull);
-    expect(findFragmentByNameOffset(testUnitFragment, 7), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, offsets[2]), isNull);
+    expect(findFragmentByNameOffset(testUnitFragment, offsets[3]), isNull);
   }
 
   Future<void> test_topLevelVariable() async {
     await resolveTestCode(r'''
-int? aaa, bbb;
-int? ccc;
+int? /*0*/aaa, /*1*/bbb;
+int? /*2*/ccc;
 ''');
-    _assertElement(5, ElementKind.TOP_LEVEL_VARIABLE, 'aaa');
-    _assertElement(10, ElementKind.TOP_LEVEL_VARIABLE, 'bbb');
-    _assertElement(20, ElementKind.TOP_LEVEL_VARIABLE, 'ccc');
+    _assertElement(offsets[0], ElementKind.TOP_LEVEL_VARIABLE, 'aaa');
+    _assertElement(offsets[1], ElementKind.TOP_LEVEL_VARIABLE, 'bbb');
+    _assertElement(offsets[2], ElementKind.TOP_LEVEL_VARIABLE, 'ccc');
   }
 
   void _assertElement(int nameOffset, ElementKind kind, String name) {

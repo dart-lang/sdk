@@ -89,8 +89,8 @@ library
             #F17 synthetic f
               element: <testLibrary>::@mixin::M::@setter::f
               formalParameters
-                #F18 _f
-                  element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::_f
+                #F18 value
+                  element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::value
             #F19 s @126
               element: <testLibrary>::@mixin::M::@setter::s
               formalParameters
@@ -185,7 +185,7 @@ library
           firstFragment: #F17
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E2 requiredPositional _f
+            #E2 requiredPositional value
               firstFragment: #F18
               type: T
           returnType: void

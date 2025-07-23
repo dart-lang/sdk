@@ -713,8 +713,8 @@ library
             #F8 synthetic x
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F9 _x
-                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+                #F9 value
+                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -758,7 +758,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F8
           formalParameters
-            #E2 requiredPositional _x
+            #E2 requiredPositional value
               firstFragment: #F9
               type: dynamic
           returnType: void

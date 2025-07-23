@@ -413,19 +413,23 @@ final class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /// Skips whitespace and EOLs to the left of [index].
+  /// Skips whitespace and EOLs to the left of [index] and returns the position
+  /// at the start of the next line.
   ///
   /// If [index] is the start of a method declaration, then in most cases, this
-  /// returns the end of the previous non-whitespace line.
+  /// returns the start of the line after the last non-blank line.
   int _skipEmptyLinesLeft(int index) {
-    var lastLine = index;
+    var startOfTargetLine = index;
     while (index > 0) {
       var c = _buffer.codeUnitAt(index - 1);
       if (!c.isWhitespace) {
-        return lastLine;
+        return startOfTargetLine;
       }
-      if (c.isEOL) {
-        lastLine = index;
+      // If this is a \n then record the position after it as the start of the
+      // next line. Do not consider \r because otherwise we can end up between
+      // \r\n which we never want.
+      if (c.isLF) {
+        startOfTargetLine = index;
       }
       index--;
     }

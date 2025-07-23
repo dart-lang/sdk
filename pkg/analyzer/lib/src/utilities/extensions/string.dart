@@ -20,6 +20,10 @@ extension IntExtension on int {
 
   bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || this == 0x5F;
 
+  /// Whether this, as an ASCII character, is a newline (not a carriage
+  /// return) character.
+  bool get isLF => this == 0x0A;
+
   bool get isSlash => this == 0x2F;
 
   /// Whether this, as an ASCII character, is a space or tab character.

@@ -1642,7 +1642,7 @@ ConstructorReference
       element: <testLibrary>::@class::C::@constructor::new
       staticType: null
     element: <testLibrary>::@class::C::@constructor::new
-  correspondingParameter: <testLibrary>::@setter::f::@formalParameter::_f
+  correspondingParameter: <testLibrary>::@setter::f::@formalParameter::value
   staticType: C Function()
 ''');
   }

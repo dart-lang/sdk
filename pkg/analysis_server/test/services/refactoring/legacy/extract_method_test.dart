@@ -28,12 +28,6 @@ void main() {
 
 @reflectiveTest
 class AddLibraryImportsTest extends AbstractSingleUnitTest {
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
-  }
-
   Future<void> test_dart_doubleQuotes() async {
     registerLintRules();
     newAnalysisOptionsYamlFile(
@@ -335,6 +329,7 @@ import 'package:ddd/ddd.dart';
     List<Source> newLibraries,
     String expectedCode,
   ) async {
+    expectedCode = normalizeSource(expectedCode);
     var change = SourceChange('');
     await addLibraryImports(
       testAnalysisResult.session,

@@ -20,12 +20,6 @@ class MoveFileTest extends RefactoringTest {
   @override
   late MoveFileRefactoring refactoring;
 
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
-  }
-
   Future<void> test_file_containing_imports_exports_parts() async {
     var root = '/home/test/000/1111';
     testFilePath = convertPath('$root/test.dart');

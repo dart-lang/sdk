@@ -36,7 +36,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   final int selectionOffset;
   final int selectionLength;
   late SourceRange selectionRange;
-  late CorrectionUtils utils;
+  final CorrectionUtils utils;
 
   late String name;
   bool extractAll = true;
@@ -62,10 +62,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     this.resolveResult,
     this.selectionOffset,
     this.selectionLength,
-  ) {
-    selectionRange = SourceRange(selectionOffset, selectionLength);
-    utils = CorrectionUtils(resolveResult);
-  }
+  ) : selectionRange = SourceRange(selectionOffset, selectionLength),
+      utils = CorrectionUtils(resolveResult);
 
   CodeStyleOptions get codeStyleOptions =>
       resolveResult.session.analysisContext

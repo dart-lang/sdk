@@ -34,7 +34,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   final int offset;
   final int length;
 
-  late CorrectionUtils utils;
+  final CorrectionUtils utils;
 
   ClassElement? classBuildContext;
   ClassElement? classKey;
@@ -76,9 +76,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     this.resolveResult,
     this.offset,
     this.length,
-  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
-    utils = CorrectionUtils(resolveResult);
-  }
+  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session),
+      utils = CorrectionUtils(resolveResult);
 
   @override
   String get refactoringName {

@@ -46,8 +46,8 @@ library
             #F5 synthetic foo
               element: <testLibrary>::@class::C::@setter::foo
               formalParameters
-                #F6 _foo
-                  element: <testLibrary>::@class::C::@setter::foo::@formalParameter::_foo
+                #F6 value
+                  element: <testLibrary>::@class::C::@setter::foo::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -74,7 +74,7 @@ library
           reference: <testLibrary>::@class::C::@setter::foo
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _foo
+            #E0 requiredPositional value
               firstFragment: #F6
               type: int
           returnType: void
@@ -336,8 +336,8 @@ library
             #F4 synthetic foo
               element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                #F5 _foo
-                  element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_foo
+                #F5 value
+                  element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::value
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -362,7 +362,7 @@ library
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional _foo
+            #E0 requiredPositional value
               firstFragment: #F5
               type: int
           returnType: void
@@ -601,8 +601,8 @@ library
         #F3 synthetic foo
           element: <testLibrary>::@setter::foo
           formalParameters
-            #F4 _foo
-              element: <testLibrary>::@setter::foo::@formalParameter::_foo
+            #F4 value
+              element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
     hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -621,7 +621,7 @@ library
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _foo
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int
       returnType: void

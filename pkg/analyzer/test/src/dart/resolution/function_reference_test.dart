@@ -4151,7 +4151,7 @@ FunctionReference
     operator: =
     rightHandSide: SimpleIdentifier
       token: f
-      correspondingParameter: <testLibrary>::@setter::g::@formalParameter::_g
+      correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: void Function<T>(T)
     readElement2: <null>

@@ -960,7 +960,7 @@ class B extends A {
   int get f => 0;
 
   @override
-  set f(int _f) {
+  set f(int value) {
     // TODO: implement f
   }
 }

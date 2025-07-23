@@ -550,13 +550,11 @@ class B extends A {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
-    useLineEndingsForPlatform = false;
-
-    var libCode = r'''
+    var libCode = normalizeSource(r'''
 class A {
   newName() {} // marker
 }
-''';
+''');
     await indexUnit('$testPackageLibPath/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';
@@ -1867,13 +1865,11 @@ enum E with M {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
-    useLineEndingsForPlatform = false;
-
-    var libCode = r'''
+    var libCode = normalizeSource(r'''
 mixin M {
   void newName() {}
 }
-''';
+''');
     await indexUnit('$testPackageLibPath/lib.dart', libCode);
     await indexTestUnit('''
 import 'lib.dart';

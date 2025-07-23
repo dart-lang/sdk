@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/refactoring/legacy/extract_local.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
@@ -22,6 +23,8 @@ void main() {
 class ExtractLocalTest extends RefactoringTest {
   @override
   late ExtractLocalRefactoringImpl refactoring;
+
+  late TestCode parsedExpectedCode;
 
   Future<void> test_checkFinalConditions_sameVariable_after() async {
     await indexTestUnit('''
@@ -1166,9 +1169,9 @@ void f() {
 void f() {
   {
     int v = 1;
-    var res = v + 1;
-    print(res); // marker
-    print(res);
+    var /*0*/res = v + 1;
+    print(/*1*/res); // marker
+    print(/*2*/res);
   }
   {
     int v = 2;
@@ -1178,7 +1181,7 @@ void f() {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [38, 61, 87],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['object', 'i'],
     );
   }
@@ -1265,16 +1268,16 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
+      print(/*2*/res);
       break;
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [69, 94, 112],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['object', 'i'],
     );
   }
@@ -1295,15 +1298,15 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
+      print(/*2*/res);
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [53, 78, 96],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['object', 'i'],
     );
   }
@@ -1481,14 +1484,14 @@ void f() {
     await _assertSuccessfulRefactoring('''
 void f() {
   print((x) {
-    var res = x.y;
-    return res * res + 1;
+    var /*0*/res = x.y;
+    return /*1*/res * /*2*/res + 1;
   });
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [33, 55, 61],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['y'],
     );
   }
@@ -1502,14 +1505,14 @@ class Point {int x = 0; int y = 0;}
     // apply refactoring
     await _assertSuccessfulRefactoring('''
 foo(Point p) {
-  var res = p.x;
-  return res * res + p.y * p.y;
+  var /*0*/res = p.x;
+  return /*1*/res * /*2*/res + p.y * p.y;
 }
 class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [21, 41, 47],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['x', 'i'],
     );
   }
@@ -1526,15 +1529,15 @@ class Point {int x = 0; int y = 0;}
     await _assertSuccessfulRefactoring('''
 class A {
   foo(Point p) {
-    var res = p.x;
-    return res * res + p.y * p.y;
+    var /*0*/res = p.x;
+    return /*1*/res * /*2*/res + p.y * p.y;
   }
 }
 class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [35, 57, 63],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['x', 'i'],
     );
   }
@@ -1601,15 +1604,15 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
       break;
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [69, 94],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['object', 'i'],
     );
   }
@@ -1629,14 +1632,14 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [53, 78],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['object', 'i'],
     );
   }
@@ -1802,11 +1805,15 @@ void f() {
     // apply refactoring
     await _assertSuccessfulRefactoring(r'''
 void f() {
-  var res = 'cde';
-  print('ab${res}fgh');
+  var /*0*/res = 'cde';
+  print('ab${/*1*/res}fgh');
 }
 ''');
-    _assertSingleLinkedEditGroup(length: 3, offsets: [17, 43], names: ['cde']);
+    _assertSingleLinkedEditGroup(
+      length: 3,
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      names: ['cde'],
+    );
   }
 
   Future<void> test_stringLiteral_whole() async {
@@ -1819,13 +1826,13 @@ void f() {
     // apply refactoring
     await _assertSuccessfulRefactoring('''
 void f() {
-  var res = 'abc';
-  print(res);
+  var /*0*/res = 'abc';
+  print(/*1*/res);
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [17, 38],
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
       names: ['object', 's'],
     );
   }
@@ -1844,11 +1851,15 @@ void f() {
 void f() {
   int x = 1;
   int y = 2;
-  var res = '$x+$y';
-  print('${res}=${x+y}');
+  var /*0*/res = '$x+$y';
+  print('${/*1*/res}=${x+y}');
 }
 ''');
-    _assertSingleLinkedEditGroup(length: 3, offsets: [43, 69], names: ['xy']);
+    _assertSingleLinkedEditGroup(
+      length: 3,
+      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      names: ['xy'],
+    );
   }
 
   Future<void> _assertInitialConditions_fatal_selection() async {
@@ -1885,12 +1896,14 @@ void f() {
   }
 
   /// Checks that all conditions are OK and the result of applying the
-  /// [SourceChange] to [testUnit] is [expectedCode].
-  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
+  /// [SourceChange] to [testUnit] is [expectedContent] after parsing with
+  /// [TestCode].
+  Future<void> _assertSuccessfulRefactoring(String expectedContent) async {
+    parsedExpectedCode = TestCode.parse(normalizeSource(expectedContent));
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
-    assertTestChangeResult(expectedCode);
+    assertTestChangeResult(parsedExpectedCode.code);
   }
 
   void _createRefactoring(int offset, int length) {

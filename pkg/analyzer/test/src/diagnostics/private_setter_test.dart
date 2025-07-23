@@ -50,7 +50,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::__foo
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null

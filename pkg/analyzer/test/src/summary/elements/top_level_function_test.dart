@@ -1135,8 +1135,8 @@ library
         #F3 synthetic main
           element: <testLibrary>::@setter::main
           formalParameters
-            #F4 _main
-              element: <testLibrary>::@setter::main::@formalParameter::_main
+            #F4 value
+              element: <testLibrary>::@setter::main::@formalParameter::value
   topLevelVariables
     main
       reference: <testLibrary>::@topLevelVariable::main
@@ -1155,7 +1155,7 @@ library
       reference: <testLibrary>::@setter::main
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _main
+        #E0 requiredPositional value
           firstFragment: #F4
           type: dynamic
       returnType: void
