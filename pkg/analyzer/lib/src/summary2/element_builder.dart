@@ -1244,7 +1244,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.enclosingFragment = parentFragment;
       _libraryBuilder.addFragmentChild(parentFragment, fragment);
     }
-    _buildType(node.fields.type);
+    node.fields.type?.accept(this);
   }
 
   @override
@@ -1286,7 +1286,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    _buildType(node.type);
+    node.type?.accept(this);
   }
 
   @override
@@ -1357,7 +1357,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       typeParameters: functionExpression.typeParameters,
     );
 
-    _buildType(node.returnType);
+    node.returnType?.accept(this);
   }
 
   @override
@@ -1432,7 +1432,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    _buildType(node.returnType);
+    node.returnType?.accept(this);
   }
 
   @override
@@ -1456,7 +1456,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    _buildType(node.returnType);
+    node.returnType?.accept(this);
   }
 
   @override
@@ -1571,7 +1571,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       typeParameters: node.typeParameters,
     );
 
-    _buildType(node.returnType);
+    node.returnType?.accept(this);
   }
 
   @override
@@ -1681,7 +1681,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredFragment = fragment;
 
-    _buildType(node.type);
+    node.type?.accept(this);
   }
 
   @override
@@ -1723,7 +1723,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    _buildType(node.type);
+    node.type?.accept(this);
   }
 
   @override
@@ -1764,7 +1764,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       variable.declaredFragment = fragment;
     }
 
-    _buildType(node.variables.type);
+    node.variables.type?.accept(this);
   }
 
   @override
@@ -1787,7 +1787,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addTypeParameter(name, fragment);
 
-    _buildType(node.bound);
+    node.bound?.accept(this);
   }
 
   @override
@@ -1824,11 +1824,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   MetadataImpl _buildMetadata(List<Annotation> nodeList) {
     var annotations = _buildAnnotationsWithUnit(_unitElement, nodeList);
     return MetadataImpl(annotations);
-  }
-
-  // TODO(scheglov): Maybe inline?
-  void _buildType(TypeAnnotation? node) {
-    node?.accept(this);
   }
 
   void _builtRepresentationDeclaration({
