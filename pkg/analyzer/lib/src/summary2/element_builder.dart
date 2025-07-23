@@ -763,7 +763,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   var _partDirectiveIndex = 0;
 
   _EnclosingContext _enclosingContext;
-  int _nextUnnamedId = 0;
 
   FragmentBuilder({
     required LibraryBuilder libraryBuilder,
@@ -1259,7 +1258,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
-    _enclosingContext.addParameter(null, fragment);
+    _enclosingContext.addParameter(fragment);
 
     if (node.parent case DefaultFormalParameterImpl parent) {
       fragment.constantInitializer = parent.defaultValue;
@@ -1297,7 +1296,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     var nameToken = node.name;
-    var name = nameToken.lexeme;
     var name2 = _getFragmentName(nameToken);
 
     var functionExpression = node.functionExpression;
@@ -1336,8 +1334,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isStatic = true;
       executableFragment = fragment;
-
-      _enclosingContext.addFunction(name, fragment);
 
       _libraryBuilder.addTopFragment(_unitElement, fragment);
     }
@@ -1407,7 +1403,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
-    _enclosingContext.addParameter(null, fragment);
+    _enclosingContext.addParameter(fragment);
 
     if (node.parent case DefaultFormalParameterImpl parent) {
       fragment.constantInitializer = parent.defaultValue;
@@ -1666,7 +1662,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
-    _enclosingContext.addParameter(null, fragment);
+    _enclosingContext.addParameter(fragment);
 
     if (_enclosingContext.hasDefaultFormalParameters) {
       if (node.parent case DefaultFormalParameterImpl parent) {
@@ -1696,7 +1692,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       parameterKind: node.kind,
     );
     _linker.elementNodes[fragment] = node;
-    _enclosingContext.addParameter(null, fragment);
+    _enclosingContext.addParameter(fragment);
 
     if (node.parent case DefaultFormalParameterImpl parent) {
       fragment.constantInitializer = parent.defaultValue;
@@ -1755,9 +1751,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         fragment.hasImplicitType = true;
       }
 
-      var refName = fragment.name ?? '${_nextUnnamedId++}';
-      _enclosingContext.addTopLevelVariable(refName, fragment);
-
       _libraryBuilder.addTopFragment(_unitElement, fragment);
 
       _linker.elementNodes[fragment] = variable;
@@ -1775,7 +1768,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var nameToken = node.name;
-    var name = nameToken.lexeme;
 
     var fragment = TypeParameterFragmentImpl(
       name: _getFragmentName(nameToken),
@@ -1785,7 +1777,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredFragment = fragment;
     _linker.elementNodes[fragment] = node;
-    _enclosingContext.addTypeParameter(name, fragment);
+    _enclosingContext.addTypeParameter(fragment);
 
     node.bound?.accept(this);
   }
@@ -1925,18 +1917,11 @@ class _EnclosingContext {
     this.hasDefaultFormalParameters = false,
   });
 
-  void addFunction(String name, TopLevelFunctionFragmentImpl fragment) {}
-
-  void addParameter(String? name, FormalParameterFragmentImpl fragment) {
+  void addParameter(FormalParameterFragmentImpl fragment) {
     parameters.add(fragment);
   }
 
-  void addTopLevelVariable(
-    String name,
-    TopLevelVariableFragmentImpl fragment,
-  ) {}
-
-  void addTypeParameter(String name, TypeParameterFragmentImpl fragment) {
+  void addTypeParameter(TypeParameterFragmentImpl fragment) {
     typeParameters.add(fragment);
   }
 }
