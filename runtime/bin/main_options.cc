@@ -216,6 +216,12 @@ void Options::PrintUsage() {
 "--profile-microtasks\n"
 "  Record information about each microtask. Information about completed\n"
 "  microtasks will be written to the \"Microtask\" timeline stream.\n"
+"--profile-startup\n"
+"  Make the profiler discard new samples once the profiler sample buffer is\n"
+"  full. When this flag is not set, the profiler sample buffer is used as a\n"
+"  ring buffer, meaning that once it is full, new samples start overwriting\n"
+"  the oldest ones. This flag itself does not enable the profiler; the\n"
+"  profiler must be enabled separately, e.g. with --profiler.\n"
 #endif  // !defined(PRODUCT)
 "--version\n"
 "  Print the VM version.\n"
@@ -516,6 +522,7 @@ bool Options::ProcessVMDebuggingOptions(const char* arg,
   V("--no-warn-on-pause-with-no-debugger", arg)                                \
   V("--timeline-streams", arg)                                                 \
   V("--timeline-recorder", arg)                                                \
+  V("--profile-startup", arg)                                                  \
   V("--enable-experiment", arg)
   HANDLE_DARTDEV_VM_DEBUG_OPTIONS(IS_DEBUG_OPTION, arg);
 

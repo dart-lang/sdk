@@ -187,7 +187,16 @@ class RunCommand extends DartdevCommand {
           help: 'Record information about each microtask. Information about '
               'completed microtasks will be written to the "Microtask" '
               'timeline stream.',
-        );
+        )
+        ..addFlag('profile-startup',
+            hide: !verbose,
+            negatable: false,
+            help: 'Make the profiler discard new samples once the profiler '
+                'sample buffer is full. When this flag is not set, the '
+                'profiler sample buffer is used as a ring buffer, meaning that '
+                'once it is full, new samples start overwriting the oldest '
+                'ones. This flag itself does not enable the profiler; the '
+                'profiler must be enabled separately, e.g. with --profiler.');
     } else {
       argParser.addOption('timeline-recorder',
           help: 'Selects the timeline recorder to use.\n'
