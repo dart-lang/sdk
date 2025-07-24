@@ -220,7 +220,7 @@ import 'a.dart';
     // from the `LibraryReader` current at the moment of `exportNamespace`
     // access, not necessary the same that created this instance.
     var aResult = await driver.getLibraryByUri('package:test/a.dart');
-    var aElement = (aResult as LibraryElementResult).element2;
+    var aElement = (aResult as LibraryElementResult).element;
 
     // The element is valid at this point.
     expect(driver.isValidLibraryElement(aElement), isTrue);

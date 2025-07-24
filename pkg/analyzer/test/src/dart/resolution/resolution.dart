@@ -61,12 +61,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Element get dynamicElement =>
       (typeProvider.dynamicType as DynamicTypeImpl).element;
 
-  FeatureSet get featureSet => result.libraryElement2.featureSet;
+  FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
 
   InheritanceManager3 get inheritanceManager {
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     return library.session.inheritanceManager;
   }
 

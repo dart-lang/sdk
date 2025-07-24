@@ -4073,14 +4073,14 @@ const v2 = -v1;
 
   void _assertHasPrimitiveEqualityFalse(String name) {
     var value = _evaluateConstant(name);
-    var featureSet = result.libraryElement2.featureSet;
+    var featureSet = result.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isFalse);
   }
 
   void _assertHasPrimitiveEqualityTrue(String name) {
     var value = _evaluateConstant(name);
-    var featureSet = result.libraryElement2.featureSet;
+    var featureSet = result.libraryElement.featureSet;
     var has = value.hasPrimitiveEquality(featureSet);
     expect(has, isTrue);
   }
@@ -5658,7 +5658,7 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables),
         configuration: ConstantEvaluationConfiguration(),
       ),
-      this.result.libraryElement2,
+      this.result.libraryElement,
       diagnosticReporter,
       lexicalEnvironment: lexicalEnvironment,
     );

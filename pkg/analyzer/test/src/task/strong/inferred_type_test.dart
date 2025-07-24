@@ -26,7 +26,7 @@ class InferredTypeTest extends PubPackageResolutionTest {
   }
 
   LibraryElement get _resultLibraryElement {
-    return result.libraryElement2;
+    return result.libraryElement;
   }
 
   test_asyncClosureReturnType_flatten() async {

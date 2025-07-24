@@ -37,7 +37,7 @@ class ImportElementsComputer {
     var filteredImportedElements = _filterImportedElements(
       importedElementsList,
     );
-    var libraryElement = libraryResult.libraryElement2;
+    var libraryElement = libraryResult.libraryElement;
     var uriConverter = libraryResult.session.uriConverter;
     var existingImports = <ImportDirective>[];
     for (var directive in unit.directives) {
@@ -358,7 +358,7 @@ class ImportElementsComputer {
   }
 
   bool _hasElement(String prefix, String name) {
-    var scope = libraryResult.libraryElement2.firstFragment.scope;
+    var scope = libraryResult.libraryElement.firstFragment.scope;
 
     if (prefix.isNotEmpty) {
       var prefixElement = scope.lookup(prefix).getter;

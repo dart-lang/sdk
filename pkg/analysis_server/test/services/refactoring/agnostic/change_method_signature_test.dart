@@ -131,7 +131,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   }
 
   String _referenceToString(Reference reference) {
-    var selfLibrary = refactoringContext.resolvedLibraryResult.element2;
+    var selfLibrary = refactoringContext.resolvedLibraryResult.element;
     var selfUriStr = '${selfLibrary.uri}';
 
     var name = reference.name;

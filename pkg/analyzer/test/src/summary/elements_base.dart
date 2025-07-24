@@ -66,6 +66,6 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
 
 extension on SomeLibraryElementResult {
   LibraryElementImpl get element {
-    return (this as LibraryElementResultImpl).element2;
+    return (this as LibraryElementResultImpl).element;
   }
 }

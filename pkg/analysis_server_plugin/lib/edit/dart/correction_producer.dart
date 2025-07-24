@@ -350,7 +350,7 @@ abstract class MultiCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -402,7 +402,7 @@ abstract class ResolvedCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement;
 
   @override
   ResolvedLibraryResult get libraryResult =>

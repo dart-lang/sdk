@@ -214,7 +214,7 @@ abstract class ContextResolutionTest
     var uriStr = uri.toString();
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResultImpl;
-    return libraryResult.element2;
+    return libraryResult.element;
   }
 
   void makeFilePriority(File file) {

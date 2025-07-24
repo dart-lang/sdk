@@ -1080,7 +1080,7 @@ import 'c.dart';
     Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
-      return result.element2;
+      return result.element;
     }
 
     var a_element = await getLibrary('a.dart');
@@ -1156,7 +1156,7 @@ import 'b.dart';
     Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
-      return result.element2;
+      return result.element;
     }
 
     var b_element = await getLibrary('b.dart');
@@ -1908,8 +1908,8 @@ class B {}
 
     var result = await driver.getLibraryByUri(aUriStr);
     result as LibraryElementResult;
-    expect(result.element2.getClass('A'), isNotNull);
-    expect(result.element2.getClass('B'), isNotNull);
+    expect(result.element.getClass('A'), isNotNull);
+    expect(result.element.getClass('B'), isNotNull);
 
     // It is an error to ask for a library when we know that it is a part.
     expect(
@@ -1975,8 +1975,8 @@ class B {}
 
       var result = await driver.getLibraryByUri(aUriStr);
       result as LibraryElementResult;
-      expect(result.element2.getClass('A'), isNotNull);
-      expect(result.element2.getClass('B'), isNotNull);
+      expect(result.element.getClass('A'), isNotNull);
+      expect(result.element.getClass('B'), isNotNull);
 
       // It is an error to ask for a library when we know that it is a part.
       expect(

@@ -252,7 +252,7 @@ class B {}
 
     var session = contextFor(testFile).currentSession;
     var result = await session.getLibraryByUriValid('package:test/test.dart');
-    var library = result.element2;
+    var library = result.element;
     expect(library.getClass('A'), isNotNull);
     expect(library.getClass('B'), isNotNull);
     expect(library.getClass('C'), isNull);
@@ -316,7 +316,7 @@ class B {}
     );
     var parsedLibrary = session.getParsedLibraryValid(testFile);
 
-    var element = libraryResult.element2.getClass('A')!;
+    var element = libraryResult.element.getClass('A')!;
     var declaration =
         parsedLibrary.getFragmentDeclaration(element.firstFragment)!;
     var node = declaration.node as ClassDeclaration;
@@ -474,7 +474,7 @@ class C3 {}
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element2;
+    var element = libraryResult.element;
 
     var parsedLibrary = session.getParsedLibraryByElementValid(element);
     expect(parsedLibrary.session, session);
@@ -495,12 +495,12 @@ class C3 {}
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element2;
+    var element = libraryResult.element;
 
     var aaaFile = getFile('$workspaceRootPath/aaa/lib/a.dart');
     var aaaSession = contextFor(aaaFile).currentSession;
 
-    var result = aaaSession.getParsedLibraryByElement2(element);
+    var result = aaaSession.getParsedLibraryByElement(element);
     expect(result, isA<NotElementOfThisSessionResult>());
   }
 
@@ -557,7 +557,7 @@ class B2 extends X {}
     var typeProvider = resolvedLibrary.typeProvider;
     expect(typeProvider.intType.element.name, 'int');
 
-    var libraryElement = resolvedLibrary.element2;
+    var libraryElement = resolvedLibrary.element;
 
     var aClass = libraryElement.getClass('A')!;
 
@@ -617,7 +617,7 @@ int foo = 0;
 
     var session = contextFor(testFile).currentSession;
     var resolvedLibrary = await session.getResolvedLibraryValid(testFile);
-    var unitElement = resolvedLibrary.element2.firstFragment;
+    var unitElement = resolvedLibrary.element.firstFragment;
 
     var fooElement = unitElement.topLevelVariables[0];
     expect(fooElement.name, 'foo');
@@ -693,7 +693,7 @@ part 'c.dart';
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element2;
+    var element = libraryResult.element;
 
     var result = await session.getResolvedLibraryByElementValid(element);
     expect(result.session, session);
@@ -710,12 +710,12 @@ part 'c.dart';
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var element = libraryResult.element2;
+    var element = libraryResult.element;
 
     var aaaFile = getFile('$workspaceRootPath/aaa/lib/a.dart');
     var aaaSession = contextFor(aaaFile).currentSession;
 
-    var result = await aaaSession.getResolvedLibraryByElement2(element);
+    var result = await aaaSession.getResolvedLibraryByElement(element);
     expect(result, isA<NotElementOfThisSessionResult>());
   }
 
@@ -777,7 +777,7 @@ class B {}
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
     expect(unitResult.unit.declarations, hasLength(2));
     expect(unitResult.typeProvider, isNotNull);
-    expect(unitResult.libraryElement2, isNotNull);
+    expect(unitResult.libraryElement, isNotNull);
   }
 
   test_getResolvedUnit_inconsistent() async {
@@ -979,7 +979,7 @@ extension on AnalysisSession {
   }
 
   ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement element) {
-    return getParsedLibraryByElement2(element) as ParsedLibraryResult;
+    return getParsedLibraryByElement(element) as ParsedLibraryResult;
   }
 
   ParsedLibraryResult getParsedLibraryValid(File file) {
@@ -993,7 +993,7 @@ extension on AnalysisSession {
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
     LibraryElement element,
   ) async {
-    return await getResolvedLibraryByElement2(element) as ResolvedLibraryResult;
+    return await getResolvedLibraryByElement(element) as ResolvedLibraryResult;
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryValid(File file) async {

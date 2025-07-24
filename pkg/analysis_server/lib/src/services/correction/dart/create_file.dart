@@ -51,7 +51,7 @@ class CreateFile extends ResolvedCorrectionProducer {
         if (source != null) {
           var pathContext = resourceProvider.pathContext;
           var relativePath = pathContext.relative(
-            unitResult.libraryElement2.firstFragment.source.fullName,
+            unitResult.libraryElement.firstFragment.source.fullName,
             from: pathContext.dirname(source.fullName),
           );
 

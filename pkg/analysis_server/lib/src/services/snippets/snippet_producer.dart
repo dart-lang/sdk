@@ -35,8 +35,8 @@ abstract class DartSnippetProducer extends SnippetProducer {
     required Map<Element, LibraryElement?> elementImportCache,
   }) : sessionHelper = AnalysisSessionHelper(request.analysisSession),
        utils = CorrectionUtils(request.unit),
-       libraryElement = request.unit.libraryElement2,
-       useSuperParams = request.unit.libraryElement2.featureSet.isEnabled(
+       libraryElement = request.unit.libraryElement,
+       useSuperParams = request.unit.libraryElement.featureSet.isEnabled(
          Feature.super_parameters,
        ),
        _elementImportCache = elementImportCache;

@@ -421,7 +421,7 @@ set f(_) {}
     await resolveTestCode(r'''
 export 'a.dart';
 ''');
-    var exportNamespace = result.libraryElement2.exportNamespace;
+    var exportNamespace = result.libraryElement.exportNamespace;
     expect(exportNamespace.get2('f'), isNotNull);
     expect(exportNamespace.get2('f='), isNotNull);
   }

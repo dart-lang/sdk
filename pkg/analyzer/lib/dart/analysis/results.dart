@@ -170,6 +170,11 @@ abstract class InvalidResult {}
 abstract class LibraryElementResult implements SomeLibraryElementResult {
   /// The element representing the library.
   @experimental
+  LibraryElement get element;
+
+  /// The element representing the library.
+  @Deprecated('Use element instead')
+  @experimental
   LibraryElement get element2;
 }
 
@@ -275,6 +280,11 @@ abstract class ResolvedLibraryResult
     implements ParsedLibraryResult, SomeResolvedLibraryResult {
   /// The element representing this library.
   @experimental
+  LibraryElement get element;
+
+  /// The element representing this library.
+  @Deprecated('Use element instead')
+  @experimental
   LibraryElement get element2;
 
   /// The type provider used when resolving the library.
@@ -299,6 +309,11 @@ abstract class ResolvedUnitResult
   bool get exists;
 
   /// The element representing the library containing the compilation [unit].
+  @experimental
+  LibraryElement get libraryElement;
+
+  /// The element representing the library containing the compilation [unit].
+  @Deprecated('Use libraryElement instead')
   @experimental
   LibraryElement get libraryElement2;
 

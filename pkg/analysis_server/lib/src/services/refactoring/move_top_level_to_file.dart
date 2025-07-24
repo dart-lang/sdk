@@ -163,7 +163,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
     /// Don't update the library from which the code is being moved because
     /// that's already been done.
-    libraries.remove(libraryResult.element2);
+    libraries.remove(libraryResult.element);
     for (var entry in libraries.entries) {
       var library = entry.key;
       var prefixes = <String>{};

@@ -124,7 +124,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Check for duplicate declarations.
     if (!result.hasFatalError) {
-      for (var element in resolveResult.libraryElement2.children) {
+      for (var element in resolveResult.libraryElement.children) {
         if (element.displayName == name) {
           var message = formatList(
             "Library already declares {0} with name '{1}'.",

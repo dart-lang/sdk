@@ -320,7 +320,7 @@ class PluginServer {
     }
     var listener = RecordingDiagnosticListener();
     var diagnosticReporter = DiagnosticReporter(
-        listener, unitResult.libraryElement2.firstFragment.source);
+        listener, unitResult.libraryElement.firstFragment.source);
 
     var currentUnit = RuleContextUnit(
       file: unitResult.file,
@@ -345,8 +345,8 @@ class PluginServer {
     var context = RuleContextWithResolvedResults(
       allUnits,
       currentUnit,
-      libraryResult.element2.typeProvider,
-      libraryResult.element2.typeSystem as TypeSystemImpl,
+      libraryResult.element.typeProvider,
+      libraryResult.element.typeSystem as TypeSystemImpl,
       // TODO(srawlins): Support 'package' parameter.
       null,
     );

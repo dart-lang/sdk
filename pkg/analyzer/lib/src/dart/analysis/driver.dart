@@ -601,7 +601,7 @@ class AnalysisDriver {
       var uriStr = uri.toString();
       var libraryResult = await getLibraryByUri(uriStr);
       if (libraryResult is LibraryElementResult) {
-        var libraryElement = libraryResult.element2 as LibraryElementImpl;
+        var libraryElement = libraryResult.element as LibraryElementImpl;
         bundleWriter.writeLibraryElement(libraryElement);
 
         packageBundleBuilder.addLibrary(
@@ -1476,7 +1476,7 @@ class AnalysisDriver {
 
         var libraryResult = ResolvedLibraryResultImpl(
           session: currentSession,
-          element2: resolvedUnits.first.libraryElement2,
+          element: resolvedUnits.first.libraryElement,
           units: resolvedUnits,
         );
 
