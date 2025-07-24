@@ -224,7 +224,7 @@ abstract class ExecutableMember extends Member
           );
         default:
           return ParameterMember(
-            baseElement: element as FormalParameterElementImpl,
+            baseElement: element,
             substitution: substitution,
           );
       }

@@ -109,13 +109,9 @@ class ElementResolver {
 
   TypeProviderImpl get _typeProvider => _resolver.typeProvider;
 
-  void visitClassDeclaration(ClassDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitClassDeclaration(ClassDeclaration node) {}
 
-  void visitClassTypeAlias(ClassTypeAlias node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitClassTypeAlias(ClassTypeAlias node) {}
 
   void visitCommentReference(CommentReference node) {
     _commentReferenceResolver.resolve(node);
@@ -137,7 +133,6 @@ class ElementResolver {
         }
       }
     }
-    _resolveAnnotations(node.metadata);
   }
 
   void visitConstructorName(covariant ConstructorNameImpl node) {
@@ -161,9 +156,7 @@ class ElementResolver {
     }
   }
 
-  void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {}
 
   void visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
@@ -197,13 +190,9 @@ class ElementResolver {
     );
   }
 
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {}
 
-  void visitEnumDeclaration(EnumDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitEnumDeclaration(EnumDeclaration node) {}
 
   void visitExportDirective(ExportDirectiveImpl node) {
     var exportElement = node.libraryExport;
@@ -212,41 +201,24 @@ class ElementResolver {
       // TODO(brianwilkerson): Figure out whether the element can ever be
       // something other than an ExportElement
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
-      _resolveAnnotations(node.metadata);
     }
   }
 
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitExtensionDeclaration(ExtensionDeclaration node) {}
 
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {}
 
-  void visitFieldDeclaration(FieldDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitFieldDeclaration(FieldDeclaration node) {}
 
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    _resolveMetadataForParameter(node);
-  }
+  void visitFieldFormalParameter(FieldFormalParameter node) {}
 
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitFunctionDeclaration(FunctionDeclaration node) {}
 
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitFunctionTypeAlias(FunctionTypeAlias node) {}
 
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _resolveMetadataForParameter(node);
-  }
+  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {}
 
-  void visitGenericTypeAlias(GenericTypeAlias node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitGenericTypeAlias(GenericTypeAlias node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var prefixNode = node.prefix;
@@ -269,7 +241,6 @@ class ElementResolver {
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
-      _resolveAnnotations(node.metadata);
     }
   }
 
@@ -287,13 +258,9 @@ class ElementResolver {
     }
   }
 
-  void visitLibraryDirective(LibraryDirective node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitLibraryDirective(LibraryDirective node) {}
 
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitMethodDeclaration(MethodDeclaration node) {}
 
   /// Resolves the method invocation, [node].
   ///
@@ -312,29 +279,19 @@ class ElementResolver {
     );
   }
 
-  void visitMixinDeclaration(MixinDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitMixinDeclaration(MixinDeclaration node) {}
 
-  void visitPartDirective(PartDirective node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitPartDirective(PartDirective node) {}
 
-  void visitPartOfDirective(PartOfDirective node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitPartOfDirective(PartOfDirective node) {}
 
   void visitRecordTypeAnnotationNamedField(
     RecordTypeAnnotationNamedField node,
-  ) {
-    _resolveAnnotations(node.metadata);
-  }
+  ) {}
 
   void visitRecordTypeAnnotationPositionalField(
     RecordTypeAnnotationPositionalField node,
-  ) {
-    _resolveAnnotations(node.metadata);
-  }
+  ) {}
 
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
@@ -367,13 +324,9 @@ class ElementResolver {
     }
   }
 
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    _resolveAnnotations(node.fieldMetadata);
-  }
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {}
 
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _resolveMetadataForParameter(node);
-  }
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {}
 
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
@@ -466,17 +419,11 @@ class ElementResolver {
     }
   }
 
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {}
 
-  void visitTypeParameter(TypeParameter node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitTypeParameter(TypeParameter node) {}
 
-  void visitVariableDeclarationList(VariableDeclarationList node) {
-    _resolveAnnotations(node.metadata);
-  }
+  void visitVariableDeclarationList(VariableDeclarationList node) {}
 
   /// Given an [argumentList] and the [executableElement] that will be invoked
   /// using those argument, compute the list of parameters that correspond to
@@ -535,23 +482,6 @@ class ElementResolver {
             name.element = element;
           }
         }
-      }
-    }
-  }
-
-  /// Given a [node] that can have annotations associated with it, resolve the
-  /// annotations in the element model representing annotations to the node.
-  void _resolveMetadataForParameter(NormalFormalParameter node) {
-    _resolveAnnotations(node.metadata);
-  }
-
-  /// Resolve each of the annotations in the given list of [annotations].
-  static void _resolveAnnotations(NodeList<Annotation> annotations) {
-    for (Annotation annotation in annotations) {
-      var elementAnnotation =
-          annotation.elementAnnotation as ElementAnnotationImpl?;
-      if (elementAnnotation != null) {
-        elementAnnotation.element = annotation.element;
       }
     }
   }

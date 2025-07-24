@@ -1510,9 +1510,6 @@ class ElementAnnotationImpl
       'visibleOutsideTemplate';
 
   @override
-  Element? element;
-
-  @override
   LibraryFragmentImpl libraryFragment;
 
   /// The AST of the annotation itself, cloned from the resolved AST for the
@@ -1559,6 +1556,9 @@ class ElementAnnotationImpl
     }
     return additionalErrors ?? const <Diagnostic>[];
   }
+
+  @override
+  Element? get element => annotationAst.element;
 
   @override
   @Deprecated('Use element instead')
@@ -2204,7 +2204,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   ExecutableFragmentImpl get firstFragment;
 
   @override
-  List<FormalParameterElementMixin> get formalParameters {
+  List<FormalParameterElementImpl> get formalParameters {
     _ensureReadResolution();
     return firstFragment.formalParameters
         .map((fragment) => fragment.asElement2)
@@ -3830,7 +3830,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   GenericFunctionTypeFragmentImpl get firstFragment => _wrappedElement;
 
   @override
-  List<FormalParameterElement> get formalParameters =>
+  List<FormalParameterElementImpl> get formalParameters =>
       _wrappedElement.formalParameters
           .map((fragment) => fragment.element)
           .toList();
@@ -5132,7 +5132,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   List<InterfaceTypeImpl> _interfaces = const [];
 
   /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceType>? Function(InterfaceFragmentImpl)? mixinInferenceCallback;
+  List<InterfaceTypeImpl>? Function(InterfaceFragmentImpl)? mixinInferenceCallback;
 
   InterfaceTypeImpl? _supertype;
 
@@ -5213,9 +5213,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     if (mixinInferenceCallback != null) {
       var mixins = mixinInferenceCallback!(this);
       if (mixins != null) {
-        // TODO(paulberry): eliminate this cast by changing the type of
-        // `InterfaceElementImpl.mixinInferenceCallback`.
-        return _mixins = mixins.cast();
+        return _mixins = mixins;
       }
     }
 
@@ -7682,10 +7680,8 @@ class MixinFragmentImpl extends InterfaceFragmentImpl implements MixinFragment {
     return _superclassConstraints;
   }
 
-  set superclassConstraints(List<InterfaceType> superclassConstraints) {
-    // TODO(paulberry): eliminate this cast by changing the type of the
-    // `superclassConstraints` parameter.
-    _superclassConstraints = superclassConstraints.cast();
+  set superclassConstraints(List<InterfaceTypeImpl> superclassConstraints) {
+    _superclassConstraints = superclassConstraints;
   }
 
   @override
@@ -8739,7 +8735,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     if (element.setter case var setterElement?) {
       if (setterElement.isSynthetic) {
         setterElement.returnType = VoidTypeImpl.instance;
-        (setterElement.formalParameters.single as FormalParameterElementImpl)
+        setterElement.formalParameters.single
             .type = type;
       }
     }
@@ -8926,7 +8922,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   }
 
   FormalParameterElementImpl get valueFormalParameter {
-    return formalParameters.single as FormalParameterElementImpl;
+    return formalParameters.single;
   }
 
   @override

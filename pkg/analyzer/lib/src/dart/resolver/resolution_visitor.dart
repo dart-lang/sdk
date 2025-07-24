@@ -1656,7 +1656,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       for (var variable in variables.values) {
         _define(variable);
       }
-      guardedPattern.variables = variables.cast();
+      guardedPattern.variables = variables;
       guardedPattern.whenClause?.accept(this);
       if (then != null) {
         then();
