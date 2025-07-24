@@ -8287,6 +8287,10 @@ sealed class ExpressionImpl extends AstNodeImpl
             return (current, constKeyword);
           }
           return null;
+        case DotShorthandConstructorInvocation():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
         case EnumConstantArguments():
           return (current, null);
         case InstanceCreationExpression():
