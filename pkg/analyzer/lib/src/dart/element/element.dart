@@ -3094,8 +3094,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
 class FormalParameterElementImpl extends PromotableElementImpl
     with FormalParameterElementMixin {
-  @override
-  Reference? reference;
   final FormalParameterFragmentImpl wrappedElement;
 
   @override
