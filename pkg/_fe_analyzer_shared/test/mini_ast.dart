@@ -3234,16 +3234,6 @@ class MiniAstOperations
   }
 
   @override
-  SharedTypeView greatestClosure(SharedTypeSchemaView schema) {
-    return SharedTypeView(
-      schema.unwrapTypeSchemaView<Type>().closureWithRespectToUnknown(
-            covariant: true,
-          ) ??
-          schema.unwrapTypeSchemaView(),
-    );
-  }
-
-  @override
   Type greatestClosureOfTypeInternal(
     Type type,
     List<SharedTypeParameter> typeParametersToEliminate,
@@ -3699,6 +3689,25 @@ class MiniAstOperations
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
     covariant _PropertyElement property,
   ) => property.whyNotPromotable;
+
+  @override
+  SharedTypeView greatestClosureOfSchema(
+    SharedTypeSchemaView schema, {
+    SharedTypeView? topType,
+  }) {
+    return SharedTypeView(
+      schema.unwrapTypeSchemaView<Type>().closureWithRespectToUnknown(
+            covariant: true,
+          ) ??
+          schema.unwrapTypeSchemaView(),
+    );
+  }
+
+  @override
+  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema) {
+    // TODO(paulberry): Implement leastClosureOfSchema in mini ast.
+    throw UnimplementedError();
+  }
 }
 
 /// Representation of an expression or statement in the pseudo-Dart language

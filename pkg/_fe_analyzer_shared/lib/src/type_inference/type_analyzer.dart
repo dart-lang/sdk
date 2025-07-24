@@ -1939,7 +1939,14 @@ mixin TypeAnalyzer<
       //   expressions.
       // - Let `S` be the greatest closure of `K`.
       SharedTypeView? t;
-      SharedTypeView s = operations.greatestClosure(schema);
+      // Note that the `topType` named parameter below is a work-around for the
+      // discrepancy between the Analyzer and the CFE and should be removed when
+      // the discrepancy is resolved. For details, see
+      // https://github.com/dart-lang/language/issues/4466.
+      SharedTypeView s = operations.greatestClosureOfSchema(
+        schema,
+        topType: operations.dynamicType,
+      );
       bool allCasesSatisfyContext = true;
       for (int i = 0; i < numCases; i++) {
         // Stack: (Expression, i * ExpressionCase)

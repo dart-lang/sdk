@@ -181,10 +181,6 @@ abstract interface class TypeAnalyzerOperations<
     covariant SharedType type2,
   );
 
-  /// Returns the greatest closure of [schema] with respect to the unknown type
-  /// (`_`).
-  SharedTypeView greatestClosure(SharedTypeSchemaView schema);
-
   /// Computes the greatest closure of a type.
   ///
   /// Computing the greatest closure of a type is described here:
@@ -753,6 +749,26 @@ abstract interface class TypeAnalyzerOperations<
   ///   * `List<_>`,
   ///   * `_ Function(_)`.
   bool isKnownType(SharedTypeSchemaView typeSchema);
+
+  /// Computes the greatest closure of a type schema.
+  ///
+  /// The greatest closure of a type schema is defined in
+  /// https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
+  ///
+  /// The [topType] parameter is needed to account for the known discrepancy in
+  /// the implementations between the CFE and the Analyzer. For details, see
+  /// https://github.com/dart-lang/language/issues/4466.
+  //TODO(cstefantsova): Remove [topType] when the discrepancy is resolved.
+  SharedTypeView greatestClosureOfSchema(
+    SharedTypeSchemaView schema, {
+    SharedTypeView? topType,
+  });
+
+  /// Computes the least closure of a type schema.
+  ///
+  /// The least closure of a type schema is defined in
+  /// https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
+  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema);
 }
 
 mixin TypeAnalyzerOperationsMixin<

@@ -144,8 +144,10 @@ class RecordLiteralResolver {
 
     // Implicit cast from `dynamic`.
     if (contextType is! UnknownInferredType && staticType is DynamicType) {
-      var greatestClosureOfSchema = _resolver.typeSystem
-          .greatestClosureOfSchema(contextType);
+      var greatestClosureOfSchema =
+          _resolver.operations
+              .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+              .unwrapTypeView<TypeImpl>();
       if (!_resolver.typeSystem.isSubtypeOf(
         staticType,
         greatestClosureOfSchema,
