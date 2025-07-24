@@ -25,25 +25,19 @@ List<GeneratedContent> get allTargets {
 
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
-// Instead, run 'dart pkg/analysis_server/tool/generate_analyzer_version.dart'
+// Instead, run
+// 'dart pkg/analysis_server/tool/generate_analysis_server_plugin_version.dart'
 // to update this file.
 
 ''');
 
-      var analyzerPluginVersion = versionFromPubspec(
-        normalize(join(packageRoot, 'analyzer_plugin', 'pubspec.yaml')),
-      );
-      var analyzerVersion = versionFromPubspec(
-        normalize(join(packageRoot, 'analyzer', 'pubspec.yaml')),
+      var analysisServerPluginVersion = versionFromPubspec(
+        normalize(join(packageRoot, 'analysis_server_plugin', 'pubspec.yaml')),
       );
       buffer.write('''
-/// The version of the analyzer_plugin package that matches the analyzer_plugin
-/// code used by the analysis_server package.
-var analyzerPluginVersion = '$analyzerPluginVersion';
-
-/// The version of the analyzer package that matches the analyzer code used by
-/// the analysis_server package.
-var analyzerVersion = '$analyzerVersion';
+/// The version of the analysis_server_plugin package that matches the protocol
+/// used by the analysis_server package.
+var analysisServerPluginVersion = '$analysisServerPluginVersion';
 
 ''');
       return buffer.toString();
