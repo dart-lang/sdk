@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 /// A [Refactoring] for renaming [analyzer.FormalParameterElement]s.
 class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   List<analyzer.FormalParameterElement> elements = [];
-  bool _renameAllPositionalOccurences = false;
+  bool _renameAllPositionalOccurrences = false;
 
   RenameParameterRefactoringImpl(
     super.workspace,
@@ -51,8 +51,8 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       if (resolvedUnit != null) {
         // If any of the resolved units have the lint enabled, we should avoid
         // renaming method parameters separately from the other implementations.
-        if (element.isPositional && !_renameAllPositionalOccurences) {
-          _renameAllPositionalOccurences |=
+        if (element.isPositional && !_renameAllPositionalOccurrences) {
+          _renameAllPositionalOccurrences |=
               getCodeStyleOptions(
                 resolvedUnit.file,
               ).avoidRenamingMethodParameters;
@@ -69,7 +69,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
         );
       }
     }
-    if (_renameAllPositionalOccurences && elements.length > 1) {
+    if (_renameAllPositionalOccurrences && elements.length > 1) {
       result.addStatus(
         _RefactoringStatusExt.from(
           'This will also rename all related positional parameters '
@@ -97,7 +97,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     for (var element in elements) {
       if (element != this.element &&
           element.isPositional &&
-          !_renameAllPositionalOccurences) {
+          !_renameAllPositionalOccurrences) {
         continue;
       }
       var fieldRenamed = false;
