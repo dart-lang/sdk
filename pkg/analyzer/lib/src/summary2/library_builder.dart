@@ -99,6 +99,11 @@ class LibraryBuilder {
     required this.units,
   });
 
+  void addChildFragment(FragmentImpl parent, FragmentImpl child) {
+    child.enclosingFragment = parent;
+    (_parentChildFragments[parent] ??= []).add(child);
+  }
+
   void addExporters() {
     for (var (fragmentIndex, fragment) in element.units.indexed) {
       for (var (exportIndex, exportElement)
@@ -136,10 +141,6 @@ class LibraryBuilder {
         }
       }
     }
-  }
-
-  void addFragmentChild(FragmentImpl parent, FragmentImpl child) {
-    (_parentChildFragments[parent] ??= []).add(child);
   }
 
   void addTopFragment(LibraryFragmentImpl parent, FragmentImpl fragment) {
