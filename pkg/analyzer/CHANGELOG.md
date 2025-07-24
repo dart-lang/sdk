@@ -1,6 +1,12 @@
 ## 8.1.0-dev
 * Add `DartObject.constructorInvocation` with the constructor and arguments.
 * Fix draining analysis events when used by `package:build`.
+* Deprecate `LibraryElementResult.element2`, use `element` instead.
+* Deprecate `ResolvedLibraryResult.element2`, use `element` instead.
+* Deprecate `ResolvedUnitResult.libraryElement2`, use `libraryElement` instead.
+* Deprecate `AnalysisSession.getParsedLibraryByElement2`, use `getParsedLibraryByElement` instead.
+* Deprecate `AnalysisSession.getResolvedLibraryByElement2`, use `getResolvedLibraryByElement` instead.
+* Deprecate `resolveFile2`, use `resolveFile` instead.
 
 ## 8.0.0
 * Remove deprecated element model V1.

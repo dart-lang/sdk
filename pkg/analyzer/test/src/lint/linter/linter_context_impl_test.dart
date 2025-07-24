@@ -40,7 +40,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       unit: result.unit,
     );
 
-    var libraryElement = result.libraryElement2;
+    var libraryElement = result.libraryElement;
     var analysisContext = libraryElement.session.analysisContext;
     var libraryPath = libraryElement.firstFragment.source.fullName;
     var workspace = analysisContext.contextRoot.workspace;

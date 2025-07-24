@@ -228,7 +228,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     // If this element is a library, handle inbound 'part of' directives which
     // are not included in `searchEngine.searchReferences` below.
     if (libraryFragment == libraryElement.firstFragment) {
-      var libraryResult = await _session.getResolvedLibraryByElement2(
+      var libraryResult = await _session.getResolvedLibraryByElement(
         libraryElement,
       );
       if (libraryResult is! ResolvedLibraryResult) {

@@ -2134,6 +2134,12 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   const int kHasSourcePositionsFlag = 1 << 5;
   const int kHasAnnotationsFlag = 1 << 6;
   const int kHasPragmaFlag = 1 << 7;
+  const int kHasConstConstructorFlag = 1 << 8;
+  const int kIsSealedFlag = 1 << 9;
+  const int kIsMixinClassFlag = 1 << 10;
+  const int kIsBaseClassFlag = 1 << 11;
+  const int kIsInterfaceFlag = 1 << 12;
+  const int kIsFinalFlag = 1 << 13;
 
   // Class is allocated when reading library declaration in
   // BytecodeReaderHelper::ReadLibraryDeclaration.
@@ -2174,6 +2180,24 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
   if ((flags & kIsTransformedMixinApplicationFlag) != 0) {
     cls.set_is_transformed_mixin_application();
+  }
+  if ((flags & kHasConstConstructorFlag) != 0) {
+    cls.set_is_const();
+  }
+  if ((flags & kIsSealedFlag) != 0) {
+    cls.set_is_sealed();
+  }
+  if ((flags & kIsMixinClassFlag) != 0) {
+    cls.set_is_mixin_class();
+  }
+  if ((flags & kIsBaseClassFlag) != 0) {
+    cls.set_is_base_class();
+  }
+  if ((flags & kIsInterfaceFlag) != 0) {
+    cls.set_is_interface_class();
+  }
+  if ((flags & kIsFinalFlag) != 0) {
+    cls.set_is_final();
   }
 
   intptr_t num_type_arguments = 0;

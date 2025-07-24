@@ -5879,14 +5879,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
   );
 
-  ///  No parameters.
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER =
-      CompileTimeErrorCode(
-        'WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
-        "Setters must declare exactly one required positional parameter.",
-        hasPublishedDocs: true,
-      );
-
   ///  Parameters:
   ///  0: the name of the type being referenced (<i>G</i>)
   ///  1: the number of type parameters that were declared

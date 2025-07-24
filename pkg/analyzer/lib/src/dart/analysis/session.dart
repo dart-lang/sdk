@@ -93,7 +93,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+  SomeParsedLibraryResult getParsedLibraryByElement(LibraryElement element) {
     checkConsistency();
 
     if (element.session != this) {
@@ -101,6 +101,12 @@ class AnalysisSessionImpl implements AnalysisSession {
     }
 
     return _driver.getParsedLibraryByUri(element.uri);
+  }
+
+  @override
+  @Deprecated('Use getParsedLibraryByElement instead')
+  SomeParsedLibraryResult getParsedLibraryByElement2(LibraryElement element) {
+    return getParsedLibraryByElement(element);
   }
 
   @override
@@ -116,7 +122,7 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement(
     LibraryElement element,
   ) async {
     checkConsistency();
@@ -129,13 +135,21 @@ class AnalysisSessionImpl implements AnalysisSession {
   }
 
   @override
+  @Deprecated('Use getResolvedLibraryByElement instead')
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByElement2(
+    LibraryElement element,
+  ) {
+    return getResolvedLibraryByElement(element);
+  }
+
+  @override
   Future<SomeResolvedLibraryResult> getResolvedLibraryContaining(
     String path,
   ) async {
     checkConsistency();
     var libraryFragmentResult = await getUnitElement(path);
     return switch (libraryFragmentResult) {
-      UnitElementResult(:var fragment) => await getResolvedLibraryByElement2(
+      UnitElementResult(:var fragment) => await getResolvedLibraryByElement(
         fragment.element,
       ),
       SomeResolvedLibraryResult result => result,

@@ -595,11 +595,12 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView greatestClosure(SharedTypeSchemaView schema) {
+  SharedTypeView greatestClosureOfSchema(
+    SharedTypeSchemaView schema, {
+    SharedTypeView? topType,
+  }) {
     return SharedTypeView(
-      typeSystem.greatestClosureOfSchema(
-        schema.unwrapTypeSchemaView<TypeImpl>(),
-      ),
+      typeSystem.greatestClosureOfSchema(schema.unwrapTypeSchemaView()),
     );
   }
 
@@ -728,6 +729,13 @@ class TypeSystemOperations
       typeSystem.typeProvider.iterableType(
         elementTypeSchema.unwrapTypeSchemaView<TypeImpl>(),
       ),
+    );
+  }
+
+  @override
+  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema) {
+    return SharedTypeView(
+      typeSystem.leastClosureOfSchema(schema.unwrapTypeSchemaView()),
     );
   }
 

@@ -6,7 +6,7 @@ import 'dart:math';
 
 /// Generates a "focused" unified diff, showing only the changed lines
 /// plus a few lines of context around them.
-String generateFocusedDiff(
+List<String> generateFocusedDiff(
   String expected,
   String actual, {
   int contextLines = 3,
@@ -30,7 +30,7 @@ String generateFocusedDiff(
   }
 
   if (indicesToInclude.isEmpty) {
-    return 'No differences found.';
+    return ['No differences found.'];
   }
 
   int lastIncludedIndex = -1;
@@ -45,25 +45,28 @@ String generateFocusedDiff(
     lastIncludedIndex = i;
   }
 
-  return outputLines.join('\n');
+  return outputLines;
 }
 
 /// Generates a "full" unified diff, showing every line from the comparison.
-String generateFullDiff(String expected, String actual) {
+List<String> generateFullDiff(String expected, String actual) {
   var diffResults = _createDiff(expected, actual);
-  return diffResults.map(_formatLine).join('\n');
+  return diffResults.map(_formatLine).toList();
 }
 
 void printPrettyDiff(String expected, String actual, {int context = 3}) {
   var full = generateFullDiff(expected, actual);
   var short = generateFocusedDiff(expected, actual);
-  print('-------- Short diff --------');
-  print(short);
+
+  if (full.length * 0.3 >= short.length) {
+    print('-------- Short diff --------');
+    print(short.join('/n'));
+  }
   print('-------- Full diff ---------');
-  print(full);
+  print(full.join('/n'));
   print('---------- Actual ----------');
   print(actual.trimRight());
-  print('------------------------');
+  print('----------------------------');
 }
 
 /// Backtracks through the LCS table to build the list of diff results.

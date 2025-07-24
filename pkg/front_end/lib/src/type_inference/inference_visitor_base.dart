@@ -54,7 +54,6 @@ import 'type_demotion.dart';
 import 'type_inference_engine.dart';
 import 'type_inferrer.dart' show TypeInferrerImpl;
 import 'type_schema.dart' show isKnown, UnknownType;
-import 'type_schema_elimination.dart' show greatestClosure;
 import 'type_schema_environment.dart'
     show
         getNamedParameterType,
@@ -190,11 +189,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
 
   DartType computeGreatestClosure(DartType type) {
-    return greatestClosure(type, topType: const DynamicType());
+    return cfeOperations.greatestClosureOfSchema(new SharedTypeSchemaView(type),
+        topType: new SharedTypeView(const DynamicType())) as DartType;
   }
 
   DartType computeGreatestClosure2(DartType type) {
-    return greatestClosure(type, topType: coreTypes.objectNullableRawType);
+    return cfeOperations.greatestClosureOfSchema(new SharedTypeSchemaView(type),
+            topType: new SharedTypeView(coreTypes.objectNullableRawType))
+        as DartType;
   }
 
   DartType computeNullable(DartType type) =>

@@ -500,14 +500,6 @@ class FastaErrorReporter {
           diagnosticCode: ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
         );
         return;
-      case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode:
-              CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-        );
-        return;
       case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
         diagnosticReporter?.atOffset(
           offset: offset,

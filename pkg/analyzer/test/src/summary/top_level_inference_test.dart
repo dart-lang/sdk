@@ -8041,6 +8041,9 @@ library
           setters
             #F10 x @59
               element: <testLibrary>::@class::B::@setter::x
+              formalParameters
+                #F11 <null-name> (offset=61)
+                  element: <testLibrary>::@class::B::@setter::x::@formalParameter::<null-name>
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -8080,7 +8083,7 @@ library
         synthetic x
           reference: <testLibrary>::@class::B::@field::x
           firstFragment: #F8
-          type: InvalidType
+          type: int
           setter: <testLibrary>::@class::B::@setter::x
       constructors
         synthetic new
@@ -8090,6 +8093,10 @@ library
         x
           reference: <testLibrary>::@class::B::@setter::x
           firstFragment: #F10
+          formalParameters
+            #E1 requiredPositional hasImplicitType <null-name>
+              firstFragment: #F11
+              type: int
           returnType: void
 ''');
   }

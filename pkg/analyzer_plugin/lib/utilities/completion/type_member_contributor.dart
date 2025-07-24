@@ -27,7 +27,7 @@ class TypeMemberContributor implements CompletionContributor {
   @override
   Future<void> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
-    var containingLibrary = request.result.libraryElement2;
+    var containingLibrary = request.result.libraryElement;
 
     // Recompute the target since resolution may have changed it
     var expression = _computeDotTarget(request.result.unit, request.offset);
@@ -40,7 +40,7 @@ class TypeMemberContributor implements CompletionContributor {
   /// Clients should not overload this function.
   Future<void> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
       CompletionCollector collector, AstNode entryPoint) async {
-    var containingLibrary = request.result.libraryElement2;
+    var containingLibrary = request.result.libraryElement;
 
     // Recompute the target since resolution may have changed it
     var expression = _computeDotTarget(entryPoint, request.offset);

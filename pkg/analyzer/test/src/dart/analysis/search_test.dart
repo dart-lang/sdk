@@ -812,7 +812,7 @@ class A {}
     );
     libraryElementResult as LibraryElementResult;
 
-    var A = libraryElementResult.element2.getClass('A')!;
+    var A = libraryElementResult.element.getClass('A')!;
 
     var searchedFiles = SearchedFiles();
     searchedFiles.ownAnalyzed(myDriver.search);
@@ -1763,7 +1763,7 @@ library lib;
 part 'unitA.dart';
 part 'unitB.dart';
 ''');
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     await assertElementReferencesText(element, r'''
 #F0
   8 1:9 |lib| REFERENCE
@@ -1780,7 +1780,7 @@ library lib;
 part 'unitA.dart';
 part 'unitB.dart';
 ''');
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     await assertElementReferencesText(element, r'''
 #F0
   8 1:9 |lib| REFERENCE
@@ -1803,7 +1803,7 @@ part 'unitA.dart';
 part 'unitB.dart';
 ''');
 
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     await assertElementReferencesText(element, r'''
 #F0
   8 1:9 |'test.dart'| REFERENCE
@@ -3177,7 +3177,7 @@ class A {
 
     var aLibraryResult =
         await driver.getLibraryByUri(aUri) as LibraryElementResult;
-    var aClass = aLibraryResult.element2.getClass('A')!;
+    var aClass = aLibraryResult.element.getClass('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes = await driver.search.subtypes(
@@ -3229,7 +3229,7 @@ class C implements List {}
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    var listElement = coreLibResult.element2.getClass('List')!;
+    var listElement = coreLibResult.element.getClass('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);

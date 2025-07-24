@@ -581,7 +581,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     await addLibraryImports(
       _resolveResult.session,
       change,
-      _resolveResult.libraryElement2,
+      _resolveResult.libraryElement,
       _librariesToImport,
     );
     return change;
@@ -906,7 +906,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   String _getTypeCode(DartType type) =>
-      _resolveResult.libraryElement2.getTypeSource(type, _librariesToImport)!;
+      _resolveResult.libraryElement.getTypeSource(type, _librariesToImport)!;
 
   void _initializeHasAwait() {
     var visitor = _HasAwaitVisitor();
@@ -1640,7 +1640,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
         if (parameter == null) {
           var parameterType = node.writeOrReadType!;
           var parametersBuffer = StringBuffer();
-          var parameterTypeCode = ref._resolveResult.libraryElement2
+          var parameterTypeCode = ref._resolveResult.libraryElement
               .getTypeSource(
                 parameterType,
                 ref._librariesToImport,

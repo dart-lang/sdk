@@ -3306,8 +3306,8 @@ void f() {
             .toList();
     expect(setters, [
       'stringSetter (String)',
-      'noArgSetter',
-      'multiArgSetter',
+      'noArgSetter (dynamic)',
+      'multiArgSetter (dynamic)',
       // Because of how we extract the type name, we don't currently support
       // this.
       'functionSetter',

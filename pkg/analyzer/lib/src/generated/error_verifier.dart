@@ -996,11 +996,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       () {
         TypeAnnotation? returnType = node.returnType;
         if (node.isSetter) {
-          FunctionExpression functionExpression = node.functionExpression;
-          _checkForWrongNumberOfParametersForSetter(
-            node.name,
-            functionExpression.parameters,
-          );
           _checkForNonVoidReturnTypeForSetter(returnType);
         }
         _checkForTypeAnnotationDeferredClass(returnType);
@@ -1234,7 +1229,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       () {
         var returnType = node.returnType;
         if (node.isSetter) {
-          _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
           _checkForNonVoidReturnTypeForSetter(returnType);
         } else if (node.isOperator) {
           var hasWrongNumberOfParameters =
@@ -5780,31 +5774,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return true;
     }
     return false;
-  }
-
-  /// Verify that the given setter [parameterList] has only one required
-  /// parameter. The [setterName] is the name of the setter to report problems
-  /// on.
-  ///
-  /// This method assumes that the method declaration was tested to be a setter
-  /// before being called.
-  ///
-  /// See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER].
-  void _checkForWrongNumberOfParametersForSetter(
-    Token setterName,
-    FormalParameterList? parameterList,
-  ) {
-    if (parameterList == null) {
-      return;
-    }
-
-    NodeList<FormalParameter> parameters = parameterList.parameters;
-    if (parameters.length != 1 || !parameters[0].isRequiredPositional) {
-      diagnosticReporter.atToken(
-        setterName,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-      );
-    }
   }
 
   void _checkForWrongTypeParameterVarianceInField(FieldDeclarationImpl node) {

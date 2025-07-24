@@ -99,7 +99,7 @@ class ApiDescription {
             (await context.currentSession.getResolvedLibrary(file))
                 as ResolvedLibraryResult;
         var node = nodes[uri] = Node<MemberSortKey>();
-        _dumpLibrary(resolvedLibraryResult.element2, node);
+        _dumpLibrary(resolvedLibraryResult.element, node);
       }
     }
     // Then dump anything referenced by public libraries.

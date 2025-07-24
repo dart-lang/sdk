@@ -16109,7 +16109,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 optionalNamed hasImplicitType a
+            #E0 requiredPositional hasImplicitType a
               firstFragment: #F5
               type: dynamic
           returnType: void
@@ -16137,6 +16137,9 @@ library
           setters
             #F4 x @19
               element: <testLibrary>::@class::C::@setter::x
+              formalParameters
+                #F5 <null-name> (offset=21)
+                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::<null-name>
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -16145,7 +16148,7 @@ library
         synthetic x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
-          type: InvalidType
+          type: dynamic
           setter: <testLibrary>::@class::C::@setter::x
       constructors
         synthetic new
@@ -16155,6 +16158,10 @@ library
         x
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional hasImplicitType <null-name>
+              firstFragment: #F5
+              type: dynamic
           returnType: void
 ''');
   }
@@ -16202,7 +16209,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 optionalPositional hasImplicitType a
+            #E0 requiredPositional hasImplicitType a
               firstFragment: #F5
               type: dynamic
           returnType: void
@@ -16233,8 +16240,6 @@ library
               formalParameters
                 #F5 a @21
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::a
-                #F6 b @24
-                  element: <testLibrary>::@class::C::@setter::x::@formalParameter::b
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -16256,9 +16261,6 @@ library
           formalParameters
             #E0 requiredPositional hasImplicitType a
               firstFragment: #F5
-              type: dynamic
-            #E1 requiredPositional hasImplicitType b
-              firstFragment: #F6
               type: dynamic
           returnType: void
 ''');

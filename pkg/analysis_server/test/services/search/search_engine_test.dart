@@ -431,7 +431,7 @@ int t;
         await driverFor(testFile).getLibraryByUri('dart:core')
             as LibraryElementResult;
     var intElement =
-        coreLibResult.element2.classes.firstWhereOrNull(
+        coreLibResult.element.classes.firstWhereOrNull(
           (e) => e.name == 'int',
         )!;
 

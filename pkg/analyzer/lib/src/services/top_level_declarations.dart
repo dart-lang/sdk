@@ -54,7 +54,7 @@ class TopLevelDeclarations {
         continue;
       }
 
-      var elementLibrary = elementResult.element2;
+      var elementLibrary = elementResult.element;
       if (_findElement(elementLibrary, element.displayName)?.nonSynthetic ==
           element.nonSynthetic) {
         resultCache?[element] = elementLibrary;
@@ -88,7 +88,7 @@ class TopLevelDeclarations {
         continue;
       }
 
-      addElement(result, elementResult.element2, baseName);
+      addElement(result, elementResult.element, baseName);
     }
 
     return result;

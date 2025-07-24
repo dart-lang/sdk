@@ -43,7 +43,7 @@ extension StringExtension on String {}
 extension on String {}
 ''');
 
-    var element = result.libraryElement2.extensions.single;
+    var element = result.libraryElement.extensions.single;
     var displayString = element.displayString();
     expect(displayString, 'extension on String');
   }

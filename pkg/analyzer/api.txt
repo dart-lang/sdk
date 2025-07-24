@@ -480,7 +480,8 @@ package:analyzer/dart/analysis/results.dart:
     new (constructor: InvalidResult Function())
   LibraryElementResult (class extends Object implements SomeLibraryElementResult):
     new (constructor: LibraryElementResult Function())
-    element2 (getter: LibraryElement, experimental)
+    element (getter: LibraryElement, experimental)
+    element2 (getter: LibraryElement, deprecated, experimental)
   NotElementOfThisSessionResult (class extends Object implements InvalidResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: NotElementOfThisSessionResult Function())
   NotLibraryButPartResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
@@ -503,14 +504,16 @@ package:analyzer/dart/analysis/results.dart:
     unit (getter: CompilationUnit)
   ResolvedLibraryResult (class extends Object implements ParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: ResolvedLibraryResult Function())
-    element2 (getter: LibraryElement, experimental)
+    element (getter: LibraryElement, experimental)
+    element2 (getter: LibraryElement, deprecated, experimental)
     typeProvider (getter: TypeProvider)
     units (getter: List<ResolvedUnitResult>)
     unitWithPath (method: ResolvedUnitResult? Function(String))
   ResolvedUnitResult (class extends Object implements ParsedUnitResult, SomeResolvedUnitResult):
     new (constructor: ResolvedUnitResult Function())
     exists (getter: bool)
-    libraryElement2 (getter: LibraryElement, experimental)
+    libraryElement (getter: LibraryElement, experimental)
+    libraryElement2 (getter: LibraryElement, deprecated, experimental)
     libraryFragment (getter: LibraryFragment, experimental)
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
@@ -549,10 +552,12 @@ package:analyzer/dart/analysis/session.dart:
     getFile (method: SomeFileResult Function(String))
     getLibraryByUri (method: Future<SomeLibraryElementResult> Function(String))
     getParsedLibrary (method: SomeParsedLibraryResult Function(String))
-    getParsedLibraryByElement2 (method: SomeParsedLibraryResult Function(LibraryElement), experimental)
+    getParsedLibraryByElement (method: SomeParsedLibraryResult Function(LibraryElement), experimental)
+    getParsedLibraryByElement2 (method: SomeParsedLibraryResult Function(LibraryElement), deprecated, experimental)
     getParsedUnit (method: SomeParsedUnitResult Function(String))
     getResolvedLibrary (method: Future<SomeResolvedLibraryResult> Function(String))
-    getResolvedLibraryByElement2 (method: Future<SomeResolvedLibraryResult> Function(LibraryElement), experimental)
+    getResolvedLibraryByElement (method: Future<SomeResolvedLibraryResult> Function(LibraryElement), experimental)
+    getResolvedLibraryByElement2 (method: Future<SomeResolvedLibraryResult> Function(LibraryElement), deprecated, experimental)
     getResolvedLibraryContaining (method: Future<SomeResolvedLibraryResult> Function(String))
     getResolvedUnit (method: Future<SomeResolvedUnitResult> Function(String))
     getUnitElement (method: Future<SomeUnitElementResult> Function(String))
@@ -566,7 +571,8 @@ package:analyzer/dart/analysis/uri_converter.dart:
 package:analyzer/dart/analysis/utilities.dart:
   parseFile (function: ParseStringResult Function({required FeatureSet featureSet, required String path, ResourceProvider? resourceProvider, bool throwIfDiagnostics}))
   parseString (function: ParseStringResult Function({required String content, FeatureSet? featureSet, String? path, bool throwIfDiagnostics}))
-  resolveFile2 (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}))
+  resolveFile (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}))
+  resolveFile2 (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}), deprecated)
 package:analyzer/dart/ast/ast.dart:
   AdjacentStrings (class extends Object implements StringLiteral):
     strings (getter: NodeList<StringLiteral>)

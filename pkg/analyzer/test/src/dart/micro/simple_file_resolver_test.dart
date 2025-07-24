@@ -2544,8 +2544,8 @@ void func() {
     // Both files use the same (default) analysis options.
     // So, when we resolve 'bbb', we can reuse the context after 'aaa'.
     expect(
-      aResult.libraryElement2.session,
-      same(bResult.libraryElement2.session),
+      aResult.libraryElement.session,
+      same(bResult.libraryElement.session),
     );
   }
 

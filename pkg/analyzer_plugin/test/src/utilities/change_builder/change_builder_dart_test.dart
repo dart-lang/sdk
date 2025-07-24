@@ -1468,7 +1468,7 @@ a''');
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        var typeProvider = unitResult.libraryElement2.typeProvider;
+        var typeProvider = unitResult.libraryElement.typeProvider;
         builder.writeType(typeProvider.dynamicType);
       });
     });
@@ -1706,7 +1706,7 @@ a''');
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        var typeProvider = unitResult.libraryElement2.typeProvider;
+        var typeProvider = unitResult.libraryElement.typeProvider;
         builder.writeType(typeProvider.dynamicType, required: true);
       });
     });
@@ -2085,13 +2085,13 @@ A'''));
 
   Future<ClassElement> _getClassElement(String path, String name) async {
     var unitResult = await resolveFile(path);
-    return unitResult.libraryElement2.getClass(name)!;
+    return unitResult.libraryElement.getClass(name)!;
   }
 
   Future<PropertyAccessorElement> _getTopLevelGetter(
       String path, String name) async {
     var unitResult = await resolveFile(path);
-    return unitResult.libraryElement2.getGetter(name)!;
+    return unitResult.libraryElement.getGetter(name)!;
   }
 
   Future<InterfaceType> _getType(
@@ -2343,7 +2343,7 @@ void functionAfter() {
     expect(edits, hasLength(1));
     expect(edits[0].replacement,
         equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
-    expect(cache[classElement], resolvedLibUnit.libraryElement2);
+    expect(cache[classElement], resolvedLibUnit.libraryElement);
   }
 
   /// If `importElementLibrary` adds a pending import 'a.dart' and a subsequent
@@ -2472,7 +2472,7 @@ import 'package:test/all.dart';
     expect(edits, hasLength(1));
     expect(edits[0].replacement,
         equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
-    expect(cache[classElement], resolvedExportUnit.libraryElement2);
+    expect(cache[classElement], resolvedExportUnit.libraryElement);
   }
 
   Future<void> test_importElementLibrary_usesCache() async {
@@ -2483,7 +2483,7 @@ import 'package:test/all.dart';
 
     var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
     var cache = <Element, LibraryElement?>{
-      futureOrElement: resolvedFakeUnit.libraryElement2,
+      futureOrElement: resolvedFakeUnit.libraryElement,
     };
     var builder = await newBuilder();
     await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
@@ -2496,7 +2496,7 @@ import 'package:test/all.dart';
     expect(edits, hasLength(1));
     expect(edits[0].replacement,
         equalsIgnoringWhitespace("import 'package:test/fake.dart';"));
-    expect(cache[futureOrElement], resolvedFakeUnit.libraryElement2);
+    expect(cache[futureOrElement], resolvedFakeUnit.libraryElement);
   }
 
   /// Ensure that trying to add an import to show a symbol works with an
@@ -4130,9 +4130,9 @@ class B extends A {
     {
       var unitResult = await resolveFile(path);
       if (targetMixinName != null) {
-        targetElement = unitResult.libraryElement2.getMixin(targetMixinName)!;
+        targetElement = unitResult.libraryElement.getMixin(targetMixinName)!;
       } else {
-        targetElement = unitResult.libraryElement2.getClass(targetClassName)!;
+        targetElement = unitResult.libraryElement.getClass(targetClassName)!;
       }
     }
 

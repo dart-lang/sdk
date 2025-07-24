@@ -132,11 +132,11 @@ class ChangeTo extends ResolvedCorrectionProducer {
       );
       // Check elements of this library.
       if (prefixName == null) {
-        finder._updateList(unitResult.libraryElement2.classes);
+        finder._updateList(unitResult.libraryElement.classes);
       }
       // Check elements from imports.
       for (var importElement
-          in unitResult.libraryElement2.firstFragment.libraryImports) {
+          in unitResult.libraryElement.firstFragment.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
@@ -237,13 +237,13 @@ class ChangeTo extends ResolvedCorrectionProducer {
       );
       // Check to this library units.
       if (prefixName == null) {
-        for (var function in unitResult.libraryElement2.topLevelFunctions) {
+        for (var function in unitResult.libraryElement.topLevelFunctions) {
           finder._update(function);
         }
       }
       // Check unprefixed imports.
       for (var importElement
-          in unitResult.libraryElement2.firstFragment.libraryImports) {
+          in unitResult.libraryElement.firstFragment.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);

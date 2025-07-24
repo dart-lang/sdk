@@ -422,7 +422,7 @@ class DriverEventsPrinter {
       case LibraryElementResultImpl():
         writeLibrary(
           sink: sink,
-          library: result.element2,
+          library: result.element,
           configuration: configuration.elementTextConfiguration,
         );
       default:
@@ -1481,13 +1481,13 @@ class ResolvedLibraryResultPrinter {
       return;
     }
 
-    _libraryElement = result.element2;
+    _libraryElement = result.element;
 
     var id = idProvider[result];
     sink.writelnWithIndent('ResolvedLibraryResult $id');
 
     sink.withIndent(() {
-      elementPrinter.writeNamedElement2('element', result.element2);
+      elementPrinter.writeNamedElement2('element', result.element);
       sink.writeElements('units', result.units, _writeResolvedUnitResult);
     });
   }
@@ -1552,7 +1552,7 @@ class ResolvedUnitResultPrinter {
 
       // Don't write, just check.
       if (libraryElement != null) {
-        expect(result.libraryElement2, same(libraryElement));
+        expect(result.libraryElement, same(libraryElement));
       }
 
       sink.writeFlags({

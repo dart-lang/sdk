@@ -24,7 +24,7 @@ class AnalysisSessionHelper {
   Future<ClassElement?> getClass(String libraryUri, String className) async {
     var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
-      var element = libraryResult.element2.exportNamespace.get2(className);
+      var element = libraryResult.element.exportNamespace.get2(className);
       if (element is ClassElement) {
         return element;
       }
@@ -43,7 +43,7 @@ class AnalysisSessionHelper {
   Future<EnumElement?> getEnum(String libraryUri, String className) async {
     var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
-      var element = libraryResult.element2.exportNamespace.get2(className);
+      var element = libraryResult.element.exportNamespace.get2(className);
       if (element is EnumElement) {
         return element;
       }
@@ -75,7 +75,7 @@ class AnalysisSessionHelper {
   Future<MixinElement?> getMixin(String libraryUri, String name) async {
     var libraryResult = await session.getLibraryByUri(libraryUri);
     if (libraryResult is LibraryElementResult) {
-      var element = libraryResult.element2.exportNamespace.get2(name);
+      var element = libraryResult.element.exportNamespace.get2(name);
       if (element is MixinElement) {
         return element;
       }
@@ -108,7 +108,7 @@ class AnalysisSessionHelper {
   ) async {
     var libraryResult = await session.getLibraryByUri(uri);
     if (libraryResult is LibraryElementResult) {
-      var element = libraryResult.element2.exportNamespace.get2(name);
+      var element = libraryResult.element.exportNamespace.get2(name);
       if (element is PropertyAccessorElement) {
         return element;
       }

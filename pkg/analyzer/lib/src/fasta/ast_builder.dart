@@ -1378,7 +1378,7 @@ class AstBuilder extends StackListener {
     var bodyObject = pop();
     pop(); // initializers
     pop(); // separator
-    var parameters = pop() as FormalParameterListImpl?;
+    var formalParameters = pop() as FormalParameterListImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop();
     var returnType = pop() as TypeAnnotationImpl?;
@@ -1386,23 +1386,7 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
 
-    assert(parameters != null || optional('get', getOrSet!));
-
-    FunctionBodyImpl body;
-    if (bodyObject is FunctionBodyImpl) {
-      body = bodyObject;
-    } else if (bodyObject is _RedirectingFactoryBody) {
-      body = EmptyFunctionBodyImpl(semicolon: endToken);
-    } else {
-      internalProblem(
-        templateInternalProblemUnhandled.withArguments(
-          "${bodyObject.runtimeType}",
-          "bodyObject",
-        ),
-        beginToken.charOffset,
-        uri,
-      );
-    }
+    assert(formalParameters != null || optional('get', getOrSet!));
 
     Token? operatorKeyword;
     SimpleIdentifierImpl nameId;
@@ -1424,7 +1408,27 @@ class AstBuilder extends StackListener {
       );
     }
 
-    checkFieldFormalParameters(parameters);
+    if (getOrSet?.keyword == Keyword.SET) {
+      formalParameters = _ensureSetterFormalParameter(nameId, formalParameters);
+    }
+
+    FunctionBodyImpl body;
+    if (bodyObject is FunctionBodyImpl) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      body = EmptyFunctionBodyImpl(semicolon: endToken);
+    } else {
+      internalProblem(
+        templateInternalProblemUnhandled.withArguments(
+          "${bodyObject.runtimeType}",
+          "bodyObject",
+        ),
+        beginToken.charOffset,
+        uri,
+      );
+    }
+
+    checkFieldFormalParameters(formalParameters);
     _classLikeBuilder?.members.add(
       MethodDeclarationImpl(
         comment: comment,
@@ -1437,7 +1441,7 @@ class AstBuilder extends StackListener {
         operatorKeyword: operatorKeyword,
         name: nameId.token,
         typeParameters: typeParameters,
-        parameters: parameters,
+        parameters: formalParameters,
         body: body,
       ),
     );
@@ -3615,7 +3619,7 @@ class AstBuilder extends StackListener {
     debugEvent("TopLevelMethod");
 
     var body = pop() as FunctionBodyImpl;
-    var parameters = pop() as FormalParameterListImpl?;
+    var formalParameters = pop() as FormalParameterListImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var returnType = pop() as TypeAnnotationImpl?;
@@ -3624,6 +3628,11 @@ class AstBuilder extends StackListener {
     var externalKeyword = modifiers?.externalKeyword;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
+
+    if (getOrSet?.keyword == Keyword.SET) {
+      formalParameters = _ensureSetterFormalParameter(name, formalParameters);
+    }
+
     declarations.add(
       FunctionDeclarationImpl(
         comment: comment,
@@ -3635,7 +3644,7 @@ class AstBuilder extends StackListener {
         name: name.token,
         functionExpression: FunctionExpressionImpl(
           typeParameters: typeParameters,
-          parameters: parameters,
+          parameters: formalParameters,
           body: body,
         ),
       ),
@@ -6227,6 +6236,61 @@ class AstBuilder extends StackListener {
       body: body,
     );
     return constructor;
+  }
+
+  FormalParameterListImpl? _ensureSetterFormalParameter(
+    SimpleIdentifierImpl setterName,
+    FormalParameterListImpl? formalParameters,
+  ) {
+    formalParameters ??=
+        throw StateError('Parser has recovery, this never happens.');
+
+    var valueFormalParameter = formalParameters.parameters.firstOrNull;
+    if (valueFormalParameter == null) {
+      if (!formalParameters.leftParenthesis.isSynthetic) {
+        diagnosticReporter.diagnosticReporter?.atToken(
+          setterName.token,
+          ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+        );
+      }
+      var valueNameToken = parser.rewriter.insertSyntheticIdentifier(
+        formalParameters.leftParenthesis,
+      );
+      return FormalParameterListImpl(
+        leftParenthesis: formalParameters.leftParenthesis,
+        parameters: [
+          SimpleFormalParameterImpl(
+            comment: null,
+            metadata: null,
+            covariantKeyword: null,
+            requiredKeyword: null,
+            keyword: null,
+            type: null,
+            name: valueNameToken,
+          ),
+        ],
+        leftDelimiter: null,
+        rightDelimiter: null,
+        rightParenthesis: formalParameters.rightParenthesis,
+      );
+    }
+
+    if (valueFormalParameter.isRequiredPositional &&
+        formalParameters.parameters.length == 1) {
+      return formalParameters;
+    }
+
+    diagnosticReporter.diagnosticReporter?.atToken(
+      setterName.token,
+      ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    );
+    return FormalParameterListImpl(
+      leftParenthesis: formalParameters.leftParenthesis,
+      parameters: [valueFormalParameter.notDefault],
+      leftDelimiter: null,
+      rightDelimiter: null,
+      rightParenthesis: formalParameters.rightParenthesis,
+    );
   }
 
   CommentImpl? _findComment(

@@ -450,7 +450,7 @@ main() {}
 export 'a.dart';
 ''');
 
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     var main = library.entryPoint!;
 
     expect(main, isNotNull);
@@ -462,7 +462,7 @@ export 'a.dart';
 main() {}
 ''');
 
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     var main = library.entryPoint!;
 
     expect(main, isNotNull);
@@ -472,7 +472,7 @@ main() {}
   test_entryPoint_none() async {
     await assertNoErrorsInCode('');
 
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     expect(library.entryPoint, isNull);
   }
 
@@ -1073,7 +1073,7 @@ Annotation
 @A library lib;
 const A = null;''');
 
-    var metadata = result.libraryElement2.metadata.annotations;
+    var metadata = result.libraryElement.metadata.annotations;
     expect(metadata, hasLength(1));
   }
 

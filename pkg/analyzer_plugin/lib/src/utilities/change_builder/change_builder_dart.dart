@@ -1615,7 +1615,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     var languageVersion =
-        resolvedUnit.libraryElement2.languageVersion.effective;
+        resolvedUnit.libraryElement.languageVersion.effective;
     var formattedResult =
         DartFormatter(languageVersion: languageVersion).formatSource(
       SourceCode(
@@ -1697,12 +1697,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     String? showName,
     bool useShow = false,
   }) {
-    if (resolvedUnit.libraryElement2.uri == uri) {
+    if (resolvedUnit.libraryElement.uri == uri) {
       return ImportLibraryElementResultImpl(null);
     }
 
     for (var import
-        in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
+        in resolvedUnit.libraryElement.firstFragment.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
         var importPrefix = import.prefix?.element.name;
@@ -1755,11 +1755,11 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   @override
   bool importsLibrary(Uri uri) {
     // Self-reference.
-    if (resolvedUnit.libraryElement2.uri == uri) return false;
+    if (resolvedUnit.libraryElement.uri == uri) return false;
 
     // Existing import.
     for (var import
-        in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
+        in resolvedUnit.libraryElement.firstFragment.libraryImports) {
       var importedLibrary = import.importedLibrary;
       if (importedLibrary != null && importedLibrary.uri == uri) {
         return true;
@@ -2317,7 +2317,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// The result may be an existing import, or one that is pending.
   _LibraryImport? _getImportElement(Element element) {
     for (var import
-        in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
+        in resolvedUnit.libraryElement.firstFragment.libraryImports) {
       var lookupName = element.lookupName;
       var definedNames = import.namespace.definedNames2;
       var importedElement = definedNames[lookupName];
@@ -2350,7 +2350,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   List<LibraryImport> _getImportsForUri(Uri uri) {
     return [
       for (var import
-          in resolvedUnit.libraryElement2.firstFragment.libraryImports)
+          in resolvedUnit.libraryElement.firstFragment.libraryImports)
         if (import.importedLibrary?.uri == uri) import,
     ];
   }
@@ -2370,7 +2370,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     /// Returns the relative path to import [whatPath] into [resolvedUnit].
     String getRelativePath(String whatPath) {
       var libraryPath =
-          resolvedUnit.libraryElement2.firstFragment.source.fullName;
+          resolvedUnit.libraryElement.firstFragment.source.fullName;
       var libraryFolder = pathContext.dirname(libraryPath);
       var relativeFile = pathContext.relative(whatPath, from: libraryFolder);
       return pathContext.split(relativeFile).join('/');
@@ -2474,7 +2474,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       // Collect the list of existing shows and hides for any imports that match
       // the URI and prefix we care about.
       for (var element
-          in resolvedUnit.libraryElement2.firstFragment.libraryImports) {
+          in resolvedUnit.libraryElement.firstFragment.libraryImports) {
         var library = element.importedLibrary;
         if (library == null) {
           continue;
@@ -2517,7 +2517,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
   /// Returns whether the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
-    return element.library == resolvedUnit.libraryElement2;
+    return element.library == resolvedUnit.libraryElement;
   }
 
   /// Removes any pending imports (for [Element]s) that are no longer necessary
