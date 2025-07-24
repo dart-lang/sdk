@@ -2038,6 +2038,13 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try moving the extends clause before the with clause.",
   );
 
+  static const ParserErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER =
+      ParserErrorCode(
+        'WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
+        "Setters must declare exactly one required positional parameter.",
+        hasPublishedDocs: true,
+      );
+
   static const ParserErrorCode
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER = ParserErrorCode(
     'WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',

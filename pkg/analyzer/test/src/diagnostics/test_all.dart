@@ -926,8 +926,6 @@ import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
-import 'wrong_number_of_parameters_for_setter_test.dart'
-    as wrong_number_of_parameters_for_setter;
 import 'wrong_number_of_type_arguments_enum_test.dart'
     as wrong_number_of_type_arguments_enum;
 import 'wrong_number_of_type_arguments_extension_test.dart'
@@ -1546,7 +1544,6 @@ main() {
     variable_type_mismatch.main();
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();
-    wrong_number_of_parameters_for_setter.main();
     wrong_number_of_type_arguments_enum.main();
     wrong_number_of_type_arguments_extension.main();
     wrong_number_of_type_arguments.main();

@@ -18362,46 +18362,6 @@ CompileTimeErrorCode:
 
       Parameters:
       0: the number of parameters found in the operator declaration
-  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
-    problemMessage: Setters must declare exactly one required positional parameter.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a setter is found that doesn't
-      declare exactly one required positional parameter.
-
-      #### Examples
-
-      The following code produces this diagnostic because the setter `s` declares
-      two required parameters:
-
-      ```dart
-      class C {
-        set [!s!](int x, int y) {}
-      }
-      ```
-
-      The following code produces this diagnostic because the setter `s` declares
-      one optional parameter:
-
-      ```dart
-      class C {
-        set [!s!]([int? x]) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Change the declaration so that there's exactly one required positional
-      parameter:
-
-      ```dart
-      class C {
-        set s(int x) {}
-      }
-      ```
   WRONG_NUMBER_OF_TYPE_ARGUMENTS:
     problemMessage: "The type '{0}' is declared with {1} type parameters, but {2} type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
@@ -22138,6 +22098,45 @@ ParserErrorCode:
     problemMessage: "Typedefs can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
     hasPublishedDocs: false
+  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+    problemMessage: Setters must declare exactly one required positional parameter.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a setter is found that doesn't
+      declare exactly one required positional parameter.
+
+      #### Examples
+
+      The following code produces this diagnostic because the setter `s` declares
+      two required parameters:
+
+      ```dart
+      class C {
+        set [!s!](int x, int y) {}
+      }
+      ```
+
+      The following code produces this diagnostic because the setter `s` declares
+      one optional parameter:
+
+      ```dart
+      class C {
+        set [!s!]([int? x]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Change the declaration so that there's exactly one required positional
+      parameter:
+
+      ```dart
+      class C {
+        set s(int x) {}
+      }
+      ```
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
     problemMessage: "The default value of a positional parameter should be preceded by '='."
     correctionMessage: "Try replacing the ':' with '='."

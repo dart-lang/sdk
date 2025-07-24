@@ -1662,8 +1662,6 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
   notes: |-
     Fixes could include (1) removing all past the first parameter, and (2)
     removing all but a singular used parameter, if only one is used.
-CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
-  status: needsFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
@@ -3319,6 +3317,8 @@ ParserErrorCode.WITH_BEFORE_EXTENDS:
   status: needsFix
   notes: |-
     Move the extends clause.
+ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+  status: needsFix
 ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
   status: hasFix
 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
