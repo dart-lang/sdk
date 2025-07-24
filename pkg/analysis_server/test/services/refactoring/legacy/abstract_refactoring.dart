@@ -12,6 +12,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:test/test.dart';
 
 import '../../../abstract_single_unit.dart';
+import '../../../selection_mixin.dart';
 
 int findIdentifierLength(String search) {
   var length = 0;
@@ -28,7 +29,8 @@ int findIdentifierLength(String search) {
 }
 
 /// The base class for all [Refactoring] tests.
-abstract class RefactoringTest extends AbstractSingleUnitTest {
+abstract class RefactoringTest extends AbstractSingleUnitTest
+    with SelectionMixin {
   late RefactoringWorkspace refactoringWorkspace;
   late SearchEngine searchEngine;
 
@@ -80,6 +82,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     String? expectedMessage,
     SourceRange? expectedContextRange,
     String? expectedContextSearch,
+    int? rangeIndex,
   }) {
     expect(status.severity, expectedSeverity, reason: status.toString());
     if (expectedSeverity != null) {
@@ -99,6 +102,11 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
         var expectedLength = findIdentifierLength(expectedContextSearch);
         expect(location.offset, expectedOffset);
         expect(location.length, expectedLength);
+      } else if (rangeIndex != null) {
+        var location = problem.location!;
+        setRange(rangeIndex);
+        expect(location.offset, offset);
+        expect(location.length, length);
       }
     }
   }

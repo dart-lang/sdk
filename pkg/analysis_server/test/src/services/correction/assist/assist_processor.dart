@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math';
-
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
@@ -18,13 +16,12 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:test/test.dart';
 
 import '../../../../abstract_single_unit.dart';
+import '../../../../selection_mixin.dart';
 import '../../../../utils/test_instrumentation_service.dart';
 
 /// A base class defining support for writing assist processor tests.
-abstract class AssistProcessorTest extends AbstractSingleUnitTest {
-  late int _offset;
-  late int _length;
-
+abstract class AssistProcessorTest extends AbstractSingleUnitTest
+    with SelectionMixin {
   late SourceChange _change;
   late String _resultCode;
 
@@ -39,7 +36,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
   @override
   void addTestSource(String code) {
     super.addTestSource(code);
-    _setPositionOrRange(0);
+    setPositionOrRange(0);
   }
 
   void assertExitPosition({String? before, String? after}) {
@@ -54,7 +51,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     }
   }
 
-  /// Asserts that there is an assist of the given [kind] at [_offset] which
+  /// Asserts that there is an assist of the given [kind] at [offset] which
   /// produces the [expected] code when applied to [testCode]. The map of
   /// [additionallyChangedFiles] can be used to test assists that can modify
   /// more than the test file. The keys are expected to be the paths to the
@@ -68,7 +65,7 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     Map<String, List<String>>? additionallyChangedFiles,
     int index = 0,
   }) async {
-    _setPositionOrRange(index);
+    setPositionOrRange(index);
 
     expected = normalizeNewlinesForPlatform(expected);
     additionallyChangedFiles = additionallyChangedFiles?.map(
@@ -118,9 +115,9 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
     }
   }
 
-  /// Asserts that there is no [Assist] of the given [kind] at [_offset].
+  /// Asserts that there is no [Assist] of the given [kind] at [offset].
   Future<void> assertNoAssist([int index = 0]) async {
-    _setPositionOrRange(index);
+    setPositionOrRange(index);
     var assists = await _computeAssists();
     for (var assist in assists) {
       if (assist.kind == kind) {
@@ -159,8 +156,8 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       await workspace,
       libraryResult,
       testAnalysisResult,
-      _offset,
-      _length,
+      offset,
+      length,
     );
     return await computeAssists(context);
   }
@@ -172,25 +169,5 @@ abstract class AssistProcessorTest extends AbstractSingleUnitTest {
       positions.add(Position(testFile.path, offset));
     }
     return positions;
-  }
-
-  void _setPositionOrRange(int index) {
-    if (index < 0) {
-      throw ArgumentError('Index must be non-negative.');
-    }
-    if (index >
-        max(parsedTestCode.positions.length, parsedTestCode.ranges.length)) {
-      throw ArgumentError('Index exceeds the number of positions and ranges.');
-    }
-    if (parsedTestCode.positions.isNotEmpty) {
-      _offset = parsedTestCode.positions[index].offset;
-      _length = 0;
-    } else if (parsedTestCode.ranges.isNotEmpty) {
-      var range = parsedTestCode.ranges[index].sourceRange;
-      _offset = range.offset;
-      _length = range.length;
-    } else {
-      throw ArgumentError('Test code must contain a position or range marker.');
-    }
   }
 }
