@@ -78,10 +78,8 @@ class DevToolsServerDriver {
     int? tryPorts,
     List<String> additionalArgs = const [],
   }) async {
-    final script =
-        resolveTestRelativePath('devtools_server/utils/serve_devtools.dart');
     final args = [
-      script.toFilePath(),
+      'devtools',
       '--machine',
       '--port',
       '$port',

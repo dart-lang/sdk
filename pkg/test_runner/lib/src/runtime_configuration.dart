@@ -547,7 +547,7 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
             argument.replaceAll(Directory.current.path, "pkg/data"))
         .toList();
 
-    var component = "dart_test_component.cm";
+    var component = "dartvm_test_component.cm";
     if (aot) {
       component = "dartaotruntime_test_component.cm";
       arguments[arguments.length - 1] =

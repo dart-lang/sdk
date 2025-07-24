@@ -73,7 +73,8 @@ void main() {
           void onData(event) {
             if (event.contains(dartVMServiceMsg)) {
               sawServiceMsg = true;
-            } else if (event.contains('Observe smoke test!')) {
+            }
+            if (event.contains('Observe smoke test!')) {
               sawProgramMsg = true;
             }
             if (sawServiceMsg && sawProgramMsg) {

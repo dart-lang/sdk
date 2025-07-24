@@ -99,19 +99,12 @@ class CompileJSCommand extends CompileSubcommandCommand {
     }
     final args = argResults!;
     var snapshot = sdk.dart2jsAotSnapshot;
-    var script = sdk.dartAotRuntime;
-    var useExecProcess = true;
     if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      script = sdk.dart2jsSnapshot;
-      if (!Sdk.checkArtifactExists(script)) {
-        return genericErrorExitCode;
-      }
-      useExecProcess = false;
+      log.stderr('Error: JS compilation failed');
+      log.stderr('Unable to find $snapshot');
+      return compileErrorExitCode;
     }
     final dart2jsCommand = [
-      if (useExecProcess) snapshot,
       '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
@@ -120,10 +113,10 @@ class CompileJSCommand extends CompileSubcommandCommand {
     ];
     try {
       VmInteropHandler.run(
-        script,
+        snapshot,
         dart2jsCommand,
         packageConfigOverride: null,
-        useExecProcess: useExecProcess,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {
@@ -164,28 +157,21 @@ class CompileDDCCommand extends CompileSubcommandCommand {
     }
     final args = argResults!;
     var snapshot = sdk.ddcAotSnapshot;
-    var script = sdk.dartAotRuntime;
-    var useExecProcess = true;
     if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      script = sdk.ddcSnapshot;
-      if (!Sdk.checkArtifactExists(script)) {
-        return genericErrorExitCode;
-      }
-      useExecProcess = false;
+      log.stderr('Error: JS compilation failed');
+      log.stderr('Unable to find $snapshot');
+      return compileErrorExitCode;
     }
     final ddcCommand = <String>[
-      if (useExecProcess) snapshot,
       // Add the remaining arguments.
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
     try {
       VmInteropHandler.run(
-        script,
+        snapshot,
         ddcCommand,
         packageConfigOverride: null,
-        useExecProcess: useExecProcess,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {
@@ -460,7 +446,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     log.stdout('Compiling $sourcePath to jit-snapshot file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
-    return await runProcess([sdk.dart, ...buildArgs]);
+    return await runProcess([sdk.dartvm, ...buildArgs]);
   }
 }
 

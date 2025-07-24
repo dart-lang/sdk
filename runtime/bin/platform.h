@@ -72,6 +72,13 @@ class Platform {
     executable_name_ = executable_name;
   }
   static const char* GetExecutableName();
+
+  // Stores the resolved executable name.
+  static void SetResolvedExecutableName(const char* resolved_executable_name) {
+    const char* expect_old_is_null = nullptr;
+    resolved_executable_name_.compare_exchange_strong(expect_old_is_null,
+                                                      resolved_executable_name);
+  }
   static const char* GetResolvedExecutableName() {
     if (resolved_executable_name_.load() == nullptr) {
       // Try to resolve the executable path using platform specific APIs.
