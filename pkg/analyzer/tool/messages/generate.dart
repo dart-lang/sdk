@@ -158,7 +158,7 @@ library;
           out.writeln('  static const ${errorClass.name} $errorName =');
           out.writeln(
             errorCodeInfo.toAnalyzerCode(
-              errorClass.name,
+              errorClass,
               errorName,
               useExplicitConst: file.shouldUseExplicitConst,
             ),
