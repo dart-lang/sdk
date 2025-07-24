@@ -4,13 +4,10 @@
 
 // THIS FILE IS GENERATED. DO NOT EDIT.
 //
-// Instead, run 'dart pkg/analysis_server/tool/generate_analyzer_version.dart'
+// Instead, run
+// 'dart pkg/analysis_server/tool/generate_analysis_server_plugin_version.dart'
 // to update this file.
 
-/// The version of the analyzer_plugin package that matches the analyzer_plugin
-/// code used by the analysis_server package.
-var analyzerPluginVersion = '0.13.0';
-
-/// The version of the analyzer package that matches the analyzer code used by
-/// the analysis_server package.
-var analyzerVersion = '7.3.0';
+/// The version of the analysis_server_plugin package that matches the protocol
+/// used by the analysis_server package.
+var analysisServerPluginVersion = '0.2.0';
