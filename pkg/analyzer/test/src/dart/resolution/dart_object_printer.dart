@@ -249,7 +249,7 @@ class DartObjectPrinter {
   }
 
   void _writeVariable(DartObjectImpl object) {
-    var variable = object.variable2;
+    var variable = object.variable;
     if (variable != null) {
       _sink.withIndent(() {
         _elementPrinter.writeNamedElement2('variable', variable);

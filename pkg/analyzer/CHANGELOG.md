@@ -7,6 +7,8 @@
 * Deprecate `AnalysisSession.getParsedLibraryByElement2`, use `getParsedLibraryByElement` instead.
 * Deprecate `AnalysisSession.getResolvedLibraryByElement2`, use `getResolvedLibraryByElement` instead.
 * Deprecate `resolveFile2`, use `resolveFile` instead.
+* Deprecate `DartObject.variable2`, use `variable` instead.
+* Deprecate `DartObject.toFunctionValue2`, use `toFunctionValue` instead.
 
 ## 8.0.0
 * Remove deprecated element model V1.

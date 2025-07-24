@@ -88,6 +88,10 @@ abstract class DartObject {
   DartType? get type;
 
   /// If this object is the value of a constant variable, the variable.
+  VariableElement? get variable;
+
+  /// If this object is the value of a constant variable, the variable.
+  @Deprecated('Use variable instead')
   VariableElement? get variable2;
 
   /// Return a representation of the value of the field with the given [name].
@@ -121,6 +125,16 @@ abstract class DartObject {
   /// * this object is not of a function type,
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
+  @experimental
+  ExecutableElement? toFunctionValue();
+
+  /// Return an element corresponding to the value of the object being
+  /// represented, or `null`
+  /// if
+  /// * this object is not of a function type,
+  /// * the value of the object being represented is not known, or
+  /// * the value of the object being represented is `null`.
+  @Deprecated('Use toFunctionValue instead')
   @experimental
   ExecutableElement? toFunctionValue2();
 

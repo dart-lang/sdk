@@ -173,7 +173,7 @@ class DartObjectImpl implements DartObject, Constant {
   final InstanceState state;
 
   @override
-  final VariableElementImpl? variable2;
+  final VariableElementImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].
   factory DartObjectImpl(
@@ -183,7 +183,7 @@ class DartObjectImpl implements DartObject, Constant {
     VariableElementImpl? variable,
   }) {
     type = type.extensionTypeErasure;
-    return DartObjectImpl._(typeSystem, type, state, variable2: variable);
+    return DartObjectImpl._(typeSystem, type, state, variable: variable);
   }
 
   /// Creates a duplicate instance of [other], tied to [variable].
@@ -238,7 +238,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   /// Initialize a newly created object to have the given [type] and [state].
-  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable2}) {
+  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable}) {
     if (state case GenericState state) {
       state._object = this;
     }
@@ -283,6 +283,10 @@ class DartObjectImpl implements DartObject, Constant {
 
   @visibleForTesting
   List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
+
+  @override
+  @Deprecated('Use variable instead')
+  VariableElement? get variable2 => variable;
 
   @override
   bool operator ==(Object other) {
@@ -940,9 +944,15 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
-  ExecutableElement2OrMember? toFunctionValue2() {
+  ExecutableElement2OrMember? toFunctionValue() {
     var state = this.state;
     return state is FunctionState ? state.element : null;
+  }
+
+  @override
+  @Deprecated('Use toFunctionValue instead')
+  ExecutableElement? toFunctionValue2() {
+    return toFunctionValue();
   }
 
   @override
