@@ -47,9 +47,9 @@ final class C extends Object {
   int f;
   C(this.f);
   factory C.s(String s);
-  int operator +(int i);
   int get g;
   set s(int i);
+  int operator +(int i);
   void m(int i);
 }
 ''',
@@ -74,7 +74,7 @@ enum E {
 ''',
       '''
 enum E {
-  a(1), b(2);
+  a, b;
   final int f;
   const E(this.f);
   void m(int i);
@@ -111,12 +111,8 @@ extension on String {
   String m(String s) => this + s;
 }
 ''',
-      '''
-extension on String {
-  int get l;
-  String m(String s);
-}
-''',
+      // Unnamed extensions are not part of the public API.
+      '',
     );
   }
 

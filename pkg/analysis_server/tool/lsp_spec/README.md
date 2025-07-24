@@ -196,8 +196,8 @@ Forces re-reading of all potentially changed files, re-resolving of all referenc
 ### dart/textDocument/summary Method
 
 Direction: Client -> Server
-Params: `TextDocumentIdentifier`
-Returns: `string | null`
+Params: `DartTextDocumentSummaryParams`
+Returns: `DocumentSummary`
 
 Returns a summary of the code in the file at the given URI, or `null` if the file isn't a Dart file or if the file can't be parsed. The content and format of the summary is undefined and is subject to change without notice.
 
