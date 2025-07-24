@@ -26,6 +26,7 @@ import '../vm_interop_handler.dart';
 
 const int genericErrorExitCode = 255;
 const int compileErrorExitCode = 254;
+const int crossCompileErrorExitCode = 128;
 
 class Option {
   final String flag;
@@ -597,7 +598,7 @@ Remove debugging information from the output and save it separately to the speci
         stderr.writeln('Unsupported target platform $target.');
         stderr.writeln('Supported target platforms: '
             '${supportedTargetPlatforms.join(', ')}');
-        return 128;
+        return crossCompileErrorExitCode;
       }
 
       var cacheDir = getDartStorageDirectory();
