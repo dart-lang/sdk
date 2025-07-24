@@ -478,7 +478,9 @@ type ClassDeclaration {
   UInt flags = (isAbstract, isEnum,
                 hasTypeParams, hasTypeArguments,
                 isTransformedMixinApplication,
-                hasSourcePositions, hasAnnotations, hasPragma);
+                hasSourcePositions, hasAnnotations, hasPragma,
+                hasConstConstructor, isSealed, isMixinClass,
+                isBaseClass, isInterface, isFinal);
   PackedObject script;
 
  if hasSourcePositions

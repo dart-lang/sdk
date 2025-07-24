@@ -94,6 +94,12 @@ class ClassDeclaration extends BytecodeDeclaration {
   static const hasSourcePositionsFlag = 1 << 5;
   static const hasAnnotationsFlag = 1 << 6;
   static const hasPragmaFlag = 1 << 7;
+  static const hasConstConstructorFlag = 1 << 8;
+  static const isSealedFlag = 1 << 9;
+  static const isMixinClassFlag = 1 << 10;
+  static const isBaseClassFlag = 1 << 11;
+  static const isInterfaceFlag = 1 << 12;
+  static const isFinalFlag = 1 << 13;
 
   ObjectHandle? name;
   final int flags;

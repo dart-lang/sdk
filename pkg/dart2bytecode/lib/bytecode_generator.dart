@@ -266,6 +266,21 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (cls.isEnum) {
       flags |= ClassDeclaration.isEnumFlag;
     }
+    if (cls.isSealed) {
+      flags |= ClassDeclaration.isSealedFlag;
+    }
+    if (cls.isMixinClass) {
+      flags |= ClassDeclaration.isMixinClassFlag;
+    }
+    if (cls.isBase) {
+      flags |= ClassDeclaration.isBaseClassFlag;
+    }
+    if (cls.isInterface) {
+      flags |= ClassDeclaration.isInterfaceFlag;
+    }
+    if (cls.isFinal) {
+      flags |= ClassDeclaration.isFinalFlag;
+    }
     int numTypeArguments = 0;
     TypeParametersDeclaration? typeParameters;
     if (hasInstantiatorTypeArguments(cls)) {
@@ -282,6 +297,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (cls.isEliminatedMixin) {
       flags |= ClassDeclaration.isTransformedMixinApplicationFlag;
     }
+    if (cls.hasConstConstructor) {
+      flags |= ClassDeclaration.hasConstConstructorFlag;
+    }
+
     int position = TreeNode.noOffset;
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions && cls.fileOffset != TreeNode.noOffset) {
