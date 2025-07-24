@@ -186,14 +186,11 @@ class TypesBuilder {
           (element.variable as TopLevelVariableElementImpl).type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
-          var valueElement =
-              element.formalParameters.singleOrNull;
-          var valueNode =
-              node.functionExpression.parameters?.parameters.firstOrNull;
-          var valueNodeElement = valueNode?.declaredFragment!.element;
-          var valueNodeType = valueNodeElement?.type;
-          var valueType = valueNodeType ?? InvalidTypeImpl.instance;
-          valueElement?.type = valueType;
+          var valueElement = element.valueFormalParameter;
+          var valueNode = node.functionExpression.parameters!.parameters.single;
+          var valueNodeElement = valueNode.declaredFragment!.element;
+          var valueType = valueNodeElement.type;
+          valueElement.type = valueType;
 
           var variableElement = element.variable as TopLevelVariableElementImpl;
           if (variableElement.isSynthetic) {
@@ -229,13 +226,11 @@ class TypesBuilder {
           (element.variable as FieldElementImpl).type = returnType;
         case SetterElementImpl():
           element.returnType = returnType;
-          var valueElement =
-              element.formalParameters.singleOrNull;
-          var valueNode = node.parameters?.parameters.firstOrNull;
-          var valueNodeElement = valueNode?.declaredFragment!.element;
-          var valueNodeType = valueNodeElement?.type;
-          var valueType = valueNodeType ?? InvalidTypeImpl.instance;
-          valueElement?.type = valueType;
+          var valueElement = element.valueFormalParameter;
+          var valueNode = node.parameters!.parameters.single;
+          var valueNodeElement = valueNode.declaredFragment!.element;
+          var valueType = valueNodeElement.type;
+          valueElement.type = valueType;
 
           var variableElement = element.variable as FieldElementImpl;
           if (variableElement.isSynthetic && variableElement.getter == null) {
@@ -266,8 +261,7 @@ class TypesBuilder {
             }
             if (variableElement.setter case var setterElement?) {
               setterElement.returnType = VoidTypeImpl.instance;
-              setterElement.formalParameters.single
-                  .type = type;
+              setterElement.valueFormalParameter.type = type;
             }
           }
         }
@@ -648,7 +642,9 @@ class _MixinsInference {
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
-  List<InterfaceTypeImpl>? _callbackWhenRecursion(InterfaceFragmentImpl element) {
+  List<InterfaceTypeImpl>? _callbackWhenRecursion(
+    InterfaceFragmentImpl element,
+  ) {
     var declaration = _declarations[element];
     if (declaration != null) {
       _inferDeclaration(declaration);

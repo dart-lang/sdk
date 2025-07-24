@@ -761,7 +761,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       isStatic: element.isStatic,
-      valueType: element.formalParameters[0].type.encode(context),
+      valueType: element.valueFormalParameter.type.encode(context),
     );
   }
 
@@ -777,7 +777,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
   @override
   bool match(MatchContext context, SetterElementImpl element) {
     return super.match(context, element) &&
-        valueType.match(context, element.formalParameters[0].type);
+        valueType.match(context, element.valueFormalParameter.type);
   }
 
   @override
@@ -1302,7 +1302,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
         context,
         element.thisOrVariableMetadata,
       ),
-      valueType: element.formalParameters[0].type.encode(context),
+      valueType: element.valueFormalParameter.type.encode(context),
     );
   }
 
@@ -1317,7 +1317,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   @override
   bool match(MatchContext context, SetterElementImpl element) {
     return super.match(context, element) &&
-        valueType.match(context, element.formalParameters[0].type);
+        valueType.match(context, element.valueFormalParameter.type);
   }
 
   @override

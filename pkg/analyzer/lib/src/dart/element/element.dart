@@ -5132,7 +5132,8 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   List<InterfaceTypeImpl> _interfaces = const [];
 
   /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceTypeImpl>? Function(InterfaceFragmentImpl)? mixinInferenceCallback;
+  List<InterfaceTypeImpl>? Function(InterfaceFragmentImpl)?
+  mixinInferenceCallback;
 
   InterfaceTypeImpl? _supertype;
 
@@ -8735,8 +8736,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     if (element.setter case var setterElement?) {
       if (setterElement.isSynthetic) {
         setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.formalParameters.single
-            .type = type;
+        setterElement.valueFormalParameter.type = type;
       }
     }
 
@@ -8963,8 +8963,8 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
     return null;
   }
 
-  FormalParameterFragmentImpl? get valueFormalParameter {
-    return formalParameters.singleOrNull;
+  FormalParameterFragmentImpl get valueFormalParameter {
+    return formalParameters.single;
   }
 
   void addFragment(SetterFragmentImpl fragment) {
