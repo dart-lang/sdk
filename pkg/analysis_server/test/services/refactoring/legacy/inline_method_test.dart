@@ -351,6 +351,17 @@ void f() {
     return _assertConditionsFatal("Can't inline a class method reference.");
   }
 
+  Future<void> test_bad_sdkCode() async {
+    await indexTestUnit(r'''
+void f() {
+  print('');
+}
+''');
+    _createRefactoring('print');
+    // error
+    return _assertInvalidSelectionSdkCode();
+  }
+
   Future<void> test_bad_severalReturns() async {
     await indexTestUnit(r'''
 test() {
@@ -2265,6 +2276,10 @@ class _InlineMethodTest extends RefactoringTest {
     return _assertConditionsFatal(
       'Method declaration or reference must be selected to activate this refactoring.',
     );
+  }
+
+  Future<void> _assertInvalidSelectionSdkCode() {
+    return _assertConditionsFatal("Can't inline SDK code.");
   }
 
   Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
