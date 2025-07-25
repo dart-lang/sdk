@@ -795,77 +795,6 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeFragmentBestOffset(Fragment f) {
-    // Usually the name offset is available.
-    // And then the offset must be the same.
-    if (f.nameOffset case var nameOffset?) {
-      expect(f.offset, nameOffset);
-      return;
-    }
-
-    switch (f) {
-      case ConstructorFragment():
-        if (f.isSynthetic) {
-          expect(f.offset, f.enclosingFragment!.offset);
-          return;
-        } else {
-          expect(f.offset, f.typeNameOffset);
-          return;
-        }
-      case FieldFragment():
-        if (f.isSynthetic) {
-          // TODO(scheglov): Why not the offset of the getter/setter?
-          expect(f.offset, f.enclosingFragment!.offset);
-          return;
-        }
-      case FormalParameterFragment():
-        if (f.enclosingFragment case SetterFragment setter) {
-          if (setter.isSynthetic) {
-            var variable = setter.element.variable!;
-            if (!variable.isSynthetic) {
-              expect(f.offset, variable.firstFragment.offset);
-              return;
-            }
-          }
-        }
-      case GetterFragment():
-        expect(f.isSynthetic, isTrue);
-
-        var variable = f.element.variable!;
-        if (!variable.isSynthetic) {
-          expect(f.offset, variable.firstFragment.offset);
-          return;
-        }
-
-        // Special case enum fields/getters: index, _name, values.
-        if (variable is FieldElementImpl && variable.isSyntheticEnumField) {
-          var enumElement = f.enclosingFragment as EnumFragmentImpl;
-          expect(f.offset, enumElement.offset);
-          expect(variable.firstFragment.offset, enumElement.offset);
-          return;
-        }
-      case SetterFragment():
-        expect(f.isSynthetic, isTrue);
-
-        var variable = f.element.variable!;
-        if (!variable.isSynthetic) {
-          expect(f.offset, variable.firstFragment.offset);
-          return;
-        }
-
-      case LibraryFragment():
-        if (f.element.firstFragment != f) {
-          expect(f.offset, 0);
-          return;
-        } else if (f.offset == 0) {
-          return;
-        }
-    }
-
-    // If a non-standard case, write the offset.
-    _sink.write(' (offset=${f.offset})');
-  }
-
   void _writeFragmentCodeRange(Fragment f) {
     if (configuration.withCodeRanges) {
       if (f is FragmentImpl) {
@@ -903,11 +832,21 @@ class _Element2Writer extends _AbstractElementWriter {
     }
 
     _sink.write(f.name ?? '<null-name>');
-    if (f.nameOffset case var nameOffset?) {
-      _sink.write(' @$nameOffset');
+    _writeFragmentOffsets(f);
+  }
+
+  void _writeFragmentOffsets(FragmentImpl f) {
+    if (f is LibraryFragmentImpl) {
+      expect(f.nameOffset, isNull);
+      expect(f.firstTokenOffset, 0);
+      if (f.offset == 0) {
+        return;
+      }
     }
 
-    _writeFragmentBestOffset(f);
+    _sink.write(' (nameOffset:${f.nameOffset ?? '<null>'})');
+    _sink.write(' (firstTokenOffset:${f.firstTokenOffset ?? '<null>'})');
+    _sink.write(' (offset:${f.offset})');
   }
 
   void _writeFragmentReference(String name, Fragment? f) {
@@ -1268,7 +1207,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write(uriStr);
       }
 
-      _writeFragmentBestOffset(f);
+      _writeFragmentOffsets(f);
     });
 
     _sink.withIndent(() {

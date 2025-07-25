@@ -33,10 +33,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer aaa @11
+            #F2 hasInitializer aaa (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::aaa
               initializer: expression_0
                 InstanceCreationExpression
@@ -50,7 +50,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer bbb @16
+            #F3 hasInitializer bbb (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@enum::E::@field::bbb
               initializer: expression_1
                 InstanceCreationExpression
@@ -64,7 +64,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 hasInitializer ccc @21
+            #F4 hasInitializer ccc (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@enum::E::@field::ccc
               initializer: expression_2
                 InstanceCreationExpression
@@ -78,7 +78,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -99,17 +99,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic aaa
+            #F7 synthetic aaa (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::aaa
-            #F8 synthetic bbb
+            #F8 synthetic bbb (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::bbb
-            #F9 synthetic ccc
+            #F9 synthetic ccc (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::ccc
-            #F10 synthetic values
+            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -191,13 +191,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer int @14
+            #F3 hasInitializer int (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::int
               initializer: expression_0
                 InstanceCreationExpression
@@ -217,7 +217,7 @@ library
                         staticType: int
                     rightParenthesis: ) @19
                   staticType: E<int>
-            #F4 hasInitializer string @22
+            #F4 hasInitializer string (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::string
               initializer: expression_1
                 InstanceCreationExpression
@@ -236,7 +236,7 @@ library
                         literal: '2' @29
                     rightParenthesis: ) @32
                   staticType: E<String>
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -253,19 +253,19 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F6 const new
+            #F6 const new (nameOffset:<null>) (firstTokenOffset:37) (offset:43)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 43
               formalParameters
-                #F7 a @47
+                #F7 a (nameOffset:47) (firstTokenOffset:45) (offset:47)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F8 synthetic int
+            #F8 synthetic int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::int
-            #F9 synthetic string
+            #F9 synthetic string (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::string
-            #F10 synthetic values
+            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -341,10 +341,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer _name @11
+            #F2 hasInitializer _name (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::_name
               initializer: expression_0
                 InstanceCreationExpression
@@ -358,7 +358,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -371,13 +371,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic _name
+            #F5 synthetic _name (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::_name
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -433,13 +433,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v @14
+            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -467,7 +467,7 @@ library
                         staticType: double
                     rightParenthesis: ) @26
                   staticType: E<double>
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -480,17 +480,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F5 const new
+            #F5 const new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
-                #F6 a @41
+                #F6 a (nameOffset:41) (firstTokenOffset:39) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -552,10 +552,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer _ @11
+            #F2 hasInitializer _ (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::_
               initializer: expression_0
                 InstanceCreationExpression
@@ -569,7 +569,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -582,13 +582,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic _
+            #F5 synthetic _ (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::_
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -644,10 +644,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -661,7 +661,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -674,18 +674,18 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 factory named @26
+            #F4 factory named (nameOffset:26) (firstTokenOffset:16) (offset:26)
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
               typeNameOffset: 24
               periodOffset: 25
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -744,10 +744,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -761,7 +761,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -774,14 +774,14 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 factory new
+            #F4 factory new (nameOffset:<null>) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 24
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -838,10 +838,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -855,7 +855,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -867,25 +867,25 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x @22
+            #F4 x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const new
+            #F5 const new (nameOffset:<null>) (firstTokenOffset:27) (offset:33)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 33
               formalParameters
-                #F6 this.x @44
+                #F6 this.x (nameOffset:44) (firstTokenOffset:35) (offset:44)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   parameters
-                    #F7 a @53
+                    #F7 a (nameOffset:53) (firstTokenOffset:46) (offset:53)
                       element: a@53
           getters
-            #F8 synthetic v
+            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 synthetic values
+            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 synthetic x
+            #F10 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -962,10 +962,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -979,7 +979,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -991,26 +991,26 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x @26
+            #F4 x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x::@def::0
-            #F5 x @44
+            #F5 x (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@enum::E::@field::x::@def::1
           constructors
-            #F6 const new
+            #F6 const new (nameOffset:<null>) (firstTokenOffset:49) (offset:55)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 55
               formalParameters
-                #F7 this.x @62
+                #F7 this.x (nameOffset:62) (firstTokenOffset:57) (offset:62)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F8 synthetic v
+            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 synthetic values
+            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 synthetic x
+            #F10 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x::@def::0
-            #F11 synthetic x
+            #F11 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::x::@def::1
   enums
     enum E
@@ -1090,10 +1090,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1107,7 +1107,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1120,17 +1120,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const new
+            #F4 const new (nameOffset:<null>) (firstTokenOffset:16) (offset:22)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 22
               formalParameters
-                #F5 this.x @29
+                #F5 this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1191,10 +1191,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1208,7 +1208,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1220,15 +1220,15 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x @26
+            #F4 x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const new
+            #F5 const new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
-                #F6 this.x @45
+                #F6 this.x (nameOffset:45) (firstTokenOffset:40) (offset:45)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   initializer: expression_2
                     BinaryExpression
@@ -1243,11 +1243,11 @@ library
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x
+            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1321,10 +1321,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1338,7 +1338,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1350,22 +1350,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x @26
+            #F4 x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const new
+            #F5 const new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
               formalParameters
-                #F6 this.x @48
+                #F6 this.x (nameOffset:48) (firstTokenOffset:39) (offset:48)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x
+            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1436,10 +1436,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1453,7 +1453,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1465,22 +1465,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x @22
+            #F4 x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 new
+            #F5 new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
               formalParameters
-                #F6 this.x @38
+                #F6 this.x (nameOffset:38) (firstTokenOffset:29) (offset:38)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x
+            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1551,10 +1551,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1568,7 +1568,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1580,22 +1580,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 x @22
+            #F4 x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 new
+            #F5 new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
               formalParameters
-                #F6 this.x @34
+                #F6 this.x (nameOffset:34) (firstTokenOffset:29) (offset:34)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic x
+            #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1665,10 +1665,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1691,7 +1691,7 @@ library
                         staticType: int
                     rightParenthesis: ) @21
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1704,18 +1704,18 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const named @34
+            #F4 const named (nameOffset:34) (firstTokenOffset:26) (offset:34)
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
               typeNameOffset: 32
               periodOffset: 33
               formalParameters
-                #F5 a @44
+                #F5 a (nameOffset:44) (firstTokenOffset:40) (offset:44)
                   element: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1775,10 +1775,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1796,7 +1796,7 @@ library
                         staticType: int
                     rightParenthesis: ) @15
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1809,17 +1809,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const new
+            #F4 const new (nameOffset:<null>) (firstTokenOffset:20) (offset:26)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 26
               formalParameters
-                #F5 a @32
+                #F5 a (nameOffset:32) (firstTokenOffset:28) (offset:32)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1880,13 +1880,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v @14
+            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -1902,7 +1902,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -1914,22 +1914,22 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-            #F5 x @29
+            #F5 x (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F6 const new
+            #F6 const new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 40
               formalParameters
-                #F7 a @45
+                #F7 a (nameOffset:45) (firstTokenOffset:42) (offset:45)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F8 synthetic v
+            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 synthetic values
+            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 synthetic x
+            #F10 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -2027,10 +2027,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @65
+        #F1 enum E (nameOffset:65) (firstTokenOffset:44) (offset:65)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @69
+            #F2 hasInitializer v (nameOffset:69) (firstTokenOffset:69) (offset:69)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2044,7 +2044,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2057,13 +2057,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2120,10 +2120,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2137,7 +2137,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2149,22 +2149,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 hasInitializer foo @22
+            #F4 hasInitializer foo (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
                   literal: 42 @28
                   staticType: int
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 synthetic foo
+            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     enum E
@@ -2259,10 +2259,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @10
+            #F2 hasInitializer v (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2276,7 +2276,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2288,18 +2288,18 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 synthetic foo
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::foo
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 foo @23
+            #F8 foo (nameOffset:23) (firstTokenOffset:15) (offset:23)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     enum E
@@ -2365,17 +2365,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class I @6
+        #F1 class I (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::I
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
       enums
-        #F3 enum E @16
+        #F3 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v @35
+            #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2389,7 +2389,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2402,13 +2402,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class I
@@ -2477,15 +2477,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C @45
+        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
           element: <testLibrary>::@class::C
       enums
-        #F3 enum E @55
+        #F3 enum E (nameOffset:55) (firstTokenOffset:50) (offset:55)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v @78
+            #F4 hasInitializer v (nameOffset:78) (firstTokenOffset:78) (offset:78)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2499,7 +2499,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2512,18 +2512,18 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
-        #F8 extension type B @26
+        #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 it @32
+            #F9 it (nameOffset:32) (firstTokenOffset:27) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 synthetic it
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     class A
@@ -2604,23 +2604,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class I @6
+        #F1 class I (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::I
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
       enums
-        #F4 enum E @19
+        #F4 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F5 U @21
+            #F5 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: #E1 U
           fields
-            #F6 hasInitializer v @44
+            #F6 hasInitializer v (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2636,7 +2636,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2649,13 +2649,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F8 synthetic const new
+            #F8 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 synthetic v
+            #F9 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 synthetic values
+            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class I
@@ -2728,23 +2728,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class X @6
+        #F1 class X (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::X
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
-        #F3 class Z @17
+        #F3 class Z (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::Z
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::Z::@constructor::new
               typeName: Z
       enums
-        #F5 enum E @27
+        #F5 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F6 hasInitializer v @52
+            #F6 hasInitializer v (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2758,7 +2758,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2771,13 +2771,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F8 synthetic const new
+            #F8 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 synthetic v
+            #F9 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 synthetic values
+            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class X
@@ -2851,13 +2851,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v @14
+            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2873,7 +2873,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -2886,24 +2886,24 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F8 foo @23
+            #F8 foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
               element: <testLibrary>::@enum::E::@method::foo
               typeParameters
-                #F9 U @27
+                #F9 U (nameOffset:27) (firstTokenOffset:27) (offset:27)
                   element: #E1 U
               formalParameters
-                #F10 t @32
+                #F10 t (nameOffset:32) (firstTokenOffset:30) (offset:32)
                   element: <testLibrary>::@enum::E::@method::foo::@formalParameter::t
-                #F11 u @37
+                #F11 u (nameOffset:37) (firstTokenOffset:35) (offset:37)
                   element: <testLibrary>::@enum::E::@method::foo::@formalParameter::u
   enums
     enum E
@@ -2978,10 +2978,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @11
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -2995,7 +2995,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3008,16 +3008,16 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 toString @23
+            #F7 toString (nameOffset:23) (firstTokenOffset:16) (offset:23)
               element: <testLibrary>::@enum::E::@method::toString
   enums
     enum E
@@ -3075,10 +3075,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum <null-name> (offset=0)
+        #F1 enum <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@enum::0
           fields
-            #F2 hasInitializer v @6
+            #F2 hasInitializer v (nameOffset:6) (firstTokenOffset:6) (offset:6)
               element: <testLibrary>::@enum::0::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3092,7 +3092,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: InvalidType
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::0::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3105,13 +3105,13 @@ library
                   rightBracket: ] @0
                   staticType: List<<null>>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::0::@constructor::new
               typeName: null
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@enum::0::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::0::@getter::values
   enums
     enum <null-name>
@@ -3167,10 +3167,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @16
+        #F1 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @29
+            #F2 hasInitializer v (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3184,7 +3184,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3197,16 +3197,16 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
-        #F7 mixin M @6
+        #F7 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
   enums
     enum E
@@ -3273,15 +3273,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C @45
+        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
           element: <testLibrary>::@class::C
       enums
-        #F3 enum E @55
+        #F3 enum E (nameOffset:55) (firstTokenOffset:50) (offset:55)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v @72
+            #F4 hasInitializer v (nameOffset:72) (firstTokenOffset:72) (offset:72)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3295,7 +3295,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3308,18 +3308,18 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
-        #F8 extension type B @26
+        #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F9 it @32
+            #F9 it (nameOffset:32) (firstTokenOffset:27) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 synthetic it
+            #F10 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     class A
@@ -3401,10 +3401,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @44
+        #F1 enum E (nameOffset:44) (firstTokenOffset:39) (offset:44)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @67
+            #F2 hasInitializer v (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3418,7 +3418,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3431,24 +3431,24 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
-        #F7 mixin M1 @6
+        #F7 mixin M1 (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M1
           typeParameters
-            #F8 T @9
+            #F8 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: #E0 T
-        #F9 mixin M2 @21
+        #F9 mixin M2 (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@mixin::M2
           typeParameters
-            #F10 T @24
+            #F10 T (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: #E1 T
   enums
     enum E
@@ -3524,10 +3524,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @10
+            #F2 hasInitializer v (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3541,7 +3541,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3553,22 +3553,22 @@ library
                       staticType: E
                   rightBracket: ] @0
                   staticType: List<E>
-            #F4 synthetic foo
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::foo
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           setters
-            #F8 foo @19
+            #F8 foo (nameOffset:19) (firstTokenOffset:15) (offset:19)
               element: <testLibrary>::@enum::E::@setter::foo
               formalParameters
-                #F9 _ @27
+                #F9 _ (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
   enums
     enum E
@@ -3637,13 +3637,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 hasInitializer v @14
+            #F3 hasInitializer v (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3659,7 +3659,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3672,13 +3672,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -3736,15 +3736,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
-            #F3 U @22
+            #F3 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 U
           fields
-            #F4 hasInitializer v @39
+            #F4 hasInitializer v (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -3760,7 +3760,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<num, num>
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -3773,13 +3773,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E<num, num>>
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -3839,13 +3839,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -3853,11 +3853,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -3901,17 +3901,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
-            #F3 U @20
+            #F3 U (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: #E1 U
-            #F4 V @35
+            #F4 V (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E2 V
           fields
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -3919,11 +3919,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic, num, dynamic>>
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -3973,13 +3973,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           fields
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -3987,11 +3987,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4035,13 +4035,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:7) (offset:10)
               element: #E0 T
           fields
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4049,11 +4049,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4096,13 +4096,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @11
+            #F2 T (nameOffset:11) (firstTokenOffset:7) (offset:11)
               element: #E0 T
           fields
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4110,11 +4110,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4157,13 +4157,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @13
+            #F2 T (nameOffset:13) (firstTokenOffset:7) (offset:13)
               element: #E0 T
           fields
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4171,11 +4171,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4218,17 +4218,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @13
+            #F2 T (nameOffset:13) (firstTokenOffset:7) (offset:13)
               element: #E0 T
-            #F3 U @19
+            #F3 U (nameOffset:19) (firstTokenOffset:16) (offset:19)
               element: #E1 U
-            #F4 V @26
+            #F4 V (nameOffset:26) (firstTokenOffset:22) (offset:26)
               element: #E2 V
           fields
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_0
                 ListLiteral
@@ -4236,11 +4236,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic, dynamic, dynamic>>
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4293,10 +4293,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer a @32
+            #F2 hasInitializer a (nameOffset:32) (firstTokenOffset:11) (offset:32)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -4310,7 +4310,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer b @47
+            #F3 hasInitializer b (nameOffset:47) (firstTokenOffset:37) (offset:47)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -4324,7 +4324,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -4341,15 +4341,15 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic a
+            #F6 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 synthetic b
+            #F7 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@enum::E::@getter::b
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4426,10 +4426,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer a @46
+            #F2 hasInitializer a (nameOffset:46) (firstTokenOffset:11) (offset:46)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -4443,7 +4443,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer b @75
+            #F3 hasInitializer b (nameOffset:75) (firstTokenOffset:51) (offset:75)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -4457,7 +4457,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -4474,25 +4474,25 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic a
+            #F6 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 synthetic b
+            #F7 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@enum::E::@getter::b
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F9 hasInitializer annotation @91
+        #F9 hasInitializer annotation (nameOffset:91) (firstTokenOffset:91) (offset:91)
           element: <testLibrary>::@topLevelVariable::annotation
           initializer: expression_3
             IntegerLiteral
               literal: 0 @104
               staticType: int
       getters
-        #F10 synthetic annotation
+        #F10 synthetic annotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
           element: <testLibrary>::@getter::annotation
   enums
     enum E
@@ -4573,10 +4573,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @8
+            #F2 hasInitializer v (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -4590,7 +4590,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer <null-name> (offset=10)
+            #F3 hasInitializer <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E::@field::0
               initializer: expression_1
                 InstanceCreationExpression
@@ -4604,7 +4604,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -4621,15 +4621,15 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic <null-name>
+            #F7 synthetic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::1
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4693,10 +4693,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v1 @9
+            #F2 hasInitializer v1 (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -4710,7 +4710,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer v2 @13
+            #F3 hasInitializer v2 (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: <testLibrary>::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
@@ -4724,7 +4724,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -4741,15 +4741,15 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v1
+            #F6 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::v1
-            #F7 synthetic v2
+            #F7 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v2
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4813,10 +4813,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E1 @5
+        #F1 enum E1 (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E1
           fields
-            #F2 hasInitializer v1 @10
+            #F2 hasInitializer v1 (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: <testLibrary>::@enum::E1::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
@@ -4830,7 +4830,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E1
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@field::values
               initializer: expression_1
                 ListLiteral
@@ -4843,18 +4843,18 @@ library
                   rightBracket: ] @0
                   staticType: List<E1>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@constructor::new
               typeName: E1
           getters
-            #F5 synthetic v1
+            #F5 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E1::@getter::v1
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@getter::values
-        #F7 enum E2 @20
+        #F7 enum E2 (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E2
           fields
-            #F8 hasInitializer v2 @25
+            #F8 hasInitializer v2 (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::E2::@field::v2
               initializer: expression_2
                 InstanceCreationExpression
@@ -4868,7 +4868,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E2
-            #F9 synthetic values
+            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E2::@field::values
               initializer: expression_3
                 ListLiteral
@@ -4881,13 +4881,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E2>
           constructors
-            #F10 synthetic const new
+            #F10 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E2::@constructor::new
               typeName: E2
           getters
-            #F11 synthetic v2
+            #F11 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E2::@getter::v2
-            #F12 synthetic values
+            #F12 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E2::@getter::values
   enums
     enum E1
@@ -4992,50 +4992,50 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class M @24
+        #F1 class M (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::M
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::M::@constructor::new
               typeName: M
-        #F3 class A @36
+        #F3 class A (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::A
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 foo @52
+            #F5 foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@class::A::@method::foo
-        #F6 class B @70
+        #F6 class B (nameOffset:70) (firstTokenOffset:64) (offset:70)
           element: <testLibrary>::@class::B
           constructors
-            #F7 synthetic new
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F8 foo @92
+            #F8 foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
               element: <testLibrary>::@class::B::@method::foo
-        #F9 class C @110
+        #F9 class C (nameOffset:110) (firstTokenOffset:104) (offset:110)
           element: <testLibrary>::@class::C
           constructors
-            #F10 synthetic new
+            #F10 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:110)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 foo @141
+            #F11 foo (nameOffset:141) (firstTokenOffset:141) (offset:141)
               element: <testLibrary>::@class::C::@method::foo
-        #F12 class D @159
+        #F12 class D (nameOffset:159) (firstTokenOffset:153) (offset:159)
           element: <testLibrary>::@class::D
           constructors
-            #F13 synthetic const new
+            #F13 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:159)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       enums
-        #F14 enum E @5
+        #F14 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F15 hasInitializer a @8
+            #F15 hasInitializer a (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -5049,7 +5049,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F16 hasInitializer b @11
+            #F16 hasInitializer b (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -5063,7 +5063,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F17 hasInitializer c @14
+            #F17 hasInitializer c (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -5077,7 +5077,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F18 synthetic values
+            #F18 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -5098,17 +5098,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F19 synthetic const new
+            #F19 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F20 synthetic a
+            #F20 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::a
-            #F21 synthetic b
+            #F21 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::b
-            #F22 synthetic c
+            #F22 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::c
-            #F23 synthetic values
+            #F23 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class M
@@ -5251,10 +5251,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @19
+        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @26
+            #F2 hasInitializer v (nameOffset:26) (firstTokenOffset:23) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5268,7 +5268,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5281,23 +5281,23 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 hasInitializer a @6
+        #F7 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
       getters
-        #F8 synthetic a
+        #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -5374,27 +5374,27 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 value @26
+            #F2 value (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::A::@field::value
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:35) (offset:41)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 41
               formalParameters
-                #F4 this.value @48
+                #F4 this.value (nameOffset:48) (firstTokenOffset:43) (offset:48)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
           getters
-            #F5 synthetic value
+            #F5 synthetic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@getter::value
       enums
-        #F6 enum E @64
+        #F6 enum E (nameOffset:64) (firstTokenOffset:59) (offset:64)
           element: <testLibrary>::@enum::E
           fields
-            #F7 hasInitializer a @78
+            #F7 hasInitializer a (nameOffset:78) (firstTokenOffset:70) (offset:78)
               element: <testLibrary>::@enum::E::@field::a
               initializer: expression_0
                 InstanceCreationExpression
@@ -5408,7 +5408,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F8 hasInitializer b @83
+            #F8 hasInitializer b (nameOffset:83) (firstTokenOffset:83) (offset:83)
               element: <testLibrary>::@enum::E::@field::b
               initializer: expression_1
                 InstanceCreationExpression
@@ -5422,7 +5422,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F9 hasInitializer c @96
+            #F9 hasInitializer c (nameOffset:96) (firstTokenOffset:88) (offset:96)
               element: <testLibrary>::@enum::E::@field::c
               initializer: expression_2
                 InstanceCreationExpression
@@ -5436,7 +5436,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F10 synthetic values
+            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_3
                 ListLiteral
@@ -5457,17 +5457,17 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F11 synthetic const new
+            #F11 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F12 synthetic a
+            #F12 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@enum::E::@getter::a
-            #F13 synthetic b
+            #F13 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:83)
               element: <testLibrary>::@enum::E::@getter::b
-            #F14 synthetic c
+            #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
               element: <testLibrary>::@enum::E::@getter::c
-            #F15 synthetic values
+            #F15 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class A
@@ -5573,10 +5573,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @16
+            #F2 hasInitializer v (nameOffset:16) (firstTokenOffset:11) (offset:16)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5590,7 +5590,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5603,13 +5603,13 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5667,10 +5667,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @19
+        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @25
+            #F2 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5684,7 +5684,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5697,7 +5697,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const new
+            #F4 const new (nameOffset:<null>) (firstTokenOffset:30) (offset:41)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
@@ -5710,19 +5710,19 @@ library
               typeName: E
               typeNameOffset: 41
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 hasInitializer a @6
+        #F7 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
       getters
-        #F8 synthetic a
+        #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -5803,10 +5803,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @19
+        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @25
+            #F2 hasInitializer v (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5820,7 +5820,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5833,16 +5833,16 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 foo @40
+            #F7 foo (nameOffset:40) (firstTokenOffset:30) (offset:40)
               element: <testLibrary>::@enum::E::@method::foo
               metadata
                 Annotation
@@ -5853,14 +5853,14 @@ library
                     staticType: null
                   element2: <testLibrary>::@getter::a
       topLevelVariables
-        #F8 hasInitializer a @6
+        #F8 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
       getters
-        #F9 synthetic a
+        #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -5949,10 +5949,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @26
+        #F1 enum E (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @33
+            #F2 T (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: #E0 T
               metadata
                 Annotation
@@ -5963,7 +5963,7 @@ library
                     staticType: null
                   element2: <testLibrary>::@getter::foo
           fields
-            #F3 hasInitializer v @40
+            #F3 hasInitializer v (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5979,7 +5979,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5991,25 +5991,25 @@ library
                       staticType: E<dynamic>
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
-            #F5 hasInitializer foo @58
+            #F5 hasInitializer foo (nameOffset:58) (firstTokenOffset:58) (offset:58)
               element: <testLibrary>::@enum::E::@field::foo
               initializer: expression_2
                 IntegerLiteral
                   literal: 1 @64
                   staticType: int
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 synthetic foo
+            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@getter::foo
           methods
-            #F10 bar @81
+            #F10 bar (nameOffset:81) (firstTokenOffset:69) (offset:81)
               element: <testLibrary>::@enum::E::@method::bar
               metadata
                 Annotation
@@ -6020,14 +6020,14 @@ library
                     staticType: null
                   element2: <testLibrary>::@enum::E::@getter::foo
       topLevelVariables
-        #F11 hasInitializer foo @6
+        #F11 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
           initializer: expression_3
             IntegerLiteral
               literal: 0 @12
               staticType: int
       getters
-        #F12 synthetic foo
+        #F12 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   enums
     enum E
@@ -6135,10 +6135,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @19
+        #F1 enum E (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@enum::E
           typeParameters
-            #F2 T @24
+            #F2 T (nameOffset:24) (firstTokenOffset:21) (offset:24)
               element: #E0 T
               metadata
                 Annotation
@@ -6149,7 +6149,7 @@ library
                     staticType: null
                   element2: <testLibrary>::@getter::a
           fields
-            #F3 hasInitializer v @31
+            #F3 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6165,7 +6165,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E<dynamic>
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6178,23 +6178,23 @@ library
                   rightBracket: ] @0
                   staticType: List<E<dynamic>>
           constructors
-            #F5 synthetic const new
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F8 hasInitializer a @6
+        #F8 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
       getters
-        #F9 synthetic a
+        #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E
@@ -6271,10 +6271,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @22
+        #F1 enum E (nameOffset:22) (firstTokenOffset:14) (offset:22)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @26
+            #F2 hasInitializer v (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6288,7 +6288,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6301,23 +6301,23 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
-        #F7 hasInitializer a @6
+        #F7 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_2
             IntegerLiteral
               literal: 42 @10
               staticType: int
       getters
-        #F8 synthetic a
+        #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     enum E

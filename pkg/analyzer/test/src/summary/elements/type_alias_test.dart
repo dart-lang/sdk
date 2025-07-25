@@ -53,12 +53,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 Raw @8
+        #F1 Raw (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::Raw
-        #F2 HasDocComment @54
+        #F2 HasDocComment (nameOffset:54) (firstTokenOffset:16) (offset:54)
           element: <testLibrary>::@typeAlias::HasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F3 HasAnnotation @90
+        #F3 HasAnnotation (nameOffset:90) (firstTokenOffset:72) (offset:90)
           element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
             Annotation
@@ -71,7 +71,7 @@ library
                 leftParenthesis: ( @79
                 rightParenthesis: ) @80
               element2: dart:core::@class::Object::@constructor::new
-        #F4 AnnotationThenComment @156
+        #F4 AnnotationThenComment (nameOffset:156) (firstTokenOffset:108) (offset:156)
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -85,7 +85,7 @@ library
                 leftParenthesis: ( @115
                 rightParenthesis: ) @116
               element2: dart:core::@class::Object::@constructor::new
-        #F5 CommentThenAnnotation @230
+        #F5 CommentThenAnnotation (nameOffset:230) (firstTokenOffset:182) (offset:230)
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -99,7 +99,7 @@ library
                 leftParenthesis: ( @219
                 rightParenthesis: ) @220
               element2: dart:core::@class::Object::@constructor::new
-        #F6 CommentAroundAnnotation @304
+        #F6 CommentAroundAnnotation (nameOffset:304) (firstTokenOffset:271) (offset:304)
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -223,12 +223,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 Raw @8
+        #F1 Raw (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::Raw
-        #F2 HasDocComment @65
+        #F2 HasDocComment (nameOffset:65) (firstTokenOffset:27) (offset:65)
           element: <testLibrary>::@typeAlias::HasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F3 HasAnnotation @112
+        #F3 HasAnnotation (nameOffset:112) (firstTokenOffset:94) (offset:112)
           element: <testLibrary>::@typeAlias::HasAnnotation
           metadata
             Annotation
@@ -241,7 +241,7 @@ library
                 leftParenthesis: ( @101
                 rightParenthesis: ) @102
               element2: dart:core::@class::Object::@constructor::new
-        #F4 AnnotationThenComment @189
+        #F4 AnnotationThenComment (nameOffset:189) (firstTokenOffset:141) (offset:189)
           element: <testLibrary>::@typeAlias::AnnotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -255,7 +255,7 @@ library
                 leftParenthesis: ( @148
                 rightParenthesis: ) @149
               element2: dart:core::@class::Object::@constructor::new
-        #F5 CommentThenAnnotation @274
+        #F5 CommentThenAnnotation (nameOffset:274) (firstTokenOffset:226) (offset:274)
           element: <testLibrary>::@typeAlias::CommentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -269,7 +269,7 @@ library
                 leftParenthesis: ( @263
                 rightParenthesis: ) @264
               element2: dart:core::@class::Object::@constructor::new
-        #F6 CommentAroundAnnotation @359
+        #F6 CommentAroundAnnotation (nameOffset:359) (firstTokenOffset:326) (offset:359)
           element: <testLibrary>::@typeAlias::CommentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -370,10 +370,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     F
@@ -398,16 +398,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
       functions
-        #F3 f @23
+        #F3 f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
-            #F4 a @32
+            #F4 a (nameOffset:32) (firstTokenOffset:25) (offset:32)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     F
@@ -443,10 +443,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     F
@@ -471,15 +471,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @13
+        #F1 F1 (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @16
+            #F2 T (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: #E0 T
-        #F3 F2 @39
+        #F3 F2 (nameOffset:39) (firstTokenOffset:25) (offset:39)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @42
+            #F4 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E1 T
   typeAliases
     F1
@@ -511,15 +511,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F2 @14
+        #F1 F2 (nameOffset:14) (firstTokenOffset:0) (offset:14)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F2 T @17
+            #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
-        #F3 F1 @36
+        #F3 F1 (nameOffset:36) (firstTokenOffset:23) (offset:36)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F4 T @39
+            #F4 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E1 T
   typeAliases
     F2
@@ -550,10 +550,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   typeAliases
     F
@@ -577,10 +577,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @16
+        #F1 F (nameOffset:16) (firstTokenOffset:0) (offset:16)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @18
+            #F2 T (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: #E0 T
   typeAliases
     F
@@ -605,15 +605,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @10
+        #F1 F1 (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @13
+            #F2 T (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: #E0 T
-        #F3 F2 @33
+        #F3 F2 (nameOffset:33) (firstTokenOffset:19) (offset:33)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @36
+            #F4 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E1 T
   typeAliases
     F1
@@ -645,15 +645,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @13
+        #F1 F1 (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @16
+            #F2 T (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: #E0 T
-        #F3 F2 @38
+        #F3 F2 (nameOffset:38) (firstTokenOffset:25) (offset:38)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @41
+            #F4 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E1 T
   typeAliases
     F1
@@ -684,10 +684,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   typeAliases
     F
@@ -712,15 +712,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @10
+        #F1 F1 (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @13
+            #F2 T (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: #E0 T
-        #F3 F2 @33
+        #F3 F2 (nameOffset:33) (firstTokenOffset:19) (offset:33)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @36
+            #F4 T (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: #E1 T
   typeAliases
     F1
@@ -751,10 +751,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     F
@@ -778,10 +778,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -805,10 +805,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 X @10
+            #F2 X (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 X
   typeAliases
     notSimplyBounded F
@@ -834,9 +834,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
-        #F2 G @34
+        #F2 G (nameOffset:34) (firstTokenOffset:26) (offset:34)
           element: <testLibrary>::@typeAlias::G
   typeAliases
     notSimplyBounded F
@@ -861,7 +861,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
@@ -882,10 +882,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     notSimplyBounded F
@@ -910,10 +910,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -937,7 +937,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -958,10 +958,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     notSimplyBounded F
@@ -986,7 +986,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
@@ -1010,13 +1010,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @42
+        #F2 f (nameOffset:42) (firstTokenOffset:37) (offset:42)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @46
+            #F3 a (nameOffset:46) (firstTokenOffset:44) (offset:46)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -1047,7 +1047,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -1068,10 +1068,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -1096,15 +1096,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @8
+        #F1 F1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @11
+            #F2 T (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E0 T
-        #F3 F2 @42
+        #F3 F2 (nameOffset:42) (firstTokenOffset:34) (offset:42)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @45
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: #E1 T
   typeAliases
     F1
@@ -1135,10 +1135,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -1162,10 +1162,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -1190,15 +1190,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @8
+        #F1 F1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @11
+            #F2 T (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E0 T
-        #F3 F2 @38
+        #F3 F2 (nameOffset:38) (firstTokenOffset:30) (offset:38)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @41
+            #F4 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E1 T
   typeAliases
     F1
@@ -1230,15 +1230,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @8
+        #F1 F1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @11
+            #F2 T (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E0 T
-        #F3 F2 @42
+        #F3 F2 (nameOffset:42) (firstTokenOffset:34) (offset:42)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @45
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: #E1 T
   typeAliases
     F1
@@ -1270,17 +1270,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 F @19
+        #F3 F (nameOffset:19) (firstTokenOffset:11) (offset:19)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F4 T @21
+            #F4 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: #E0 T
   classes
     class A
@@ -1313,12 +1313,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
-        #F2 G @37
+        #F2 G (nameOffset:37) (firstTokenOffset:29) (offset:37)
           element: <testLibrary>::@typeAlias::G
           typeParameters
-            #F3 T @39
+            #F3 T (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: #E0 T
   typeAliases
     F
@@ -1346,10 +1346,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -1374,15 +1374,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @8
+        #F1 F1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F1
           typeParameters
-            #F2 T @11
+            #F2 T (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E0 T
-        #F3 F2 @38
+        #F3 F2 (nameOffset:38) (firstTokenOffset:30) (offset:38)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F4 T @41
+            #F4 T (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E1 T
   typeAliases
     F1
@@ -1413,10 +1413,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -1440,10 +1440,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     A
@@ -1468,15 +1468,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
-        #F3 B @41
+        #F3 B (nameOffset:41) (firstTokenOffset:33) (offset:41)
           element: <testLibrary>::@typeAlias::B
           typeParameters
-            #F4 T @43
+            #F4 T (nameOffset:43) (firstTokenOffset:43) (offset:43)
               element: #E1 T
   typeAliases
     A
@@ -1507,10 +1507,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     A
@@ -1535,15 +1535,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
-        #F3 B @36
+        #F3 B (nameOffset:36) (firstTokenOffset:28) (offset:36)
           element: <testLibrary>::@typeAlias::B
           typeParameters
-            #F4 T @38
+            #F4 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 T
   typeAliases
     A
@@ -1574,10 +1574,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     A
@@ -1602,15 +1602,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
-        #F3 B @48
+        #F3 B (nameOffset:48) (firstTokenOffset:40) (offset:48)
           element: <testLibrary>::@typeAlias::B
           typeParameters
-            #F4 T @50
+            #F4 T (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: #E1 T
   typeAliases
     A
@@ -1641,10 +1641,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     A
@@ -1668,10 +1668,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     A
@@ -1695,10 +1695,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     A
@@ -1722,10 +1722,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -1752,29 +1752,29 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @43
+        #F1 class A (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::A
           fields
-            #F2 f @58
+            #F2 f (nameOffset:58) (firstTokenOffset:58) (offset:58)
               element: <testLibrary>::@class::A::@field::f
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 synthetic f
+            #F4 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::A::@getter::f
           setters
-            #F5 synthetic f
+            #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@class::A::@setter::f
               formalParameters
-                #F6 value
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
                   element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
       typeAliases
-        #F7 Foo @8
+        #F7 Foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::Foo
           typeParameters
-            #F8 S @12
+            #F8 S (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 S
   classes
     class A
@@ -1840,17 +1840,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @38
+        #F1 class C (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @40
+            #F2 T (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F @8
+        #F4 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
@@ -1886,17 +1886,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @36
+        #F1 class C (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @38
+            #F2 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F @8
+        #F4 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
@@ -1932,17 +1932,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @32
+        #F1 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @34
+            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F @8
+        #F4 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
@@ -1975,12 +1975,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
-            #F3 U @23
+            #F3 U (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E1 U
   typeAliases
     notSimplyBounded F
@@ -2010,7 +2010,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @68
+        #F1 F (nameOffset:68) (firstTokenOffset:44) (offset:68)
           element: <testLibrary>::@typeAlias::F
           documentationComment: /**\n * Docs\n */
   typeAliases
@@ -2036,17 +2036,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @27
+        #F1 class C (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @29
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F @13
+        #F4 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
@@ -2082,17 +2082,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @21
+        #F1 class C (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @23
+            #F2 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F @10
+        #F4 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
   classes
     notSimplyBounded class C
@@ -2125,10 +2125,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     notSimplyBounded F
@@ -2153,7 +2153,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2172,10 +2172,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     F
@@ -2199,7 +2199,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2218,7 +2218,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2237,12 +2237,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 A @10
+            #F2 A (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 A
-            #F3 B @13
+            #F3 B (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: #E1 B
   typeAliases
     F
@@ -2266,7 +2266,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2285,7 +2285,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2304,10 +2304,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -2329,7 +2329,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2348,7 +2348,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2367,7 +2367,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @12
+        #F1 F (nameOffset:12) (firstTokenOffset:0) (offset:12)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2386,10 +2386,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   typeAliases
     F
@@ -2411,7 +2411,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2430,7 +2430,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -2449,12 +2449,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
-            #F3 U @15
+            #F3 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E1 U
   typeAliases
     F
@@ -2480,19 +2480,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class D @55
+        #F1 class D (nameOffset:55) (firstTokenOffset:49) (offset:55)
           element: <testLibrary>::@class::D
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        #F3 F @10
+        #F3 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F4 T @12
+            #F4 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
-            #F5 U @30
+            #F5 U (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E1 U
   classes
     class D
@@ -2527,10 +2527,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     notSimplyBounded F
@@ -2554,10 +2554,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     notSimplyBounded F
@@ -2580,12 +2580,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
-            #F3 U @31
+            #F3 U (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E1 U
   typeAliases
     notSimplyBounded F
@@ -2610,12 +2610,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
-            #F3 U @25
+            #F3 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E1 U
   typeAliases
     notSimplyBounded F
@@ -2662,23 +2662,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A1 @8
+        #F1 A1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A1
-        #F2 A2 @38
+        #F2 A2 (nameOffset:38) (firstTokenOffset:30) (offset:38)
           element: <testLibrary>::@typeAlias::A2
           typeParameters
-            #F3 R @41
+            #F3 R (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: #E0 R
       functions
-        #F4 f1 @65
+        #F4 f1 (nameOffset:65) (firstTokenOffset:60) (offset:65)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F5 a @71
+            #F5 a (nameOffset:71) (firstTokenOffset:68) (offset:71)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F6 f2 @82
+        #F6 f2 (nameOffset:82) (firstTokenOffset:77) (offset:82)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F7 a @93
+            #F7 a (nameOffset:93) (firstTokenOffset:85) (offset:93)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A1
@@ -2731,25 +2731,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A1 @8
+        #F1 A1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A1
-        #F2 A2 @32
+        #F2 A2 (nameOffset:32) (firstTokenOffset:24) (offset:32)
           element: <testLibrary>::@typeAlias::A2
           typeParameters
-            #F3 T @35
+            #F3 T (nameOffset:35) (firstTokenOffset:35) (offset:35)
               element: #E0 T
-            #F4 U @38
+            #F4 U (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E1 U
       functions
-        #F5 f1 @59
+        #F5 f1 (nameOffset:59) (firstTokenOffset:54) (offset:59)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F6 a @65
+            #F6 a (nameOffset:65) (firstTokenOffset:62) (offset:65)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F7 f2 @76
+        #F7 f2 (nameOffset:76) (firstTokenOffset:71) (offset:76)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F8 a @95
+            #F8 a (nameOffset:95) (firstTokenOffset:79) (offset:95)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A1
@@ -2823,18 +2823,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
-            #F3 U @13
+            #F3 U (nameOffset:13) (firstTokenOffset:13) (offset:13)
               element: #E1 U
       functions
-        #F4 f @31
+        #F4 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: <testLibrary>::@function::f
           formalParameters
-            #F5 a @48
+            #F5 a (nameOffset:48) (firstTokenOffset:33) (offset:48)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -2875,19 +2875,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 f @23
+        #F3 f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           typeParameters
-            #F4 U @25
+            #F4 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E1 U
           formalParameters
-            #F5 a @33
+            #F5 a (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -2944,28 +2944,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @32
+        #F1 class A (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @34
+            #F2 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: #E0 T
-            #F3 U @37
+            #F3 U (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: #E1 U
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F5 class B @49
+        #F5 class B (nameOffset:49) (firstTokenOffset:43) (offset:49)
           element: <testLibrary>::@class::B
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        #F7 X @8
+        #F7 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            #F8 T @10
+            #F8 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E2 T
   classes
     class A
@@ -3018,38 +3018,38 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @28
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @30
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @42
+        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F6 class C @53
+        #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@class::C
           constructors
-            #F7 synthetic new
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F8 class D @64
+        #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
           element: <testLibrary>::@class::D
           constructors
-            #F9 synthetic new
+            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        #F10 X @8
+        #F10 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            #F11 T @10
+            #F11 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
     class A
@@ -3112,38 +3112,38 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @28
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @30
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @42
+        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F6 class C @53
+        #F6 class C (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@class::C
           constructors
-            #F7 synthetic new
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F8 class D @64
+        #F8 class D (nameOffset:64) (firstTokenOffset:58) (offset:64)
           element: <testLibrary>::@class::D
           constructors
-            #F9 synthetic new
+            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        #F10 X @8
+        #F10 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            #F11 T @10
+            #F11 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
     class A
@@ -3207,14 +3207,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @25
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 X @8
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3244,14 +3244,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @24
+        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 X @8
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3283,32 +3283,32 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @24
+        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B @35
+        #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C @46
+        #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
           element: <testLibrary>::@class::C
           typeParameters
-            #F6 U @48
+            #F6 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
               element: #E0 U
           constructors
-            #F7 synthetic new
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F8 X @8
+        #F8 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            #F9 T @10
+            #F9 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
     class A
@@ -3363,26 +3363,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @24
+        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B @35
+        #F3 class B (nameOffset:35) (firstTokenOffset:29) (offset:35)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C @46
+        #F5 class C (nameOffset:46) (firstTokenOffset:40) (offset:46)
           element: <testLibrary>::@class::C
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F7 X @8
+        #F7 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3430,23 +3430,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @26
+        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @28
+            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @40
+        #F4 class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        #F6 X @8
+        #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3493,28 +3493,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @27
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @29
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @65
+        #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M1 @41
+        #F6 mixin M1 (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@mixin::M1
-        #F7 mixin M2 @53
+        #F7 mixin M2 (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@mixin::M2
       typeAliases
-        #F8 X @8
+        #F8 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3572,28 +3572,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @27
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @29
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @65
+        #F4 class B (nameOffset:65) (firstTokenOffset:59) (offset:65)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M1 @41
+        #F6 mixin M1 (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@mixin::M1
-        #F7 mixin M2 @53
+        #F7 mixin M2 (nameOffset:53) (firstTokenOffset:47) (offset:53)
           element: <testLibrary>::@mixin::M2
       typeAliases
-        #F8 X @8
+        #F8 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3650,14 +3650,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @25
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 X @8
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3688,23 +3688,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @26
+        #F1 class A (nameOffset:26) (firstTokenOffset:20) (offset:26)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @28
+            #F2 T (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @40
+        #F4 class B (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        #F6 X @8
+        #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3750,26 +3750,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @24
+        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @26
+            #F2 T (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @38
+        #F4 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       typeAliases
-        #F6 X @8
+        #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
           typeParameters
-            #F7 T @10
+            #F7 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 T
   classes
     class A
@@ -3819,14 +3819,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @24
+        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 X @8
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3857,23 +3857,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @27
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @29
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class D @41
+        #F4 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::D
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        #F6 X @8
+        #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3914,23 +3914,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @27
+        #F1 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @29
+            #F2 T (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class D @41
+        #F4 class D (nameOffset:41) (firstTokenOffset:35) (offset:41)
           element: <testLibrary>::@class::D
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        #F6 X @8
+        #F6 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -3975,14 +3975,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @25
+        #F1 class A (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 X @8
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -4012,14 +4012,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @24
+        #F1 class A (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       typeAliases
-        #F3 X @8
+        #F3 X (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::X
   classes
     class A
@@ -4048,7 +4048,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 <null-name> (offset=0)
+        #F1 <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@typeAlias::0
   typeAliases
     <null-name>
@@ -4070,13 +4070,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @26
+        #F2 f (nameOffset:26) (firstTokenOffset:21) (offset:26)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @30
+            #F3 a (nameOffset:30) (firstTokenOffset:28) (offset:30)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4109,13 +4109,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @24
+        #F1 A (nameOffset:24) (firstTokenOffset:16) (offset:24)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @38
+        #F2 f (nameOffset:38) (firstTokenOffset:33) (offset:38)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @42
+            #F3 a (nameOffset:42) (firstTokenOffset:40) (offset:42)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4147,13 +4147,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @22
+        #F2 f (nameOffset:22) (firstTokenOffset:17) (offset:22)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @26
+            #F3 a (nameOffset:26) (firstTokenOffset:24) (offset:26)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4185,13 +4185,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @23
+        #F2 f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @27
+            #F3 a (nameOffset:27) (firstTokenOffset:25) (offset:27)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4223,16 +4223,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 f @33
+        #F3 f (nameOffset:33) (firstTokenOffset:28) (offset:33)
           element: <testLibrary>::@function::f
           formalParameters
-            #F4 a @45
+            #F4 a (nameOffset:45) (firstTokenOffset:35) (offset:45)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4269,13 +4269,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @24
+        #F2 f (nameOffset:24) (firstTokenOffset:19) (offset:24)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @28
+            #F3 a (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4306,13 +4306,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @25
+        #F2 f (nameOffset:25) (firstTokenOffset:20) (offset:25)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @29
+            #F3 a (nameOffset:29) (firstTokenOffset:27) (offset:29)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4344,21 +4344,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 f1 @23
+        #F3 f1 (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F4 a @28
+            #F4 a (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 f2 @39
+        #F5 f2 (nameOffset:39) (firstTokenOffset:34) (offset:39)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F6 a @49
+            #F6 a (nameOffset:49) (firstTokenOffset:42) (offset:49)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A
@@ -4404,21 +4404,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
       functions
-        #F3 f1 @24
+        #F3 f1 (nameOffset:24) (firstTokenOffset:19) (offset:24)
           element: <testLibrary>::@function::f1
           formalParameters
-            #F4 a @29
+            #F4 a (nameOffset:29) (firstTokenOffset:27) (offset:29)
               element: <testLibrary>::@function::f1::@formalParameter::a
-        #F5 f2 @40
+        #F5 f2 (nameOffset:40) (firstTokenOffset:35) (offset:40)
           element: <testLibrary>::@function::f2
           formalParameters
-            #F6 a @50
+            #F6 a (nameOffset:50) (firstTokenOffset:43) (offset:50)
               element: <testLibrary>::@function::f2::@formalParameter::a
   typeAliases
     A
@@ -4463,13 +4463,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 A @8
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::A
       functions
-        #F2 f @23
+        #F2 f (nameOffset:23) (firstTokenOffset:18) (offset:23)
           element: <testLibrary>::@function::f
           formalParameters
-            #F3 a @27
+            #F3 a (nameOffset:27) (firstTokenOffset:25) (offset:27)
               element: <testLibrary>::@function::f::@formalParameter::a
   typeAliases
     A
@@ -4500,7 +4500,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     notSimplyBounded F
@@ -4519,9 +4519,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
-        #F2 g @7
+        #F2 g (nameOffset:7) (firstTokenOffset:7) (offset:7)
           element: <testLibrary>::@function::g
   functions
     f
