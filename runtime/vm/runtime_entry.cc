@@ -1193,6 +1193,33 @@ DEFINE_RUNTIME_ENTRY(ResolveExternalCall, 2) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
+// Check that argument types are valid for the given function.
+// Arg0: function
+// Arg1: arguments descriptor
+// Arg2: arguments
+// Return value: whether the arguments are valid
+DEFINE_RUNTIME_ENTRY(CheckFunctionArgumentTypes, 3) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& args = Array::CheckedHandle(zone, arguments.ArgAt(2));
+
+  const ArgumentsDescriptor args_desc(descriptor);
+  if (function.AreValidArguments(args_desc, nullptr)) {
+    const auto& result =
+        Object::Handle(zone, function.DoArgumentTypesMatch(args, args_desc));
+    if (result.IsError()) {
+      Exceptions::PropagateError(Error::Cast(result));
+    }
+    arguments.SetReturn(Bool::True());
+  } else {
+    arguments.SetReturn(Bool::False());
+  }
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
                            const Instance& instance,
