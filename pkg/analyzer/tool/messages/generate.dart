@@ -19,7 +19,6 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:collection/collection.dart';
@@ -382,52 +381,6 @@ class _SyntacticErrorGenerator {
       }
       if (analyzerToFasta.length > 3) {
         print('  ${analyzerToFasta.length} total');
-      }
-    }
-
-    // List error codes in the parser that have not been translated.
-    var untranslatedFastaErrorCodes = <String>{};
-    Token token = scanString(parserSource).tokens;
-    while (!token.isEof) {
-      if (token.isIdentifier) {
-        String? fastaErrorCode;
-        String lexeme = token.lexeme;
-        if (lexeme.length > 7) {
-          if (lexeme.startsWith('message')) {
-            fastaErrorCode = lexeme.substring(7);
-          } else if (lexeme.length > 8) {
-            if (lexeme.startsWith('template')) {
-              fastaErrorCode = lexeme.substring(8);
-            }
-          }
-        }
-        if (fastaErrorCode != null &&
-            cfeToAnalyzerErrorCodeTables.frontEndCodeToInfo[fastaErrorCode] ==
-                null) {
-          untranslatedFastaErrorCodes.add(fastaErrorCode);
-        }
-      }
-      token = token.next!;
-    }
-    if (untranslatedFastaErrorCodes.isNotEmpty) {
-      print('');
-      print('The following error codes in the parser are not auto generated:');
-      var sorted = untranslatedFastaErrorCodes.toList()..sort();
-      for (String fastaErrorCode in sorted) {
-        String analyzerCode = '';
-        String problemMessage = '';
-        var entry = frontEndMessages[fastaErrorCode];
-        if (entry != null) {
-          // TODO(paulberry): handle multiple analyzer codes
-          if (entry.index == null && entry.analyzerCode.length == 1) {
-            analyzerCode = entry.analyzerCode.single;
-            problemMessage = entry.problemMessage;
-          }
-        }
-        print(
-          '  ${fastaErrorCode.padRight(30)} --> $analyzerCode'
-          '\n      $problemMessage',
-        );
       }
     }
   }

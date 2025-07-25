@@ -6,13 +6,13 @@
 // date.
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
-import 'package:analyzer_utilities/tools.dart';
+import 'package:analyzer_utilities/generated_content_check.dart';
 import 'package:path/path.dart';
 
 import 'generate.dart';
 
 Future<void> main() async {
-  await GeneratedContent.checkAll(
+  await allTargets.check(
     pkg_root.packageRoot,
     join(
       pkg_root.packageRoot,
@@ -21,6 +21,5 @@ Future<void> main() async {
       'api',
       'generate.dart',
     ),
-    allTargets,
   );
 }
