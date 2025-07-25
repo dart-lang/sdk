@@ -168,37 +168,7 @@ class TypesBuilder {
     } else if (node is FieldFormalParameterImpl) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclarationImpl) {
-      var returnType = node.returnType?.type;
-      if (returnType == null) {
-        if (node.isSetter) {
-          returnType = _voidType;
-        } else {
-          returnType = _dynamicType;
-        }
-      }
-      var fragment = node.declaredFragment!;
-      var element = fragment.element;
-      element.returnType = returnType;
-
-      switch (element) {
-        case GetterElementImpl():
-          element.returnType = returnType;
-          (element.variable as TopLevelVariableElementImpl).type = returnType;
-        case SetterElementImpl():
-          element.returnType = returnType;
-          var valueElement = element.valueFormalParameter;
-          var valueNode = node.functionExpression.parameters!.parameters.single;
-          var valueNodeElement = valueNode.declaredFragment!.element;
-          var valueType = valueNodeElement.type;
-          valueElement.type = valueType;
-
-          var variableElement = element.variable as TopLevelVariableElementImpl;
-          if (variableElement.isSynthetic) {
-            variableElement.type = valueType;
-          }
-        case TopLevelFunctionElementImpl():
-          element.returnType = returnType;
-      }
+      _functionDeclaration(node);
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is FunctionTypedFormalParameterImpl) {
@@ -208,55 +178,17 @@ class TypesBuilder {
     } else if (node is GenericTypeAliasImpl) {
       _genericTypeAlias(node);
     } else if (node is MethodDeclarationImpl) {
-      var returnType = node.returnType?.type;
-      if (returnType == null) {
-        if (node.isSetter) {
-          returnType = _voidType;
-        } else if (node.isOperator && node.name.lexeme == '[]=') {
-          returnType = _voidType;
-        } else {
-          returnType = _dynamicType;
-        }
-      }
-      var fragment = node.declaredFragment!;
-      var element = fragment.element;
-      switch (element) {
-        case GetterElementImpl():
-          element.returnType = returnType;
-          (element.variable as FieldElementImpl).type = returnType;
-        case SetterElementImpl():
-          element.returnType = returnType;
-          var valueElement = element.valueFormalParameter;
-          var valueNode = node.parameters!.parameters.single;
-          var valueNodeElement = valueNode.declaredFragment!.element;
-          var valueType = valueNodeElement.type;
-          valueElement.type = valueType;
-
-          var variableElement = element.variable as FieldElementImpl;
-          if (variableElement.isSynthetic && variableElement.getter == null) {
-            variableElement.type = valueType;
-          }
-        case MethodElementImpl():
-          element.returnType = returnType;
-      }
+      _methodDeclaration(node);
     } else if (node is MixinDeclarationImpl) {
       _mixinDeclaration(node);
     } else if (node is SimpleFormalParameterImpl) {
-      var fragment = node.declaredFragment!;
-      fragment.element.type = node.type?.type ?? _dynamicType;
+      _simpleFormalParameter(node);
     } else if (node is SuperFormalParameterImpl) {
       _superFormalParameter(node);
     } else if (node is TypeParameterImpl) {
       _typeParameter(node);
     } else if (node is VariableDeclarationListImpl) {
-      var type = node.type?.type;
-      if (type != null) {
-        for (var variable in node.variables) {
-          var variableFragment = variable.declaredFragment!;
-          var variableElement = variableFragment.element;
-          variableElement.type = type;
-        }
-      }
+      _variableDeclarationList(node);
     } else {
       throw UnimplementedError('${node.runtimeType}');
     }
@@ -322,6 +254,22 @@ class TypesBuilder {
     }).toFixedList();
   }
 
+  void _functionDeclaration(FunctionDeclarationImpl node) {
+    var returnType = node.returnType?.type;
+    if (returnType == null) {
+      if (node.isSetter) {
+        returnType = _voidType;
+      } else {
+        returnType = _dynamicType;
+      }
+    }
+
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    element.returnType = returnType;
+    _setSyntheticVariableType(element);
+  }
+
   void _functionTypeAlias(FunctionTypeAliasImpl node) {
     var fragment = node.declaredFragment!;
     var function = fragment.aliasedElement as GenericFunctionTypeFragmentImpl;
@@ -360,6 +308,24 @@ class TypesBuilder {
     }
   }
 
+  void _methodDeclaration(MethodDeclarationImpl node) {
+    var returnType = node.returnType?.type;
+    if (returnType == null) {
+      if (node.isSetter) {
+        returnType = _voidType;
+      } else if (node.isOperator && node.name.lexeme == '[]=') {
+        returnType = _voidType;
+      } else {
+        returnType = _dynamicType;
+      }
+    }
+
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+    element.returnType = returnType;
+    _setSyntheticVariableType(element);
+  }
+
   void _mixinDeclaration(MixinDeclarationImpl node) {
     var fragment = node.declaredFragment!;
 
@@ -381,6 +347,24 @@ class TypesBuilder {
     } else {
       return NullabilitySuffix.none;
     }
+  }
+
+  void _setSyntheticVariableType(ExecutableElementImpl element) {
+    switch (element) {
+      case GetterElementImpl():
+        element.variable.type = element.returnType;
+      case SetterElementImpl():
+        var variable = element.variable;
+        if (variable.isSynthetic && variable.getter == null) {
+          var valueType = element.valueFormalParameter.type;
+          variable.type = valueType;
+        }
+    }
+  }
+
+  void _simpleFormalParameter(SimpleFormalParameterImpl node) {
+    var fragment = node.declaredFragment!;
+    fragment.element.type = node.type?.type ?? _dynamicType;
   }
 
   void _superFormalParameter(SuperFormalParameterImpl node) {
@@ -426,6 +410,17 @@ class TypesBuilder {
     // if (fragment is MixinFragmentImpl && element is MixinElementImpl2) {
     //   element.superclassConstraints.addAll(fragment.superclassConstraints);
     // }
+  }
+
+  void _variableDeclarationList(VariableDeclarationListImpl node) {
+    var type = node.type?.type;
+    if (type != null) {
+      for (var variable in node.variables) {
+        var variableFragment = variable.declaredFragment!;
+        var variableElement = variableFragment.element;
+        variableElement.type = type;
+      }
+    }
   }
 
   /// The [FunctionType] to use when a function type is expected for a type
