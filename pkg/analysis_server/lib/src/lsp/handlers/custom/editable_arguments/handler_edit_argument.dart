@@ -164,6 +164,29 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     });
   }
 
+  /// Computes the appropriate enum value for the String [requestValue].
+  ///
+  /// This method tries to use dot-shorthand syntax for the enum value when the
+  /// [currentArgument] is a [DotShorthandPropertyAccess], a [SimpleIdentifier],
+  /// or `null`.
+  String _computeEnumValue({
+    required String? requestValue,
+    required FieldElement enumConstant,
+    required Expression? currentArgument,
+  }) {
+    var preferDotShorthand =
+        currentArgument is DotShorthandPropertyAccess ||
+        currentArgument is SimpleIdentifier ||
+        currentArgument == null;
+
+    var enumValue =
+        preferDotShorthand
+            ? getDotShorthandEnumConstantName(enumConstant) ?? requestValue
+            : requestValue;
+
+    return enumValue.toString();
+  }
+
   /// Computes the string of Dart code that should be used as the new value
   /// for this argument.
   ///
@@ -188,7 +211,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       } else {
         return error(
           ServerErrorCodes.EditArgumentInvalidValue,
-          "The value for the parameter '${edit.name}' cannot be null",
+          "The value for the parameter '${edit.name}' can't be null",
         );
       }
     }
@@ -211,14 +234,20 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       );
     } else if (parameter.type case InterfaceType(
       :EnumElement element,
-    ) when value is String?) {
-      var allowedValues = getQualifiedEnumConstantNames(element);
-      if (allowedValues.contains(value)) {
-        return success(value.toString());
+    ) when value is String) {
+      var enumConstant = getEnumConstantMatching(element, matching: value);
+      if (enumConstant != null) {
+        return success(
+          _computeEnumValue(
+            requestValue: value,
+            enumConstant: enumConstant,
+            currentArgument: argument,
+          ),
+        );
       } else {
         return error(
           ServerErrorCodes.EditArgumentInvalidValue,
-          "The value for the parameter '${edit.name}' should be one of ${allowedValues.map((v) => "'$v'").join(', ')} but was '$value'",
+          "The value for the parameter '${edit.name}' should be one of ${getQualifiedEnumConstantNames(element).map((v) => "'$v'").join(', ')} but was '$value'",
         );
       }
     } else {

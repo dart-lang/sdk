@@ -3094,8 +3094,6 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
 class FormalParameterElementImpl extends PromotableElementImpl
     with FormalParameterElementMixin {
-  @override
-  Reference? reference;
   final FormalParameterFragmentImpl wrappedElement;
 
   @override
@@ -4299,23 +4297,19 @@ abstract class InstanceElementImpl extends ElementImpl
   List<TypeParameterElementImpl> get typeParameters2 => typeParameters;
 
   void addField(FieldElementImpl element) {
-    // TODO(scheglov): optimize
-    _fields = [..._fields, element];
+    _fields.add(element);
   }
 
   void addGetter(GetterElementImpl element) {
-    // TODO(scheglov): optimize
-    _getters = [..._getters, element];
+    _getters.add(element);
   }
 
   void addMethod(MethodElementImpl element) {
-    // TODO(scheglov): optimize
-    _methods = [..._methods, element];
+    _methods.add(element);
   }
 
   void addSetter(SetterElementImpl element) {
-    // TODO(scheglov): optimize
-    _setters = [..._setters, element];
+    _setters.add(element);
   }
 
   @Deprecated('Use displayString instead')
@@ -4621,10 +4615,10 @@ abstract class InstanceFragmentImpl extends FragmentImpl
   @override
   InstanceFragmentImpl? nextFragment;
 
-  List<FieldFragmentImpl> _fields = _Sentinel.fieldElement;
-  List<GetterFragmentImpl> _getters = _Sentinel.getterElement;
-  List<SetterFragmentImpl> _setters = _Sentinel.setterElement;
-  List<MethodFragmentImpl> _methods = _Sentinel.methodElement;
+  List<FieldFragmentImpl> _fields = _Sentinel.fieldFragment;
+  List<GetterFragmentImpl> _getters = _Sentinel.getterFragment;
+  List<SetterFragmentImpl> _setters = _Sentinel.setterFragment;
+  List<MethodFragmentImpl> _methods = _Sentinel.methodFragment;
 
   InstanceFragmentImpl({required this.name, required super.firstTokenOffset});
 
@@ -4641,7 +4635,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
 
   @override
   List<FieldFragmentImpl> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
+    if (!identical(_fields, _Sentinel.fieldFragment)) {
       return _fields;
     }
 
@@ -4663,7 +4657,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
 
   @override
   List<GetterFragmentImpl> get getters {
-    if (!identical(_getters, _Sentinel.getterElement)) {
+    if (!identical(_getters, _Sentinel.getterFragment)) {
       return _getters;
     }
 
@@ -4687,7 +4681,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
 
   @override
   List<MethodFragmentImpl> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
+    if (!identical(_methods, _Sentinel.methodFragment)) {
       return _methods;
     }
 
@@ -4712,7 +4706,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
 
   @override
   List<SetterFragmentImpl> get setters {
-    if (!identical(_setters, _Sentinel.setterElement)) {
+    if (!identical(_setters, _Sentinel.setterFragment)) {
       return _setters;
     }
 
@@ -4729,26 +4723,34 @@ abstract class InstanceFragmentImpl extends FragmentImpl
   }
 
   void addField(FieldFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _fields = [..._fields, fragment];
+    if (identical(_fields, _Sentinel.fieldFragment)) {
+      _fields = [];
+    }
+    _fields.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addGetter(GetterFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _getters = [..._getters, fragment];
+    if (identical(_getters, _Sentinel.getterFragment)) {
+      _getters = [];
+    }
+    _getters.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addMethod(MethodFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _methods = [..._methods, fragment];
+    if (identical(_methods, _Sentinel.methodFragment)) {
+      _methods = [];
+    }
+    _methods.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addSetter(SetterFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _setters = [..._setters, fragment];
+    if (identical(_setters, _Sentinel.setterFragment)) {
+      _setters = [];
+    }
+    _setters.add(fragment);
     fragment.enclosingFragment = this;
   }
 }
@@ -4904,8 +4906,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   }
 
   void addConstructor(ConstructorElementImpl element) {
-    // TODO(scheglov): optimize
-    _constructors = [..._constructors, element];
+    if (identical(_constructors, _Sentinel.constructorElement)) {
+      _constructors = [];
+    }
+    _constructors.add(element);
   }
 
   @override
@@ -5132,7 +5136,8 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   List<InterfaceTypeImpl> _interfaces = const [];
 
   /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceTypeImpl>? Function(InterfaceFragmentImpl)? mixinInferenceCallback;
+  List<InterfaceTypeImpl>? Function(InterfaceFragmentImpl)?
+  mixinInferenceCallback;
 
   InterfaceTypeImpl? _supertype;
 
@@ -5250,8 +5255,10 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   }
 
   void addConstructor(ConstructorFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _constructors = [..._constructors, fragment];
+    if (identical(_constructors, _Sentinel.constructorFragment)) {
+      _constructors = [];
+    }
+    _constructors.add(fragment);
     fragment.enclosingFragment = this;
   }
 }
@@ -6162,34 +6169,37 @@ class LibraryFragmentImpl extends FragmentImpl
   List<PartIncludeImpl> _parts = const <PartIncludeImpl>[];
 
   /// All top-level getters in this compilation unit.
-  List<GetterFragmentImpl> _getters = _Sentinel.getterElement;
+  List<GetterFragmentImpl> _getters = _Sentinel.getterFragment;
 
   /// All top-level setters in this compilation unit.
-  List<SetterFragmentImpl> _setters = _Sentinel.setterElement;
+  List<SetterFragmentImpl> _setters = _Sentinel.setterFragment;
 
-  List<ClassFragmentImpl> _classes = const [];
+  List<ClassFragmentImpl> _classes = _Sentinel.classFragment;
 
   /// A list containing all of the enums contained in this compilation unit.
-  List<EnumFragmentImpl> _enums = const [];
+  List<EnumFragmentImpl> _enums = _Sentinel.enumFragment;
 
   /// A list containing all of the extensions contained in this compilation
   /// unit.
-  List<ExtensionFragmentImpl> _extensions = const [];
+  List<ExtensionFragmentImpl> _extensions = _Sentinel.extensionFragment;
 
-  List<ExtensionTypeFragmentImpl> _extensionTypes = const [];
+  List<ExtensionTypeFragmentImpl> _extensionTypes =
+      _Sentinel.extensionTypeFragment;
 
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
-  List<TopLevelFunctionFragmentImpl> _functions = const [];
+  List<TopLevelFunctionFragmentImpl> _functions =
+      _Sentinel.topLevelFunctionFragment;
 
-  List<MixinFragmentImpl> _mixins = const [];
+  List<MixinFragmentImpl> _mixins = _Sentinel.mixinFragment;
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
-  List<TypeAliasFragmentImpl> _typeAliases = const [];
+  List<TypeAliasFragmentImpl> _typeAliases = _Sentinel.typeAliasFragment;
 
   /// A list containing all of the variables contained in this compilation unit.
-  List<TopLevelVariableFragmentImpl> _variables = const [];
+  List<TopLevelVariableFragmentImpl> _variables =
+      _Sentinel.topLevelVariableFragment;
 
   /// The scope of this fragment, `null` if it has not been created yet.
   LibraryFragmentScope? _scope;
@@ -6520,62 +6530,82 @@ class LibraryFragmentImpl extends FragmentImpl
   List<TypeAliasFragment> get typeAliases2 => typeAliases;
 
   void addClass(ClassFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _classes = [..._classes, fragment];
+    if (identical(_classes, _Sentinel.classFragment)) {
+      _classes = [];
+    }
+    _classes.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addEnum(EnumFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _enums = [..._enums, fragment];
+    if (identical(_enums, _Sentinel.enumFragment)) {
+      _enums = [];
+    }
+    _enums.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addExtension(ExtensionFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _extensions = [..._extensions, fragment];
+    if (identical(_extensions, _Sentinel.extensionFragment)) {
+      _extensions = [];
+    }
+    _extensions.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addExtensionType(ExtensionTypeFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _extensionTypes = [..._extensionTypes, fragment];
+    if (identical(_extensionTypes, _Sentinel.extensionTypeFragment)) {
+      _extensionTypes = [];
+    }
+    _extensionTypes.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addFunction(TopLevelFunctionFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _functions = [..._functions, fragment];
+    if (identical(_functions, _Sentinel.topLevelFunctionFragment)) {
+      _functions = [];
+    }
+    _functions.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addGetter(GetterFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _getters = [..._getters, fragment];
+    if (identical(_getters, _Sentinel.getterFragment)) {
+      _getters = [];
+    }
+    _getters.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addMixin(MixinFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _mixins = [..._mixins, fragment];
+    if (identical(_mixins, _Sentinel.mixinFragment)) {
+      _mixins = [];
+    }
+    _mixins.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addSetter(SetterFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _setters = [..._setters, fragment];
+    if (identical(_setters, _Sentinel.setterFragment)) {
+      _setters = [];
+    }
+    _setters.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addTopLevelVariable(TopLevelVariableFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _variables = [..._variables, fragment];
+    if (identical(_variables, _Sentinel.topLevelVariableFragment)) {
+      _variables = [];
+    }
+    _variables.add(fragment);
     fragment.enclosingFragment = this;
   }
 
   void addTypeAlias(TypeAliasFragmentImpl fragment) {
-    // TODO(scheglov): optimize
-    _typeAliases = [..._typeAliases, fragment];
+    if (identical(_typeAliases, _Sentinel.typeAliasFragment)) {
+      _typeAliases = [];
+    }
+    _typeAliases.add(fragment);
     fragment.enclosingFragment = this;
   }
 
@@ -8735,8 +8765,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     if (element.setter case var setterElement?) {
       if (setterElement.isSynthetic) {
         setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.formalParameters.single
-            .type = type;
+        setterElement.valueFormalParameter.type = type;
       }
     }
 
@@ -8963,8 +8992,8 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
     return null;
   }
 
-  FormalParameterFragmentImpl? get valueFormalParameter {
-    return formalParameters.singleOrNull;
+  FormalParameterFragmentImpl get valueFormalParameter {
+    return formalParameters.single;
   }
 
   void addFragment(SetterFragmentImpl fragment) {
@@ -10363,16 +10392,31 @@ abstract class VariableFragmentImpl extends FragmentImpl
 /// Instances of [List]s that are used as "not yet computed" values, they
 /// must be not `null`, and not identical to `const <T>[]`.
 class _Sentinel {
+  static final List<ClassFragmentImpl> classFragment = List.unmodifiable([]);
   static final List<ConstructorFragmentImpl> constructorFragment =
       List.unmodifiable([]);
+  static final List<EnumFragmentImpl> enumFragment = List.unmodifiable([]);
+  static final List<ExtensionFragmentImpl> extensionFragment =
+      List.unmodifiable([]);
+  static final List<ExtensionTypeFragmentImpl> extensionTypeFragment =
+      List.unmodifiable([]);
+  static final List<FieldFragmentImpl> fieldFragment = List.unmodifiable([]);
+  static final List<GetterFragmentImpl> getterFragment = List.unmodifiable([]);
+  static final List<MethodFragmentImpl> methodFragment = List.unmodifiable([]);
+  static final List<MixinFragmentImpl> mixinFragment = List.unmodifiable([]);
+  static final List<SetterFragmentImpl> setterFragment = List.unmodifiable([]);
+  static final List<TypeAliasFragmentImpl> typeAliasFragment =
+      List.unmodifiable([]);
+  static final List<TopLevelFunctionFragmentImpl> topLevelFunctionFragment =
+      List.unmodifiable([]);
+  static final List<TopLevelVariableFragmentImpl> topLevelVariableFragment =
+      List.unmodifiable([]);
+
   static final List<ConstructorElementImpl> constructorElement =
       List.unmodifiable([]);
-  static final List<FieldFragmentImpl> fieldElement = List.unmodifiable([]);
-  static final List<GetterFragmentImpl> getterElement = List.unmodifiable([]);
+
   static final List<LibraryExportImpl> libraryExport = List.unmodifiable([]);
   static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
-  static final List<MethodFragmentImpl> methodElement = List.unmodifiable([]);
-  static final List<SetterFragmentImpl> setterElement = List.unmodifiable([]);
 }
 
 extension on Fragment {

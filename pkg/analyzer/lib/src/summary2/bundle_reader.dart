@@ -1115,13 +1115,6 @@ class LibraryReader {
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
-          // TODO(scheglov): add to element
-          var valueFragment = fragments.first.valueFormalParameter;
-          if (valueFragment != null) {
-            // TODO(scheglov): create, not get
-            valueFragment.element;
-          }
-
           element.returnType = reader.readRequiredType();
           // TODO(scheglov): other properties?
         }),

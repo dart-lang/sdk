@@ -303,6 +303,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     var methodElement = _methodElement!;
 
+    // Disallow inlining SDK code.
+    if (methodElement.library.isInSdk) {
+      result = RefactoringStatus.fatal("Can't inline SDK code.");
+      return result;
+    }
+
     // Disallow inlining an augmented method.
     var methodFragment = methodElement.firstFragment;
     if (methodFragment.nextFragment != null) {

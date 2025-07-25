@@ -38,8 +38,12 @@ class ReplaceFinalWithConst extends ResolvedCorrectionProducer {
         var initializer = variable.initializer;
         if (initializer != null) {
           Token? constToken;
-          if (initializer is InstanceCreationExpression) {
-            constToken = initializer.keyword;
+          if (initializer
+              case InstanceCreationExpression(:var keyword) ||
+                  DotShorthandConstructorInvocation(
+                    constKeyword: Token? keyword,
+                  )) {
+            constToken = keyword;
           } else if (initializer is TypedLiteral) {
             constToken = initializer.constKeyword;
           }

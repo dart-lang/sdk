@@ -206,12 +206,7 @@ class InstanceMemberInferrer {
     }
 
     if (setter != null) {
-      var formalParameters =
-          setter.formalParameters.cast<FormalParameterElementImpl>();
-      if (formalParameters.isEmpty) {
-        return;
-      }
-      var valueFormalParameter = formalParameters[0];
+      var valueFormalParameter = setter.valueFormalParameter;
 
       if (overriddenSetters.any((s) => _isCovariantSetter(s.baseElement))) {
         valueFormalParameter.inheritsCovariant = true;
@@ -258,9 +253,7 @@ class InstanceMemberInferrer {
       var setter = field.setter;
       if (setter != null) {
         if (overriddenSetters.any((s) => _isCovariantSetter(s.baseElement))) {
-          var formalParameter = setter.formalParameters[0];
-          formalParameter.inheritsCovariant =
-              true;
+          setter.valueFormalParameter.inheritsCovariant = true;
         }
       }
 
@@ -491,11 +484,7 @@ class InstanceMemberInferrer {
     var formalParameters = element.formalParameters;
     for (var index = 0; index < formalParameters.length; index++) {
       var formalParameter = formalParameters[index];
-      _inferParameterCovariance(
-        formalParameter,
-        index,
-        overriddenElements,
-      );
+      _inferParameterCovariance(formalParameter, index, overriddenElements);
 
       if (formalParameter.hasImplicitType) {
         _inferParameterType(formalParameter, index, combinedSignatureType);
@@ -757,10 +746,7 @@ class InstanceMemberInferrer {
       return overriddenType;
     }
 
-    return replaceTypeParameters(
-      overriddenType,
-      elementTypeParameters,
-    );
+    return replaceTypeParameters(overriddenType, elementTypeParameters);
   }
 
   static bool _isCovariantSetter(ExecutableElementImpl element) {

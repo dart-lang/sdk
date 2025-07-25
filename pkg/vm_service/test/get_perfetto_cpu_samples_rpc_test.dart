@@ -6,7 +6,8 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide Timeline;
-import 'package:vm_service_protos/vm_service_protos.dart';
+import 'package:vm_service_protos/vm_service_protos.dart'
+    show Trace, TracePacket_SequenceFlags;
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -18,46 +19,6 @@ void testeeDo() {
   while (stopwatch.elapsedMilliseconds < 5000) {}
   stopwatch.stop();
   print('Testee did something.');
-}
-
-int computeTimeOriginNanos(List<TracePacket> packets) {
-  final packetsWithPerfSamples =
-      packets.where((packet) => packet.hasPerfSample()).toList();
-  if (packetsWithPerfSamples.isEmpty) {
-    return 0;
-  }
-  int smallest = packetsWithPerfSamples.first.timestamp.toInt();
-  for (int i = 0; i < packetsWithPerfSamples.length; i++) {
-    if (packetsWithPerfSamples[i].timestamp < smallest) {
-      smallest = packetsWithPerfSamples[i].timestamp.toInt();
-    }
-  }
-  return smallest;
-}
-
-int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
-  final packetsWithPerfSamples =
-      packets.where((packet) => packet.hasPerfSample()).toList();
-  if (packetsWithPerfSamples.isEmpty) {
-    return 0;
-  }
-  int largestExtent = packetsWithPerfSamples[0].timestamp.toInt() - timeOrigin;
-  for (var i = 0; i < packetsWithPerfSamples.length; i++) {
-    final int duration =
-        packetsWithPerfSamples[i].timestamp.toInt() - timeOrigin;
-    if (duration > largestExtent) {
-      largestExtent = duration;
-    }
-  }
-  return largestExtent;
-}
-
-Iterable<PerfSample> extractPerfSamplesFromTracePackets(
-  List<TracePacket> packets,
-) {
-  return packets
-      .where((packet) => packet.hasPerfSample())
-      .map((packet) => packet.perfSample);
 }
 
 final tests = <IsolateTest>[

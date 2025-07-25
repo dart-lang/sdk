@@ -53,6 +53,19 @@ class Sdk {
     );
   }
 
+  String get dartvm {
+    final basename = Platform.isWindows? 'dartvm.exe' : 'dartvm';
+    return path.absolute(
+      _runFromBuildRoot
+          ? sdkPath
+          : path.absolute(
+              sdkPath,
+              'bin',
+            ),
+      basename,
+    );
+  }
+
   String get dartAotRuntime => _runFromBuildRoot
       ? path.absolute(
           sdkPath,
@@ -74,10 +87,6 @@ class Sdk {
         'analysis_server.dart.snapshot',
       );
 
-  String get ddcSnapshot => _snapshotPathFor(
-        'dartdevc.dart.snapshot',
-      );
-
   String get ddcAotSnapshot => _runFromBuildRoot
       ? _snapshotPathFor(
           'dartdevc_aot_product.dart.snapshot',
@@ -85,10 +94,6 @@ class Sdk {
       : _snapshotPathFor(
           'dartdevc_aot.dart.snapshot',
         );
-
-  String get dart2jsSnapshot => _snapshotPathFor(
-        'dart2js.dart.snapshot',
-      );
 
   String get dart2jsAotSnapshot => _runFromBuildRoot
       ? _snapshotPathFor(
@@ -106,16 +111,8 @@ class Sdk {
         'dart_mcp_server_aot.dart.snapshot',
       );
 
-  String get ddsSnapshot => _snapshotPathFor(
-        'dds.dart.snapshot',
-      );
-
   String get ddsAotSnapshot => _snapshotPathFor(
         'dds_aot.dart.snapshot',
-      );
-
-  String get frontendServerSnapshot => _snapshotPathFor(
-        'frontend_server.dart.snapshot',
       );
 
   String get frontendServerAotSnapshot => _runFromBuildRoot
@@ -125,10 +122,6 @@ class Sdk {
       : _snapshotPathFor(
           'frontend_server_aot.dart.snapshot',
         );
-
-  String get dtdSnapshot => _snapshotPathFor(
-        'dart_tooling_daemon.dart.snapshot',
-      );
 
   String get dtdAotSnapshot => _snapshotPathFor(
         'dart_tooling_daemon_aot.dart.snapshot',
@@ -229,7 +222,7 @@ class Sdk {
       // non-standard SDK layouts that can involve symlinks (e.g., Brew
       // installations, google3 tests, etc).
       if (!checkArtifactExists(
-        path.join(snapshotsDir, 'dartdev.dart.snapshot'),
+        path.join(snapshotsDir, 'dartdev_aot.dart.snapshot'),
         logError: false,
       )) {
         return null;

@@ -353,7 +353,7 @@ template("_built_tool_action") {
 template("dart_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
   _built_tool_action(target_name) {
-    tool = "$_dart_root/runtime/bin:dart"
+    tool = "$_dart_root/runtime/bin:dartvm"
     forward_variables_from(invoker,
                            [
                              "args",

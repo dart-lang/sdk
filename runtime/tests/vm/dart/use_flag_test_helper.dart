@@ -58,7 +58,7 @@ late final genSnapshot = () {
   }
   throw 'Could not find gen_snapshot for build directory $buildDir';
 }();
-final dart = path.join(buildDir, 'dart' + (Platform.isWindows ? '.exe' : ''));
+final dart = path.join(buildDir, 'dartvm' + (Platform.isWindows ? '.exe' : ''));
 final dartPrecompiledRuntime = path.join(
   buildDir,
   'dartaotruntime' + (Platform.isWindows ? '.exe' : ''),
