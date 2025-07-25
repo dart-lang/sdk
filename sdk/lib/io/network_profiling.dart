@@ -271,7 +271,6 @@ abstract class _SocketProfile {
     // Skip any socket that started before `_enableSocketProfiling` was turned
     // on.
     final stats = _idToSocketStatistic[idKey];
-    assert(stats != null, '"$idKey" not found in "_idToSocketStatistic" map');
     if (stats == null) return;
     switch (type) {
       case _SocketProfileType.endTime:
