@@ -50,7 +50,7 @@ For more information about the server's capabilities and configuration, see:
     const lsp = server.Driver.PROTOCOL_LSP;
 
     var args = argResults!.arguments;
-    if (!args.any((arg) => arg.startsWith('--$protocol'))) {
+    if (!argResults!.wasParsed(protocol)) {
       args = [...args, '--$protocol=$lsp'];
     }
     try {
