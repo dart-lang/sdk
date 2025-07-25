@@ -698,6 +698,23 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitDotShorthandInvocation(DotShorthandInvocation node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;

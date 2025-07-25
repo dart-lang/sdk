@@ -626,6 +626,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
+  CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER: [
+    ChangeTo.getterOrSetter,
+  ],
+  CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION: [ChangeTo.method],
   CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,
