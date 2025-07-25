@@ -3617,9 +3617,50 @@ SwitchDispatch:
     ASSERT(Function::KindOf(target) !=
            UntaggedFunction::kDynamicInvocationForwarder);
 
-    // TODO(alexmarkov): add parameter type checks.
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
 
     SP[1] = target;
+    SP[2] = argdesc_;
+
+    // Allocate array of arguments.
+    {
+      SP[3] = null_value;      // Reserve space for result.
+      SP[4] = Smi::New(argc);  // length
+      SP[5] = null_value;      // type
+      Exit(thread, FP, SP + 6, pc);
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                         NativeArguments(thread, 2, SP + 4, SP + 3))) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    // Copy arguments into the newly allocated array.
+    ObjectPtr* argv = FrameArguments(FP, argc);
+    ArrayPtr array = Array::RawCast(SP[3]);
+    for (intptr_t i = 0; i < argc; i++) {
+      array->untag()->set_element(i, argv[i], thread);
+    }
+
+    // Check types of arguments.
+    {
+      SP[4] = null_value;  // Reserve space for result.
+      Exit(thread, FP, SP + 5, pc);
+      if (!InvokeRuntime(thread, this, DRT_CheckFunctionArgumentTypes,
+                         NativeArguments(thread, 3, SP + 1, SP + 4))) {
+        HANDLE_EXCEPTION;
+      }
+
+      argdesc_ = Array::RawCast(SP[2]);
+
+      if (SP[4] != true_value) {
+        goto NoSuchMethodFromPrologue;
+      }
+    }
+
     goto TailCallSP1;
   }
 

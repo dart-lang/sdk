@@ -65,6 +65,9 @@ dart/isolates/many_isolates_blocked_at_process_run_sync_test: Skip # App snapsho
 dart/isolates/many_isolates_blocked_at_sleep_test: Skip # App snapshot creation needs regular isolate shutdown
 dart/snapshot_version_test: RuntimeError
 
+[ $compiler == dart2bytecode ]
+dart/regress_52703_test: Pass, Slow
+
 [ $compiler == dartk ]
 cc/IsolateReload_LibraryLookup: Fail, Crash # Issue 32190
 
