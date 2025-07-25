@@ -601,7 +601,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeFieldFragment(FieldFragment f) {
+  void _writeFieldFragment(FieldFragmentImpl f) {
     // TODO(brianwilkerson): Implement `type`.
     // DartType type = e.type;
     // expect(type, isNotNull);
@@ -897,7 +897,7 @@ class _Element2Writer extends _AbstractElementWriter {
     }
   }
 
-  void _writeFragmentName(Fragment f) {
+  void _writeFragmentName(FragmentImpl f) {
     if (f.name == null) {
       expect(f.nameOffset, isNull);
     }
@@ -1413,7 +1413,7 @@ class _Element2Writer extends _AbstractElementWriter {
     // }
   }
 
-  void _writeMethodFragment(MethodFragment f) {
+  void _writeMethodFragment(MethodFragmentImpl f) {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       _sink.writeIf(f.isAugmentation, 'augment ');
@@ -1590,7 +1590,7 @@ class _Element2Writer extends _AbstractElementWriter {
     });
   }
 
-  void _writeSetterFragment(SetterFragment f) {
+  void _writeSetterFragment(SetterFragmentImpl f) {
     // if (f.isSynthetic) {
     //   expect(f.nameOffset, -1);
     // } else {
@@ -1682,7 +1682,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeTopLevelFunctionFragment(TopLevelFunctionFragment f) {
+  void _writeTopLevelFunctionFragment(TopLevelFunctionFragmentImpl f) {
     // expect(e.isStatic, isTrue);
 
     _sink.writeIndentedLine(() {
@@ -1882,7 +1882,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeTypeAliasFragment(TypeAliasFragment f) {
+  void _writeTypeAliasFragment(TypeAliasFragmentImpl f) {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       // _sink.writeIf(e.isAugmentation, 'augment ');
@@ -1948,7 +1948,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeTypeParameterFragment(TypeParameterFragment f) {
+  void _writeTypeParameterFragment(TypeParameterFragmentImpl f) {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       // _sink.write('${e.variance.name} ');
