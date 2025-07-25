@@ -650,7 +650,7 @@ extension on Element {
   bool isInPublicApiOf(String packageName) {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable?,
+      :var variable,
     ) when variable.isInPublicApiOf(packageName)) {
       return true;
     }
@@ -670,9 +670,7 @@ extension on Element {
 
   bool _isPublicApiAnnotation(ElementAnnotation annotation) {
     if (annotation.computeConstantValue() case DartObject(
-      type: InterfaceType(
-        element: InterfaceElement(name: 'AnalyzerPublicApi'),
-      ),
+      type: InterfaceType(element: InterfaceElement(name: 'AnalyzerPublicApi')),
     )) {
       return true;
     } else {

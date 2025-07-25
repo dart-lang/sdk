@@ -643,9 +643,6 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
       }
     } else if (element is PropertyAccessorElement) {
       var field = element.variable;
-      if (field == null) {
-        return;
-      }
       if (_isMemberOfEnclosingClass(field)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");

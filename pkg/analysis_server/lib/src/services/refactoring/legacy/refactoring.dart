@@ -456,9 +456,6 @@ abstract class RenameRefactoring implements Refactoring {
     var sessionHelper = AnalysisSessionHelper(session);
     if (element is PropertyAccessorElement) {
       element = element.variable;
-      if (element == null) {
-        return null;
-      }
     }
     if (element is MockLibraryImportElement) {
       return RenameImportRefactoringImpl(

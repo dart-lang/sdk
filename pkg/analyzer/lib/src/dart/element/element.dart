@@ -2314,9 +2314,9 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
     // If a synthetic getter, we might need to infer the type.
     if (_returnType == null && isSynthetic) {
       if (this case GetterElementImpl thisGetter) {
-        thisGetter.variable!.type;
+        thisGetter.variable.type;
       } else if (this case SetterElementImpl thisSetter) {
-        thisSetter.variable!.type;
+        thisSetter.variable.type;
       }
     }
 
@@ -4036,7 +4036,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
 
   @override
   SetterElement? get correspondingSetter {
-    return variable?.setter;
+    return variable.setter;
   }
 
   @Deprecated('Use correspondingSetter instead')
@@ -4067,18 +4067,17 @@ class GetterElementImpl extends PropertyAccessorElementImpl
 
   @override
   Element get nonSynthetic {
-    if (!isSynthetic) {
-      return this;
-    } else if (variable case var variable?) {
+    if (isSynthetic) {
       return variable.nonSynthetic;
+    } else {
+      return this;
     }
-    throw StateError('Synthetic getter has no variable');
   }
 
   @override
   Version? get sinceSdkVersion {
     if (isSynthetic) {
-      return variable?.sinceSdkVersion;
+      return variable.sinceSdkVersion;
     }
     return super.sinceSdkVersion;
   }
@@ -8528,7 +8527,7 @@ abstract class PropertyAccessorElement2OrMember
   PropertyAccessorElementImpl get baseElement;
 
   @override
-  PropertyInducingElement2OrMember? get variable;
+  PropertyInducingElement2OrMember get variable;
 
   @Deprecated('Use variable instead')
   @override
@@ -8572,13 +8571,13 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   @override
   @trackedDirectly
-  PropertyInducingElementImpl? get variable {
+  PropertyInducingElementImpl get variable {
     globalResultRequirements?.record_propertyAccessorElement_variable(
       element: this,
       name: name,
     );
 
-    return _variable3;
+    return _variable3!;
   }
 
   set variable(PropertyInducingElementImpl? value) {
@@ -8642,7 +8641,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
       return nameOffset;
     }
     if (isSynthetic) {
-      var variable = element.variable!;
+      var variable = element.variable;
       if (variable.isSynthetic) {
         return enclosingFragment.offset;
       }
@@ -8891,7 +8890,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
 
   @override
   GetterElement? get correspondingGetter {
-    return variable?.getter;
+    return variable.getter;
   }
 
   @Deprecated('Use correspondingGetter instead')
@@ -8937,18 +8936,17 @@ class SetterElementImpl extends PropertyAccessorElementImpl
 
   @override
   Element get nonSynthetic {
-    if (!isSynthetic) {
-      return this;
-    } else if (variable case var variable?) {
+    if (isSynthetic) {
       return variable.nonSynthetic;
+    } else {
+      return this;
     }
-    throw StateError('Synthetic setter has no variable');
   }
 
   @override
   Version? get sinceSdkVersion {
     if (isSynthetic) {
-      return variable?.sinceSdkVersion;
+      return variable.sinceSdkVersion;
     }
     return super.sinceSdkVersion;
   }

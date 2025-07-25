@@ -260,9 +260,6 @@ class _Collector {
     }
     if (element is GetterElement) {
       var variable = element.variable;
-      if (variable == null) {
-        return;
-      }
       if (!variable.isConst) {
         nodes.add(node);
       }
@@ -316,9 +313,6 @@ class _Collector {
       var element = node.propertyName.element;
       if (element is GetterElement) {
         var variable = element.variable;
-        if (variable == null) {
-          return;
-        }
         if (!variable.isConst) {
           nodes.add(node.propertyName);
         }

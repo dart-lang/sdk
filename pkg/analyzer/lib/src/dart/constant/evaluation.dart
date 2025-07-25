@@ -173,7 +173,7 @@ class ConstantEvaluationEngine {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
         var variableElement =
-            element.variable?.baseElement as VariableElementImpl?;
+            element.variable.baseElement as VariableElementImpl?;
         var evaluationResult = variableElement?.evaluationResult;
         if (evaluationResult != null) {
           constant.evaluationResult = evaluationResult;
@@ -317,10 +317,8 @@ class ConstantEvaluationEngine {
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
-        if (element.variable case var variable?) {
-          var baseElement = variable.baseElement as VariableElementImpl;
-          callback(baseElement);
-        }
+        var baseElement = element.variable.baseElement as VariableElementImpl;
+        callback(baseElement);
       } else if (element is ConstructorElement) {
         // The annotation is a constructor invocation, so it depends on the
         // constructor.
@@ -3149,16 +3147,6 @@ class _InstanceCreationEvaluator {
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {
               var field = getter.variable;
-              if (field == null) {
-                return _InitializersEvaluationResult(
-                  InvalidConstant.forElement(
-                    element: getter,
-                    diagnosticCode:
-                        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-                  ),
-                  evaluationIsComplete: true,
-                );
-              }
               if (!typeSystem.runtimeTypeMatch(evaluationResult, field.type)) {
                 // Mark the type mismatch error as a runtime exception if the
                 // initializer is statically assignable to the field.

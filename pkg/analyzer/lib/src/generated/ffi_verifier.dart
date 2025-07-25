@@ -575,11 +575,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     } else if (declarationElement is TopLevelVariableElementImpl) {
       type = declarationElement.type;
     } else if (declarationElement is PropertyAccessorElement2OrMember) {
-      var variable = declarationElement.variable;
-      if (variable == null) {
-        return;
-      }
-      type = variable.type;
+      type = declarationElement.variable.type;
     } else {
       _diagnosticReporter.atToken(errorToken, FfiCode.NATIVE_FIELD_NOT_STATIC);
       return;
@@ -769,8 +765,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (element is PropertyAccessorElement) {
-        var variable = element.variable;
-        if (variable != null && variable.isConst) {
+        if (element.variable.isConst) {
           return true;
         }
       }
@@ -951,9 +946,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (element is PropertyAccessorElement) {
         var variable = element.variable;
-        if (variable == null) {
-          return null;
-        }
         if (variable.isConst) {
           return variable.computeConstantValue()?.toBoolValue();
         }

@@ -1260,7 +1260,7 @@ class _MockSdkElementsBuilder {
     classElement.getters = getters;
     classElement.fields =
         getters
-            .map((accessor) => accessor.element.variable!.firstFragment)
+            .map((accessor) => accessor.element.variable.firstFragment)
             .cast<FieldFragmentImpl>()
             .toList();
   }

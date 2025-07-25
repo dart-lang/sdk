@@ -200,9 +200,7 @@ class IndexElementInfo {
               accessor is GetterElement
                   ? IndexSyntheticElementKind.getter
                   : IndexSyntheticElementKind.setter;
-          if (accessor.variable case var variable?) {
-            element = variable;
-          }
+          element = accessor.variable;
         }
       } else if (element is MethodElement) {
         var enclosing = element.enclosingElement;
@@ -1475,12 +1473,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
     for (InterfaceType mixinType in ancestor.mixins) {
-      _recordIsAncestorOf(
-        descendant,
-        mixinType.element,
-        true,
-        visitedElements,
-      );
+      _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
     }
     if (ancestor is MixinElement) {
       for (InterfaceType type in ancestor.superclassConstraints) {

@@ -277,9 +277,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         length = fragment.name!.length;
         break;
       } else if (fragment case PropertyAccessorFragment()
-          when fragment.element.variable!.firstFragment.nameOffset != null) {
-        offset = fragment.element.variable!.firstFragment.nameOffset!;
-        length = fragment.element.variable!.name!.length;
+          when fragment.element.variable.firstFragment.nameOffset != null) {
+        offset = fragment.element.variable.firstFragment.nameOffset!;
+        length = fragment.element.variable.name!.length;
         break;
       } else if (fragment is ConstructorFragment &&
           fragment.typeNameOffset != null) {
@@ -379,7 +379,7 @@ extension on Element {
   bool get isInAnalyzerPublicApi {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable?,
+      :var variable,
     ) when variable.isInAnalyzerPublicApi) {
       return true;
     }

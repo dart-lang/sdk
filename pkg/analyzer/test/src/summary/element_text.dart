@@ -867,18 +867,16 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeGetterElement(GetterElementImpl e) {
     var variable = e.variable;
-    if (variable != null) {
-      var variableEnclosing = variable.enclosingElement;
-      if (variableEnclosing is LibraryElement) {
-        expect(variableEnclosing.topLevelVariables, contains(variable));
-      } else if (variableEnclosing is InterfaceElement) {
-        // TODO(augmentations): Remove the invocations of `field.baseElement`.
-        //  There shouldn't be any members in the list of fields.
-        expect(
-          variableEnclosing.fields.map((field) => field.baseElement),
-          contains(variable.baseElement),
-        );
-      }
+    var variableEnclosing = variable.enclosingElement;
+    if (variableEnclosing is LibraryElement) {
+      expect(variableEnclosing.topLevelVariables, contains(variable));
+    } else if (variableEnclosing is InterfaceElement) {
+      // TODO(augmentations): Remove the invocations of `field.baseElement`.
+      //  There shouldn't be any members in the list of fields.
+      expect(
+        variableEnclosing.fields.map((field) => field.baseElement),
+        contains(variable.baseElement),
+      );
     }
 
     // if (e.isSynthetic) {
@@ -1464,18 +1462,16 @@ class _Element2Writer extends _AbstractElementWriter {
 
   void _writeSetterElement(SetterElementImpl e) {
     var variable = e.variable;
-    if (variable != null) {
-      var variableEnclosing = variable.enclosingElement;
-      if (variableEnclosing is LibraryElement) {
-        expect(variableEnclosing.topLevelVariables, contains(variable));
-      } else if (variableEnclosing is InterfaceElement) {
-        // TODO(augmentations): Remove the invocations of `field.baseElement`.
-        //  There shouldn't be any members in the list of fields.
-        expect(
-          variableEnclosing.fields.map((field) => field.baseElement),
-          contains(variable.baseElement),
-        );
-      }
+    var variableEnclosing = variable.enclosingElement;
+    if (variableEnclosing is LibraryElement) {
+      expect(variableEnclosing.topLevelVariables, contains(variable));
+    } else if (variableEnclosing is InterfaceElement) {
+      // TODO(augmentations): Remove the invocations of `field.baseElement`.
+      //  There shouldn't be any members in the list of fields.
+      expect(
+        variableEnclosing.fields.map((field) => field.baseElement),
+        contains(variable.baseElement),
+      );
     }
 
     // if (e.isSynthetic) {

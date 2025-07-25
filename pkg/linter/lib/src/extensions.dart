@@ -330,7 +330,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
 
 extension ElementExtension on Element? {
   Element? get canonicalElement2 => switch (this) {
-    PropertyAccessorElement(:var variable?) => variable,
+    PropertyAccessorElement(:var variable) => variable,
     _ => this,
   };
 

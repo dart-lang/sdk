@@ -75,10 +75,10 @@ class SummaryWriter {
     for (var element in definedNames.values) {
       if (element.isSynthetic) {
         if (element is GetterElement) {
-          element = element.variable!;
+          element = element.variable;
         } else if (element is SetterElement &&
             element.correspondingGetter == null) {
-          element = element.variable!;
+          element = element.variable;
         } else {
           continue;
         }

@@ -1533,7 +1533,7 @@ extension _LookupNameToInterfaceItemConstructorItemMapExtension
 extension _PropertyAccessExtension on PropertyAccessorElementImpl {
   MetadataImpl get thisOrVariableMetadata {
     if (isSynthetic) {
-      return variable!.metadata;
+      return variable.metadata;
     } else {
       return metadata;
     }

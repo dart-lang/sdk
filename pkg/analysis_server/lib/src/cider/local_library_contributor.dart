@@ -101,9 +101,7 @@ class LibraryElementSuggestionBuilder
   void visitGetterElement(GetterElement element) {
     var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
-        (opType.includeAnnotationSuggestions &&
-            variable != null &&
-            variable.isConst)) {
+        (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (element.isSynthetic) {
@@ -140,9 +138,7 @@ class LibraryElementSuggestionBuilder
   void visitSetterElement(SetterElement element) {
     var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
-        (opType.includeAnnotationSuggestions &&
-            variable != null &&
-            variable.isConst)) {
+        (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (!element.isSynthetic) {

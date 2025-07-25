@@ -1773,10 +1773,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node is SimpleIdentifier) {
       if (element is SetterElement2OrMember) {
         if (element.isSynthetic) {
-          var variable = element.variable;
-          if (variable != null) {
-            writeType = variable.type;
-          }
+          writeType = element.variable.type;
         } else {
           var parameters = element.formalParameters;
           if (parameters.length == 1) {

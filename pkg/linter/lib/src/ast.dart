@@ -262,9 +262,7 @@ bool _checkForSimpleGetter(MethodDeclaration getter, Expression? expression) {
       // the same
       if (staticElement.enclosingElement == enclosingElement) {
         var variable = staticElement.variable;
-        if (variable != null) {
-          return staticElement.isSynthetic && variable.isPrivate;
-        }
+        return staticElement.isSynthetic && variable.isPrivate;
       }
     }
   }

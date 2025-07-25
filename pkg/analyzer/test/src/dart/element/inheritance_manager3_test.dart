@@ -2932,12 +2932,12 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       expect(actual, expected);
 
       if (element is GetterElement) {
-        var variable = element.variable!;
+        var variable = element.variable;
         expect(variable.enclosingElement, same(enclosingElement));
         expect(variable.name, element.displayName);
         expect(variable.type, element.returnType);
       } else if (element is SetterElement) {
-        var variable = element.variable!;
+        var variable = element.variable;
         expect(variable.enclosingElement, same(enclosingElement));
         expect(variable.name, element.displayName);
         expect(variable.type, element.formalParameters[0].type);

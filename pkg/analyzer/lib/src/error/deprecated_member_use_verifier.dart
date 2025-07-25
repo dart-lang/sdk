@@ -258,11 +258,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable == null) {
-        return null;
-      }
-      element = variable;
+      element = element.variable;
     }
     var annotation = element.metadataAnnotations.firstWhereOrNull(
       (e) => e.isDeprecated,
@@ -290,9 +286,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     }
 
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
-      var variable = element.variable;
-      return variable != null && variable.metadata.hasDeprecated;
+      return element.variable.metadata.hasDeprecated;
     }
     if (element is Annotatable) {
       return (element as Annotatable).metadata.hasDeprecated;

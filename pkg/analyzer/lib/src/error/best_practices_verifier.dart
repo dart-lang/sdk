@@ -1595,8 +1595,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   static bool _hasNonVirtualAnnotation(ExecutableElement element) {
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      var variable = element.variable;
-      if (variable != null && variable.metadata.hasNonVirtual) {
+      if (element.variable.metadata.hasNonVirtual) {
         return true;
       }
     }
@@ -2036,8 +2035,7 @@ class _InvalidAccessVerifier {
       }
     }
     if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      return variable != null && variable.metadata.hasDoNotSubmit;
+      return element.variable.metadata.hasDoNotSubmit;
     }
     return false;
   }
@@ -2060,8 +2058,7 @@ class _InvalidAccessVerifier {
     }
 
     if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      return variable != null && variable.metadata.hasVisibleForOverriding;
+      return element.variable.metadata.hasVisibleForOverriding;
     }
 
     return false;
@@ -2077,8 +2074,7 @@ class _InvalidAccessVerifier {
       }
     }
     if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable != null && variable.metadata.hasVisibleForTemplate) {
+      if (element.variable.metadata.hasVisibleForTemplate) {
         return true;
       }
     }
@@ -2096,8 +2092,7 @@ class _InvalidAccessVerifier {
       }
     }
     if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable != null && variable.metadata.hasVisibleOutsideTemplate) {
+      if (element.variable.metadata.hasVisibleOutsideTemplate) {
         return true;
       }
     }

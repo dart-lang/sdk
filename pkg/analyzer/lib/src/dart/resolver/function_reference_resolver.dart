@@ -99,11 +99,7 @@ class FunctionReferenceResolver {
     if (prefixElement is VariableElement) {
       prefixType = prefixElement.type;
     } else if (prefixElement is PropertyAccessorElement) {
-      var variable = prefixElement.variable;
-      if (variable == null) {
-        return false;
-      }
-      prefixType = variable.type;
+      prefixType = prefixElement.variable.type;
     }
 
     if (prefixType is DynamicType) {
@@ -545,12 +541,7 @@ class FunctionReferenceResolver {
       if (targetElement is VariableElement2OrMember) {
         targetType = targetElement.type;
       } else if (targetElement is PropertyAccessorElement2OrMember) {
-        var variable = targetElement.variable;
-        if (variable == null) {
-          node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-          return;
-        }
-        targetType = variable.type;
+        targetType = targetElement.variable.type;
       } else {
         // TODO(srawlins): Can we get here?
         node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -745,13 +736,7 @@ class FunctionReferenceResolver {
         if (method is PropertyAccessorElement2OrMember) {
           function.element = method;
           function.setPseudoExpressionStaticType(method.returnType);
-          var variable = method.variable;
-          if (variable != null) {
-            _resolve(node: node, rawType: variable.type);
-          } else {
-            function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-            node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-          }
+          _resolve(node: node, rawType: method.variable.type);
           return;
         }
 
@@ -814,10 +799,6 @@ class FunctionReferenceResolver {
     } else if (element is PropertyAccessorElement) {
       function.element = element;
       var variable = element.variable;
-      if (variable == null) {
-        function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-        return;
-      }
       function.setPseudoExpressionStaticType(variable.type);
       var callMethod = _getCallMethod(node, variable.type);
       if (callMethod is MethodElement) {

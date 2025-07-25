@@ -2028,9 +2028,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     } else if (element is GetterElement) {
       var variable = element.variable;
-      if (variable == null) {
-        return;
-      }
       if (variable.isConst) {
         diagnosticReporter.atNode(
           expression,

@@ -217,7 +217,7 @@ class TypeDefinitionHandler
         if (writeElement
             case analyzer.GetterElement(:var variable) ||
                 analyzer.SetterElement(:var variable)) {
-          return variable?.type;
+          return variable.type;
         }
       }
     }
