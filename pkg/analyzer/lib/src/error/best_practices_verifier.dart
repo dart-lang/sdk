@@ -1428,65 +1428,61 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// In "strict-inference" mode, check that each of the [parameters]' type is
-  /// specified.
+  /// In "strict-inference" mode, check that each of the [parameterList]' type
+  /// is specified.
   ///
   /// Only parameters which are referenced in [initializers] or [body] are
   /// reported. If [initializers] and [body] are both null, the parameters are
   /// assumed to originate from a typedef, function-typed parameter, or function
   /// which is abstract or external.
   void _checkStrictInferenceInParameters(
-    FormalParameterList? parameters, {
+    FormalParameterList? parameterList, {
     List<ConstructorInitializer>? initializers,
     FunctionBody? body,
   }) {
-    _UsedParameterVisitor? usedParameterVisitor;
+    if (!_strictInference || parameterList == null) {
+      return;
+    }
 
-    bool isParameterReferenced(SimpleFormalParameter parameter) {
-      if ((body == null || body is EmptyFunctionBody) && initializers == null) {
-        // The parameter is in a typedef, or function that is abstract,
-        // external, etc.
-        return true;
-      }
-      if (usedParameterVisitor == null) {
-        // Visit the function body and initializers once to determine whether
-        // each of the parameters is referenced.
-        usedParameterVisitor = _UsedParameterVisitor(
-          parameters!.parameters
-              .map((p) => p.declaredFragment!.element)
-              .toSet(),
-        );
-        body?.accept(usedParameterVisitor!);
-        for (var initializer in initializers ?? <ConstructorInitializer>[]) {
-          initializer.accept(usedParameterVisitor!);
+    var implicitlyTypedParameters =
+        parameterList.parameters
+            .map((p) => p.notDefault)
+            .whereType<SimpleFormalParameter>()
+            .where((p) => p.type == null)
+            .toList();
+
+    if (implicitlyTypedParameters.isEmpty) return;
+
+    // Whether the parameters are in a typedef, or function that is abstract,
+    // external, etc.
+    var parameterReferenceIsUnknown =
+        (body == null || body is EmptyFunctionBody) && initializers == null;
+
+    if (!parameterReferenceIsUnknown) {
+      var usedVisitor = _UsedParameterVisitor(
+        implicitlyTypedParameters
+            .map((p) => p.declaredFragment!.element)
+            .toSet(),
+      );
+      body?.accept(usedVisitor);
+      if (initializers != null) {
+        for (var initializer in initializers) {
+          initializer.accept(usedVisitor);
         }
       }
 
-      return usedParameterVisitor!.isUsed(parameter.declaredFragment!.element);
+      implicitlyTypedParameters.removeWhere(
+        (p) => !usedVisitor.isUsed(p.declaredFragment!.element),
+      );
     }
 
-    void checkParameterTypeIsKnown(SimpleFormalParameter parameter) {
-      if (parameter.type == null && isParameterReferenced(parameter)) {
-        var element = parameter.declaredFragment!.element;
-        _diagnosticReporter.atNode(
-          parameter,
-          WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
-          arguments: [element.displayName],
-        );
-      }
-    }
-
-    if (_strictInference && parameters != null) {
-      for (FormalParameter parameter in parameters.parameters) {
-        if (parameter is SimpleFormalParameter) {
-          checkParameterTypeIsKnown(parameter);
-        } else if (parameter is DefaultFormalParameter) {
-          var nonDefault = parameter.parameter;
-          if (nonDefault is SimpleFormalParameter) {
-            checkParameterTypeIsKnown(nonDefault);
-          }
-        }
-      }
+    for (var parameter in implicitlyTypedParameters) {
+      var element = parameter.declaredFragment!.element;
+      _diagnosticReporter.atNode(
+        parameter,
+        WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER,
+        arguments: [element.displayName],
+      );
     }
   }
 
