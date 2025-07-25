@@ -8,6 +8,9 @@ analyzer:
     # We import heavily from package:analyzer/src.
     implementation_imports: ignore
     non_constant_identifier_names: ignore
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
+    todo: ignore
   exclude:
     - test/data/**
 

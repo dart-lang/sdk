@@ -602,14 +602,14 @@ abstract class ErrorCodeInfo {
   ///
   /// [diagnosticCode] is the name of the error code to be generated.
   String toAnalyzerCode(
-    String className,
+    ErrorClassInfo errorClassInfo,
     String diagnosticCode, {
     String? sharedNameReference,
     required bool useExplicitConst,
   }) {
     var out = StringBuffer();
     if (useExplicitConst) out.writeln('const ');
-    out.writeln('$className(');
+    out.writeln('${errorClassInfo.name}(');
     out.writeln(
       '${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
     );
