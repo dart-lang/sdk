@@ -114,19 +114,16 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
       }
       var references = await searchEngine.searchReferences(element);
 
-      // Remove references that don't have to have the same name.
+      // Named super formals are already in [elements].
+      // Positional super formals are not tied by name so shouldn't be renamed.
+      references.removeWhere(
+        (match) => match.element is analyzer.SuperFormalParameterElement,
+      );
 
       // Implicit references to optional positional parameters.
       if (element.isOptionalPositional) {
         references.removeWhere((match) => match.sourceRange.length == 0);
       }
-      // References to positional parameters from super-formal.
-      if (element.isPositional) {
-        references.removeWhere(
-          (match) => match.element is analyzer.SuperFormalParameterElement,
-        );
-      }
-
       processor.addReferenceEdits(references);
     }
   }
@@ -136,6 +133,17 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     var element = this.element;
     if (element.isNamed) {
       elements = await getHierarchyNamedParameters(searchEngine, element);
+
+      // Iteratively collect superFormalParameter(s) of subclasses.
+      for (var i = 0; i < elements.length; i++) {
+        var element = elements[i];
+        var references = await searchEngine.searchReferences(element);
+        elements.addAll(
+          references
+              .map((match) => match.element)
+              .whereType<analyzer.SuperFormalParameterElement>(),
+        );
+      }
     } else if (element.isPositional) {
       elements = await getHierarchyPositionalParameters(searchEngine, element);
     }
