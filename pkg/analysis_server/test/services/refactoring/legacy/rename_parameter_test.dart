@@ -202,6 +202,12 @@ class A {
 class B extends A {
   B({required super.test});
 }
+class C extends B {
+  C({required super.test});
+}
+class D extends C {
+  D({required super.test});
+}
 ''');
     // configure refactoring
     createRenameRefactoringAtString('test}); // 0');
@@ -215,6 +221,12 @@ class A {
 }
 class B extends A {
   B({required super.newName});
+}
+class C extends B {
+  C({required super.newName});
+}
+class D extends C {
+  D({required super.newName});
 }
 ''');
   }
