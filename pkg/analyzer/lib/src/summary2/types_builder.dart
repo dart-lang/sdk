@@ -255,15 +255,6 @@ class TypesBuilder {
           var variableFragment = variable.declaredFragment!;
           var variableElement = variableFragment.element;
           variableElement.type = type;
-          if (variableElement is PropertyInducingElementImpl) {
-            if (variableElement.getter case var getterElement?) {
-              getterElement.returnType = type;
-            }
-            if (variableElement.setter case var setterElement?) {
-              setterElement.returnType = VoidTypeImpl.instance;
-              setterElement.valueFormalParameter.type = type;
-            }
-          }
         }
       }
     } else {

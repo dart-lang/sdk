@@ -3097,7 +3097,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   final FormalParameterFragmentImpl wrappedElement;
 
   @override
-  late TypeImpl type;
+  TypeImpl type = InvalidTypeImpl.instance;
 
   /// Whether this formal parameter inherits from a covariant formal parameter.
   /// This happens when it overrides a method in a supertype that has a
@@ -8749,32 +8749,35 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   @override
   TypeImpl get type {
     _ensureReadResolution();
-    if (_type != null) return _type!;
+    if (_type case var type?) {
+      return type;
+    }
 
     // We must be linking, and the type has not been set yet.
     var type = firstFragment.typeInference?.perform();
     type ??= InvalidTypeImpl.instance;
-    _type = type;
+    this.type = type;
     shouldUseTypeForInitializerInference = false;
 
-    // TODO(scheglov): We repeat this code.
-    var element = this;
-    if (element.getter case var getterElement?) {
-      getterElement.returnType = type;
-    }
-    if (element.setter case var setterElement?) {
-      if (setterElement.isSynthetic) {
-        setterElement.returnType = VoidTypeImpl.instance;
-        setterElement.valueFormalParameter.type = type;
-      }
-    }
-
-    return _type!;
+    return type;
   }
 
   @override
   set type(TypeImpl value) {
     _type = value;
+
+    if (getter case var getter?) {
+      if (getter.isSynthetic) {
+        getter.returnType = type;
+      }
+    }
+
+    if (setter case var setter?) {
+      if (setter.isSynthetic) {
+        setter.returnType = VoidTypeImpl.instance;
+        setter.valueFormalParameter.type = type;
+      }
+    }
   }
 
   List<PropertyInducingFragmentImpl> get _fragments;
