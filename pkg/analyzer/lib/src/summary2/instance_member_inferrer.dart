@@ -266,8 +266,7 @@ class InstanceMemberInferrer {
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
-        var type = combinedGetterType();
-        _setFieldType(field, type);
+        field.type = combinedGetterType();
         return;
       }
 
@@ -276,8 +275,7 @@ class InstanceMemberInferrer {
       // to be the parameter type of the combined member signature of said
       // setter in the direct superinterfaces.
       if (overriddenGetters.isEmpty && overriddenSetters.isNotEmpty) {
-        var type = combinedSetterType();
-        _setFieldType(field, type);
+        field.type = combinedSetterType();
         return;
       }
 
@@ -286,8 +284,7 @@ class InstanceMemberInferrer {
         // and a getter is inferred to be the return type of the combined
         // member signature of said getter in the direct superinterfaces.
         if (field.isFinal) {
-          var type = combinedGetterType();
-          _setFieldType(field, type);
+          field.type = combinedGetterType();
           return;
         }
 
@@ -302,7 +299,7 @@ class InstanceMemberInferrer {
           var setterType = combinedSetterType();
 
           if (getterType == setterType) {
-            _setFieldType(field, getterType);
+            field.type = getterType;
           }
           return;
         }
@@ -755,15 +752,6 @@ class InstanceMemberInferrer {
       return parameters.isNotEmpty && parameters[0].isCovariant;
     }
     return false;
-  }
-
-  static void _setFieldType(FieldElementImpl field, TypeImpl type) {
-    field.type = type;
-    field.getter?.returnType = type;
-    if (field.setter case var setter?) {
-      setter.returnType = VoidTypeImpl.instance;
-      setter.valueFormalParameter.type = type;
-    }
   }
 }
 

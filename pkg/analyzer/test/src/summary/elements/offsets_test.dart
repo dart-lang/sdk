@@ -50,40 +50,40 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class Raw @6
+        #F1 class Raw (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::Raw
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::Raw::@constructor::new
               typeName: Raw
-        #F3 class HasDocComment @50
+        #F3 class HasDocComment (nameOffset:50) (firstTokenOffset:14) (offset:50)
           element: <testLibrary>::@class::HasDocComment
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::HasDocComment::@constructor::new
               typeName: HasDocComment
-        #F5 class HasAnnotation @84
+        #F5 class HasAnnotation (nameOffset:84) (firstTokenOffset:68) (offset:84)
           element: <testLibrary>::@class::HasAnnotation
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:84)
               element: <testLibrary>::@class::HasAnnotation::@constructor::new
               typeName: HasAnnotation
-        #F7 class AnnotationThenComment @148
+        #F7 class AnnotationThenComment (nameOffset:148) (firstTokenOffset:102) (offset:148)
           element: <testLibrary>::@class::AnnotationThenComment
           constructors
-            #F8 synthetic new
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
               element: <testLibrary>::@class::AnnotationThenComment::@constructor::new
               typeName: AnnotationThenComment
-        #F9 class CommentThenAnnotation @220
+        #F9 class CommentThenAnnotation (nameOffset:220) (firstTokenOffset:174) (offset:220)
           element: <testLibrary>::@class::CommentThenAnnotation
           constructors
-            #F10 synthetic new
+            #F10 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:220)
               element: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
               typeName: CommentThenAnnotation
-        #F11 class CommentAroundAnnotation @292
+        #F11 class CommentAroundAnnotation (nameOffset:292) (firstTokenOffset:261) (offset:292)
           element: <testLibrary>::@class::CommentAroundAnnotation
           constructors
-            #F12 synthetic new
+            #F12 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:292)
               element: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
               typeName: CommentAroundAnnotation
   classes
@@ -174,52 +174,52 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B @18
+        #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class Raw @30
+        #F5 class Raw (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::Raw
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::Raw::@constructor::new
               typeName: Raw
-        #F7 class HasDocComment @91
+        #F7 class HasDocComment (nameOffset:91) (firstTokenOffset:55) (offset:91)
           element: <testLibrary>::@class::HasDocComment
           constructors
-            #F8 synthetic const new
+            #F8 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
               element: <testLibrary>::@class::HasDocComment::@constructor::new
               typeName: HasDocComment
-        #F9 class HasAnnotation @142
+        #F9 class HasAnnotation (nameOffset:142) (firstTokenOffset:126) (offset:142)
           element: <testLibrary>::@class::HasAnnotation
           constructors
-            #F10 synthetic const new
+            #F10 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:142)
               element: <testLibrary>::@class::HasAnnotation::@constructor::new
               typeName: HasAnnotation
-        #F11 class AnnotationThenComment @223
+        #F11 class AnnotationThenComment (nameOffset:223) (firstTokenOffset:177) (offset:223)
           element: <testLibrary>::@class::AnnotationThenComment
           constructors
-            #F12 synthetic const new
+            #F12 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:223)
               element: <testLibrary>::@class::AnnotationThenComment::@constructor::new
               typeName: AnnotationThenComment
-        #F13 class CommentThenAnnotation @312
+        #F13 class CommentThenAnnotation (nameOffset:312) (firstTokenOffset:266) (offset:312)
           element: <testLibrary>::@class::CommentThenAnnotation
           constructors
-            #F14 synthetic const new
+            #F14 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:312)
               element: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
               typeName: CommentThenAnnotation
-        #F15 class CommentAroundAnnotation @401
+        #F15 class CommentAroundAnnotation (nameOffset:401) (firstTokenOffset:370) (offset:401)
           element: <testLibrary>::@class::CommentAroundAnnotation
           constructors
-            #F16 synthetic const new
+            #F16 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:401)
               element: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
               typeName: CommentAroundAnnotation
   classes
@@ -390,23 +390,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 new
+            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 4
               typeName: C
               typeNameOffset: 12
-            #F3 raw @22
+            #F3 raw (nameOffset:22) (firstTokenOffset:20) (offset:22)
               element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 20
               codeLength: 10
               typeName: C
               typeNameOffset: 20
               periodOffset: 21
-            #F4 hasDocComment @70
+            #F4 hasDocComment (nameOffset:70) (firstTokenOffset:34) (offset:70)
               element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 34
@@ -414,7 +414,7 @@ library
               typeName: C
               typeNameOffset: 68
               periodOffset: 69
-            #F5 hasAnnotation @106
+            #F5 hasAnnotation (nameOffset:106) (firstTokenOffset:92) (offset:106)
               element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
@@ -432,7 +432,7 @@ library
               typeName: C
               typeNameOffset: 104
               periodOffset: 105
-            #F6 annotationThenComment @176
+            #F6 annotationThenComment (nameOffset:176) (firstTokenOffset:128) (offset:176)
               element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -451,7 +451,7 @@ library
               typeName: C
               typeNameOffset: 174
               periodOffset: 175
-            #F7 commentThenAnnotation @254
+            #F7 commentThenAnnotation (nameOffset:254) (firstTokenOffset:206) (offset:254)
               element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -470,7 +470,7 @@ library
               typeName: C
               typeNameOffset: 252
               periodOffset: 253
-            #F8 commentAroundAnnotation @332
+            #F8 commentAroundAnnotation (nameOffset:332) (firstTokenOffset:301) (offset:332)
               element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -604,23 +604,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 factory new
+            #F2 factory new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 23
               typeName: C
               typeNameOffset: 20
-            #F3 factory raw @49
+            #F3 factory raw (nameOffset:49) (firstTokenOffset:39) (offset:49)
               element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 39
               codeLength: 27
               typeName: C
               typeNameOffset: 47
               periodOffset: 48
-            #F4 factory hasDocComment @114
+            #F4 factory hasDocComment (nameOffset:114) (firstTokenOffset:70) (offset:114)
               element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 70
@@ -628,7 +628,7 @@ library
               typeName: C
               typeNameOffset: 112
               periodOffset: 113
-            #F5 factory hasAnnotation @167
+            #F5 factory hasAnnotation (nameOffset:167) (firstTokenOffset:145) (offset:167)
               element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
@@ -646,7 +646,7 @@ library
               typeName: C
               typeNameOffset: 165
               periodOffset: 166
-            #F6 factory annotationThenComment @254
+            #F6 factory annotationThenComment (nameOffset:254) (firstTokenOffset:198) (offset:254)
               element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -665,7 +665,7 @@ library
               typeName: C
               typeNameOffset: 252
               periodOffset: 253
-            #F7 factory commentThenAnnotation @349
+            #F7 factory commentThenAnnotation (nameOffset:349) (firstTokenOffset:293) (offset:349)
               element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -684,7 +684,7 @@ library
               typeName: C
               typeNameOffset: 347
               periodOffset: 348
-            #F8 factory commentAroundAnnotation @444
+            #F8 factory commentAroundAnnotation (nameOffset:444) (firstTokenOffset:405) (offset:444)
               element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -816,24 +816,24 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension Raw @22
+        #F3 extension Raw (nameOffset:22) (firstTokenOffset:12) (offset:22)
           element: <testLibrary>::@extension::Raw
-        #F4 extension HasDocComment @75
+        #F4 extension HasDocComment (nameOffset:75) (firstTokenOffset:35) (offset:75)
           element: <testLibrary>::@extension::HasDocComment
-        #F5 extension HasAnnotation @118
+        #F5 extension HasAnnotation (nameOffset:118) (firstTokenOffset:98) (offset:118)
           element: <testLibrary>::@extension::HasAnnotation
-        #F6 extension AnnotationThenComment @191
+        #F6 extension AnnotationThenComment (nameOffset:191) (firstTokenOffset:141) (offset:191)
           element: <testLibrary>::@extension::AnnotationThenComment
-        #F7 extension CommentThenAnnotation @272
+        #F7 extension CommentThenAnnotation (nameOffset:272) (firstTokenOffset:222) (offset:272)
           element: <testLibrary>::@extension::CommentThenAnnotation
-        #F8 extension CommentAroundAnnotation @353
+        #F8 extension CommentAroundAnnotation (nameOffset:353) (firstTokenOffset:318) (offset:353)
           element: <testLibrary>::@extension::CommentAroundAnnotation
   classes
     class A
@@ -893,59 +893,59 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasInitializer withInit @16
+            #F2 hasInitializer withInit (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::withInit
-            #F3 withoutInit @37
+            #F3 withoutInit (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@class::C::@field::withoutInit
-            #F4 hasInitializer multiWithInit @57
+            #F4 hasInitializer multiWithInit (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: <testLibrary>::@class::C::@field::multiWithInit
-            #F5 multiWithoutInit @76
+            #F5 multiWithoutInit (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@class::C::@field::multiWithoutInit
-            #F6 hasInitializer multiWithInit2 @94
+            #F6 hasInitializer multiWithInit2 (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::C::@field::multiWithInit2
           constructors
-            #F7 synthetic new
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F8 synthetic withInit
+            #F8 synthetic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::withInit
-            #F9 synthetic withoutInit
+            #F9 synthetic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@getter::withoutInit
-            #F10 synthetic multiWithInit
+            #F10 synthetic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@getter::multiWithInit
-            #F11 synthetic multiWithoutInit
+            #F11 synthetic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@class::C::@getter::multiWithoutInit
-            #F12 synthetic multiWithInit2
+            #F12 synthetic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@class::C::@getter::multiWithInit2
           setters
-            #F13 synthetic withInit
+            #F13 synthetic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::withInit
               formalParameters
-                #F14 value
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::withInit::@formalParameter::value
-            #F15 synthetic withoutInit
+            #F15 synthetic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@setter::withoutInit
               formalParameters
-                #F16 value
+                #F16 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
                   element: <testLibrary>::@class::C::@setter::withoutInit::@formalParameter::value
-            #F17 synthetic multiWithInit
+            #F17 synthetic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@setter::multiWithInit
               formalParameters
-                #F18 value
+                #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: <testLibrary>::@class::C::@setter::multiWithInit::@formalParameter::value
-            #F19 synthetic multiWithoutInit
+            #F19 synthetic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@class::C::@setter::multiWithoutInit
               formalParameters
-                #F20 value
+                #F20 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
                   element: <testLibrary>::@class::C::@setter::multiWithoutInit::@formalParameter::value
-            #F21 synthetic multiWithInit2
+            #F21 synthetic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@class::C::@setter::multiWithInit2
               formalParameters
-                #F22 value
+                #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
                   element: <testLibrary>::@class::C::@setter::multiWithInit2::@formalParameter::value
   classes
     class C
@@ -1090,104 +1090,104 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 hasDocComment @50
+            #F2 hasDocComment (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::C::@field::hasDocComment
-            #F3 hasDocComment2 @65
+            #F3 hasDocComment2 (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@class::C::@field::hasDocComment2
-            #F4 hasAnnotation @100
+            #F4 hasAnnotation (nameOffset:100) (firstTokenOffset:100) (offset:100)
               element: <testLibrary>::@class::C::@field::hasAnnotation
-            #F5 hasAnnotation2 @115
+            #F5 hasAnnotation2 (nameOffset:115) (firstTokenOffset:115) (offset:115)
               element: <testLibrary>::@class::C::@field::hasAnnotation2
-            #F6 annotationThenComment @184
+            #F6 annotationThenComment (nameOffset:184) (firstTokenOffset:184) (offset:184)
               element: <testLibrary>::@class::C::@field::annotationThenComment
-            #F7 annotationThenComment2 @207
+            #F7 annotationThenComment2 (nameOffset:207) (firstTokenOffset:207) (offset:207)
               element: <testLibrary>::@class::C::@field::annotationThenComment2
-            #F8 commentThenAnnotation @284
+            #F8 commentThenAnnotation (nameOffset:284) (firstTokenOffset:284) (offset:284)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation
-            #F9 commentThenAnnotation2 @307
+            #F9 commentThenAnnotation2 (nameOffset:307) (firstTokenOffset:307) (offset:307)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation2
-            #F10 commentAroundAnnotation @384
+            #F10 commentAroundAnnotation (nameOffset:384) (firstTokenOffset:384) (offset:384)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation
-            #F11 commentAroundAnnotation2 @409
+            #F11 commentAroundAnnotation2 (nameOffset:409) (firstTokenOffset:409) (offset:409)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation2
           constructors
-            #F12 synthetic new
+            #F12 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F13 synthetic hasDocComment
+            #F13 synthetic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@getter::hasDocComment
-            #F14 synthetic hasDocComment2
+            #F14 synthetic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::C::@getter::hasDocComment2
-            #F15 synthetic hasAnnotation
+            #F15 synthetic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
               element: <testLibrary>::@class::C::@getter::hasAnnotation
-            #F16 synthetic hasAnnotation2
+            #F16 synthetic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
               element: <testLibrary>::@class::C::@getter::hasAnnotation2
-            #F17 synthetic annotationThenComment
+            #F17 synthetic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
               element: <testLibrary>::@class::C::@getter::annotationThenComment
-            #F18 synthetic annotationThenComment2
+            #F18 synthetic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
               element: <testLibrary>::@class::C::@getter::annotationThenComment2
-            #F19 synthetic commentThenAnnotation
+            #F19 synthetic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation
-            #F20 synthetic commentThenAnnotation2
+            #F20 synthetic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation2
-            #F21 synthetic commentAroundAnnotation
+            #F21 synthetic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation
-            #F22 synthetic commentAroundAnnotation2
+            #F22 synthetic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
           setters
-            #F23 synthetic hasDocComment
+            #F23 synthetic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@setter::hasDocComment
               formalParameters
-                #F24 value
+                #F24 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
                   element: <testLibrary>::@class::C::@setter::hasDocComment::@formalParameter::value
-            #F25 synthetic hasDocComment2
+            #F25 synthetic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::C::@setter::hasDocComment2
               formalParameters
-                #F26 value
+                #F26 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
                   element: <testLibrary>::@class::C::@setter::hasDocComment2::@formalParameter::value
-            #F27 synthetic hasAnnotation
+            #F27 synthetic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
               element: <testLibrary>::@class::C::@setter::hasAnnotation
               formalParameters
-                #F28 value
+                #F28 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
                   element: <testLibrary>::@class::C::@setter::hasAnnotation::@formalParameter::value
-            #F29 synthetic hasAnnotation2
+            #F29 synthetic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
               element: <testLibrary>::@class::C::@setter::hasAnnotation2
               formalParameters
-                #F30 value
+                #F30 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
                   element: <testLibrary>::@class::C::@setter::hasAnnotation2::@formalParameter::value
-            #F31 synthetic annotationThenComment
+            #F31 synthetic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
               element: <testLibrary>::@class::C::@setter::annotationThenComment
               formalParameters
-                #F32 value
+                #F32 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
                   element: <testLibrary>::@class::C::@setter::annotationThenComment::@formalParameter::value
-            #F33 synthetic annotationThenComment2
+            #F33 synthetic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
               element: <testLibrary>::@class::C::@setter::annotationThenComment2
               formalParameters
-                #F34 value
+                #F34 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
                   element: <testLibrary>::@class::C::@setter::annotationThenComment2::@formalParameter::value
-            #F35 synthetic commentThenAnnotation
+            #F35 synthetic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation
               formalParameters
-                #F36 value
+                #F36 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation::@formalParameter::value
-            #F37 synthetic commentThenAnnotation2
+            #F37 synthetic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation2
               formalParameters
-                #F38 value
+                #F38 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation2::@formalParameter::value
-            #F39 synthetic commentAroundAnnotation
+            #F39 synthetic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation
               formalParameters
-                #F40 value
+                #F40 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
                   element: <testLibrary>::@class::C::@setter::commentAroundAnnotation::@formalParameter::value
-            #F41 synthetic commentAroundAnnotation2
+            #F41 synthetic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
               formalParameters
-                #F42 value
+                #F42 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
                   element: <testLibrary>::@class::C::@setter::commentAroundAnnotation2::@formalParameter::value
   classes
     class C
@@ -1427,12 +1427,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 raw @5
+        #F1 raw (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::raw
-        #F2 hasDocComment @50
+        #F2 hasDocComment (nameOffset:50) (firstTokenOffset:15) (offset:50)
           element: <testLibrary>::@function::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F3 hasAnnotation @85
+        #F3 hasAnnotation (nameOffset:85) (firstTokenOffset:70) (offset:85)
           element: <testLibrary>::@function::hasAnnotation
           metadata
             Annotation
@@ -1445,7 +1445,7 @@ library
                 leftParenthesis: ( @77
                 rightParenthesis: ) @78
               element2: dart:core::@class::Object::@constructor::new
-        #F4 annotationThenComment @150
+        #F4 annotationThenComment (nameOffset:150) (firstTokenOffset:105) (offset:150)
           element: <testLibrary>::@function::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1459,7 +1459,7 @@ library
                 leftParenthesis: ( @112
                 rightParenthesis: ) @113
               element2: dart:core::@class::Object::@constructor::new
-        #F5 commentThenAnnotation @223
+        #F5 commentThenAnnotation (nameOffset:223) (firstTokenOffset:178) (offset:223)
           element: <testLibrary>::@function::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1473,7 +1473,7 @@ library
                 leftParenthesis: ( @215
                 rightParenthesis: ) @216
               element2: dart:core::@class::Object::@constructor::new
-        #F6 commentAroundAnnotation @296
+        #F6 commentAroundAnnotation (nameOffset:296) (firstTokenOffset:266) (offset:296)
           element: <testLibrary>::@function::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -1599,23 +1599,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 raw @17
+            #F3 raw (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::C::@method::raw
               codeOffset: 12
               codeLength: 13
-            #F4 hasDocComment @68
+            #F4 hasDocComment (nameOffset:68) (firstTokenOffset:29) (offset:68)
               element: <testLibrary>::@class::C::@method::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 29
               codeLength: 57
-            #F5 hasAnnotation @107
+            #F5 hasAnnotation (nameOffset:107) (firstTokenOffset:90) (offset:107)
               element: <testLibrary>::@class::C::@method::hasAnnotation
               metadata
                 Annotation
@@ -1630,7 +1630,7 @@ library
                   element2: dart:core::@class::Object::@constructor::new
               codeOffset: 90
               codeLength: 35
-            #F6 annotationThenComment @180
+            #F6 annotationThenComment (nameOffset:180) (firstTokenOffset:129) (offset:180)
               element: <testLibrary>::@class::C::@method::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -1646,7 +1646,7 @@ library
                   element2: dart:core::@class::Object::@constructor::new
               codeOffset: 129
               codeLength: 77
-            #F7 commentThenAnnotation @261
+            #F7 commentThenAnnotation (nameOffset:261) (firstTokenOffset:210) (offset:261)
               element: <testLibrary>::@class::C::@method::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -1662,7 +1662,7 @@ library
                   element2: dart:core::@class::Object::@constructor::new
               codeOffset: 210
               codeLength: 77
-            #F8 commentAroundAnnotation @342
+            #F8 commentAroundAnnotation (nameOffset:342) (firstTokenOffset:308) (offset:342)
               element: <testLibrary>::@class::C::@method::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -1774,18 +1774,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 main @0
+        #F1 main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
-            #F2 a @10
+            #F2 a (nameOffset:10) (firstTokenOffset:6) (offset:10)
               element: <testLibrary>::@function::main::@formalParameter::a
               initializer: expression_0
                 IntegerLiteral
                   literal: 1 @14
                   staticType: int
-            #F3 b @21
+            #F3 b (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@function::main::@formalParameter::b
-            #F4 c @28
+            #F4 c (nameOffset:28) (firstTokenOffset:24) (offset:28)
               element: <testLibrary>::@function::main::@formalParameter::c
               initializer: expression_1
                 IntegerLiteral
@@ -1827,10 +1827,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 main @0
+        #F1 main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
-            #F2 a @19
+            #F2 a (nameOffset:19) (firstTokenOffset:5) (offset:19)
               element: <testLibrary>::@function::main::@formalParameter::a
               metadata
                 Annotation
@@ -1843,9 +1843,9 @@ library
                     leftParenthesis: ( @12
                     rightParenthesis: ) @13
                   element2: dart:core::@class::Object::@constructor::new
-            #F3 b @26
+            #F3 b (nameOffset:26) (firstTokenOffset:22) (offset:26)
               element: <testLibrary>::@function::main::@formalParameter::b
-            #F4 c @43
+            #F4 c (nameOffset:43) (firstTokenOffset:29) (offset:43)
               element: <testLibrary>::@function::main::@formalParameter::c
               metadata
                 Annotation
@@ -1914,52 +1914,52 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer withInit @4
+        #F1 hasInitializer withInit (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::withInit
-        #F2 withoutInit @31
+        #F2 withoutInit (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::withoutInit
-        #F3 hasInitializer multiWithInit @49
+        #F3 hasInitializer multiWithInit (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::multiWithInit
-        #F4 multiWithoutInit @68
+        #F4 multiWithoutInit (nameOffset:68) (firstTokenOffset:68) (offset:68)
           element: <testLibrary>::@topLevelVariable::multiWithoutInit
-        #F5 hasInitializer multiWithInit2 @86
+        #F5 hasInitializer multiWithInit2 (nameOffset:86) (firstTokenOffset:86) (offset:86)
           element: <testLibrary>::@topLevelVariable::multiWithInit2
       getters
-        #F6 synthetic withInit
+        #F6 synthetic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::withInit
-        #F7 synthetic withoutInit
+        #F7 synthetic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::withoutInit
-        #F8 synthetic multiWithInit
+        #F8 synthetic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::multiWithInit
-        #F9 synthetic multiWithoutInit
+        #F9 synthetic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
           element: <testLibrary>::@getter::multiWithoutInit
-        #F10 synthetic multiWithInit2
+        #F10 synthetic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
           element: <testLibrary>::@getter::multiWithInit2
       setters
-        #F11 synthetic withInit
+        #F11 synthetic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::withInit
           formalParameters
-            #F12 value
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::withInit::@formalParameter::value
-        #F13 synthetic withoutInit
+        #F13 synthetic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::withoutInit
           formalParameters
-            #F14 value
+            #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::withoutInit::@formalParameter::value
-        #F15 synthetic multiWithInit
+        #F15 synthetic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::multiWithInit
           formalParameters
-            #F16 value
+            #F16 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::multiWithInit::@formalParameter::value
-        #F17 synthetic multiWithoutInit
+        #F17 synthetic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
           element: <testLibrary>::@setter::multiWithoutInit
           formalParameters
-            #F18 value
+            #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@setter::multiWithoutInit::@formalParameter::value
-        #F19 synthetic multiWithInit2
+        #F19 synthetic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
           element: <testLibrary>::@setter::multiWithInit2
           formalParameters
-            #F20 value
+            #F20 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
               element: <testLibrary>::@setter::multiWithInit2::@formalParameter::value
   topLevelVariables
     hasInitializer withInit
@@ -2094,13 +2094,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasDocComment @34
+        #F1 hasDocComment (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F2 hasDocComment2 @49
+        #F2 hasDocComment2 (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::hasDocComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F3 hasAnnotation @80
+        #F3 hasAnnotation (nameOffset:80) (firstTokenOffset:80) (offset:80)
           element: <testLibrary>::@topLevelVariable::hasAnnotation
           metadata
             Annotation
@@ -2113,7 +2113,7 @@ library
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element2: dart:core::@class::Object::@constructor::new
-        #F4 hasAnnotation2 @95
+        #F4 hasAnnotation2 (nameOffset:95) (firstTokenOffset:95) (offset:95)
           element: <testLibrary>::@topLevelVariable::hasAnnotation2
           metadata
             Annotation
@@ -2126,7 +2126,7 @@ library
                 leftParenthesis: ( @73
                 rightParenthesis: ) @74
               element2: dart:core::@class::Object::@constructor::new
-        #F5 annotationThenComment @156
+        #F5 annotationThenComment (nameOffset:156) (firstTokenOffset:156) (offset:156)
           element: <testLibrary>::@topLevelVariable::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2140,7 +2140,7 @@ library
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element2: dart:core::@class::Object::@constructor::new
-        #F6 annotationThenComment2 @179
+        #F6 annotationThenComment2 (nameOffset:179) (firstTokenOffset:179) (offset:179)
           element: <testLibrary>::@topLevelVariable::annotationThenComment2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2154,7 +2154,7 @@ library
                 leftParenthesis: ( @119
                 rightParenthesis: ) @120
               element2: dart:core::@class::Object::@constructor::new
-        #F7 commentThenAnnotation @248
+        #F7 commentThenAnnotation (nameOffset:248) (firstTokenOffset:248) (offset:248)
           element: <testLibrary>::@topLevelVariable::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2168,7 +2168,7 @@ library
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element2: dart:core::@class::Object::@constructor::new
-        #F8 commentThenAnnotation2 @271
+        #F8 commentThenAnnotation2 (nameOffset:271) (firstTokenOffset:271) (offset:271)
           element: <testLibrary>::@topLevelVariable::commentThenAnnotation2
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -2182,7 +2182,7 @@ library
                 leftParenthesis: ( @241
                 rightParenthesis: ) @242
               element2: dart:core::@class::Object::@constructor::new
-        #F9 commentAroundAnnotation @340
+        #F9 commentAroundAnnotation (nameOffset:340) (firstTokenOffset:340) (offset:340)
           element: <testLibrary>::@topLevelVariable::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -2196,7 +2196,7 @@ library
                 leftParenthesis: ( @318
                 rightParenthesis: ) @319
               element2: dart:core::@class::Object::@constructor::new
-        #F10 commentAroundAnnotation2 @365
+        #F10 commentAroundAnnotation2 (nameOffset:365) (firstTokenOffset:365) (offset:365)
           element: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
           documentationComment: /// Comment 2.
           metadata
@@ -2211,76 +2211,76 @@ library
                 rightParenthesis: ) @319
               element2: dart:core::@class::Object::@constructor::new
       getters
-        #F11 synthetic hasDocComment
+        #F11 synthetic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@getter::hasDocComment
-        #F12 synthetic hasDocComment2
+        #F12 synthetic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::hasDocComment2
-        #F13 synthetic hasAnnotation
+        #F13 synthetic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
           element: <testLibrary>::@getter::hasAnnotation
-        #F14 synthetic hasAnnotation2
+        #F14 synthetic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
           element: <testLibrary>::@getter::hasAnnotation2
-        #F15 synthetic annotationThenComment
+        #F15 synthetic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
           element: <testLibrary>::@getter::annotationThenComment
-        #F16 synthetic annotationThenComment2
+        #F16 synthetic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
           element: <testLibrary>::@getter::annotationThenComment2
-        #F17 synthetic commentThenAnnotation
+        #F17 synthetic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
           element: <testLibrary>::@getter::commentThenAnnotation
-        #F18 synthetic commentThenAnnotation2
+        #F18 synthetic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
           element: <testLibrary>::@getter::commentThenAnnotation2
-        #F19 synthetic commentAroundAnnotation
+        #F19 synthetic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
           element: <testLibrary>::@getter::commentAroundAnnotation
-        #F20 synthetic commentAroundAnnotation2
+        #F20 synthetic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
           element: <testLibrary>::@getter::commentAroundAnnotation2
       setters
-        #F21 synthetic hasDocComment
+        #F21 synthetic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@setter::hasDocComment
           formalParameters
-            #F22 value
+            #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@setter::hasDocComment::@formalParameter::value
-        #F23 synthetic hasDocComment2
+        #F23 synthetic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::hasDocComment2
           formalParameters
-            #F24 value
+            #F24 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::hasDocComment2::@formalParameter::value
-        #F25 synthetic hasAnnotation
+        #F25 synthetic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
           element: <testLibrary>::@setter::hasAnnotation
           formalParameters
-            #F26 value
+            #F26 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
               element: <testLibrary>::@setter::hasAnnotation::@formalParameter::value
-        #F27 synthetic hasAnnotation2
+        #F27 synthetic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
           element: <testLibrary>::@setter::hasAnnotation2
           formalParameters
-            #F28 value
+            #F28 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
               element: <testLibrary>::@setter::hasAnnotation2::@formalParameter::value
-        #F29 synthetic annotationThenComment
+        #F29 synthetic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
           element: <testLibrary>::@setter::annotationThenComment
           formalParameters
-            #F30 value
+            #F30 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
               element: <testLibrary>::@setter::annotationThenComment::@formalParameter::value
-        #F31 synthetic annotationThenComment2
+        #F31 synthetic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
           element: <testLibrary>::@setter::annotationThenComment2
           formalParameters
-            #F32 value
+            #F32 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
               element: <testLibrary>::@setter::annotationThenComment2::@formalParameter::value
-        #F33 synthetic commentThenAnnotation
+        #F33 synthetic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
           element: <testLibrary>::@setter::commentThenAnnotation
           formalParameters
-            #F34 value
+            #F34 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
               element: <testLibrary>::@setter::commentThenAnnotation::@formalParameter::value
-        #F35 synthetic commentThenAnnotation2
+        #F35 synthetic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
           element: <testLibrary>::@setter::commentThenAnnotation2
           formalParameters
-            #F36 value
+            #F36 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
               element: <testLibrary>::@setter::commentThenAnnotation2::@formalParameter::value
-        #F37 synthetic commentAroundAnnotation
+        #F37 synthetic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
           element: <testLibrary>::@setter::commentAroundAnnotation
           formalParameters
-            #F38 value
+            #F38 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
               element: <testLibrary>::@setter::commentAroundAnnotation::@formalParameter::value
-        #F39 synthetic commentAroundAnnotation2
+        #F39 synthetic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
           element: <testLibrary>::@setter::commentAroundAnnotation2
           formalParameters
-            #F40 value
+            #F40 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
               element: <testLibrary>::@setter::commentAroundAnnotation2::@formalParameter::value
   topLevelVariables
     hasDocComment
@@ -2587,20 +2587,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       functions
-        #F4 f @19
+        #F4 f (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@function::f
           typeParameters
-            #F5 U @21
+            #F5 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: #E1 U
   classes
     class A
@@ -2639,14 +2639,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new
+            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
-            #F3 named @21
+            #F3 named (nameOffset:21) (firstTokenOffset:19) (offset:21)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 19
@@ -2678,15 +2678,15 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new
+            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
               formalParameters
-                #F3 a @18
+                #F3 a (nameOffset:18) (firstTokenOffset:14) (offset:18)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
   classes
     class A
@@ -2716,23 +2716,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer foo @16
+            #F2 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 synthetic foo
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
           setters
-            #F5 synthetic foo
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F6 value
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
   classes
     class A
@@ -2780,17 +2780,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 foo @20
+            #F4 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
@@ -2828,20 +2828,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 foo @17
+            #F3 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::foo
               typeParameters
-                #F4 T @21
+                #F4 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
               formalParameters
-                #F5 a @28
+                #F5 a (nameOffset:28) (firstTokenOffset:24) (offset:28)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
   classes
     class A
@@ -2879,20 +2879,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            #F4 foo @16
+            #F4 foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
-                #F5 x @24
+                #F5 x (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@class::A::@setter::foo::@formalParameter::x
   classes
     class A
@@ -2931,13 +2931,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
   classes
@@ -2965,10 +2965,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   extensions
     extension E
@@ -2992,16 +2992,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 f @12
+            #F2 f (nameOffset:12) (firstTokenOffset:7) (offset:12)
               element: <testLibrary>::@function::f::@formalParameter::f
               typeParameters
-                #F3 U @14
+                #F3 U (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: #E0 U
               parameters
-                #F4 a @21
+                #F4 a (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: a@21
   functions
     f
@@ -3033,16 +3033,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 f @22
+            #F2 f (nameOffset:22) (firstTokenOffset:8) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::f
               typeParameters
-                #F3 U @24
+                #F3 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
                   element: #E0 U
               parameters
-                #F4 a @31
+                #F4 a (nameOffset:31) (firstTokenOffset:27) (offset:31)
                   element: a@31
   functions
     f
@@ -3074,10 +3074,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
   functions
     f
@@ -3101,10 +3101,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @15
+            #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
     F
@@ -3128,10 +3128,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @10
+            #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
     F
@@ -3155,10 +3155,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
   mixins
     mixin M
@@ -3183,10 +3183,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic foo (offset=8)
+        #F1 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::foo
       getters
-        #F2 foo @8
+        #F2 foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::foo
   topLevelVariables
     synthetic foo

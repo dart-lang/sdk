@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../utils.dart' as utils;
@@ -17,9 +18,6 @@ void main() {
     'language-server',
     defineLanguageServerTests,
     timeout: utils.longTimeout,
-    onPlatform: {
-      'windows': Skip('https://github.com/dart-lang/sdk/issues/44679'),
-    },
   );
 }
 
@@ -27,9 +25,11 @@ void defineLanguageServerTests() {
   late utils.TestProject project;
   Process? process;
 
-  Future<void> runWithLsp(List<String> args) async {
+  setUp(() {
     project = utils.project();
+  });
 
+  Future<void> runWithLsp(List<String> args) async {
     process = await project.start(args);
 
     // Send an LSP init.
@@ -43,6 +43,13 @@ void defineLanguageServerTests() {
         'capabilities': {},
         'rootUri': project.dir.uri.toString(),
       },
+    });
+
+    // If we get stderr output (for example because we passed invalid args)
+    // then throw rather than waiting forever on stdout content that will never
+    // arrive.
+    process!.stderr.transform(utf8.decoder).listen((data) {
+      throw data.toString();
     });
 
     process!.stdin.write('Content-Length: ${message.length}\r\n');
@@ -65,12 +72,42 @@ void defineLanguageServerTests() {
     process = null;
   }
 
+  Future<void> runWithLegacy(List<String> args) async {
+    process = await project.start(args);
+
+    final Stream<String> inStream = process!.stdout
+        .transform<String>(utf8.decoder)
+        .transform<String>(const LineSplitter());
+
+    final line = await inStream.first;
+    final json = jsonDecode(line);
+
+    expect(json['event'], 'server.connected');
+    expect(json['params'], isNotNull);
+    final params = json['params'];
+    expect(params['version'], isNotEmpty);
+    expect(params['pid'], isNot(0));
+
+    process!.kill();
+    process = null;
+  }
+
   test('protocol default', () async {
     return runWithLsp(['language-server']);
   });
 
-  test('protocol lsp', () async {
+  test('protocol default with --protocol-log-file', () async {
+    // https://github.com/dart-lang/sdk/issues/52501
+    final logFile = path.join(project.dir.path, 'log.txt');
+    return runWithLsp(['language-server', '--protocol-traffic-log=$logFile']);
+  });
+
+  test('--protocol=lsp', () async {
     return runWithLsp(['language-server', '--protocol=lsp']);
+  });
+
+  test('--protocol lsp', () async {
+    return runWithLsp(['language-server', '--protocol', 'lsp']);
   });
 
   test('--use-aot-snapshot', () async {
@@ -97,26 +134,12 @@ void defineLanguageServerTests() {
     ]);
   });
 
-  test('protocol analyzer', () async {
-    project = utils.project();
+  test('--protocol=analyzer', () async {
+    await runWithLegacy(['language-server', '--protocol=analyzer']);
+  });
 
-    process = await project.start(['language-server', '--protocol=analyzer']);
-
-    final Stream<String> inStream = process!.stdout
-        .transform<String>(utf8.decoder)
-        .transform<String>(const LineSplitter());
-
-    final line = await inStream.first;
-    final json = jsonDecode(line);
-
-    expect(json['event'], 'server.connected');
-    expect(json['params'], isNotNull);
-    final params = json['params'];
-    expect(params['version'], isNotEmpty);
-    expect(params['pid'], isNot(0));
-
-    process!.kill();
-    process = null;
+  test('--protocol analyzer', () async {
+    await runWithLegacy(['language-server', '--protocol', 'analyzer']);
   });
 }
 
@@ -137,6 +160,13 @@ Future<String> _readLspMessage(Stream<List<int>> stream) {
 
       // Check whether the buffer has a complete message.
       final bufferString = buffer.toString();
+
+      // If the buffer has what looks like the legacy banner, then just fail
+      // because we will never get an LSP message.
+      if (bufferString.contains('"event":"server.connected"')) {
+        completer.completeError(
+            'Expected LSP message but got legacy message: $bufferString');
+      }
 
       // To know if we have a complete message, we need to check we have the
       // headers, extract the content-length, then check we have that many

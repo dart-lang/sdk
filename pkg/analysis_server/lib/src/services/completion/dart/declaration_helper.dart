@@ -1832,6 +1832,7 @@ class DeclarationHelper {
       return;
     }
     if (checkVisibilty &&
+        constructors.isNotEmpty &&
         !visibilityTracker.isVisible(
           element: constructors.first.enclosingElement,
           importData: importData,

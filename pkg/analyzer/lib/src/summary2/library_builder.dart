@@ -223,8 +223,6 @@ class LibraryBuilder {
       );
       enum_.valuesTypeNode.type = valuesType;
       enum_.valuesElement.element.type = valuesType;
-      // TODO(scheglov): We repeat this code.
-      enum_.valuesElement.element.getter!.returnType = valuesType;
     }
   }
 

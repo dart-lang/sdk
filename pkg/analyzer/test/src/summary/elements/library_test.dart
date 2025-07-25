@@ -30,7 +30,7 @@ library
   name: test
   documentationComment: /**\n * aaa\n * bbb\n */
   fragments
-    #F0 <testLibraryFragment> (offset=30)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:30)
       element: <testLibrary>
 ''');
   }
@@ -71,7 +71,7 @@ library
   name: test
   documentationComment: /// aaa\n/// bbb
   fragments
-    #F0 <testLibraryFragment> (offset=24)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:24)
       element: <testLibrary>
 ''');
   }
@@ -86,7 +86,7 @@ library
   reference: <testLibrary>
   name: foo.bar
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
 ''');
   }
@@ -115,7 +115,7 @@ library
   reference: <testLibrary>
   name: foo.bar
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
 ''');
   }
