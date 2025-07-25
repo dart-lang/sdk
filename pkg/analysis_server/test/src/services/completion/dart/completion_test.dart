@@ -100,6 +100,19 @@ abstract class C {
 ''');
     assertHasNoCompletion('C.c');
   }
+
+  /// Ensures completion does not error when a typedef points at a mixin because
+  /// there are no constructors.
+  Future<void> test_typeDef_toMixin_noError_issue61197() async {
+    await getTestCodeSuggestions('''
+typedef T = M;
+mixin M {}
+
+void main() {
+  ^
+}
+''');
+  }
 }
 
 @reflectiveTest
