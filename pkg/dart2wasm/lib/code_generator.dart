@@ -4415,17 +4415,6 @@ class SwitchInfo {
             translator.typeEnvironment.isSubtypeOf(codeGen.dartTypeOf(e),
                 translator.coreTypes.typeNonNullableRawType));
 
-    void useCompareIdentity() {
-      // Object identity switch
-      nonNullableType = translator.topTypeNonNullable;
-      nullableType = translator.topType;
-      compare = (switchExprLocal, pushCaseExpr) {
-        codeGen.b.local_get(switchExprLocal);
-        pushCaseExpr();
-        codeGen.call(translator.coreTypes.identicalProcedure.reference);
-      };
-    }
-
     if (node.cases.every((c) =>
         c.expressions.isEmpty && c.isDefault ||
         c.expressions.every((e) =>
@@ -4616,17 +4605,33 @@ class SwitchInfo {
           // Now that we've normalized to 0 it should be safe to switch to i32.
           codeGen.b.i32_wrap_i64();
         });
+      }
 
+      if (brTable == null) {
+        // Object identity switch
+        nonNullableType = translator.topTypeNonNullable;
+        nullableType = translator.topType;
+      } else {
         nonNullableType =
             translator.classInfo[switchExprClass]!.nonNullableType;
         nullableType = translator.classInfo[switchExprClass]!.nullableType;
       }
 
-      if (brTable == null) {
-        useCompareIdentity();
-      }
+      // Set compare anyway for state machine handling
+      compare = (switchExprLocal, pushCaseExpr) {
+        codeGen.b.local_get(switchExprLocal);
+        pushCaseExpr();
+        codeGen.call(translator.coreTypes.identicalProcedure.reference);
+      };
     } else {
-      useCompareIdentity();
+      // Object identity switch
+      nonNullableType = translator.topTypeNonNullable;
+      nullableType = translator.topType;
+      compare = (switchExprLocal, pushCaseExpr) {
+        codeGen.b.local_get(switchExprLocal);
+        pushCaseExpr();
+        codeGen.call(translator.coreTypes.identicalProcedure.reference);
+      };
     }
 
     _initializeSpecialCases(node);
