@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -276,8 +275,8 @@ import 'b.dart';
 var v = a;
 ''');
 
-    var vg = findNode.simple('a;').element as PropertyAccessorElement;
-    var v = vg.variable!.firstFragment as VariableFragmentImpl;
+    var vg = findNode.simple('a;').element as PropertyAccessorElementImpl;
+    var v = vg.variable.firstFragment;
 
     var creation = v.constantInitializer as InstanceCreationExpression;
     return creation;

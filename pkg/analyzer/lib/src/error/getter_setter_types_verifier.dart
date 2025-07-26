@@ -125,7 +125,7 @@ class GetterSetterTypesVerifier {
       return;
     }
 
-    var setter = getter.variable?.setter;
+    var setter = getter.variable.setter;
     if (setter == null) {
       return;
     }

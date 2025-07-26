@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_testing/package_root.dart' as package_root;
-import 'package:analyzer_utilities/tools.dart';
+import 'package:analyzer_utilities/generated_content_check.dart';
 import 'package:path/path.dart';
 
 import 'generate.dart';
@@ -15,9 +15,7 @@ void main() async {
     join(package_root.packageRoot, 'analyzer', 'lib', 'src', 'summary'),
   );
   var idlPath = normalize(join(idlFolderPath, 'idl.dart'));
-  await GeneratedContent.checkAll(
-    package_root.packageRoot,
-    'pkg/analyzer/tool/summary/generate.dart',
-    getAllTargets(idlPath),
-  );
+  await getAllTargets(
+    idlPath,
+  ).check(package_root.packageRoot, 'pkg/analyzer/tool/summary/generate.dart');
 }

@@ -1,5 +1,6 @@
 ## 8.1.0-dev
 * Add `DartObject.constructorInvocation` with the constructor and arguments.
+* Make `PropertyAccessorElement.variable` non-nullable.
 * Fix draining analysis events when used by `package:build`.
 * Deprecate `LibraryElementResult.element2`, use `element` instead.
 * Deprecate `ResolvedLibraryResult.element2`, use `element` instead.

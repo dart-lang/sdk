@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
-import 'package:analyzer_utilities/tools.dart';
+import 'package:analyzer_utilities/generated_content_check.dart';
 import 'package:path/path.dart';
 
 import 'generate.dart';
@@ -12,9 +12,8 @@ import 'generate.dart';
 /// user to run `generate.dart`.
 void main() async {
   String pkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
-  await GeneratedContent.checkAll(
+  await allTargets.check(
     pkg_root.packageRoot,
     join(pkgPath, 'tool', 'experiments', 'generate.dart'),
-    allTargets,
   );
 }

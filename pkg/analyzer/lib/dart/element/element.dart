@@ -3482,7 +3482,7 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   ///
   /// If this getter was explicitly defined (is not synthetic) then the variable
   /// associated with it will be synthetic.
-  PropertyInducingElement? get variable;
+  PropertyInducingElement get variable;
 
   /// The field or top-level variable associated with this getter.
   ///

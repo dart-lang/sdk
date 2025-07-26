@@ -390,13 +390,8 @@ class AnnotationResolver {
   ) {
     // The accessor should be synthetic, the variable should be constant, and
     // there should be no arguments.
-    var variableElement = accessorElement.variable;
-    if (variableElement == null) {
-      return;
-    }
-
     if (!accessorElement.isSynthetic ||
-        !variableElement.isConst ||
+        !accessorElement.variable.isConst ||
         annotation.arguments != null) {
       _diagnosticReporter.atNode(
         annotation,

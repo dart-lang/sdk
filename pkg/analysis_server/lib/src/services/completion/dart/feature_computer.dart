@@ -199,11 +199,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable == null) {
-        return protocol.ElementKind.UNKNOWN;
-      }
-      element = variable;
+      element = element.variable;
     }
     var kind = element.kind;
     if (kind == ElementKind.CONSTRUCTOR) {
@@ -255,11 +251,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable == null) {
-        return protocol.ElementKind.UNKNOWN;
-      }
-      element = variable;
+      element = element.variable;
     }
     var kind = element.kind;
     if (kind == ElementKind.CONSTRUCTOR) {
@@ -392,7 +384,7 @@ class FeatureComputer {
       return 1.0;
     } else if (element is PropertyAccessorElement && element.isSynthetic) {
       var variable = element.variable;
-      if (variable != null && variable.isStatic && variable.isConst) {
+      if (variable.isStatic && variable.isConst) {
         return 1.0;
       }
     }
@@ -695,6 +687,23 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       return typeProvider.boolType;
     }
     return null;
+  }
+
+  @override
+  DartType? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitDotShorthandInvocation(DotShorthandInvocation node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    return _visitParent(node);
   }
 
   @override

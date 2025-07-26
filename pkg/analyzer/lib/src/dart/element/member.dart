@@ -589,7 +589,7 @@ class GetterMember extends PropertyAccessorMember
 
   @override
   SetterElement2OrMember? get correspondingSetter {
-    var baseSetter = baseElement.variable!.setter;
+    var baseSetter = baseElement.variable.setter;
     if (baseSetter == null) {
       return null;
     }
@@ -619,12 +619,11 @@ class GetterMember extends PropertyAccessorMember
 
   @override
   Element get nonSynthetic {
-    if (!isSynthetic) {
-      return this;
-    } else if (variable case var variable?) {
+    if (isSynthetic) {
       return variable.nonSynthetic;
+    } else {
+      return this;
     }
-    throw StateError('Synthetic getter has no variable');
   }
 
   @override
@@ -1081,7 +1080,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
-  PropertyInducingElement2OrMember? get variable {
+  PropertyInducingElement2OrMember get variable {
     var variable = baseElement.variable;
     switch (variable) {
       case FieldElementImpl():
@@ -1121,7 +1120,7 @@ class SetterMember extends PropertyAccessorMember
 
   @override
   GetterElement2OrMember? get correspondingGetter {
-    var baseGetter = baseElement.variable!.getter;
+    var baseGetter = baseElement.variable.getter;
     if (baseGetter == null) {
       return null;
     }
@@ -1151,12 +1150,11 @@ class SetterMember extends PropertyAccessorMember
 
   @override
   Element get nonSynthetic {
-    if (!isSynthetic) {
-      return this;
-    } else if (variable case var variable?) {
+    if (isSynthetic) {
       return variable.nonSynthetic;
+    } else {
+      return this;
     }
-    throw StateError('Synthetic setter has no variable');
   }
 
   @override

@@ -998,7 +998,7 @@ class _ClassVerifier {
           continue;
         }
         if (getter.metadata.hasMustBeOverridden ||
-            (getter.variable?.metadata.hasMustBeOverridden ?? false)) {
+            (getter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getGetter(getter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(getter);
@@ -1013,7 +1013,7 @@ class _ClassVerifier {
           continue;
         }
         if (setter.metadata.hasMustBeOverridden ||
-            (setter.variable?.metadata.hasMustBeOverridden ?? false)) {
+            (setter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getSetter(setter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(setter);

@@ -4054,7 +4054,7 @@ package:analyzer/dart/element/element.dart:
     enclosingElement2 (getter: Element, deprecated)
     firstFragment (getter: PropertyAccessorFragment)
     fragments (getter: List<PropertyAccessorFragment>)
-    variable (getter: PropertyInducingElement?)
+    variable (getter: PropertyInducingElement)
     variable3 (getter: PropertyInducingElement?, deprecated)
   PropertyAccessorFragment (class extends Object implements ExecutableFragment):
     new (constructor: PropertyAccessorFragment Function())

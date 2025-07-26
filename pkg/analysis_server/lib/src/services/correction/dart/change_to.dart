@@ -176,6 +176,28 @@ class ChangeTo extends ResolvedCorrectionProducer {
     await _suggest(builder, node, finder._element?.displayName);
   }
 
+  /// Using the context type of the [dotShorthandNode], we'll propose the
+  /// closest element that we believe the user was attempting to write.
+  Future<void> _proposeClassOrMixinMemberForDotShorthand(
+    ChangeBuilder builder,
+    Expression dotShorthandNode,
+    Token dotShorthandIdentifier,
+    _ElementPredicate predicate,
+  ) async {
+    var contextElement = computeDotShorthandContextTypeElement(
+      dotShorthandNode,
+      unitResult.libraryElement,
+    );
+    if (contextElement == null) return;
+
+    var finder = _ClosestElementFinder(
+      dotShorthandIdentifier.lexeme,
+      predicate,
+    );
+    _updateFinderWithClassMembers(finder, contextElement);
+    await _suggest(builder, node, finder._element?.displayName);
+  }
+
   Future<void> _proposeField(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! FieldFormalParameter) return;
@@ -257,9 +279,18 @@ class ChangeTo extends ResolvedCorrectionProducer {
   Future<void> _proposeGetterOrSetter(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is DotShorthandPropertyAccess) {
+        await _proposeClassOrMixinMemberForDotShorthand(
+          builder,
+          parent,
+          node.token,
+          (element) => element is GetterElement || element is FieldElement,
+        );
+      }
+
       // prepare target
       Expression? target;
-      var parent = node.parent;
       if (parent is PrefixedIdentifier) {
         target = parent.prefix;
       } else if (parent is PropertyAccess) {
@@ -285,13 +316,22 @@ class ChangeTo extends ResolvedCorrectionProducer {
   Future<void> _proposeMethod(ChangeBuilder builder) async {
     var node = this.node;
     var parent = node.parent;
-    if (parent is MethodInvocation && node is SimpleIdentifier) {
-      await _proposeClassOrMixinMember(
-        builder,
-        node.token,
-        parent.realTarget,
-        (element) => element is MethodElement && !element.isOperator,
-      );
+    if (node is SimpleIdentifier) {
+      if (parent is DotShorthandInvocation) {
+        await _proposeClassOrMixinMemberForDotShorthand(
+          builder,
+          parent,
+          node.token,
+          (element) => element is MethodElement,
+        );
+      } else if (parent is MethodInvocation) {
+        await _proposeClassOrMixinMember(
+          builder,
+          node.token,
+          parent.realTarget,
+          (element) => element is MethodElement && !element.isOperator,
+        );
+      }
     }
   }
 

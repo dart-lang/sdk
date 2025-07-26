@@ -15,7 +15,7 @@ void testeeMain() {
   print('Testee doing something.');
   final stopwatch = Stopwatch();
   stopwatch.start();
-  while (stopwatch.elapsedMilliseconds < 5000) {}
+  while (stopwatch.elapsedMilliseconds < 10000) {}
   stopwatch.stop();
   print('Testee did something.');
 }
@@ -30,7 +30,7 @@ final tests = <IsolateTest>[
     // `get_perfetto_cpu_samples_rpc_test` does.
     //
     // `--max-profile-depth=2` and `--sample-buffer-duration=1` are passed to
-    // [runIsolateTests] below, and [testeeMain] spins for 5 seconds, so the
+    // [runIsolateTests] below, and [testeeMain] spins for 10 seconds, so the
     // profiler sample buffer should be full once [testeeMain] has finished
     // running. If `--profile-startup` is working as intended, then the two
     // [service.getPerfettoCpuSamples] calls below should deliver consistent
@@ -101,7 +101,7 @@ Future<void> main([args = const <String>[]]) => runIsolateTests(
       extraArgs: [
         '--profiler',
         '--profile-startup',
-        '--profile-period=100',
+        '--profile-period=500',
         '--max-profile-depth=2',
         '--sample-buffer-duration=1',
       ],

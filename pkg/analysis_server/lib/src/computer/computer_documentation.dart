@@ -33,7 +33,7 @@ class DartDocumentationComputer {
       element,
       ...overridden.superElements,
       ...overridden.interfaceElements,
-      if (element case PropertyAccessorElement(:var variable?)) variable,
+      if (element case PropertyAccessorElement(:var variable)) variable,
     ];
     for (var candidate in candidates) {
       if (candidate.documentationCommentOrNull != null) {

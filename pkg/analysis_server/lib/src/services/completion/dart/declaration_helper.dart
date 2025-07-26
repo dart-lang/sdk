@@ -2723,9 +2723,7 @@ extension on PropertyAccessorElement {
   /// Whether this accessor is an accessor for a constant variable.
   bool get isConst {
     if (isSynthetic) {
-      if (variable case var variable?) {
-        return variable.isConst;
-      }
+      return variable.isConst;
     }
     return false;
   }

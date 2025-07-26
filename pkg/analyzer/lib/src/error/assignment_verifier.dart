@@ -71,10 +71,6 @@ class AssignmentVerifier {
       }
     } else if (recovery is GetterElement) {
       var variable = recovery.variable;
-      if (variable == null) {
-        return;
-      }
-
       var variableName = variable.name;
       if (variableName == null) {
         return;
