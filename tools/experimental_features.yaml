@@ -147,6 +147,7 @@ features:
     help: "A bundle of updates to type inference."
 
   dot-shorthands:
+    experimentalReleaseVersion: '3.9.0'
     help: "Shorter dot syntax for static accesses."
 
 # Experiment flag only used for testing.

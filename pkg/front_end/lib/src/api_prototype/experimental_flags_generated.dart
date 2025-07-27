@@ -121,7 +121,7 @@ class ExperimentalFlag {
       isExpired: false,
       enabledVersion: defaultLanguageVersion,
       experimentEnabledVersion: defaultLanguageVersion,
-      experimentReleasedVersion: defaultLanguageVersion);
+      experimentReleasedVersion: const Version(3, 9));
 
   static const ExperimentalFlag enhancedEnums = const ExperimentalFlag(
       name: 'enhanced-enums',

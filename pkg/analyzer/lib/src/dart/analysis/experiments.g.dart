@@ -268,7 +268,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.dot_shorthands,
     isExpired: IsExpired.dot_shorthands,
     documentation: 'Shorter dot syntax for static accesses.',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.9.0'),
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
