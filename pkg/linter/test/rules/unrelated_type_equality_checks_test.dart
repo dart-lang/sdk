@@ -37,6 +37,31 @@ void f(dynamic x) {
 ''');
   }
 
+  test_extension_types() async {
+    await assertDiagnostics(
+      r'''
+void m(A a, B b) {
+  if (a == b) {}
+}
+extension type A(String value) {}
+extension type B(String value) {}
+''',
+      [lint(27, 2)],
+    );
+  }
+
+  test_extension_types_ok() async {
+    await assertNoDiagnostics(r'''
+void m(A a1, A a2, B b) {
+  if (a1 == a2) {}
+  if (a1 == b) {}
+  if (b == a1) {}
+}
+extension type A(String value) {}
+extension type B(String value) implements A {}
+''');
+  }
+
   test_fixnum_int32_leftSide() async {
     await assertNoDiagnostics(r'''
 import 'package:fixnum/fixnum.dart';
@@ -116,6 +141,29 @@ void f(M x, C y) {
 }
 mixin M {}
 class C with M {}
+''');
+  }
+
+  test_mixins() async {
+    await assertDiagnostics(
+      r'''
+void f(M1 m1, M2 m2) {
+  if (m1 == m2) {}
+}
+mixin M1 {}
+mixin M2 {}
+''',
+      [lint(32, 2)],
+    );
+  }
+
+  test_mixins_ok() async {
+    await assertNoDiagnostics(r'''
+void f(M1 m1, M2 m2) {
+  if (m1 == m2) {}
+}
+mixin M1 on M2 {}
+mixin M2 {}
 ''');
   }
 
