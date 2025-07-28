@@ -5905,10 +5905,86 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
-    var invocation = _emitInstanceInvocation(node);
+    var target = node.interfaceTarget;
+    if (target.isPrimitiveOperator) {
+      return _emitPrimitiveOperatorInvocation(node);
+    }
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    var jsArguments = _emitArgumentList(node.arguments, target: target);
+    if (node.isNativeListInvariantAddInvocation(_coreTypes.listClass)) {
+      return js.call('#.push(#)', [jsReceiver, jsArguments]);
+    }
+    var name = node.name.text;
+    if (name == 'call') {
+      var directCallInvocation = _emitDirectInstanceCallInvocation(node);
+      if (directCallInvocation != null) {
+        return directCallInvocation;
+      }
+    }
+    if (target.isToStringOrNoSuchMethodWithDefaultSignature &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // Handle Object methods when the receiver could potentially be `null` or
+      // JavaScript interop values with static helper methods.
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance members.
+      return _runtimeCall('#(#, #)', [name, jsReceiver, jsArguments]);
+    }
+    // Otherwise generate this as a normal typed method call.
+    var jsName = _emitMemberName(name, member: target);
+    var invocation = js.call('#.#(#)', [jsReceiver, jsName, jsArguments]);
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(invocation)
         : invocation;
+  }
+
+  /// Returns a direct invocation to support a `call()` method invocation when
+  /// the receiver is considered directly callable, otherwise returns
+  /// `null`.
+  ///
+  /// For example if `fn` is statically typed as a function type, then
+  /// `fn.call()` would be considered directly callable and compiled as `fn()`.
+  js_ast.Expression? _emitDirectInstanceCallInvocation(
+    InstanceInvocation node,
+  ) {
+    // Erasing the extension types here to support existing callable behavior
+    // on the old style JS interop types that are callable. This should be
+    // safe as it is a compile time error to try to dynamically invoke a call
+    // method that is inherited from an extension type.
+    var receiverType = node.receiver
+        .getStaticType(_staticTypeContext)
+        .extensionTypeErasure;
+    if (!_isDirectCallable(receiverType)) return null;
+    // Handle call methods on function types as function calls.
+    var invocation = js_ast.Call(
+      _visitExpression(node.receiver),
+      _emitArgumentList(node.arguments, target: node.interfaceTarget),
+    );
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(invocation)
+        : invocation;
+  }
+
+  /// Returns an invocation of a primitive operator.
+  ///
+  /// See [ProcedureHelpers.isPrimitiveOperator].
+  js_ast.Expression _emitPrimitiveOperatorInvocation(InstanceInvocation node) {
+    var receiver = node.receiver;
+    var target = node.interfaceTarget;
+    var arguments = node.arguments;
+    assert(arguments.types.isEmpty && arguments.named.isEmpty);
+    // JavaScript interop does not support overloading of these operators.
+    return switch (arguments.positional.length) {
+      0 => _emitUnaryOperator(receiver, target, node),
+      1 => _emitBinaryOperator(receiver, target, arguments.positional[0], node),
+      // Should always be a compile time error but here for exhaustiveness.
+      _ => throw UnsupportedError(
+        'Invalid number of positional arguments.\n'
+        'Found: ${arguments.positional.length}\n'
+        'Operator: ${node.name.text} '
+        '${node.location}',
+      ),
+    };
   }
 
   @override
@@ -6008,55 +6084,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       node.expression,
       NullLiteral(),
     ], negated: false);
-  }
-
-  js_ast.Expression _emitInstanceInvocation(InstanceInvocation node) {
-    var name = node.name.text;
-    var receiver = node.receiver;
-    var arguments = node.arguments;
-    var target = node.interfaceTarget;
-    if (target.isPrimitiveOperator && arguments.named.isEmpty) {
-      var argLength = arguments.positional.length;
-      if (argLength == 0) {
-        return _emitUnaryOperator(receiver, target, node);
-      } else if (argLength == 1) {
-        return _emitBinaryOperator(
-          receiver,
-          target,
-          arguments.positional[0],
-          node,
-        );
-      }
-    }
-    var jsReceiver = _visitExpression(receiver);
-    var args = _emitArgumentList(arguments, target: target);
-    if (node.isNativeListInvariantAddInvocation(_coreTypes.listClass)) {
-      return js.call('#.push(#)', [jsReceiver, args]);
-    }
-    if (name == 'call') {
-      // Erasing the extension types here to support existing callable behavior
-      // on the old style JS interop types that are callable. This should be
-      // safe as it is a compile time error to try to dynamically invoke a call
-      // method that is inherited from an extension type.
-      var receiverType = receiver
-          .getStaticType(_staticTypeContext)
-          .extensionTypeErasure;
-      if (_isDirectCallable(receiverType)) {
-        // Handle call methods on function types as function calls.
-        return js_ast.Call(jsReceiver, args);
-      }
-    }
-    if (target.isToStringOrNoSuchMethodWithDefaultSignature &&
-        _shouldCallObjectMemberHelper(receiver)) {
-      // Handle Object methods that are supported by `null` and possibly
-      // JavaScript interop values with static helper methods.
-      // The names of the static helper methods in the runtime must match the
-      // names of the Object instance members.
-      return _runtimeCall('#(#, #)', [name, jsReceiver, args]);
-    }
-    // Otherwise generate this as a normal typed method call.
-    var jsName = _emitMemberName(name, member: target);
-    return js.call('#.#(#)', [jsReceiver, jsName, args]);
   }
 
   /// Returns an invocation of the runtime helpers `dcall`, `dgcall`, `dsend`,
