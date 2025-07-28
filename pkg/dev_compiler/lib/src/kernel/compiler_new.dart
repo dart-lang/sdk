@@ -2205,7 +2205,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var memberName = _declareMemberName(
         member,
-        useExtension: _isObjectMethodTearoff(member.name.text),
+        useExtension: member.isToStringOrNoSuchMethod,
       );
       if (!member.isAccessor) {
         var immediateTarget = js.string(fullyResolvedTargetLabel(member));
@@ -6156,8 +6156,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectGetter(memberName) &&
-        _shouldCallObjectMemberHelper(receiver)) {
+    if (member.isCoreObjectGetter && _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must match the
       // names of the Object instance getters.
       return _runtimeCall('#(#)', [memberName, jsReceiver]);
@@ -6219,7 +6218,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectMethodTearoff(memberName) &&
+    if (member.isToStringOrNoSuchMethod &&
         _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must start with
       // the names of the Object instance methods.
@@ -6626,48 +6625,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitInstanceInvocation(InstanceInvocation node) {
-    /// Returns `true` when [node] represents an invocation of `List.add()` that
-    /// can be optimized.
-    ///
-    /// The optimized add operation can skip checks for a growable or modifiable
-    /// list and the element type is known to be invariant so it can skip the
-    /// type check.
-    bool isNativeListInvariantAdd(InstanceInvocation node) {
-      if (node.isInvariant && node.name.text == 'add') {
-        // The call to add is marked as invariant, so the type check on the
-        // parameter to add is not needed.
-        var receiver = node.receiver;
-        if (receiver is VariableGet &&
-            receiver.variable.isFinal &&
-            !receiver.variable.isLate) {
-          // The receiver is a final variable, so it only contains the
-          // initializer value. Also, avoid late variables in case the CFE
-          // lowering of late variables is changed in the future.
-          var initializer = receiver.variable.initializer;
-          if (initializer is ListLiteral) {
-            // The initializer is a list literal, so we know the list can be
-            // grown, modified, and is represented by a JavaScript Array.
-            return true;
-          }
-          if (initializer is StaticInvocation &&
-              initializer.target.enclosingClass == _coreTypes.listClass &&
-              initializer.target.name.text == 'of' &&
-              initializer.arguments.named.isEmpty) {
-            // The initializer is a `List.of()` call from the dart:core library
-            // and the growable named argument has not been passed (it defaults
-            // to true).
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
     var name = node.name.text;
     var receiver = node.receiver;
     var arguments = node.arguments;
     var target = node.interfaceTarget;
-    if (isOperatorMethodName(name) && arguments.named.isEmpty) {
+    if (target.isPrimitiveOperator && arguments.named.isEmpty) {
       var argLength = arguments.positional.length;
       if (argLength == 0) {
         return _emitUnaryOperator(receiver, target, node);
@@ -6682,7 +6644,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     var jsReceiver = _visitExpression(receiver);
     var args = _emitArgumentList(arguments, target: target);
-    if (isNativeListInvariantAdd(node)) {
+    if (node.isNativeListInvariantAddInvocation(_coreTypes.listClass)) {
       return js.call('#.push(#)', [jsReceiver, args]);
     }
     if (name == 'call') {
@@ -6698,7 +6660,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         return js_ast.Call(jsReceiver, args);
       }
     }
-    if (_isObjectMethodCall(name, arguments) &&
+    if (target.isToStringOrNoSuchMethodWithDefaultSignature &&
         _shouldCallObjectMemberHelper(receiver)) {
       // Handle Object methods when the receiver could potentially be `null` or
       // JavaScript interop values with static helper methods.
@@ -10014,24 +9976,6 @@ bool _isObjectMember(String name) {
     case 'runtimeType':
     case '==':
       return true;
-  }
-  return false;
-}
-
-bool _isObjectGetter(String name) =>
-    name == 'hashCode' || name == 'runtimeType';
-
-bool _isObjectMethodTearoff(String name) =>
-    // "==" isn't in here because there is no syntax to tear it off.
-    name == 'toString' || name == 'noSuchMethod';
-
-bool _isObjectMethodCall(String name, Arguments args) {
-  if (name == 'toString') {
-    return args.positional.isEmpty && args.named.isEmpty && args.types.isEmpty;
-  } else if (name == 'noSuchMethod') {
-    return args.positional.length == 1 &&
-        args.named.isEmpty &&
-        args.types.isEmpty;
   }
   return false;
 }

@@ -146,37 +146,6 @@ Class? getAnnotationClass(Expression node) {
   return null;
 }
 
-/// Returns true if [name] is an operator method that is available on primitive
-/// types (`int`, `double`, `num`, `String`, `bool`).
-///
-/// This does not include logical operators that cannot be user-defined
-/// (`!`, `&&` and `||`).
-bool isOperatorMethodName(String name) {
-  switch (name) {
-    case '==':
-    case '~':
-    case '^':
-    case '|':
-    case '&':
-    case '>>':
-    case '<<':
-    case '>>>':
-    case '+':
-    case 'unary-':
-    case '-':
-    case '*':
-    case '/':
-    case '~/':
-    case '>':
-    case '<':
-    case '>=':
-    case '<=':
-    case '%':
-      return true;
-  }
-  return false;
-}
-
 bool isFromEnvironmentInvocation(CoreTypes coreTypes, StaticInvocation node) {
   var target = node.target;
   return node.isConst &&
@@ -624,5 +593,121 @@ class BasicInlineTester extends TreeVisitorDefault<bool> {
   @override
   bool visitStaticGet(StaticGet node) {
     return node.target.accept(this);
+  }
+}
+
+extension MemberHelpers on Member {
+  /// Returns `true` if this is the `hashCode` or `runtimeType` getter.
+  bool get isCoreObjectGetter =>
+      isInstanceMember &&
+      (name.text == 'hashCode' || name.text == 'runtimeType');
+}
+
+extension ProcedureHelpers on Procedure {
+  /// Returns `true` if [name] is an operator method that is available on
+  /// primitive types (`int`, `double`, `num`, `String`, `bool`).
+  ///
+  /// This does not include logical operators that cannot be user-defined
+  /// (`!`, `&&` and `||`).
+  bool get isPrimitiveOperator {
+    switch (name.text) {
+      case '==':
+      case '~':
+      case '^':
+      case '|':
+      case '&':
+      case '>>':
+      case '<<':
+      case '>>>':
+      case '+':
+      case 'unary-':
+      case '-':
+      case '*':
+      case '/':
+      case '~/':
+      case '>':
+      case '<':
+      case '>=':
+      case '<=':
+      case '%':
+        return true;
+    }
+    return false;
+  }
+
+  /// Returns `true` if this is any `toString` or `noSuchMethod` method
+  /// implementation.
+  ///
+  /// See [isToStringOrNoSuchMethodWithDefaultSignature] to test for a
+  /// `toString` or `noSuchMethod` implementation with a default signature.
+  bool get isToStringOrNoSuchMethod =>
+      isInstanceMember &&
+      (name.text == 'toString' || name.text == 'noSuchMethod');
+
+  /// Returns `true` if this is any `toString` or `noSuchMethod` method
+  /// implementation with the default signature.
+  ///
+  /// For example this will return `false` if this is an override with optional
+  /// positional or named parameters.
+  ///
+  /// See [isToStringOrNoSuchMethod] to test for any `toString` or
+  /// `noSuchMethod` implementation.
+  bool get isToStringOrNoSuchMethodWithDefaultSignature {
+    if (function.namedParameters.isNotEmpty ||
+        function.typeParameters.isNotEmpty) {
+      return false;
+    }
+    if (name.text == 'toString') {
+      return function.positionalParameters.isEmpty;
+    } else if (name.text == 'noSuchMethod') {
+      return function.positionalParameters.length == 1;
+    }
+    return false;
+  }
+}
+
+extension InstanceInvocationHelpers on InstanceInvocation {
+  /// Returns `true` when this represents an invocation of `List.add()` that
+  /// can be optimized.
+  ///
+  /// For example, a List literal that uses control flow collections to add
+  /// elements can safely push directly to the backing array:
+  ///
+  /// ```
+  /// final myList = [if (test) 1, ...otherList, 2, 3, if (otherTest) 1];
+  /// ```
+  ///
+  /// The optimized add operation can skip checks for a growable or modifiable
+  /// list and the element type is known to be invariant so it can skip the
+  /// type check.
+  bool isNativeListInvariantAddInvocation(Class coreListClass) {
+    if (isInvariant && name.text == 'add') {
+      // The call to add is marked as invariant, so the type check on the
+      // parameter to add is not needed.
+      var receiver_ = receiver;
+      if (receiver_ is VariableGet &&
+          receiver_.variable.isFinal &&
+          !receiver_.variable.isLate) {
+        // The receiver is a final variable, so it only contains the
+        // initializer value. Also, avoid late variables in case the CFE
+        // lowering of late variables is changed in the future.
+        var initializer = receiver_.variable.initializer;
+        if (initializer is ListLiteral) {
+          // The initializer is a list literal, so we know the list can be
+          // grown, modified, and is represented by a JavaScript Array.
+          return true;
+        }
+        if (initializer is StaticInvocation &&
+            initializer.target.enclosingClass == coreListClass &&
+            initializer.target.name.text == 'of' &&
+            initializer.arguments.named.isEmpty) {
+          // The initializer is a `List.of()` call from the dart:core library
+          // and the growable named argument has not been passed (it defaults
+          // to true).
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
