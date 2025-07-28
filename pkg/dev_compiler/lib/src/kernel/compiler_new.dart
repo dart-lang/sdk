@@ -6551,6 +6551,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Otherwise generate this as a normal typed method call.
     var jsName = _emitMemberName(name, member: target);
     var invocation = js.call('#.#(#)', [jsReceiver, jsName, jsArguments]);
+    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
+      var checkedInvocation = _rewriteInvocationWithHotReloadChecks(
+        jsReceiver,
+        jsName,
+        target,
+        node.arguments,
+        node.getStaticType(_staticTypeContext),
+        _nodeStart(node),
+      );
+      // As an optimization, avoid extra checks when the invocation code was
+      // compiled in the same generation that it is running.
+      return _emitHotReloadSafeInvocation(invocation, checkedInvocation);
+    }
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(invocation)
         : invocation;
@@ -7636,6 +7649,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ..sourceInformation = _nodeStart(node);
     if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
       var checkedCall = _rewriteInvocationWithHotReloadChecks(
+        fn.receiver,
+        fn.selector,
         target,
         node.arguments,
         node.getStaticType(_staticTypeContext),
@@ -7678,6 +7693,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// time to include checks to preserve soundness in the presence of hot
   /// reloads at runtime.
   ///
+  /// The compiled JavaScript [receiver] and [selector] should be passed so that
+  /// they can be reused for the validated invocation after the checks have
+  /// passed.
+  ///
   /// The checks are similar to the those performed when making a dynamic call.
   /// The [arguments] are checked for the correct shape and runtime types.
   /// Additionally after the invocation, the returned value is checked against
@@ -7689,7 +7708,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The resulting expression for the validated call site will receive the
   /// [originalCallSiteSourceLocation].
   js_ast.Expression _rewriteInvocationWithHotReloadChecks(
-    Member target,
+    js_ast.Expression receiver,
+    js_ast.Expression selector,
+    Procedure target,
     Arguments arguments,
     DartType expectedReturnType,
     SourceLocation? originalCallSiteSourceLocation,
@@ -7738,8 +7759,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // still valid.
     var checkResult = _emitScopedId('\$result');
     _letVariables!.add(checkResult);
-    var jsTarget = _emitStaticTarget(target);
-    var jsTypeArguments = [
+    var typeArguments = [
       // TODO(nshahan): Remove this check if we stop rewriting calls to SDK
       // functions.
       if (_reifyGenericFunction(target))
@@ -7748,9 +7768,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var correctnessCheck = _runtimeCall(
       'hotReloadCorrectnessChecks(#, #, #, #, #)',
       [
-        jsTarget.receiver,
-        jsTarget.selector,
-        js_ast.ArrayInitializer(jsTypeArguments),
+        receiver,
+        selector,
+        js_ast.ArrayInitializer(typeArguments),
         js_ast.ArrayInitializer(hoistedPositionalVariables),
         hoistedNamedVariables.isEmpty
             ? js_ast.LiteralNull()
@@ -7766,14 +7786,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         : js_ast.Binary(',', letAssignments, checkAssignment);
     // Create a new invocation of the original target but passing all the
     // arguments via their let variables.
-    var validatedCallSite = js_ast.Call(jsTarget, [
-      ...jsTypeArguments,
-      ...hoistedPositionalVariables,
-      if (hoistedNamedVariables.isNotEmpty)
-        js_ast.ObjectInitializer([
-          for (var e in hoistedNamedVariables.entries)
-            js_ast.Property(js.string(e.key), e.value),
-        ]),
+    var validatedCallSite = js.call('#.#(#)', [
+      receiver,
+      selector,
+      [
+        ...typeArguments,
+        ...hoistedPositionalVariables,
+        if (hoistedNamedVariables.isNotEmpty)
+          js_ast.ObjectInitializer([
+            for (var e in hoistedNamedVariables.entries)
+              js_ast.Property(js.string(e.key), e.value),
+          ]),
+      ],
     ])..sourceInformation = originalCallSiteSourceLocation;
     // Cast the result of the checked call or the value returned from a
     // `NoSuchMethod` invocation.

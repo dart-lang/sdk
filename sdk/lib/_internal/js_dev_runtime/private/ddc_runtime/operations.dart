@@ -744,13 +744,15 @@ Object? hotReloadCorrectnessChecks(
       ),
     );
   }
-  var functionType = JS<Object?>(
-    '',
-    '#[#][#]',
-    receiver,
-    name,
-    JS_GET_NAME(JsGetName.SIGNATURE_NAME),
-  );
+  var functionType = _jsInstanceOf(receiver, Object)
+      ? getMethodType(receiver, name)
+      : JS<Object?>(
+          '',
+          '#[#][#]',
+          receiver,
+          name,
+          JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+        );
   if (functionType == null) {
     // Allow JavaScript interop calls without checking arguments.
     // TODO(nshahan): Potentially we should be checking arguments to static
@@ -1546,7 +1548,7 @@ bool isStateBearingSymbol(property) => JS<bool>(
 /// copies the members of [classDeclaration] and its prototype's properties to
 /// the existing class. Existing members not prefixed by a special identifier
 /// are replaced (see [isStateBearingSymbol]).
-declareClass(library, classIdentifier, classDeclaration) {
+declareClass(Object library, Object classIdentifier, Object classDeclaration) {
   var originalClass = JS<Object>('!', '#.#', library, classIdentifier);
   if (JS<bool>('!', '# === void 0', originalClass)) {
     JS('', '#.# = #', library, classIdentifier, classDeclaration);
@@ -1559,6 +1561,8 @@ declareClass(library, classIdentifier, classDeclaration) {
       !isStateBearingSymbol(property),
       originalClassProto,
     );
+    // Reconcile instance members.
+    deleteClassMembers(originalClassProto, newClassProto);
     copyProperties(originalClassProto, newClassProto, copyWhen: copyWhenProto);
     var copyWhen = (property) => JS<bool>(
       '!',
@@ -1566,6 +1570,7 @@ declareClass(library, classIdentifier, classDeclaration) {
       !isStateBearingSymbol(property),
       originalClass,
     );
+    // Reconcile static members.
     deleteClassMembers(originalClass, classDeclaration);
     copyProperties(originalClass, classDeclaration, copyWhen: copyWhen);
   }
@@ -1579,10 +1584,12 @@ declareClass(library, classIdentifier, classDeclaration) {
 ///
 /// Called from generated code.
 void deleteClassMembers(Object oldClass, Object newClass) {
-  for (var name in getOwnNamesAndSymbols(oldClass)) {
-    if (JS<Object?>('', '#.#', newClass, name) == null &&
-        !isStateBearingSymbol(name)) {
-      JS('', 'delete #.#', oldClass, name);
+  var oldClassNamesAndSymbols = getOwnNamesAndSymbols(oldClass);
+  var newClassNamesAndSymbols = getOwnNamesAndSymbols(newClass);
+  for (var property in oldClassNamesAndSymbols) {
+    if (JS<bool>('', '!#.includes(#)', newClassNamesAndSymbols, property) &&
+        !isStateBearingSymbol(property)) {
+      JS('', 'delete #.#', oldClass, property);
     }
   }
 }
