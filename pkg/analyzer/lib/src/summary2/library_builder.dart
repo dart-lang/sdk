@@ -149,18 +149,18 @@ class LibraryBuilder {
   }
 
   void buildClassSyntheticConstructors() {
-    for (var classFragment in element.topLevelElements) {
-      if (classFragment is! ClassFragmentImpl) continue;
-      if (classFragment.isMixinApplication) continue;
-      if (classFragment.constructors.isNotEmpty) continue;
+    for (var classElement in element.children) {
+      if (classElement is! ClassElementImpl) continue;
+      if (classElement.isMixinApplication) continue;
+      if (classElement.constructors.isNotEmpty) continue;
 
       var fragment = ConstructorFragmentImpl(
         name: 'new',
         firstTokenOffset: null,
       )..isSynthetic = true;
-      fragment.typeName = classFragment.name;
+      fragment.typeName = classElement.name;
+      classElement.firstFragment.constructors = [fragment].toFixedList();
 
-      var classElement = classFragment.element;
       classElement.constructors = [
         ConstructorElementImpl(
           name: fragment.name,
@@ -170,8 +170,6 @@ class LibraryBuilder {
           firstFragment: fragment,
         ),
       ];
-
-      classFragment.constructors = [fragment].toFixedList();
     }
   }
 
