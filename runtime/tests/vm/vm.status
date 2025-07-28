@@ -66,6 +66,37 @@ dart/isolates/many_isolates_blocked_at_sleep_test: Skip # App snapshot creation 
 dart/snapshot_version_test: RuntimeError
 
 [ $compiler == dart2bytecode ]
+cc/AllocationSinking_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/BCE*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/BasicInduction*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/BoundsCheckElimination_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/ChainInduction: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/CheckStackOverflowElimination_NoInterruptsPragma: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/CompileFunction*: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/ConstantFold_bitLength: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/DelayAllocations_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/DeoptimizeFramesWhenSettingBreakpoint: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/DerivedInduction: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/Ffi_StructSinking: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/FlowGraph_PhiUnboxingHeuristic_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/IsolateReload_EnumWithSet: SkipByDesign # Bytecode doesn't support KernelProgramInfo.
+cc/IsolateReload_RegressB179030011: SkipByDesign # Bytecode doesn't support concatenated kernel programs.
+cc/LICM_Deopt_*: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/LoadOptimizer_Redundant*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/NonStrictCondition*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/NotEqualCondition*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/OptimizeCompileFunctionOnHelperThread: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/PeriodicAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/RangeAnalysis_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/SecondExit*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/StackMapGC: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/StreamingFlowGraphBuilder_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/TryCatchOptimizer_DeadParameterElimination_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/TwoWayInduction: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/TypePropagator_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/WrapAroundAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
 dart/regress_52703_test: Pass, Slow
 
 [ $compiler == dartk ]
