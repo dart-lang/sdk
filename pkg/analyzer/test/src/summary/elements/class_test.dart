@@ -7269,9 +7269,6 @@ class C {
   int get foo => 0;
 }
 ''');
-    configuration
-      ..withAugmentedWithoutAugmentation = true
-      ..withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7351,9 +7348,6 @@ class C {
   set foo(int _) {}
 }
 ''');
-    configuration
-      ..withAugmentedWithoutAugmentation = true
-      ..withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7731,7 +7725,6 @@ class A {
   set foo(int newValue) {}
 }
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -23332,7 +23325,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -23438,7 +23430,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -23607,7 +23598,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -23814,7 +23804,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24021,7 +24010,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24385,7 +24373,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24720,7 +24707,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24854,7 +24840,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24973,7 +24958,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25116,7 +25100,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25319,7 +25302,6 @@ class A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25802,7 +25784,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25907,7 +25888,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26023,7 +26003,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26167,7 +26146,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26317,7 +26295,6 @@ class A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26485,7 +26462,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26654,7 +26630,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26854,7 +26829,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27016,7 +26990,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27171,7 +27144,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27341,9 +27313,7 @@ part 'a.dart';
 class A {}
 ''');
 
-    configuration
-      ..withConstructors = false
-      ..withPropertyLinking = true;
+    configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -29929,7 +29899,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30043,7 +30012,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30187,7 +30155,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30312,7 +30279,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30480,7 +30446,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30645,9 +30610,7 @@ part 'a.dart';
 class A {}
 ''');
 
-    configuration
-      ..withConstructors = false
-      ..withPropertyLinking = true;
+    configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30743,7 +30706,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -32624,7 +32586,6 @@ class A implements I {}
 class I {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -32705,7 +32666,6 @@ class A implements M {}
 mixin M {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

@@ -274,7 +274,6 @@ class A {
   double foo;
 }
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1225,7 +1224,6 @@ var x;
 final x = 1;
 var x = 2.3;
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1344,7 +1342,6 @@ library
 int get foo {}
 double get foo {}
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1391,7 +1388,6 @@ library
 set foo(int _) {}
 set foo(double _) {}
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

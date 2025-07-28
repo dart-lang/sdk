@@ -1934,8 +1934,7 @@ class foo {}
 
     configuration
       ..withConstructors = false
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+      ..withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2012,8 +2011,7 @@ void foo() {}
 
     configuration
       ..withConstructors = false
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+      ..withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2090,9 +2088,7 @@ part 'a.dart';
 int get foo => 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2186,9 +2182,7 @@ augment int get foo => 0;
 part 'a.dart';
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2248,8 +2242,7 @@ set foo(int _) {}
 
     configuration
       ..withConstructors = false
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+      ..withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2353,9 +2346,7 @@ part 'a.dart';
 int foo = 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2480,9 +2471,7 @@ part 'a.dart';
 class foo {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2578,9 +2567,7 @@ part 'a.dart';
 int get foo => 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2683,9 +2670,7 @@ augment set foo(int _) {}
 part 'a.dart';
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2752,9 +2737,7 @@ part 'a.dart';
 set foo(int _) {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2864,9 +2847,7 @@ part 'a.dart';
 int foo = 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

@@ -441,7 +441,7 @@ library
     var library = await buildLibrary(
       'int get x => 0; void set x(int value) {}',
     );
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -849,7 +849,7 @@ library
 int foo = 0;
 int foo = 1;
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -926,7 +926,7 @@ library
 int foo = 0;
 int get foo => 0;
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -989,7 +989,7 @@ library
 int foo = 0;
 set foo(int _) {}
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1058,7 +1058,7 @@ library
 final int foo = 0;
 set foo(int newValue) {}
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2621,9 +2621,7 @@ part 'a.dart';
 class A {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2712,9 +2710,7 @@ part 'a.dart';
 void foo() {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2793,9 +2789,7 @@ part 'a.dart';
 int get foo => 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2890,9 +2884,7 @@ part 'a.dart';
 set foo(int _) {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2996,9 +2988,7 @@ part 'a.dart';
 int foo = 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
