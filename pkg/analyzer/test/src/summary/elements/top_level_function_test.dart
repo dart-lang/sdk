@@ -1159,6 +1159,7 @@ library
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::main
 ''');
   }
 

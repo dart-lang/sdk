@@ -1335,6 +1335,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
   exportedReferences
     declared <testLibrary>::@getter::a
     declared <testLibrary>::@setter::a

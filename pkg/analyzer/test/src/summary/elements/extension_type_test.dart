@@ -1797,6 +1797,7 @@ library
               firstFragment: #F6
               type: double
           returnType: void
+          variable: <testLibrary>::@extensionType::A::@field::foo
 ''');
   }
 

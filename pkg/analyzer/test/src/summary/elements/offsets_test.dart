@@ -1021,6 +1021,7 @@ library
               firstFragment: #F14
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::withInit
         synthetic withoutInit
           reference: <testLibrary>::@class::C::@setter::withoutInit
           firstFragment: #F15
@@ -1029,6 +1030,7 @@ library
               firstFragment: #F16
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::withoutInit
         synthetic multiWithInit
           reference: <testLibrary>::@class::C::@setter::multiWithInit
           firstFragment: #F17
@@ -1037,6 +1039,7 @@ library
               firstFragment: #F18
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::multiWithInit
         synthetic multiWithoutInit
           reference: <testLibrary>::@class::C::@setter::multiWithoutInit
           firstFragment: #F19
@@ -1045,6 +1048,7 @@ library
               firstFragment: #F20
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::multiWithoutInit
         synthetic multiWithInit2
           reference: <testLibrary>::@class::C::@setter::multiWithInit2
           firstFragment: #F21
@@ -1053,6 +1057,7 @@ library
               firstFragment: #F22
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::multiWithInit2
 ''');
   }
 
@@ -1318,6 +1323,7 @@ library
               firstFragment: #F24
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::hasDocComment
         synthetic hasDocComment2
           reference: <testLibrary>::@class::C::@setter::hasDocComment2
           firstFragment: #F25
@@ -1326,6 +1332,7 @@ library
               firstFragment: #F26
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::hasDocComment2
         synthetic hasAnnotation
           reference: <testLibrary>::@class::C::@setter::hasAnnotation
           firstFragment: #F27
@@ -1334,6 +1341,7 @@ library
               firstFragment: #F28
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::hasAnnotation
         synthetic hasAnnotation2
           reference: <testLibrary>::@class::C::@setter::hasAnnotation2
           firstFragment: #F29
@@ -1342,6 +1350,7 @@ library
               firstFragment: #F30
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::hasAnnotation2
         synthetic annotationThenComment
           reference: <testLibrary>::@class::C::@setter::annotationThenComment
           firstFragment: #F31
@@ -1350,6 +1359,7 @@ library
               firstFragment: #F32
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::annotationThenComment
         synthetic annotationThenComment2
           reference: <testLibrary>::@class::C::@setter::annotationThenComment2
           firstFragment: #F33
@@ -1358,6 +1368,7 @@ library
               firstFragment: #F34
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::annotationThenComment2
         synthetic commentThenAnnotation
           reference: <testLibrary>::@class::C::@setter::commentThenAnnotation
           firstFragment: #F35
@@ -1366,6 +1377,7 @@ library
               firstFragment: #F36
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::commentThenAnnotation
         synthetic commentThenAnnotation2
           reference: <testLibrary>::@class::C::@setter::commentThenAnnotation2
           firstFragment: #F37
@@ -1374,6 +1386,7 @@ library
               firstFragment: #F38
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::commentThenAnnotation2
         synthetic commentAroundAnnotation
           reference: <testLibrary>::@class::C::@setter::commentAroundAnnotation
           firstFragment: #F39
@@ -1382,6 +1395,7 @@ library
               firstFragment: #F40
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::commentAroundAnnotation
         synthetic commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
           firstFragment: #F41
@@ -1390,6 +1404,7 @@ library
               firstFragment: #F42
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::commentAroundAnnotation2
 ''');
   }
 
@@ -2027,6 +2042,7 @@ library
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::withInit
     synthetic static withoutInit
       reference: <testLibrary>::@setter::withoutInit
       firstFragment: #F13
@@ -2035,6 +2051,7 @@ library
           firstFragment: #F14
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::withoutInit
     synthetic static multiWithInit
       reference: <testLibrary>::@setter::multiWithInit
       firstFragment: #F15
@@ -2043,6 +2060,7 @@ library
           firstFragment: #F16
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::multiWithInit
     synthetic static multiWithoutInit
       reference: <testLibrary>::@setter::multiWithoutInit
       firstFragment: #F17
@@ -2051,6 +2069,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::multiWithoutInit
     synthetic static multiWithInit2
       reference: <testLibrary>::@setter::multiWithInit2
       firstFragment: #F19
@@ -2059,6 +2078,7 @@ library
           firstFragment: #F20
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::multiWithInit2
 ''');
   }
 
@@ -2499,6 +2519,7 @@ library
           firstFragment: #F22
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::hasDocComment
     synthetic static hasDocComment2
       reference: <testLibrary>::@setter::hasDocComment2
       firstFragment: #F23
@@ -2507,6 +2528,7 @@ library
           firstFragment: #F24
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::hasDocComment2
     synthetic static hasAnnotation
       reference: <testLibrary>::@setter::hasAnnotation
       firstFragment: #F25
@@ -2515,6 +2537,7 @@ library
           firstFragment: #F26
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::hasAnnotation
     synthetic static hasAnnotation2
       reference: <testLibrary>::@setter::hasAnnotation2
       firstFragment: #F27
@@ -2523,6 +2546,7 @@ library
           firstFragment: #F28
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::hasAnnotation2
     synthetic static annotationThenComment
       reference: <testLibrary>::@setter::annotationThenComment
       firstFragment: #F29
@@ -2531,6 +2555,7 @@ library
           firstFragment: #F30
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::annotationThenComment
     synthetic static annotationThenComment2
       reference: <testLibrary>::@setter::annotationThenComment2
       firstFragment: #F31
@@ -2539,6 +2564,7 @@ library
           firstFragment: #F32
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::annotationThenComment2
     synthetic static commentThenAnnotation
       reference: <testLibrary>::@setter::commentThenAnnotation
       firstFragment: #F33
@@ -2547,6 +2573,7 @@ library
           firstFragment: #F34
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::commentThenAnnotation
     synthetic static commentThenAnnotation2
       reference: <testLibrary>::@setter::commentThenAnnotation2
       firstFragment: #F35
@@ -2555,6 +2582,7 @@ library
           firstFragment: #F36
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::commentThenAnnotation2
     synthetic static commentAroundAnnotation
       reference: <testLibrary>::@setter::commentAroundAnnotation
       firstFragment: #F37
@@ -2563,6 +2591,7 @@ library
           firstFragment: #F38
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::commentAroundAnnotation
     synthetic static commentAroundAnnotation2
       reference: <testLibrary>::@setter::commentAroundAnnotation2
       firstFragment: #F39
@@ -2571,6 +2600,7 @@ library
           firstFragment: #F40
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
 ''');
   }
 
@@ -2764,6 +2794,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -2917,6 +2948,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 

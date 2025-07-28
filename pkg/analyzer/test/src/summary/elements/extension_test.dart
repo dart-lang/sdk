@@ -654,6 +654,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@extension::E::@field::foo
 ''');
   }
 

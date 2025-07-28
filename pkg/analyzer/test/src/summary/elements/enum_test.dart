@@ -3621,6 +3621,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@enum::E::@field::foo
 ''');
   }
 

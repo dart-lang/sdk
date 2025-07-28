@@ -762,6 +762,7 @@ library
               firstFragment: #F9
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 

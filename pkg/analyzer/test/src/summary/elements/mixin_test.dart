@@ -189,6 +189,7 @@ library
               firstFragment: #F18
               type: T
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::f
         s
           reference: <testLibrary>::@mixin::M::@setter::s
           firstFragment: #F19
@@ -197,6 +198,7 @@ library
               firstFragment: #F20
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::s
       methods
         m
           reference: <testLibrary>::@mixin::M::@method::m
@@ -1484,6 +1486,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -1534,6 +1537,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 

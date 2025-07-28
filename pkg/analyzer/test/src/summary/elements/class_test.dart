@@ -373,6 +373,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -441,6 +442,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -509,6 +511,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -589,6 +592,7 @@ library
               firstFragment: #F8
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -669,6 +673,7 @@ library
               firstFragment: #F8
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -759,6 +764,7 @@ library
               firstFragment: #F10
               type: dynamic Function()
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
 ''');
   }
 
@@ -849,6 +855,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x::@def::0
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x::@def::1
           firstFragment: #F10
@@ -857,6 +864,7 @@ library
               firstFragment: #F11
               type: String
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x::@def::1
 ''');
   }
 
@@ -960,6 +968,7 @@ library
               firstFragment: #F7
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1028,6 +1037,7 @@ library
               firstFragment: #F7
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1096,6 +1106,7 @@ library
               firstFragment: #F7
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1164,6 +1175,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1232,6 +1244,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1300,6 +1313,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1368,6 +1382,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1443,6 +1458,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1511,6 +1527,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1586,6 +1603,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -7026,6 +7044,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -7193,6 +7212,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -7259,6 +7279,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -7338,6 +7359,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo::@def::0
 ''');
   }
 
@@ -7415,6 +7437,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo::@def::0
         foo
           reference: <testLibrary>::@class::C::@setter::foo::@def::1
           firstFragment: #F8
@@ -7423,6 +7446,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo::@def::1
 ''');
   }
 
@@ -7487,6 +7511,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -7788,6 +7813,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -7873,6 +7899,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F8
@@ -7952,6 +7979,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -8012,6 +8040,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -8072,6 +8101,7 @@ library
               firstFragment: #F6
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -8132,6 +8162,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -8208,6 +8239,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F7
@@ -8414,6 +8446,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -9409,6 +9442,7 @@ library
               firstFragment: #F8
               type: Object
           returnType: void
+          variable: <testLibrary>::@class::C::@field::a
         synthetic <null-name>
           reference: <testLibrary>::@class::C::@setter::2
           firstFragment: #F9
@@ -9417,6 +9451,7 @@ library
               firstFragment: #F10
               type: Object
           returnType: void
+          variable: <testLibrary>::@class::C::@field::0
 ''');
   }
 
@@ -9480,6 +9515,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -9546,6 +9582,7 @@ library
               firstFragment: #F6
               type: T
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -9883,6 +9920,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -10037,6 +10075,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -10102,6 +10141,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::a
 ''');
   }
 
@@ -10167,6 +10207,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -10318,6 +10359,7 @@ library
               firstFragment: #F6
               type: Never
           returnType: void
+          variable: <testLibrary>::@class::C::@field::a
 ''');
   }
 
@@ -10378,6 +10420,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10438,6 +10481,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10518,6 +10562,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
         synthetic j
           reference: <testLibrary>::@class::C::@setter::j
           firstFragment: #F9
@@ -10526,6 +10571,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::j
 ''');
   }
 
@@ -10590,6 +10636,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -10654,6 +10701,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -10793,6 +10841,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::f
 ''');
   }
 
@@ -10894,6 +10943,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::f
 ''');
   }
 
@@ -10998,6 +11048,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::b
         a
           reference: <testLibrary>::@class::A::@setter::a
           firstFragment: #F8
@@ -11006,6 +11057,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::a
 ''');
   }
 
@@ -11086,6 +11138,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::a
 ''');
   }
 
@@ -11719,6 +11772,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -11784,6 +11838,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15074,6 +15129,7 @@ library
           firstFragment: #F6
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -15137,6 +15193,7 @@ library
           firstFragment: #F6
           type: C?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -15528,6 +15585,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15580,6 +15638,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15632,6 +15691,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15682,6 +15742,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15732,6 +15793,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15843,6 +15905,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::t
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -15874,6 +15937,7 @@ library
               firstFragment: #F12
               type: double
           returnType: void
+          variable: <testLibrary>::@class::B::@field::t
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13
@@ -15909,6 +15973,7 @@ library
               firstFragment: #F19
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::D::@field::t
 ''');
   }
 
@@ -15979,6 +16044,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F6
@@ -16001,6 +16067,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::D::@field::f
 ''');
   }
 
@@ -16055,6 +16122,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
 ''');
   }
 
@@ -16105,6 +16173,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16155,6 +16224,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16205,6 +16275,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16255,6 +16326,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16311,6 +16383,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -16367,6 +16440,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -16466,6 +16540,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16519,6 +16594,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -16574,6 +16650,7 @@ library
               firstFragment: #F5
               type: T
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -16626,6 +16703,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16693,6 +16771,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
         y
           reference: <testLibrary>::@class::C::@setter::y
           firstFragment: #F7
@@ -16701,6 +16780,7 @@ library
               firstFragment: #F8
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::y
 ''');
   }
 
@@ -20528,6 +20608,7 @@ library
               firstFragment: #F13
               type: int
           returnType: void
+          variable: <testLibrary>::@class::E::@field::b
         synthetic x
           reference: <testLibrary>::@class::E::@setter::x
           firstFragment: #F14
@@ -20536,6 +20617,7 @@ library
               firstFragment: #F15
               type: int
           returnType: void
+          variable: <testLibrary>::@class::E::@field::x
       methods
         f
           reference: <testLibrary>::@class::E::@method::f
@@ -20758,6 +20840,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
         bar
           reference: <testLibrary>::@class::C::@setter::bar
           firstFragment: #F8
@@ -20766,6 +20849,7 @@ library
               firstFragment: #F9
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::bar
 ''');
   }
 
@@ -20820,6 +20904,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -20920,6 +21005,7 @@ library
           firstFragment: #F10
           type: C<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static v
       reference: <testLibrary>::@setter::v
       firstFragment: #F11
@@ -20928,6 +21014,7 @@ library
           firstFragment: #F12
           type: void Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 }

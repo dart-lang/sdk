@@ -277,6 +277,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1718,6 +1719,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1833,6 +1835,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1951,6 +1954,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2170,6 +2174,7 @@ library
           firstFragment: #F5
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -3234,6 +3239,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::m
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -3939,6 +3945,7 @@ library
                     staticType: null
                   element2: <testLibrary>::@getter::foo
           returnType: void
+          variable: <testLibrary>::@class::A::@field::setter
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -4450,6 +4457,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::isStatic
         synthetic isInstance
           reference: <testLibrary>::@class::A::@setter::isInstance
           firstFragment: #F11
@@ -4458,6 +4466,7 @@ library
               firstFragment: #F12
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::isInstance
   topLevelVariables
     const hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -5142,6 +5151,7 @@ library
                 staticType: null
               element2: <testLibrary>::@getter::foo
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::setter
 ''');
   }
 
@@ -5269,6 +5279,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::isNotConst
 ''');
   }
 
@@ -5849,6 +5860,7 @@ library
                 staticType: null
               element2: <testLibrary>::@getter::a
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -6113,6 +6125,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -6522,6 +6535,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 

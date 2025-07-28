@@ -552,6 +552,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vPlusIntInt
     synthetic static vPlusIntDouble
       reference: <testLibrary>::@setter::vPlusIntDouble
       firstFragment: #F19
@@ -560,6 +561,7 @@ library
           firstFragment: #F20
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vPlusIntDouble
     synthetic static vPlusDoubleInt
       reference: <testLibrary>::@setter::vPlusDoubleInt
       firstFragment: #F21
@@ -568,6 +570,7 @@ library
           firstFragment: #F22
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vPlusDoubleInt
     synthetic static vPlusDoubleDouble
       reference: <testLibrary>::@setter::vPlusDoubleDouble
       firstFragment: #F23
@@ -576,6 +579,7 @@ library
           firstFragment: #F24
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vPlusDoubleDouble
     synthetic static vMinusIntInt
       reference: <testLibrary>::@setter::vMinusIntInt
       firstFragment: #F25
@@ -584,6 +588,7 @@ library
           firstFragment: #F26
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMinusIntInt
     synthetic static vMinusIntDouble
       reference: <testLibrary>::@setter::vMinusIntDouble
       firstFragment: #F27
@@ -592,6 +597,7 @@ library
           firstFragment: #F28
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMinusIntDouble
     synthetic static vMinusDoubleInt
       reference: <testLibrary>::@setter::vMinusDoubleInt
       firstFragment: #F29
@@ -600,6 +606,7 @@ library
           firstFragment: #F30
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMinusDoubleInt
     synthetic static vMinusDoubleDouble
       reference: <testLibrary>::@setter::vMinusDoubleDouble
       firstFragment: #F31
@@ -608,6 +615,7 @@ library
           firstFragment: #F32
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMinusDoubleDouble
 ''');
   }
 
@@ -655,6 +663,7 @@ library
           firstFragment: #F4
           type: num
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V
 ''');
   }
 
@@ -744,6 +753,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static t1
       reference: <testLibrary>::@setter::t1
       firstFragment: #F9
@@ -752,6 +762,7 @@ library
           firstFragment: #F10
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t1
     synthetic static t2
       reference: <testLibrary>::@setter::t2
       firstFragment: #F11
@@ -760,6 +771,7 @@ library
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t2
 ''');
   }
 
@@ -849,6 +861,7 @@ library
           firstFragment: #F8
           type: List<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static t1
       reference: <testLibrary>::@setter::t1
       firstFragment: #F9
@@ -857,6 +870,7 @@ library
           firstFragment: #F10
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t1
     synthetic static t2
       reference: <testLibrary>::@setter::t2
       firstFragment: #F11
@@ -865,6 +879,7 @@ library
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t2
 ''');
   }
 
@@ -962,6 +977,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::f
   topLevelVariables
     hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1006,6 +1022,7 @@ library
           firstFragment: #F14
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static t1
       reference: <testLibrary>::@setter::t1
       firstFragment: #F15
@@ -1014,6 +1031,7 @@ library
           firstFragment: #F16
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t1
     synthetic static t2
       reference: <testLibrary>::@setter::t2
       firstFragment: #F17
@@ -1022,6 +1040,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t2
 ''');
   }
 
@@ -1126,6 +1145,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::I::@field::f
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: #F7
@@ -1179,6 +1199,7 @@ library
           firstFragment: #F16
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static t1
       reference: <testLibrary>::@setter::t1
       firstFragment: #F17
@@ -1187,6 +1208,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t1
     synthetic static t2
       reference: <testLibrary>::@setter::t2
       firstFragment: #F19
@@ -1195,6 +1217,7 @@ library
           firstFragment: #F20
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t2
 ''');
   }
 
@@ -1293,6 +1316,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::I::@field::f
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: #F7
@@ -1335,6 +1359,7 @@ library
           firstFragment: #F14
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t1
     synthetic static t2
       reference: <testLibrary>::@setter::t2
       firstFragment: #F15
@@ -1343,6 +1368,7 @@ library
           firstFragment: #F16
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::t2
   functions
     getC
       reference: <testLibrary>::@function::getC
@@ -1426,6 +1452,7 @@ library
           firstFragment: #F6
           type: Future<int> Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::uValue
     synthetic static uFuture
       reference: <testLibrary>::@setter::uFuture
       firstFragment: #F7
@@ -1434,6 +1461,7 @@ library
           firstFragment: #F8
           type: Future<int> Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::uFuture
   functions
     fValue
       reference: <testLibrary>::@function::fValue
@@ -1574,6 +1602,7 @@ library
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vBitXor
     synthetic static vBitAnd
       reference: <testLibrary>::@setter::vBitAnd
       firstFragment: #F13
@@ -1582,6 +1611,7 @@ library
           firstFragment: #F14
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vBitAnd
     synthetic static vBitOr
       reference: <testLibrary>::@setter::vBitOr
       firstFragment: #F15
@@ -1590,6 +1620,7 @@ library
           firstFragment: #F16
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vBitOr
     synthetic static vBitShiftLeft
       reference: <testLibrary>::@setter::vBitShiftLeft
       firstFragment: #F17
@@ -1598,6 +1629,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vBitShiftLeft
     synthetic static vBitShiftRight
       reference: <testLibrary>::@setter::vBitShiftRight
       firstFragment: #F19
@@ -1606,6 +1638,7 @@ library
           firstFragment: #F20
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vBitShiftRight
 ''');
   }
 
@@ -1707,6 +1740,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::a
       methods
         m
           reference: <testLibrary>::@class::A::@method::m
@@ -1756,6 +1790,7 @@ library
           firstFragment: #F15
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vSetField
     synthetic static vInvokeMethod
       reference: <testLibrary>::@setter::vInvokeMethod
       firstFragment: #F16
@@ -1764,6 +1799,7 @@ library
           firstFragment: #F17
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vInvokeMethod
     synthetic static vBoth
       reference: <testLibrary>::@setter::vBoth
       firstFragment: #F18
@@ -1772,6 +1808,7 @@ library
           firstFragment: #F19
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vBoth
 ''');
   }
 
@@ -2023,6 +2060,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::f
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -2052,6 +2090,7 @@ library
               firstFragment: #F12
               type: A
           returnType: void
+          variable: <testLibrary>::@class::B::@field::a
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13
@@ -2081,6 +2120,7 @@ library
               firstFragment: #F18
               type: B
           returnType: void
+          variable: <testLibrary>::@class::C::@field::b
     class X
       reference: <testLibrary>::@class::X
       firstFragment: #F19
@@ -2231,6 +2271,7 @@ library
               firstFragment: #F46
               type: A
           returnType: void
+          variable: <testLibrary>::@class::X::@field::a
         synthetic b
           reference: <testLibrary>::@class::X::@setter::b
           firstFragment: #F47
@@ -2239,6 +2280,7 @@ library
               firstFragment: #F48
               type: B
           returnType: void
+          variable: <testLibrary>::@class::X::@field::b
         synthetic c
           reference: <testLibrary>::@class::X::@setter::c
           firstFragment: #F49
@@ -2247,6 +2289,7 @@ library
               firstFragment: #F50
               type: C
           returnType: void
+          variable: <testLibrary>::@class::X::@field::c
         synthetic t01
           reference: <testLibrary>::@class::X::@setter::t01
           firstFragment: #F51
@@ -2255,6 +2298,7 @@ library
               firstFragment: #F52
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t01
         synthetic t02
           reference: <testLibrary>::@class::X::@setter::t02
           firstFragment: #F53
@@ -2263,6 +2307,7 @@ library
               firstFragment: #F54
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t02
         synthetic t03
           reference: <testLibrary>::@class::X::@setter::t03
           firstFragment: #F55
@@ -2271,6 +2316,7 @@ library
               firstFragment: #F56
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t03
         synthetic t11
           reference: <testLibrary>::@class::X::@setter::t11
           firstFragment: #F57
@@ -2279,6 +2325,7 @@ library
               firstFragment: #F58
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t11
         synthetic t12
           reference: <testLibrary>::@class::X::@setter::t12
           firstFragment: #F59
@@ -2287,6 +2334,7 @@ library
               firstFragment: #F60
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t12
         synthetic t13
           reference: <testLibrary>::@class::X::@setter::t13
           firstFragment: #F61
@@ -2295,6 +2343,7 @@ library
               firstFragment: #F62
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t13
         synthetic t21
           reference: <testLibrary>::@class::X::@setter::t21
           firstFragment: #F63
@@ -2303,6 +2352,7 @@ library
               firstFragment: #F64
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t21
         synthetic t22
           reference: <testLibrary>::@class::X::@setter::t22
           firstFragment: #F65
@@ -2311,6 +2361,7 @@ library
               firstFragment: #F66
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t22
         synthetic t23
           reference: <testLibrary>::@class::X::@setter::t23
           firstFragment: #F67
@@ -2319,6 +2370,7 @@ library
               firstFragment: #F68
               type: int
           returnType: void
+          variable: <testLibrary>::@class::X::@field::t23
   functions
     newA
       reference: <testLibrary>::@function::newA
@@ -2379,6 +2431,7 @@ library
           firstFragment: #F4
           type: num
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V
 ''');
   }
 
@@ -2447,6 +2500,7 @@ library
           firstFragment: #F6
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vEq
     synthetic static vNotEq
       reference: <testLibrary>::@setter::vNotEq
       firstFragment: #F7
@@ -2455,6 +2509,7 @@ library
           firstFragment: #F8
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNotEq
 ''');
   }
 
@@ -2523,6 +2578,7 @@ library
           firstFragment: #F6
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
       reference: <testLibrary>::@setter::b
       firstFragment: #F7
@@ -2531,6 +2587,7 @@ library
           firstFragment: #F8
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -2578,6 +2635,7 @@ library
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -2667,6 +2725,7 @@ library
           firstFragment: #F8
           type: List<num>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static b0
       reference: <testLibrary>::@setter::b0
       firstFragment: #F9
@@ -2675,6 +2734,7 @@ library
           firstFragment: #F10
           type: num
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b0
     synthetic static b1
       reference: <testLibrary>::@setter::b1
       firstFragment: #F11
@@ -2683,6 +2743,7 @@ library
           firstFragment: #F12
           type: num
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b1
 ''');
   }
 
@@ -2738,6 +2799,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2815,6 +2877,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2837,6 +2900,7 @@ library
           firstFragment: #F10
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2893,6 +2957,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2948,6 +3013,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3025,6 +3091,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -3047,6 +3114,7 @@ library
           firstFragment: #F10
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3103,6 +3171,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3188,6 +3257,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::f
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -3217,6 +3287,7 @@ library
               firstFragment: #F12
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::t
 ''');
   }
 
@@ -3304,6 +3375,7 @@ library
               firstFragment: #F6
               type: bool
           returnType: void
+          variable: <testLibrary>::@class::C::@field::b
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -3337,6 +3409,7 @@ library
           firstFragment: #F12
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static x
       reference: <testLibrary>::@setter::x
       firstFragment: #F13
@@ -3345,6 +3418,7 @@ library
           firstFragment: #F14
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3439,6 +3513,7 @@ library
               firstFragment: #F6
               type: bool
           returnType: void
+          variable: <testLibrary>::@class::I::@field::b
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: #F7
@@ -3481,6 +3556,7 @@ library
           firstFragment: #F14
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static x
       reference: <testLibrary>::@setter::x
       firstFragment: #F15
@@ -3489,6 +3565,7 @@ library
           firstFragment: #F16
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3577,6 +3654,7 @@ library
               firstFragment: #F6
               type: bool
           returnType: void
+          variable: <testLibrary>::@class::I::@field::b
     abstract class C
       reference: <testLibrary>::@class::C
       firstFragment: #F7
@@ -3608,6 +3686,7 @@ library
           firstFragment: #F12
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
   functions
     f
       reference: <testLibrary>::@function::f
@@ -3733,6 +3812,7 @@ library
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
     synthetic static y
       reference: <testLibrary>::@setter::y
       firstFragment: #F13
@@ -3741,6 +3821,7 @@ library
           firstFragment: #F14
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::y
 ''');
   }
 
@@ -3896,6 +3977,7 @@ library
           firstFragment: #F14
           type: Future<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vFuture
     synthetic static v_noParameters_inferredReturnType
       reference: <testLibrary>::@setter::v_noParameters_inferredReturnType
       firstFragment: #F15
@@ -3904,6 +3986,7 @@ library
           firstFragment: #F16
           type: int Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v_noParameters_inferredReturnType
     synthetic static v_hasParameter_withType_inferredReturnType
       reference: <testLibrary>::@setter::v_hasParameter_withType_inferredReturnType
       firstFragment: #F17
@@ -3912,6 +3995,7 @@ library
           firstFragment: #F18
           type: int Function(String)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v_hasParameter_withType_inferredReturnType
     synthetic static v_hasParameter_withType_returnParameter
       reference: <testLibrary>::@setter::v_hasParameter_withType_returnParameter
       firstFragment: #F19
@@ -3920,6 +4004,7 @@ library
           firstFragment: #F20
           type: String Function(String)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v_hasParameter_withType_returnParameter
     synthetic static v_async_returnValue
       reference: <testLibrary>::@setter::v_async_returnValue
       firstFragment: #F21
@@ -3928,6 +4013,7 @@ library
           firstFragment: #F22
           type: Future<int> Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v_async_returnValue
     synthetic static v_async_returnFuture
       reference: <testLibrary>::@setter::v_async_returnFuture
       firstFragment: #F23
@@ -3936,6 +4022,7 @@ library
           firstFragment: #F24
           type: Future<int> Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v_async_returnFuture
 ''');
   }
 
@@ -3984,6 +4071,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -4059,6 +4147,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vHasTypeArgument
     synthetic static vNoTypeArgument
       reference: <testLibrary>::@setter::vNoTypeArgument
       firstFragment: #F7
@@ -4067,6 +4156,7 @@ library
           firstFragment: #F8
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNoTypeArgument
   functions
     f
       reference: <testLibrary>::@function::f
@@ -4150,6 +4240,7 @@ library
           firstFragment: #F6
           type: String
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vOkArgumentType
     synthetic static vWrongArgumentType
       reference: <testLibrary>::@setter::vWrongArgumentType
       firstFragment: #F7
@@ -4158,6 +4249,7 @@ library
           firstFragment: #F8
           type: String
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vWrongArgumentType
   functions
     f
       reference: <testLibrary>::@function::f
@@ -4364,6 +4456,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::staticClassVariable
       methods
         static staticClassMethod
           reference: <testLibrary>::@class::A::@method::staticClassMethod
@@ -4501,6 +4594,7 @@ library
           firstFragment: #F34
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::topLevelVariable
     synthetic static r_topLevelFunction
       reference: <testLibrary>::@setter::r_topLevelFunction
       firstFragment: #F35
@@ -4509,6 +4603,7 @@ library
           firstFragment: #F36
           type: String Function(int)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::r_topLevelFunction
     synthetic static r_topLevelVariable
       reference: <testLibrary>::@setter::r_topLevelVariable
       firstFragment: #F37
@@ -4517,6 +4612,7 @@ library
           firstFragment: #F38
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::r_topLevelVariable
     synthetic static r_topLevelGetter
       reference: <testLibrary>::@setter::r_topLevelGetter
       firstFragment: #F39
@@ -4525,6 +4621,7 @@ library
           firstFragment: #F40
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::r_topLevelGetter
     synthetic static r_staticClassVariable
       reference: <testLibrary>::@setter::r_staticClassVariable
       firstFragment: #F41
@@ -4533,6 +4630,7 @@ library
           firstFragment: #F42
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::r_staticClassVariable
     synthetic static r_staticGetter
       reference: <testLibrary>::@setter::r_staticGetter
       firstFragment: #F43
@@ -4541,6 +4639,7 @@ library
           firstFragment: #F44
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::r_staticGetter
     synthetic static r_staticClassMethod
       reference: <testLibrary>::@setter::r_staticClassMethod
       firstFragment: #F45
@@ -4549,6 +4648,7 @@ library
           firstFragment: #F46
           type: String Function(int)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::r_staticClassMethod
     synthetic static instanceOfA
       reference: <testLibrary>::@setter::instanceOfA
       firstFragment: #F47
@@ -4557,6 +4657,7 @@ library
           firstFragment: #F48
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::instanceOfA
     synthetic static r_instanceClassMethod
       reference: <testLibrary>::@setter::r_instanceClassMethod
       firstFragment: #F49
@@ -4565,6 +4666,7 @@ library
           firstFragment: #F50
           type: String Function(int)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::r_instanceClassMethod
   functions
     topLevelFunction
       reference: <testLibrary>::@function::topLevelFunction
@@ -4672,6 +4774,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::A::@field::a
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -4701,6 +4804,7 @@ library
               firstFragment: #F12
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::B::@field::b
   topLevelVariables
     hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
@@ -4723,6 +4827,7 @@ library
           firstFragment: #F16
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -4810,6 +4915,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::A::@field::a
   topLevelVariables
     hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
@@ -4843,6 +4949,7 @@ library
           firstFragment: #F12
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
     synthetic static c
       reference: <testLibrary>::@setter::c
       firstFragment: #F13
@@ -4851,6 +4958,7 @@ library
           firstFragment: #F14
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -5010,6 +5118,7 @@ library
           firstFragment: #F6
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -5082,6 +5191,7 @@ library
           firstFragment: #F6
           type: String
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::s
     synthetic static h
       reference: <testLibrary>::@setter::h
       firstFragment: #F7
@@ -5090,6 +5200,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::h
   functions
     f
       reference: <testLibrary>::@function::f
@@ -5184,6 +5295,7 @@ library
           firstFragment: #F8
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::d
     synthetic static s
       reference: <testLibrary>::@setter::s
       firstFragment: #F9
@@ -5192,6 +5304,7 @@ library
           firstFragment: #F10
           type: String
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::s
     synthetic static h
       reference: <testLibrary>::@setter::h
       firstFragment: #F11
@@ -5200,6 +5313,7 @@ library
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::h
 ''');
   }
 
@@ -5268,6 +5382,7 @@ library
           firstFragment: #F6
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
       reference: <testLibrary>::@setter::b
       firstFragment: #F7
@@ -5276,6 +5391,7 @@ library
           firstFragment: #F8
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -5414,6 +5530,7 @@ library
           firstFragment: #F10
           type: List<Object>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vObject
     synthetic static vNum
       reference: <testLibrary>::@setter::vNum
       firstFragment: #F11
@@ -5422,6 +5539,7 @@ library
           firstFragment: #F12
           type: List<num>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNum
     synthetic static vNumEmpty
       reference: <testLibrary>::@setter::vNumEmpty
       firstFragment: #F13
@@ -5430,6 +5548,7 @@ library
           firstFragment: #F14
           type: List<num>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNumEmpty
     synthetic static vInt
       reference: <testLibrary>::@setter::vInt
       firstFragment: #F15
@@ -5438,6 +5557,7 @@ library
           firstFragment: #F16
           type: List<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vInt
 ''');
   }
 
@@ -5527,6 +5647,7 @@ library
           firstFragment: #F8
           type: List<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vInt
     synthetic static vNum
       reference: <testLibrary>::@setter::vNum
       firstFragment: #F9
@@ -5535,6 +5656,7 @@ library
           firstFragment: #F10
           type: List<num>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNum
     synthetic static vObject
       reference: <testLibrary>::@setter::vObject
       firstFragment: #F11
@@ -5543,6 +5665,7 @@ library
           firstFragment: #F12
           type: List<Object>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vObject
 ''');
   }
 
@@ -5686,6 +5809,7 @@ library
           firstFragment: #F12
           type: Map<Object, Object>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vObjectObject
     synthetic static vComparableObject
       reference: <testLibrary>::@setter::vComparableObject
       firstFragment: #F13
@@ -5694,6 +5818,7 @@ library
           firstFragment: #F14
           type: Map<Comparable<int>, Object>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vComparableObject
     synthetic static vNumString
       reference: <testLibrary>::@setter::vNumString
       firstFragment: #F15
@@ -5702,6 +5827,7 @@ library
           firstFragment: #F16
           type: Map<num, String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNumString
     synthetic static vNumStringEmpty
       reference: <testLibrary>::@setter::vNumStringEmpty
       firstFragment: #F17
@@ -5710,6 +5836,7 @@ library
           firstFragment: #F18
           type: Map<num, String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNumStringEmpty
     synthetic static vIntString
       reference: <testLibrary>::@setter::vIntString
       firstFragment: #F19
@@ -5718,6 +5845,7 @@ library
           firstFragment: #F20
           type: Map<int, String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIntString
 ''');
   }
 
@@ -5807,6 +5935,7 @@ library
           firstFragment: #F8
           type: Map<int, String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIntString
     synthetic static vNumString
       reference: <testLibrary>::@setter::vNumString
       firstFragment: #F9
@@ -5815,6 +5944,7 @@ library
           firstFragment: #F10
           type: Map<num, String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNumString
     synthetic static vIntObject
       reference: <testLibrary>::@setter::vIntObject
       firstFragment: #F11
@@ -5823,6 +5953,7 @@ library
           firstFragment: #F12
           type: Map<int, Object>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIntObject
 ''');
   }
 
@@ -5966,6 +6097,7 @@ library
           firstFragment: #F12
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
       reference: <testLibrary>::@setter::b
       firstFragment: #F13
@@ -5974,6 +6106,7 @@ library
           firstFragment: #F14
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
     synthetic static vEq
       reference: <testLibrary>::@setter::vEq
       firstFragment: #F15
@@ -5982,6 +6115,7 @@ library
           firstFragment: #F16
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vEq
     synthetic static vAnd
       reference: <testLibrary>::@setter::vAnd
       firstFragment: #F17
@@ -5990,6 +6124,7 @@ library
           firstFragment: #F18
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vAnd
     synthetic static vOr
       reference: <testLibrary>::@setter::vOr
       firstFragment: #F19
@@ -5998,6 +6133,7 @@ library
           firstFragment: #F20
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vOr
 ''');
   }
 
@@ -6139,6 +6275,7 @@ library
           firstFragment: #F12
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::instanceOfA
     synthetic static v1
       reference: <testLibrary>::@setter::v1
       firstFragment: #F13
@@ -6147,6 +6284,7 @@ library
           firstFragment: #F14
           type: String
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v1
     synthetic static v2
       reference: <testLibrary>::@setter::v2
       firstFragment: #F15
@@ -6155,6 +6293,7 @@ library
           firstFragment: #F16
           type: String
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v2
 ''');
   }
 
@@ -6412,6 +6551,7 @@ library
           firstFragment: #F24
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vModuloIntInt
     synthetic static vModuloIntDouble
       reference: <testLibrary>::@setter::vModuloIntDouble
       firstFragment: #F25
@@ -6420,6 +6560,7 @@ library
           firstFragment: #F26
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vModuloIntDouble
     synthetic static vMultiplyIntInt
       reference: <testLibrary>::@setter::vMultiplyIntInt
       firstFragment: #F27
@@ -6428,6 +6569,7 @@ library
           firstFragment: #F28
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMultiplyIntInt
     synthetic static vMultiplyIntDouble
       reference: <testLibrary>::@setter::vMultiplyIntDouble
       firstFragment: #F29
@@ -6436,6 +6578,7 @@ library
           firstFragment: #F30
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMultiplyIntDouble
     synthetic static vMultiplyDoubleInt
       reference: <testLibrary>::@setter::vMultiplyDoubleInt
       firstFragment: #F31
@@ -6444,6 +6587,7 @@ library
           firstFragment: #F32
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMultiplyDoubleInt
     synthetic static vMultiplyDoubleDouble
       reference: <testLibrary>::@setter::vMultiplyDoubleDouble
       firstFragment: #F33
@@ -6452,6 +6596,7 @@ library
           firstFragment: #F34
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vMultiplyDoubleDouble
     synthetic static vDivideIntInt
       reference: <testLibrary>::@setter::vDivideIntInt
       firstFragment: #F35
@@ -6460,6 +6605,7 @@ library
           firstFragment: #F36
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDivideIntInt
     synthetic static vDivideIntDouble
       reference: <testLibrary>::@setter::vDivideIntDouble
       firstFragment: #F37
@@ -6468,6 +6614,7 @@ library
           firstFragment: #F38
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDivideIntDouble
     synthetic static vDivideDoubleInt
       reference: <testLibrary>::@setter::vDivideDoubleInt
       firstFragment: #F39
@@ -6476,6 +6623,7 @@ library
           firstFragment: #F40
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDivideDoubleInt
     synthetic static vDivideDoubleDouble
       reference: <testLibrary>::@setter::vDivideDoubleDouble
       firstFragment: #F41
@@ -6484,6 +6632,7 @@ library
           firstFragment: #F42
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDivideDoubleDouble
     synthetic static vFloorDivide
       reference: <testLibrary>::@setter::vFloorDivide
       firstFragment: #F43
@@ -6492,6 +6641,7 @@ library
           firstFragment: #F44
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vFloorDivide
 ''');
   }
 
@@ -6581,6 +6731,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static vEq
       reference: <testLibrary>::@setter::vEq
       firstFragment: #F9
@@ -6589,6 +6740,7 @@ library
           firstFragment: #F10
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vEq
     synthetic static vNotEq
       reference: <testLibrary>::@setter::vNotEq
       firstFragment: #F11
@@ -6597,6 +6749,7 @@ library
           firstFragment: #F12
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNotEq
 ''');
   }
 
@@ -6644,6 +6797,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V
 ''');
   }
 
@@ -6796,6 +6950,7 @@ library
           firstFragment: #F14
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vInt
     synthetic static vDouble
       reference: <testLibrary>::@setter::vDouble
       firstFragment: #F15
@@ -6804,6 +6959,7 @@ library
           firstFragment: #F16
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDouble
     synthetic static vIncInt
       reference: <testLibrary>::@setter::vIncInt
       firstFragment: #F17
@@ -6812,6 +6968,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncInt
     synthetic static vDecInt
       reference: <testLibrary>::@setter::vDecInt
       firstFragment: #F19
@@ -6820,6 +6977,7 @@ library
           firstFragment: #F20
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecInt
     synthetic static vIncDouble
       reference: <testLibrary>::@setter::vIncDouble
       firstFragment: #F21
@@ -6828,6 +6986,7 @@ library
           firstFragment: #F22
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncDouble
     synthetic static vDecDouble
       reference: <testLibrary>::@setter::vDecDouble
       firstFragment: #F23
@@ -6836,6 +6995,7 @@ library
           firstFragment: #F24
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecDouble
 ''');
   }
 
@@ -6988,6 +7148,7 @@ library
           firstFragment: #F14
           type: List<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vInt
     synthetic static vDouble
       reference: <testLibrary>::@setter::vDouble
       firstFragment: #F15
@@ -6996,6 +7157,7 @@ library
           firstFragment: #F16
           type: List<double>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDouble
     synthetic static vIncInt
       reference: <testLibrary>::@setter::vIncInt
       firstFragment: #F17
@@ -7004,6 +7166,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncInt
     synthetic static vDecInt
       reference: <testLibrary>::@setter::vDecInt
       firstFragment: #F19
@@ -7012,6 +7175,7 @@ library
           firstFragment: #F20
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecInt
     synthetic static vIncDouble
       reference: <testLibrary>::@setter::vIncDouble
       firstFragment: #F21
@@ -7020,6 +7184,7 @@ library
           firstFragment: #F22
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncDouble
     synthetic static vDecDouble
       reference: <testLibrary>::@setter::vDecDouble
       firstFragment: #F23
@@ -7028,6 +7193,7 @@ library
           firstFragment: #F24
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecDouble
 ''');
   }
 
@@ -7180,6 +7346,7 @@ library
           firstFragment: #F14
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vInt
     synthetic static vDouble
       reference: <testLibrary>::@setter::vDouble
       firstFragment: #F15
@@ -7188,6 +7355,7 @@ library
           firstFragment: #F16
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDouble
     synthetic static vIncInt
       reference: <testLibrary>::@setter::vIncInt
       firstFragment: #F17
@@ -7196,6 +7364,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncInt
     synthetic static vDecInt
       reference: <testLibrary>::@setter::vDecInt::@def::0
       firstFragment: #F19
@@ -7204,6 +7373,7 @@ library
           firstFragment: #F20
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::0
     synthetic static vIncDouble
       reference: <testLibrary>::@setter::vIncDouble
       firstFragment: #F21
@@ -7212,6 +7382,7 @@ library
           firstFragment: #F22
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncDouble
     synthetic static vDecInt
       reference: <testLibrary>::@setter::vDecInt::@def::1
       firstFragment: #F23
@@ -7220,6 +7391,7 @@ library
           firstFragment: #F24
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::1
 ''');
   }
 
@@ -7390,6 +7562,7 @@ library
           firstFragment: #F14
           type: List<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vInt
     synthetic static vDouble
       reference: <testLibrary>::@setter::vDouble
       firstFragment: #F15
@@ -7398,6 +7571,7 @@ library
           firstFragment: #F16
           type: List<double>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDouble
     synthetic static vIncInt
       reference: <testLibrary>::@setter::vIncInt
       firstFragment: #F17
@@ -7406,6 +7580,7 @@ library
           firstFragment: #F18
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncInt
     synthetic static vDecInt
       reference: <testLibrary>::@setter::vDecInt::@def::0
       firstFragment: #F19
@@ -7414,6 +7589,7 @@ library
           firstFragment: #F20
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::0
     synthetic static vIncDouble
       reference: <testLibrary>::@setter::vIncDouble
       firstFragment: #F21
@@ -7422,6 +7598,7 @@ library
           firstFragment: #F22
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vIncDouble
     synthetic static vDecInt
       reference: <testLibrary>::@setter::vDecInt::@def::1
       firstFragment: #F23
@@ -7430,6 +7607,7 @@ library
           firstFragment: #F24
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::1
 ''');
   }
 
@@ -7477,6 +7655,7 @@ library
           firstFragment: #F4
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNot
 ''');
   }
 
@@ -7566,6 +7745,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNegateInt
     synthetic static vNegateDouble
       reference: <testLibrary>::@setter::vNegateDouble
       firstFragment: #F9
@@ -7574,6 +7754,7 @@ library
           firstFragment: #F10
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vNegateDouble
     synthetic static vComplement
       reference: <testLibrary>::@setter::vComplement
       firstFragment: #F11
@@ -7582,6 +7763,7 @@ library
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vComplement
 ''');
   }
 
@@ -7674,6 +7856,7 @@ library
               firstFragment: #F6
               type: D
           returnType: void
+          variable: <testLibrary>::@class::C::@field::d
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F7
@@ -7703,6 +7886,7 @@ library
               firstFragment: #F12
               type: int
           returnType: void
+          variable: <testLibrary>::@class::D::@field::i
   topLevelVariables
     final hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -7826,6 +8010,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::D::@field::i
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -7848,6 +8033,7 @@ library
           firstFragment: #F14
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -7958,6 +8144,7 @@ library
           firstFragment: #F10
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vLess
     synthetic static vLessOrEqual
       reference: <testLibrary>::@setter::vLessOrEqual
       firstFragment: #F11
@@ -7966,6 +8153,7 @@ library
           firstFragment: #F12
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vLessOrEqual
     synthetic static vGreater
       reference: <testLibrary>::@setter::vGreater
       firstFragment: #F13
@@ -7974,6 +8162,7 @@ library
           firstFragment: #F14
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vGreater
     synthetic static vGreaterOrEqual
       reference: <testLibrary>::@setter::vGreaterOrEqual
       firstFragment: #F15
@@ -7982,6 +8171,7 @@ library
           firstFragment: #F16
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::vGreaterOrEqual
 ''');
   }
 
@@ -8074,6 +8264,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -8098,6 +8289,7 @@ library
               firstFragment: #F11
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
 ''');
   }
 
@@ -8177,6 +8369,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -8317,6 +8510,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
         synthetic y
           reference: <testLibrary>::@class::A::@setter::y
           firstFragment: #F11
@@ -8325,6 +8519,7 @@ library
               firstFragment: #F12
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::y
         synthetic z
           reference: <testLibrary>::@class::A::@setter::z
           firstFragment: #F13
@@ -8333,6 +8528,7 @@ library
               firstFragment: #F14
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::z
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F15
@@ -8379,6 +8575,7 @@ library
               firstFragment: #F23
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
         z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F24
@@ -8387,6 +8584,7 @@ library
               firstFragment: #F25
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::z
 ''');
   }
 
@@ -8472,6 +8670,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -8503,6 +8702,7 @@ library
               firstFragment: #F12
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
 ''');
   }
 
@@ -8589,6 +8789,7 @@ library
               firstFragment: #F6
               type: int?
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -8620,6 +8821,7 @@ library
               firstFragment: #F12
               type: int?
           returnType: void
+          variable: <testLibrary>::@class::B::@field::foo
 ''');
   }
 
@@ -8776,6 +8978,7 @@ library
               firstFragment: #F11
               type: E
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
         synthetic y
           reference: <testLibrary>::@class::A::@setter::y
           firstFragment: #F12
@@ -8785,6 +8988,7 @@ library
               firstFragment: #F13
               type: E
           returnType: void
+          variable: <testLibrary>::@class::A::@field::y
         synthetic z
           reference: <testLibrary>::@class::A::@setter::z
           firstFragment: #F14
@@ -8794,6 +8998,7 @@ library
               firstFragment: #F15
               type: E
           returnType: void
+          variable: <testLibrary>::@class::A::@field::z
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F16
@@ -8849,6 +9054,7 @@ library
               firstFragment: #F25
               type: T
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
         z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F26
@@ -8858,6 +9064,7 @@ library
               firstFragment: #F27
               type: T
           returnType: void
+          variable: <testLibrary>::@class::B::@field::z
 ''');
   }
 
@@ -8943,6 +9150,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -8974,6 +9182,7 @@ library
               firstFragment: #F12
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
 ''');
   }
 
@@ -9059,6 +9268,7 @@ library
               firstFragment: #F6
               type: num
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -9090,6 +9300,7 @@ library
               firstFragment: #F12
               type: num
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
 ''');
   }
 
@@ -9248,6 +9459,7 @@ library
               firstFragment: #F17
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
         z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F18
@@ -9256,6 +9468,7 @@ library
               firstFragment: #F19
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::z
 ''');
   }
 
@@ -9438,6 +9651,7 @@ library
               firstFragment: #F19
               type: T
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
         z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F20
@@ -9447,6 +9661,7 @@ library
               firstFragment: #F21
               type: T
           returnType: void
+          variable: <testLibrary>::@class::B::@field::z
 ''');
   }
 
@@ -9533,6 +9748,7 @@ library
               firstFragment: #F8
               type: num
           returnType: void
+          variable: <testLibrary>::@class::B::@field::foo
 ''');
   }
 
@@ -10170,6 +10386,7 @@ library
               firstFragment: #F12
               type: String
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
         abstract y
           reference: <testLibrary>::@class::B::@setter::y
           firstFragment: #F13
@@ -10178,6 +10395,7 @@ library
               firstFragment: #F14
               type: String
           returnType: void
+          variable: <testLibrary>::@class::B::@field::y
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F15
@@ -10220,6 +10438,7 @@ library
               firstFragment: #F22
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10323,6 +10542,7 @@ library
               firstFragment: #F9
               type: String
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
@@ -10452,6 +10672,7 @@ library
               firstFragment: #F9
               type: String
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
@@ -10477,6 +10698,7 @@ library
               firstFragment: #F14
               type: String
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10586,6 +10808,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
@@ -10618,6 +10841,7 @@ library
               firstFragment: #F15
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10721,6 +10945,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
@@ -10849,6 +11074,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F10
@@ -10874,6 +11100,7 @@ library
               firstFragment: #F14
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10988,6 +11215,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
         abstract y
           reference: <testLibrary>::@class::A::@setter::y
           firstFragment: #F8
@@ -10996,6 +11224,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::y
         abstract z
           reference: <testLibrary>::@class::A::@setter::z
           firstFragment: #F10
@@ -11004,6 +11233,7 @@ library
               firstFragment: #F11
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::z
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F12
@@ -11050,6 +11280,7 @@ library
               firstFragment: #F20
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
         z
           reference: <testLibrary>::@class::B::@setter::z
           firstFragment: #F21
@@ -11058,6 +11289,7 @@ library
               firstFragment: #F22
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::z
 ''');
   }
 
@@ -11145,6 +11377,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: #F6
@@ -11167,6 +11400,7 @@ library
               firstFragment: #F10
               type: String
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F11
@@ -11276,6 +11510,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     abstract class B
       reference: <testLibrary>::@class::B
       firstFragment: #F6
@@ -11298,6 +11533,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F11
@@ -11561,6 +11797,7 @@ library
               firstFragment: #F6
               type: num
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -11592,6 +11829,7 @@ library
               firstFragment: #F12
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
 ''');
   }
 
@@ -11675,6 +11913,7 @@ library
               firstFragment: #F6
               type: num
           returnType: void
+          variable: <testLibrary>::@class::A::@field::x
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -11699,6 +11938,7 @@ library
               firstFragment: #F11
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::x
 ''');
   }
 
@@ -11805,6 +12045,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::t1
         synthetic t2
           reference: <testLibrary>::@class::A::@setter::t2
           firstFragment: #F11
@@ -11813,6 +12054,7 @@ library
               firstFragment: #F12
               type: double
           returnType: void
+          variable: <testLibrary>::@class::A::@field::t2
         synthetic t3
           reference: <testLibrary>::@class::A::@setter::t3
           firstFragment: #F13
@@ -11821,6 +12063,7 @@ library
               firstFragment: #F14
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::A::@field::t3
 ''');
   }
 
@@ -12879,6 +13122,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::m
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7

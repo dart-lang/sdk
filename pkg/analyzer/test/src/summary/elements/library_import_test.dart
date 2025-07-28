@@ -387,6 +387,7 @@ library
           firstFragment: #F4
           type: Future<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -482,6 +483,7 @@ library
           firstFragment: #F4
           type: Future<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -538,6 +540,7 @@ library
           firstFragment: #F4
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -683,6 +686,7 @@ library
           firstFragment: #F6
           type: Future<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
     synthetic static s
       reference: <testLibrary>::@setter::s
       firstFragment: #F7
@@ -691,6 +695,7 @@ library
           firstFragment: #F8
           type: Stream<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::s
 ''');
   }
 
@@ -783,6 +788,7 @@ library
           firstFragment: #F6
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static d
       reference: <testLibrary>::@setter::d
       firstFragment: #F7
@@ -791,6 +797,7 @@ library
           firstFragment: #F8
           type: D
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::d
 ''');
   }
 
@@ -1115,6 +1122,7 @@ library
           firstFragment: #F4
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 

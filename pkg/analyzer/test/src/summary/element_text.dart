@@ -1518,6 +1518,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterElement,
       );
       _writeReturnType(e.returnType);
+      _writeElementReference('variable', e.variable);
       // _writeNonSyntheticElement(e);
       // writeLinking();
     });

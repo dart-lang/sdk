@@ -1815,6 +1815,7 @@ library
                   typeArguments
                     int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::f
   typeAliases
     Foo
       reference: <testLibrary>::@typeAlias::Foo
