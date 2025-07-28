@@ -115,8 +115,9 @@ then that is used instead.''',
 
   @override
   Future<int> run() async {
-    if (!checkArtifactExists(genKernel) ||
-        !checkArtifactExists(genSnapshotHost) ||
+    if (!checkArtifactExists(sdk.genKernelSnapshot) ||
+        !checkArtifactExists(sdk.genSnapshot) ||
+        !checkArtifactExists(sdk.dartAotRuntime) ||
         !checkArtifactExists(sdk.dart)) {
       return 255;
     }
@@ -199,8 +200,8 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
         recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
       }
       final generator = KernelGenerator(
-        genSnapshot: genSnapshotHost,
-        targetDartAotRuntime: hostDartAotRuntime,
+        genSnapshot: sdk.genSnapshot,
+        targetDartAotRuntime: sdk.dartAotRuntime,
         kind: Kind.exe,
         sourceFile: sourceUri.toFilePath(),
         outputFile: outputExeUri.toFilePath(),

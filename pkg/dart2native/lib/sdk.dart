@@ -30,51 +30,28 @@ class Sdk {
   // Assume that we want to use the same Dart executable that we used to spawn
   // DartDev. We should be able to run programs with out/ReleaseX64/dart even
   // if the SDK isn't completely built.
-  String get dart {
-    var basename = path.basename(Platform.executable);
-    // It's possible that Platform.executable won't include the .exe extension
-    // on Windows (e.g., launching `dart` from cmd.exe where `dart` is on the
-    // PATH). Append .exe in this case so the `checkArtifactExists` check won't
-    // fail.
-    if (Platform.isWindows && !basename.endsWith('.exe')) {
-      basename += '.exe';
-    }
-    return path.absolute(
-      runFromBuildRoot
-          ? sdkPath
-          : path.absolute(
-              sdkPath,
-              'bin',
-            ),
-      basename,
-    );
-  }
+  String get dart => _executablePathFor(
+        path.basename(Platform.executable),
+      );
 
-  String get dartvm {
-    final basename = Platform.isWindows ? 'dartvm.exe' : 'dartvm';
-    return path.absolute(
-      runFromBuildRoot
-          ? sdkPath
-          : path.absolute(
-              sdkPath,
-              'bin',
-            ),
-      basename,
-    );
-  }
+  String get dartvm => _executablePathFor(
+        'dartvm',
+      );
 
-  String get dartAotRuntime => runFromBuildRoot
-      ? path.absolute(
-          sdkPath,
-          Platform.isWindows
-              ? 'dartaotruntime_product.exe'
-              : 'dartaotruntime_product',
-        )
-      : path.absolute(
-          sdkPath,
-          'bin',
-          Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
-        );
+  String get dartAotRuntime => _executablePathFor(
+        'dartaotruntime',
+        forceProductInBuildRoot: true,
+      );
+
+  String get genSnapshot => _executablePathFor(
+        'gen_snapshot',
+        forceProductInBuildRoot: true,
+        sdkRelativePath: 'utils',
+      );
+
+  String get genKernelSnapshot => _snapshotPathFor(
+        'gen_kernel_aot.dart.snapshot',
+      );
 
   String get analysisServerAotSnapshot => _snapshotPathFor(
         'analysis_server_aot.dart.snapshot',
@@ -150,10 +127,52 @@ class Sdk {
   // non-SDK build targets.
   String get librariesJson => path.absolute(sdkPath, 'lib', 'libraries.json');
 
-  // This file is only generated when building the SDK and isn't generated for
-  // non-SDK build targets.
-  String get wasmPlatformDill =>
-      path.absolute(sdkPath, 'lib', '_internal', 'dart2wasm_platform.dill');
+  String get vmPlatformDill => _dillPathFor(
+        'vm_platform.dill',
+      );
+
+  String get vmPlatformProductDill => _dillPathFor(
+        'vm_platform_product.dill',
+      );
+
+  String get wasmPlatformDill => _dillPathFor(
+        'dart2wasm_platform.dill',
+      );
+
+  String _dillPathFor(String dillName) => path.absolute(
+      runFromBuildRoot
+          ? sdkPath
+          : path.join(
+              sdkPath,
+              'lib',
+              '_internal',
+            ),
+      dillName);
+
+  String _executablePathFor(String executableName,
+      {bool forceProductInBuildRoot = false, String? sdkRelativePath}) {
+    if (Platform.isWindows && executableName.endsWith('.exe')) {
+      // Don't modify the executable name on Windows if it already includes
+      // the extension.
+      assert(!forceProductInBuildRoot);
+    } else {
+      if (runFromBuildRoot && forceProductInBuildRoot) {
+        executableName = '${executableName}_product';
+      }
+      if (Platform.isWindows) {
+        executableName = '$executableName.exe';
+      }
+    }
+    return path.absolute(
+        runFromBuildRoot
+            ? sdkPath
+            : path.absolute(
+                sdkPath,
+                'bin',
+                sdkRelativePath,
+              ),
+        executableName);
+  }
 
   String _snapshotPathFor(String snapshotName) => path.absolute(
         runFromBuildRoot

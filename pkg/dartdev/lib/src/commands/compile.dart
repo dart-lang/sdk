@@ -553,7 +553,10 @@ Remove debugging information from the output and save it separately to the speci
           "'dart compile $commandName' is not supported on x86 architectures.\n");
       return 64;
     }
-    if (!checkArtifactExists(genKernel)) {
+    // Kernel is always generated using the host's dartaotruntime and
+    // gen_kernel_aot.dart.snapshot, even during cross compilation.
+    if (!checkArtifactExists(sdk.genKernelSnapshot) ||
+        !checkArtifactExists(sdk.dartAotRuntime)) {
       return 255;
     }
     final args = argResults!;
@@ -574,8 +577,8 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
-    var genSnapshotBinary = genSnapshotHost;
-    var dartAotRuntimeBinary = hostDartAotRuntime;
+    var genSnapshotBinary = sdk.genSnapshot;
+    var dartAotRuntimeBinary = sdk.dartAotRuntime;
 
     final target = crossCompilationTarget(args);
 
