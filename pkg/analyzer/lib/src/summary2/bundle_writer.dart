@@ -122,7 +122,7 @@ class BundleWriter {
     // TODO(scheglov): extract
     _sink.writeList(libraryElement.topLevelVariables, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
       _writeElementResolution(() {
         _resolutionSink.writeType(element.type);
       });
@@ -148,9 +148,7 @@ class BundleWriter {
   void _writeClassElements(List<ClassElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, (fragment) {
-        _writeFragmentId(fragment);
-      });
+      _writeFragments(element.fragments);
       element.writeModifiers(_sink);
 
       // We read members lazily.
@@ -197,7 +195,7 @@ class BundleWriter {
   void _writeConstructorElements(List<ConstructorElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
       element.writeModifiers(_sink);
 
       _writeElementResolution(() {
@@ -269,9 +267,7 @@ class BundleWriter {
   void _writeEnumElements(List<EnumElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, (fragment) {
-        _writeFragmentId(fragment);
-      });
+      _writeFragments(element.fragments);
 
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -331,9 +327,7 @@ class BundleWriter {
   void _writeExtensionElements(List<ExtensionElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, (fragment) {
-        _writeFragmentId(fragment);
-      });
+      _writeFragments(element.fragments);
 
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -367,9 +361,7 @@ class BundleWriter {
   void _writeExtensionTypeElements(List<ExtensionTypeElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, (fragment) {
-        _writeFragmentId(fragment);
-      });
+      _writeFragments(element.fragments);
 
       // TODO(scheglov): consider reading lazily
       _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -416,7 +408,7 @@ class BundleWriter {
   void _writeFieldElements(List<FieldElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
       _writeElementResolution(() {
         _resolutionSink.writeType(element.type);
       });
@@ -476,10 +468,14 @@ class BundleWriter {
     _sink._writeOptionalStringReference(fragment.name);
   }
 
+  void _writeFragments(List<FragmentImpl> fragments) {
+    _sink.writeList(fragments, _writeFragmentId);
+  }
+
   void _writeGetterElements(List<GetterElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
       element.writeModifiers(_sink);
 
       _writeElementResolution(() {
@@ -541,7 +537,7 @@ class BundleWriter {
   void _writeMethodElements(List<MethodElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
       element.writeModifiers(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
@@ -566,9 +562,7 @@ class BundleWriter {
   void _writeMixinElements(List<MixinElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, (fragment) {
-        _writeFragmentId(fragment);
-      });
+      _writeFragments(element.fragments);
       element.writeModifiers(_sink);
 
       // TODO(scheglov): consider reading lazily
@@ -680,7 +674,7 @@ class BundleWriter {
   void _writeSetterElements(List<SetterElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
       element.writeModifiers(_sink);
 
       _writeElementResolution(() {
@@ -715,7 +709,7 @@ class BundleWriter {
   ) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -744,7 +738,7 @@ class BundleWriter {
   void _writeTypeAliasElements(List<TypeAliasElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _sink.writeList(element.fragments, _writeFragmentId);
+      _writeFragments(element.fragments);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
