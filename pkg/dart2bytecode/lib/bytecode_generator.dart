@@ -969,6 +969,12 @@ class BytecodeGenerator extends RecursiveVisitor {
   late Procedure unsafeCast =
       libraryIndex.getTopLevelProcedure('dart:_internal', 'unsafeCast');
 
+  late Procedure reachabilityFence =
+      libraryIndex.getTopLevelProcedure('dart:_internal', 'reachabilityFence');
+
+  late Procedure nativeEffect =
+      libraryIndex.getTopLevelProcedure('dart:_internal', '_nativeEffect');
+
   late Procedure iterableIterator =
       libraryIndex.getProcedure('dart:core', 'Iterable', 'get:iterator');
 
@@ -3454,11 +3460,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     Arguments args = node.arguments;
     final target = node.target;
-    if (target == unsafeCast) {
-      // The result of the unsafeCast() intrinsic method is its sole argument,
-      // without any additional checks or type casts.
+    // Handle built-in methods with special semantics.
+    if (target == unsafeCast || target == reachabilityFence) {
+      // Just evaluate argument.
       assert(args.named.isEmpty);
       _generateNode(args.positional.single);
+      return;
+    } else if (target == nativeEffect) {
+      // Skip over AST of the argument, return null.
+      asm.emitPushNull();
       return;
     }
     if (target.isFactory) {
