@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -178,6 +179,20 @@ bool b = false;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No doubles message');
+  }
+
+  Future<void> test_unsupportedRequest() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+
+    // This request is unsupported.
+    var response = await channel.sendRequest(
+        protocol.CompletionGetSuggestionsParams(filePath, 0 /* offset */));
+
+    expect(response.error?.code, RequestErrorCode.UNKNOWN_REQUEST);
   }
 
   Future<void> test_updateContent_addOverlay() async {
