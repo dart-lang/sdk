@@ -633,7 +633,7 @@ class BundleWriter {
     _resolutionSink._writeMetadata(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _sink.writeList(element.parameters, _writeParameterElement);
+      _sink.writeList(element.formalParameters, _writeParameterElement);
       _resolutionSink.writeBool(element.element.inheritsCovariant);
       _resolutionSink.writeType(element.element.type);
       _resolutionSink._writeOptionalNode(element.constantInitializer);
@@ -975,7 +975,7 @@ class ResolutionSink extends _SummaryDataWriter {
     } else if (element is GenericFunctionTypeFragmentImpl) {
       writeByte(AliasedElementTag.genericFunctionElement);
       _writeTypeParameters(element.typeParameters, () {
-        _writeFormalParameters(element.parameters, withAnnotations: true);
+        _writeFormalParameters(element.formalParameters, withAnnotations: true);
         writeType(element.returnType);
       }, withAnnotations: true);
     } else {
@@ -1003,7 +1003,7 @@ class ResolutionSink extends _SummaryDataWriter {
         writeType(parameter.element.type);
         _writeFragmentName(parameter);
         _writeFormalParameters(
-          parameter.parameters,
+          parameter.formalParameters,
           withAnnotations: withAnnotations,
         );
       }, withAnnotations: withAnnotations);

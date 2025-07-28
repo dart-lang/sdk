@@ -569,7 +569,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
             );
           }
 
-          constructorFragment.parameters =
+          constructorFragment.formalParameters =
               formalParameterFragments.toFixedList();
 
           var isNamed = superConstructor.name != 'new';
@@ -1040,8 +1040,8 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       return false;
     }
     // no required parameters
-    for (var parameter in parameters) {
-      if (parameter.isRequired) {
+    for (var formalParameters in formalParameters) {
+      if (formalParameters.isRequired) {
         return false;
       }
     }
@@ -2369,14 +2369,14 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
     implements ExecutableFragment {
   /// A list containing all of the parameters defined by this executable
   /// element.
-  List<FormalParameterFragmentImpl> _parameters = const [];
+  List<FormalParameterFragmentImpl> _formalParameters = const [];
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
   ExecutableFragmentImpl({required super.firstTokenOffset});
 
   @override
-  List<Fragment> get children => [...typeParameters, ...parameters];
+  List<Fragment> get children => [...typeParameters, ...formalParameters];
 
   @Deprecated('Use children instead')
   @override
@@ -2394,7 +2394,17 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
   }
 
   @override
-  List<FormalParameterFragmentImpl> get formalParameters => parameters;
+  List<FormalParameterFragmentImpl> get formalParameters {
+    _ensureReadResolution();
+    return _formalParameters;
+  }
+
+  set formalParameters(List<FormalParameterFragmentImpl> formalParameters) {
+    for (var formalParameter in formalParameters) {
+      formalParameter.enclosingFragment = this;
+    }
+    _formalParameters = formalParameters;
+  }
 
   /// Whether the type of this fragment references a type parameter of the
   /// enclosing element. This includes not only explicitly specified type
@@ -2496,21 +2506,6 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
 
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
-
-  /// The formal parameters defined by this executable fragment.
-  List<FormalParameterFragmentImpl> get parameters {
-    _ensureReadResolution();
-    return _parameters;
-  }
-
-  /// Set the parameters defined by this executable element to the given
-  /// [parameters].
-  set parameters(List<FormalParameterFragmentImpl> parameters) {
-    for (var parameter in parameters) {
-      parameter.enclosingFragment = this;
-    }
-    _parameters = parameters;
-  }
 }
 
 class ExtensionElementImpl extends InstanceElementImpl
@@ -3146,7 +3141,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<FormalParameterElementImpl> get formalParameters =>
-      wrappedElement.parameters.map((fragment) => fragment.element).toList();
+      wrappedElement.formalParameters.map((fragment) => fragment.element).toList();
 
   @override
   List<FormalParameterFragmentImpl> get fragments {
@@ -3356,7 +3351,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
   /// parameter.
-  List<FormalParameterFragmentImpl> _parameters = const [];
+  List<FormalParameterFragmentImpl> _formalParameters = const [];
 
   /// A list containing all of the type parameters defined for this parameter
   /// element. There will only be parameters if this parameter is a function
@@ -3427,6 +3422,23 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   set element(FormalParameterElementImpl element) => _element = element;
+
+  /// The parameters defined by this parameter.
+  ///
+  /// A parameter will only define other parameters if it is a function typed
+  /// parameter.
+  List<FormalParameterFragmentImpl> get formalParameters {
+    return _formalParameters;
+  }
+
+  /// Set the parameters defined by this executable element to the given
+  /// [value].
+  set formalParameters(List<FormalParameterFragmentImpl> value) {
+    for (var formalParameter in value) {
+      formalParameter.enclosingFragment = this;
+    }
+    _formalParameters = value;
+  }
 
   /// Return true if this parameter is explicitly marked as being covariant.
   bool get isExplicitlyCovariant {
@@ -3510,23 +3522,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   @override
   // TODO(augmentations): Support chaining between the fragments.
   FormalParameterFragmentImpl? get nextFragment => null;
-
-  /// The parameters defined by this parameter.
-  ///
-  /// A parameter will only define other parameters if it is a function typed
-  /// parameter.
-  List<FormalParameterFragmentImpl> get parameters {
-    return _parameters;
-  }
-
-  /// Set the parameters defined by this executable element to the given
-  /// [parameters].
-  set parameters(List<FormalParameterFragmentImpl> parameters) {
-    for (var parameter in parameters) {
-      parameter.enclosingFragment = this;
-    }
-    _parameters = parameters;
-  }
 
   @override
   // TODO(augmentations): Support chaining between the fragments.
@@ -3796,7 +3791,7 @@ abstract class FunctionTypedElementImpl extends ElementImpl
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedFragmentImpl implements FragmentImpl {
   /// The parameters defined by this executable element.
-  List<FormalParameterFragmentImpl> get parameters;
+  List<FormalParameterFragmentImpl> get formalParameters;
 
   /// The type parameters declared by this element directly.
   ///
@@ -3913,7 +3908,7 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   TypeImpl? _returnType;
 
   /// The elements representing the parameters of the function.
-  List<FormalParameterFragmentImpl> _parameters = const [];
+  List<FormalParameterFragmentImpl> _formalParameters = const [];
 
   /// Is `true` if the type has the question mark, so is nullable.
   bool isNullable = false;
@@ -3929,7 +3924,7 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   GenericFunctionTypeFragmentImpl({required super.firstTokenOffset});
 
   @override
-  List<Fragment> get children => [...typeParameters, ...parameters];
+  List<Fragment> get children => [...typeParameters, ...formalParameters];
 
   @Deprecated('Use children instead')
   @override
@@ -3939,7 +3934,18 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   GenericFunctionTypeElementImpl get element => _element2;
 
   @override
-  List<FormalParameterFragmentImpl> get formalParameters => parameters;
+  List<FormalParameterFragmentImpl> get formalParameters {
+    return _formalParameters;
+  }
+
+  /// Set the parameters defined by this function type element to the given
+  /// [formalParameters].
+  set formalParameters(List<FormalParameterFragmentImpl> formalParameters) {
+    for (var formalParameter in formalParameters) {
+      formalParameter.enclosingFragment = this;
+    }
+    _formalParameters = formalParameters;
+  }
 
   @override
   String? get name => null;
@@ -3956,20 +3962,6 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
   @override
   int get offset => firstTokenOffset!;
-
-  @override
-  List<FormalParameterFragmentImpl> get parameters {
-    return _parameters;
-  }
-
-  /// Set the parameters defined by this function type element to the given
-  /// [parameters].
-  set parameters(List<FormalParameterFragmentImpl> parameters) {
-    for (var parameter in parameters) {
-      parameter.enclosingFragment = this;
-    }
-    _parameters = parameters;
-  }
 
   @override
   GenericFunctionTypeFragmentImpl? get previousFragment => null;
@@ -3992,7 +3984,7 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
     return _type = FunctionTypeImpl(
       typeParameters: typeParameters.map((f) => f.asElement2).toList(),
-      parameters: parameters.map((f) => f.asElement2).toList(),
+      parameters: formalParameters.map((f) => f.asElement2).toList(),
       returnType: returnType,
       nullabilitySuffix:
           isNullable ? NullabilitySuffix.question : NullabilitySuffix.none,
@@ -9186,7 +9178,7 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 
   /// Return the index of this super-formal parameter among other super-formals.
   int indexIn(ConstructorFragmentImpl enclosingElement) {
-    return enclosingElement.parameters
+    return enclosingElement.formalParameters
         .whereType<SuperFormalParameterFragmentImpl>()
         .toList()
         .indexOf(this);
@@ -10114,10 +10106,10 @@ class TypeParameterFragmentImpl extends FragmentImpl
         }
       }
 
-      for (var parameter in type.formalParameters) {
+      for (var formalParameter in type.formalParameters) {
         result = result.meet(
           shared.Variance.contravariant.combine(
-            computeVarianceInType(parameter.type),
+            computeVarianceInType(formalParameter.type),
           ),
         );
       }

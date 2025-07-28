@@ -36,12 +36,12 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 class ElementHolder {
   final FragmentImpl _element;
   final List<TypeParameterFragmentImpl> _typeParameters = [];
-  final List<FormalParameterFragmentImpl> _parameters = [];
+  final List<FormalParameterFragmentImpl> _formalParameters = [];
 
   ElementHolder(this._element);
 
-  List<FormalParameterFragmentImpl> get parameters {
-    return _parameters.toFixedList();
+  List<FormalParameterFragmentImpl> get formalParameters {
+    return _formalParameters.toFixedList();
   }
 
   List<TypeParameterFragmentImpl> get typeParameters {
@@ -49,7 +49,7 @@ class ElementHolder {
   }
 
   void addParameter(FormalParameterFragmentImpl element) {
-    _parameters.add(element);
+    _formalParameters.add(element);
   }
 
   void addTypeParameter(TypeParameterFragmentImpl element) {
@@ -754,7 +754,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
             expression.parameters?.accept(this);
             if (_elementWalker == null) {
-              fragment.parameters = holder.parameters;
+              fragment.formalParameters = holder.formalParameters;
             }
 
             node.returnType?.accept(this);
@@ -809,7 +809,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment.typeParameters = holder.typeParameters;
 
         node.parameters!.accept(this);
-        fragment.parameters = holder.parameters;
+        fragment.formalParameters = holder.formalParameters;
 
         _defineFormalParameters(fragment.element.formalParameters);
         node.body.accept(this);
@@ -879,7 +879,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
             node.parameters.accept(this);
             if (_elementWalker == null) {
-              fragment.parameters = holder.parameters;
+              fragment.formalParameters = holder.formalParameters;
             }
 
             node.returnType?.accept(this);
@@ -888,7 +888,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 typeParameters:
                     fragment.typeParameters.map((f) => f.element).toList(),
                 parameters:
-                    fragment.parameters.map((f) => f.asElement2).toList(),
+                    fragment.formalParameters.map((f) => f.asElement2).toList(),
                 returnType: node.returnType?.type ?? _dynamicType,
                 nullabilitySuffix: _getNullability(node.question != null),
               );
@@ -921,7 +921,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           fragment.typeParameters = holder.typeParameters;
 
           node.parameters.accept(this);
-          fragment.parameters = holder.parameters;
+          fragment.formalParameters = holder.formalParameters;
 
           node.returnType?.accept(this);
           fragment.returnType = node.returnType?.type ?? _dynamicType;
@@ -931,7 +931,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var type = FunctionTypeImpl(
       typeParameters: fragment.typeParameters.map((f) => f.asElement2).toList(),
-      parameters: fragment.parameters.map((f) => f.asElement2).toList(),
+      parameters: fragment.formalParameters.map((f) => f.asElement2).toList(),
       returnType: fragment.returnType,
       nullabilitySuffix: _getNullability(node.question != null),
     );

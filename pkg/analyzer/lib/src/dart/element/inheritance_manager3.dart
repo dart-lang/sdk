@@ -979,7 +979,7 @@ class InheritanceManager3 {
       );
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isSynthetic = true;
-      resultFragment.parameters =
+      resultFragment.formalParameters =
           transformedParameters.map((e) => e.firstFragment).toList();
       resultFragment.typeParameters =
           executable.typeParameters
@@ -1012,7 +1012,7 @@ class InheritanceManager3 {
       );
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isSynthetic = true;
-      resultFragment.parameters =
+      resultFragment.formalParameters =
           transformedParameters.map((e) => e.firstFragment).toList();
 
       var result = SetterElementImpl(setterReference, resultFragment);
@@ -1085,7 +1085,7 @@ class InheritanceManager3 {
       resultFragment.typeParameters =
           resultType.typeParameters.map((e) => e.firstFragment).toList();
       // TODO(scheglov): check if can type cast instead
-      resultFragment.parameters =
+      resultFragment.formalParameters =
           resultType.parameters
               .map((e) => e.firstFragment as FormalParameterFragmentImpl)
               .toList();
@@ -1143,7 +1143,7 @@ class InheritanceManager3 {
       }
       resultFragment.enclosingFragment = targetClass.firstFragment;
       // TODO(scheglov): check if can type cast instead
-      resultFragment.parameters =
+      resultFragment.formalParameters =
           resultType.parameters
               .map((e) => e.firstFragment as FormalParameterFragmentImpl)
               .toList();

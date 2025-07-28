@@ -1877,7 +1877,7 @@ Expected parent: (${parent.runtimeType}) $parent
     } else {
       _sink.withIndent(() {
         _sink.writeln('GenericFunctionTypeElement');
-        _writeFormalParameterFragments(element.parameters);
+        _writeFormalParameterFragments(element.formalParameters);
         _writeType('returnType', element.returnType);
         _writeType('type', element.type);
       });
@@ -2122,13 +2122,13 @@ Expected parent: (${parent.runtimeType}) $parent
     } else if (parametersParent is FormalParameter) {
       var declaredFragment = parametersParent.declaredFragment!;
       declaredFragment as FormalParameterFragmentImpl;
-      return declaredFragment.parameters;
+      return declaredFragment.formalParameters;
     } else if (parametersParent is FunctionExpression) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is GenericFunctionTypeImpl) {
       var declaredFragment = parametersParent.declaredFragment!;
-      return declaredFragment.parameters;
+      return declaredFragment.formalParameters;
     } else if (parametersParent is MethodDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;

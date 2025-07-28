@@ -378,7 +378,7 @@ class LibraryReader {
           fragment.readModifiers(_reader);
           fragment.typeName = _reader.readOptionalStringReference();
           fragment.typeParameters = _readTypeParameters();
-          fragment.parameters = _readParameters();
+          fragment.formalParameters = _readParameters();
 
           return fragment;
         },
@@ -395,7 +395,7 @@ class LibraryReader {
           _readFormalParameters2(
             fragment.libraryFragment,
             reader,
-            fragment.parameters,
+            fragment.formalParameters,
           );
           _readFragmentMetadata(fragment, reader);
           fragment.constantInitializers = reader.readNodeList();
@@ -741,7 +741,7 @@ class LibraryReader {
     for (var parameter in parameters) {
       parameter.metadata = reader._readMetadata(unitElement: unitElement);
       _readTypeParameters2(unitElement, reader, parameter.typeParameters);
-      _readFormalParameters2(unitElement, reader, parameter.parameters);
+      _readFormalParameters2(unitElement, reader, parameter.formalParameters);
       parameter.element.inheritsCovariant = reader.readBool();
       var type = reader.readType() ?? InvalidTypeImpl.instance;
       parameter.element.type = type;
@@ -811,7 +811,7 @@ class LibraryReader {
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
-          fragment.parameters = _readParameters();
+          fragment.formalParameters = _readParameters();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -828,7 +828,7 @@ class LibraryReader {
           _readFormalParameters2(
             fragment.libraryFragment,
             reader,
-            fragment.parameters,
+            fragment.formalParameters,
           );
           _readFragmentMetadata(fragment, reader);
         },
@@ -943,7 +943,7 @@ class LibraryReader {
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
-          fragment.parameters = _readParameters();
+          fragment.formalParameters = _readParameters();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -959,7 +959,7 @@ class LibraryReader {
           _readFormalParameters2(
             fragment.libraryFragment,
             reader,
-            fragment.parameters,
+            fragment.formalParameters,
           );
           _readFragmentMetadata(fragment, reader);
         },
@@ -1086,7 +1086,7 @@ class LibraryReader {
       idFragmentMap[id] = element;
       ParameterElementFlags.read(_reader, element);
       element.typeParameters = _readTypeParameters();
-      element.parameters = _readParameters();
+      element.formalParameters = _readParameters();
       return element;
     });
   }
@@ -1132,7 +1132,7 @@ class LibraryReader {
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
-          fragment.parameters = _readParameters();
+          fragment.formalParameters = _readParameters();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -1149,7 +1149,7 @@ class LibraryReader {
           _readFormalParameters2(
             fragment.libraryFragment,
             reader,
-            fragment.parameters,
+            fragment.formalParameters,
           );
           _readFragmentMetadata(fragment, reader);
         },
@@ -1218,7 +1218,7 @@ class LibraryReader {
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
-          fragment.parameters = _readParameters();
+          fragment.formalParameters = _readParameters();
           return fragment;
         },
         readResolution: (fragment, reader) {
@@ -1230,7 +1230,7 @@ class LibraryReader {
           _readFormalParameters2(
             fragment.libraryFragment,
             reader,
-            fragment.parameters,
+            fragment.formalParameters,
           );
           _readFragmentMetadata(fragment, reader);
         },
@@ -1713,7 +1713,7 @@ class ResolutionReader {
       var fragment =
           GenericFunctionTypeFragmentImpl(firstTokenOffset: null)
             ..typeParameters = typeParameters
-            ..parameters = formalParameters
+            ..formalParameters = formalParameters
             ..returnType = returnType;
       unitElement.encloseElement(fragment);
       return fragment;
@@ -1811,7 +1811,7 @@ class ResolutionReader {
       }
       element.hasImplicitType = hasImplicitType;
       element.typeParameters = typeParameters;
-      element.parameters = _readFormalParameters(unitElement);
+      element.formalParameters = _readFormalParameters(unitElement);
       // TODO(scheglov): reuse for formal parameters
       _localElements.length -= typeParameters.length;
       if (unitElement != null) {

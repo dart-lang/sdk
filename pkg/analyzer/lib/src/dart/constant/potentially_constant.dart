@@ -435,9 +435,9 @@ class _ConstantTypeChecker {
     }
 
     var formalParameters = node.parameters.parameters;
-    for (var parameter in formalParameters) {
-      if (parameter is SimpleFormalParameter) {
-        if (!check(parameter.type)) {
+    for (var formalParameter in formalParameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        if (!check(formalParameter.type)) {
           return false;
         }
       }
