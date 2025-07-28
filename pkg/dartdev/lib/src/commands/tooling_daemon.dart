@@ -35,7 +35,7 @@ class ToolingDaemonCommand extends DartdevCommand {
   Future<int> run() async {
     var snapshot = sdk.dtdAotSnapshot;
     final args = argResults!.arguments;
-    if (!Sdk.checkArtifactExists(sdk.dtdAotSnapshot, logError: false)) {
+    if (!checkArtifactExists(sdk.dtdAotSnapshot, logError: false)) {
       log.stderr('Error: launching dart tooling daemon failed : '
                  'Unable to find snapshot for the tooling daemon');
       return 255;

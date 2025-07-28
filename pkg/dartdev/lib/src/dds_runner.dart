@@ -34,7 +34,7 @@ class DDSRunner {
     var snapshotName = fullSdk
         ? sdk.ddsAotSnapshot
         : absolute(sdkDir, 'dds_aot.dart.snapshot');
-    final isAot = Sdk.checkArtifactExists(snapshotName) ? true : false;
+    final isAot = checkArtifactExists(snapshotName) ? true : false;
     if (!isAot) {
       printError('Unable to find snapshot for the development server');
       return false;

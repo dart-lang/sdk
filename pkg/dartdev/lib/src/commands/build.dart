@@ -115,9 +115,9 @@ then that is used instead.''',
 
   @override
   Future<int> run() async {
-    if (!Sdk.checkArtifactExists(genKernel) ||
-        !Sdk.checkArtifactExists(genSnapshotHost) ||
-        !Sdk.checkArtifactExists(sdk.dart)) {
+    if (!checkArtifactExists(genKernel) ||
+        !checkArtifactExists(genSnapshotHost) ||
+        !checkArtifactExists(sdk.dart)) {
       return 255;
     }
     // AOT compilation isn't supported on ia32. Currently, generating an

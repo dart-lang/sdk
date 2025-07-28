@@ -94,12 +94,12 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+    if (!checkArtifactExists(sdk.librariesJson, warnIfBuildRoot: true)) {
       return genericErrorExitCode;
     }
     final args = argResults!;
     var snapshot = sdk.dart2jsAotSnapshot;
-    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
+    if (!checkArtifactExists(snapshot, logError: false)) {
       log.stderr('Error: JS compilation failed');
       log.stderr('Unable to find $snapshot');
       return compileErrorExitCode;
@@ -152,12 +152,12 @@ class CompileDDCCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+    if (!checkArtifactExists(sdk.librariesJson, warnIfBuildRoot: true)) {
       return genericErrorExitCode;
     }
     final args = argResults!;
     var snapshot = sdk.ddcAotSnapshot;
-    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
+    if (!checkArtifactExists(snapshot, logError: false)) {
       log.stderr('Error: JS compilation failed');
       log.stderr('Unable to find $snapshot');
       return compileErrorExitCode;
@@ -553,7 +553,7 @@ Remove debugging information from the output and save it separately to the speci
           "'dart compile $commandName' is not supported on x86 architectures.\n");
       return 64;
     }
-    if (!Sdk.checkArtifactExists(genKernel)) {
+    if (!checkArtifactExists(genKernel)) {
       return 255;
     }
     final args = argResults!;
@@ -896,10 +896,10 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final args = argResults!;
     final verbose = this.verbose || args.flag('verbose');
 
-    if (!Sdk.checkArtifactExists(sdk.wasmPlatformDill) ||
-        !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
-        !Sdk.checkArtifactExists(sdk.dart2wasmSnapshot) ||
-        !Sdk.checkArtifactExists(sdk.wasmOpt)) {
+    if (!checkArtifactExists(sdk.wasmPlatformDill, warnIfBuildRoot: true) ||
+        !checkArtifactExists(sdk.dartAotRuntime) ||
+        !checkArtifactExists(sdk.dart2wasmSnapshot) ||
+        !checkArtifactExists(sdk.wasmOpt)) {
       return 255;
     }
 

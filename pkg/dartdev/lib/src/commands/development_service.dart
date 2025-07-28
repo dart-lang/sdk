@@ -41,7 +41,7 @@ class DevelopmentServiceCommand extends DartdevCommand {
         : absolute(sdkDir, 'dds_aot.dart.snapshot');
     final args = argResults!.arguments;
 
-    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
+    if (!checkArtifactExists(snapshot, logError: false)) {
       log.stderr('Error: launching development server failed : '
                  'Unable to find snapshot for the development server');
       return 255;
