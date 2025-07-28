@@ -767,7 +767,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentList(
         'parameters',
         f,
-        f.parameters,
+        f.formalParameters,
         _writeFormalParameterFragment,
       );
       _writeVariableFragmentInitializer(f);

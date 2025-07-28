@@ -4574,7 +4574,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  /// Given an [argumentList] and the [parameters] related to the element that
+  /// Given an [argumentList] and the [formalParameters] related to the element that
   /// will be invoked using those arguments, compute the list of parameters that
   /// correspond to the list of arguments.
   ///

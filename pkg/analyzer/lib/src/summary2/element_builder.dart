@@ -345,7 +345,7 @@ class ElementBuilder {
         parameterKind: ParameterKind.REQUIRED,
       );
       valueFragment.isExplicitlyCovariant = fieldFragment.isCovariant;
-      setterFragment.parameters = [valueFragment];
+      setterFragment.formalParameters = [valueFragment];
 
       var setterElement = SetterElementImpl(
         _addInstanceReference(instanceElement, '@setter', fieldFragment.name),
@@ -708,7 +708,7 @@ class ElementBuilder {
         nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
-      setterFragment.parameters = [valueFragment];
+      setterFragment.formalParameters = [valueFragment];
 
       var setterElement = SetterElementImpl(
         _addTopReference('@setter', variableFragment.name),
@@ -1272,7 +1272,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
-        fragment.parameters = holder.parameters;
+        fragment.formalParameters = holder.formalParameters;
       }
 
       var typeParameters = node.typeParameters;
@@ -1380,7 +1380,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var aliasedElement = GenericFunctionTypeFragmentImpl(
       firstTokenOffset: null,
     );
-    aliasedElement.parameters = holder.parameters;
+    aliasedElement.formalParameters = holder.formalParameters;
 
     fragment.typeParameters = holder.typeParameters;
     fragment.aliasedElement = aliasedElement;
@@ -1416,7 +1416,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
-      fragment.parameters = holder.parameters;
+      fragment.formalParameters = holder.formalParameters;
 
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
@@ -1440,7 +1440,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _withEnclosing(holder, () {
       var formalParameters = node.parameters;
       formalParameters.accept(this);
-      fragment.parameters = holder.parameters;
+      fragment.formalParameters = holder.formalParameters;
 
       var typeParameters = node.typeParameters;
       if (typeParameters != null) {
@@ -1694,7 +1694,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var formalParameters = node.parameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
-        fragment.parameters = holder.parameters;
+        fragment.formalParameters = holder.formalParameters;
       }
 
       var typeParameters = node.typeParameters;
@@ -1794,7 +1794,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _withEnclosing(holder, () {
       if (formalParameters != null) {
         formalParameters.accept(this);
-        fragment.parameters = holder.parameters;
+        fragment.formalParameters = holder.formalParameters;
       }
       if (typeParameters != null) {
         typeParameters.accept(this);
@@ -1849,7 +1849,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             )
             ..isAugmentation = extensionNode.augmentKeyword != null
             ..isConst = extensionNode.constKeyword != null
-            ..parameters = [formalParameterElement];
+            ..formalParameters = [formalParameterElement];
       constructorFragment.typeName = extensionFragment.name;
 
       representation.constructorFragment = constructorFragment;
@@ -1883,7 +1883,7 @@ class _EnclosingContext {
   final FragmentImpl fragment;
   final bool hasDefaultFormalParameters;
 
-  final List<FormalParameterFragmentImpl> parameters = [];
+  final List<FormalParameterFragmentImpl> formalParameters = [];
   final List<TypeParameterFragmentImpl> typeParameters = [];
 
   _EnclosingContext({
@@ -1892,7 +1892,7 @@ class _EnclosingContext {
   });
 
   void addParameter(FormalParameterFragmentImpl fragment) {
-    parameters.add(fragment);
+    formalParameters.add(fragment);
   }
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {

@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart2native/dart2native.dart' hide platformDill, genSnapshot;
+import 'package:dart2native/dart2native.dart';
 import 'package:path/path.dart' as path;
 import 'package:expect/expect.dart';
 import 'package:code_assets/code_assets.dart' show OS;

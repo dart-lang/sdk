@@ -8506,6 +8506,123 @@ library
 ''');
   }
 
+  test_instanceField_fromField_finalFieldTyped_setterNotTyped() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  int? foo;
+}
+class B implements A {
+  final int foo;
+  set foo(_) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 foo (nameOffset:26) (firstTokenOffset:26) (offset:26)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+        #F7 class B (nameOffset:39) (firstTokenOffset:33) (offset:39)
+          element: <testLibrary>::@class::B
+          fields
+            #F8 foo (nameOffset:68) (firstTokenOffset:68) (offset:68)
+              element: <testLibrary>::@class::B::@field::foo
+          constructors
+            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          getters
+            #F10 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+              element: <testLibrary>::@class::B::@getter::foo
+          setters
+            #F11 foo (nameOffset:79) (firstTokenOffset:75) (offset:79)
+              element: <testLibrary>::@class::B::@setter::foo
+              formalParameters
+                #F12 _ (nameOffset:83) (firstTokenOffset:83) (offset:83)
+                  element: <testLibrary>::@class::B::@setter::foo::@formalParameter::_
+  classes
+    abstract class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int?
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        synthetic foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F5
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F6
+              type: int?
+          returnType: void
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F7
+      interfaces
+        A
+      fields
+        final foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F8
+          type: int
+          getter: <testLibrary>::@class::B::@getter::foo
+          setter: <testLibrary>::@class::B::@setter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F9
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F10
+          returnType: int
+          variable: <testLibrary>::@class::B::@field::foo
+      setters
+        foo
+          reference: <testLibrary>::@class::B::@setter::foo
+          firstFragment: #F11
+          formalParameters
+            #E1 requiredPositional hasImplicitType _
+              firstFragment: #F12
+              type: int?
+          returnType: void
+''');
+  }
+
   test_instanceField_fromField_generic() async {
     var library = await _encodeDecodeLibrary(r'''
 abstract class A<E> {

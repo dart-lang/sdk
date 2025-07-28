@@ -468,7 +468,7 @@ mixin ElementsTypesMixin {
     var fragment =
         MethodFragmentImpl(name: name, firstTokenOffset: null)
           ..isStatic = isStatic
-          ..parameters = formalParameters.map((e) => e.asElement).toList()
+          ..formalParameters = formalParameters.map((e) => e.asElement).toList()
           ..typeParameters = typeParameters.map((e) => e.asElement).toList();
     var element = MethodElementImpl(
       name: name,

@@ -57,7 +57,7 @@ For more information about the server's capabilities and configuration, see:
       var script = sdk.analysisServerAotSnapshot;
       var useExec = false;
       if (argResults!.flag(useAotSnapshotFlag)) {
-        if (!Sdk.checkArtifactExists(sdk.analysisServerAotSnapshot)) {
+        if (!checkArtifactExists(sdk.analysisServerAotSnapshot)) {
           log.stderr('Error: launching language analysis server failed');
           log.stderr('${sdk.analysisServerAotSnapshot} not found');
           return _genericErrorExitCode;

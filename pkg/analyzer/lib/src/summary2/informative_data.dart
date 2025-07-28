@@ -173,13 +173,13 @@ class InformativeDataApplier {
       element.documentationComment = info.documentationComment;
 
       element.withoutLoadingResolution(() {
-        _applyToFormalParameters(element.parameters, info.parameters);
+        _applyToFormalParameters(element.formalParameters, info.parameters);
       });
 
       element.deferConstantOffsets(info.constantOffsets, (applier) {
         applier.applyToMetadata(element.metadata);
         applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.parameters);
+        applier.applyToFormalParameters(element.formalParameters);
       });
     });
   }
@@ -266,12 +266,12 @@ class InformativeDataApplier {
       element.documentationComment = info.documentationComment;
 
       element.withoutLoadingResolution(() {
-        _applyToFormalParameters(element.parameters, info.parameters);
+        _applyToFormalParameters(element.formalParameters, info.parameters);
       });
 
       element.deferConstantOffsets(info.constantOffsets, (applier) {
         applier.applyToMetadata(element.metadata);
-        applier.applyToFormalParameters(element.parameters);
+        applier.applyToFormalParameters(element.formalParameters);
         applier.applyToConstructorInitializers(element);
       });
     });
@@ -367,7 +367,7 @@ class InformativeDataApplier {
       primaryConstructor.nameEnd = infoRep.constructorNameEnd;
 
       primaryConstructor.withoutLoadingResolution(() {
-        var representation = primaryConstructor.parameters.first;
+        var representation = primaryConstructor.formalParameters.first;
         representation.firstTokenOffset = infoRep.firstTokenOffset;
         representation.nameOffset = infoRep.fieldNameOffset2;
         representation.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
@@ -416,7 +416,7 @@ class InformativeDataApplier {
       element.firstTokenOffset = info.firstTokenOffset;
       element.nameOffset = info.nameOffset2;
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      _applyToFormalParameters(element.parameters, info.parameters);
+      _applyToFormalParameters(element.formalParameters, info.parameters);
     });
   }
 
@@ -431,13 +431,13 @@ class InformativeDataApplier {
 
     element.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
-      _applyToFormalParameters(element.parameters, info.parameters);
+      _applyToFormalParameters(element.formalParameters, info.parameters);
     });
 
     element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
-      applier.applyToFormalParameters(element.parameters);
+      applier.applyToFormalParameters(element.formalParameters);
     });
   }
 
@@ -453,7 +453,7 @@ class InformativeDataApplier {
     element.withoutLoadingResolution(() {
       _applyToTypeParameters(element.typeParameters, info.typeParameters);
       if (element.aliasedElement case GenericFunctionTypeFragmentImpl aliased) {
-        _applyToFormalParameters(aliased.parameters, info.parameters);
+        _applyToFormalParameters(aliased.formalParameters, info.parameters);
       }
     });
 
@@ -481,7 +481,7 @@ class InformativeDataApplier {
           info.aliasedTypeParameters,
         );
         _applyToFormalParameters(
-          aliased.parameters,
+          aliased.formalParameters,
           info.aliasedFormalParameters,
         );
       }
@@ -528,13 +528,13 @@ class InformativeDataApplier {
 
       element.withoutLoadingResolution(() {
         _applyToTypeParameters(element.typeParameters, info.typeParameters);
-        _applyToFormalParameters(element.parameters, info.parameters);
+        _applyToFormalParameters(element.formalParameters, info.parameters);
       });
 
       element.deferConstantOffsets(info.constantOffsets, (applier) {
         applier.applyToMetadata(element.metadata);
         applier.applyToTypeParameters(element.typeParameters);
-        applier.applyToFormalParameters(element.parameters);
+        applier.applyToFormalParameters(element.formalParameters);
       });
     });
   }
@@ -614,7 +614,7 @@ class InformativeDataApplier {
       var aliasedElement = element.aliasedElement;
       if (aliasedElement is FunctionTypedFragmentImpl) {
         applier.applyToTypeParameters(aliasedElement.typeParameters);
-        applier.applyToFormalParameters(aliasedElement.parameters);
+        applier.applyToFormalParameters(aliasedElement.formalParameters);
         if (aliasedTypeParameters != null) {
           _applyToTypeParameters(
             aliasedElement.typeParameters,
@@ -623,7 +623,7 @@ class InformativeDataApplier {
         }
         if (aliasedFormalParameters != null) {
           _applyToFormalParameters(
-            aliasedElement.parameters,
+            aliasedElement.formalParameters,
             aliasedFormalParameters,
           );
         }
@@ -1956,10 +1956,10 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   void applyToFormalParameters(
     List<FormalParameterFragmentImpl> formalParameters,
   ) {
-    for (var parameter in formalParameters) {
-      applyToMetadata(parameter.metadata);
-      applyToFormalParameters(parameter.parameters);
-      applyToConstantInitializer(parameter);
+    for (var formalParameters in formalParameters) {
+      applyToMetadata(formalParameters.metadata);
+      applyToFormalParameters(formalParameters.formalParameters);
+      applyToConstantInitializer(formalParameters);
     }
   }
 

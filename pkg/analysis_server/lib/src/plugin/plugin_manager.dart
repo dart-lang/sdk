@@ -1127,6 +1127,15 @@ class PluginSession {
       // If a RequestError is returned in the response, report this as an
       // exception.
       if (response.error case var error?) {
+        if (error.code == RequestErrorCode.UNKNOWN_REQUEST) {
+          // The plugin doesn't support this request. It may just be using an
+          // older version of the `analysis_server_plugin` package.
+          info.instrumentationService.logInfo(
+            "Plugin cannot handle request '${request.method}' with parameters: "
+            '$parameters.',
+          );
+          return;
+        }
         var stackTrace = StackTrace.fromString(error.stackTrace!);
         var exception = PluginException(error.message);
         info.reportException(

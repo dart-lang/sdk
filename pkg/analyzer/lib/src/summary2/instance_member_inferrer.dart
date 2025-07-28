@@ -216,17 +216,21 @@ class InstanceMemberInferrer {
         return;
       }
 
+      void setSetterValueType(TypeImpl valueType) {
+        valueFormalParameter.type = valueType;
+        var field = setter.variable as FieldElementImpl;
+        if (field.getter == null) {
+          field.type = valueType;
+        }
+      }
+
       // The return type of a getter, parameter type of a setter or type of a
       // field which overrides/implements only one or more getters is inferred
       // to be the return type of the combined member signature of said getter
       // in the direct superinterfaces.
       if (overriddenGetters.isNotEmpty && overriddenSetters.isEmpty) {
         var valueType = combinedGetterType();
-        valueFormalParameter.type = valueType;
-        var fieldElement = setter.variable as FieldElementImpl;
-        if (fieldElement.getter == null) {
-          fieldElement.type = valueType;
-        }
+        setSetterValueType(valueType);
         return;
       }
 
@@ -240,9 +244,7 @@ class InstanceMemberInferrer {
       // combined member signature of said setter in the direct superinterfaces.
       if (overriddenSetters.isNotEmpty) {
         var valueType = combinedSetterType();
-        valueFormalParameter.type = valueType;
-        var fieldElement = setter.variable as FieldElementImpl;
-        fieldElement.type = valueType;
+        setSetterValueType(valueType);
         return;
       }
 

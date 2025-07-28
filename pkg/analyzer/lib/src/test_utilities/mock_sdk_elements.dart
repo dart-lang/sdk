@@ -999,7 +999,7 @@ class _MockSdkElementsBuilder {
     var fragment = ConstructorFragmentImpl(name: name, firstTokenOffset: null);
     fragment.isFactory = isFactory;
     fragment.isConst = isConst;
-    fragment.parameters =
+    fragment.formalParameters =
         parameters
             .map((p) => p.firstFragment as FormalParameterFragmentImpl)
             .toList();
@@ -1044,7 +1044,7 @@ class _MockSdkElementsBuilder {
       var setterFragment =
           SetterFragmentImpl(name: name, firstTokenOffset: null)
             ..isSynthetic = true
-            ..parameters = [valueFragment];
+            ..formalParameters = [valueFragment];
       var setterElement = SetterElementImpl(Reference.root(), setterFragment);
       element.setter = setterElement;
     }
@@ -1061,7 +1061,7 @@ class _MockSdkElementsBuilder {
   }) {
     var fragment =
         TopLevelFunctionFragmentImpl(name: name, firstTokenOffset: null)
-          ..parameters =
+          ..formalParameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
                   .toList()
@@ -1131,7 +1131,7 @@ class _MockSdkElementsBuilder {
   }) {
     var fragment =
         MethodFragmentImpl(name: name, firstTokenOffset: null)
-          ..parameters =
+          ..formalParameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
                   .toList()

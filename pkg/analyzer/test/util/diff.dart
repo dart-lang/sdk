@@ -60,10 +60,10 @@ void printPrettyDiff(String expected, String actual, {int context = 3}) {
 
   if (full.length * 0.3 >= short.length) {
     print('-------- Short diff --------');
-    print(short.join('/n'));
+    print(short.join('\n'));
   }
   print('-------- Full diff ---------');
-  print(full.join('/n'));
+  print(full.join('\n'));
   print('---------- Actual ----------');
   print(actual.trimRight());
   print('----------------------------');

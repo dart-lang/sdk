@@ -103,21 +103,6 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         processor.addDeclarationEdit(renameElement.setter);
       } else {
         processor.addDeclarationEdit(renameElement);
-        if (!newName.startsWith('_')) {
-          var interfaceElement = renameElement.enclosingElement;
-          if (interfaceElement is InterfaceElement) {
-            for (var constructor in interfaceElement.constructors) {
-              for (var parameter in constructor.formalParameters) {
-                if (parameter is FieldFormalParameterElement &&
-                    parameter.field == renameElement) {
-                  await searchEngine
-                      .searchReferences(parameter)
-                      .then(processor.addReferenceEdits);
-                }
-              }
-            }
-          }
-        }
       }
     }
     await _updateReferences();
@@ -198,6 +183,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           element is FieldFormalParameterElement &&
           element.isNamed) {
         await _addPrivateNamedFormalParameterEdit(reference, element);
+        continue;
+      }
+
+      if (element is FormalParameterElement) {
         continue;
       }
 
@@ -536,6 +525,30 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
       elements = {element};
+    }
+
+    if (element is FieldElement) {
+      var interfaceElement = element.enclosingElement;
+      if (interfaceElement is InterfaceElement &&
+          interfaceElement is! ExtensionTypeElement) {
+        var formalParameters =
+            interfaceElement.constructors
+                .expand((constructor) => constructor.formalParameters)
+                .whereType<FieldFormalParameterElement>()
+                .where((formalParameter) => formalParameter.field == element)
+                .cast<FormalParameterElement>()
+                .toList();
+
+        // The language doesn't allow private named formal parameters.
+        if (name.startsWith('_')) {
+          formalParameters.removeWhere((formalParameter) {
+            return formalParameter.isNamed;
+          });
+        }
+
+        await addNamedSuperFormalParameters(searchEngine, formalParameters);
+        elements.addAll(formalParameters);
+      }
     }
   }
 

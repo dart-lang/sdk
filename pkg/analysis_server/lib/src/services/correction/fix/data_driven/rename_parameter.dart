@@ -165,9 +165,9 @@ extension on ExecutableElement {
   ///
   /// Returns `null` if there is no such parameter.
   FormalParameterElement? parameterNamed(String name) {
-    for (var parameter in formalParameters) {
-      if (parameter.name == name) {
-        return parameter;
+    for (var formalParameter in formalParameters) {
+      if (formalParameter.name == name) {
+        return formalParameter;
       }
     }
     return null;

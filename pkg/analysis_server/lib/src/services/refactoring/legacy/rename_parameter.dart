@@ -133,17 +133,7 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
     var element = this.element;
     if (element.isNamed) {
       elements = await getHierarchyNamedParameters(searchEngine, element);
-
-      // Iteratively collect superFormalParameter(s) of subclasses.
-      for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
-        var references = await searchEngine.searchReferences(element);
-        elements.addAll(
-          references
-              .map((match) => match.element)
-              .whereType<analyzer.SuperFormalParameterElement>(),
-        );
-      }
+      await addNamedSuperFormalParameters(searchEngine, elements);
     } else if (element.isPositional) {
       elements = await getHierarchyPositionalParameters(searchEngine, element);
     }
