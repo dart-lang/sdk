@@ -1156,8 +1156,11 @@ class RetainingPath {
     Context& context = Context::Handle(zone_);
     Closure& closure = Closure::Handle(zone_);
     Function& function = Function::Handle(zone_);
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
     Code& code = Code::Handle(zone_);
+#if defined(DART_DYNAMIC_MODULES)
+    Bytecode& bytecode = Bytecode::Handle(zone_);
+#endif
     LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone_);
     String& name = String::Handle(zone_);
 #endif
@@ -1202,21 +1205,30 @@ class RetainingPath {
           if (object.IsInstance()) {
             if (object.IsClosure()) {
               closure ^= raw;
-              function ^= closure.function();
+              function = closure.function();
               // Use function's class when looking for a library information.
-              klass ^= function.Owner();
-#if defined(DART_PRECOMPILED_RUNTIME)
+              klass = function.Owner();
+#if defined(DART_PRECOMPILED_RUNTIME) || defined(PRODUCT)
               // Use function's name instead of closure's.
               location = function.QualifiedUserVisibleNameCString();
-#else   // defined(DART_PRECOMPILED_RUNTIME)                                   \
-        // Attempt to convert "instance <- Context+ <- Closure" into           \
-        // "instance <- local var name in Closure".
-              if (!function.ForceOptimize()) {
-                function.EnsureHasCompiledUnoptimizedCode();
+#else
+              // Attempt to convert "instance <- Context+ <- Closure" into
+              // "instance <- local var name in Closure".
+              if (function.is_declared_in_bytecode()) {
+#if defined(DART_DYNAMIC_MODULES)
+                bytecode = function.GetBytecode();
+                var_descriptors = bytecode.GetLocalVarDescriptors();
+#else
+                UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+              } else {
+                if (!function.ForceOptimize()) {
+                  function.EnsureHasCompiledUnoptimizedCode();
+                }
+                code = function.unoptimized_code();
+                ASSERT(!code.IsNull());
+                var_descriptors = code.GetLocalVarDescriptors();
               }
-              code ^= function.unoptimized_code();
-              ASSERT(!code.IsNull());
-              var_descriptors ^= code.GetLocalVarDescriptors();
               for (intptr_t i = 0; i < var_descriptors.Length(); i++) {
                 UntaggedLocalVarDescriptors::VarInfo info;
                 var_descriptors.GetInfo(i, &info);
@@ -1233,7 +1245,7 @@ class RetainingPath {
                   break;
                 }
               }
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) || defined(PRODUCT)
             } else {
               // Attempt to find field name for the field that holds the
               // [previous_object] instance.
