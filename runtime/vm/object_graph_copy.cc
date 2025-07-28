@@ -162,15 +162,13 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
           ->IsImmutable();
     }
 
+    if (cid == kClosureCid) {
+      // We can share a closure iff it doesn't close over any state.
+      return Closure::RawCast(obj)->untag()->context() == Object::null();
+    }
+
     // All other objects that have immutability bit set are deeply immutable.
     return true;
-  }
-
-  // TODO(https://dartbug.com/55136): Mark Closures as shallowly imutable.
-  // And move this into the if above.
-  if (cid == kClosureCid) {
-    // We can share a closure iff it doesn't close over any state.
-    return Closure::RawCast(obj)->untag()->context() == Object::null();
   }
 
   return false;
@@ -238,7 +236,7 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
   tags = UntaggedObject::CanonicalBit::update(false, tags);
   tags = UntaggedObject::NewOrEvacuationCandidateBit::update(true, tags);
   tags = UntaggedObject::ImmutableBit::update(
-      IsUnmodifiableTypedDataViewClassId(cid), tags);
+      Object::ShouldHaveImmutabilityBitSet(cid), tags);
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(0, tags);
 #endif
