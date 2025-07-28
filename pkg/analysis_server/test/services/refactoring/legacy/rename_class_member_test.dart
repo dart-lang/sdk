@@ -786,6 +786,72 @@ void f() {
 ''');
   }
 
+  Future<void>
+  test_createChange_FieldElement_fieldFormalParameter_named_superChain() async {
+    await indexTestUnit('''
+class A {
+  final int tes^t;
+  A({required this.test});
+}
+
+class B extends A {
+  B({required super.test});
+}
+
+class C extends B {
+  C({required super.test});
+}
+''');
+
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    refactoring.newName = 'newName';
+
+    return assertSuccessfulRefactoring('''
+class A {
+  final int newName;
+  A({required this.newName});
+}
+
+class B extends A {
+  B({required super.newName});
+}
+
+class C extends B {
+  C({required super.newName});
+}
+''');
+  }
+
+  Future<void>
+  test_createChange_FieldElement_fieldFormalParameter_positional_toPrivate() async {
+    await indexTestUnit('''
+class A {
+  int te^st;
+  int foo;
+  A(this.test): assert(test != 0), foo = test {
+    test;
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = '_test';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A {
+  int _test;
+  int foo;
+  A(this._test): assert(_test != 0), foo = _test {
+    _test;
+  }
+}
+''');
+  }
+
   Future<void> test_createChange_FieldElement_invocation() async {
     await indexTestUnit('''
 typedef F(a);
