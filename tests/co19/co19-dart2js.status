@@ -133,6 +133,7 @@ LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: request
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # d8 is not a browser
+LibTest/js_interop/JSAnyUtilityExtension/instanceOfString_A04_t01: Skip # https://github.com/dart-lang/sdk/issues/61204
 
 [ $compiler == dart2js && $runtime == d8 && $host_asserts ]
 LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass

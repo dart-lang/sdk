@@ -3489,9 +3489,12 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       int num_vars = 0;
       // Variable locations and number are unknown when precompiling.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      if (!frame->function().ForceOptimize()) {
-        // Ensure that we have unoptimized code.
-        frame->function().EnsureHasCompiledUnoptimizedCode();
+      const auto& function = frame->function();
+      if (!function.ForceOptimize()) {
+        if (!function.is_declared_in_bytecode()) {
+          // Ensure that we have unoptimized code.
+          function.EnsureHasCompiledUnoptimizedCode();
+        }
         num_vars = frame->NumLocalVariables();
       }
 #endif

@@ -595,8 +595,8 @@ inline bool IsDeeplyImmutableCid(intptr_t predefined_cid) {
 
 inline bool IsShallowlyImmutableCid(intptr_t predefined_cid) {
   ASSERT(predefined_cid < kNumPredefinedCids);
-  // TODO(https://dartbug.com/55136): Mark kClosureCid as shallowly imutable.
-  return IsUnmodifiableTypedDataViewClassId(predefined_cid);
+  return predefined_cid == kClosureCid ||
+         IsUnmodifiableTypedDataViewClassId(predefined_cid);
 }
 
 // See documentation on ImmutableBit in raw_object.h
