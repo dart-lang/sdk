@@ -12,9 +12,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClassElementTest_keepLinking);
     defineReflectiveTests(ClassElementTest_fromBytes);
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(ClassElementTest_augmentation_keepLinking);
-    // defineReflectiveTests(ClassElementTest_augmentation_fromBytes);
+    defineReflectiveTests(ClassElementTest_augmentation_keepLinking);
+    defineReflectiveTests(ClassElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -20941,6 +20940,7 @@ library
 }
 
 abstract class ClassElementTest_augmentation extends ElementsBaseTest {
+  @SkippedTest(reason: 'implement augmentation')
   test_add_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -21051,6 +21051,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentation_constField_hasConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -21177,6 +21178,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentation_constField_noConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -21300,6 +21302,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentation_finalField_hasConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -21426,6 +21429,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentation_finalField_noConstConstructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -21538,6 +21542,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
 part of 'test.dart';
@@ -21772,6 +21777,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentationTarget_augmentationThenDeclaration() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -21920,6 +21926,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentationTarget_no2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22071,6 +22078,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructor_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22213,6 +22221,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructor_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22331,6 +22340,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructor_augment_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22433,6 +22443,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructor_augment_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22560,6 +22571,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22644,6 +22656,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_named_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22753,6 +22766,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_named_hasUnnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22852,6 +22866,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -22933,6 +22948,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_unnamed_hasNamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -23032,6 +23048,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -23159,6 +23176,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_constructors_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -23298,6 +23316,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -23403,6 +23422,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -23563,6 +23583,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -23769,6 +23790,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_afterGetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -23975,6 +23997,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_afterSetter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -24187,6 +24210,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_augmentedInvocation() async {
     // This is invalid code, but it should not crash.
     newFile('$testPackageLibPath/a.dart', r'''
@@ -24345,6 +24369,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_differentTypes() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -24505,6 +24530,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_field_plus() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -24676,6 +24702,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   /// This is not allowed by the specification, but allowed syntactically,
   /// so we need a way to handle it.
   test_augmented_field_augment_getter() async {
@@ -24811,6 +24838,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_field_augment_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -24927,6 +24955,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   /// This is not allowed by the specification, but allowed syntactically,
   /// so we need a way to handle it.
   test_augmented_field_augment_setter() async {
@@ -25071,6 +25100,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_fields_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -25273,6 +25303,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_fields_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -25493,6 +25524,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_fields_add_useFieldFormal() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -25617,6 +25649,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_fields_add_useFieldInitializer() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -25753,6 +25786,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getter_augments_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -25857,6 +25891,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getter_augments_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -25972,6 +26007,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getter_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -26115,6 +26151,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -26264,6 +26301,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_add_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -26431,6 +26469,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -26591,6 +26630,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_field2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -26797,6 +26837,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -26958,6 +26999,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_getter2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -27105,6 +27147,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_getter2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -27284,6 +27327,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_getters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -27369,6 +27413,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_interfaces() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -27501,6 +27546,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_interfaces_chain() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -27689,6 +27735,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_interfaces_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -27843,6 +27890,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_interfaces_generic_mismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -27999,6 +28047,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_method_augments_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28101,6 +28150,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_method_augments_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28254,6 +28304,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_method_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28383,6 +28434,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_method_augments_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28521,6 +28573,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28631,6 +28684,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods_add_withDefaultValue() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28745,6 +28799,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28867,6 +28922,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods_augment2_oneLib_oneTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -28989,6 +29045,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods_augment2_oneLib_twoTop() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29125,6 +29182,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods_augment2_twoLib() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29280,6 +29338,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29406,6 +29465,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods_generic_augment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29532,6 +29592,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_mixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29655,6 +29716,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_mixins_inferredTypeArguments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -29908,6 +29970,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setter_augments_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -30021,6 +30084,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setter_augments_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -30164,6 +30228,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setter_augments_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -30288,6 +30353,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setters_add() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -30455,6 +30521,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setters_augment_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -30621,6 +30688,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setters_augment_nothing() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -30715,6 +30783,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmented_setters_augment_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -30900,6 +30969,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_augmentedBy_mixin2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -31015,6 +31085,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   /// Invalid augmentation of class with mixin does not "own" the name.
   /// When a valid class augmentation follows, it can use the name.
   test_augmentedBy_mixin_class() async {
@@ -31141,6 +31212,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_constructors_augment2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -31292,6 +31364,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_constructors_augment_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -31395,6 +31468,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_constructors_augment_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -31492,6 +31566,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_ofAugment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -31614,6 +31689,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_usingAugmentation_interface() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -31737,6 +31813,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_usingAugmentation_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
@@ -31861,6 +31938,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_inferTypes_method_withAugment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -32004,6 +32082,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_methods_typeParameterCountMismatch() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32121,6 +32200,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_abstract() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32199,6 +32279,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_base() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32277,6 +32358,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_final() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32355,6 +32437,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_interface() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32433,6 +32516,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_mixin() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32511,6 +32595,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_modifiers_sealed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32589,6 +32674,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_notAugmented_interfaces() async {
     var library = await buildLibrary(r'''
 class A implements I {}
@@ -32669,6 +32755,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_notAugmented_mixins() async {
     var library = await buildLibrary(r'''
 class A implements M {}
@@ -32744,6 +32831,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_notSimplyBounded_self() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32839,6 +32927,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_supertype_fromAugmentation() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -32970,6 +33059,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_supertype_fromAugmentation2() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
@@ -33127,6 +33217,7 @@ library
 ''');
   }
 
+  @SkippedTest(reason: 'implement augmentation')
   test_typeParameters_defaultType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
