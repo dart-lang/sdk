@@ -957,8 +957,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       libraryIndex.getProcedure('dart:_internal', 'LateError',
           '_throwLocalAssignedDuringInitialization');
 
-  late Procedure throwNewAssertionError =
-      libraryIndex.getProcedure('dart:core', '_AssertionError', '_throwNew');
+  late Procedure throwNewSourceAssertionError = libraryIndex.getProcedure(
+      'dart:core', '_AssertionError', '_throwNewSource');
 
   late Procedure throwNewNoSuchMethodError =
       libraryIndex.getProcedure('dart:core', 'NoSuchMethodError', '_throwNew');
@@ -3717,10 +3717,15 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _genConditionAndJumpIf(node.condition, true, done);
 
-    _genPushInt(
-        options.omitAssertSourcePositions ? 0 : node.conditionStartOffset);
-    _genPushInt(
-        options.omitAssertSourcePositions ? 0 : node.conditionEndOffset);
+    final fileUri = node.location!.file;
+    final source = node.enclosingComponent!.uriToSource[fileUri]!;
+    final conditionSource = source.text
+        .substring(node.conditionStartOffset, node.conditionEndOffset);
+    final location = source.getLocation(fileUri, node.conditionStartOffset);
+    asm.emitPushConstant(cp.addString(conditionSource));
+    asm.emitPushConstant(cp.addString(fileUri.toString()));
+    _genPushInt(options.omitAssertSourcePositions ? 0 : location.line);
+    _genPushInt(options.omitAssertSourcePositions ? 0 : location.column);
 
     if (node.message != null) {
       _generateNode(node.message);
@@ -3728,7 +3733,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitPushNull();
     }
 
-    _genDirectCall(throwNewAssertionError, objectTable.getArgDescHandle(3), 3);
+    _genDirectCall(
+        throwNewSourceAssertionError, objectTable.getArgDescHandle(5), 5);
     asm.emitDrop1();
 
     asm.bind(done);
