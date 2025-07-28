@@ -577,6 +577,7 @@ Future<void> deflake(Directory outDirectory, List<String> configurations,
   // Find the list of tests to deflake.
   var deflakeListOutput = await runProcess(Platform.resolvedExecutable, [
     "tools/bots/compare_results.dart",
+    "--name-only",
     "--changed",
     "--failing",
     "--passing",

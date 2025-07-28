@@ -8,10 +8,12 @@
 // readable mode that explains the results and how they changed.
 
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:test_runner/bot_results.dart';
+import 'package:test_runner/src/deflake_info.dart';
 
 class Event {
   final Result? before;
@@ -50,6 +52,18 @@ class Event {
       throw Exception("Unreachable");
     }
   }
+
+  String deflakeInfo(String name) {
+    final isTimeout = after.outcome == 'Timeout';
+    final lastTimeMs = before?.timeMs;
+    return jsonEncode(DeflakeInfo(
+      name: name,
+      repeat: isTimeout ? 2 : 5,
+      timeout: isTimeout && lastTimeMs != null
+          ? ((2 * lastTimeMs) / 1000).ceil()
+          : -1,
+    ).toJson());
+  }
 }
 
 class Options {
@@ -70,6 +84,7 @@ class Options {
   Iterable<String> get statusFilter => ["passing", "flaky", "failing"]
       .where((option) => _options[option] as bool);
   bool get unchanged => _options["unchanged"] as bool;
+  bool get nameOnly => _options["name-only"] as bool;
   bool get verbose => _options["verbose"] as bool;
   List<String> get rest => _options.rest;
 }
@@ -148,8 +163,10 @@ bool search(
             "${before?.matches} ${after.matches} "
             "${before?.flaked} ${after.flaked}";
       }
-    } else {
+    } else if (options.nameOnly) {
       output = name;
+    } else {
+      output = event.deflakeInfo(name);
     }
     final log = logs[event.after.key];
     final bar = '=' * (output.length + 2);
@@ -191,6 +208,8 @@ void main(List<String> args) async {
       abbr: 'u',
       negatable: false,
       help: "Show only tests with unchanged results.");
+  parser.addFlag("name-only",
+      help: "Only show the test names.", negatable: false);
   parser.addFlag("verbose",
       abbr: "v",
       help: "Show the old and new result for each test",
