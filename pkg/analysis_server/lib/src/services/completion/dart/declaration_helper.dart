@@ -1757,7 +1757,7 @@ class DeclarationHelper {
           element.constructors,
           importData,
           allowNonFactory: !element.isAbstract,
-          checkVisibilty: false,
+          checkVisibility: false,
         );
       }
     }
@@ -1769,7 +1769,7 @@ class DeclarationHelper {
     required ImportData? importData,
     required bool hasClassName,
     required bool isConstructorRedirect,
-    bool checkVisibilty = true,
+    bool checkVisibility = true,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1779,7 +1779,7 @@ class DeclarationHelper {
       return;
     }
     if (importData?.isNotImported ?? false) {
-      if (checkVisibilty &&
+      if (checkVisibility &&
           !visibilityTracker.isVisible(
             element: element.enclosingElement,
             importData: importData,
@@ -1826,12 +1826,12 @@ class DeclarationHelper {
     List<ConstructorElement> constructors,
     ImportData? importData, {
     bool allowNonFactory = true,
-    bool checkVisibilty = true,
+    bool checkVisibility = true,
   }) {
     if (mustBeAssignable) {
       return;
     }
-    if (checkVisibilty &&
+    if (checkVisibility &&
         constructors.isNotEmpty &&
         !visibilityTracker.isVisible(
           element: constructors.first.enclosingElement,
@@ -1840,8 +1840,8 @@ class DeclarationHelper {
       return;
     }
 
-    if (checkVisibilty) {
-      checkVisibilty = false;
+    if (checkVisibility) {
+      checkVisibility = false;
     }
 
     for (var constructor in constructors) {
@@ -1852,7 +1852,7 @@ class DeclarationHelper {
           hasClassName: false,
           importData: importData,
           isConstructorRedirect: false,
-          checkVisibilty: checkVisibilty,
+          checkVisibility: checkVisibility,
         );
       }
     }
@@ -1933,7 +1933,7 @@ class DeclarationHelper {
         _suggestConstructors(
           element.constructors,
           importData,
-          checkVisibilty: false,
+          checkVisibility: false,
         );
       }
     }
