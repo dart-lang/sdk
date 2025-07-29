@@ -466,7 +466,8 @@ void f(bool value) {
   }
 
   Future<void> test_xorFalse() async {
-    keepCaret = true;
+    allowTestCodeShorthand = false; // Test uses ^
+
     await resolveTestCode(r'''
 void f(bool value) {
   if (value ^ false) print(value);
@@ -480,7 +481,8 @@ void f(bool value) {
   }
 
   Future<void> test_xorTrue() async {
-    keepCaret = true;
+    allowTestCodeShorthand = false; // Test uses ^
+
     await resolveTestCode(r'''
 void f(bool value) {
   if (value ^ true) print(value);

@@ -13,6 +13,7 @@ import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -375,20 +376,29 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
 /// A base class defining support for writing fix processor tests.
 abstract class FixProcessorTest extends BaseFixProcessorTest {
+  late TestCode parsedExpectedCode;
+
   /// The kind of fixes being tested by this test class.
   FixKind get kind;
 
   /// Asserts that the resolved compilation unit has a fix which produces
-  /// [expected] output.
+  /// [expectedContent] output.
+  ///
+  /// [expectedContent] will have newlines normalized and be parsed with
+  /// [TestCode.parse], with the resulting code stored in [parsedExpectedCode].
   Future<void> assertHasFix(
-    String expected, {
+    String expectedContent, {
     ErrorFilter? errorFilter,
     String? target,
     int? expectedNumberOfFixesForKind,
     String? matchFixMessage,
     bool allowFixAllFixes = false,
   }) async {
-    expected = normalizeSource(expected);
+    parsedExpectedCode = TestCode.parse(
+      normalizeSource(expectedContent),
+      positionShorthand: allowTestCodeShorthand,
+      rangeShorthand: allowTestCodeShorthand,
+    );
     var diagnostic = await _findDiagnosticToFix(filter: errorFilter);
     var fix = await _assertHasFix(
       diagnostic,
@@ -409,7 +419,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
 
     resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(resultCode, expected);
+    expect(resultCode, parsedExpectedCode.code);
   }
 
   Future<void> assertHasFixAllFix(
