@@ -268,18 +268,12 @@ main() {
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
   // [cfe] A prefix can't be used with null-aware operators.
-  //             ^
-  // [cfe] Can't assign to this.
   h?.topLevelVar += null;
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
   // [cfe] A prefix can't be used with null-aware operators.
-  //             ^
-  // [cfe] Can't assign to this.
   h?.topLevelVar ??= null;
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT
   // [cfe] A prefix can't be used with null-aware operators.
-  //             ^
-  // [cfe] Can't assign to this.
 }

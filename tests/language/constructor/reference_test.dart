@@ -14,7 +14,6 @@ main() {
   new Foo.bar.baz();
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //          ^
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   new Foo<int>();
   new Foo<int>.bar();
@@ -33,22 +32,20 @@ main() {
   new Foo.bar<int>.baz();
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //               ^
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   new Foo.bar.baz<int>();
   //  ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   //          ^^^
   // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
-  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
 
   const Foo();
   const Foo.bar();
   const Foo.bar.baz();
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //            ^
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   const Foo<int>();
   const Foo<int>.bar();
@@ -67,15 +64,14 @@ main() {
   const Foo.bar<int>.baz();
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //                 ^
   // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   const Foo.bar.baz<int>();
   //    ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
   //            ^^^
   // [analyzer] SYNTACTIC_ERROR.CONSTRUCTOR_WITH_TYPE_ARGUMENTS
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
-  // [cfe] Couldn't find constructor 'Foo.bar.baz'.
 
   Foo();
   Foo.bar();

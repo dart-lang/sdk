@@ -8,6 +8,7 @@ import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
 import 'package:kernel/type_algebra.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart'
     show
         LocatedMessage,
@@ -206,11 +207,35 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Builder? member;
     String? qualifier = typeName.qualifier;
     if (qualifier != null) {
-      Builder? prefix = scope.lookup(qualifier, charOffset, fileUri)?.getable;
+      LookupResult? result = scope.lookup(qualifier, charOffset, fileUri);
+      if (result != null && result.isInvalidLookup) {
+        bind(
+            problemReporting,
+            buildInvalidTypeDeclarationBuilder(
+                LookupResult.createDuplicateMessage(result,
+                    name: qualifier,
+                    fileUri: fileUri,
+                    fileOffset: typeName.fullNameOffset,
+                    length: typeName.fullNameLength)));
+        return;
+      }
+      Builder? prefix = result?.getable;
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
-        member =
-            prefix.lookup(typeName.name, typeName.nameOffset, fileUri)?.getable;
+        result = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
+        if (result != null && result.isInvalidLookup) {
+          // Coverage-ignore-block(suite): Not run.
+          bind(
+              problemReporting,
+              buildInvalidTypeDeclarationBuilder(
+                  LookupResult.createDuplicateMessage(result,
+                      name: qualifier,
+                      fileUri: fileUri,
+                      fileOffset: typeName.fullNameOffset,
+                      length: typeName.fullNameLength)));
+          return;
+        }
+        member = result?.getable;
       } else {
         // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
@@ -225,8 +250,20 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         return;
       }
     } else {
-      member =
-          scope.lookup(typeName.name, typeName.nameOffset, fileUri)?.getable;
+      LookupResult? result =
+          scope.lookup(typeName.name, typeName.nameOffset, fileUri);
+      if (result != null && result.isInvalidLookup) {
+        bind(
+            problemReporting,
+            buildInvalidTypeDeclarationBuilder(
+                LookupResult.createDuplicateMessage(result,
+                    name: typeName.name,
+                    fileUri: fileUri,
+                    fileOffset: typeName.fullNameOffset,
+                    length: typeName.fullNameLength)));
+        return;
+      }
+      member = result?.getable;
     }
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
@@ -613,12 +650,15 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         }
         return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
       case InvalidTypeDeclarationBuilder():
-        library.addProblem(
-            declaration.message.messageObject,
-            declaration.message.charOffset,
-            declaration.message.length,
-            declaration.message.uri,
-            severity: Severity.error);
+        if (!declaration.suppressMessage) {
+          // Coverage-ignore-block(suite): Not run.
+          library.addProblem(
+              declaration.message.messageObject,
+              declaration.message.charOffset,
+              declaration.message.length,
+              declaration.message.uri,
+              severity: Severity.error);
+        }
         return null;
       case NominalParameterBuilder():
       case StructuralParameterBuilder():
@@ -647,12 +687,15 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         return _handleInvalidAliasedSupertype(
             libraryBuilder, aliasBuilder, type);
       case InvalidTypeDeclarationBuilder():
-        libraryBuilder.addProblem(
-            declaration.message.messageObject,
-            declaration.message.charOffset,
-            declaration.message.length,
-            declaration.message.uri,
-            severity: Severity.error);
+        if (!declaration.suppressMessage) {
+          // Coverage-ignore-block(suite): Not run.
+          libraryBuilder.addProblem(
+              declaration.message.messageObject,
+              declaration.message.charOffset,
+              declaration.message.length,
+              declaration.message.uri,
+              severity: Severity.error);
+        }
         return null;
       case NominalParameterBuilder():
       case StructuralParameterBuilder():

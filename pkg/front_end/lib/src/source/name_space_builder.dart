@@ -38,7 +38,7 @@ class DeclarationNameSpaceBuilder {
       : _nominalParameterNameSpace = null,
         _fragments = const [];
 
-  MutableDeclarationNameSpace buildNameSpace(
+  SourceDeclarationNameSpace buildNameSpace(
       {required SourceLoader loader,
       required ProblemReporting problemReporting,
       required SourceLibraryBuilder enclosingLibraryBuilder,
@@ -92,17 +92,13 @@ class DeclarationNameSpaceBuilder {
       }
     }
 
-    void checkConflicts(String name, Builder member) {
+    void checkConflicts(NamedBuilder member) {
       checkTypeParameterConflict(
-          problemReporting, name, member, member.fileUri!);
+          problemReporting, member.name, member, member.fileUri!);
     }
 
-    builderRegistry.content.forEach((String name, LookupResult lookupResult) {
-      NamedBuilder member = (lookupResult.getable ?? lookupResult.setable)!;
-      checkTypeParameterConflict(
-          problemReporting, name, member, member.fileUri!);
-    });
-    builderRegistry.constructors.forEach(checkConflicts);
+    memberBuilders.forEach(checkConflicts);
+    constructorBuilders.forEach(checkConflicts);
 
     return new SourceDeclarationNameSpace(
         content: builderRegistry.content,
@@ -110,14 +106,15 @@ class DeclarationNameSpaceBuilder {
   }
 
   void checkTypeParameterConflict(ProblemReporting _problemReporting,
-      String name, Builder member, Uri fileUri) {
+      String name, NamedBuilder memberBuilder, Uri fileUri) {
+    if (memberBuilder.isDuplicate) return;
     if (_nominalParameterNameSpace != null) {
       NominalParameterBuilder? tv =
           _nominalParameterNameSpace.getTypeParameter(name);
       if (tv != null) {
         _problemReporting.addProblem(
             templateConflictsWithTypeParameter.withArguments(name),
-            member.fileOffset,
+            memberBuilder.fileOffset,
             name.length,
             fileUri,
             context: [
@@ -145,7 +142,7 @@ class LibraryNameSpaceBuilder {
     _fragments.addAll(other._fragments);
   }
 
-  MutableNameSpace toNameSpace({
+  SourceLibraryNameSpace toNameSpace({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
@@ -183,8 +180,8 @@ class LibraryNameSpaceBuilder {
 }
 
 class _DeclarationBuilderRegistry implements BuilderRegistry {
-  final Map<String, LookupResult> content = {};
-  final Map<String, MemberBuilder> constructors = {};
+  final Map<String, MemberLookupResult> content = {};
+  final Map<String, MemberLookupResult> constructors = {};
   final ProblemReporting problemReporting;
   final SourceLibraryBuilder enclosingLibraryBuilder;
   final DeclarationBuilder declarationBuilder;
@@ -200,7 +197,7 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
 
   @override
   void registerBuilder(
-      {required NamedBuilder declaration,
+      {required covariant MemberBuilder declaration,
       required UriOffsetLength uriOffset,
       required bool inPatch}) {
     String name = declaration.name;
@@ -242,41 +239,39 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
     }
 
     if (isConstructor) {
-      NamedBuilder? existing = constructors[name];
+      MemberLookupResult? existingResult = constructors[name];
 
-      assert(
-          existing != declaration, "Unexpected existing declaration $existing");
+      assert(existingResult != declaration,
+          "Unexpected existing declaration $existingResult");
 
-      if (declaration.next != null &&
-          // Coverage-ignore(suite): Not run.
-          declaration.next != existing) {
-        unexpected(
-            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-            "${existing?.fileUri}@${existing?.fileOffset}",
-            declaration.fileOffset,
-            declaration.fileUri);
+      if (existingResult == null) {
+        constructors[name] = declaration as MemberBuilder;
+      } else if (existingResult is DuplicateMemberLookupResult) {
+        declaration.next = existingResult.declarations.last;
+        existingResult.declarations.add(declaration);
+      } else {
+        MemberBuilder existingDeclaration = existingResult.getable!;
+        declaration.next = existingDeclaration;
+        constructors[name] =
+            new DuplicateMemberLookupResult([existingDeclaration, declaration]);
       }
-      declaration.next = existing;
-      constructors[name] = declaration as MemberBuilder;
     } else {
-      LookupResult? existingResult = content[name];
-      NamedBuilder? existing =
-          existingResult?.getable ?? existingResult?.setable;
-
-      assert(
-          existing != declaration, "Unexpected existing declaration $existing");
-
-      if (declaration.next != null &&
-          // Coverage-ignore(suite): Not run.
-          declaration.next != existing) {
-        unexpected(
-            "${declaration.next!.fileUri}@${declaration.next!.fileOffset}",
-            "${existing?.fileUri}@${existing?.fileOffset}",
-            declaration.fileOffset,
-            declaration.fileUri);
+      MemberLookupResult? existingResult = content[name];
+      if (existingResult == null) {
+        content[name] = declaration;
+      } else if (existingResult is DuplicateMemberLookupResult) {
+        declaration.next = existingResult.declarations.last;
+        existingResult.declarations.add(declaration);
+      } else {
+        MemberBuilder? existingGetable = existingResult.getable;
+        MemberBuilder? existingSetable = existingResult.setable;
+        declaration.next = existingGetable ?? existingSetable;
+        content[name] = new DuplicateMemberLookupResult([
+          if (existingGetable != null) existingGetable,
+          if (existingSetable != null) existingSetable,
+          declaration
+        ]);
       }
-      declaration.next = existing;
-      content[name] = declaration as LookupResult;
     }
   }
 

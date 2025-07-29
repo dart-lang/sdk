@@ -24,6 +24,7 @@ import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../fragment/constructor/declaration.dart';
@@ -174,8 +175,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   FunctionNode get function => _lastDeclaration.function;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   bool get hasParameters => _introductory.hasParameters;
 
@@ -269,8 +269,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   Reference get readTargetReference => _constructorReferences.tearOffReference;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.

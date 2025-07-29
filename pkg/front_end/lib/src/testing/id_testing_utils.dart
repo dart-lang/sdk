@@ -223,7 +223,8 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
-      memberBuilder = classBuilder.nameSpace.lookupConstructor(memberName);
+      memberBuilder =
+          classBuilder.nameSpace.lookupConstructor(memberName)?.getable;
     } else {
       bool isSetter = member is Procedure && member.isSetter;
       LookupResult? result =
@@ -342,7 +343,7 @@ MemberBuilder? lookupExtensionTypeMemberBuilder(
   if (extensionTypeBuilder != null) {
     if (isConstructor) {
       memberBuilder =
-          extensionTypeBuilder.nameSpace.lookupConstructor(memberName);
+          extensionTypeBuilder.nameSpace.lookupConstructor(memberName)?.getable;
     } else {
       bool isSetter = member is Procedure && member.isSetter;
       LookupResult? result =

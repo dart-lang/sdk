@@ -206,11 +206,11 @@ library;
 //     prefix.Extension(:var field) => "matched",
 //            ^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:108:7: Error: 'unresolved.Type' can't be used as a type because 'unresolved' isn't defined.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:108:7: Error: 'unresolved.Type' can't be used as a type because 'unresolved' doesn't refer to an import prefix.
 //   var unresolved.Type(:int field) = o;
 //       ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:9: Error: 'unresolved.Type' can't be used as a type because 'unresolved' isn't defined.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:9: Error: 'unresolved.Type' can't be used as a type because 'unresolved' doesn't refer to an import prefix.
 //   final unresolved.Type(:o) = o;
 //         ^^^^^^^^^^^^^^^
 //
@@ -228,15 +228,15 @@ library;
 //   final unresolved.Type(:o) = o;
 //                          ^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:111:14: Error: 'unresolved.Type' can't be used as a type because 'unresolved' isn't defined.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:111:14: Error: 'unresolved.Type' can't be used as a type because 'unresolved' doesn't refer to an import prefix.
 //   if (o case unresolved.Type(:var field)) {}
 //              ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:114:10: Error: 'unresolved.Type' can't be used as a type because 'unresolved' isn't defined.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:114:10: Error: 'unresolved.Type' can't be used as a type because 'unresolved' doesn't refer to an import prefix.
 //     case unresolved.Type(:var field):
 //          ^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:118:5: Error: 'unresolved.Type' can't be used as a type because 'unresolved' isn't defined.
+// pkg/front_end/testcases/patterns/non_type_object_pattern.dart:118:5: Error: 'unresolved.Type' can't be used as a type because 'unresolved' doesn't refer to an import prefix.
 //     unresolved.Type(:var field) => "matched",
 //     ^^^^^^^^^^^^^^^
 //

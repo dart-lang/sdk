@@ -118,7 +118,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  MutableNameSpace? _libraryNameSpace;
+  SourceLibraryNameSpace? _libraryNameSpace;
   late final List<NamedBuilder> _memberBuilders;
 
   final ComputedMutableNameSpace _exportNameSpace;
@@ -825,15 +825,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
     if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
-      NamedBuilder builder =
+      DynamicTypeDeclarationBuilder builder =
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1);
-      _libraryNameSpace!.addLocalMember("dynamic", builder, setter: false);
+      _libraryNameSpace!.addLocalMember("dynamic", builder);
       _memberBuilders.add(builder);
     }
     if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
-      NamedBuilder builder = new NeverTypeDeclarationBuilder(
+      NeverTypeDeclarationBuilder builder = new NeverTypeDeclarationBuilder(
           const NeverType.nonNullable(), this, -1);
-      _libraryNameSpace!.addLocalMember("Never", builder, setter: false);
+      _libraryNameSpace!.addLocalMember("Never", builder);
       _memberBuilders.add(builder);
     }
     assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,

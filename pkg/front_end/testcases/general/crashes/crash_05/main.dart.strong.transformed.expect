@@ -14,10 +14,6 @@ library;
 //     with RenderObjectWithChildMixin<RenderBox>, RenderSliverHelpers {}
 //                                                 ^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/crashes/crash_05/main.dart:13:16: Error: The type 'RenderSliverHelpers' can't be mixed in.
-// abstract class RenderSliverSingleBoxAdapter extends RenderSliver
-//                ^
-//
 // pkg/front_end/testcases/general/crashes/crash_05/main.dart:13:16: Error: 'RenderSliver' doesn't implement 'RenderObject' so it can't be used with 'RenderObjectWithChildMixin<invalid-type>'.
 //  - 'RenderSliver' is from 'pkg/front_end/testcases/general/crashes/crash_05/main.dart'.
 //  - 'RenderObject' is from 'pkg/front_end/testcases/general/crashes/crash_05/main_lib.dart'.

@@ -13,6 +13,7 @@ import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/factory/declaration.dart';
@@ -98,12 +99,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isStatic => true;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   Builder get parent => declarationBuilder;

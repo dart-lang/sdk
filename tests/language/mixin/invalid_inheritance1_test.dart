@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C1<T> extends Object with Malformed {}
-//    ^
-// [cfe] The type 'Malformed' can't be mixed in.
 //                              ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
 // [cfe] Type 'Malformed' not found.
@@ -17,8 +15,6 @@ class C2<T> extends Object with T {}
 // [cfe] The type variable 'T' can't be used as supertype.
 
 class C3<T> extends Object with T<int> {}
-//    ^
-// [cfe] The type 'T<int>' can't be mixed in.
 //                              ^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
 //                              ^^^^^^

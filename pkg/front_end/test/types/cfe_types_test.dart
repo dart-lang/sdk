@@ -42,8 +42,8 @@ void main() {
     final DillLoader loader = target.loader;
     loader.appendLibraries(sdk);
     target.buildOutlines();
-    ClassBuilder objectClass = loader.coreLibrary
-        .lookupLocalMember("Object", required: true) as ClassBuilder;
+    ClassBuilder objectClass =
+        loader.coreLibrary.lookupRequiredLocalMember("Object") as ClassBuilder;
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, new CoreTypes(sdk));
     new FastaTypesTest(hierarchy, environment).run();
@@ -66,8 +66,7 @@ class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
 
   @override
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
-    return hierarchy.types
-        .performSubtypeCheck(subtype, supertype);
+    return hierarchy.types.performSubtypeCheck(subtype, supertype);
   }
 
   @override

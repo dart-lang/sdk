@@ -2340,11 +2340,6 @@ NotAPrefixInTypeAnnotation:
           T.String field;
         }
 
-UnresolvedPrefixInTypeAnnotation:
-  problemMessage: "'#name.#name2' can't be used as a type because '#name' isn't defined."
-  analyzerCode: NOT_A_TYPE
-  statement: "T.String x;"
-
 FastaUsageShort:
   problemMessage: |
     Frequently used options:

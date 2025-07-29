@@ -5,7 +5,6 @@
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
-import '../builder/member_builder.dart';
 import 'lookup_result.dart';
 import 'scope.dart';
 import 'uris.dart';
@@ -58,12 +57,12 @@ abstract class ComputedMutableNameSpace
 }
 
 abstract class DeclarationNameSpace implements NameSpace {
-  MemberBuilder? lookupConstructor(String name);
+  MemberLookupResult? lookupConstructor(String name);
 }
 
 abstract class MutableDeclarationNameSpace
     implements DeclarationNameSpace, MutableNameSpace {
-  void addConstructor(String name, MemberBuilder builder);
+  void addConstructor(String name, MemberLookupResult builder);
 }
 
 base class NameSpaceImpl implements MutableNameSpace {
@@ -82,6 +81,7 @@ base class NameSpaceImpl implements MutableNameSpace {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
     _extensions?.forEach(f);
   }
@@ -221,11 +221,38 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
   LookupResult? lookupLocalMember(String name) => _content?[name];
 }
 
-final class SourceLibraryNameSpace extends NameSpaceImpl {
+final class SourceLibraryNameSpace implements NameSpace {
+  final Map<String, LookupResult> _content;
+  Set<ExtensionBuilder>? _extensions;
+
   SourceLibraryNameSpace(
-      {required Map<String, LookupResult> super.content,
-      required Set<ExtensionBuilder> super.extensions})
-      : super._();
+      {required Map<String, LookupResult> content,
+      required Set<ExtensionBuilder> extensions})
+      : _content = content,
+        _extensions = extensions;
+
+  // Coverage-ignore(suite): Not run.
+  void addLocalMember(String name, LookupResult member) {
+    assert(!_content.containsKey(name),
+        "Unexpected replacement of ${_content[name]} by $member.");
+    _content[name] = member;
+  }
+
+  @override
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f) {
+    _extensions?.forEach(f);
+  }
+
+  @override
+  LookupResult? lookupLocal(String name,
+      {required Uri fileUri,
+      required int fileOffset,
+      required bool staticOnly}) {
+    return _content[name];
+  }
+
+  @override
+  LookupResult? lookupLocalMember(String name) => _content[name];
 }
 
 // Coverage-ignore(suite): Not run.
@@ -300,29 +327,64 @@ String? areNameSpacesEquivalent(
 
 abstract base class DeclarationNameSpaceBase extends NameSpaceImpl
     implements DeclarationNameSpace, MutableDeclarationNameSpace {
-  Map<String, MemberBuilder>? _constructors;
+  Map<String, MemberLookupResult>? _constructors;
 
   DeclarationNameSpaceBase._(
       {super.content,
       super.extensions,
-      Map<String, MemberBuilder>? constructors})
+      Map<String, MemberLookupResult>? constructors})
       : _constructors = constructors,
         super._();
 
   @override
-  void addConstructor(String name, MemberBuilder builder) {
-    (_constructors ??= {})[name] = builder;
+  void addConstructor(String name, MemberLookupResult constructor) {
+    (_constructors ??= {})[name] = constructor;
   }
 
   @override
-  MemberBuilder? lookupConstructor(String name) => _constructors?[name];
+  MemberLookupResult? lookupConstructor(String name) => _constructors?[name];
 }
 
-final class SourceDeclarationNameSpace extends DeclarationNameSpaceBase {
+final class SourceDeclarationNameSpace implements DeclarationNameSpace {
+  final Map<String, MemberLookupResult> _content;
+  final Map<String, MemberLookupResult> _constructors;
+
   SourceDeclarationNameSpace(
-      {required Map<String, LookupResult> super.content,
-      required Map<String, MemberBuilder>? super.constructors})
-      : super._();
+      {required Map<String, MemberLookupResult> content,
+      required Map<String, MemberLookupResult> constructors})
+      : _content = content,
+        _constructors = constructors;
+
+  void addConstructor(String name, MemberLookupResult constructor) {
+    _constructors[name] = constructor;
+  }
+
+  void addLocalMember(String name, MemberLookupResult member) {
+    assert(!_content.containsKey(name),
+        "Unexpected replacement of ${_content[name]} by $member.");
+    _content[name] = member;
+  }
+
+  @override
+  void forEachLocalExtension(void Function(ExtensionBuilder member) f) {}
+
+  @override
+  MemberLookupResult? lookupLocal(String name,
+      {required Uri fileUri,
+      required int fileOffset,
+      required bool staticOnly}) {
+    MemberLookupResult? result = _content[name];
+    if (staticOnly && result != null && !result.isStatic) {
+      result = null;
+    }
+    return result;
+  }
+
+  @override
+  LookupResult? lookupLocalMember(String name) => _content[name];
+
+  @override
+  MemberLookupResult? lookupConstructor(String name) => _constructors[name];
 }
 
 final class DillDeclarationNameSpace extends DeclarationNameSpaceBase {

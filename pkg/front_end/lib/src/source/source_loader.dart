@@ -1609,17 +1609,17 @@ severity: $severity
       handleHierarchyCycles(ClassBuilder objectClass) {
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
-      denyListedClasses.add(coreLibrary.lookupLocalMember(
-          denylistedCoreClasses[i],
-          required: true) as ClassBuilder);
+      denyListedClasses.add(coreLibrary
+          .lookupRequiredLocalMember(denylistedCoreClasses[i]) as ClassBuilder);
     }
     ClassBuilder enumClass =
-        coreLibrary.lookupLocalMember("Enum", required: true) as ClassBuilder;
+        coreLibrary.lookupRequiredLocalMember("Enum") as ClassBuilder;
     if (typedDataLibrary != null) {
       for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
         // Allow the member to not exist. If it doesn't, nobody can extend it.
         Builder? member = typedDataLibrary!
-            .lookupLocalMember(denylistedTypedDataClasses[i], required: false);
+            .lookupLocalMember(denylistedTypedDataClasses[i])
+            ?.getable;
         if (member != null) denyListedClasses.add(member as ClassBuilder);
       }
     }
@@ -1778,45 +1778,68 @@ severity: $severity
       TypeDeclarationBuilder? unaliasedDeclaration =
           mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
 
-      if (unaliasedDeclaration is ClassBuilder) {
-        if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
-            denyListedClasses.contains(unaliasedDeclaration)) {
+      switch (unaliasedDeclaration) {
+        case ClassBuilder():
+          if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
+              denyListedClasses.contains(unaliasedDeclaration)) {
+            classBuilder.libraryBuilder.addProblem(
+                templateExtendingRestricted
+                    .withArguments(mixedInTypeBuilder.fullNameForErrors),
+                classBuilder.fileOffset,
+                noLength,
+                classBuilder.fileUri,
+                context: declaration is TypeAliasBuilder
+                    ? [
+                        messageTypedefUnaliasedTypeCause.withLocation(
+                            unaliasedDeclaration.fileUri,
+                            unaliasedDeclaration.fileOffset,
+                            noLength),
+                      ]
+                    : null);
+          } else {
+            // Assume that mixin classes fulfill their contract of having no
+            // generative constructors.
+            if (!unaliasedDeclaration.isMixinClass) {
+              _checkConstructorsForMixin(classBuilder, unaliasedDeclaration);
+            }
+          }
+        case null:
+        case BuiltinTypeDeclarationBuilder():
+        case TypeAliasBuilder():
+        case ExtensionBuilder():
+        case ExtensionTypeDeclarationBuilder():
+        case NominalParameterBuilder():
+        case StructuralParameterBuilder():
+          // TODO(ahe): Either we need to check this for superclass and
+          // interfaces, or this shouldn't be necessary (or handled elsewhere).
           classBuilder.libraryBuilder.addProblem(
-              templateExtendingRestricted
+              templateIllegalMixin
                   .withArguments(mixedInTypeBuilder.fullNameForErrors),
               classBuilder.fileOffset,
               noLength,
               classBuilder.fileUri,
               context: declaration is TypeAliasBuilder
                   ? [
-                      messageTypedefUnaliasedTypeCause.withLocation(
-                          unaliasedDeclaration.fileUri,
-                          unaliasedDeclaration.fileOffset,
-                          noLength),
+                      messageTypedefCause.withLocation(declaration.fileUri,
+                          declaration.fileOffset, noLength),
                     ]
                   : null);
-        } else {
-          // Assume that mixin classes fulfill their contract of having no
-          // generative constructors.
-          if (!unaliasedDeclaration.isMixinClass) {
-            _checkConstructorsForMixin(classBuilder, unaliasedDeclaration);
+        case InvalidTypeDeclarationBuilder():
+          if (!unaliasedDeclaration.suppressMessage) {
+            // Coverage-ignore-block(suite): Not run.
+            classBuilder.libraryBuilder.addProblem(
+                templateIllegalMixin
+                    .withArguments(mixedInTypeBuilder.fullNameForErrors),
+                classBuilder.fileOffset,
+                noLength,
+                classBuilder.fileUri,
+                context: declaration is TypeAliasBuilder
+                    ? [
+                        messageTypedefCause.withLocation(declaration.fileUri,
+                            declaration.fileOffset, noLength),
+                      ]
+                    : null);
           }
-        }
-      } else {
-        // TODO(ahe): Either we need to check this for superclass and
-        // interfaces, or this shouldn't be necessary (or handled elsewhere).
-        classBuilder.libraryBuilder.addProblem(
-            templateIllegalMixin
-                .withArguments(mixedInTypeBuilder.fullNameForErrors),
-            classBuilder.fileOffset,
-            noLength,
-            classBuilder.fileUri,
-            context: declaration is TypeAliasBuilder
-                ? [
-                    messageTypedefCause.withLocation(
-                        declaration.fileUri, declaration.fileOffset, noLength),
-                  ]
-                : null);
       }
     }
   }
@@ -2274,7 +2297,7 @@ severity: $severity
     assert(_coreLibraryCompilationUnit != null,
         "Core library has not been computed yet.");
     ClassBuilder classBuilder =
-        coreLibrary.lookupLocalMember(name, required: true) as ClassBuilder;
+        coreLibrary.lookupRequiredLocalMember(name) as ClassBuilder;
     return new InterfaceType(classBuilder.cls, nullability, typeArguments);
   }
 
@@ -2719,8 +2742,7 @@ severity: $severity
     if (libraryBuilder == null) {
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
-    return libraryBuilder.lookupLocalMember(cls.name, required: true)
-        as ClassBuilder;
+    return libraryBuilder.lookupRequiredLocalMember(cls.name) as ClassBuilder;
   }
 
   @override
@@ -2735,7 +2757,7 @@ severity: $severity
       return target.dillTarget.loader
           .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
     }
-    return library.lookupLocalMember(extensionType.name, required: true)
+    return library.lookupRequiredLocalMember(extensionType.name)
         as ExtensionTypeDeclarationBuilder;
   }
 

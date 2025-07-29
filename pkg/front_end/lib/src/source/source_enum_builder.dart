@@ -11,6 +11,7 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
 import '../base/scope.dart';
@@ -388,9 +389,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
         ClassBuilder objectClass = objectType.declaration as ClassBuilder;
         ClassBuilder enumClass =
             _underscoreEnumTypeBuilder.declaration as ClassBuilder;
-        MemberBuilder? superConstructor = enumClass.findConstructorOrFactory(
-            "", fileOffset, fileUri, libraryBuilder);
-        if (superConstructor == null ||
+        MemberLookupResult? result =
+            enumClass.findConstructorOrFactory("", libraryBuilder);
+        MemberBuilder? superConstructor = result?.getable;
+        if (result == null ||
+            result.isInvalidLookup ||
+            superConstructor == null ||
             superConstructor is! ConstructorBuilder) {
           // Coverage-ignore-block(suite): Not run.
           // TODO(ahe): Ideally, we would also want to check that [Object]'s
@@ -486,7 +490,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
       ClassBuilder enumClass =
           _underscoreEnumTypeBuilder.declaration as ClassBuilder;
       MemberBuilder? nameFieldBuilder =
-          enumClass.lookupLocalMember("_name") as MemberBuilder?;
+          enumClass.lookupLocalMember("_name")?.getable as MemberBuilder?;
       assert(nameFieldBuilder != null);
       Field nameField = nameFieldBuilder!.readTarget as Field;
 

@@ -9,11 +9,13 @@ import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/constant_context.dart' show ConstantContext;
+import '../base/lookup_result.dart';
 import '../base/messages.dart' show Message;
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
@@ -49,7 +51,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
-  Constructor? lookupSuperConstructor(Name name);
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary);
 
   Expression toValue(Object? node);
 
@@ -97,7 +100,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Arguments? arguments,
       Expression? rhs,
       LocatedMessage message,
-      int? length});
+      int? length,
+      bool suppressMessage});
 
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters);

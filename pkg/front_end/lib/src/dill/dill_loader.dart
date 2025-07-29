@@ -330,7 +330,7 @@ severity: $severity
       library = currentSourceLoader
           ?.lookupLoadedLibraryBuilder(kernelLibrary.importUri);
     }
-    return library!.lookupLocalMember(cls.name, required: true) as ClassBuilder;
+    return library!.lookupRequiredLocalMember(cls.name) as ClassBuilder;
   }
 
   @override
@@ -343,7 +343,7 @@ severity: $severity
       libraryBuilder =
           currentSourceLoader?.lookupLoadedLibraryBuilder(library.importUri);
     }
-    return libraryBuilder!.lookupLocalMember(extensionType.name, required: true)
+    return libraryBuilder!.lookupRequiredLocalMember(extensionType.name)
         as ExtensionTypeDeclarationBuilder;
   }
 

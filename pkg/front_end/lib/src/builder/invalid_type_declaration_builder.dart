@@ -75,4 +75,10 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     // invalidNullability.
     return Nullability.nullable;
   }
+
+  @override
+  MemberBuilder get getable => this;
+
+  @override
+  MemberBuilder? get setable => null;
 }

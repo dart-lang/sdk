@@ -265,7 +265,8 @@ Future<void> main() async {
         "offset: 4, prefixGenerator: , isInitializer: false,"
         " inFieldInitializer: false, inLateFieldInitializer: false,"
         " isSuper: false)",
-        new UnexpectedQualifiedUseGenerator(helper, token, generator, false));
+        new UnexpectedQualifiedUseGenerator(helper, token, generator,
+            errorHasBeenReported: false));
     return Future<void>.value();
   });
 }

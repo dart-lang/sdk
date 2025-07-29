@@ -190,12 +190,13 @@ final class ClassScope extends shared.BaseClassScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    MemberBuilder? constructor = builder.nameSpace.lookupConstructor(name);
+    MemberBuilder? constructor =
+        builder.nameSpace.lookupConstructor(name)?.getable;
     if (constructor != null) {
       return createConstructorProto(
           typeArguments, new ConstructorReference(constructor));
     }
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -211,7 +212,7 @@ final class EnumScope extends shared.BaseEnumScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -227,7 +228,7 @@ final class MixinScope extends shared.BaseMixinScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -243,7 +244,7 @@ final class ExtensionScope extends shared.BaseExtensionScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -259,12 +260,13 @@ final class ExtensionTypeScope extends shared.BaseExtensionTypeScope {
   @override
   shared.Proto lookup(String name,
       [List<shared.TypeAnnotation>? typeArguments]) {
-    MemberBuilder? constructor = builder.nameSpace.lookupConstructor(name);
+    MemberBuilder? constructor =
+        builder.nameSpace.lookupConstructor(name)?.getable;
     if (constructor != null) {
       return createConstructorProto(
           typeArguments, new ConstructorReference(constructor));
     }
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -284,7 +286,7 @@ final class TypedefScope extends shared.BaseTypedefScope {
     TypeDeclarationBuilder? typeDeclaration = builder.unaliasDeclaration(null);
     if (typeDeclaration is ClassBuilder) {
       MemberBuilder? constructor =
-          typeDeclaration.nameSpace.lookupConstructor(name);
+          typeDeclaration.nameSpace.lookupConstructor(name)?.getable;
       if (constructor != null) {
         return createConstructorProto(
             typeArguments, new ConstructorReference(constructor));

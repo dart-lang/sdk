@@ -8,8 +8,8 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/identifiers.dart';
+import '../../base/lookup_result.dart';
 import '../../base/problems.dart' show unexpected, unhandled;
-import '../../base/scope.dart';
 import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/constructor_reference_builder.dart';
@@ -231,8 +231,11 @@ class FactoryEncoding implements InferredTypeListener {
       InferenceHelper helper = libraryBuilder.loader
           .createBodyBuilderForOutlineExpression(libraryBuilder,
               bodyBuilderContext, _fragment.enclosingScope, _fragment.fileUri);
-      Builder? targetBuilder = _redirectionTarget.target;
-
+      MemberLookupResult? result = _redirectionTarget.target;
+      MemberBuilder? targetBuilder;
+      if (result != null && !result.isInvalidLookup) {
+        targetBuilder = result.getable;
+      }
       if (targetBuilder is SourceMemberBuilder) {
         // Ensure that target has been built.
         targetBuilder.buildOutlineExpressions(
@@ -322,8 +325,9 @@ class FactoryEncoding implements InferredTypeListener {
     if (redirectionTarget != null) {
       // Compute the immediate redirection target, not the effective.
       List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
-      Builder? target = redirectionTarget.target;
-      if (typeArguments != null && target is MemberBuilder) {
+      MemberLookupResult? result = redirectionTarget.target;
+      MemberBuilder? targetBuilder = result?.getable;
+      if (typeArguments != null && targetBuilder is MemberBuilder) {
         TypeName redirectionTargetName = redirectionTarget.typeName;
         if (redirectionTargetName.qualifier == null) {
           // Do nothing. This is the case of an identifier followed by
@@ -331,13 +335,13 @@ class FactoryEncoding implements InferredTypeListener {
           //   B<T>
           //   B<T>.named
         } else {
-          if (target.name.isEmpty) {
+          if (targetBuilder.name.isEmpty) {
             // Do nothing. This is the case of a qualified
             // non-constructor prefix (for example, with a library
             // qualifier) followed by type arguments, such as the
             // following:
             //   lib.B<T>
-          } else if (target.name != redirectionTargetName.name) {
+          } else if (targetBuilder.name != redirectionTargetName.name) {
             // Do nothing. This is the case of a qualified
             // non-constructor prefix followed by type arguments followed
             // by a constructor name, such as the following:
@@ -356,14 +360,8 @@ class FactoryEncoding implements InferredTypeListener {
         }
       }
 
-      Builder? targetBuilder = redirectionTarget.target;
       Member? targetNode;
-      if (targetBuilder is FunctionBuilder) {
-        targetNode = targetBuilder.invokeTarget!;
-      } else if (targetBuilder is DillMemberBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        targetNode = targetBuilder.invokeTarget!;
-      } else if (targetBuilder is AmbiguousBuilder) {
+      if (result != null && result.isInvalidLookup) {
         _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
             message: templateDuplicatedDeclarationUse
@@ -371,6 +369,11 @@ class FactoryEncoding implements InferredTypeListener {
             fileOffset: redirectionTarget.charOffset,
             length: noLength,
             fileUri: redirectionTarget.fileUri);
+      } else if (targetBuilder is FunctionBuilder) {
+        targetNode = targetBuilder.invokeTarget!;
+      } else if (targetBuilder is DillMemberBuilder) {
+        // Coverage-ignore-block(suite): Not run.
+        targetNode = targetBuilder.invokeTarget!;
       } else {
         _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
@@ -521,7 +524,12 @@ class FactoryEncoding implements InferredTypeListener {
       return;
     }
 
-    Builder? redirectionTargetBuilder = _redirectionTarget!.target;
+    MemberLookupResult? redirectionTargetResult = _redirectionTarget!.target;
+    MemberBuilder? redirectionTargetBuilder;
+    if (redirectionTargetResult != null &&
+        !redirectionTargetResult.isInvalidLookup) {
+      redirectionTargetBuilder = redirectionTargetResult.getable;
+    }
     if (redirectionTargetBuilder is SourceFactoryBuilder &&
         redirectionTargetBuilder.redirectionTarget != null) {
       redirectionTargetBuilder.checkRedirectingFactories(typeEnvironment);
@@ -532,12 +540,13 @@ class FactoryEncoding implements InferredTypeListener {
       }
     }
 
-    Builder? redirectionTargetParent = _redirectionTarget.target?.parent;
+    DeclarationBuilder? redirectionTargetParent =
+        redirectionTargetBuilder?.declarationBuilder;
     bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
         ? redirectionTargetParent.isEnum
         : false;
     if (!((factoryBuilder.classBuilder?.cls.isEnum ?? false) &&
-        (_redirectionTarget.target is ConstructorBuilder) &&
+        (redirectionTargetBuilder is ConstructorBuilder) &&
         redirectingTargetParentIsEnum)) {
       // Check whether [redirecteeType] <: [factoryType].
       FunctionType factoryTypeWithoutTypeParameters =
@@ -568,23 +577,27 @@ class FactoryEncoding implements InferredTypeListener {
       required TypeEnvironment typeEnvironment}) {
     assert(_redirectionTarget != null);
     ConstructorReferenceBuilder redirectionTarget = _redirectionTarget!;
-    Builder? targetBuilder = redirectionTarget.target;
+    MemberLookupResult? result = redirectionTarget.target;
     FunctionNode targetNode;
-    if (targetBuilder == null) return null;
-    if (targetBuilder is FunctionBuilder) {
-      targetNode = targetBuilder.function;
-    } else if (targetBuilder is DillExtensionTypeFactoryBuilder) {
-      // Coverage-ignore-block(suite): Not run.
-      targetNode = targetBuilder.member.function!;
-    } else if (targetBuilder is AmbiguousBuilder) {
+    if (result != null && result.isInvalidLookup) {
       // Multiple definitions with the same name: An error has already been
       // issued.
       // TODO(http://dartbug.com/35294): Unfortunate error; see also
       // https://dart-review.googlesource.com/c/sdk/+/85390/.
       return null;
     } else {
-      unhandled("${targetBuilder.runtimeType}", "computeRedirecteeType",
-          _fragment.fullNameOffset, _fragment.fileUri);
+      MemberBuilder? targetBuilder = result?.getable;
+      if (targetBuilder == null) return null;
+      if (targetBuilder is FunctionBuilder) {
+        targetNode = targetBuilder.function;
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (targetBuilder is DillExtensionTypeFactoryBuilder) {
+        targetNode = targetBuilder.member.function!;
+      } else {
+        unhandled("${targetBuilder.runtimeType}", "computeRedirecteeType",
+            _fragment.fullNameOffset, _fragment.fileUri);
+      }
     }
 
     List<DartType>? typeArguments =
@@ -672,7 +685,9 @@ class FactoryEncoding implements InferredTypeListener {
     // (https://en.wikipedia.org/wiki/Cycle_detection#Tortoise_and_hare) to
     // handle cycles.
     Builder? tortoise = factory;
-    Builder? hare = factory.redirectionTarget!.target;
+    MemberLookupResult? result = factory.redirectionTarget!.target;
+    Builder? hare =
+        result != null && !result.isInvalidLookup ? result.getable : null;
     if (hare == factory) {
       return true;
     }
@@ -681,20 +696,24 @@ class FactoryEncoding implements InferredTypeListener {
       if (hare is! SourceFactoryBuilder || hare.redirectionTarget == null) {
         return false;
       }
-      hare = hare.redirectionTarget!.target;
+      result = hare.redirectionTarget!.target;
+      hare = result != null && !result.isInvalidLookup ? result.getable : null;
       if (hare == factory) {
         return true;
       }
       if (hare is! SourceFactoryBuilder || hare.redirectionTarget == null) {
         return false;
       }
-      hare = hare.redirectionTarget!.target;
+      result = hare.redirectionTarget!.target;
+      hare = result != null && !result.isInvalidLookup ? result.getable : null;
       if (hare == factory) {
         return true;
       }
       // Tortoise moves one step forward. No need to test type of tortoise
       // as it follows hare which already checked types.
-      tortoise = (tortoise as SourceFactoryBuilder).redirectionTarget!.target;
+      result = (tortoise as SourceFactoryBuilder).redirectionTarget!.target;
+      tortoise =
+          result != null && !result.isInvalidLookup ? result.getable : null;
     }
     // Cycle found, but original factory doesn't belong to a cycle.
     return false;

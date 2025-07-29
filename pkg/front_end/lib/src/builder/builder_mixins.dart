@@ -56,29 +56,25 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   InterfaceType? get thisType => null;
 
   @override
-  NamedBuilder? lookupLocalMember(String name,
-      {bool setter = false, bool required = false}) {
-    // TODO(johnniwinther): Support augmented on extensions/extension type
-    //  declarations.
+  LookupResult? lookupLocalMember(String name, {bool required = false}) {
     LookupResult? result = nameSpace.lookupLocalMember(name);
-    NamedBuilder? builder = setter ? result?.setable : result?.getable;
-    if (required && builder == null) {
+    if (required && result == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
               name, fullNameForErrors),
           -1,
           null);
     }
-    return builder;
+    return result;
   }
 
   MemberBuilder? lookupLocalMemberByName(Name name,
       {bool setter = false, bool required = false}) {
-    NamedBuilder? builder =
-        lookupLocalMember(name.text, setter: setter, required: required);
+    LookupResult? result = lookupLocalMember(name.text, required: required);
+    NamedBuilder? builder = setter ? result?.setable : result?.getable;
     if (builder == null && setter) {
       // When looking up setters, we include assignable fields.
-      builder = lookupLocalMember(name.text, setter: false, required: required);
+      builder = result?.getable;
       if (builder is! PropertyBuilder || !builder.hasSetter) {
         builder = null;
       }

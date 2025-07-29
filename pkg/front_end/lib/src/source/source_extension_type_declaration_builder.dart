@@ -63,7 +63,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
-  late final DeclarationNameSpace _nameSpace;
+  late final SourceDeclarationNameSpace _nameSpace;
   late final List<SourceMemberBuilder> _constructorBuilders;
   late final List<SourceMemberBuilder> _memberBuilders;
 
@@ -858,7 +858,7 @@ class SourceExtensionTypeDeclarationBuilder
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text);
+    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
     if (builder is SourceConstructorBuilder) {
       return builder;
     }

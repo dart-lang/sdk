@@ -16,6 +16,7 @@ import 'package:kernel/ast.dart'
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/constant_context.dart' show ConstantContext;
+import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
 import '../kernel/body_builder.dart' show BodyBuilder;
@@ -57,6 +58,7 @@ abstract class ParameterBuilder {
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
 class FormalParameterBuilder extends NamedBuilderImpl
+    with LookupResultMixin
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
@@ -238,7 +240,11 @@ class FormalParameterBuilder extends NamedBuilderImpl
       SourceConstructorBuilder constructorBuilder,
       ClassHierarchyBase hierarchy) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
-    Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
+    LookupResult? result = declarationBuilder.lookupLocalMember(fieldName);
+    Builder? fieldBuilder = result?.getable;
+    if (result is DuplicateMemberLookupResult) {
+      fieldBuilder = result.declarations.first;
+    }
     if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.hasField) {
       DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
       fieldType = constructorBuilder.substituteFieldType(fieldType);

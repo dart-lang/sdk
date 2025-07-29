@@ -18,7 +18,9 @@ import 'builder.dart';
 import 'compilation_unit.dart';
 import 'declaration_builders.dart';
 
-class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
+class PrefixBuilder extends NamedBuilderImpl
+    with LookupResultMixin
+    implements LookupResult {
   @override
   final String name;
 

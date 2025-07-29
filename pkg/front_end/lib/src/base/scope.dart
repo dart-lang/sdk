@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
@@ -378,6 +379,7 @@ NamedBuilder computeAmbiguousDeclarationForImport(
       suppressMessage: false);
 }
 
+// Coverage-ignore(suite): Not run.
 abstract class ProblemBuilder extends NamedBuilderImpl {
   @override
   final String name;
@@ -398,19 +400,18 @@ abstract class ProblemBuilder extends NamedBuilderImpl {
   String get fullNameForErrors => name;
 }
 
+// Coverage-ignore(suite): Not run.
 class AmbiguousBuilder extends ProblemBuilder {
   AmbiguousBuilder(
       String name, NamedBuilder builder, int charOffset, Uri fileUri)
       : super(name, builder, charOffset, fileUri);
 
   @override
-  // Coverage-ignore(suite): Not run.
   Builder? get parent => null;
 
   @override
   Message get message => templateDuplicatedDeclarationUse.withArguments(name);
 
-  // Coverage-ignore(suite): Not run.
   NamedBuilder getFirstDeclaration() {
     NamedBuilder declaration = builder;
     while (declaration.next != null) {
@@ -536,21 +537,9 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
       TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
-}
-
-class AmbiguousMemberBuilder extends AmbiguousBuilder
-    with ErroneousMemberBuilderMixin {
-  AmbiguousMemberBuilder(
-      String name, NamedBuilder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get setable => this;
+  MemberBuilder get getable;
 }
 
 class LookupResultIterator implements Iterator<NamedBuilder> {

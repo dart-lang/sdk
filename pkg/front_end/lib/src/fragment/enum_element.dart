@@ -282,13 +282,9 @@ class EnumElementDeclaration
     int fileOffset =
         _fragment.constructorReferenceBuilder?.charOffset ?? nameOffset;
     constructorName = constructorName == "new" ? "" : constructorName;
-    MemberBuilder? constructorBuilder =
+    MemberLookupResult? result =
         sourceEnumBuilder.nameSpace.lookupConstructor(constructorName);
-    // TODO(CFE Team): Should there be a conversion to an invalid expression
-    // instead? That's what happens on classes.
-    while (constructorBuilder?.next != null) {
-      constructorBuilder = constructorBuilder?.next as MemberBuilder;
-    }
+    MemberBuilder? constructorBuilder = result?.getable;
 
     ArgumentsImpl arguments;
     List<Expression> enumSyntheticArguments = <Expression>[
@@ -305,7 +301,19 @@ class EnumElementDeclaration
             typeBuilder.build(libraryBuilder, TypeUse.constructorTypeArgument));
       }
     }
-    if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
+    if (result != null && result.isInvalidLookup) {
+      assert(
+          _field!.initializer == null,
+          "Initializer has already been computed for $this: "
+          "${_field!.initializer}.");
+      _field!.initializer = LookupResult.createDuplicateExpression(result,
+          context: libraryBuilder.loader.target.context,
+          name: fullConstructorNameForErrors,
+          fileUri: fileUri,
+          fileOffset: nameOffset,
+          length: noLength)
+        ..parent = _field;
+    } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       // We need to create a BodyBuilder to solve the following: 1) if
       // the arguments token is provided, we'll use the BodyBuilder to
       // parse them and perform inference, 2) if the type arguments

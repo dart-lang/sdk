@@ -265,7 +265,6 @@ class FastaContext extends ChainContext with MatchContext {
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation
               : VerificationStage.outline),
-          new ErrorCommentChecker(compileMode),
         ],
         suiteFolderOptions = new SuiteFolderOptions(baseUri),
         suiteTestOptions = new SuiteTestOptions() {
@@ -312,6 +311,7 @@ class FastaContext extends ChainContext with MatchContext {
                 serializeFirst: true, isLastMatchStep: true));
           }
         }
+        steps.add(new ErrorCommentChecker(compileMode));
         steps.add(const EnsureNoErrors());
         steps.add(new WriteDill(skipVm: skipVm));
         if (semiFuzz) {
@@ -327,6 +327,7 @@ class FastaContext extends ChainContext with MatchContext {
         break;
       case CompileMode.modular:
       case CompileMode.outline:
+        steps.add(new ErrorCommentChecker(compileMode));
         steps.add(new WriteDill(skipVm: true));
         break;
     }

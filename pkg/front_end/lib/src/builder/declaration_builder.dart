@@ -21,8 +21,8 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
       LibraryBuilder accessingLibrary);
 
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
+  MemberLookupResult? findConstructorOrFactory(
+      String name, LibraryBuilder accessingLibrary);
 
   /// Returns the type of `this` in an instance of this declaration.
   ///
@@ -35,8 +35,7 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  NamedBuilder? lookupLocalMember(String name,
-      {bool setter = false, bool required = false});
+  LookupResult? lookupLocalMember(String name, {bool required = false});
 
   List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
       List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
@@ -73,20 +72,13 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   }
 
   @override
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+  MemberLookupResult? findConstructorOrFactory(
+      String name, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    MemberBuilder? declaration =
-        nameSpace.lookupConstructor(name == 'new' ? '' : name);
-    if (declaration != null && declaration.next != null) {
-      return new AmbiguousMemberBuilder(
-          name.isEmpty ? this.name : name, declaration, charOffset, fileUri);
-    }
-
-    return declaration;
+    return nameSpace.lookupConstructor(name == 'new' ? '' : name);
   }
 }

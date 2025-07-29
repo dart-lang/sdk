@@ -13,6 +13,7 @@ import '../base/name_space.dart';
 import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/property_builder.dart';
 import '../fragment/field/declaration.dart';
@@ -119,10 +120,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
   bool get isEnumElement => _introductoryField?.isEnumElement ?? false;
 
   @override
-  NamedBuilder? get getable => hasGetter ? this : null;
+  MemberBuilder? get getable => hasGetter ? this : null;
 
   @override
-  NamedBuilder? get setable => hasSetter ? this : null;
+  MemberBuilder? get setable => hasSetter ? this : null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) => 0;

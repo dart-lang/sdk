@@ -284,13 +284,6 @@ library;
 // typedef Typedef = Object Function();
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:69:19: Error: 'C' isn't a type.
-// class Sub extends C {
-//                   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:69:19: Context: This isn't a type.
-// class Sub extends C {
-//                   ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:96:3: Error: Can't declare a member that conflicts with an inherited one.
 //   index,
 //   ^^^^^
@@ -322,18 +315,9 @@ library;
 //   C.();
 //     ^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:70:16: Error: Too many positional arguments: 0 allowed, but 1 found.
-// Try removing the extra positional arguments.
-//   Sub() : super(null);
-//                ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:71:16: Error: Superclass has no method named 'm'.
 //   m() => super.m();
 //                ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:109:39: Error: Can't use 'values' because it is declared more than once.
-//     "AnotherEnum.values": AnotherEnum.values,
-//                                       ^^^^^^
 //
 import self as self;
 import "dart:core" as core;
@@ -397,10 +381,9 @@ class C#4 extends core::Object { // from org-dartlang-testcase:///duplicated_dec
 }
 class Sub extends core::Object {
   constructor •() → self::Sub
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:70:16: Error: Too many positional arguments: 0 allowed, but 1 found.
-Try removing the extra positional arguments.
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:70:11: Error: Can't use 'new' because it is declared more than once.
   Sub() : super(null);
-               ^"
+          ^"
     ;
   method m() → dynamic
     return invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:71:16: Error: Superclass has no method named 'm'.
@@ -481,10 +464,10 @@ static method main() → dynamic {
 static method foo() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:36:3: Error: Can't use 'main' because it is declared more than once.
   main();
-  ^"{dynamic}();
+  ^^^^";
   core::print(invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:37:9: Error: Can't use 'field' because it is declared more than once.
   print(field);
-        ^");
+        ^^^^^");
   invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:38:3: Error: Can't use 'C' because it is declared more than once.
   C.s();
   ^"{dynamic}.s();

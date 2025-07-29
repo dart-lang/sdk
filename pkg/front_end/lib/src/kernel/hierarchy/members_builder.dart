@@ -222,20 +222,12 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     ClassMembersBuilder membersBuilder =
         new ClassMembersBuilder(hierarchyBuilder);
     for (ClassBuilder classBuilder in classes) {
-      membersBuilder.classNodes[classBuilder.cls] = new ClassMembersNodeBuilder(
-              membersBuilder,
-              hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
-          .build();
+      membersBuilder.getNodeFromClassBuilder(classBuilder);
     }
     for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
         in extensionTypeDeclarations) {
-      membersBuilder.extensionTypeDeclarationNodes[
-              extensionTypeDeclarationBuilder.extensionTypeDeclaration] =
-          new ExtensionTypeMembersNodeBuilder(
-                  membersBuilder,
-                  hierarchyBuilder.getNodeFromExtensionTypeDeclarationBuilder(
-                      extensionTypeDeclarationBuilder))
-              .build();
+      membersBuilder.getNodeFromExtensionTypeDeclarationBuilder(
+          extensionTypeDeclarationBuilder);
     }
     return membersBuilder;
   }
