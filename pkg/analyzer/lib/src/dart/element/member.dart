@@ -162,8 +162,7 @@ class ConstructorMember extends ExecutableMember
 
 /// An executable element defined in a parameterized type where the values of
 /// the type parameters are known.
-abstract class ExecutableMember extends Member
-    implements ExecutableElement2OrMember {
+abstract class ExecutableMember extends Member with ExecutableElement2OrMember {
   @override
   final List<TypeParameterElementImpl> typeParameters;
 
@@ -437,7 +436,8 @@ class FieldFormalParameterMember extends ParameterMember
 
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
-class FieldMember extends VariableMember implements FieldElement2OrMember {
+class FieldMember extends VariableMember
+    with PropertyInducingElement2OrMember, FieldElement2OrMember {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember({
@@ -466,13 +466,13 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   InstanceElement get enclosingElement2 => enclosingElement;
 
   @override
-  FieldFragment get firstFragment => baseElement.firstFragment;
+  FieldFragmentImpl get firstFragment => baseElement.firstFragment;
 
   @override
-  List<FieldFragment> get fragments {
+  List<FieldFragmentImpl> get fragments {
     return [
       for (
-        FieldFragment? fragment = firstFragment;
+        FieldFragmentImpl? fragment = firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -514,7 +514,7 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
   bool get isPromotable => baseElement.isPromotable;
 
   @override
-  LibraryElement get library => baseElement.library;
+  LibraryElementImpl get library => baseElement.library;
 
   @Deprecated('Use library instead')
   @override
@@ -576,8 +576,7 @@ class FieldMember extends VariableMember implements FieldElement2OrMember {
 
 /// A getter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class GetterMember extends PropertyAccessorMember
-    implements GetterElement2OrMember {
+class GetterMember extends PropertyAccessorMember with GetterElement2OrMember {
   GetterMember._({
     required super.baseElement,
     required super.substitution,
@@ -603,13 +602,13 @@ class GetterMember extends PropertyAccessorMember
   }
 
   @override
-  GetterFragment get firstFragment => baseElement.firstFragment;
+  GetterFragmentImpl get firstFragment => baseElement.firstFragment;
 
   @override
-  List<GetterFragment> get fragments {
+  List<GetterFragmentImpl> get fragments {
     return [
       for (
-        GetterFragment? fragment = firstFragment;
+        GetterFragmentImpl? fragment = firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -761,7 +760,7 @@ abstract class Member implements Element {
 
 /// A method element defined in a parameterized type where the values of the
 /// type parameters are known.
-class MethodMember extends ExecutableMember implements MethodElement2OrMember {
+class MethodMember extends ExecutableMember with MethodElement2OrMember {
   factory MethodMember({
     required MethodElementImpl baseElement,
     required MapSubstitution substitution,
@@ -787,13 +786,13 @@ class MethodMember extends ExecutableMember implements MethodElement2OrMember {
   MethodElementImpl get baseElement => super.baseElement as MethodElementImpl;
 
   @override
-  MethodFragment get firstFragment => baseElement.firstFragment;
+  MethodFragmentImpl get firstFragment => baseElement.firstFragment;
 
   @override
-  List<MethodFragment> get fragments {
+  List<MethodFragmentImpl> get fragments {
     return [
       for (
-        MethodFragment? fragment = firstFragment;
+        MethodFragmentImpl? fragment = firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -1034,7 +1033,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 abstract class PropertyAccessorMember extends ExecutableMember
-    implements PropertyAccessorElement2OrMember {
+    with PropertyAccessorElement2OrMember {
   factory PropertyAccessorMember({
     required PropertyAccessorElementImpl baseElement,
     required MapSubstitution substitution,
@@ -1074,7 +1073,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   Element get enclosingElement2 => enclosingElement;
 
   @override
-  PropertyAccessorFragment get firstFragment;
+  PropertyAccessorFragmentImpl get firstFragment;
 
   @override
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
@@ -1107,8 +1106,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
 /// A setter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class SetterMember extends PropertyAccessorMember
-    implements SetterElement2OrMember {
+class SetterMember extends PropertyAccessorMember with SetterElement2OrMember {
   SetterMember._({
     required super.baseElement,
     required super.substitution,
@@ -1134,13 +1132,13 @@ class SetterMember extends PropertyAccessorMember
   }
 
   @override
-  SetterFragment get firstFragment => baseElement.firstFragment;
+  SetterFragmentImpl get firstFragment => baseElement.firstFragment;
 
   @override
-  List<SetterFragment> get fragments {
+  List<SetterFragmentImpl> get fragments {
     return [
       for (
-        SetterFragment? fragment = firstFragment;
+        SetterFragmentImpl? fragment = firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -1241,8 +1239,7 @@ class SuperFormalParameterMember extends ParameterMember
 
 /// A variable element defined in a parameterized type where the values of the
 /// type parameters are known.
-abstract class VariableMember extends Member
-    implements VariableElement2OrMember {
+abstract class VariableMember extends Member with VariableElement2OrMember {
   TypeImpl? _type;
 
   /// Initialize a newly created element to represent a variable, based on the

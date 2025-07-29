@@ -2422,11 +2422,15 @@ void StubCodeCompiler::GenerateResumeStub() {
 #if !defined(PRODUCT)
     // Check if there is a breakpoint at resumption.
     __ LoadIsolate(kTemp);
+    Label skip_breakpoints_check;
+    // Skip check if no isolate is available(running isolategroup-bound code)
+    __ BranchIfZero(kTemp, &skip_breakpoints_check);
     __ LoadFromOffset(kTemp, kTemp,
                       target::Isolate::has_resumption_breakpoints_offset(),
                       kUnsignedByte);
     __ CompareImmediate(kTemp, 0);
     __ BranchIf(NOT_EQUAL, &call_runtime);
+    __ Bind(&skip_breakpoints_check);
 #endif
   }
 

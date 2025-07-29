@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
@@ -71,7 +70,7 @@ class NodesToBuildType {
 
 class TypesBuilder {
   final Linker _linker;
-  final Map<InstanceFragmentImpl, _ToInferMixins> _toInferMixins = {};
+  final Map<InstanceElementImpl, _ToInferMixins> _toInferMixins = {};
 
   TypesBuilder(this._linker);
 
@@ -95,6 +94,17 @@ class TypesBuilder {
 
     buildExtensionTypes(_linker, nodes.declarations);
     _MixinsInference(_toInferMixins).perform();
+  }
+
+  void _addFragmentWithClause(
+    InterfaceFragmentImpl fragment,
+    WithClauseImpl? withClause,
+  ) {
+    if (withClause != null) {
+      var element = fragment.element;
+      var inferrer = _toInferMixins[element] ??= _ToInferMixins(element);
+      inferrer.fragments.add(_ToInferFragmentMixins(fragment, withClause));
+    }
   }
 
   FunctionTypeImpl _buildFunctionType(
@@ -132,7 +142,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    _updatedAugmented(element, withClause: node.withClause);
+    _addFragmentWithClause(element, node.withClause);
   }
 
   void _classTypeAlias(ClassTypeAliasImpl node) {
@@ -149,9 +159,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    _updatedAugmented(element, withClause: node.withClause);
-
-    _toInferMixins[element] = _ToInferMixins(element, node.withClause);
+    _addFragmentWithClause(element, node.withClause);
   }
 
   void _declaration(AstNode node) {
@@ -201,7 +209,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    _updatedAugmented(fragment, withClause: node.withClause);
+    _addFragmentWithClause(fragment, node.withClause);
   }
 
   void _extensionDeclaration(ExtensionDeclarationImpl node) {
@@ -226,8 +234,6 @@ class TypesBuilder {
     if (interfaces != null) {
       fragment.interfaces = interfaces;
     }
-
-    _updatedAugmented(fragment);
   }
 
   void _fieldFormalParameter(FieldFormalParameterImpl node) {
@@ -337,8 +343,6 @@ class TypesBuilder {
     fragment.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
-
-    _updatedAugmented(fragment);
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
@@ -396,22 +400,6 @@ class TypesBuilder {
     return node.typeParameters.map((p) => p.declaredFragment!).toFixedList();
   }
 
-  // TODO(scheglov): remove it, mostly.
-  void _updatedAugmented(
-    InstanceFragmentImpl fragment, {
-    WithClause? withClause,
-  }) {
-    if (fragment is InterfaceFragmentImpl) {
-      _toInferMixins[fragment] = _ToInferMixins(fragment, withClause);
-    }
-
-    // TODO(scheglov): restore?
-    // var element = fragment.element;
-    // if (fragment is MixinFragmentImpl && element is MixinElementImpl2) {
-    //   element.superclassConstraints.addAll(fragment.superclassConstraints);
-    // }
-  }
-
   void _variableDeclarationList(VariableDeclarationListImpl node) {
     var type = node.type?.type;
     if (type != null) {
@@ -437,7 +425,7 @@ class TypesBuilder {
 
 /// Performs mixins inference in a [ClassDeclaration].
 class _MixinInference {
-  final InterfaceFragmentImpl element;
+  final InterfaceElementImpl element;
   final TypeSystemImpl typeSystem;
   final FeatureSet featureSet;
   final InterfaceType classType;
@@ -449,8 +437,8 @@ class _MixinInference {
     this.element,
     this.featureSet, {
     required this.typeSystemOperations,
-  }) : typeSystem = element.element.library.typeSystem,
-       classType = element.element.thisType {
+  }) : typeSystem = element.library.typeSystem,
+       classType = element.thisType {
     interfacesMerger = InterfacesMerger(typeSystem);
     interfacesMerger.addWithSupertypes(element.supertype);
   }
@@ -461,10 +449,10 @@ class _MixinInference {
     }
   }
 
-  List<InterfaceTypeImpl> perform(WithClause withClause) {
+  List<InterfaceTypeImpl> perform(WithClauseImpl withClause) {
     var result = <InterfaceTypeImpl>[];
     for (var mixinNode in withClause.mixinTypes) {
-      var mixinType = _inferSingle(mixinNode as NamedTypeImpl);
+      var mixinType = _inferSingle(mixinNode);
       if (mixinType != null && _isInterfaceTypeInterface(mixinType)) {
         result.add(mixinType);
         interfacesMerger.addWithSupertypes(mixinType);
@@ -600,7 +588,7 @@ class _MixinInference {
 
 /// Performs mixin inference for all declarations.
 class _MixinsInference {
-  final Map<InstanceFragmentImpl, _ToInferMixins> _declarations;
+  final Map<InstanceElementImpl, _ToInferMixins> _declarations;
 
   _MixinsInference(this._declarations);
 
@@ -621,7 +609,7 @@ class _MixinsInference {
   /// we are inferring the [element] now, i.e. there is a loop.
   ///
   /// This is an error. So, we return the empty list, and break the loop.
-  List<InterfaceTypeImpl> _callbackWhenLoop(InterfaceFragmentImpl element) {
+  List<InterfaceTypeImpl> _callbackWhenLoop(InterfaceElementImpl element) {
     element.mixinInferenceCallback = null;
     return <InterfaceTypeImpl>[];
   }
@@ -629,7 +617,7 @@ class _MixinsInference {
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
   List<InterfaceTypeImpl>? _callbackWhenRecursion(
-    InterfaceFragmentImpl element,
+    InterfaceElementImpl element,
   ) {
     var declaration = _declarations[element];
     if (declaration != null) {
@@ -643,8 +631,7 @@ class _MixinsInference {
     var element = declaration.element;
     element.mixinInferenceCallback = _callbackWhenLoop;
 
-    var library = element.element.library;
-    var declarationMixins = <InterfaceTypeImpl>[];
+    var library = element.library;
 
     try {
       // Casts aren't relevant for mixin inference.
@@ -653,31 +640,14 @@ class _MixinsInference {
         strictCasts: false,
       );
 
-      if (declaration.withClause case var withClause?) {
-        var inference = _MixinInference(
-          element,
-          library.featureSet,
-          typeSystemOperations: typeSystemOperations,
-        );
-        var inferred = inference.perform(withClause);
-        element.mixins = inferred;
-        declarationMixins.addAll(inferred);
-      }
-
-      for (var augmentation in declaration.augmentations) {
-        var inference = _MixinInference(
-          element,
-          library.featureSet,
-          typeSystemOperations: typeSystemOperations,
-        );
-        inference.addTypes(
-          augmentation.fromDeclaration.mapInterfaceTypes(declarationMixins),
-        );
-        var inferred = inference.perform(augmentation.withClause);
-        augmentation.element.mixins = inferred;
-        declarationMixins.addAll(
-          augmentation.toDeclaration.mapInterfaceTypes(inferred),
-        );
+      var inference = _MixinInference(
+        element,
+        library.featureSet,
+        typeSystemOperations: typeSystemOperations,
+      );
+      for (var fragment in declaration.fragments) {
+        var inferred = inference.perform(fragment.withClause);
+        fragment.fragment.mixins = inferred;
       }
     } finally {
       element.mixinInferenceCallback = null;
@@ -690,33 +660,23 @@ class _MixinsInference {
   /// hierarchies for all classes being linked, indiscriminately.
   void _resetHierarchies() {
     for (var declaration in _declarations.values) {
-      var element = declaration.element.element;
+      var element = declaration.element;
       element.library.session.classHierarchy.remove(element);
     }
   }
 }
 
-/// The declaration of a class that can have mixins.
-class _ToInferMixins {
-  final InterfaceFragmentImpl element;
-  final WithClause? withClause;
-  final List<_ToInferMixinsAugmentation> augmentations = [];
+class _ToInferFragmentMixins {
+  final InterfaceFragmentImpl fragment;
+  final WithClauseImpl withClause;
 
-  _ToInferMixins(this.element, this.withClause);
+  _ToInferFragmentMixins(this.fragment, this.withClause);
 }
 
-class _ToInferMixinsAugmentation {
-  final InterfaceFragmentImpl element;
-  final WithClause withClause;
-  final MapSubstitution toDeclaration;
-  final MapSubstitution fromDeclaration;
+/// The declaration of a class that can have mixins.
+class _ToInferMixins {
+  final InterfaceElementImpl element;
+  final List<_ToInferFragmentMixins> fragments = [];
 
-  _ToInferMixinsAugmentation({
-    required this.element,
-    required this.withClause,
-    required this.toDeclaration,
-    required this.fromDeclaration,
-  }) {
-    assert(element.isAugmentation);
-  }
+  _ToInferMixins(this.element);
 }

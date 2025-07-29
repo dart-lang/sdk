@@ -73,7 +73,7 @@ class InheritanceManager3 {
 
   /// The set of classes that are currently being processed, used to detect
   /// self-referencing cycles.
-  final Set<InterfaceFragmentImpl> _processingClasses = {};
+  final Set<InterfaceElementImpl> _processingClasses = {};
 
   /// Combine types of [candidates] into a single most specific type.
   ///
@@ -211,7 +211,7 @@ class InheritanceManager3 {
 
     var interface = _getInterface(element);
     if (forSuper) {
-      if (element is ExtensionTypeFragmentImpl) {
+      if (element is ExtensionTypeElementImpl) {
         return null;
       }
       var superImplemented = interface.superImplemented;
@@ -460,34 +460,32 @@ class InheritanceManager3 {
     }
     _interfaces[element] = Interface._empty;
 
-    if (!_processingClasses.add(element.firstFragment)) {
+    if (!_processingClasses.add(element)) {
       return Interface._empty;
     }
 
     try {
       if (element is ExtensionTypeElementImpl) {
-        result = _getInterfaceExtensionType(element.firstFragment);
+        result = _getInterfaceExtensionType(element);
       } else if (element is MixinElementImpl) {
-        result = _getInterfaceMixin(element.firstFragment);
+        result = _getInterfaceMixin(element);
       } else {
-        result = _getInterfaceClass(element.firstFragment);
+        result = _getInterfaceClass(element);
       }
     } finally {
-      _processingClasses.remove(element.firstFragment);
+      _processingClasses.remove(element);
     }
 
     _interfaces[element] = result;
     return result;
   }
 
-  Interface _getInterfaceClass(InterfaceFragmentImpl fragment) {
-    var element = fragment.element;
-
+  Interface _getInterfaceClass(InterfaceElementImpl element) {
     var namedCandidates = <Name, List<ExecutableElement2OrMember>>{};
     var superImplemented = <Map<Name, ExecutableElement2OrMember>>[];
     var implemented = <Name, ExecutableElement2OrMember>{};
 
-    InterfaceType? superType = fragment.supertype;
+    InterfaceType? superType = element.supertype;
 
     Interface? superTypeInterface;
     if (superType != null) {
@@ -659,7 +657,7 @@ class InheritanceManager3 {
       redeclared: const {},
       superImplemented: superImplemented,
       conflicts: conflicts.toFixedList(),
-      combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
+      combinedSignatures: _combinedSignatures.remove(element) ?? {},
     );
   }
 
@@ -669,9 +667,7 @@ class InheritanceManager3 {
   ///
   /// We handle "has an extension type member" and "has a non-extension type
   /// member" portions, considering redeclaration and conflicts.
-  Interface _getInterfaceExtensionType(ExtensionTypeFragmentImpl fragment) {
-    var element = fragment.element;
-
+  Interface _getInterfaceExtensionType(ExtensionTypeElementImpl element) {
     // Add instance members implemented by the element itself.
     var declared = <Name, ExecutableElement2OrMember>{};
     _addImplemented(declared, element);
@@ -822,11 +818,7 @@ class InheritanceManager3 {
       if (elements.length == 1) {
         uniqueRedeclared[name] = elements.toFixedList();
       } else {
-        var uniqueElements = <ExecutableElement2OrMember>{};
-        for (var fragment in elements) {
-          uniqueElements.add(fragment);
-        }
-        uniqueRedeclared[name] = uniqueElements.toFixedList();
+        uniqueRedeclared[name] = elements.toSet().toFixedList();
       }
     }
 
@@ -839,13 +831,11 @@ class InheritanceManager3 {
       redeclared: uniqueRedeclared,
       superImplemented: const [],
       conflicts: conflicts.toFixedList(),
-      combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
+      combinedSignatures: _combinedSignatures.remove(element) ?? {},
     );
   }
 
-  Interface _getInterfaceMixin(MixinFragmentImpl fragment) {
-    var element = fragment.element;
-
+  Interface _getInterfaceMixin(MixinElementImpl element) {
     var superCandidates = <Name, List<ExecutableElement2OrMember>>{};
     for (var constraint in element.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
@@ -897,7 +887,7 @@ class InheritanceManager3 {
       superImplemented: [superInterface],
       conflicts:
           <Conflict>[...superConflicts, ...interfaceConflicts].toFixedList(),
-      combinedSignatures: _combinedSignatures.remove(fragment.element) ?? {},
+      combinedSignatures: _combinedSignatures.remove(element) ?? {},
     );
   }
 
@@ -982,9 +972,7 @@ class InheritanceManager3 {
       resultFragment.formalParameters =
           transformedParameters.map((e) => e.firstFragment).toList();
       resultFragment.typeParameters =
-          executable.typeParameters
-              .map((e) => e.firstFragment)
-              .toList();
+          executable.typeParameters.map((e) => e.firstFragment).toList();
 
       var elementName = executable.name!;
       var result = MethodElementImpl(
