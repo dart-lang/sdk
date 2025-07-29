@@ -12,25 +12,13 @@ library;
 //   c?.[42] = 42;
 //      ^
 //
-// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:8:11: Error: Can't assign to this.
-//   c?.[42] = 42;
-//           ^
-//
 // pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Expected an identifier, but got '['.
 // Try inserting an identifier before '['.
 //   c?.[42]++;
 //      ^
 //
-// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:9:6: Error: Can't assign to this.
-//   c?.[42]++;
-//      ^
-//
 // pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Expected an identifier, but got '['.
 // Try inserting an identifier before '['.
-//   ++c?.[42];
-//        ^
-//
-// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:10:8: Error: Can't assign to this.
 //   ++c?.[42];
 //        ^
 //
@@ -54,10 +42,6 @@ library;
 //   c?.[42]?.[0] ??= 42;
 //            ^
 //
-// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:12:16: Error: Can't assign to this.
-//   c?.[42]?.[0] ??= 42;
-//                ^^^
-//
 // pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:6: Error: Expected an identifier, but got '['.
 // Try inserting an identifier before '['.
 //   c?.[42]?.[0]++;
@@ -68,10 +52,6 @@ library;
 //   c?.[42]?.[0]++;
 //            ^
 //
-// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:13:12: Error: Can't assign to this.
-//   c?.[42]?.[0]++;
-//            ^
-//
 // pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:8: Error: Expected an identifier, but got '['.
 // Try inserting an identifier before '['.
 //   ++c?.[42]?.[0];
@@ -79,10 +59,6 @@ library;
 //
 // pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Expected an identifier, but got '['.
 // Try inserting an identifier before '['.
-//   ++c?.[42]?.[0];
-//              ^
-//
-// pkg/front_end/testcases/nnbd/no_support_for_old_null_aware_index_access_syntax.dart:14:14: Error: Can't assign to this.
 //   ++c?.[42]?.[0];
 //              ^
 //

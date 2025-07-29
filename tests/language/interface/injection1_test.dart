@@ -20,8 +20,6 @@ abstract class I implements S;
 // [cfe] Unexpected token ';'.
 
 class C implements I { }
-//                 ^
-// [cfe] 'I' isn't a type.
 
 main() {
   Expect.isFalse(new C() is S);

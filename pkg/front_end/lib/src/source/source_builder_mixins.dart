@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
@@ -143,16 +144,16 @@ mixin SourceDeclarationBuilderMixin
   void buildInternal(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
     ClassBuilder objectClassBuilder =
-        coreLibrary.lookupLocalMember('Object', required: true) as ClassBuilder;
+        coreLibrary.lookupRequiredLocalMember('Object') as ClassBuilder;
 
     void buildBuilders(NamedBuilder declaration) {
       String name = declaration.name;
       if (!name.startsWith('_') &&
           !(declaration is ConstructorBuilder ||
               declaration is FactoryBuilder)) {
-        Builder? objectGetter = objectClassBuilder.lookupLocalMember(name);
-        Builder? objectSetter =
-            objectClassBuilder.lookupLocalMember(name, setter: true);
+        LookupResult? result = objectClassBuilder.lookupLocalMember(name);
+        Builder? objectGetter = result?.getable;
+        Builder? objectSetter = result?.setable;
         if (objectGetter != null && !objectGetter.isStatic ||
             // Coverage-ignore(suite): Not run.
             objectSetter != null && !objectSetter.isStatic) {

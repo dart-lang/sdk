@@ -9,7 +9,6 @@
 sealed sealed class SealedSealed {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'sealed' isn't a type.
 //     ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -24,7 +23,6 @@ final final class FinalFinal {}
 base base class BaseBase {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'base' isn't a type.
 //   ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -51,7 +49,6 @@ final abstract class FinalAbstract {}
 base abstract class BaseAbstract {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'base' isn't a type.
 //   ^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -105,7 +102,6 @@ base mixin abstract class BaseMixinAbstract {}
 base abstract mixin class BaseAbstractMixin {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'base' isn't a type.
 //   ^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -203,7 +199,6 @@ sealed final class SealedFinal {}
 sealed base class SealedBase {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'sealed' isn't a type.
 //     ^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -212,7 +207,6 @@ sealed base class SealedBase {}
 sealed interface class SealedInterface {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'sealed' isn't a type.
 //     ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -245,7 +239,6 @@ final interface class FinalInterface {}
 base sealed class BaseSealed {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'base' isn't a type.
 //   ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
@@ -262,7 +255,6 @@ base final class BaseFinal {}
 base interface class BaseInterface {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'base' isn't a type.
 //   ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN

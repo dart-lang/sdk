@@ -40,7 +40,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/names.dart' show emptyName, minusName, plusName;
+import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -642,7 +642,9 @@ class BodyBuilder extends StackListenerImpl
     } else if (node is SuperInitializer) {
       return buildProblem(
           cfe.messageSuperAsExpression, node.fileOffset, noLength);
-    } else if (node is ProblemBuilder) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (node is ProblemBuilder) {
       return node.toExpression(libraryBuilder);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
@@ -1951,8 +1953,7 @@ class BodyBuilder extends StackListenerImpl
       /// >If no superinitializer is provided, an implicit superinitializer
       /// >of the form super() is added at the end of k’s initializer list,
       /// >unless the enclosing class is class Object.
-      Constructor? superTarget = lookupSuperConstructor(emptyName);
-      Initializer initializer;
+      Initializer? initializer;
       ArgumentsImpl arguments;
       List<Expression>? positionalArguments;
       List<NamedExpression>? namedArguments;
@@ -2011,94 +2012,121 @@ class BodyBuilder extends StackListenerImpl
           positionalSuperParametersAsArguments != null;
       arguments.namedSuperParameterNames = namedSuperParameterNames;
 
-      if (superTarget == null) {
-        String superclass = _context.superClassName;
-        int length = _context.memberNameLength;
-        if (length == 0) {
-          length = _context.className.length;
-        }
-        initializer = buildInvalidInitializer(
-            buildProblem(
-                cfe.templateSuperclassHasNoDefaultConstructor
-                    .withArguments(superclass),
-                _context.memberNameOffset,
-                length),
-            _context.memberNameOffset);
-      } else if (checkArgumentsForFunction(superTarget.function, arguments,
-              _context.memberNameOffset, const <TypeParameter>[])
-          case LocatedMessage argumentIssue) {
-        List<int>? positionalSuperParametersIssueOffsets;
-        if (positionalSuperParametersAsArguments != null) {
-          for (int positionalSuperParameterIndex =
-                  superTarget.function.positionalParameters.length;
-              positionalSuperParameterIndex <
-                  positionalSuperParametersAsArguments.length;
-              positionalSuperParameterIndex++) {
-            (positionalSuperParametersIssueOffsets ??= []).add(
-                positionalSuperParametersAsArguments[
-                        positionalSuperParameterIndex]
-                    .fileOffset);
+      MemberLookupResult? result =
+          lookupSuperConstructor('', libraryBuilder.nameOriginBuilder);
+      Constructor? superTarget;
+      if (result != null) {
+        if (result.isInvalidLookup) {
+          int length = _context.memberNameLength;
+          if (length == 0) {
+            length = _context.className.length;
+          }
+          initializer = buildInvalidInitializer(
+              LookupResult.createDuplicateExpression(result,
+                  context: libraryBuilder.loader.target.context,
+                  name: '',
+                  fileUri: uri,
+                  fileOffset: _context.memberNameOffset,
+                  length: noLength),
+              _context.memberNameOffset);
+        } else {
+          MemberBuilder? memberBuilder = result.getable;
+          Member? member = memberBuilder?.invokeTarget;
+          if (member is Constructor) {
+            superTarget = member;
           }
         }
-
-        List<int>? namedSuperParametersIssueOffsets;
-        if (namedSuperParametersAsArguments != null) {
-          Set<String> superTargetNamedParameterNames = {
-            for (VariableDeclaration namedParameter
-                in superTarget.function.namedParameters)
-              if (namedParameter // Coverage-ignore(suite): Not run.
-                      .name !=
-                  null)
-                // Coverage-ignore(suite): Not run.
-                namedParameter.name!
-          };
-          for (NamedExpression namedSuperParameter
-              in namedSuperParametersAsArguments) {
-            if (!superTargetNamedParameterNames
-                .contains(namedSuperParameter.name)) {
-              (namedSuperParametersIssueOffsets ??= [])
-                  .add(namedSuperParameter.fileOffset);
+      }
+      if (initializer == null) {
+        if (superTarget == null) {
+          String superclass = _context.superClassName;
+          int length = _context.memberNameLength;
+          if (length == 0) {
+            length = _context.className.length;
+          }
+          initializer = buildInvalidInitializer(
+              buildProblem(
+                  cfe.templateSuperclassHasNoDefaultConstructor
+                      .withArguments(superclass),
+                  _context.memberNameOffset,
+                  length),
+              _context.memberNameOffset);
+        } else if (checkArgumentsForFunction(superTarget.function, arguments,
+                _context.memberNameOffset, const <TypeParameter>[])
+            case LocatedMessage argumentIssue) {
+          List<int>? positionalSuperParametersIssueOffsets;
+          if (positionalSuperParametersAsArguments != null) {
+            for (int positionalSuperParameterIndex =
+                    superTarget.function.positionalParameters.length;
+                positionalSuperParameterIndex <
+                    positionalSuperParametersAsArguments.length;
+                positionalSuperParameterIndex++) {
+              (positionalSuperParametersIssueOffsets ??= []).add(
+                  positionalSuperParametersAsArguments[
+                          positionalSuperParameterIndex]
+                      .fileOffset);
             }
           }
-        }
 
-        Initializer? errorMessageInitializer;
-        if (positionalSuperParametersIssueOffsets != null) {
-          for (int issueOffset in positionalSuperParametersIssueOffsets) {
-            Expression errorMessageExpression = buildProblem(
-                cfe.messageMissingPositionalSuperConstructorParameter,
-                issueOffset,
-                noLength);
-            errorMessageInitializer ??=
-                buildInvalidInitializer(errorMessageExpression);
+          List<int>? namedSuperParametersIssueOffsets;
+          if (namedSuperParametersAsArguments != null) {
+            Set<String> superTargetNamedParameterNames = {
+              for (VariableDeclaration namedParameter
+                  in superTarget.function.namedParameters)
+                if (namedParameter // Coverage-ignore(suite): Not run.
+                        .name !=
+                    null)
+                  // Coverage-ignore(suite): Not run.
+                  namedParameter.name!
+            };
+            for (NamedExpression namedSuperParameter
+                in namedSuperParametersAsArguments) {
+              if (!superTargetNamedParameterNames
+                  .contains(namedSuperParameter.name)) {
+                (namedSuperParametersIssueOffsets ??= [])
+                    .add(namedSuperParameter.fileOffset);
+              }
+            }
           }
-        }
-        if (namedSuperParametersIssueOffsets != null) {
-          for (int issueOffset in namedSuperParametersIssueOffsets) {
-            Expression errorMessageExpression = buildProblem(
-                cfe.messageMissingNamedSuperConstructorParameter,
-                issueOffset,
-                noLength);
-            errorMessageInitializer ??=
-                buildInvalidInitializer(errorMessageExpression);
+
+          Initializer? errorMessageInitializer;
+          if (positionalSuperParametersIssueOffsets != null) {
+            for (int issueOffset in positionalSuperParametersIssueOffsets) {
+              Expression errorMessageExpression = buildProblem(
+                  cfe.messageMissingPositionalSuperConstructorParameter,
+                  issueOffset,
+                  noLength);
+              errorMessageInitializer ??=
+                  buildInvalidInitializer(errorMessageExpression);
+            }
           }
-        }
-        if (explicitSuperInitializer == null) {
+          if (namedSuperParametersIssueOffsets != null) {
+            for (int issueOffset in namedSuperParametersIssueOffsets) {
+              Expression errorMessageExpression = buildProblem(
+                  cfe.messageMissingNamedSuperConstructorParameter,
+                  issueOffset,
+                  noLength);
+              errorMessageInitializer ??=
+                  buildInvalidInitializer(errorMessageExpression);
+            }
+          }
+          if (explicitSuperInitializer == null) {
+            errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
+                cfe.templateImplicitSuperInitializerMissingArguments
+                    .withArguments(superTarget.enclosingClass.name),
+                argumentIssue.charOffset,
+                argumentIssue.length));
+          }
+          // Coverage-ignore-block(suite): Not run.
           errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
-              cfe.templateImplicitSuperInitializerMissingArguments
-                  .withArguments(superTarget.enclosingClass.name),
+              argumentIssue.messageObject,
               argumentIssue.charOffset,
               argumentIssue.length));
+          initializer = errorMessageInitializer;
+        } else {
+          initializer = buildSuperInitializer(
+              true, superTarget, arguments, _context.memberNameOffset);
         }
-        // Coverage-ignore-block(suite): Not run.
-        errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
-            argumentIssue.messageObject,
-            argumentIssue.charOffset,
-            argumentIssue.length));
-        initializer = errorMessageInitializer;
-      } else {
-        initializer = buildSuperInitializer(
-            true, superTarget, arguments, _context.memberNameOffset);
       }
       if (libraryFeatures.superParameters.isEnabled) {
         InitializerInferenceResult inferenceResult =
@@ -2771,6 +2799,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
         if (left is ProblemBuilder) {
+          // Coverage-ignore-block(suite): Not run.
           left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
@@ -2791,6 +2820,7 @@ class BodyBuilder extends StackListenerImpl
         push(left.buildBinaryOperation(token, name, right));
       } else {
         if (left is ProblemBuilder) {
+          // Coverage-ignore-block(suite): Not run.
           left = left.toExpression(libraryBuilder);
         }
         assert(left is Expression);
@@ -2933,7 +2963,8 @@ class BodyBuilder extends StackListenerImpl
       Arguments? arguments,
       Expression? rhs,
       LocatedMessage? message,
-      int? length}) {
+      int? length,
+      bool errorHasBeenReported = false}) {
     // TODO(johnniwinther): Use [arguments] and [rhs] to create an unresolved
     // access expression to include in the invalid expression.
     if (length == null) {
@@ -3006,7 +3037,7 @@ class BodyBuilder extends StackListenerImpl
     }
     return buildProblem(
         message.messageObject, message.charOffset, message.length,
-        context: context);
+        context: context, errorHasBeenReported: errorHasBeenReported);
   }
 
   Message warnUnresolvedMember(Name name, int charOffset,
@@ -3097,8 +3128,9 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Constructor? lookupSuperConstructor(Name name) {
-    return _context.lookupSuperConstructor(name);
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary) {
+    return _context.lookupSuperConstructor(name, accessingLibrary);
   }
 
   @override
@@ -3185,6 +3217,13 @@ class BodyBuilder extends StackListenerImpl
       return new ParserErrorGenerator(
           this, nameToken, cfe.messageSyntheticToken);
     }
+
+    LookupResult? lookupResult = scope.lookup(name, nameOffset, uri);
+    if (lookupResult != null && lookupResult.isInvalidLookup) {
+      return new DuplicateDeclarationGenerator(this, nameToken, lookupResult,
+          new Name(name, libraryBuilder.nameOrigin), name.length);
+    }
+
     bool isQualified = prefixToken != null;
     bool mustBeConst =
         constantContext != ConstantContext.none && !inInitializerLeftHandSide;
@@ -3218,7 +3257,6 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
-    LookupResult? lookupResult = scope.lookup(name, nameOffset, uri);
     if (lookupResult == null) {
       Name memberName = new Name(name, libraryBuilder.nameOrigin);
       if (hasThisAccess) {
@@ -3240,7 +3278,7 @@ class BodyBuilder extends StackListenerImpl
     if (getable != null) {
       if (getable is ProblemBuilder) {
         return getable;
-      } else if (getable is InvalidTypeDeclarationBuilder) {
+      } else if (getable is InvalidBuilder) {
         return new TypeUseGenerator(
             this,
             nameToken,
@@ -3392,7 +3430,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       if (setable is ProblemBuilder) {
         return setable;
-      } else if (setable is InvalidTypeDeclarationBuilder) {
+      } else if (setable is InvalidBuilder) {
         // Coverage-ignore-block(suite): Not run.
         return new TypeUseGenerator(
             this,
@@ -3484,7 +3522,9 @@ class BodyBuilder extends StackListenerImpl
       SimpleIdentifier identifier = node as SimpleIdentifier;
       if (qualifier is Generator) {
         push(identifier.withGeneratorQualifier(qualifier));
-      } else if (qualifier is Builder) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (qualifier is Builder) {
         push(identifier.withBuilderQualifier(qualifier));
       } else {
         unhandled("qualifier is ${qualifier.runtimeType}", "handleQualified",
@@ -4045,8 +4085,9 @@ class BodyBuilder extends StackListenerImpl
     Expression value = popForValue();
     Object? generator = pop();
     if (generator is! Generator) {
-      push(buildProblem(cfe.messageNotAnLvalue, offsetForToken(token),
-          lengthForToken(token)));
+      push(buildProblem(
+          cfe.messageNotAnLvalue, offsetForToken(token), lengthForToken(token),
+          errorHasBeenReported: generator is InvalidExpression));
     } else {
       push(new DelayedAssignment(
           this, token, generator, value, token.stringValue!));
@@ -4420,7 +4461,7 @@ class BodyBuilder extends StackListenerImpl
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(
           cfe.messageSyntheticToken, variableOrExpression.charOffset,
-          suppressMessage: true);
+          errorHasBeenReported: true);
     }
     exitLoopOrSwitch(result);
   }
@@ -5035,6 +5076,7 @@ class BodyBuilder extends StackListenerImpl
     List<TypeBuilder>? arguments = pop() as List<TypeBuilder>?;
     Object? name = pop();
 
+    // Coverage-ignore(suite): Not run.
     void errorCase(String name, Token suffix) {
       String displayName = debugName(name, suffix.lexeme);
       int offset = offsetForToken(beginToken);
@@ -5065,6 +5107,7 @@ class BodyBuilder extends StackListenerImpl
           } else {
             name = prefix.qualifiedLookup(suffix);
           }
+        // Coverage-ignore(suite): Not run.
         case QualifiedNameBuilder():
           errorCase(qualified.qualifier.fullNameForErrors, qualified.suffix);
           return;
@@ -5089,7 +5132,9 @@ class BodyBuilder extends StackListenerImpl
           arguments,
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
-    } else if (name is ProblemBuilder) {
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (name is ProblemBuilder) {
       result = new NamedTypeBuilderImpl.forInvalidType(
           name.name,
           isMarkedAsNullable
@@ -5909,6 +5954,7 @@ class BodyBuilder extends StackListenerImpl
       } else if (receiver is Expression) {
         push(forest.createUnary(fileOffset, name, receiver));
       } else {
+        // Coverage-ignore-block(suite): Not run.
         Expression value = toValue(receiver);
         push(forest.createUnary(fileOffset, name, value));
       }
@@ -6046,6 +6092,7 @@ class BodyBuilder extends StackListenerImpl
             }
             identifier = null;
           }
+        // Coverage-ignore(suite): Not run.
         case QualifiedNameBuilder():
           Builder qualifier = qualified.qualifier;
           if (qualifier is ProblemBuilder) {
@@ -6459,6 +6506,7 @@ class BodyBuilder extends StackListenerImpl
           invocationOffset: nameLastToken.charOffset,
           inImplicitCreationContext: inImplicitCreationContext));
     } else {
+      // Coverage-ignore-block(suite): Not run.
       String? typeName;
       if (type is ProblemBuilder) {
         typeName = type.fullNameForErrors;
@@ -6588,30 +6636,36 @@ class BodyBuilder extends StackListenerImpl
           // Raw generic type alias used for instance creation, needs inference.
           switch (typeDeclarationBuilder) {
             case ClassBuilder():
-              MemberBuilder? constructorBuilder =
-                  typeDeclarationBuilder.findConstructorOrFactory(
-                      name, charOffset, uri, libraryBuilder);
+              MemberLookupResult? result = typeDeclarationBuilder
+                  .findConstructorOrFactory(name, libraryBuilder);
               Member? target;
-              if (constructorBuilder == null) {
+              if (result == null) {
                 // Not found. Reported below.
                 target = null;
-              } else if (constructorBuilder is AmbiguousMemberBuilder) {
-                message = constructorBuilder.message
-                    .withLocation(uri, charOffset, noLength);
+              } else if (result.isInvalidLookup) {
+                message = LookupResult.createDuplicateMessage(result,
+                    enclosingDeclaration: typeDeclarationBuilder,
+                    name: name,
+                    fileUri: uri,
+                    fileOffset: charOffset,
+                    length: noLength);
                 target = null;
-              } else if (constructorBuilder is ConstructorBuilder) {
-                if (typeDeclarationBuilder.isAbstract) {
-                  return evaluateArgumentsBefore(
-                      arguments,
-                      buildAbstractClassInstantiationError(
-                          cfe.templateAbstractClassInstantiation
-                              .withArguments(typeDeclarationBuilder.name),
-                          typeDeclarationBuilder.name,
-                          nameToken.charOffset));
-                }
-                target = constructorBuilder.invokeTarget;
               } else {
-                target = constructorBuilder.invokeTarget;
+                MemberBuilder? constructorBuilder = result.getable!;
+                if (constructorBuilder is ConstructorBuilder) {
+                  if (typeDeclarationBuilder.isAbstract) {
+                    return evaluateArgumentsBefore(
+                        arguments,
+                        buildAbstractClassInstantiationError(
+                            cfe.templateAbstractClassInstantiation
+                                .withArguments(typeDeclarationBuilder.name),
+                            typeDeclarationBuilder.name,
+                            nameToken.charOffset));
+                  }
+                  target = constructorBuilder.invokeTarget;
+                } else {
+                  target = constructorBuilder.invokeTarget;
+                }
               }
               if (target is Constructor ||
                   (target is Procedure &&
@@ -6631,15 +6685,19 @@ class BodyBuilder extends StackListenerImpl
             case ExtensionTypeDeclarationBuilder():
               // TODO(johnniwinther): Add shared interface between
               //  [ClassBuilder] and [ExtensionTypeDeclarationBuilder].
-              MemberBuilder? constructorBuilder =
-                  typeDeclarationBuilder.findConstructorOrFactory(
-                      name, charOffset, uri, libraryBuilder);
-              if (constructorBuilder == null) {
-                // Not found. Reported below.
-              } else if (constructorBuilder is AmbiguousMemberBuilder) {
+              MemberLookupResult? result = typeDeclarationBuilder
+                  .findConstructorOrFactory(name, libraryBuilder);
+              MemberBuilder? constructorBuilder = result?.getable;
+              if (result != null && result.isInvalidLookup) {
                 // Coverage-ignore-block(suite): Not run.
-                message = constructorBuilder.message
-                    .withLocation(uri, charOffset, noLength);
+                message = LookupResult.createDuplicateMessage(result,
+                    enclosingDeclaration: typeDeclarationBuilder,
+                    name: name,
+                    fileUri: uri,
+                    fileOffset: charOffset,
+                    length: noLength);
+              } else if (constructorBuilder == null) {
+                // Not found. Reported below.
               } else if (constructorBuilder is ConstructorBuilder ||
                   // Coverage-ignore(suite): Not run.
                   constructorBuilder is FactoryBuilder) {
@@ -6655,7 +6713,7 @@ class BodyBuilder extends StackListenerImpl
                   arguments: arguments,
                   message: message,
                   kind: UnresolvedKind.Constructor);
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
               // Coverage-ignore(suite): Not run.
@@ -6697,7 +6755,7 @@ class BodyBuilder extends StackListenerImpl
                             .withArguments(numberOfTypeParameters),
                         nameToken.charOffset,
                         nameToken.length,
-                        suppressMessage: true));
+                        errorHasBeenReported: true));
               }
               List<DartType> dartTypeArguments = [];
               for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
@@ -6714,7 +6772,7 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case null:
@@ -6768,7 +6826,7 @@ class BodyBuilder extends StackListenerImpl
                           .withArguments(numberOfTypeParameters),
                       nameToken.charOffset,
                       nameToken.length,
-                      suppressMessage: true));
+                      errorHasBeenReported: true));
             }
             List<DartType> dartTypeArguments = [];
             for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
@@ -6810,7 +6868,7 @@ class BodyBuilder extends StackListenerImpl
         case NominalParameterBuilder():
         case StructuralParameterBuilder():
         case ExtensionBuilder():
-        case InvalidTypeDeclarationBuilder():
+        case InvalidBuilder():
         // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
         case null:
@@ -6827,14 +6885,19 @@ class BodyBuilder extends StackListenerImpl
     }
     switch (typeDeclarationBuilder) {
       case ClassBuilder():
-        MemberBuilder? constructorBuilder = typeDeclarationBuilder
-            .findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
+        MemberLookupResult? result = typeDeclarationBuilder
+            .findConstructorOrFactory(name, libraryBuilder);
+        MemberBuilder? constructorBuilder = result?.getable;
         Member? target;
-        if (constructorBuilder == null) {
+        if (result != null && result.isInvalidLookup) {
+          message = LookupResult.createDuplicateMessage(result,
+              enclosingDeclaration: typeDeclarationBuilder,
+              name: name,
+              fileUri: uri,
+              fileOffset: charOffset,
+              length: noLength);
+        } else if (constructorBuilder == null) {
           // Not found. Reported below.
-        } else if (constructorBuilder is AmbiguousMemberBuilder) {
-          message = constructorBuilder.message
-              .withLocation(uri, charOffset, noLength);
         } else if (constructorBuilder is ConstructorBuilder) {
           if (typeDeclarationBuilder.isAbstract) {
             return evaluateArgumentsBefore(
@@ -6871,15 +6934,20 @@ class BodyBuilder extends StackListenerImpl
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
       case ExtensionTypeDeclarationBuilder():
-        MemberBuilder? constructorBuilder = typeDeclarationBuilder
-            .findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
+        MemberLookupResult? result = typeDeclarationBuilder
+            .findConstructorOrFactory(name, libraryBuilder);
+        MemberBuilder? constructorBuilder = result?.getable;
         Member? target;
-        if (constructorBuilder == null) {
-          // Not found. Reported below.
-        } else if (constructorBuilder is AmbiguousMemberBuilder) {
+        if (result != null && result.isInvalidLookup) {
           // Coverage-ignore-block(suite): Not run.
-          message = constructorBuilder.message
-              .withLocation(uri, charOffset, noLength);
+          message = LookupResult.createDuplicateMessage(result,
+              enclosingDeclaration: typeDeclarationBuilder,
+              name: name,
+              fileUri: uri,
+              fileOffset: charOffset,
+              length: noLength);
+        } else if (constructorBuilder == null) {
+          // Not found. Reported below.
         } else {
           target = constructorBuilder.invokeTarget;
         }
@@ -6893,7 +6961,7 @@ class BodyBuilder extends StackListenerImpl
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
         LocatedMessage message = typeDeclarationBuilder.message;
         return evaluateArgumentsBefore(
             arguments,
@@ -7475,7 +7543,7 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(cfe.messageNamedFunctionExpression,
                 declaration.fileOffset, noLength,
                 // Error has already been reported by the parser.
-                suppressMessage: true))
+                errorHasBeenReported: true))
           ..fileOffset = declaration.fileOffset);
       } else {
         push(statement);
@@ -7771,7 +7839,11 @@ class BodyBuilder extends StackListenerImpl
             lvalue,
             new VariableGetImpl(variable, forNullGuardedAccess: false),
             isFinal: false);
+      } else if (lvalue is InvalidExpression) {
+        // Coverage-ignore-block(suite): Not run.
+        elements.expressionProblem = lvalue;
       } else if (lvalue is AmbiguousBuilder) {
+        // Coverage-ignore-block(suite): Not run.
         elements.expressionProblem = toValue(lvalue);
       } else if (lvalue is ParserRecovery) {
         elements.expressionProblem = buildProblem(
@@ -9038,9 +9110,9 @@ class BodyBuilder extends StackListenerImpl
   @override
   InvalidExpression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
-      bool suppressMessage = false,
+      bool errorHasBeenReported = false,
       Expression? expression}) {
-    if (!suppressMessage) {
+    if (!errorHasBeenReported) {
       addProblem(message, charOffset, length,
           wasHandled: true, context: context);
     }
@@ -9058,17 +9130,20 @@ class BodyBuilder extends StackListenerImpl
     if (severity == Severity.error) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, fileOffset, length),
-          context: context);
+          context: context,
+          errorHasBeenReported: expression is InvalidExpression);
     } else {
       // Coverage-ignore-block(suite): Not run.
-      addProblem(message, fileOffset, length, context: context);
+      if (expression is! InvalidExpression) {
+        addProblem(message, fileOffset, length, context: context);
+      }
       return expression;
     }
   }
 
   @override
   Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
-      {List<LocatedMessage>? context}) {
+      {List<LocatedMessage>? context, bool errorHasBeenReported = false}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     int offset = expression.fileOffset;
@@ -9077,7 +9152,9 @@ class BodyBuilder extends StackListenerImpl
     }
     return buildProblem(
         message.messageObject, message.charOffset, message.length,
-        context: context, expression: expression);
+        context: context,
+        expression: expression,
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   Expression buildAbstractClassInstantiationError(
@@ -9090,10 +9167,10 @@ class BodyBuilder extends StackListenerImpl
   Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage>? context,
       int? length,
-      bool suppressMessage = false}) {
+      bool errorHasBeenReported = false}) {
     length ??= noLength;
     return new ExpressionStatement(buildProblem(message, charOffset, length,
-        context: context, suppressMessage: suppressMessage));
+        context: context, errorHasBeenReported: errorHasBeenReported));
   }
 
   Statement wrapInProblemStatement(Statement statement, Message message) {
@@ -9143,27 +9220,23 @@ class BodyBuilder extends StackListenerImpl
     if (isWildcardLoweredFormalParameter(name)) {
       name = '_';
     }
-    NamedBuilder? builder = _context.lookupLocalMember(name);
-    if (builder?.next != null) {
+    LookupResult? result = _context.lookupLocalMember(name);
+    NamedBuilder? builder = result?.getable;
+    if (result != null && result is DuplicateMemberLookupResult) {
       // Duplicated name, already reported.
-      while (builder != null) {
-        if (builder.next == null &&
-            builder is SourcePropertyBuilder &&
-            builder.hasField) {
-          // Assume the first field has been initialized.
-          _context.registerInitializedField(builder);
-        }
-        builder = builder.next;
+      MemberBuilder firstBuilder = result.declarations.first;
+      if (firstBuilder is SourcePropertyBuilder && firstBuilder.hasField) {
+        // Assume the first field has been initialized.
+        _context.registerInitializedField(firstBuilder);
       }
       return <Initializer>[
         buildInvalidInitializer(
-            buildProblem(
-              cfe.templateDuplicatedDeclarationUse.withArguments(name),
-              fieldNameOffset,
-              name.length,
-              // Avoid reporting two errors.
-              suppressMessage: true,
-            ),
+            LookupResult.createDuplicateExpression(result,
+                context: libraryBuilder.loader.target.context,
+                name: name,
+                fileUri: uri,
+                fileOffset: fieldNameOffset,
+                length: name.length),
             fieldNameOffset)
       ];
     } else if (builder is SourcePropertyBuilder &&
@@ -9414,10 +9487,8 @@ class BodyBuilder extends StackListenerImpl
               LocatedMessage message = cfe.messageTypeVariableInConstantContext
                   .withLocation(builder.fileUri!, builder.charOffset!,
                       typeParameter.name!.length);
-              builder.bind(
-                  libraryBuilder,
-                  new InvalidTypeDeclarationBuilder(
-                      typeParameter.name!, message));
+              builder.bind(libraryBuilder,
+                  new InvalidBuilder(typeParameter.name!, message));
               addProblem(
                   message.messageObject, message.charOffset, message.length);
             }
@@ -10604,6 +10675,7 @@ extension on MemberKind {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 extension on ProblemBuilder {
   Expression toExpression(SourceLibraryBuilder libraryBuilder) {
     String text = libraryBuilder.loader.target.context

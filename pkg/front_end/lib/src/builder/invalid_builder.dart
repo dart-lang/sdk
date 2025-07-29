@@ -4,8 +4,14 @@
 
 part of 'declaration_builders.dart';
 
-// TODO(johnniwinther): Make this a [ProblemBuilder].
-class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
+/// [InvalidBuilder] encapsulates an erroneous state as [Builder].
+///
+/// If [errorHasBeenReported] is `true`, the message has already been reported.
+/// Otherwise the [message] must be reported upon use.
+///
+/// This builder implements both [TypeDeclarationBuilder] and [MemberBuilder]
+/// so that it can be used both in types and in member lookups.
+class InvalidBuilder extends TypeDeclarationBuilderImpl
     with ErroneousMemberBuilderMixin
     implements TypeDeclarationBuilder {
   @override
@@ -15,10 +21,10 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
 
   final List<LocatedMessage>? context;
 
-  final bool suppressMessage;
+  final bool errorHasBeenReported;
 
-  InvalidTypeDeclarationBuilder(this.name, this.message,
-      {this.context, this.suppressMessage = true});
+  InvalidBuilder(this.name, this.message,
+      {this.context, this.errorHasBeenReported = true});
 
   @override
   int get typeParametersCount => 0;
@@ -59,7 +65,7 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    if (!suppressMessage) {
+    if (!errorHasBeenReported) {
       library.addProblem(message.messageObject, message.charOffset,
           message.length, message.uri,
           context: context);
@@ -75,4 +81,10 @@ class InvalidTypeDeclarationBuilder extends TypeDeclarationBuilderImpl
     // invalidNullability.
     return Nullability.nullable;
   }
+
+  @override
+  MemberBuilder get getable => this;
+
+  @override
+  MemberBuilder? get setable => null;
 }

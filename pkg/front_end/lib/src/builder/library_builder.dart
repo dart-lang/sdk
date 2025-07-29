@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart' show Library, Version;
 
 import '../base/export.dart' show Export;
 import '../base/loader.dart' show Loader;
+import '../base/lookup_result.dart';
 import '../base/messages.dart'
     show
         FormattedMessage,
@@ -92,10 +93,12 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   void becomeCoreLibrary();
 
   /// Lookups the member [name] declared in this library.
+  LookupResult? lookupLocalMember(String name);
+
+  /// Lookups the required member [name] declared in this library.
   ///
-  /// If [required] is `true` and no member is found an internal problem is
-  /// reported.
-  NamedBuilder? lookupLocalMember(String name, {bool required = false});
+  /// If no member is found an internal problem is reported.
+  NamedBuilder? lookupRequiredLocalMember(String name);
 
   void recordAccess(
       CompilationUnit accessor, int charOffset, int length, Uri fileUri);
@@ -187,18 +190,21 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      MemberBuilder? constructor =
-          cls.findConstructorOrFactory(constructorName, -1, fileUri, this);
-      if (constructor == null) {
-        // Fall-through to internal error below.
-      } else if (constructor is ConstructorBuilder) {
-        if (!cls.isAbstract) {
+      MemberLookupResult? result =
+          cls.findConstructorOrFactory(constructorName, this);
+      if (result != null && !result.isInvalidLookup) {
+        MemberBuilder? constructor = result.getable;
+        if (constructor == null) {
+          // Fall-through to internal error below.
+        } else if (constructor is ConstructorBuilder) {
+          if (!cls.isAbstract) {
+            return constructor;
+          }
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (constructor is FactoryBuilder) {
           return constructor;
         }
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (constructor is FactoryBuilder) {
-        return constructor;
       }
     }
     // Coverage-ignore-block(suite): Not run.
@@ -210,9 +216,14 @@ abstract class LibraryBuilderImpl extends BuilderImpl
   }
 
   @override
-  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
+  LookupResult? lookupLocalMember(String name) {
+    return libraryNameSpace.lookupLocalMember(name);
+  }
+
+  @override
+  NamedBuilder? lookupRequiredLocalMember(String name) {
     NamedBuilder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
-    if (required && builder == null) {
+    if (builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
               name, fullNameForErrors),

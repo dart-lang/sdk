@@ -68,7 +68,6 @@ class I {}
 // [cfe] 'this' can't be used as an identifier because it's a keyword.
 //       ^
 // [cfe] Member not found: 'this.toString'.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class J {}
 
    @super.toString
@@ -79,7 +78,6 @@ class J {}
 // [cfe] 'super' can't be used as an identifier because it's a keyword.
 //        ^
 // [cfe] Member not found: 'super.toString'.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class K {}
 
    @L.func()
@@ -136,7 +134,6 @@ class W {}
 // ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //  ^
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // [cfe] Undefined name 'TypeParameter'.
 class X<TypeParameter> {}
 
@@ -145,7 +142,6 @@ class X<TypeParameter> {}
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ANNOTATION
 //                ^
 // [cfe] Member not found: 'TypeParameter.member'.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class Y<TypeParameter> {}
 
    @1
@@ -182,7 +178,6 @@ class BB {}
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
 // [cfe] Expected ';' after this.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // [cfe] This couldn't be parsed.
 // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 class CC {}
@@ -213,7 +208,6 @@ class EE {}
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'true' can't be used as an identifier because it's a keyword.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // [cfe] Undefined name 'true'.
 class FF {}
 
@@ -223,7 +217,6 @@ class FF {}
 //  ^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'false' can't be used as an identifier because it's a keyword.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // [cfe] Undefined name 'false'.
 class GG {}
 
@@ -233,7 +226,6 @@ class GG {}
 //  ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'null' can't be used as an identifier because it's a keyword.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 // [cfe] Undefined name 'null'.
 class HH {}
 
@@ -259,7 +251,6 @@ class JJ {}
 // [analyzer] COMPILE_TIME_ERROR.INVALID_ANNOTATION
 //  ^
 // [cfe] Not a constant expression.
-// [cfe] This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
 class KK {
   const KK();
 }

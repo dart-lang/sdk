@@ -113,7 +113,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   final DeclarationNameSpaceBuilder nameSpaceBuilder;
 
-  late final MutableDeclarationNameSpace _nameSpace;
+  late final SourceDeclarationNameSpace _nameSpace;
   late final List<SourceMemberBuilder> _constructorBuilders;
   late final List<SourceMemberBuilder> _memberBuilders;
 
@@ -186,8 +186,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   void addMemberInternal(SourceMemberBuilder memberBuilder,
       {required bool addToNameSpace}) {
     if (addToNameSpace) {
-      _nameSpace.addLocalMember(memberBuilder.name, memberBuilder,
-          setter: false);
+      _nameSpace.addLocalMember(memberBuilder.name, memberBuilder);
     }
     _memberBuilders.add(memberBuilder);
   }
@@ -565,7 +564,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text);
+    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
     if (builder is SourceConstructorBuilder) {
       return builder;
     }
@@ -574,19 +573,15 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   /// Looks up the super constructor by [name] on the superclass of the class
   /// built by this class builder.
-  Constructor? lookupSuperConstructor(Name name) {
-    if (name.text == "new") {
-      name = new Name("", name.library);
-    }
-
-    Class? superclass = cls.superclass;
-    if (superclass != null) {
-      for (int i = 0; i < superclass.constructors.length; i++) {
-        Constructor constructor = superclass.constructors[i];
-        if (constructor.name == name) {
-          return constructor;
-        }
-      }
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary) {
+    TypeDeclarationBuilder? typeDeclarationBuilder =
+        supertypeBuilder?.computeUnaliasedDeclaration(isUsedAsClass: true);
+    if (typeDeclarationBuilder is DeclarationBuilder) {
+      return typeDeclarationBuilder.findConstructorOrFactory(
+          name, accessingLibrary);
+    } else if (typeDeclarationBuilder is InvalidBuilder) {
+      return new InvalidMemberLookupResult(typeDeclarationBuilder.message);
     }
     return null;
   }
@@ -695,7 +690,8 @@ class SourceClassBuilder extends ClassBuilderImpl
           for (String restrictedMemberName in restrictedNames) {
             // TODO(johnniwinther): Handle injected members.
             Builder? member = superclassHierarchyNode.classBuilder
-                .lookupLocalMember(restrictedMemberName, setter: false);
+                .lookupLocalMember(restrictedMemberName)
+                ?.getable;
             if (member is PropertyBuilder && !member.hasAbstractGetter ||
                 member is MethodBuilder && !member.isAbstract) {
               restrictedMembersInSuperclasses[restrictedMemberName] ??=
@@ -703,7 +699,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             }
           }
           Builder? member = superclassHierarchyNode.classBuilder
-              .lookupLocalMember("values", setter: false);
+              .lookupLocalMember("values")
+              ?.getable;
           if (member is MemberBuilder &&
               (member is PropertyBuilder && !member.hasAbstractGetter ||
                   // Coverage-ignore(suite): Not run.
@@ -1053,7 +1050,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               InstanceTypeParameterAccessState.Unexpected)
         ..bind(
             libraryBuilder,
-            new InvalidTypeDeclarationBuilder(typeName.name,
+            new InvalidBuilder(typeName.name,
                 message.withLocation(fileUri, fileOffset, noLength)));
     }
     return supertype;

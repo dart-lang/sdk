@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 import '../base/combinator.dart';
 import '../base/export.dart';
 import '../base/loader.dart';
+import '../base/lookup_result.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
@@ -99,7 +100,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
 }
 
 class DillLibraryBuilder extends LibraryBuilderImpl {
-  final DillLibraryNameSpace _nameSpace = new DillLibraryNameSpace();
+  late final LibraryNameSpace _nameSpace;
 
   final DillExportNameSpace _exportNameSpace = new DillExportNameSpace();
 
@@ -176,9 +177,78 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isBuiltAndMarked = true;
     if (isBuilt) return;
     isBuilt = true;
-    library.classes.forEach(_addClass);
-    library.extensions.forEach(_addExtension);
-    library.extensionTypeDeclarations.forEach(_addExtensionTypeDeclaration);
+
+    Map<String, LookupResult> content = {};
+    Set<ExtensionBuilder>? extensions = {};
+
+    void _addBuilder(String name, NamedBuilder builder) {
+      assert(
+          !content.containsKey(name),
+          "Unexpected existing declaration ${content[name]}, "
+          "trying to add $builder.");
+      content[name] = builder as LookupResult;
+      if (!name.startsWith("_") && !name.contains('#')) {
+        _exportNameSpace.addLocalMember(name, builder, setter: false);
+      }
+    }
+
+    void _addGetable(String name, MemberBuilder builder) {
+      LookupResult? existing = content[name];
+      if (existing != null) {
+        assert(
+            existing.getable == null && existing.setable is MemberBuilder,
+            "Unexpected existing member $existing, "
+            "trying to add $builder.");
+        content[name] = new GetableSetableMemberResult(
+            builder, existing.setable as MemberBuilder,
+            isStatic: true);
+      } else {
+        content[name] = builder;
+      }
+      if (!name.startsWith("_") && !name.contains('#')) {
+        _exportNameSpace.addLocalMember(name, builder, setter: false);
+      }
+    }
+
+    void _addSetable(String name, MemberBuilder builder) {
+      LookupResult? existing = content[name];
+      if (existing != null) {
+        assert(
+            existing.getable is MemberBuilder && existing.setable == null,
+            "Unexpected existing member $existing, "
+            "trying to add $builder.");
+        content[name] = new GetableSetableMemberResult(
+            existing.getable as MemberBuilder, builder,
+            isStatic: true);
+      } else {
+        content[name] = builder;
+      }
+      if (!name.startsWith("_") && !name.contains('#')) {
+        _exportNameSpace.addLocalMember(name, builder, setter: true);
+      }
+    }
+
+    for (Class cls in library.classes) {
+      DillClassBuilder builder = new DillClassBuilder(cls, this);
+      _addBuilder(cls.name, builder);
+      _memberBuilders.add(builder);
+    }
+    for (Extension extension in library.extensions) {
+      DillExtensionBuilder builder = new DillExtensionBuilder(extension, this);
+      if (!extension.isUnnamedExtension) {
+        _addBuilder(extension.name, builder);
+      }
+      extensions.add(builder);
+      _memberBuilders.add(builder);
+    }
+    for (ExtensionTypeDeclaration extensionTypeDeclaration
+        in library.extensionTypeDeclarations) {
+      DillExtensionTypeDeclarationBuilder builder =
+          new DillExtensionTypeDeclarationBuilder(
+              extensionTypeDeclaration, this);
+      _addBuilder(extensionTypeDeclaration.name, builder);
+      _memberBuilders.add(builder);
+    }
 
     Map<String, Map<Name, Procedure>> tearOffs = {};
     List<Procedure> nonTearOffs = [];
@@ -191,11 +261,74 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         nonTearOffs.add(procedure);
       }
     }
-    nonTearOffs.forEach(_addMember);
-    for (Typedef typedef in library.typedefs) {
-      addTypedef(typedef, tearOffs[typedef.name]);
+    for (Procedure member in nonTearOffs) {
+      if (member.isExtensionMember || member.isExtensionTypeMember) {
+        continue;
+      }
+      if (_isPrivateFromOtherLibrary(member)) {
+        continue;
+      }
+
+      String name = member.name.text;
+      switch (member.kind) {
+        case ProcedureKind.Setter:
+          DillSetterBuilder builder = new DillSetterBuilder(member, this);
+          _addSetable(name, builder);
+          _memberBuilders.add(builder);
+          break;
+        case ProcedureKind.Getter:
+          DillGetterBuilder builder = new DillGetterBuilder(member, this);
+          _addGetable(name, builder);
+          _memberBuilders.add(builder);
+          break;
+        case ProcedureKind.Method:
+          DillMethodBuilder builder = new DillMethodBuilder(member, this);
+          _addBuilder(name, builder);
+          _memberBuilders.add(builder);
+          break;
+        // Coverage-ignore(suite): Not run.
+        case ProcedureKind.Operator:
+        case ProcedureKind.Factory:
+          throw new UnsupportedError(
+              "Unexpected library procedure ${member.kind} for ${member}");
+      }
     }
-    library.fields.forEach(_addMember);
+    for (Typedef typedef in library.typedefs) {
+      DillTypeAliasBuilder builder =
+          new DillTypeAliasBuilder(typedef, tearOffs[typedef.name], this);
+      _addBuilder(typedef.name, builder);
+      _memberBuilders.add(builder);
+    }
+    for (Field field in library.fields) {
+      if (field.isExtensionMember || field.isExtensionTypeMember) {
+        continue;
+      }
+
+      String name = field.name.text;
+      if (name == unserializableExportName) {
+        String stringValue;
+        if (field.initializer is ConstantExpression) {
+          ConstantExpression constantExpression =
+              field.initializer as ConstantExpression;
+          StringConstant string = constantExpression.constant as StringConstant;
+          stringValue = string.value;
+        } else {
+          // Coverage-ignore-block(suite): Not run.
+          StringLiteral string = field.initializer as StringLiteral;
+          stringValue = string.value;
+        }
+        Map<dynamic, dynamic>? json = jsonDecode(stringValue);
+        unserializableExports =
+            json != null ? new Map<String, String>.from(json) : null;
+      } else {
+        if (!_isPrivateFromOtherLibrary(field)) {
+          DillFieldBuilder builder = new DillFieldBuilder(field, this);
+          _addGetable(name, builder);
+          _memberBuilders.add(builder);
+        }
+      }
+    }
+    _nameSpace = new LibraryNameSpace(content: content, extensions: extensions);
 
     if (isReadyToFinalizeExports) {
       finalizeExports();
@@ -221,146 +354,29 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   void becomeCoreLibrary() {
-    if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
-      _addBuilder("dynamic",
-          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1));
+    const String dynamicName = "dynamic";
+    if (libraryNameSpace.lookupLocalMember(dynamicName)?.getable == null) {
+      DynamicTypeDeclarationBuilder builder =
+          new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1);
+      _nameSpace.addLocalMember(dynamicName, builder);
+      _exportNameSpace.addLocalMember(dynamicName, builder, setter: false);
+      _memberBuilders.add(builder);
     }
-    if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
-      _addBuilder(
-          "Never",
-          new NeverTypeDeclarationBuilder(
-              const NeverType.nonNullable(), this, -1));
+    const String neverName = "Never";
+    if (libraryNameSpace.lookupLocalMember(neverName)?.getable == null) {
+      NeverTypeDeclarationBuilder builder = new NeverTypeDeclarationBuilder(
+          const NeverType.nonNullable(), this, -1);
+      _nameSpace.addLocalMember(neverName, builder);
+      _exportNameSpace.addLocalMember(neverName, builder, setter: false);
+      _memberBuilders.add(builder);
     }
     assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
         "No class 'Null' found in dart:core.");
   }
 
-  void _addClass(Class cls) {
-    DillClassBuilder classBuilder = new DillClassBuilder(cls, this);
-    _addBuilder(cls.name, classBuilder);
-    Map<String, Procedure> tearOffs = {};
-    List<Procedure> nonTearOffs = [];
-    for (Procedure procedure in cls.procedures) {
-      String? name = extractConstructorNameFromTearOff(procedure.name);
-      if (name != null) {
-        tearOffs[name] = procedure;
-      } else {
-        nonTearOffs.add(procedure);
-      }
-    }
-    for (Procedure procedure in nonTearOffs) {
-      if (procedure.kind == ProcedureKind.Factory) {
-        classBuilder.addFactory(procedure, tearOffs[procedure.name.text]);
-      } else {
-        classBuilder.addProcedure(procedure);
-      }
-    }
-    for (Constructor constructor in cls.constructors) {
-      classBuilder.addConstructor(constructor, tearOffs[constructor.name.text]);
-    }
-    for (Field field in cls.fields) {
-      classBuilder.addField(field);
-    }
-  }
-
-  void _addExtension(Extension extension) {
-    DillExtensionBuilder extensionBuilder =
-        new DillExtensionBuilder(extension, this);
-    _addBuilder(extension.name, extensionBuilder);
-  }
-
-  void _addExtensionTypeDeclaration(
-      ExtensionTypeDeclaration extensionTypeDeclaration) {
-    DillExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
-        new DillExtensionTypeDeclarationBuilder(extensionTypeDeclaration, this);
-    _addBuilder(extensionTypeDeclaration.name, extensionTypeDeclarationBuilder);
-  }
-
   bool _isPrivateFromOtherLibrary(Member member) {
     Name name = member.name;
     return name.isPrivate && name.libraryReference != library.reference;
-  }
-
-  void _addMember(Member member) {
-    if (member.isExtensionMember || member.isExtensionTypeMember) {
-      return null;
-    }
-
-    String name = member.name.text;
-    if (name == unserializableExportName) {
-      Field field = member as Field;
-      String stringValue;
-      if (field.initializer is ConstantExpression) {
-        ConstantExpression constantExpression =
-            field.initializer as ConstantExpression;
-        StringConstant string = constantExpression.constant as StringConstant;
-        stringValue = string.value;
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        StringLiteral string = field.initializer as StringLiteral;
-        stringValue = string.value;
-      }
-      Map<dynamic, dynamic>? json = jsonDecode(stringValue);
-      unserializableExports =
-          json != null ? new Map<String, String>.from(json) : null;
-    } else {
-      if (_isPrivateFromOtherLibrary(member)) return;
-      if (member is Field) {
-        _addBuilder(name, new DillFieldBuilder(member, this));
-      } else if (member is Procedure) {
-        switch (member.kind) {
-          case ProcedureKind.Setter:
-            _addBuilder(name, new DillSetterBuilder(member, this));
-            break;
-          case ProcedureKind.Getter:
-            _addBuilder(name, new DillGetterBuilder(member, this));
-            break;
-          case ProcedureKind.Operator:
-            // Coverage-ignore(suite): Not run.
-            _addBuilder(name, new DillOperatorBuilder(member, this));
-            break;
-          case ProcedureKind.Method:
-            _addBuilder(name, new DillMethodBuilder(member, this));
-            break;
-          // Coverage-ignore(suite): Not run.
-          case ProcedureKind.Factory:
-            throw new UnsupportedError(
-                "Unexpected library procedure ${member.kind} for ${member}");
-        }
-      } else {
-        throw new UnsupportedError(
-            "Unexpected library member ${member} (${member.runtimeType})");
-      }
-    }
-  }
-
-  void _addBuilder(String? name, NamedBuilder declaration) {
-    if (name == null || name.isEmpty) return;
-
-    bool isSetter = isMappedAsSetter(declaration);
-    if (isSetter) {
-      _nameSpace.addLocalMember(name, declaration as MemberBuilder,
-          setter: true);
-    } else {
-      _nameSpace.addLocalMember(name, declaration, setter: false);
-    }
-    if (declaration is ExtensionBuilder) {
-      _nameSpace.addExtension(declaration);
-    }
-    _memberBuilders.add(declaration);
-    if (!name.startsWith("_") && !name.contains('#')) {
-      if (isSetter) {
-        _exportNameSpace.addLocalMember(name, declaration as MemberBuilder,
-            setter: true);
-      } else {
-        _exportNameSpace.addLocalMember(name, declaration, setter: false);
-      }
-    }
-  }
-
-  void addTypedef(Typedef typedef, Map<Name, Procedure>? tearOffs) {
-    _addBuilder(
-        typedef.name, new DillTypeAliasBuilder(typedef, tearOffs, this));
   }
 
   @override
@@ -397,8 +413,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         if (!suppressFinalizationErrors) {
           addProblem(message, -1, noLength, null);
         }
-        declaration =
-            new InvalidTypeDeclarationBuilder(name, message.withoutLocation());
+        declaration = new InvalidBuilder(name, message.withoutLocation());
       }
       _exportNameSpace.addLocalMember(name, declaration, setter: false);
     });

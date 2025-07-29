@@ -100,10 +100,6 @@ library;
 // void set topLevelMethodAndSetter2(int value) {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
-// @topLevelMethod
-//  ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -138,6 +134,6 @@ static set topLevelMethodAndSetter2(core::int value) → void
 @topLevelMethod
  ^" in invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:58:2: Error: Can't use 'topLevelMethod' because it is declared more than once.
 @topLevelMethod
- ^"
+ ^^^^^^^^^^^^^^"
 static method test() → dynamic
   ;

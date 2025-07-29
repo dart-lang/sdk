@@ -6,10 +6,6 @@ library;
 //   @x2
 //    ^^
 //
-// pkg/front_end/testcases/regress/invalid_this_reference_05.dart:8:4: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
-//   @x2
-//    ^
-//
 import self as self;
 import "dart:core" as core;
 

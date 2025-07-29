@@ -58,7 +58,7 @@ static extension-type-member method Multiple|constructor#(core::bool instanceFie
 }
 static extension-type-member synthetic method Multiple|constructor#_#new#tearOff(core::bool instanceField1, core::int instanceField2) → self::Multiple% /* erasure=core::bool, declared=! */
   return self::Multiple|constructor#(instanceField1, instanceField2);
-static extension-type-member method Duplicate|constructor#(core::int instanceField, core::int instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */ {
+static extension-type-member method Duplicate|constructor#(core::bool instanceField, core::bool instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */ {
   lowered final self::Duplicate% /* erasure=core::bool, declared=! */ #this;
   final dynamic #t1 = invalid-expression "pkg/front_end/testcases/extension_types/representation.dart:9:31: Error: Can't use 'instanceField' because it is declared more than once.
 extension type Duplicate(bool instanceField, int instanceField) {} // Error
@@ -68,5 +68,5 @@ extension type Duplicate(bool instanceField, int instanceField) {} // Error
                                                  ^^^^^^^^^^^^^";
   return #this;
 }
-static extension-type-member synthetic method Duplicate|constructor#_#new#tearOff(core::int instanceField, core::int instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */
+static extension-type-member synthetic method Duplicate|constructor#_#new#tearOff(core::bool instanceField, core::bool instanceField) → self::Duplicate% /* erasure=core::bool, declared=! */
   return self::Duplicate|constructor#(instanceField, instanceField);

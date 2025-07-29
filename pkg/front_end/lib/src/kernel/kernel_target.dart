@@ -922,7 +922,7 @@ class KernelTarget {
       case StructuralParameterBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
       case BuiltinTypeDeclarationBuilder():
       case null:
         builder.addSyntheticConstructor(_makeDefaultConstructor(

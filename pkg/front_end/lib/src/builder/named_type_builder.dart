@@ -8,6 +8,7 @@ import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart' as unaliasing;
 import 'package:kernel/type_algebra.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart'
     show
         LocatedMessage,
@@ -206,11 +207,35 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Builder? member;
     String? qualifier = typeName.qualifier;
     if (qualifier != null) {
-      Builder? prefix = scope.lookup(qualifier, charOffset, fileUri)?.getable;
+      LookupResult? result = scope.lookup(qualifier, charOffset, fileUri);
+      if (result != null && result.isInvalidLookup) {
+        bind(
+            problemReporting,
+            buildInvalidTypeDeclarationBuilder(
+                LookupResult.createDuplicateMessage(result,
+                    name: qualifier,
+                    fileUri: fileUri,
+                    fileOffset: typeName.fullNameOffset,
+                    length: typeName.fullNameLength)));
+        return;
+      }
+      Builder? prefix = result?.getable;
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
-        member =
-            prefix.lookup(typeName.name, typeName.nameOffset, fileUri)?.getable;
+        result = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
+        if (result != null && result.isInvalidLookup) {
+          // Coverage-ignore-block(suite): Not run.
+          bind(
+              problemReporting,
+              buildInvalidTypeDeclarationBuilder(
+                  LookupResult.createDuplicateMessage(result,
+                      name: qualifier,
+                      fileUri: fileUri,
+                      fileOffset: typeName.fullNameOffset,
+                      length: typeName.fullNameLength)));
+          return;
+        }
+        member = result?.getable;
       } else {
         // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
@@ -225,8 +250,20 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         return;
       }
     } else {
-      member =
-          scope.lookup(typeName.name, typeName.nameOffset, fileUri)?.getable;
+      LookupResult? result =
+          scope.lookup(typeName.name, typeName.nameOffset, fileUri);
+      if (result != null && result.isInvalidLookup) {
+        bind(
+            problemReporting,
+            buildInvalidTypeDeclarationBuilder(
+                LookupResult.createDuplicateMessage(result,
+                    name: typeName.name,
+                    fileUri: fileUri,
+                    fileOffset: typeName.fullNameOffset,
+                    length: typeName.fullNameLength)));
+        return;
+      }
+      member = result?.getable;
     }
     if (member is TypeDeclarationBuilder) {
       bind(problemReporting, member);
@@ -259,7 +296,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   void _check(ProblemReporting problemReporting) {
-    if (_declaration is InvalidTypeDeclarationBuilder) {
+    if (_declaration is InvalidBuilder) {
       return;
     }
     if (typeArguments != null) {
@@ -356,11 +393,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
-      LocatedMessage message,
+  InvalidBuilder buildInvalidTypeDeclarationBuilder(LocatedMessage message,
       {List<LocatedMessage>? context}) {
-    return new InvalidTypeDeclarationBuilder(typeName.fullName, message,
-        context: context);
+    return new InvalidBuilder(typeName.fullName, message, context: context);
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
@@ -612,13 +647,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
               <DartType>[type.typeArgument]);
         }
         return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
-      case InvalidTypeDeclarationBuilder():
-        library.addProblem(
-            declaration.message.messageObject,
-            declaration.message.charOffset,
-            declaration.message.length,
-            declaration.message.uri,
-            severity: Severity.error);
+      case InvalidBuilder():
+        if (!declaration.errorHasBeenReported) {
+          // Coverage-ignore-block(suite): Not run.
+          library.addProblem(
+              declaration.message.messageObject,
+              declaration.message.charOffset,
+              declaration.message.length,
+              declaration.message.uri,
+              severity: Severity.error);
+        }
         return null;
       case NominalParameterBuilder():
       case StructuralParameterBuilder():
@@ -646,13 +684,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         }
         return _handleInvalidAliasedSupertype(
             libraryBuilder, aliasBuilder, type);
-      case InvalidTypeDeclarationBuilder():
-        libraryBuilder.addProblem(
-            declaration.message.messageObject,
-            declaration.message.charOffset,
-            declaration.message.length,
-            declaration.message.uri,
-            severity: Severity.error);
+      case InvalidBuilder():
+        if (!declaration.errorHasBeenReported) {
+          // Coverage-ignore-block(suite): Not run.
+          libraryBuilder.addProblem(
+              declaration.message.messageObject,
+              declaration.message.charOffset,
+              declaration.message.length,
+              declaration.message.uri,
+              severity: Severity.error);
+        }
         return null;
       case NominalParameterBuilder():
       case StructuralParameterBuilder():
@@ -797,7 +838,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         }
       case StructuralParameterBuilder():
       case ExtensionBuilder():
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
       case BuiltinTypeDeclarationBuilder():
     }
     return VarianceCalculationValue.calculatedUnrelated;
@@ -906,7 +947,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Handled above.
         throw new UnsupportedError("Unexpected StructuralVariableBuilder");
       // Coverage-ignore(suite): Not run.
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
         // Don't substitute.
         break;
       // Coverage-ignore(suite): Not run.
@@ -1050,7 +1091,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         case NominalParameterBuilder():
         case StructuralParameterBuilder():
         case ExtensionBuilder():
-        case InvalidTypeDeclarationBuilder():
+        case InvalidBuilder():
         case BuiltinTypeDeclarationBuilder():
       }
     } else {
@@ -1122,8 +1163,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
         super._(
             typeName: new PredefinedTypeName(name),
             nullabilityBuilder: nullabilityBuilder,
-            declaration: new InvalidTypeDeclarationBuilder(name, message,
-                context: context),
+            declaration: new InvalidBuilder(name, message, context: context),
             fileUri: message.uri,
             charOffset: message.charOffset,
             instanceTypeParameterAccess:

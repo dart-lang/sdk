@@ -115,6 +115,10 @@ struct load_command {
 // The description of the LC_* constants are followed by the name of
 // the specific C structure describing their contents in parentheses.
 
+// Flag stored in high bit for LC_* constants that denotes sections
+// the dynamic linker must understand to properly load the library.
+static constexpr uint32_t LC_REQ_DYLD = 0x80000000;
+
 // A portion of the file that is mapped into memory when the
 // object file is loaded. (segment_command)
 static constexpr uint32_t LC_SEGMENT = 0x1;
@@ -132,6 +136,7 @@ static constexpr uint32_t LC_ID_DYLIB = 0xd;
 static constexpr uint32_t LC_SEGMENT_64 = 0x19;
 // The UUID, used as a build identifier. (uuid_command)
 static constexpr uint32_t LC_UUID = 0x1b;
+static constexpr uint32_t LC_RPATH = (0x1c | LC_REQ_DYLD);
 // The code signature which protects the preceding portion of the object file.
 // Must be the last contents in the object file. (linkedit_data_command)
 static constexpr uint32_t LC_CODE_SIGNATURE = 0x1d;
@@ -450,6 +455,12 @@ struct linkedit_data_command {
   uint32_t dataoff;
   // The size of the contents in bytes.
   uint32_t datasize;
+};
+
+struct rpath_command {
+  uint32_t cmd;  // LC_RPATH
+  uint32_t cmdsize;
+  lc_str path;
 };
 
 // Magic numbers for code signature blobs.

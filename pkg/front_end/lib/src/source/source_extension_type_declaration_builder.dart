@@ -63,7 +63,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   final DeclarationNameSpaceBuilder _nameSpaceBuilder;
 
-  late final DeclarationNameSpace _nameSpace;
+  late final SourceDeclarationNameSpace _nameSpace;
   late final List<SourceMemberBuilder> _constructorBuilders;
   late final List<SourceMemberBuilder> _memberBuilders;
 
@@ -478,7 +478,7 @@ class SourceExtensionTypeDeclarationBuilder
               typeParameters = declaration.typeParameters;
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
             case ExtensionBuilder():
             case TypeParameterBuilder():
           }
@@ -673,7 +673,7 @@ class SourceExtensionTypeDeclarationBuilder
       // Coverage-ignore(suite): Not run.
       case BuiltinTypeDeclarationBuilder():
       // Coverage-ignore(suite): Not run.
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
       case null:
         return nullability;
     }
@@ -858,7 +858,7 @@ class SourceExtensionTypeDeclarationBuilder
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text);
+    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
     if (builder is SourceConstructorBuilder) {
       return builder;
     }

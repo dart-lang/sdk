@@ -78,7 +78,7 @@ void printQualifiedNameOn(Member? member, StringSink sink) {
 void bindCoreType(LibraryBuilder coreLibrary, NamedTypeBuilder typeBuilder,
     {bool isNullClass = false}) {
   TypeDeclarationBuilder typeDeclarationBuilder =
-      coreLibrary.lookupLocalMember(typeBuilder.typeName.name, required: true)
+      coreLibrary.lookupRequiredLocalMember(typeBuilder.typeName.name)
           as TypeDeclarationBuilder;
   typeBuilder.bind(coreLibrary, typeDeclarationBuilder);
   if (isNullClass) {

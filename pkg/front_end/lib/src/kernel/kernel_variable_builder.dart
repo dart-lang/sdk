@@ -4,10 +4,13 @@
 
 import 'package:kernel/ast.dart' show VariableDeclaration;
 
+import '../base/lookup_result.dart';
 import '../builder/builder.dart';
 import '../builder/variable_builder.dart';
 
-class VariableBuilderImpl extends NamedBuilderImpl implements VariableBuilder {
+class VariableBuilderImpl extends NamedBuilderImpl
+    with LookupResultMixin
+    implements VariableBuilder {
   @override
   final String name;
 

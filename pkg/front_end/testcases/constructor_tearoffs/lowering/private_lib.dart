@@ -20,7 +20,7 @@ class C {
 }
 
 class G extends D {
-  G._() : super._(); // TODO(johnniwinther): This should be an error.
+  G._() : super._(); // Error
 }
 
 class H extends E {
@@ -29,7 +29,7 @@ class H extends E {
 
 class I extends F {
   I.named() : super.named(); // Ok
-  I._() : super._(); // TODO(johnniwinther): This should be an error.
+  I._() : super._(); // Error
 }
 
 method() {

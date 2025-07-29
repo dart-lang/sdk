@@ -18044,42 +18044,6 @@ const MessageCode messageUnnamedObjectPatternField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String name2)>
-    templateUnresolvedPrefixInTypeAnnotation =
-    const Template<Message Function(String name, String name2)>(
-  "UnresolvedPrefixInTypeAnnotation",
-  problemMessageTemplate:
-      r"""'#name.#name2' can't be used as a type because '#name' isn't defined.""",
-  withArguments: _withArgumentsUnresolvedPrefixInTypeAnnotation,
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String name2)>
-    codeUnresolvedPrefixInTypeAnnotation =
-    const Code<Message Function(String name, String name2)>(
-  "UnresolvedPrefixInTypeAnnotation",
-  analyzerCodes: <String>["NOT_A_TYPE"],
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
-    String name, String name2) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (name2.isEmpty) throw 'No name provided';
-  name2 = demangleMixinApplicationName(name2);
-  return new Message(
-    codeUnresolvedPrefixInTypeAnnotation,
-    problemMessage:
-        """'${name}.${name2}' can't be used as a type because '${name}' isn't defined.""",
-    arguments: {
-      'name': name,
-      'name2': name2,
-    },
-  );
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnsoundSwitchExpressionError =
     messageUnsoundSwitchExpressionError;
 

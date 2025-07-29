@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:front_end/src/base/lookup_result.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
@@ -420,9 +421,12 @@ mixin _ConstructorDeclarationMixin
         initializers.last is SuperInitializer) {
       superTarget = (initializers.last as SuperInitializer).target;
     } else {
-      MemberBuilder? memberBuilder = superclassBuilder.findConstructorOrFactory(
-          "", fileOffset, fileUri, libraryBuilder);
-      if (memberBuilder is ConstructorBuilder) {
+      MemberLookupResult? result =
+          superclassBuilder.findConstructorOrFactory("", libraryBuilder);
+      MemberBuilder? memberBuilder = result?.getable;
+      if (result != null &&
+          !result.isInvalidLookup &&
+          memberBuilder is ConstructorBuilder) {
         superTarget = memberBuilder.invokeTarget;
       } else {
         assert(libraryBuilder.loader.assertProblemReportedElsewhere(
@@ -433,10 +437,12 @@ mixin _ConstructorDeclarationMixin
       }
     }
 
-    MemberBuilder? constructorBuilder =
-        superclassBuilder.findConstructorOrFactory(
-            superTarget.name.text, fileOffset, fileUri, libraryBuilder);
-    if (constructorBuilder is ConstructorBuilder) {
+    MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
+        superTarget.name.text, libraryBuilder);
+    MemberBuilder? constructorBuilder = result?.getable;
+    if (result != null &&
+        !result.isInvalidLookup &&
+        constructorBuilder is ConstructorBuilder) {
       return constructorBuilder;
     } else {
       // Coverage-ignore-block(suite): Not run.

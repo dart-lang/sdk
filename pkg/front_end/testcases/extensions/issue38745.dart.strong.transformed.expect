@@ -40,10 +40,6 @@ library;
 //     property = 23;
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/issue38745.dart:25:15: Error: Can't assign to this.
-//     property2 = 23;
-//               ^
-//
 // pkg/front_end/testcases/extensions/issue38745.dart:40:10: Error: Member not found: 'field'.
 //   ext(c).field;
 //          ^^^^^
@@ -139,10 +135,10 @@ static extension-member method ext|method<T extends core::Object? = dynamic>(low
     ^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:24:5: Error: Can't use 'property2' because it is declared more than once.
     property2;
-    ^";
-  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:25:15: Error: Can't assign to this.
+    ^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:25:5: Error: Can't use 'property2' because it is declared more than once.
     property2 = 23;
-              ^";
+    ^^^^^^^^^";
 }
 static extension-member method ext|get#method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|get#method::T%> #this) → () → dynamic
   return () → dynamic => self::ext|method<self::ext|get#method::T%>(#this);

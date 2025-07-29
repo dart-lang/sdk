@@ -100,146 +100,6 @@ library;
 //   static void set staticMethodAndSetter2(int value) {}
 //                   ^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:57:9: Error: Can't use 'staticMethod' because it is declared more than once.
-//   Class.staticMethod();
-//         ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:58:10: Error: Can't use 'staticMethod' because it is declared more than once.
-//   (Class.staticMethod)();
-//          ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:59:9: Error: Can't use 'staticGetter' because it is declared more than once.
-//   Class.staticGetter;
-//         ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:60:9: Error: Can't use 'staticSetter' because it is declared more than once.
-//   Class.staticSetter = 0;
-//         ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:60:22: Error: Can't assign to this.
-//   Class.staticSetter = 0;
-//                      ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:61:9: Error: Can't use 'staticField' because it is declared more than once.
-//   Class.staticField;
-//         ^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:62:9: Error: Can't use 'staticField' because it is declared more than once.
-//   Class.staticField = 0;
-//         ^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:62:21: Error: Can't assign to this.
-//   Class.staticField = 0;
-//                     ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:63:9: Error: Can't use 'staticFieldAndSetter1' because it is declared more than once.
-//   Class.staticFieldAndSetter1;
-//         ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:64:9: Error: Can't use 'staticFieldAndSetter1' because it is declared more than once.
-//   Class.staticFieldAndSetter1 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:64:31: Error: Can't assign to this.
-//   Class.staticFieldAndSetter1 = 0;
-//                               ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:65:9: Error: Can't use 'staticFieldAndSetter2' because it is declared more than once.
-//   Class.staticFieldAndSetter2;
-//         ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:66:9: Error: Can't use 'staticFieldAndSetter2' because it is declared more than once.
-//   Class.staticFieldAndSetter2 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:66:31: Error: Can't assign to this.
-//   Class.staticFieldAndSetter2 = 0;
-//                               ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:67:9: Error: Can't use 'staticDuplicateFieldAndSetter' because it is declared more than once.
-//   Class.staticDuplicateFieldAndSetter;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:68:9: Error: Can't use 'staticDuplicateFieldAndSetter' because it is declared more than once.
-//   Class.staticDuplicateFieldAndSetter = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:68:39: Error: Can't assign to this.
-//   Class.staticDuplicateFieldAndSetter = 0;
-//                                       ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:69:9: Error: Can't use 'staticFieldAndDuplicateSetter' because it is declared more than once.
-//   Class.staticFieldAndDuplicateSetter;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:70:9: Error: Can't use 'staticFieldAndDuplicateSetter' because it is declared more than once.
-//   Class.staticFieldAndDuplicateSetter = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:70:39: Error: Can't assign to this.
-//   Class.staticFieldAndDuplicateSetter = 0;
-//                                       ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:71:9: Error: Can't use 'staticDuplicateFieldAndDuplicateSetter' because it is declared more than once.
-//   Class.staticDuplicateFieldAndDuplicateSetter;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:72:9: Error: Can't use 'staticDuplicateFieldAndDuplicateSetter' because it is declared more than once.
-//   Class.staticDuplicateFieldAndDuplicateSetter = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:72:48: Error: Can't assign to this.
-//   Class.staticDuplicateFieldAndDuplicateSetter = 0;
-//                                                ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:73:9: Error: Can't use 'staticMethodAndSetter1' because it is declared more than once.
-//   Class.staticMethodAndSetter1 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:73:32: Error: Can't assign to this.
-//   Class.staticMethodAndSetter1 = 0;
-//                                ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:74:9: Error: Can't use 'staticMethodAndSetter2' because it is declared more than once.
-//   Class.staticMethodAndSetter2 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:74:32: Error: Can't assign to this.
-//   Class.staticMethodAndSetter2 = 0;
-//                                ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:75:9: Error: Can't use 'staticLateFinalFieldAndSetter1' because it is declared more than once.
-//   Class.staticLateFinalFieldAndSetter1;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:76:9: Error: Can't use 'staticLateFinalFieldAndSetter1' because it is declared more than once.
-//   Class.staticLateFinalFieldAndSetter1 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:76:40: Error: Can't assign to this.
-//   Class.staticLateFinalFieldAndSetter1 = 0;
-//                                        ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:77:9: Error: Can't use 'staticLateFinalFieldAndSetter2' because it is declared more than once.
-//   Class.staticLateFinalFieldAndSetter2;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:78:9: Error: Can't use 'staticLateFinalFieldAndSetter2' because it is declared more than once.
-//   Class.staticLateFinalFieldAndSetter2 = 0;
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:78:40: Error: Can't assign to this.
-//   Class.staticLateFinalFieldAndSetter2 = 0;
-//                                        ^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:79:9: Error: Can't use 'staticMethodAndSetter1' because it is declared more than once.
-//   Class.staticMethodAndSetter1();
-//         ^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_static.dart:80:9: Error: Can't use 'staticMethodAndSetter2' because it is declared more than once.
-//   Class.staticMethodAndSetter2();
-//         ^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -277,63 +137,63 @@ static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:59:9: Error: Can't use 'staticGetter' because it is declared more than once.
   Class.staticGetter;
         ^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:60:22: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:60:9: Error: Can't use 'staticSetter' because it is declared more than once.
   Class.staticSetter = 0;
-                     ^";
+        ^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:61:9: Error: Can't use 'staticField' because it is declared more than once.
   Class.staticField;
         ^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:62:21: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:62:9: Error: Can't use 'staticField' because it is declared more than once.
   Class.staticField = 0;
-                    ^";
+        ^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:63:9: Error: Can't use 'staticFieldAndSetter1' because it is declared more than once.
   Class.staticFieldAndSetter1;
         ^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:64:31: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:64:9: Error: Can't use 'staticFieldAndSetter1' because it is declared more than once.
   Class.staticFieldAndSetter1 = 0;
-                              ^";
+        ^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:65:9: Error: Can't use 'staticFieldAndSetter2' because it is declared more than once.
   Class.staticFieldAndSetter2;
         ^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:66:31: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:66:9: Error: Can't use 'staticFieldAndSetter2' because it is declared more than once.
   Class.staticFieldAndSetter2 = 0;
-                              ^";
+        ^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:67:9: Error: Can't use 'staticDuplicateFieldAndSetter' because it is declared more than once.
   Class.staticDuplicateFieldAndSetter;
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:68:39: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:68:9: Error: Can't use 'staticDuplicateFieldAndSetter' because it is declared more than once.
   Class.staticDuplicateFieldAndSetter = 0;
-                                      ^";
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:69:9: Error: Can't use 'staticFieldAndDuplicateSetter' because it is declared more than once.
   Class.staticFieldAndDuplicateSetter;
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:70:39: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:70:9: Error: Can't use 'staticFieldAndDuplicateSetter' because it is declared more than once.
   Class.staticFieldAndDuplicateSetter = 0;
-                                      ^";
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:71:9: Error: Can't use 'staticDuplicateFieldAndDuplicateSetter' because it is declared more than once.
   Class.staticDuplicateFieldAndDuplicateSetter;
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:72:48: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:72:9: Error: Can't use 'staticDuplicateFieldAndDuplicateSetter' because it is declared more than once.
   Class.staticDuplicateFieldAndDuplicateSetter = 0;
-                                               ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:73:32: Error: Can't assign to this.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:73:9: Error: Can't use 'staticMethodAndSetter1' because it is declared more than once.
   Class.staticMethodAndSetter1 = 0;
-                               ^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:74:32: Error: Can't assign to this.
+        ^^^^^^^^^^^^^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:74:9: Error: Can't use 'staticMethodAndSetter2' because it is declared more than once.
   Class.staticMethodAndSetter2 = 0;
-                               ^";
+        ^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:75:9: Error: Can't use 'staticLateFinalFieldAndSetter1' because it is declared more than once.
   Class.staticLateFinalFieldAndSetter1;
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:76:40: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:76:9: Error: Can't use 'staticLateFinalFieldAndSetter1' because it is declared more than once.
   Class.staticLateFinalFieldAndSetter1 = 0;
-                                       ^";
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:77:9: Error: Can't use 'staticLateFinalFieldAndSetter2' because it is declared more than once.
   Class.staticLateFinalFieldAndSetter2;
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:78:40: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:78:9: Error: Can't use 'staticLateFinalFieldAndSetter2' because it is declared more than once.
   Class.staticLateFinalFieldAndSetter2 = 0;
-                                       ^";
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/duplicates_static.dart:79:9: Error: Can't use 'staticMethodAndSetter1' because it is declared more than once.
   Class.staticMethodAndSetter1();
         ^^^^^^^^^^^^^^^^^^^^^^";

@@ -1712,8 +1712,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;
-            Builder? subBuilder =
-                builder.lookupLocalMember(afterDot, setter: false);
+            Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
                 isStatic = false;
@@ -1721,8 +1720,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             }
           } else if (builder is ExtensionTypeDeclarationBuilder) {
             extensionType = builder.extensionTypeDeclaration;
-            Builder? subBuilder =
-                builder.lookupLocalMember(afterDot, setter: false);
+            Builder? subBuilder = builder.lookupLocalMember(afterDot)?.getable;
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionTypeInstanceMember) {
                 List<VariableDeclaration>? positionals =

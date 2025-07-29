@@ -32,7 +32,7 @@ Future<void> main() async {
       builder.markAsReadyToFinalizeExports();
       var mainExport =
           builder.exportNameSpace.lookupLocalMember("main")?.getable;
-      Expect.isTrue(mainExport is InvalidTypeDeclarationBuilder);
+      Expect.isTrue(mainExport is InvalidBuilder);
     });
   });
 }

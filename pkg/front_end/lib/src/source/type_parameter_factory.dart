@@ -187,7 +187,7 @@ void checkTypeParameterDependencies(ProblemReporting problemReporting,
                 InstanceTypeParameterAccessState.Unexpected)
           ..bind(
               problemReporting,
-              new InvalidTypeDeclarationBuilder(
+              new InvalidBuilder(
                   typeParameter.name,
                   message.withLocation(
                       dependency.typeParameterBoundOfItself.fileUri!,

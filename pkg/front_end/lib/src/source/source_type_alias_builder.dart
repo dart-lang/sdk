@@ -212,7 +212,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               typeParameters = declaration.typeParameters;
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
             case ExtensionBuilder():
             case TypeParameterBuilder():
           }
@@ -518,7 +518,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case NominalParameterBuilder():
       case StructuralParameterBuilder():
       case ExtensionBuilder():
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
       case BuiltinTypeDeclarationBuilder():
       case null:
     }
