@@ -57,9 +57,9 @@ function_callbacks_many_test/*: Skip # Test harness doesn't support multitest wi
 function_callbacks_structs_by_value_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_structs_by_value_native_callable_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_subtype_test/*: Skip # Test harness doesn't support multitest with Fuchsia
-isolate_group_shared_callback_test: Skip # gen_snapshot requires experimental-shared-data flag
-isolate_group_shared_init_test: Skip # gen_snapshot requires experimental-shared-data flag
-isolate_group_shared_send_test: Skip # gen_snapshot requires experimental-shared-data flag
+isolate_group_bound_callback_test: Skip # gen_snapshot requires experimental-shared-data flag
+isolate_group_bound_init_test: Skip # gen_snapshot requires experimental-shared-data flag
+isolate_group_bound_send_test: Skip # gen_snapshot requires experimental-shared-data flag
 native_assets/*: Skip # Source not available in the emulator
 run_isolate_group_run_test: Skip # gen_snapshot requires experimental-shared-data flag
 static_checks/*: SkipByDesign # Expecting compile time failures in multi tests doesn't work on the Fuchsia test runner.
@@ -111,4 +111,4 @@ callback_unwind_error_test: Crash # https://github.com/dart-lang/sdk/issues/3948
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
 
 [ $hot_reload || $hot_reload_rollback ]
-isolate_group_shared_callback_test: SkipSlow # shared_slow_path_triggers_gc in combination with reload makes this test very slow
+isolate_group_bound_callback_test: SkipSlow # shared_slow_path_triggers_gc in combination with reload makes this test very slow
