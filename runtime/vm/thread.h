@@ -1419,11 +1419,6 @@ class Thread : public ThreadState {
   MarkingStackBlock* new_marking_stack_block_ = nullptr;
   MarkingStackBlock* deferred_marking_stack_block_ = nullptr;
   uword volatile vm_tag_ = 0;
-  // Memory locations dedicated for passing unboxed int64 and double
-  // values from generated code to runtime.
-  // TODO(dartbug.com/33549): Clean this up when unboxed values
-  // could be passed as arguments.
-  ALIGN8 simd128_value_t unboxed_runtime_arg_;
 
   // JumpToExceptionHandler state:
   ObjectPtr active_exception_;
@@ -1487,6 +1482,11 @@ class Thread : public ThreadState {
 
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
+  // Memory locations dedicated for passing unboxed int64 and double
+  // values from generated code to runtime.
+  // TODO(dartbug.com/33549): Clean this up when unboxed values
+  // could be passed as arguments.
+  ALIGN8 simd128_value_t unboxed_runtime_arg_;
   ALIGN8 int64_t next_task_id_;
   ALIGN8 Random thread_random_;
 
