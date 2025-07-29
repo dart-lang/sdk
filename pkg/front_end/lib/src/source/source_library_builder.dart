@@ -399,8 +399,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         "Unexpected load library builder $other.");
 
     if (declaration == other) return declaration;
-    if (declaration is InvalidTypeDeclarationBuilder) return declaration;
-    if (other is InvalidTypeDeclarationBuilder) return other;
+    if (declaration is InvalidBuilder) return declaration;
+    if (other is InvalidBuilder) return other;
     NamedBuilder? preferred;
     Uri? uri;
     Uri? otherUri;
@@ -431,14 +431,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Message message =
         templateDuplicatedExport.withArguments(name, firstUri, secondUri);
     addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
-    // We report the error lazily (setting suppressMessage to false) because the
-    // spec 18.1 states that 'It is not an error if N is introduced by two or
-    // more imports but never referred to.'
-    return new InvalidTypeDeclarationBuilder(
+    // We report the error lazily (setting errorHasBeenReported to false)
+    // because the spec 18.1 states that 'It is not an error if N is introduced
+    // by two or more imports but never referred to.'
+    return new InvalidBuilder(
         name,
         message.withLocation(
             uriOffset.fileUri, uriOffset.fileOffset, name.length),
-        suppressMessage: false);
+        errorHasBeenReported: false);
   }
 
   Iterable<SourceCompilationUnit> get parts => _parts;
@@ -581,7 +581,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             case ExtensionTypeDeclarationBuilder():
               library.additionalExports
                   .add(builder.extensionTypeDeclaration.reference);
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
               (unserializableExports ??= {})[name] =
                   builder.message.problemMessage;
             case BuiltinTypeDeclarationBuilder():

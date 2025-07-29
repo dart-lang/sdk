@@ -319,13 +319,13 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/builder/invalid_type_builder.dart": (
-    hitCount: 7,
+  "package:front_end/src/builder/invalid_builder.dart": (
+    hitCount: 20,
     missCount: 0,
   ),
   // 100.0%.
-  "package:front_end/src/builder/invalid_type_declaration_builder.dart": (
-    hitCount: 20,
+  "package:front_end/src/builder/invalid_type_builder.dart": (
+    hitCount: 7,
     missCount: 0,
   ),
   // 100.0%.

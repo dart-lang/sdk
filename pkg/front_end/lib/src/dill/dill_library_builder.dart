@@ -413,8 +413,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         if (!suppressFinalizationErrors) {
           addProblem(message, -1, noLength, null);
         }
-        declaration =
-            new InvalidTypeDeclarationBuilder(name, message.withoutLocation());
+        declaration = new InvalidBuilder(name, message.withoutLocation());
       }
       _exportNameSpace.addLocalMember(name, declaration, setter: false);
     });

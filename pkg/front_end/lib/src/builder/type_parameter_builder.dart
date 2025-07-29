@@ -369,7 +369,7 @@ void _sortAllTypeParametersTopologicallyFromRoot(TypeBuilder root,
         // TODO(johnniwinther):: Handle this case.
         case ExtensionBuilder():
         case BuiltinTypeDeclarationBuilder():
-        case InvalidTypeDeclarationBuilder():
+        case InvalidBuilder():
         case null:
       }
     case FunctionTypeBuilder(

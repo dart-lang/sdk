@@ -2964,7 +2964,7 @@ class BodyBuilder extends StackListenerImpl
       Expression? rhs,
       LocatedMessage? message,
       int? length,
-      bool suppressMessage = false}) {
+      bool errorHasBeenReported = false}) {
     // TODO(johnniwinther): Use [arguments] and [rhs] to create an unresolved
     // access expression to include in the invalid expression.
     if (length == null) {
@@ -3037,7 +3037,7 @@ class BodyBuilder extends StackListenerImpl
     }
     return buildProblem(
         message.messageObject, message.charOffset, message.length,
-        context: context, suppressMessage: suppressMessage);
+        context: context, errorHasBeenReported: errorHasBeenReported);
   }
 
   Message warnUnresolvedMember(Name name, int charOffset,
@@ -3278,7 +3278,7 @@ class BodyBuilder extends StackListenerImpl
     if (getable != null) {
       if (getable is ProblemBuilder) {
         return getable;
-      } else if (getable is InvalidTypeDeclarationBuilder) {
+      } else if (getable is InvalidBuilder) {
         return new TypeUseGenerator(
             this,
             nameToken,
@@ -3430,7 +3430,7 @@ class BodyBuilder extends StackListenerImpl
     } else {
       if (setable is ProblemBuilder) {
         return setable;
-      } else if (setable is InvalidTypeDeclarationBuilder) {
+      } else if (setable is InvalidBuilder) {
         // Coverage-ignore-block(suite): Not run.
         return new TypeUseGenerator(
             this,
@@ -4087,7 +4087,7 @@ class BodyBuilder extends StackListenerImpl
     if (generator is! Generator) {
       push(buildProblem(
           cfe.messageNotAnLvalue, offsetForToken(token), lengthForToken(token),
-          suppressMessage: generator is InvalidExpression));
+          errorHasBeenReported: generator is InvalidExpression));
     } else {
       push(new DelayedAssignment(
           this, token, generator, value, token.stringValue!));
@@ -4461,7 +4461,7 @@ class BodyBuilder extends StackListenerImpl
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(
           cfe.messageSyntheticToken, variableOrExpression.charOffset,
-          suppressMessage: true);
+          errorHasBeenReported: true);
     }
     exitLoopOrSwitch(result);
   }
@@ -6713,7 +6713,7 @@ class BodyBuilder extends StackListenerImpl
                   arguments: arguments,
                   message: message,
                   kind: UnresolvedKind.Constructor);
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
               // Coverage-ignore(suite): Not run.
@@ -6755,7 +6755,7 @@ class BodyBuilder extends StackListenerImpl
                             .withArguments(numberOfTypeParameters),
                         nameToken.charOffset,
                         nameToken.length,
-                        suppressMessage: true));
+                        errorHasBeenReported: true));
               }
               List<DartType> dartTypeArguments = [];
               for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
@@ -6772,7 +6772,7 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case null:
@@ -6826,7 +6826,7 @@ class BodyBuilder extends StackListenerImpl
                           .withArguments(numberOfTypeParameters),
                       nameToken.charOffset,
                       nameToken.length,
-                      suppressMessage: true));
+                      errorHasBeenReported: true));
             }
             List<DartType> dartTypeArguments = [];
             for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
@@ -6868,7 +6868,7 @@ class BodyBuilder extends StackListenerImpl
         case NominalParameterBuilder():
         case StructuralParameterBuilder():
         case ExtensionBuilder():
-        case InvalidTypeDeclarationBuilder():
+        case InvalidBuilder():
         // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
         case null:
@@ -6961,7 +6961,7 @@ class BodyBuilder extends StackListenerImpl
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
         LocatedMessage message = typeDeclarationBuilder.message;
         return evaluateArgumentsBefore(
             arguments,
@@ -7543,7 +7543,7 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(cfe.messageNamedFunctionExpression,
                 declaration.fileOffset, noLength,
                 // Error has already been reported by the parser.
-                suppressMessage: true))
+                errorHasBeenReported: true))
           ..fileOffset = declaration.fileOffset);
       } else {
         push(statement);
@@ -9110,9 +9110,9 @@ class BodyBuilder extends StackListenerImpl
   @override
   InvalidExpression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
-      bool suppressMessage = false,
+      bool errorHasBeenReported = false,
       Expression? expression}) {
-    if (!suppressMessage) {
+    if (!errorHasBeenReported) {
       addProblem(message, charOffset, length,
           wasHandled: true, context: context);
     }
@@ -9130,7 +9130,8 @@ class BodyBuilder extends StackListenerImpl
     if (severity == Severity.error) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, fileOffset, length),
-          context: context, suppressMessage: expression is InvalidExpression);
+          context: context,
+          errorHasBeenReported: expression is InvalidExpression);
     } else {
       // Coverage-ignore-block(suite): Not run.
       if (expression is! InvalidExpression) {
@@ -9142,7 +9143,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
-      {List<LocatedMessage>? context, bool suppressMessage = false}) {
+      {List<LocatedMessage>? context, bool errorHasBeenReported = false}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     int offset = expression.fileOffset;
@@ -9153,7 +9154,7 @@ class BodyBuilder extends StackListenerImpl
         message.messageObject, message.charOffset, message.length,
         context: context,
         expression: expression,
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   Expression buildAbstractClassInstantiationError(
@@ -9166,10 +9167,10 @@ class BodyBuilder extends StackListenerImpl
   Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage>? context,
       int? length,
-      bool suppressMessage = false}) {
+      bool errorHasBeenReported = false}) {
     length ??= noLength;
     return new ExpressionStatement(buildProblem(message, charOffset, length,
-        context: context, suppressMessage: suppressMessage));
+        context: context, errorHasBeenReported: errorHasBeenReported));
   }
 
   Statement wrapInProblemStatement(Statement statement, Message message) {
@@ -9486,10 +9487,8 @@ class BodyBuilder extends StackListenerImpl
               LocatedMessage message = cfe.messageTypeVariableInConstantContext
                   .withLocation(builder.fileUri!, builder.charOffset!,
                       typeParameter.name!.length);
-              builder.bind(
-                  libraryBuilder,
-                  new InvalidTypeDeclarationBuilder(
-                      typeParameter.name!, message));
+              builder.bind(libraryBuilder,
+                  new InvalidBuilder(typeParameter.name!, message));
               addProblem(
                   message.messageObject, message.charOffset, message.length);
             }

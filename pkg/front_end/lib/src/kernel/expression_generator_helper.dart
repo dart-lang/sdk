@@ -101,7 +101,7 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Expression? rhs,
       LocatedMessage message,
       int? length,
-      bool suppressMessage});
+      bool errorHasBeenReported});
 
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters);

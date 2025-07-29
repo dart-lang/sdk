@@ -296,7 +296,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   void _check(ProblemReporting problemReporting) {
-    if (_declaration is InvalidTypeDeclarationBuilder) {
+    if (_declaration is InvalidBuilder) {
       return;
     }
     if (typeArguments != null) {
@@ -393,11 +393,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
-      LocatedMessage message,
+  InvalidBuilder buildInvalidTypeDeclarationBuilder(LocatedMessage message,
       {List<LocatedMessage>? context}) {
-    return new InvalidTypeDeclarationBuilder(typeName.fullName, message,
-        context: context);
+    return new InvalidBuilder(typeName.fullName, message, context: context);
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
@@ -649,8 +647,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
               <DartType>[type.typeArgument]);
         }
         return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
-      case InvalidTypeDeclarationBuilder():
-        if (!declaration.suppressMessage) {
+      case InvalidBuilder():
+        if (!declaration.errorHasBeenReported) {
           // Coverage-ignore-block(suite): Not run.
           library.addProblem(
               declaration.message.messageObject,
@@ -686,8 +684,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         }
         return _handleInvalidAliasedSupertype(
             libraryBuilder, aliasBuilder, type);
-      case InvalidTypeDeclarationBuilder():
-        if (!declaration.suppressMessage) {
+      case InvalidBuilder():
+        if (!declaration.errorHasBeenReported) {
           // Coverage-ignore-block(suite): Not run.
           libraryBuilder.addProblem(
               declaration.message.messageObject,
@@ -840,7 +838,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         }
       case StructuralParameterBuilder():
       case ExtensionBuilder():
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
       case BuiltinTypeDeclarationBuilder():
     }
     return VarianceCalculationValue.calculatedUnrelated;
@@ -949,7 +947,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Handled above.
         throw new UnsupportedError("Unexpected StructuralVariableBuilder");
       // Coverage-ignore(suite): Not run.
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
         // Don't substitute.
         break;
       // Coverage-ignore(suite): Not run.
@@ -1093,7 +1091,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         case NominalParameterBuilder():
         case StructuralParameterBuilder():
         case ExtensionBuilder():
-        case InvalidTypeDeclarationBuilder():
+        case InvalidBuilder():
         case BuiltinTypeDeclarationBuilder():
       }
     } else {
@@ -1165,8 +1163,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
         super._(
             typeName: new PredefinedTypeName(name),
             nullabilityBuilder: nullabilityBuilder,
-            declaration: new InvalidTypeDeclarationBuilder(name, message,
-                context: context),
+            declaration: new InvalidBuilder(name, message, context: context),
             fileUri: message.uri,
             charOffset: message.charOffset,
             instanceTypeParameterAccess:

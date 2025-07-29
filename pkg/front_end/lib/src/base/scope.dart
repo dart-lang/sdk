@@ -339,8 +339,8 @@ NamedBuilder computeAmbiguousDeclarationForImport(
 
   // TODO(ahe): Can I move this to Scope or Prefix?
   if (declaration == other) return declaration;
-  if (declaration is InvalidTypeDeclarationBuilder) return declaration;
-  if (other is InvalidTypeDeclarationBuilder) return other;
+  if (declaration is InvalidBuilder) return declaration;
+  if (other is InvalidBuilder) return other;
   NamedBuilder? preferred;
   Uri uri = computeLibraryUri(declaration);
   Uri otherUri = computeLibraryUri(other);
@@ -369,14 +369,14 @@ NamedBuilder computeAmbiguousDeclarationForImport(
       // instead of including URIs in this message.
       firstUri,
       secondUri);
-  // We report the error lazily (setting suppressMessage to false) because the
-  // spec 18.1 states that 'It is not an error if N is introduced by two or
+  // We report the error lazily (setting errorHasBeenReported to false) because
+  // the spec 18.1 states that 'It is not an error if N is introduced by two or
   // more imports but never referred to.'
-  return new InvalidTypeDeclarationBuilder(
+  return new InvalidBuilder(
       name,
       message.withLocation(
           uriOffset.fileUri, uriOffset.fileOffset, name.length),
-      suppressMessage: false);
+      errorHasBeenReported: false);
 }
 
 // Coverage-ignore(suite): Not run.

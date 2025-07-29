@@ -545,8 +545,7 @@ class _SourceClassBodyBuilderDeclarationContext
 
   @override
   String get superClassName {
-    if (_sourceClassBuilder.supertypeBuilder?.declaration
-        is InvalidTypeDeclarationBuilder) {
+    if (_sourceClassBuilder.supertypeBuilder?.declaration is InvalidBuilder) {
       // Coverage-ignore-block(suite): Not run.
       // TODO(johnniwinther): Avoid reporting errors on missing constructors
       // on invalid super types.

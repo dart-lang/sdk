@@ -33,7 +33,7 @@ part 'class_builder.dart';
 part 'declaration_builder.dart';
 part 'extension_builder.dart';
 part 'extension_type_declaration_builder.dart';
-part 'invalid_type_declaration_builder.dart';
+part 'invalid_builder.dart';
 part 'type_alias_builder.dart';
 part 'type_declaration_builder.dart';
 part 'type_parameter_builder.dart';

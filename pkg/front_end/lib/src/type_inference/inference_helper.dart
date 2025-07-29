@@ -12,7 +12,7 @@ abstract class InferenceHelper {
 
   InvalidExpression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
-      bool suppressMessage = false,
+      bool errorHasBeenReported = false,
       Expression? expression});
 
   LocatedMessage? checkArgumentsForType(

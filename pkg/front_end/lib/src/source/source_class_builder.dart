@@ -580,7 +580,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (typeDeclarationBuilder is DeclarationBuilder) {
       return typeDeclarationBuilder.findConstructorOrFactory(
           name, accessingLibrary);
-    } else if (typeDeclarationBuilder is InvalidTypeDeclarationBuilder) {
+    } else if (typeDeclarationBuilder is InvalidBuilder) {
       return new InvalidMemberLookupResult(typeDeclarationBuilder.message);
     }
     return null;
@@ -1050,7 +1050,7 @@ class SourceClassBuilder extends ClassBuilderImpl
               InstanceTypeParameterAccessState.Unexpected)
         ..bind(
             libraryBuilder,
-            new InvalidTypeDeclarationBuilder(typeName.name,
+            new InvalidBuilder(typeName.name,
                 message.withLocation(fileUri, fileOffset, noLength)));
     }
     return supertype;

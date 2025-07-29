@@ -154,9 +154,10 @@ abstract class Generator {
   ///
   /// At runtime, an exception will be thrown.
   Expression _makeInvalidRead(
-      {required UnresolvedKind unresolvedKind, bool suppressMessage = false}) {
+      {required UnresolvedKind unresolvedKind,
+      bool errorHasBeenReported = false}) {
     return _helper.buildUnresolvedError(_plainNameForRead, fileOffset,
-        kind: unresolvedKind, suppressMessage: suppressMessage);
+        kind: unresolvedKind, errorHasBeenReported: errorHasBeenReported);
   }
 
   /// Returns an [Expression] representing a compile-time error wrapping
@@ -164,11 +165,11 @@ abstract class Generator {
   ///
   /// At runtime, [value] will be evaluated before throwing an exception.
   Expression _makeInvalidWrite(
-      {required Expression value, bool suppressMessage = false}) {
+      {required Expression value, bool errorHasBeenReported = false}) {
     return _helper.buildUnresolvedError(_plainNameForRead, fileOffset,
         rhs: value,
         kind: UnresolvedKind.Setter,
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   Expression buildForEffect() => buildSimpleRead();
@@ -2691,16 +2692,16 @@ class ExplicitExtensionAccessGenerator extends Generator {
 
   @override
   Expression _makeInvalidRead(
-      {UnresolvedKind? unresolvedKind, bool suppressMessage = false}) {
+      {UnresolvedKind? unresolvedKind, bool errorHasBeenReported = false}) {
     return _helper.buildProblem(
         messageExplicitExtensionAsExpression, fileOffset, lengthForToken(token),
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(
-      {Expression? value, bool suppressMessage = false}) {
+      {Expression? value, bool errorHasBeenReported = false}) {
     return _helper.buildProblem(
         messageExplicitExtensionAsLvalue, fileOffset, lengthForToken(token));
   }
@@ -2936,7 +2937,7 @@ class DeferredAccessGenerator extends Generator {
         performTypeCanonicalization: performTypeCanonicalization);
     LocatedMessage message;
     TypeDeclarationBuilder? declaration = type.declaration;
-    if (declaration is InvalidTypeDeclarationBuilder) {
+    if (declaration is InvalidBuilder) {
       // Coverage-ignore-block(suite): Not run.
       message = declaration.message;
     } else {
@@ -3040,7 +3041,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             token,
             // TODO(johnniwinther): InvalidTypeDeclarationBuilder is currently
             // misused for import conflict.
-            declaration is InvalidTypeDeclarationBuilder
+            declaration is InvalidBuilder
                 ? ReadOnlyAccessKind.InvalidDeclaration
                 : ReadOnlyAccessKind.TypeLiteral);
 
@@ -3097,9 +3098,8 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
   @override
   Expression get expression {
     if (_expression == null) {
-      if (declaration is InvalidTypeDeclarationBuilder) {
-        InvalidTypeDeclarationBuilder declaration =
-            this.declaration as InvalidTypeDeclarationBuilder;
+      if (declaration is InvalidBuilder) {
+        InvalidBuilder declaration = this.declaration as InvalidBuilder;
         _expression = _helper.buildProblemErrorIfConst(
             declaration.message.messageObject, fileOffset, token.length);
       } else {
@@ -3149,7 +3149,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 // Coverage-ignore(suite): Not run.
                 StructuralParameterBuilder() => false,
                 // Coverage-ignore(suite): Not run.
-                InvalidTypeDeclarationBuilder() => false,
+                InvalidBuilder() => false,
                 // Coverage-ignore(suite): Not run.
                 BuiltinTypeDeclarationBuilder() => false,
                 null => false,
@@ -3553,40 +3553,40 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
 
   @override
   Expression _makeInvalidWrite(
-      {required Expression value, bool suppressMessage = false}) {
+      {required Expression value, bool errorHasBeenReported = false}) {
     switch (kind) {
       case ReadOnlyAccessKind.ConstVariable:
         return _helper.buildProblem(
             templateCannotAssignToConstVariable.withArguments(targetName),
             fileOffset,
             lengthForToken(token),
-            suppressMessage: suppressMessage);
+            errorHasBeenReported: errorHasBeenReported);
       case ReadOnlyAccessKind.FinalVariable:
         return _helper.buildProblem(
             templateCannotAssignToFinalVariable.withArguments(targetName),
             fileOffset,
             lengthForToken(token),
-            suppressMessage: suppressMessage);
+            errorHasBeenReported: errorHasBeenReported);
       case ReadOnlyAccessKind.ExtensionThis:
         return _helper.buildProblem(messageCannotAssignToExtensionThis,
             fileOffset, lengthForToken(token),
-            suppressMessage: suppressMessage);
+            errorHasBeenReported: errorHasBeenReported);
       case ReadOnlyAccessKind.TypeLiteral:
         return _helper.buildProblem(
             messageCannotAssignToTypeLiteral, fileOffset, lengthForToken(token),
-            suppressMessage: suppressMessage);
+            errorHasBeenReported: errorHasBeenReported);
       case ReadOnlyAccessKind.ParenthesizedExpression:
         return _helper.buildProblem(
             messageCannotAssignToParenthesizedExpression,
             fileOffset,
             lengthForToken(token),
-            suppressMessage: suppressMessage);
+            errorHasBeenReported: errorHasBeenReported);
       case ReadOnlyAccessKind.LetVariable:
       case ReadOnlyAccessKind.InvalidDeclaration:
         break;
     }
-    return super
-        ._makeInvalidWrite(value: value, suppressMessage: suppressMessage);
+    return super._makeInvalidWrite(
+        value: value, errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -3661,7 +3661,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
       Expression? rhs,
       required UnresolvedKind kind,
       int? charOffset,
-      bool suppressMessage = false});
+      bool errorHasBeenReported = false});
 
   // Coverage-ignore(suite): Not run.
   Name get name => unsupported("name", fileOffset, _uri);
@@ -3741,18 +3741,20 @@ abstract class ErroneousExpressionGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidRead(
-      {required UnresolvedKind unresolvedKind, bool suppressMessage = false}) {
-    return buildError(kind: unresolvedKind, suppressMessage: suppressMessage);
+      {required UnresolvedKind unresolvedKind,
+      bool errorHasBeenReported = false}) {
+    return buildError(
+        kind: unresolvedKind, errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(
-      {required Expression value, bool suppressMessage = false}) {
+      {required Expression value, bool errorHasBeenReported = false}) {
     return buildError(
         rhs: value,
         kind: UnresolvedKind.Setter,
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -3820,21 +3822,21 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
       Expression? rhs,
       required UnresolvedKind kind,
       int? charOffset,
-      bool suppressMessage = false}) {
+      bool errorHasBeenReported = false}) {
     return _createInvalidExpression();
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidRead(
-      {UnresolvedKind? unresolvedKind, bool suppressMessage = false}) {
+      {UnresolvedKind? unresolvedKind, bool errorHasBeenReported = false}) {
     return _createInvalidExpression();
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(
-      {Expression? value, bool suppressMessage = false}) {
+      {Expression? value, bool errorHasBeenReported = false}) {
     return _createInvalidExpression();
   }
 
@@ -3922,13 +3924,13 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       Expression? rhs,
       required UnresolvedKind kind,
       int? charOffset,
-      bool suppressMessage = false}) {
+      bool errorHasBeenReported = false}) {
     charOffset ??= fileOffset;
     return _helper.buildUnresolvedError(_plainNameForRead, charOffset,
         arguments: arguments,
         rhs: rhs,
         kind: kind,
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4037,17 +4039,17 @@ abstract class ContextAwareGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   Never _makeInvalidRead(
-      {UnresolvedKind? unresolvedKind, bool suppressMessage = false}) {
+      {UnresolvedKind? unresolvedKind, bool errorHasBeenReported = false}) {
     return unsupported("makeInvalidRead", token.charOffset, _helper.uri);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(
-      {Expression? value, bool suppressMessage = false}) {
+      {Expression? value, bool errorHasBeenReported = false}) {
     return _helper.buildProblem(messageIllegalAssignmentToNonAssignable,
         fileOffset, lengthForToken(token),
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4296,16 +4298,16 @@ class PrefixUseGenerator extends Generator {
 
   @override
   Expression _makeInvalidRead(
-      {UnresolvedKind? unresolvedKind, bool suppressMessage = false}) {
+      {UnresolvedKind? unresolvedKind, bool errorHasBeenReported = false}) {
     return _helper.buildProblem(
         messageCantUsePrefixAsExpression, fileOffset, lengthForToken(token),
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
   Expression _makeInvalidWrite(
-          {Expression? value, bool suppressMessage = false}) =>
-      _makeInvalidRead(suppressMessage: suppressMessage);
+          {Expression? value, bool errorHasBeenReported = false}) =>
+      _makeInvalidRead(errorHasBeenReported: errorHasBeenReported);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -4347,13 +4349,13 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   @override
   Expression buildSimpleRead() => _makeInvalidRead(
       unresolvedKind: UnresolvedKind.Member,
-      suppressMessage: errorHasBeenReported);
+      errorHasBeenReported: errorHasBeenReported);
 
   @override
   // Coverage-ignore(suite): Not run.
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     return _makeInvalidWrite(
-        value: value, suppressMessage: errorHasBeenReported);
+        value: value, errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4362,7 +4364,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
       {bool voidContext = false}) {
     return _makeInvalidRead(
         unresolvedKind: UnresolvedKind.Member,
-        suppressMessage: errorHasBeenReported);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4374,7 +4376,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
       bool isPostIncDec = false}) {
     return _makeInvalidRead(
         unresolvedKind: UnresolvedKind.Member,
-        suppressMessage: errorHasBeenReported);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4383,7 +4385,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
       {int offset = TreeNode.noOffset, bool voidContext = false}) {
     return _makeInvalidRead(
         unresolvedKind: UnresolvedKind.Member,
-        suppressMessage: errorHasBeenReported);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4394,7 +4396,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
     return _helper.buildUnresolvedError(_plainNameForRead, fileOffset,
         arguments: arguments,
         kind: UnresolvedKind.Method,
-        suppressMessage: errorHasBeenReported);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4431,7 +4433,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
         .constructorNameForDiagnostics(name, className: _plainNameForRead));
     return _helper.buildProblem(message, offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, nameLastToken),
-        suppressMessage: errorHasBeenReported);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override
@@ -4476,7 +4478,7 @@ class ParserErrorGenerator extends Generator {
   static Expression buildProblemExpression(
       ExpressionGeneratorHelper _helper, Message message, int fileOffset) {
     return _helper.buildProblem(message, fileOffset, noLength,
-        suppressMessage: true);
+        errorHasBeenReported: true);
   }
 
   @override
@@ -4521,13 +4523,14 @@ class ParserErrorGenerator extends Generator {
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidRead(
-          {UnresolvedKind? unresolvedKind, bool suppressMessage = false}) =>
+          {UnresolvedKind? unresolvedKind,
+          bool errorHasBeenReported = false}) =>
       buildProblem();
 
   @override
   // Coverage-ignore(suite): Not run.
   Expression _makeInvalidWrite(
-          {Expression? value, bool suppressMessage = false}) =>
+          {Expression? value, bool errorHasBeenReported = false}) =>
       buildProblem();
 
   @override
@@ -4958,14 +4961,14 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
       String? name,
       int? charOffset,
       int? charLength,
-      bool suppressMessage = false}) {
+      bool errorHasBeenReported = false}) {
     if (charOffset == null) {
       charOffset = fileOffset;
       charLength ??= lengthForToken(token);
     }
     charLength ??= noLength;
     return _helper.buildProblem(message, charOffset, charLength,
-        suppressMessage: suppressMessage);
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   @override

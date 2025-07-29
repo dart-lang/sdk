@@ -3119,7 +3119,7 @@ class OutlineBuilder extends StackListenerImpl {
           addProblem(
               messageTypedefNullableType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              new InvalidTypeDeclarationBuilder(
+              new InvalidBuilder(
                   identifier.name,
                   messageTypedefNullableType.withLocation(
                       uri, equals.charOffset, equals.length)),
@@ -3140,7 +3140,7 @@ class OutlineBuilder extends StackListenerImpl {
         } else {
           addProblem(messageTypedefNotType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              new InvalidTypeDeclarationBuilder(
+              new InvalidBuilder(
                   "${name}",
                   messageTypedefNotType.withLocation(
                       uri, equals.charOffset, equals.length)),
@@ -3155,7 +3155,7 @@ class OutlineBuilder extends StackListenerImpl {
           addProblem(
               messageTypedefNotFunction, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              new InvalidTypeDeclarationBuilder(
+              new InvalidBuilder(
                   identifier.name,
                   messageTypedefNotFunction.withLocation(
                       uri, equals.charOffset, equals.length)),
@@ -3165,7 +3165,7 @@ class OutlineBuilder extends StackListenerImpl {
         } else {
           addProblem(messageTypedefNotType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-              new InvalidTypeDeclarationBuilder(
+              new InvalidBuilder(
                   identifier.name,
                   messageTypedefNotType.withLocation(
                       uri, equals.charOffset, equals.length)),

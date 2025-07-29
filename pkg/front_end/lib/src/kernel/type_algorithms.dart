@@ -375,7 +375,7 @@ List<List<RawTypeCycleElement>> _findRawTypePathsToDeclaration(
             case StructuralParameterBuilder():
               // Do nothing.
               break;
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
               // Do nothing.
               break;
             case BuiltinTypeDeclarationBuilder():

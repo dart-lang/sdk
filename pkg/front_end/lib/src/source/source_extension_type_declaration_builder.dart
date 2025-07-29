@@ -478,7 +478,7 @@ class SourceExtensionTypeDeclarationBuilder
               typeParameters = declaration.typeParameters;
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
             case ExtensionBuilder():
             case TypeParameterBuilder():
           }
@@ -673,7 +673,7 @@ class SourceExtensionTypeDeclarationBuilder
       // Coverage-ignore(suite): Not run.
       case BuiltinTypeDeclarationBuilder():
       // Coverage-ignore(suite): Not run.
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
       case null:
         return nullability;
     }

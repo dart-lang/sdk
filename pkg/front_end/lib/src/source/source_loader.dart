@@ -1287,7 +1287,7 @@ severity: $severity
           case TypeAliasBuilder():
           case NominalParameterBuilder():
           case StructuralParameterBuilder():
-          case InvalidTypeDeclarationBuilder():
+          case InvalidBuilder():
           case BuiltinTypeDeclarationBuilder():
         }
       }
@@ -1824,8 +1824,8 @@ severity: $severity
                           declaration.fileOffset, noLength),
                     ]
                   : null);
-        case InvalidTypeDeclarationBuilder():
-          if (!unaliasedDeclaration.suppressMessage) {
+        case InvalidBuilder():
+          if (!unaliasedDeclaration.errorHasBeenReported) {
             // Coverage-ignore-block(suite): Not run.
             classBuilder.libraryBuilder.addProblem(
                 templateIllegalMixin
@@ -2612,7 +2612,7 @@ severity: $severity
     Builder? mainBuilder = result?.getable;
     mainBuilder ??= result?.setable;
     if (mainBuilder is MemberBuilder) {
-      if (mainBuilder is InvalidTypeDeclarationBuilder) {
+      if (mainBuilder is InvalidBuilder) {
         // This is an ambiguous export, skip the check.
         return;
       }
