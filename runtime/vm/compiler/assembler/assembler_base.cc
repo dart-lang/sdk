@@ -60,7 +60,7 @@ void AssemblerBase::LoadFromSlot(Register dst,
   } else {
     if (slot.is_compressed()) {
       if (memory_order == kAcquire) {
-        LoadAcquireCompressedFromOffset(dst, base, slot.offset_in_bytes());
+        LoadAcquireCompressedFieldFromOffset(dst, base, slot.offset_in_bytes());
       } else {
         LoadCompressedFieldFromOffset(dst, base, slot.offset_in_bytes());
       }
@@ -185,6 +185,11 @@ void AssemblerBase::LoadAcquireCompressedFromOffset(Register dst,
                                                     Register base,
                                                     int32_t offset) {
   LoadAcquireCompressed(dst, Address(base, offset));
+}
+void AssemblerBase::LoadAcquireCompressedFieldFromOffset(Register dst,
+                                                         Register base,
+                                                         int32_t offset) {
+  LoadAcquireCompressed(dst, FieldAddress(base, offset));
 }
 void AssemblerBase::LoadCompressedField(Register dst,
                                         const FieldAddress& address) {

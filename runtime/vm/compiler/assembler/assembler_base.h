@@ -1060,6 +1060,9 @@ class AssemblerBase : public StackResource {
   void LoadAcquireCompressedFromOffset(Register dst,
                                        Register base,
                                        int32_t offset);
+  void LoadAcquireCompressedFieldFromOffset(Register dst,
+                                            Register base,
+                                            int32_t offset);
   void LoadCompressedField(Register dst, const FieldAddress& address);
   void LoadCompressedFromOffset(Register dst, Register base, int32_t offset);
   void LoadCompressedFieldFromOffset(Register dst,
