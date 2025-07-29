@@ -45,12 +45,12 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
   Register data_reg, code_reg;
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
-      pc - 2 * Instr::kInstrSize, &data_reg, &code_reg, &pool_index);
+      pc - 2 * Instr::kInstrSize, &code_reg, &data_reg, &pool_index);
   ASSERT(data_reg == R5);
   ASSERT(IsBranchLinkScratch(code_reg));
 
-  data_pool_index_ = pool_index;
-  target_pool_index_ = pool_index + 1;
+  target_pool_index_ = pool_index;
+  data_pool_index_ = pool_index + 1;
 }
 
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
@@ -416,17 +416,16 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   Register ic_data_reg, code_reg;
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
-      pc - 2 * Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
+      pc - 2 * Instr::kInstrSize, &code_reg, &ic_data_reg, &pool_index);
   ASSERT(ic_data_reg == R5);
   ASSERT(IsBranchLinkScratch(code_reg));
 
-  data_pool_index_ = pool_index;
-  target_pool_index_ = pool_index + 1;
+  target_pool_index_ = pool_index;
+  data_pool_index_ = pool_index + 1;
 }
 
-uword SwitchableCallPattern::target_entry() const {
-  return Code::Handle(Code::RawCast(object_pool_.ObjectAt(target_pool_index_)))
-      .MonomorphicEntryPoint();
+ObjectPtr SwitchableCallPattern::target() const {
+  return object_pool_.ObjectAt(target_pool_index_);
 }
 
 void SwitchableCallPattern::SetTarget(const Code& target) const {
@@ -443,12 +442,12 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc)
   Register ic_data_reg, code_reg;
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
-      pc - Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
+      pc - Instr::kInstrSize, &code_reg, &ic_data_reg, &pool_index);
   ASSERT(ic_data_reg == R5);
   ASSERT(code_reg == LINK_REGISTER);
 
-  data_pool_index_ = pool_index;
-  target_pool_index_ = pool_index + 1;
+  target_pool_index_ = pool_index;
+  data_pool_index_ = pool_index + 1;
 }
 
 uword BareSwitchableCallPattern::target_entry() const {

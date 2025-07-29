@@ -45,8 +45,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
 
   // Code is generated, but not executed. Just parsed with CodePatcher.
   __ set_constant_pool_allowed(true);  // Uninitialized pp is OK.
-  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   __ LoadUniqueObject(CODE_REG, stub);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   __ Call(compiler::FieldAddress(
       CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
   __ ret();

@@ -30,18 +30,16 @@ void CodeBreakpoint::PatchCode() {
                                        StubCode::ICCallBreakpoint());
       break;
     }
-    case UntaggedPcDescriptors::kUnoptStaticCall: {
+    case UntaggedPcDescriptors::kUnoptStaticCall:
       saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-      CodePatcher::PatchPoolPointerCallAt(
-          pc_, code, StubCode::UnoptStaticCallBreakpoint());
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     StubCode::UnoptStaticCallBreakpoint());
       break;
-    }
-    case UntaggedPcDescriptors::kRuntimeCall: {
+    case UntaggedPcDescriptors::kRuntimeCall:
       saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           StubCode::RuntimeCallBreakpoint());
       break;
-    }
     default:
       UNREACHABLE();
   }
@@ -59,11 +57,12 @@ void CodeBreakpoint::RestoreCode() {
       break;
     }
     case UntaggedPcDescriptors::kUnoptStaticCall:
-    case UntaggedPcDescriptors::kRuntimeCall: {
+      CodePatcher::PatchStaticCallAt(pc_, code, Code::Handle(saved_value_));
+      break;
+    case UntaggedPcDescriptors::kRuntimeCall:
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           Code::Handle(saved_value_));
       break;
-    }
     default:
       UNREACHABLE();
   }

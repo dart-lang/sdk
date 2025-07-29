@@ -48,12 +48,12 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   SPILLS_LR_TO_FRAME({});              // Clobbered LR is OK.
 
   compiler::ObjectPoolBuilder& op = __ object_pool_builder();
-  const intptr_t ic_data_index =
-      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
   const intptr_t stub_index =
       op.AddObject(stub, ObjectPool::Patchability::kPatchable);
-  ASSERT((ic_data_index + 1) == stub_index);
-  __ LoadDoubleWordFromPoolIndex(R5, CODE_REG, ic_data_index);
+  const intptr_t ic_data_index =
+      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
+  ASSERT((stub_index + 1) == ic_data_index);
+  __ LoadDoubleWordFromPoolIndex(CODE_REG, R5, stub_index);
   __ Call(compiler::FieldAddress(
       CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
   RESTORES_LR_FROM_FRAME({});  // Clobbered LR is OK.

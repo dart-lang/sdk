@@ -69,8 +69,6 @@ class CodePatcher : public AllStatic {
                                                 const Code& code,
                                                 ICData* ic_data);
 
-  static void InsertDeoptimizationCallAt(uword start);
-
   static void PatchPoolPointerCallAt(uword return_address,
                                      const Code& code,
                                      const Code& new_target);
@@ -86,6 +84,8 @@ class CodePatcher : public AllStatic {
                                                        const Code& target);
   static ObjectPtr GetSwitchableCallDataAt(uword return_address,
                                            const Code& caller_code);
+  static ObjectPtr GetSwitchableCallTargetAt(uword return_address,
+                                             const Code& caller_code);
   static uword GetSwitchableCallTargetEntryAt(uword return_address,
                                               const Code& caller_code);
 

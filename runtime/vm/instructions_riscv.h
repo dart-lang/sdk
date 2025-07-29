@@ -140,7 +140,7 @@ class SwitchableCallPattern : public SwitchableCallPatternBase {
  public:
   SwitchableCallPattern(uword pc, const Code& code);
 
-  uword target_entry() const;
+  ObjectPtr target() const;
   void SetTarget(const Code& target) const;
 
  private:

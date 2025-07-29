@@ -27,8 +27,12 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
   call.SetTargetCode(new_target);
 }
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start) {
-  UNREACHABLE();
+void CodePatcher::PatchPoolPointerCallAt(uword return_address,
+                                         const Code& code,
+                                         const Code& new_target) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern call(return_address, code);
+  call.SetTargetCode(new_target);
 }
 
 CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
@@ -107,14 +111,23 @@ void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
   }
 }
 
+ObjectPtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                                 const Code& caller_code) {
+  if (FLAG_precompiled_mode) {
+    UNREACHABLE();
+  } else {
+    SwitchableCallPattern call(return_address, caller_code);
+    return call.target();
+  }
+}
+
 uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
                                                   const Code& caller_code) {
   if (FLAG_precompiled_mode) {
     BareSwitchableCallPattern call(return_address);
     return call.target_entry();
   } else {
-    SwitchableCallPattern call(return_address, caller_code);
-    return call.target_entry();
+    UNREACHABLE();
   }
 }
 
