@@ -36,11 +36,11 @@ DEFINE_NATIVE_ENTRY(Object_equals, 0, 1) {
   return Object::null();
 }
 
-static intptr_t GetHash(Isolate* isolate, const ObjectPtr obj) {
+static intptr_t GetHash(IsolateGroup* isolate_group, const ObjectPtr obj) {
 #if defined(HASH_IN_OBJECT_HEADER)
   return Object::GetCachedHash(obj);
 #else
-  Heap* heap = isolate->group()->heap();
+  Heap* heap = isolate_group->heap();
   ASSERT(obj->IsDartInstance());
   return heap->GetHash(obj);
 #endif
@@ -50,7 +50,7 @@ DEFINE_NATIVE_ENTRY(Object_getHash, 0, 1) {
   // Please note that no handle is created for the argument.
   // This is safe since the argument is only used in a tail call.
   // The performance benefit is more than 5% when using hashCode.
-  intptr_t hash = GetHash(isolate, arguments->NativeArgAt(0));
+  intptr_t hash = GetHash(thread->isolate_group(), arguments->NativeArgAt(0));
   if (LIKELY(hash != 0)) {
     return Smi::New(hash);
   }
@@ -269,8 +269,9 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_loadingUnit, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_issueLoad, 0, 1) {
   const Smi& id = Smi::CheckedHandle(zone, arguments->NativeArgAt(0));
+  auto isolate_group = thread->isolate_group();
   Array& units =
-      Array::Handle(zone, isolate->group()->object_store()->loading_units());
+      Array::Handle(zone, isolate_group->object_store()->loading_units());
   if (units.IsNull()) {
     // Not actually split.
     const Library& lib = Library::Handle(zone, Library::CoreLibrary());
@@ -300,8 +301,9 @@ DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
-  isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
-                                              /*compact=*/true);
+  auto isolate_group = thread->isolate_group();
+  isolate_group->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                           /*compact=*/true);
   return Object::null();
 }
 
@@ -311,26 +313,28 @@ DEFINE_NATIVE_ENTRY(Internal_deoptimizeFunctionsOnStack, 0, 0) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_allocateObjectInstructionsStart, 0, 0) {
-  auto& stub = Code::Handle(
-      zone, isolate->group()->object_store()->allocate_object_stub());
+  auto isolate_group = thread->isolate_group();
+  auto& stub =
+      Code::Handle(zone, isolate_group->object_store()->allocate_object_stub());
   ASSERT(!stub.IsUnknownDartCode());
   // We return the start offset in the isolate instructions instead of the
   // full address because that fits into small Smis on 32-bit architectures
   // or compressed pointer builds.
   const uword instructions_start =
-      reinterpret_cast<uword>(isolate->source()->snapshot_instructions);
+      reinterpret_cast<uword>(isolate_group->source()->snapshot_instructions);
   return Smi::New(stub.PayloadStart() - instructions_start);
 }
 
 DEFINE_NATIVE_ENTRY(Internal_allocateObjectInstructionsEnd, 0, 0) {
-  auto& stub = Code::Handle(
-      zone, isolate->group()->object_store()->allocate_object_stub());
+  auto isolate_group = thread->isolate_group();
+  auto& stub =
+      Code::Handle(zone, isolate_group->object_store()->allocate_object_stub());
   ASSERT(!stub.IsUnknownDartCode());
   // We return the end offset in the isolate instructions instead of the
   // full address because that fits into small Smis on 32-bit architectures
   // or compressed pointer builds.
   const uword instructions_start =
-      reinterpret_cast<uword>(isolate->source()->snapshot_instructions);
+      reinterpret_cast<uword>(isolate_group->source()->snapshot_instructions);
   return Smi::New((stub.PayloadStart() - instructions_start) + stub.Size());
 }
 
