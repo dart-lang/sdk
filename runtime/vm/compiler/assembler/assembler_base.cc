@@ -31,7 +31,8 @@ AssemblerBase::~AssemblerBase() {}
 
 void AssemblerBase::LoadFromSlot(Register dst,
                                  Register base,
-                                 const Slot& slot) {
+                                 const Slot& slot,
+                                 MemoryOrder memory_order) {
   if (!slot.is_tagged()) {
     // The result cannot be a floating point or SIMD value.
     ASSERT(slot.representation() == kUntagged ||
@@ -58,9 +59,17 @@ void AssemblerBase::LoadFromSlot(Register dst,
     }
   } else {
     if (slot.is_compressed()) {
-      LoadCompressedFieldFromOffset(dst, base, slot.offset_in_bytes());
+      if (memory_order == kAcquire) {
+        LoadAcquireCompressedFromOffset(dst, base, slot.offset_in_bytes());
+      } else {
+        LoadCompressedFieldFromOffset(dst, base, slot.offset_in_bytes());
+      }
     } else {
-      LoadFieldFromOffset(dst, base, slot.offset_in_bytes());
+      if (memory_order == kAcquire) {
+        LoadAcquire(dst, FieldAddress(base, slot.offset_in_bytes()));
+      } else {
+        LoadFieldFromOffset(dst, base, slot.offset_in_bytes());
+      }
     }
   }
 }

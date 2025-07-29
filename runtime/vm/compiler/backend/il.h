@@ -8126,7 +8126,9 @@ class LoadFieldInstr : public TemplateLoadField<1> {
                  InnerPointerAccess loads_inner_pointer,
                  const InstructionSource& source,
                  bool calls_initializer = false,
-                 intptr_t deopt_id = DeoptId::kNone)
+                 intptr_t deopt_id = DeoptId::kNone,
+                 compiler::Assembler::MemoryOrder memory_order =
+                     compiler::Assembler::kRelaxedNonAtomic)
       : TemplateLoadField(source,
                           calls_initializer
                               ? SlowPathOnSentinelValue::kCallInitializer
@@ -8134,6 +8136,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
                           deopt_id,
                           slot.IsDartField() ? &slot.field() : nullptr),
         slot_(slot),
+        memory_order_(memory_order),
         loads_inner_pointer_(loads_inner_pointer) {
     switch (loads_inner_pointer) {
       case InnerPointerAccess::kNotUntagged:
@@ -8240,6 +8243,7 @@ class LoadFieldInstr : public TemplateLoadField<1> {
 
 #define FIELD_LIST(F)                                                          \
   F(const Slot&, slot_)                                                        \
+  F(compiler::Assembler::MemoryOrder, memory_order_)                           \
   F(InnerPointerAccess, loads_inner_pointer_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(LoadFieldInstr,

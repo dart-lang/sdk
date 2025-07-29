@@ -907,7 +907,6 @@ const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
   V(ReceivePort_getSendPort, ReceivePort_send_port)                            \
   V(ReceivePort_getHandler, ReceivePort_handler)                               \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
-  V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
   V(LinkedHashBase_getData, LinkedHashBase_data)                               \
   V(LinkedHashBase_getDeletedKeys, LinkedHashBase_deleted_keys)                \
   V(LinkedHashBase_getHashMask, LinkedHashBase_hash_mask)                      \
@@ -924,6 +923,9 @@ const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
   V(WeakProperty_getKey, WeakProperty_key)                                     \
   V(WeakProperty_getValue, WeakProperty_value)                                 \
   V(WeakReference_getTarget, WeakReference_target)
+
+#define LOAD_ACQUIRE_NATIVE_FIELD(V)                                           \
+  V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)
 
 #define STORE_NATIVE_FIELD(V)                                                  \
   V(Finalizer_setCallback, Finalizer_callback)                                 \
@@ -1115,6 +1117,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kDouble_hashCode:
 #define CASE(method, slot) case MethodRecognizer::k##method:
       LOAD_NATIVE_FIELD(CASE)
+      LOAD_ACQUIRE_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD_NO_BARRIER(CASE)
 #undef CASE
@@ -1924,6 +1927,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     body += LoadNativeField(Slot::slot());                                     \
     break;
       LOAD_NATIVE_FIELD(IL_BODY)
+#undef IL_BODY
+#define IL_BODY(method, slot)                                                  \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 1);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body +=                                                                    \
+        LoadNativeField(Slot::slot(), false, compiler::Assembler::kAcquire);   \
+    break;
+      LOAD_ACQUIRE_NATIVE_FIELD(IL_BODY)
 #undef IL_BODY
 #define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \

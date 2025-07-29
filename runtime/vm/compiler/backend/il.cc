@@ -4685,10 +4685,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   auto const rep = slot().representation();
   if (calls_initializer()) {
-    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot());
+    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
     EmitNativeCodeForInitializerCall(compiler);
   } else if (rep == kTagged || rep == kUntagged) {
-    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot());
+    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     const size_t value_size = RepresentationUtils::ValueSize(rep);
     if (value_size <= compiler::target::kWordSize) {
