@@ -257,8 +257,15 @@ Future<List<String>> runOutput(
   String executable,
   List<String> args, {
   bool ignoreStdErr = false,
+  bool printStdout = true,
+  bool printStderr = true,
 }) async {
-  final result = await runHelper(executable, args);
+  final result = await runHelper(
+    executable,
+    args,
+    printStdout: printStdout,
+    printStderr: printStderr,
+  );
 
   if (result.exitCode != 0) {
     throw 'Command failed with unexpected exit code (was ${result.exitCode})';
@@ -271,8 +278,18 @@ Future<List<String>> runOutput(
   return LineSplitter.split(result.stdout).toList(growable: false);
 }
 
-Future<List<String>> runError(String executable, List<String> args) async {
-  final result = await runHelper(executable, args);
+Future<List<String>> runError(
+  String executable,
+  List<String> args, {
+  bool printStdout = true,
+  bool printStderr = true,
+}) async {
+  final result = await runHelper(
+    executable,
+    args,
+    printStdout: printStdout,
+    printStderr: printStderr,
+  );
 
   if (result.exitCode == 0) {
     throw 'Command did not fail with non-zero exit code';
