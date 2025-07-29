@@ -146,7 +146,8 @@ class CreateField extends CreateFieldOrGetter {
     }
     _fieldName = nameNode.name;
     // Prepare target `Expression`.
-    var target = switch (nameNode.parent) {
+    var parent = nameNode.parent;
+    var target = switch (parent) {
       PrefixedIdentifier(:var prefix) => prefix,
       PropertyAccess(:var realTarget) => realTarget,
       _ => null,
@@ -165,6 +166,12 @@ class CreateField extends CreateFieldOrGetter {
         }
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
+    } else if (parent is DotShorthandPropertyAccess) {
+      targetClassElement = computeDotShorthandContextTypeElement(
+        node,
+        unitResult.libraryElement,
+      );
+      staticModifier = true;
     } else {
       targetClassElement = node.enclosingInterfaceElement;
       staticModifier = inStaticContext;

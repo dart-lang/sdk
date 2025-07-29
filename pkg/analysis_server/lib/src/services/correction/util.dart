@@ -18,8 +18,8 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
 
-/// Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include
-/// [node].
+/// Climbs up [PrefixedIdentifier], [PropertyAccess], and
+/// [DotShorthandPropertyAccess] nodes that include [node].
 Expression climbPropertyAccess(Expression node) {
   while (true) {
     var parent = node.parent;
@@ -28,6 +28,10 @@ Expression climbPropertyAccess(Expression node) {
       continue;
     }
     if (parent is PropertyAccess && parent.propertyName == node) {
+      node = parent;
+      continue;
+    }
+    if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
       node = parent;
       continue;
     }
