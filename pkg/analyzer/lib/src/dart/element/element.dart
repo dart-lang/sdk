@@ -4839,6 +4839,10 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
+  /// This callback is set during mixins inference to handle reentrant calls.
+  List<InterfaceTypeImpl>? Function(InterfaceElementImpl)?
+  mixinInferenceCallback;
+
   /// A flag indicating whether the types associated with the instance members
   /// of this class have been inferred.
   bool hasBeenInferred = false;
@@ -5202,10 +5206,6 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   /// class.
   List<InterfaceTypeImpl> _interfaces = const [];
 
-  /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceTypeImpl>? Function(InterfaceFragmentImpl)?
-  mixinInferenceCallback;
-
   InterfaceTypeImpl? _supertype;
 
   List<ConstructorFragmentImpl> _constructors = _Sentinel.constructorFragment;
@@ -5282,8 +5282,8 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
 
   @override
   List<InterfaceTypeImpl> get mixins {
-    if (mixinInferenceCallback != null) {
-      var mixins = mixinInferenceCallback!(this);
+    if (element.mixinInferenceCallback case var mixinInferenceCallback?) {
+      var mixins = mixinInferenceCallback(element);
       if (mixins != null) {
         return _mixins = mixins;
       }
