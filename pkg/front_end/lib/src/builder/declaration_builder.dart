@@ -18,8 +18,8 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   Uri get fileUri;
 
   /// Lookup a member accessed statically through this declaration.
-  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
-      LibraryBuilder accessingLibrary);
+  MemberLookupResult? findStaticBuilder(String name, int fileOffset,
+      Uri fileUri, LibraryBuilder accessingLibrary);
 
   MemberLookupResult? findConstructorOrFactory(
       String name, LibraryBuilder accessingLibrary);

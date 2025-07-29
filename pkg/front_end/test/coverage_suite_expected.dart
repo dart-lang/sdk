@@ -185,7 +185,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/lookup_result.dart": (
-    hitCount: 59,
+    hitCount: 43,
     missCount: 0,
   ),
   // 100.0%.
@@ -200,7 +200,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/name_space.dart": (
-    hitCount: 161,
+    hitCount: 146,
     missCount: 0,
   ),
   // 100.0%.
@@ -255,7 +255,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/builder_mixins.dart": (
-    hitCount: 33,
+    hitCount: 34,
     missCount: 0,
   ),
   // 100.0%.
@@ -435,12 +435,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_class_builder.dart": (
-    hitCount: 203,
+    hitCount: 258,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_extension_builder.dart": (
-    hitCount: 113,
+    hitCount: 116,
     missCount: 0,
   ),
   // 100.0%.
@@ -450,7 +450,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_extension_type_declaration_builder.dart": (
-    hitCount: 207,
+    hitCount: 213,
     missCount: 0,
   ),
   // 100.0%.
@@ -460,7 +460,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_library_builder.dart": (
-    hitCount: 351,
+    hitCount: 366,
     missCount: 0,
   ),
   // 100.0%.

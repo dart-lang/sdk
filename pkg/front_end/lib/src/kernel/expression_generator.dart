@@ -3208,7 +3208,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       }
     }
     if (declarationBuilder is DeclarationBuilder) {
-      LookupResult? result = declarationBuilder.findStaticBuilder(
+      MemberLookupResult? result = declarationBuilder.findStaticBuilder(
           name.text, nameOffset, _uri, _helper.libraryBuilder);
       if (result != null && result.isInvalidLookup) {
         return new DuplicateDeclarationGenerator(

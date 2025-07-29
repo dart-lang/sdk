@@ -118,7 +118,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   final LibraryNameSpaceBuilder _libraryNameSpaceBuilder;
 
-  SourceLibraryNameSpace? _libraryNameSpace;
+  LibraryNameSpace? _libraryNameSpace;
   late final List<NamedBuilder> _memberBuilders;
 
   final ComputedMutableNameSpace _exportNameSpace;

@@ -21,15 +21,18 @@ import 'type_builder.dart';
 mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Lookup a static member of this declaration.
   @override
-  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
-      LibraryBuilder accessingLibrary) {
+  MemberLookupResult? findStaticBuilder(String name, int fileOffset,
+      Uri fileUri, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    return nameSpace.lookupLocal(name,
-        fileUri: fileUri, fileOffset: fileOffset, staticOnly: true);
+    MemberLookupResult? result = nameSpace.lookupLocalMember(name);
+    if (result != null && !result.isStatic) {
+      result = null;
+    }
+    return result;
   }
 
   @override

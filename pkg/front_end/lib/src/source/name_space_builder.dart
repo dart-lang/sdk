@@ -142,7 +142,7 @@ class LibraryNameSpaceBuilder {
     _fragments.addAll(other._fragments);
   }
 
-  SourceLibraryNameSpace toNameSpace({
+  LibraryNameSpace toNameSpace({
     required SourceLibraryBuilder enclosingLibraryBuilder,
     required IndexedLibrary? indexedLibrary,
     required ProblemReporting problemReporting,
@@ -173,7 +173,7 @@ class LibraryNameSpaceBuilder {
     for (MapEntry<String, List<Fragment>> entry in fragmentsByName.entries) {
       builderFactory.computeBuildersByName(entry.key, fragments: entry.value);
     }
-    return new SourceLibraryNameSpace(
+    return new LibraryNameSpace(
         content: builderRegistry.content,
         extensions: builderRegistry.extensions);
   }

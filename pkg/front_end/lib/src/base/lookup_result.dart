@@ -66,10 +66,7 @@ abstract class LookupResult {
   /// instance members if [staticOnly] is `true`, and creates an
   /// [AmbiguousBuilder] for duplicates using [fileUri] and [fileOffset].
   static LookupResult? createProcessedResult(LookupResult? result,
-      {required String name,
-      required Uri fileUri,
-      required int fileOffset,
-      required bool staticOnly}) {
+      {required String name, required Uri fileUri, required int fileOffset}) {
     if (result == null) return null;
     NamedBuilder? getable = result.getable;
     NamedBuilder? setable = result.setable;
@@ -80,10 +77,6 @@ abstract class LookupResult {
         getable = new AmbiguousBuilder(name, getable, fileOffset, fileUri);
         changed = true;
       }
-      if (staticOnly && getable.isDeclarationInstanceMember) {
-        getable = null;
-        changed = true;
-      }
     }
     if (setable != null) {
       if (setable.next != null) {
@@ -91,15 +84,12 @@ abstract class LookupResult {
         setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
         changed = true;
       }
-      if (staticOnly && setable.isDeclarationInstanceMember) {
-        setable = null;
-        changed = true;
-      }
     }
     if (!changed) {
       return result;
     }
 
+    // Coverage-ignore(suite): Not run.
     return _fromBuilders(getable, setable, assertNoGetterSetterConflict: true);
   }
 
@@ -153,32 +143,6 @@ abstract class LookupResult {
       } else {
         return null;
       }
-    }
-  }
-
-  static void addNamedBuilder(
-      Map<String, LookupResult> content, String name, NamedBuilder member,
-      {required bool setter}) {
-    LookupResult? existing = content[name];
-    if (existing != null) {
-      if (setter) {
-        assert(existing.getable != null,
-            "No existing getable for $name: $existing, trying to add $member.");
-        content[name] = new GetableSetableResult(existing.getable!, member);
-        return;
-      } else {
-        assert(existing.setable != null,
-            "No existing setable for $name: $existing, trying to add $member.");
-        content[name] = new GetableSetableResult(member, existing.setable!);
-        return;
-      }
-    }
-    if (member is LookupResult) {
-      content[name] = member as LookupResult;
-    } else {
-      // Coverage-ignore-block(suite): Not run.
-      content[name] =
-          setter ? new SetableResult(member) : new GetableResult(member);
     }
   }
 }
@@ -273,6 +237,22 @@ class GetableSetableResult with LookupResultMixin implements LookupResult {
   final NamedBuilder setable;
 
   GetableSetableResult(this.getable, this.setable);
+}
+
+class GetableSetableMemberResult
+    with LookupResultMixin
+    implements MemberLookupResult {
+  @override
+  final MemberBuilder getable;
+
+  @override
+  final MemberBuilder setable;
+
+  @override
+  final bool isStatic;
+
+  GetableSetableMemberResult(this.getable, this.setable,
+      {required this.isStatic});
 }
 
 mixin LookupResultMixin implements LookupResult {

@@ -141,7 +141,7 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   @override
   LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
     return _nameSpace.lookupLocal(name,
-            fileUri: fileUri, fileOffset: fileOffset, staticOnly: false) ??
+            fileUri: fileUri, fileOffset: fileOffset) ??
         _parent?.lookup(name, fileOffset, fileUri);
   }
 
