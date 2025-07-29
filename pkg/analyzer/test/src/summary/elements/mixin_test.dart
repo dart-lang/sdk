@@ -189,6 +189,7 @@ library
               firstFragment: #F18
               type: T
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::f
         s
           reference: <testLibrary>::@mixin::M::@setter::s
           firstFragment: #F19
@@ -197,6 +198,7 @@ library
               firstFragment: #F20
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::s
       methods
         m
           reference: <testLibrary>::@mixin::M::@method::m
@@ -1484,6 +1486,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -1534,6 +1537,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -2508,7 +2512,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2668,7 +2671,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2866,7 +2868,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3064,7 +3065,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3260,7 +3260,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3414,7 +3413,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3539,7 +3537,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3733,7 +3730,6 @@ mixin A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3945,7 +3941,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4086,7 +4081,6 @@ mixin A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4245,7 +4239,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4405,7 +4398,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4596,7 +4588,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4756,7 +4747,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5956,7 +5946,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6115,7 +6104,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6274,7 +6262,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7736,7 +7723,6 @@ mixin A implements I {}
 class I {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7811,7 +7797,6 @@ mixin A on B {}
 class B {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

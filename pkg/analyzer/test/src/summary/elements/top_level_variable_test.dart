@@ -80,6 +80,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
     static a
       reference: <testLibrary>::@setter::a
       firstFragment: #F6
@@ -88,6 +89,7 @@ library
           firstFragment: #F7
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -151,6 +153,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -441,7 +444,7 @@ library
     var library = await buildLibrary(
       'int get x => 0; void set x(int value) {}',
     );
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -482,6 +485,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -529,6 +533,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -571,6 +576,7 @@ library
           firstFragment: #F3
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -606,6 +612,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -641,6 +648,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -690,6 +698,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
     static y
       reference: <testLibrary>::@setter::y
       firstFragment: #F5
@@ -698,6 +707,7 @@ library
           firstFragment: #F6
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::y
 ''');
   }
 
@@ -745,6 +755,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::i
 ''');
   }
 
@@ -793,6 +804,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -841,6 +853,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -849,7 +862,7 @@ library
 int foo = 0;
 int foo = 1;
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -910,6 +923,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo::@def::0
     synthetic static foo
       reference: <testLibrary>::@setter::foo::@def::1
       firstFragment: #F7
@@ -918,6 +932,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo::@def::1
 ''');
   }
 
@@ -926,7 +941,7 @@ library
 int foo = 0;
 int get foo => 0;
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -981,6 +996,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo::@def::0
 ''');
   }
 
@@ -989,7 +1005,7 @@ library
 int foo = 0;
 set foo(int _) {}
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1042,6 +1058,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo::@def::0
     static foo
       reference: <testLibrary>::@setter::foo::@def::1
       firstFragment: #F6
@@ -1050,6 +1067,7 @@ library
           firstFragment: #F7
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo::@def::1
 ''');
   }
 
@@ -1058,7 +1076,7 @@ library
 final int foo = 0;
 set foo(int newValue) {}
 ''');
-    configuration.withPropertyLinking = true;
+
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1099,6 +1117,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -1144,6 +1163,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1268,6 +1288,7 @@ library
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1390,6 +1411,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1453,6 +1475,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1523,6 +1546,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1582,6 +1606,7 @@ library
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1627,6 +1652,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -1813,6 +1839,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1858,6 +1885,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -1903,6 +1931,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1948,6 +1977,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2044,6 +2074,7 @@ library
           firstFragment: #F6
           type: Object?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static <null-name>
       reference: <testLibrary>::@setter::2
       firstFragment: #F7
@@ -2052,6 +2083,7 @@ library
           firstFragment: #F8
           type: Object?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::0
 ''');
   }
 
@@ -2311,6 +2343,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2356,6 +2389,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -2404,6 +2438,7 @@ library
           firstFragment: #F4
           type: Never
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -2452,6 +2487,7 @@ library
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
 
@@ -2590,6 +2626,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::i
     synthetic static j
       reference: <testLibrary>::@setter::j
       firstFragment: #F7
@@ -2598,6 +2635,7 @@ library
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::j
 ''');
   }
 
@@ -2621,9 +2659,7 @@ part 'a.dart';
 class A {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2712,9 +2748,7 @@ part 'a.dart';
 void foo() {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2793,9 +2827,7 @@ part 'a.dart';
 int get foo => 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2890,9 +2922,7 @@ part 'a.dart';
 set foo(int _) {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2996,9 +3026,7 @@ part 'a.dart';
 int foo = 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

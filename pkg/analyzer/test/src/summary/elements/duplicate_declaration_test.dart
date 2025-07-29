@@ -274,7 +274,6 @@ class A {
   double foo;
 }
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -350,6 +349,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::0
         synthetic foo
           reference: <testLibrary>::@class::A::@setter::foo::@def::1
           firstFragment: #F9
@@ -358,6 +358,7 @@ library
               firstFragment: #F10
               type: double
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo::@def::1
 ''');
   }
 
@@ -852,6 +853,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@extension::E::@def::1::@field::x
     extension E
       reference: <testLibrary>::@extension::E::@def::2
       firstFragment: #F7
@@ -878,6 +880,7 @@ library
               firstFragment: #F11
               type: int
           returnType: void
+          variable: <testLibrary>::@extension::E::@def::2::@field::y
 ''');
   }
 
@@ -1188,6 +1191,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@mixin::A::@def::1::@field::x
     mixin A
       reference: <testLibrary>::@mixin::A::@def::2
       firstFragment: #F7
@@ -1215,6 +1219,7 @@ library
               firstFragment: #F11
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::A::@def::2::@field::y
 ''');
   }
 
@@ -1225,7 +1230,6 @@ var x;
 final x = 1;
 var x = 2.3;
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1320,6 +1324,7 @@ library
           firstFragment: #F10
           type: bool
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x::@def::0
     synthetic static x
       reference: <testLibrary>::@setter::x::@def::1
       firstFragment: #F11
@@ -1328,6 +1333,7 @@ library
           firstFragment: #F12
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x::@def::1
     synthetic static x
       reference: <testLibrary>::@setter::x::@def::2
       firstFragment: #F13
@@ -1336,6 +1342,7 @@ library
           firstFragment: #F14
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x::@def::3
 ''');
   }
 
@@ -1344,7 +1351,6 @@ library
 int get foo {}
 double get foo {}
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1391,7 +1397,6 @@ library
 set foo(int _) {}
 set foo(double _) {}
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1434,6 +1439,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo::@def::0
     static foo
       reference: <testLibrary>::@setter::foo::@def::1
       firstFragment: #F5
@@ -1442,6 +1448,7 @@ library
           firstFragment: #F6
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo::@def::1
 ''');
   }
 }

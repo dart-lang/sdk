@@ -2030,7 +2030,15 @@ SwitchDispatch:
       const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      *++SP = LOAD_CONSTANT(kidx);
+      ObjectPtr target = LOAD_CONSTANT(kidx);
+      *++SP = target;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+      if (target->IsArray()) {
+        // Hot reload failed to find a suitable target for this call.
+        goto ThrowNoSuchMethodError;
+      }
+#endif
+      ASSERT(target->IsFunction());
       ObjectPtr* call_base = SP - argc;
       ObjectPtr* call_top = SP;
       argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
@@ -2051,7 +2059,15 @@ SwitchDispatch:
       const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      *++SP = LOAD_CONSTANT(kidx);
+      ObjectPtr target = LOAD_CONSTANT(kidx);
+      *++SP = target;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+      if (target->IsArray()) {
+        // Hot reload failed to find a suitable target for this call.
+        goto ThrowNoSuchMethodError;
+      }
+#endif
+      ASSERT(target->IsFunction());
       ObjectPtr* call_base = SP - argc;
       ObjectPtr* call_top = SP;
       argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
@@ -4014,6 +4030,18 @@ SwitchDispatch:
     INVOKE_RUNTIME(DRT_ArgumentError, NativeArguments(thread, 1, SP, SP + 1));
     UNREACHABLE();
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+  {
+  ThrowNoSuchMethodError:
+    // SP[0] contains arguments.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    INVOKE_RUNTIME(DRT_NoSuchMethodError,
+                   NativeArguments(thread, 1, SP, SP + 1));
+    UNREACHABLE();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
 
   // Exception handling helper. Gets handler FP and PC from the Interpreter
   // where they were stored by Interpreter::Longjmp and proceeds to execute the

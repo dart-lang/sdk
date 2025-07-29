@@ -3621,6 +3621,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@enum::E::@field::foo
 ''');
   }
 
@@ -7369,7 +7370,6 @@ enum A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7657,7 +7657,6 @@ enum A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8035,7 +8034,6 @@ enum A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8356,7 +8354,6 @@ enum A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8746,7 +8743,6 @@ enum A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -10745,9 +10741,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -10991,9 +10985,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -11279,9 +11271,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -11563,9 +11553,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -11849,9 +11837,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -12356,9 +12342,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -12589,9 +12573,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -12847,9 +12829,7 @@ enum A<T1> {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -13558,9 +13538,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -13800,9 +13778,7 @@ enum A<T1> {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14071,9 +14047,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14313,9 +14287,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14586,9 +14558,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14840,9 +14810,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -15087,9 +15055,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -15352,8 +15318,7 @@ enum A {
 
     configuration
       ..withConstantInitializers = false
-      ..withConstructors = false
-      ..withPropertyLinking = true;
+      ..withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -18898,9 +18863,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19160,9 +19123,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19403,9 +19364,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -19612,9 +19571,7 @@ enum A {
 }
 ''');
 
-    configuration
-      ..withConstantInitializers = false
-      ..withPropertyLinking = true;
+    configuration.withConstantInitializers = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

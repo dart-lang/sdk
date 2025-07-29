@@ -50,7 +50,6 @@ class ElementTextConfiguration {
       ElementPrinterConfiguration();
   bool Function(Object) filter;
   bool withAllSupertypes = false;
-  bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
   bool withConstantInitializers = true;
   bool withConstructors = true;
@@ -62,7 +61,6 @@ class ElementTextConfiguration {
   bool withLibraryFragments = true;
   bool withMetadata = true;
   bool withNonSynthetic = false;
-  bool withPropertyLinking = false;
   bool withRedirectedConstructors = false;
   bool withReferences = true;
   bool withReturnType = true;
@@ -1520,6 +1518,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _writeFormalParameterElement,
       );
       _writeReturnType(e.returnType);
+      _writeElementReference('variable', e.variable);
       // _writeNonSyntheticElement(e);
       // writeLinking();
     });

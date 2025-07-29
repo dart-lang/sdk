@@ -3345,6 +3345,25 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   arguments.SetReturn(result);
 }
 
+// Throw NoSuchMethodError with given arguments.
+// Arg0: arguments of NoSuchMethodError._throwNew.
+DEFINE_RUNTIME_ENTRY(NoSuchMethodError, 1) {
+  const Array& args = Array::CheckedHandle(zone, arguments.ArgAt(0));
+  const Library& libcore = Library::Handle(Library::CoreLibrary());
+  const Class& cls =
+      Class::Handle(libcore.LookupClass(Symbols::NoSuchMethodError()));
+  ASSERT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(args.Length() == throwNew.NumParameters());
+  const Object& result =
+      Object::Handle(zone, DartEntry::InvokeFunction(throwNew, args));
+  ThrowIfError(result);
+  arguments.SetReturn(result);
+}
+
 // Invoke appropriate noSuchMethod function (or in the case of no lazy
 // dispatchers, walk the receiver to find the correct method to call).
 // Arg0: receiver

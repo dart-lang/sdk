@@ -133,7 +133,7 @@ class TestCase {
   }
 
   int get timeout {
-    var result = configuration.timeout;
+    var result = configuration.timeout(displayName);
     if (expectedOutcomes.contains(Expectation.slow)) {
       result *= _slowTimeoutMultiplier;
     } else if (expectedOutcomes.contains(Expectation.extraSlow)) {
@@ -141,6 +141,8 @@ class TestCase {
     }
     return result;
   }
+
+  int get repeat => configuration.repeat(displayName);
 
   String get configurationString {
     var compiler = configuration.compiler.name;

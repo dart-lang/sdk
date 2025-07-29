@@ -8162,8 +8162,8 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-sealed class ExpressionImpl extends AstNodeImpl
-    implements CollectionElementImpl, Expression {
+sealed class ExpressionImpl extends CollectionElementImpl
+    implements Expression {
   TypeImpl? _staticType;
 
   @override
@@ -22364,8 +22364,8 @@ abstract final class SpreadElement implements CollectionElement {
     GenerateNodeProperty('expression'),
   ],
 )
-final class SpreadElementImpl extends AstNodeImpl
-    implements CollectionElementImpl, SpreadElement {
+final class SpreadElementImpl extends CollectionElementImpl
+    implements SpreadElement {
   @generated
   @override
   final Token spreadOperator;

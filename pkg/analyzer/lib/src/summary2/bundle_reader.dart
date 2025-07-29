@@ -264,9 +264,9 @@ class LibraryReader {
   void _readClassElements() {
     _libraryElement.classes = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<ClassFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<ClassFragmentImpl>();
       var element = ClassElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
       element.readModifiers(_reader);
 
       // Configure for reading members lazily.
@@ -340,13 +340,13 @@ class LibraryReader {
   List<ConstructorElementImpl> _readConstructorElements() {
     return _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<ConstructorFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<ConstructorFragmentImpl>();
       var element = ConstructorElementImpl(
         name: fragments.first.name,
         reference: reference,
         firstFragment: fragments.first,
       );
+      element.linkFragments(fragments);
       element.readModifiers(_reader);
 
       // TODO(scheglov): type parameters
@@ -478,9 +478,9 @@ class LibraryReader {
   void _readEnumElements() {
     _libraryElement.enums = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<EnumFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<EnumFragmentImpl>();
       var element = EnumElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
 
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {
@@ -563,9 +563,9 @@ class LibraryReader {
   void _readExtensionElements() {
     _libraryElement.extensions = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<ExtensionFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<ExtensionFragmentImpl>();
       var element = ExtensionElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
 
       for (var fragment in element.fragments) {
         fragment.ensureReadMembers();
@@ -621,9 +621,9 @@ class LibraryReader {
   void _readExtensionTypeElements() {
     _libraryElement.extensionTypes = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<ExtensionTypeFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<ExtensionTypeFragmentImpl>();
       var element = ExtensionTypeElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
 
       // TODO(scheglov): consider reading lazily
       for (var fragment in element.fragments) {
@@ -690,12 +690,12 @@ class LibraryReader {
   List<FieldElementImpl> _readFieldElements() {
     return _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<FieldFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<FieldFragmentImpl>();
       var element = FieldElementImpl(
         reference: reference,
         firstFragment: fragments.first,
       );
+      element.linkFragments(fragments);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -776,16 +776,16 @@ class LibraryReader {
     return _reader.readOptionalStringReference();
   }
 
-  List<T> _readFragments<T extends FragmentImpl>() {
+  List<T> _readFragmentsById<T extends FragmentImpl>() {
     return _reader.readTypedList(_readFragmentById);
   }
 
   List<GetterElementImpl> _readGetterElements() {
     return _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<GetterFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<GetterFragmentImpl>();
       var element = GetterElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
       element.readModifiers(_reader);
 
       element.deferReadResolution(
@@ -907,13 +907,13 @@ class LibraryReader {
   List<MethodElementImpl> _readMethodElements() {
     return _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<MethodFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<MethodFragmentImpl>();
       var element = MethodElementImpl(
         name: fragments.first.name,
         reference: reference,
         firstFragment: fragments.first,
       );
+      element.linkFragments(fragments);
       element.readModifiers(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
 
@@ -970,9 +970,9 @@ class LibraryReader {
   void _readMixinElements() {
     _libraryElement.mixins = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<MixinFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<MixinFragmentImpl>();
       var element = MixinElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
       element.readModifiers(_reader);
 
       // TODO(scheglov): consider reading lazily
@@ -1108,9 +1108,9 @@ class LibraryReader {
   List<SetterElementImpl> _readSetterElements() {
     return _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<SetterFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<SetterFragmentImpl>();
       var element = SetterElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
       element.readModifiers(_reader);
 
       element.deferReadResolution(
@@ -1191,9 +1191,9 @@ class LibraryReader {
   void _readTopLevelFunctionElements() {
     _libraryElement.topLevelFunctions = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<TopLevelFunctionFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<TopLevelFunctionFragmentImpl>();
       var element = TopLevelFunctionElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1253,9 +1253,9 @@ class LibraryReader {
   void _readTopLevelVariableElements() {
     _libraryElement.topLevelVariables = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<TopLevelVariableFragmentImpl>();
-      // TODO(scheglov): link fragments.
+      var fragments = _readFragmentsById<TopLevelVariableFragmentImpl>();
       var element = TopLevelVariableElementImpl(reference, fragments.first);
+      element.linkFragments(fragments);
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1293,7 +1293,7 @@ class LibraryReader {
   void _readTypeAliasElements() {
     _libraryElement.typeAliases = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragments<TypeAliasFragmentImpl>();
+      var fragments = _readFragmentsById<TypeAliasFragmentImpl>();
       var element = TypeAliasElementImpl(reference, fragments.first);
 
       element.deferReadResolution(

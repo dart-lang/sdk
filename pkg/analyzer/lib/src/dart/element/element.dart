@@ -478,6 +478,14 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     return isMixableIn(library);
   }
 
+  void linkFragments(List<ClassFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
+
   @override
   void _buildMixinAppConstructors() {
     // Do nothing if not a mixin application.
@@ -907,6 +915,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
     }
   }
 
+  void linkFragments(List<ConstructorFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
+
   @override
   void visitChildren<T>(ElementVisitor2<T> visitor) {
     for (var child in children) {
@@ -1074,6 +1090,12 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
       typeNameOffset ??
       firstTokenOffset ??
       enclosingFragment.offset;
+
+  void addFragment(ConstructorFragmentImpl fragment) {
+    fragment.element = element;
+    fragment.previousFragment = this;
+    nextFragment = fragment;
+  }
 }
 
 /// This mixin is used to set up loading class members from summaries only when
@@ -2121,6 +2143,14 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
   }
+
+  void linkFragments(List<EnumFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
 }
 
 /// An [InterfaceFragmentImpl] which is an enum.
@@ -2564,6 +2594,14 @@ class ExtensionElementImpl extends InstanceElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionElement(this);
   }
+
+  void linkFragments(List<ExtensionFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
 }
 
 class ExtensionFragmentImpl extends InstanceFragmentImpl
@@ -2715,6 +2753,14 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExtensionTypeElement(this);
+  }
+
+  void linkFragments(List<ExtensionTypeFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
   }
 }
 
@@ -2908,6 +2954,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  void linkFragments(List<FieldFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
 }
 
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
@@ -4086,6 +4140,14 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeGetterElement(this);
+  }
+
+  void linkFragments(List<GetterFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
   }
 }
 
@@ -7506,6 +7568,14 @@ class MethodElementImpl extends ExecutableElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeMethodElement(this);
   }
+
+  void linkFragments(List<MethodFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
 }
 
 class MethodFragmentImpl extends ExecutableFragmentImpl
@@ -7652,6 +7722,14 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   @override
   bool isImplementableIn2(LibraryElement library) {
     return isImplementableIn(library);
+  }
+
+  void linkFragments(List<MixinFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
   }
 }
 
@@ -8960,6 +9038,14 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeSetterElement(this);
   }
+
+  void linkFragments(List<SetterFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
 }
 
 class SetterFragmentImpl extends PropertyAccessorFragmentImpl
@@ -9269,6 +9355,14 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeTopLevelFunctionElement(this);
   }
+
+  void linkFragments(List<TopLevelFunctionFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
 }
 
 /// A concrete implementation of a [TopLevelFunctionFragment].
@@ -9407,6 +9501,14 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @Deprecated('Use accept instead')
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
+
+  void linkFragments(List<TopLevelVariableFragmentImpl> fragments) {
+    assert(identical(fragments[0], firstFragment));
+    fragments.reduce((previous, current) {
+      previous.addFragment(current);
+      return current;
+    });
+  }
 }
 
 class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl

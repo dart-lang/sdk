@@ -124,6 +124,7 @@ library
           firstFragment: #F4
           type: FutureOr<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
     var variables = library.topLevelVariables;
     expect(variables, hasLength(1));
@@ -248,6 +249,7 @@ library
           firstFragment: #F6
           type: FutureOr<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
     synthetic static y
       reference: <testLibrary>::@setter::y
       firstFragment: #F7
@@ -256,6 +258,7 @@ library
           firstFragment: #F8
           type: InvalidType
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::y
   functions
     f
       reference: <testLibrary>::@function::f
@@ -488,6 +491,7 @@ library
           firstFragment: #F4
           type: int Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -533,6 +537,7 @@ library
           firstFragment: #F4
           type: Future<dynamic> Function(dynamic)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -584,6 +589,7 @@ library
           firstFragment: #F4
           type: Future<int> Function(Future<Future<Future<int>>>)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -634,6 +640,7 @@ library
           firstFragment: #F4
           type: Future<int> Function(Future<int>)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -684,6 +691,7 @@ library
           firstFragment: #F4
           type: Future<dynamic> Function(Future<dynamic>)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -748,6 +756,7 @@ library
               firstFragment: #F6
               type: int Function()
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -974,6 +983,7 @@ library
           firstFragment: #F8
           type: C<num, C<num, dynamic>>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -1082,6 +1092,7 @@ library
               firstFragment: #F9
               type: C<C<Object?>>
           returnType: void
+          variable: <testLibrary>::@class::B::@field::c3
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -1115,6 +1126,7 @@ library
           firstFragment: #F15
           type: C<C<dynamic>>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static c2
       reference: <testLibrary>::@setter::c2
       firstFragment: #F16
@@ -1123,6 +1135,7 @@ library
           firstFragment: #F17
           type: C<C<Object?>>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c2
 ''');
   }
 
@@ -1198,6 +1211,7 @@ library
           firstFragment: #F8
           type: C<C<dynamic, num>, num>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -1321,6 +1335,7 @@ library
               typeArguments
                 num
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -1416,6 +1431,7 @@ library
           firstFragment: #F11
           type: B<int Function(), A<int Function()>>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -1488,6 +1504,7 @@ library
               typeArguments
                 num
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -1634,6 +1651,7 @@ library
           firstFragment: #F7
           type: C<num>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -1704,6 +1722,7 @@ library
               firstFragment: #F6
               type: List<dynamic>
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -1858,6 +1877,7 @@ library
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V
   functions
     foo
       reference: <testLibrary>::@function::foo
@@ -1929,6 +1949,7 @@ library
           firstFragment: #F4
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -1985,6 +2006,7 @@ library
           firstFragment: #F4
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -2045,6 +2067,7 @@ library
           firstFragment: #F4
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -2436,6 +2459,7 @@ library
               firstFragment: #F8
               type: int Function(T, U)
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
   functions
     f
       reference: <testLibrary>::@function::f
@@ -2606,6 +2630,7 @@ library
           firstFragment: #F4
           type: Map<dynamic, dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::m
 ''');
   }
 
@@ -2651,6 +2676,7 @@ library
           firstFragment: #F4
           type: Map<dynamic, int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::m
 ''');
   }
 
@@ -2696,6 +2722,7 @@ library
           firstFragment: #F4
           type: Map<String, dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::m
 ''');
   }
 
@@ -2741,6 +2768,7 @@ library
           firstFragment: #F4
           type: Map<String, int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::m
 ''');
   }
 
@@ -2786,6 +2814,7 @@ library
           firstFragment: #F4
           type: Map<dynamic, dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::m
 ''');
   }
 
@@ -2831,6 +2860,7 @@ library
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::d
 ''');
   }
 
@@ -2876,6 +2906,7 @@ library
           firstFragment: #F4
           type: InvalidType
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -2926,6 +2957,7 @@ library
           firstFragment: #F4
           type: InvalidType
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 

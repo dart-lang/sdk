@@ -60,6 +60,7 @@ library
           firstFragment: #F4
           type: void Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -107,6 +108,7 @@ library
           firstFragment: #F4
           type: void Function()?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -297,6 +299,7 @@ library
           firstFragment: #F4
           type: int Function(int, String)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -512,6 +515,7 @@ library
           firstFragment: #F7
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 

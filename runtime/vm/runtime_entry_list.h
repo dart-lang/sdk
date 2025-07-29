@@ -43,6 +43,7 @@ namespace dart {
   V(InstantiateTypeArguments)                                                  \
   V(NoSuchMethodFromCallStub)                                                  \
   V(NoSuchMethodFromPrologue)                                                  \
+  V(NoSuchMethodError)                                                         \
   V(OptimizeInvokedFunction)                                                   \
   V(PatchStaticCall)                                                           \
   V(RangeError)                                                                \

@@ -78,6 +78,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -182,6 +183,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -366,6 +368,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -458,6 +461,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -539,6 +543,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -577,6 +582,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -625,6 +631,7 @@ library
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 }

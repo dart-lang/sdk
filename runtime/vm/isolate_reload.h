@@ -420,12 +420,15 @@ class CallSiteResetter : public ValueObject {
   void RebindBytecode(const Bytecode& bytecode);
 
  private:
+  Thread* thread_;
   Zone* zone_;
   Instructions& instrs_;
   ObjectPool& pool_;
   Object& object_;
   String& name_;
+  Class& old_cls_;
   Class& new_cls_;
+  Library& old_lib_;
   Library& new_lib_;
   Function& new_function_;
   Field& new_field_;

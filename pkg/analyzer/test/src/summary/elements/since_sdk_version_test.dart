@@ -143,6 +143,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: dart:foo::@class::A::@field::foo
 ''');
   }
 
@@ -353,6 +354,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: dart:foo::@class::A::@field::foo
 ''');
   }
 

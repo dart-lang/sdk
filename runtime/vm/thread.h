@@ -150,11 +150,6 @@ class Thread;
     StubCode::AllocateMintSharedWithFPURegs().ptr(), nullptr)                  \
   V(CodePtr, allocate_mint_without_fpu_regs_stub_,                             \
     StubCode::AllocateMintSharedWithoutFPURegs().ptr(), nullptr)               \
-  V(CodePtr, allocate_object_stub_, StubCode::AllocateObject().ptr(), nullptr) \
-  V(CodePtr, allocate_object_parameterized_stub_,                              \
-    StubCode::AllocateObjectParameterized().ptr(), nullptr)                    \
-  V(CodePtr, allocate_object_slow_stub_, StubCode::AllocateObjectSlow().ptr(), \
-    nullptr)                                                                   \
   V(CodePtr, async_exception_handler_stub_,                                    \
     StubCode::AsyncExceptionHandler().ptr(), nullptr)                          \
   V(CodePtr, resume_stub_, StubCode::Resume().ptr(), nullptr)                  \
@@ -1404,10 +1399,6 @@ class Thread : public ThreadState {
   RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-#define DECLARE_MEMBERS(returntype, name, ...) uword name##_entry_point_;
-  LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
-#undef DECLARE_MEMBERS
-
   uword write_barrier_wrappers_entry_points_[kNumberOfDartAvailableCpuRegs];
 
 #define DECLARE_MEMBERS(name) uword name##_entry_point_ = 0;
@@ -1489,6 +1480,11 @@ class Thread : public ThreadState {
    */
   std::atomic<uword> safepoint_state_;
   uword exit_through_ffi_ = 0;
+
+#define DECLARE_MEMBERS(returntype, name, ...) uword name##_entry_point_;
+  LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
+#undef DECLARE_MEMBERS
+
   ApiLocalScope* api_top_scope_;
   uint8_t double_truncate_round_supported_;
   ALIGN8 int64_t next_task_id_;

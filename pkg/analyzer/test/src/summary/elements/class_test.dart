@@ -373,6 +373,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -441,6 +442,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -509,6 +511,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -589,6 +592,7 @@ library
               firstFragment: #F8
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -669,6 +673,7 @@ library
               firstFragment: #F8
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -759,6 +764,7 @@ library
               firstFragment: #F10
               type: dynamic Function()
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
 ''');
   }
 
@@ -849,6 +855,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x::@def::0
         synthetic x
           reference: <testLibrary>::@class::C::@setter::x::@def::1
           firstFragment: #F10
@@ -857,6 +864,7 @@ library
               firstFragment: #F11
               type: String
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x::@def::1
 ''');
   }
 
@@ -960,6 +968,7 @@ library
               firstFragment: #F7
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1028,6 +1037,7 @@ library
               firstFragment: #F7
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1096,6 +1106,7 @@ library
               firstFragment: #F7
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1164,6 +1175,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1232,6 +1244,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1300,6 +1313,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1368,6 +1382,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1443,6 +1458,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1511,6 +1527,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1586,6 +1603,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -7026,6 +7044,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -7193,6 +7212,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -7259,6 +7279,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -7269,9 +7290,6 @@ class C {
   int get foo => 0;
 }
 ''');
-    configuration
-      ..withAugmentedWithoutAugmentation = true
-      ..withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7341,6 +7359,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo::@def::0
 ''');
   }
 
@@ -7351,9 +7370,6 @@ class C {
   set foo(int _) {}
 }
 ''');
-    configuration
-      ..withAugmentedWithoutAugmentation = true
-      ..withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7421,6 +7437,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo::@def::0
         foo
           reference: <testLibrary>::@class::C::@setter::foo::@def::1
           firstFragment: #F8
@@ -7429,6 +7446,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo::@def::1
 ''');
   }
 
@@ -7493,6 +7511,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -7731,7 +7750,6 @@ class A {
   set foo(int newValue) {}
 }
 ''');
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7795,6 +7813,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -7880,6 +7899,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F8
@@ -7959,6 +7979,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -8019,6 +8040,7 @@ library
               firstFragment: #F6
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -8079,6 +8101,7 @@ library
               firstFragment: #F6
               type: num
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -8139,6 +8162,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -8215,6 +8239,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F7
@@ -8421,6 +8446,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
 ''');
   }
 
@@ -9416,6 +9442,7 @@ library
               firstFragment: #F8
               type: Object
           returnType: void
+          variable: <testLibrary>::@class::C::@field::a
         synthetic <null-name>
           reference: <testLibrary>::@class::C::@setter::2
           firstFragment: #F9
@@ -9424,6 +9451,7 @@ library
               firstFragment: #F10
               type: Object
           returnType: void
+          variable: <testLibrary>::@class::C::@field::0
 ''');
   }
 
@@ -9487,6 +9515,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -9553,6 +9582,7 @@ library
               firstFragment: #F6
               type: T
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -9890,6 +9920,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -10044,6 +10075,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
 ''');
   }
 
@@ -10109,6 +10141,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::a
 ''');
   }
 
@@ -10174,6 +10207,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -10325,6 +10359,7 @@ library
               firstFragment: #F6
               type: Never
           returnType: void
+          variable: <testLibrary>::@class::C::@field::a
 ''');
   }
 
@@ -10385,6 +10420,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10445,6 +10481,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -10525,6 +10562,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::i
         synthetic j
           reference: <testLibrary>::@class::C::@setter::j
           firstFragment: #F9
@@ -10533,6 +10571,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::j
 ''');
   }
 
@@ -10597,6 +10636,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -10661,6 +10701,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -10800,6 +10841,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::f
 ''');
   }
 
@@ -10901,6 +10943,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::B::@field::f
 ''');
   }
 
@@ -11005,6 +11048,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::b
         a
           reference: <testLibrary>::@class::A::@setter::a
           firstFragment: #F8
@@ -11013,6 +11057,7 @@ library
               firstFragment: #F9
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::a
 ''');
   }
 
@@ -11093,6 +11138,7 @@ library
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::a
 ''');
   }
 
@@ -11726,6 +11772,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -11791,6 +11838,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15081,6 +15129,7 @@ library
           firstFragment: #F6
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -15144,6 +15193,7 @@ library
           firstFragment: #F6
           type: C?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -15535,6 +15585,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15587,6 +15638,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15639,6 +15691,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15689,6 +15742,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15739,6 +15793,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -15850,6 +15905,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::t
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -15881,6 +15937,7 @@ library
               firstFragment: #F12
               type: double
           returnType: void
+          variable: <testLibrary>::@class::B::@field::t
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13
@@ -15916,6 +15973,7 @@ library
               firstFragment: #F19
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::D::@field::t
 ''');
   }
 
@@ -15986,6 +16044,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F6
@@ -16008,6 +16067,7 @@ library
               firstFragment: #F10
               type: int
           returnType: void
+          variable: <testLibrary>::@class::D::@field::f
 ''');
   }
 
@@ -16062,6 +16122,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
 ''');
   }
 
@@ -16112,6 +16173,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16162,6 +16224,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16212,6 +16275,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16262,6 +16326,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16318,6 +16383,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -16374,6 +16440,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -16473,6 +16540,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16526,6 +16594,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -16581,6 +16650,7 @@ library
               firstFragment: #F5
               type: T
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
 ''');
   }
 
@@ -16633,6 +16703,7 @@ library
               firstFragment: #F5
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -16700,6 +16771,7 @@ library
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
         y
           reference: <testLibrary>::@class::C::@setter::y
           firstFragment: #F7
@@ -16708,6 +16780,7 @@ library
               firstFragment: #F8
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::y
 ''');
   }
 
@@ -20535,6 +20608,7 @@ library
               firstFragment: #F13
               type: int
           returnType: void
+          variable: <testLibrary>::@class::E::@field::b
         synthetic x
           reference: <testLibrary>::@class::E::@setter::x
           firstFragment: #F14
@@ -20543,6 +20617,7 @@ library
               firstFragment: #F15
               type: int
           returnType: void
+          variable: <testLibrary>::@class::E::@field::x
       methods
         f
           reference: <testLibrary>::@class::E::@method::f
@@ -20765,6 +20840,7 @@ library
               firstFragment: #F7
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::foo
         bar
           reference: <testLibrary>::@class::C::@setter::bar
           firstFragment: #F8
@@ -20773,6 +20849,7 @@ library
               firstFragment: #F9
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::bar
 ''');
   }
 
@@ -20827,6 +20904,7 @@ library
               firstFragment: #F5
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -20927,6 +21005,7 @@ library
           firstFragment: #F10
           type: C<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static v
       reference: <testLibrary>::@setter::v
       firstFragment: #F11
@@ -20935,6 +21014,7 @@ library
           firstFragment: #F12
           type: void Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 }
@@ -23332,7 +23412,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -23438,7 +23517,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -23607,7 +23685,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -23814,7 +23891,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24021,7 +24097,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24385,7 +24460,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24720,7 +24794,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24854,7 +24927,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -24973,7 +25045,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25116,7 +25187,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25319,7 +25389,6 @@ class A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25802,7 +25871,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -25907,7 +25975,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26023,7 +26090,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26167,7 +26233,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26317,7 +26382,6 @@ class A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26485,7 +26549,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26654,7 +26717,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -26854,7 +26916,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27016,7 +27077,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27171,7 +27231,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -27341,9 +27400,7 @@ part 'a.dart';
 class A {}
 ''');
 
-    configuration
-      ..withConstructors = false
-      ..withPropertyLinking = true;
+    configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -28573,114 +28630,57 @@ library
 ''');
   }
 
-  @SkippedTest(reason: 'implement augmentation')
   test_augmented_methods() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-augment class A {
-  void bar() {}
-}
-''');
-
     var library = await buildLibrary(r'''
-part 'a.dart';
 class A {
   void foo() {}
+}
+
+augment class A {
+  void bar() {}
 }
 ''');
 
     checkElementText(library, r'''
 library
   reference: <testLibrary>
-  definingUnit: <testLibraryFragment>
-  units
-    <testLibraryFragment>
-      enclosingElement3: <null>
-      parts
-        part_0
-          uri: package:test/a.dart
-          enclosingElement3: <testLibraryFragment>
-          unit: <testLibrary>::@fragment::package:test/a.dart
-      classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
-          enclosingElement3: <testLibraryFragment>
-          augmentation: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          constructors
-            synthetic @-1
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              enclosingElement3: <testLibraryFragment>::@class::A
-          methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              enclosingElement3: <testLibraryFragment>::@class::A
-              returnType: void
-          augmented
-            constructors
-              <testLibraryFragment>::@class::A::@constructor::new
-            methods
-              <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar
-              <testLibraryFragment>::@class::A::@method::foo
-    <testLibrary>::@fragment::package:test/a.dart
-      enclosingElement3: <testLibraryFragment>
-      classes
-        augment class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-          enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
-          augmentationTarget: <testLibraryFragment>::@class::A
-          methods
-            bar @46
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar
-              enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
-              returnType: void
-----------------------------------------
-library
-  reference: <testLibrary>
   fragments
-    <testLibraryFragment>
+    #F0 <testLibraryFragment>
       element: <testLibrary>
-      nextFragment: <testLibrary>::@fragment::package:test/a.dart
       classes
-        class A @21
-          reference: <testLibraryFragment>::@class::A
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-          nextFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+          nextFragment: #F2
           constructors
-            synthetic new
-              reference: <testLibraryFragment>::@class::A::@constructor::new
-              element: <testLibraryFragment>::@class::A::@constructor::new#element
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            foo @32
-              reference: <testLibraryFragment>::@class::A::@method::foo
-              element: <testLibraryFragment>::@class::A::@method::foo#element
-    <testLibrary>::@fragment::package:test/a.dart
-      element: <testLibrary>
-      enclosingFragment: <testLibraryFragment>
-      previousFragment: <testLibraryFragment>
-      classes
-        class A @35
-          reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A
+            #F4 foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+        #F2 class A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@class::A
-          previousFragment: <testLibraryFragment>::@class::A
+          previousFragment: #F1
           methods
-            bar @46
-              reference: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar
-              element: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar#element
+            #F5 bar (nameOffset:54) (firstTokenOffset:49) (offset:54)
+              element: <testLibrary>::@class::A::@method::bar
   classes
     class A
       reference: <testLibrary>::@class::A
-      firstFragment: <testLibraryFragment>::@class::A
+      firstFragment: #F1
       constructors
         synthetic new
-          firstFragment: <testLibraryFragment>::@class::A::@constructor::new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
       methods
         foo
           reference: <testLibrary>::@class::A::@method::foo
-          firstFragment: <testLibraryFragment>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: void
         bar
           reference: <testLibrary>::@class::A::@method::bar
-          firstFragment: <testLibrary>::@fragment::package:test/a.dart::@classAugmentation::A::@method::bar
+          firstFragment: #F5
+          returnType: void
 ''');
   }
 
@@ -29986,7 +29986,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30100,7 +30099,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30244,7 +30242,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30369,7 +30366,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30537,7 +30533,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30702,9 +30697,7 @@ part 'a.dart';
 class A {}
 ''');
 
-    configuration
-      ..withConstructors = false
-      ..withPropertyLinking = true;
+    configuration.withConstructors = false;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -30800,7 +30793,6 @@ class A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -32681,7 +32673,6 @@ class A implements I {}
 class I {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -32762,7 +32753,6 @@ class A implements M {}
 mixin M {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
