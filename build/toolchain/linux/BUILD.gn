@@ -15,6 +15,7 @@ declare_args() {
   arm64_toolchain_prefix = ""
   riscv32_toolchain_prefix = ""
   riscv64_toolchain_prefix = ""
+  mips_toolchain_prefix = ""
 }
 
 if (use_rbe) {
@@ -317,3 +318,23 @@ gcc_toolchain_suite("clang_riscv64") {
   toolchain_os = "linux"
   is_clang = true
 }
+
+gcc_toolchain_suite("mipsel") {
+  prefix = "mipsel-linux-gnu-"
+  if (mips_toolchain_prefix != "") {
+    prefix = mips_toolchain_prefix
+  }
+  cc = "${gcc_compiler_prefix}${prefix}gcc"
+  cxx = "${gcc_compiler_prefix}${prefix}g++"
+  asm = "${gcc_compiler_prefix}${prefix}gcc"
+  ar = "${prefix}ar"
+  ld = cxx
+  readelf = "${prefix}readelf"
+  nm = "${prefix}nm"
+  strip = "${prefix}strip"
+
+  toolchain_cpu = "mipsel"
+  toolchain_os = "linux"
+  is_clang = false
+}
+

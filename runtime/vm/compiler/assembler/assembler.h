@@ -27,6 +27,8 @@
 #include "vm/compiler/assembler/assembler_arm64.h"
 #elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 #include "vm/compiler/assembler/assembler_riscv.h"
+#elif defined(TARGET_ARCH_MIPS)
+  // TODO: Handle MIPS.
 #else
 #error Unknown architecture.
 #endif

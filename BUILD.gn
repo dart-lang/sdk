@@ -480,7 +480,7 @@ if (is_fuchsia) {
   }
 }
 
-if (is_linux) {
+if (is_linux && target_cpu != "mipsel") {
   group("debian_package") {
     public_deps = [ "tools/debian_package" ]
   }

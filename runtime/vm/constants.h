@@ -15,6 +15,9 @@
 #include "vm/constants_arm64.h"
 #elif defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 #include "vm/constants_riscv.h"
+#elif defined(TARGET_ARCH_MIPS)
+  // TODO: Handle MIPS.
+  // UNIMPLEMENTED();
 #else
 #error Unknown architecture.
 #endif

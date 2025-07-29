@@ -875,7 +875,7 @@ group("create_full_sdk") {
   }
 
   if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
-      dart_target_arch != "arm") {
+      dart_target_arch != "arm" && dart_target_arch != "mips") {
     # Do not include gen_snapshot binaries for cross-compilation into
     # SDK, but add them as a dependency, so that they are built.
     public_deps += [

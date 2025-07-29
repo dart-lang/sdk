@@ -224,6 +224,11 @@ struct simd128_value_t {
 #else
 #error Unknown XLEN
 #endif
+#elif defined(__MIPSEL__)
+#define HOST_ARCH_MIPS 1
+#define ARCH_IS_32_BIT 1
+#elif defined(__MIPSEB__)
+#error Big-endian MIPS is not supported by Dart.
 #else
 #error Architecture was not detected as supported by Dart.
 #endif
@@ -314,9 +319,12 @@ struct simd128_value_t {
 
 #if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_X64) &&                  \
     !defined(TARGET_ARCH_IA32) && !defined(TARGET_ARCH_ARM64) &&               \
-    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64)
+    !defined(TARGET_ARCH_RISCV32) && !defined(TARGET_ARCH_RISCV64) &&          \
+    !defined(TARGET_ARCH_MIPS)
 // No target architecture specified pick the one matching the host architecture.
-#if defined(HOST_ARCH_ARM)
+#if defined(HOST_ARCH_MIPS)
+#define TARGET_ARCH_MIPS 1
+#elif defined(HOST_ARCH_ARM)
 #define TARGET_ARCH_ARM 1
 #elif defined(HOST_ARCH_X64)
 #define TARGET_ARCH_X64 1
@@ -334,7 +342,7 @@ struct simd128_value_t {
 #endif
 
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM) ||                   \
-    defined(TARGET_ARCH_RISCV32)
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_MIPS)
 #define TARGET_ARCH_IS_32_BIT 1
 #elif defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64) ||                \
     defined(TARGET_ARCH_RISCV64)
@@ -355,7 +363,7 @@ struct simd128_value_t {
 #error Mismatched Host/Target architectures.
 #endif  // !defined(ARCH_IS_64_BIT) && !defined(FFI_UNIT_TESTS)
 #elif defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM) ||                 \
-    defined(TARGET_ARCH_RISCV32)
+    defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_MIPS)
 #if defined(ARCH_IS_64_BIT) && defined(TARGET_ARCH_ARM)
 // This is simarm_x64 or simarm_arm64, which is the only case where host/target
 // architecture mismatch is allowed. Unless, we're running FFI unit tests.
@@ -392,6 +400,10 @@ struct simd128_value_t {
 #elif defined(TARGET_ARCH_RISCV64)
 #if !defined(HOST_ARCH_RISCV64)
 #define DART_INCLUDE_SIMULATOR 1
+#endif
+#elif defined(TARGET_ARCH_MIPS)
+#if !defined(HOST_ARCH_MIPS)
+#define USING_SIMULATOR 1
 #endif
 #else
 #error Unknown architecture.
@@ -760,6 +772,8 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #define kHostArchitectureName "riscv32"
 #elif defined(HOST_ARCH_RISCV64)
 #define kHostArchitectureName "riscv64"
+#elif defined(HOST_ARCH_MIPS)
+#define kHostArchitectureName "mips"
 #elif defined(HOST_ARCH_X64)
 #define kHostArchitectureName "x64"
 #else
@@ -778,6 +792,8 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
 #define kTargetArchitectureName "riscv64"
 #elif defined(TARGET_ARCH_X64)
 #define kTargetArchitectureName "x64"
+#elif defined(TARGET_ARCH_MIPS)
+#define kTargetArchitectureName "mips"
 #else
 #error Target architecture detection failed.
 #endif

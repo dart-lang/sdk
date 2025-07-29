@@ -87,6 +87,8 @@ def HostCpuForArch(arch):
         candidates = ['riscv32', 'arm', 'x86', 'riscv64', 'arm64', 'x64']
     elif arch in ['riscv64', 'simriscv64']:
         candidates = ['riscv64', 'arm64', 'x64']
+    elif arch in ['mips', 'simmips']:
+        candidates = ['mips', 'x86']
     else:
         raise Exception("Unknown Dart architecture: %s" % arch)
 
@@ -115,6 +117,8 @@ def TargetCpuForArch(arch):
         return 'riscv32'
     elif arch.startswith('riscv64'):
         return 'riscv64'
+    elif arch.startswith('mips'):
+        return 'mipsel'
 
     # Simulators
     if arch.endswith('_x64'):
@@ -127,6 +131,8 @@ def TargetCpuForArch(arch):
         candidates = ['arm', 'riscv32', 'x86']
     elif arch in ['simx64', 'simx64c', 'simarm64', 'simarm64c', 'simriscv64']:
         candidates = ['arm64', 'riscv64', 'x64']
+    elif arch in ['simmips']:
+        return 'x86'
     else:
         raise Exception("Unknown Dart architecture: %s" % arch)
 
@@ -297,7 +303,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
 
         toolchain = ToolchainPrefix(args)
         if toolchain:
-            for arch in ['ia32', 'x64', 'arm', 'arm64', 'riscv32', 'riscv64']:
+            for arch in ['ia32', 'x64', 'arm', 'arm64', 'riscv32', 'riscv64', 'mips']:
                 prefix = ParseStringMap(arch, toolchain)
                 if prefix != None:
                     gn_args[arch + '_toolchain_prefix'] = prefix
@@ -382,6 +388,7 @@ def ProcessOptions(args):
                     'x64c',
                     'arm64c',
                     'riscv64',
+                    'mips',
             ]:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
@@ -393,7 +400,7 @@ def ProcessOptions(args):
                     "Cross-compilation to %s is not supported on host os %s." %
                     (os_name, HOST_OS))
                 return False
-            if not arch in ['x64', 'arm64', 'x64c', 'arm64c', 'riscv64']:
+            if not arch in ['x64', 'arm64', 'x64c', 'arm64c', 'riscv64', 'mips']:
                 print(
                     "Cross-compilation to %s is not supported for architecture %s."
                     % (os_name, arch))
