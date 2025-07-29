@@ -932,8 +932,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
 }
 
 /// Common implementation for methods defined in [ConstructorElement].
-mixin ConstructorElementMixin2
-    implements ExecutableElement2OrMember, ConstructorElement {
+mixin ConstructorElementMixin2 on ExecutableElement2OrMember
+    implements ConstructorElement {
   @override
   ConstructorElementImpl get baseElement;
 
@@ -2190,7 +2190,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
 
 /// Common base class for all analyzer-internal classes that implement
 /// `ExecutableElement2`.
-abstract class ExecutableElement2OrMember implements ExecutableElement {
+mixin ExecutableElement2OrMember implements ExecutableElement {
   @override
   ExecutableElementImpl get baseElement;
 
@@ -2211,8 +2211,8 @@ abstract class ExecutableElement2OrMember implements ExecutableElement {
 }
 
 abstract class ExecutableElementImpl extends FunctionTypedElementImpl
-    with DeferredResolutionReadingMixin
-    implements ExecutableElement2OrMember, AnnotatableElementImpl {
+    with ExecutableElement2OrMember, DeferredResolutionReadingMixin
+    implements AnnotatableElementImpl {
   TypeImpl? _returnType;
   FunctionTypeImpl? _type;
 
@@ -2819,11 +2819,20 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
 
 /// Common base class for all analyzer-internal classes that implement
 /// `FieldElement2`.
-abstract class FieldElement2OrMember
-    implements PropertyInducingElement2OrMember, FieldElement {}
+mixin FieldElement2OrMember on PropertyInducingElement2OrMember
+    implements FieldElement {
+  @override
+  FieldElementImpl get baseElement;
+
+  @override
+  FieldFragmentImpl get firstFragment;
+
+  @override
+  List<FieldFragmentImpl> get fragments;
+}
 
 class FieldElementImpl extends PropertyInducingElementImpl
-    implements FieldElement2OrMember {
+    with FieldElement2OrMember {
   @override
   final Reference reference;
 
@@ -2836,7 +2845,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  FieldElement get baseElement => this;
+  FieldElementImpl get baseElement => this;
 
   @override
   InstanceElement get enclosingElement =>
@@ -3195,7 +3204,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
   List<FormalParameterElementImpl> get formalParameters =>
-      wrappedElement.formalParameters.map((fragment) => fragment.element).toList();
+      wrappedElement.formalParameters
+          .map((fragment) => fragment.element)
+          .toList();
 
   @override
   List<FormalParameterFragmentImpl> get fragments {
@@ -3357,11 +3368,8 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
 /// A mixin that provides a common implementation for methods defined in
 /// [FormalParameterElement].
-mixin FormalParameterElementMixin
-    implements
-        FormalParameterElement,
-        SharedNamedFunctionParameter,
-        VariableElement2OrMember {
+mixin FormalParameterElementMixin on VariableElement2OrMember
+    implements FormalParameterElement, SharedNamedFunctionParameter {
   @override
   FormalParameterElementImpl get baseElement;
 
@@ -4054,14 +4062,20 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
 /// Common base class for all analyzer-internal classes that implement
 /// [GetterElement].
-abstract class GetterElement2OrMember
-    implements PropertyAccessorElement2OrMember, GetterElement {
+mixin GetterElement2OrMember on PropertyAccessorElement2OrMember
+    implements GetterElement {
   @override
   GetterElementImpl get baseElement;
+
+  @override
+  GetterFragmentImpl get firstFragment;
+
+  @override
+  List<GetterFragmentImpl> get fragments;
 }
 
 class GetterElementImpl extends PropertyAccessorElementImpl
-    implements GetterElement2OrMember {
+    with GetterElement2OrMember {
   @override
   Reference reference;
 
@@ -7469,14 +7483,20 @@ final class MetadataImpl implements Metadata {
 
 /// Common base class for all analyzer-internal classes that implement
 /// `MethodElement2`.
-abstract class MethodElement2OrMember
-    implements MethodElement, ExecutableElement2OrMember {
+mixin MethodElement2OrMember on ExecutableElement2OrMember
+    implements MethodElement {
   @override
   MethodElementImpl get baseElement;
+
+  @override
+  MethodFragmentImpl get firstFragment;
+
+  @override
+  List<MethodFragmentImpl> get fragments;
 }
 
 class MethodElementImpl extends ExecutableElementImpl
-    implements MethodElement2OrMember {
+    with MethodElement2OrMember {
   @override
   final Reference reference;
 
@@ -8591,10 +8611,16 @@ abstract class PromotableElementImpl extends VariableElementImpl {}
 
 /// Common base class for all analyzer-internal classes that implement
 /// `PropertyAccessorElement2`.
-abstract class PropertyAccessorElement2OrMember
-    implements PropertyAccessorElement, ExecutableElement2OrMember {
+mixin PropertyAccessorElement2OrMember on ExecutableElement2OrMember
+    implements PropertyAccessorElement {
   @override
   PropertyAccessorElementImpl get baseElement;
+
+  @override
+  PropertyAccessorFragmentImpl get firstFragment;
+
+  @override
+  List<PropertyAccessorFragmentImpl> get fragments;
 
   @override
   PropertyInducingElement2OrMember get variable;
@@ -8605,7 +8631,7 @@ abstract class PropertyAccessorElement2OrMember
 }
 
 abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
-    implements PropertyAccessorElement2OrMember {
+    with PropertyAccessorElement2OrMember {
   PropertyInducingElementImpl? _variable3;
 
   @override
@@ -8723,14 +8749,20 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 
 /// Common base class for all analyzer-internal classes that implement
 /// [PropertyInducingElement].
-abstract class PropertyInducingElement2OrMember
-    implements VariableElement2OrMember, PropertyInducingElement {
+mixin PropertyInducingElement2OrMember on VariableElement2OrMember
+    implements PropertyInducingElement {
+  @override
+  PropertyInducingElementImpl get baseElement;
+
   @override
   GetterElement2OrMember? get getter;
 
   @Deprecated('Use getter instead')
   @override
   GetterElement2OrMember? get getter2;
+
+  @override
+  LibraryElementImpl get library;
 
   @override
   MetadataImpl get metadata;
@@ -8744,8 +8776,8 @@ abstract class PropertyInducingElement2OrMember
 }
 
 abstract class PropertyInducingElementImpl extends VariableElementImpl
-    with DeferredResolutionReadingMixin
-    implements PropertyInducingElement2OrMember, AnnotatableElementImpl {
+    with PropertyInducingElement2OrMember, DeferredResolutionReadingMixin
+    implements AnnotatableElementImpl {
   @override
   GetterElementImpl? getter;
 
@@ -8932,14 +8964,20 @@ abstract class PropertyInducingFragmentImpl
 
 /// Common base class for all analyzer-internal classes that implement
 /// [SetterElement].
-abstract class SetterElement2OrMember
-    implements PropertyAccessorElement2OrMember, SetterElement {
+mixin SetterElement2OrMember on PropertyAccessorElement2OrMember
+    implements SetterElement {
   @override
   SetterElementImpl get baseElement;
+
+  @override
+  SetterFragmentImpl get firstFragment;
+
+  @override
+  List<SetterFragmentImpl> get fragments;
 }
 
 class SetterElementImpl extends PropertyAccessorElementImpl
-    implements SetterElement2OrMember {
+    with SetterElement2OrMember {
   @override
   Reference reference;
 
@@ -9411,7 +9449,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  TopLevelVariableElement get baseElement => this;
+  TopLevelVariableElementImpl get baseElement => this;
 
   @override
   LibraryElementImpl get enclosingElement => library;
@@ -10273,13 +10311,14 @@ mixin TypeParameterizedFragmentMixin on FragmentImpl
 
 /// Common base class for all analyzer-internal classes that implement
 /// `VariableElement2`.
-abstract class VariableElement2OrMember implements VariableElement {
+mixin VariableElement2OrMember implements VariableElement {
   @override
   TypeImpl get type;
 }
 
 abstract class VariableElementImpl extends ElementImpl
-    implements VariableElement2OrMember, ConstantEvaluationTarget {
+    with VariableElement2OrMember
+    implements ConstantEvaluationTarget {
   ConstantInitializerImpl? _constantInitializer;
 
   /// The result of evaluating [constantInitializer2].
