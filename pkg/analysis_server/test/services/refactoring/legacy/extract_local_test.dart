@@ -11,6 +11,7 @@ import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../utils/test_code_extensions.dart';
 import 'abstract_refactoring.dart';
 
 void main() {
@@ -1181,7 +1182,7 @@ void f() {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1277,7 +1278,7 @@ void f(int x) {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1306,7 +1307,7 @@ void f(int x) {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1491,7 +1492,7 @@ void f() {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['y'],
     );
   }
@@ -1512,7 +1513,7 @@ class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['x', 'i'],
     );
   }
@@ -1537,7 +1538,7 @@ class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['x', 'i'],
     );
   }
@@ -1612,7 +1613,7 @@ void f(int x) {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1639,7 +1640,7 @@ void f(int x) {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1811,7 +1812,7 @@ void f() {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['cde'],
     );
   }
@@ -1832,7 +1833,7 @@ void f() {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 's'],
     );
   }
@@ -1857,7 +1858,7 @@ void f() {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: parsedExpectedCode.positions.map((p) => p.offset).toList(),
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['xy'],
     );
   }
