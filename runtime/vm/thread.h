@@ -378,7 +378,7 @@ class Thread : public ThreadState {
     kSampleBlockTask,
     kIncrementalCompactorTask,
     kSpawnTask,
-    kIsolateGroupSharedCallbackTask,
+    kIsolateGroupBoundCallbackTask,
   };
 
   ~Thread();

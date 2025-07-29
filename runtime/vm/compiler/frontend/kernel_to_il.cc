@@ -1061,8 +1061,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundClosureFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1555,8 +1555,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction: {
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundClosureFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -5274,9 +5274,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
   switch (function.GetFfiCallbackKind()) {
     case FfiCallbackKind::kIsolateLocalStaticCallback:
-    case FfiCallbackKind::kIsolateGroupSharedStaticCallback:
+    case FfiCallbackKind::kIsolateGroupBoundStaticCallback:
     case FfiCallbackKind::kIsolateLocalClosureCallback:
-    case FfiCallbackKind::kIsolateGroupSharedClosureCallback:
+    case FfiCallbackKind::kIsolateGroupBoundClosureCallback:
       return BuildGraphOfSyncFfiCallback(function);
     case FfiCallbackKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
@@ -5591,7 +5591,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
       function.GetFfiCallbackKind() ==
           FfiCallbackKind::kIsolateLocalClosureCallback ||
       function.GetFfiCallbackKind() ==
-          FfiCallbackKind::kIsolateGroupSharedClosureCallback;
+          FfiCallbackKind::kIsolateGroupBoundClosureCallback;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);

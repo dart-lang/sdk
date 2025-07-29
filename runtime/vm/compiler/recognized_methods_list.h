@@ -120,10 +120,10 @@ namespace dart {
     FfiNativeAsyncCallbackFunction, 0xbdd1a333)                                \
   V(FfiLibrary, ::, _nativeIsolateLocalCallbackFunction,                       \
     FfiNativeIsolateLocalCallbackFunction, 0x21b66eba)                         \
-  V(FfiLibrary, ::, _nativeIsolateGroupSharedCallbackFunction,                 \
-    FfiNativeIsolateGroupSharedCallbackFunction, 0x8882d3ca)                   \
-  V(FfiLibrary, ::, _nativeIsolateGroupSharedClosureFunction,                  \
-    FfiNativeIsolateGroupSharedClosureFunction, 0x2c93f675)                    \
+  V(FfiLibrary, ::, _nativeIsolateGroupBoundCallbackFunction,                 \
+    FfiNativeIsolateGroupBoundCallbackFunction, 0xc20a0b32)                   \
+  V(FfiLibrary, ::, _nativeIsolateGroupBoundClosureFunction,                  \
+    FfiNativeIsolateGroupBoundClosureFunction, 0x0714be84)                    \
   V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf70a6)    \
   V(FfiLibrary, ::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex,  \
     0xc188dd75)                                                                \

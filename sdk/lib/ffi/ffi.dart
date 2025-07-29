@@ -396,7 +396,7 @@ abstract final class NativeCallable<T extends Function> {
     throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
   }
 
-  factory NativeCallable.isolateGroupShared(
+  factory NativeCallable.isolateGroupBound(
     @DartRepresentationOf("T") Function callback, {
     Object? exceptionalReturn,
   }) {

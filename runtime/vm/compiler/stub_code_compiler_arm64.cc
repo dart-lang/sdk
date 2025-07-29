@@ -568,7 +568,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label async_callback;
-  Label sync_isolate_group_shared_callback;
+  Label sync_isolate_group_bound_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -582,10 +582,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
   __ b(&async_callback, EQ);
 
-  __ cmp(R9,
-         Operand(static_cast<uword>(
-             FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
-  __ b(&sync_isolate_group_shared_callback, EQ);
+  __ cmp(R9, Operand(static_cast<uword>(
+                 FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
+  __ b(&sync_isolate_group_bound_callback, EQ);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -600,11 +599,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ b(&done);
 
-  __ Bind(&sync_isolate_group_shared_callback);
+  __ Bind(&sync_isolate_group_bound_callback);
 
   __ blr(R10);
 
-  // Exit isolate group shared isolate.
+  // Exit isolate group bound isolate.
   {
     __ SetupDartSP();
     __ EnterFrame(0);
@@ -619,18 +618,18 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupSharedIsolate,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
                            R4, R9);
     } else {
       Label call;
       __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
       __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupBoundIsolate));
       __ Bind(&call);
     }
 #else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, R4);
+        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, R4);
 #endif
 
     __ mov(CSP, SP);

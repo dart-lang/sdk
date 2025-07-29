@@ -100,7 +100,7 @@ void simpleFunction(int a, int b) {
 Future<void> testNativeCallableHelloWorld(NativeLibrary lib) async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
-  final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+  final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
     simpleFunction,
   );
 
@@ -137,7 +137,7 @@ void simpleFunctionThatThrows(int a, int b) {
 Future<void> testNativeCallableThrows(NativeLibrary lib) async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
-  final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+  final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
     simpleFunctionThatThrows,
   );
 
@@ -161,7 +161,7 @@ Future<void> testNativeCallableThrows(NativeLibrary lib) async {
 Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
   mutexCondvar = Mutex();
   conditionVariable = ConditionVariable();
-  final callback = NativeCallable<CallbackNativeType>.isolateGroupShared((
+  final callback = NativeCallable<CallbackNativeType>.isolateGroupBound((
     int a,
     int b,
   ) {
@@ -198,7 +198,7 @@ Future<void> testNativeCallableHelloWorldClosure(NativeLibrary lib) async {
 
 void testNativeCallableSync(NativeLibrary lib) {
   final callback =
-      NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared((
+      NativeCallable<CallbackReturningIntNativeType>.isolateGroupBound((
         int a,
         int b,
       ) {
@@ -214,7 +214,7 @@ void testNativeCallableSync(NativeLibrary lib) {
 
 void testNativeCallableSyncThrows(NativeLibrary lib) {
   final callback =
-      NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared(
+      NativeCallable<CallbackReturningIntNativeType>.isolateGroupBound(
         (int a, int b) {
               throw "foo";
             }
@@ -233,7 +233,7 @@ int isolateVar = 10;
 
 void testNativeCallableAccessNonSharedVar(NativeLibrary lib) {
   final callback =
-      NativeCallable<CallbackReturningIntNativeType>.isolateGroupShared((
+      NativeCallable<CallbackReturningIntNativeType>.isolateGroupBound((
         int a,
         int b,
       ) {
@@ -255,7 +255,7 @@ Future<void> testKeepIsolateAliveTrue() async {
   unawaited(
     Isolate.spawn(
       (_) async {
-        final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+        final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
           simpleFunction,
         );
         callback.keepIsolateAlive = true;
@@ -282,7 +282,7 @@ Future<void> testKeepIsolateAliveFalse() async {
   unawaited(
     Isolate.spawn(
       (_) async {
-        final callback = NativeCallable<CallbackNativeType>.isolateGroupShared(
+        final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
           simpleFunction,
         );
         callback.keepIsolateAlive = false;

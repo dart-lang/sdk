@@ -46,12 +46,12 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateLocal, 1, 3) {
       zone, trampoline, target, keep_isolate_alive));
 }
 
-DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupShared, 1, 2) {
+DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupBound, 1, 2) {
   const auto& trampoline =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
   return Pointer::New(
-      isolate->CreateIsolateGroupSharedFfiCallback(zone, trampoline, target));
+      isolate->CreateIsolateGroupBoundFfiCallback(zone, trampoline, target));
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_deleteNativeCallable, 1, 1) {

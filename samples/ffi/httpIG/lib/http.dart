@@ -27,7 +27,7 @@ Future<String> httpGet(String uri) async {
       },
     );
   final sendPort = rp.sendPort;
-  final callback = NativeCallable<HttpCallback>.isolateGroupShared((
+  final callback = NativeCallable<HttpCallback>.isolateGroupBound((
     Pointer<Utf8> responsePointer,
   ) {
     final typedList = responsePointer.cast<Uint8>().asTypedList(
@@ -60,7 +60,7 @@ late int counter;
 ReceivePort httpServe(void Function(String) onRequest) {
   counter = 0;
   final rp = ReceivePort();
-  final callback = NativeCallable<HttpCallback>.isolateGroupShared((
+  final callback = NativeCallable<HttpCallback>.isolateGroupBound((
     Pointer<Utf8> requestPointer,
   ) {
     counter++;

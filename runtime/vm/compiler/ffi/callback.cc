@@ -28,9 +28,9 @@ const String& NativeCallbackFunctionName(Thread* thread,
       return String::Handle(
           zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
                                     String::Handle(zone, dart_target.name())));
-    case FfiCallbackKind::kIsolateGroupSharedClosureCallback:
-      return Symbols::FfiIsolateGroupSharedCallback();
-    case FfiCallbackKind::kIsolateGroupSharedStaticCallback:
+    case FfiCallbackKind::kIsolateGroupBoundClosureCallback:
+      return Symbols::FfiIsolateGroupBoundCallback();
+    case FfiCallbackKind::kIsolateGroupBoundStaticCallback:
       return String::Handle(
           zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
                                     String::Handle(zone, dart_target.name())));

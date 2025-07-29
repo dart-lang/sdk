@@ -4685,7 +4685,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   if (!metadata.IsLive()) {
     FATAL("Callback invoked after it has been deleted.");
   }
-  if (metadata.is_isolate_group_shared()) {
+  if (metadata.is_isolate_group_bound()) {
     *out_entry_point = metadata.target_entry_point();
     *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
   } else {
@@ -4717,7 +4717,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     current_thread->set_execution_state(Thread::kThreadInVM);
   }
 
-  if (metadata.is_isolate_group_shared()) {
+  if (metadata.is_isolate_group_bound()) {
     Isolate* current_isolate =
         current_thread != nullptr ? current_thread->isolate() : nullptr;
 
@@ -4747,8 +4747,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   return current_thread;
 }
 
-extern "C" void DLRT_ExitIsolateGroupSharedIsolate() {
-  TRACE_RUNTIME_CALL("ExitIsolateGroupSharedIsolate%s", "");
+extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
+  TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   Isolate* source_isolate =
