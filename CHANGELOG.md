@@ -1,3 +1,11 @@
+## 3.8.3
+
+This is a patch release that:
+
+- Fixes an issue with the DevTools Network screen (issue [flutter/devtools#9203])
+
+[flutter/devtools#9203]: https://github.com/flutter/devtools/issues/9203
+
 ## 3.8.2
 
 **Released on:** 2025-07-16
