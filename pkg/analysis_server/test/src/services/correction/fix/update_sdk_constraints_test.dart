@@ -54,6 +54,15 @@ class C {
     );
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+
+    // These tests use ^ a lot but the base methods use TestCode.parse() that
+    // considers them position markers by default.
+    allowTestCodeShorthand = false;
+  }
+
   Future<void> test_any() async {
     await assertUpdateWithGtGtGt(from: 'any', to: '^2.14.0');
   }

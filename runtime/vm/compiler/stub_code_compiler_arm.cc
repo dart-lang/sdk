@@ -391,7 +391,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ PopRegisters(argument_registers);
 
   Label async_callback;
-  Label sync_isolate_group_shared_callback;
+  Label sync_isolate_group_bound_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -405,10 +405,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
   __ b(&async_callback, EQ);
 
-  __ cmp(R4,
-         Operand(static_cast<uword>(
-             FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
-  __ b(&sync_isolate_group_shared_callback, EQ);
+  __ cmp(R4, Operand(static_cast<uword>(
+                 FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
+  __ b(&sync_isolate_group_bound_callback, EQ);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -424,11 +423,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ b(&done);
 
-  __ Bind(&sync_isolate_group_shared_callback);
+  __ Bind(&sync_isolate_group_bound_callback);
 
   __ blx(R5);
 
-  // Exit isolate group shared isolate.
+  // Exit isolate group bound isolate.
   {
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
@@ -440,7 +439,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ PushRegisters(return_registers);
 
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, R4);
+        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, R4);
 
     __ blx(R4);
 

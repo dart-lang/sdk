@@ -530,7 +530,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   //            All argument registers are untouched.
 
   Label async_callback;
-  Label sync_isolate_group_shared_callback;
+  Label sync_isolate_group_bound_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the
@@ -545,8 +545,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ cmpq(RAX,
           Immediate(static_cast<uword>(
-              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
-  __ j(EQUAL, &sync_isolate_group_shared_callback, Assembler::kNearJump);
+              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
+  __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -561,11 +561,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ jmp(&done, Assembler::kNearJump);
 
-  __ Bind(&sync_isolate_group_shared_callback);
+  __ Bind(&sync_isolate_group_bound_callback);
 
   __ call(TMP);
 
-  // Exit isolate group shared isolate.
+  // Exit isolate group bound isolate.
   {
     const RegisterSet return_registers(
         (1 << CallingConventions::kReturnReg) |
@@ -576,15 +576,15 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupSharedIsolate,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
                            RAX, TMP);
     } else {
       __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
-                       DLRT_ExitIsolateGroupSharedIsolate)));
+                       DLRT_ExitIsolateGroupBoundIsolate)));
     }
 #else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, RAX);
+        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, RAX);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
     __ EnterFrame(0);

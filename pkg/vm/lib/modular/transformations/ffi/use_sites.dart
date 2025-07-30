@@ -570,10 +570,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         );
       } else if (target == nativeCallableIsolateLocalConstructor) {
         return _verifyAndReplaceNativeCallableIsolateLocal(node);
-      } else if (target == nativeCallableIsolateGroupSharedConstructor) {
+      } else if (target == nativeCallableIsolateGroupBoundConstructor) {
         return _verifyAndReplaceNativeCallable(
           node,
-          replacement: _replaceNativeCallableIsolateGroupSharedConstructor,
+          replacement: _replaceNativeCallableIsolateGroupBoundConstructor,
         );
       } else if (target == nativeCallableListenerConstructor) {
         final DartType nativeType = InterfaceType(
@@ -1059,18 +1059,18 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     );
   }
 
-  // NativeCallable<T>.isolateGroupShared(target, exceptionalReturn) calls become:
+  // NativeCallable<T>.isolateGroupBound(target, exceptionalReturn) calls become:
   // isStaticFunction is true:
-  //   _NativeCallableIsolateGroupShared<T>(
-  //       _createNativeCallableIsolateGroupShared<NativeFunction<T>>(
-  //           _nativeIsolateGroupSharedCallbackFunction<T>(target, exceptionalReturn),
+  //   _NativeCallableIsolateGroupBound<T>(
+  //       _createNativeCallableIsolateGroupBound<NativeFunction<T>>(
+  //           _nativeIsolateGroupBoundCallbackFunction<T>(target, exceptionalReturn),
   //           null);
   // isStaticFunction is false:
-  //   _NativeCallableIsolateGroupShared<T>(
-  //       _createNativeCallableIsolateGroupShared<NativeFunction<T>>(
-  //           _nativeIsolateGroupSharedClosureFunction<T>(exceptionalReturn),
+  //   _NativeCallableIsolateGroupBound<T>(
+  //       _createNativeCallableIsolateGroupBound<NativeFunction<T>>(
+  //           _nativeIsolateGroupBoundClosureFunction<T>(exceptionalReturn),
   //           target));
-  Expression _replaceNativeCallableIsolateGroupSharedConstructor(
+  Expression _replaceNativeCallableIsolateGroupBoundConstructor(
     StaticInvocation node,
     Expression exceptionalReturn,
     bool isStaticFunction,
@@ -1084,11 +1084,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     late StaticInvocation pointerValue;
     if (isStaticFunction) {
       pointerValue = StaticInvocation(
-        createNativeCallableIsolateGroupSharedProcedure,
+        createNativeCallableIsolateGroupBoundProcedure,
         Arguments(
           [
             StaticInvocation(
-              nativeIsolateGroupSharedCallbackFunctionProcedure,
+              nativeIsolateGroupBoundCallbackFunctionProcedure,
               Arguments([
                 target,
                 exceptionalReturn,
@@ -1101,11 +1101,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       );
     } else {
       pointerValue = StaticInvocation(
-        createNativeCallableIsolateGroupSharedProcedure,
+        createNativeCallableIsolateGroupBoundProcedure,
         Arguments(
           [
             StaticInvocation(
-              nativeIsolateGroupSharedClosureFunctionProcedure,
+              nativeIsolateGroupBoundClosureFunctionProcedure,
               Arguments([exceptionalReturn], types: node.arguments.types),
             ),
             target,
@@ -1116,7 +1116,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     return ConstructorInvocation(
-      nativeCallablePrivateIsolateGroupSharedConstructor,
+      nativeCallablePrivateIsolateGroupBoundConstructor,
       Arguments([pointerValue], types: node.arguments.types),
     );
   }

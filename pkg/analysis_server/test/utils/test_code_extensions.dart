@@ -25,6 +25,9 @@ extension ListTestCodeRangeExtension on List<TestCodeRange> {
 }
 
 extension TestCodeExtension on TestCode {
+  /// Return the offsets of all [positions].
+  List<int> get positionOffsets => positions.map((p) => p.offset).toList();
+
   /// Verifies that [actualRanges] match with the marked ranges in [code].
   ///
   /// This is done by taking the resulting code (without markers) and then

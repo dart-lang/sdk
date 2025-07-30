@@ -46,14 +46,14 @@ class FfiCallbackMetadata {
     kSync = 0,
     kSyncStackDelta4 = 1,  // Only used by TARGET_ARCH_IA32
     kAsync = 2,
-    kSyncIsolateGroupShared = 3,
-    kSyncIsolateGroupSharedStackDelta4 = 4,  // Only used by TARGET_ARCH_IA32
+    kSyncIsolateGroupBound = 3,
+    kSyncIsolateGroupBoundStackDelta4 = 4,  // Only used by TARGET_ARCH_IA32
   };
 
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
     kExitTemporaryIsolate,
-    kExitIsolateGroupSharedIsolate,
+    kExitIsolateGroupBoundIsolate,
     kNumRuntimeFunctions,
   };
 
@@ -161,16 +161,16 @@ class FfiCallbackMetadata {
       ASSERT(IsLive());
       ASSERT(trampoline_type_ == TrampolineType::kSync ||
              trampoline_type_ == TrampolineType::kSyncStackDelta4 ||
-             trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+             trampoline_type_ == TrampolineType::kSyncIsolateGroupBound ||
              trampoline_type_ ==
-                 TrampolineType::kSyncIsolateGroupSharedStackDelta4);
+                 TrampolineType::kSyncIsolateGroupBoundStackDelta4);
       return reinterpret_cast<PersistentHandle*>(context_);
     }
 
-    bool is_isolate_group_shared() const {
-      return trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+    bool is_isolate_group_bound() const {
+      return trampoline_type_ == TrampolineType::kSyncIsolateGroupBound ||
              trampoline_type_ ==
-                 TrampolineType::kSyncIsolateGroupSharedStackDelta4;
+                 TrampolineType::kSyncIsolateGroupBoundStackDelta4;
     }
     // ApiState associated with an isolate group associated with this metadata.
     ApiState* api_state() const;

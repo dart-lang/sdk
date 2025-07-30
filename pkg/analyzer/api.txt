@@ -5199,6 +5199,11 @@ package:analyzer/source/source_range.dart:
     intersects (method: bool Function(SourceRange?))
     startsIn (method: bool Function(SourceRange))
     toString (method: String Function())
+package:analyzer/source/timestamped_data.dart:
+  TimestampedData (class<E> extends Object):
+    new (constructor: TimestampedData<E> Function(int, E))
+    data (getter: E)
+    modificationTime (getter: int)
 package:analyzer/src/dart/analysis/experiments_impl.dart:
   ExperimentalFeature (class extends Object implements Feature):
     new (constructor: ExperimentalFeature Function({List<String> channels, required String documentation, required String enableString, required Version? experimentalReleaseVersion, required int index, required bool isEnabledByDefault, required bool isExpired, required Version? releaseVersion}))
@@ -5227,11 +5232,6 @@ package:analyzer/src/dart/resolver/scope.dart:
     definedNames2 (getter: Map<String, Element>)
     get2 (method: Element? Function(String))
     getPrefixed2 (method: Element? Function(String, String))
-package:analyzer/src/generated/timestamped_data.dart:
-  TimestampedData (class<E> extends Object):
-    new (constructor: TimestampedData<E> Function(int, E))
-    data (getter: E)
-    modificationTime (getter: int)
 package:analyzer/src/lint/config.dart:
   RuleConfig (non-public)
 package:analyzer/src/workspace/workspace.dart:

@@ -457,12 +457,12 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   __ LoadFromOffset(R0, SP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize);
 
   compiler::ObjectPoolBuilder& op = __ object_pool_builder();
-  const intptr_t ic_data_index =
-      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
   const intptr_t stub_index =
       op.AddObject(stub, ObjectPool::Patchability::kPatchable);
-  ASSERT((ic_data_index + 1) == stub_index);
-  __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, ic_data_index);
+  const intptr_t ic_data_index =
+      op.AddObject(ic_data, ObjectPool::Patchability::kPatchable);
+  ASSERT((stub_index + 1) == ic_data_index);
+  __ LoadDoubleWordFromPoolIndex(CODE_REG, IC_DATA_REG, stub_index);
   const intptr_t entry_point_offset =
       entry_kind == Code::EntryKind::kNormal
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
@@ -493,12 +493,12 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   // Use same code pattern as instance call so it can be parsed by code patcher.
   compiler::ObjectPoolBuilder& op = __ object_pool_builder();
-  const intptr_t data_index =
-      op.AddObject(cache, ObjectPool::Patchability::kPatchable);
   const intptr_t stub_index = op.AddObject(
       StubCode::MegamorphicCall(), ObjectPool::Patchability::kPatchable);
-  ASSERT((data_index + 1) == stub_index);
-  __ LoadDoubleWordFromPoolIndex(IC_DATA_REG, CODE_REG, data_index);
+  const intptr_t data_index =
+      op.AddObject(cache, ObjectPool::Patchability::kPatchable);
+  ASSERT((stub_index + 1) == data_index);
+  __ LoadDoubleWordFromPoolIndex(CODE_REG, IC_DATA_REG, stub_index);
   CLOBBERS_LR(__ ldr(LR, compiler::FieldAddress(
                              CODE_REG, Code::entry_point_offset(
                                            Code::EntryKind::kMonomorphic))));
@@ -547,15 +547,15 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
       FLAG_precompiled_mode ? compiler::ObjectPoolBuilderEntry::
                                   kResetToSwitchableCallMissEntryPoint
                             : compiler::ObjectPoolBuilderEntry::kSnapshotable;
+  const intptr_t stub_index = op.AddObject(
+      initial_stub, ObjectPool::Patchability::kPatchable, snapshot_behavior);
   const intptr_t data_index =
       op.AddObject(data, ObjectPool::Patchability::kPatchable);
-  const intptr_t initial_stub_index = op.AddObject(
-      initial_stub, ObjectPool::Patchability::kPatchable, snapshot_behavior);
-  ASSERT((data_index + 1) == initial_stub_index);
+  ASSERT((stub_index + 1) == data_index);
 
   // The AOT runtime will replace the slot in the object pool with the
   // entrypoint address - see app_snapshot.cc.
-  CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(R5, LR, data_index));
+  CLOBBERS_LR(__ LoadDoubleWordFromPoolIndex(LR, R5, stub_index));
   CLOBBERS_LR(__ blr(LR));
 
   EmitCallsiteMetadata(source, DeoptId::kNone, UntaggedPcDescriptors::kOther,

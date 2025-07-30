@@ -516,23 +516,28 @@ Fragment BaseFlowGraphBuilder::LoadField(const Field& field,
 Fragment BaseFlowGraphBuilder::LoadNativeField(
     const Slot& native_field,
     InnerPointerAccess loads_inner_pointer,
-    bool calls_initializer) {
+    bool calls_initializer,
+    compiler::Assembler::MemoryOrder memory_order) {
   LoadFieldInstr* load = new (Z) LoadFieldInstr(
       Pop(), native_field, loads_inner_pointer, InstructionSource(),
-      calls_initializer, calls_initializer ? GetNextDeoptId() : DeoptId::kNone);
+      calls_initializer, calls_initializer ? GetNextDeoptId() : DeoptId::kNone,
+      memory_order);
   Push(load);
   return Fragment(load);
 }
 
-Fragment BaseFlowGraphBuilder::LoadNativeField(const Slot& native_field,
-                                               bool calls_initializer) {
+Fragment BaseFlowGraphBuilder::LoadNativeField(
+    const Slot& native_field,
+    bool calls_initializer,
+    compiler::Assembler::MemoryOrder memory_order) {
   const InnerPointerAccess loads_inner_pointer =
       native_field.representation() == kUntagged
           ? (native_field.may_contain_inner_pointer()
                  ? InnerPointerAccess::kMayBeInnerPointer
                  : InnerPointerAccess::kCannotBeInnerPointer)
           : InnerPointerAccess::kNotUntagged;
-  return LoadNativeField(native_field, loads_inner_pointer, calls_initializer);
+  return LoadNativeField(native_field, loads_inner_pointer, calls_initializer,
+                         memory_order);
 }
 
 Fragment BaseFlowGraphBuilder::LoadLocal(LocalVariable* variable) {

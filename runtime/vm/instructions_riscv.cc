@@ -43,8 +43,8 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
       data_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // R is either CODE_REG (JIT) or TMP (AOT)
-  //          [lui,add,]lx IC_DATA_REG, ##(pp)
   //          [lui,add,]lx R, ##(pp)
+  //          [lui,add,]lx IC_DATA_REG, ##(pp)
   // xxxxxxxx lx ra, ##(R)
   //     xxxx jalr ra
 
@@ -52,13 +52,13 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
   ASSERT(*reinterpret_cast<uint16_t*>(pc - 2) == 0x9082);
 
   Register reg;
-  uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
-      pc - 6, &reg, &target_pool_index_);
-  ASSERT(IsJumpAndLinkScratch(reg));
-
-  InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
-                                             &data_pool_index_);
+  uword target_load_end = InstructionPattern::DecodeLoadWordFromPool(
+      pc - 6, &reg, &data_pool_index_);
   ASSERT(reg == IC_DATA_REG);
+
+  InstructionPattern::DecodeLoadWordFromPool(target_load_end, &reg,
+                                             &target_pool_index_);
+  ASSERT(IsJumpAndLinkScratch(reg));
 }
 
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
@@ -329,18 +329,32 @@ ObjectPtr SwitchableCallPatternBase::data() const {
 
 void SwitchableCallPatternBase::SetData(const Object& data) const {
   ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(data_pool_index_, data);
+  object_pool_.SetObjectAt<std::memory_order_release>(data_pool_index_, data);
 }
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : SwitchableCallPatternBase(ObjectPool::Handle(code.GetObjectPool())) {
   ASSERT(code.ContainsInstructionAt(pc));
-  UNIMPLEMENTED();
+  //          [lui,add,]lx CODE, ##(pp)
+  //          [lui,add,]lx IC_DATA_REG, ##(pp)
+  // xxxxxxxx lx RA, ##(CODE)
+  //     xxxx jalr RA
+
+  // Last instruction: jalr ra.
+  ASSERT(*reinterpret_cast<uint16_t*>(pc - 2) == 0x9082);
+
+  Register reg;
+  uword target_load_end = InstructionPattern::DecodeLoadWordFromPool(
+      pc - 6, &reg, &data_pool_index_);
+  ASSERT_EQUAL(reg, IC_DATA_REG);
+
+  InstructionPattern::DecodeLoadWordFromPool(target_load_end, &reg,
+                                             &target_pool_index_);
+  ASSERT_EQUAL(reg, CODE_REG);
 }
 
-uword SwitchableCallPattern::target_entry() const {
-  return Code::Handle(Code::RawCast(object_pool_.ObjectAt(target_pool_index_)))
-      .MonomorphicEntryPoint();
+ObjectPtr SwitchableCallPattern::target() const {
+  return object_pool_.ObjectAt(target_pool_index_);
 }
 
 void SwitchableCallPattern::SetTarget(const Code& target) const {

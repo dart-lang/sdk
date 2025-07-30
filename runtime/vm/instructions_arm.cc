@@ -43,13 +43,13 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
-  uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
-      pc - 2 * Instr::kInstrSize, &reg, &target_pool_index_);
-  ASSERT(IsBranchLinkScratch(reg));
-
-  InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
-                                             &data_pool_index_);
+  uword target_load_end = InstructionPattern::DecodeLoadWordFromPool(
+      pc - 2 * Instr::kInstrSize, &reg, &data_pool_index_);
   ASSERT(reg == R9);
+
+  InstructionPattern::DecodeLoadWordFromPool(target_load_end, &reg,
+                                             &target_pool_index_);
+  ASSERT(IsBranchLinkScratch(reg));
 }
 
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
@@ -257,16 +257,15 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
 
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
-      pc - Instr::kInstrSize, &reg, &data_pool_index_);
+      pc - 2 * Instr::kInstrSize, &reg, &data_pool_index_);
   ASSERT(reg == R9);
-  InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
-                                             &reg, &target_pool_index_);
+  InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
+                                             &target_pool_index_);
   ASSERT(IsBranchLinkScratch(reg));
 }
 
-uword SwitchableCallPattern::target_entry() const {
-  return Code::Handle(Code::RawCast(object_pool_.ObjectAt(target_pool_index_)))
-      .MonomorphicEntryPoint();
+ObjectPtr SwitchableCallPattern::target() const {
+  return object_pool_.ObjectAt(target_pool_index_);
 }
 
 void SwitchableCallPattern::SetTarget(const Code& target) const {

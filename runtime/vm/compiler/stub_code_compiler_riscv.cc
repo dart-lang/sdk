@@ -462,11 +462,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   COMPILE_ASSERT(
       static_cast<uword>(
-          FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared) == 3);
+          FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound) == 3);
   // isolate-group-shared callback
   __ jalr(T2);
 
-  // Exit isolate group shared isolate.
+  // Exit isolate group bound isolate.
   {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
@@ -482,7 +482,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupSharedIsolate,
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitIsolateGroupBoundIsolate,
                            T1, T2);
     } else {
       const intptr_t kPCRelativeLoadOffset = 12;
@@ -493,14 +493,14 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
       ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
 #if XLEN == 32
-      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitIsolateGroupBoundIsolate));
 #else
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupBoundIsolate));
 #endif
     }
 #else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, T1);
+        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, T1);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
     __ Bind(&call);

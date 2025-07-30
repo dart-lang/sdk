@@ -101,6 +101,29 @@ int f(E e) {
 ''');
   }
 
+  Future<void> test_usedAsGetter_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  one, two;
+}
+
+E f() {
+  return .a;
+}
+''');
+    await assertHasFix('''
+enum E {
+  one, two;
+
+  static final E a;
+}
+
+E f() {
+  return .a;
+}
+''');
+  }
+
   Future<void> test_usedAsSetter() async {
     await resolveTestCode('''
 enum E {
@@ -119,6 +142,25 @@ void f(E e) {
 class CreateFieldMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_FIELD;
+
+  Future<void> test_dotShorthand() async {
+    await resolveTestCode('''
+mixin A {}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+mixin A {
+  static A test;
+}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+  }
 
   Future<void> test_getter_qualified_instance() async {
     await resolveTestCode('''
@@ -176,6 +218,36 @@ void f(M m) {
 class CreateFieldTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_FIELD;
+
+  Future<void> test_dotShorthand_class() async {
+    await resolveTestCode('''
+class A {}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A test;
+}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    await resolveTestCode('''
+extension type A(int x) {}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_getter_multiLevel() async {
     await resolveTestCode('''
