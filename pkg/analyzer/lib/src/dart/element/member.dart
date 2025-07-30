@@ -33,8 +33,6 @@ typedef ParameterMember = SubstitutedFormalParameterElementImpl;
 class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
     with InternalConstructorElement
     implements ConstructorElement {
-  /// Initialize a newly created element to represent a constructor, based on
-  /// the [declaration], and applied [substitution].
   SubstitutedConstructorElementImpl({
     required ConstructorElementImpl super.baseElement,
     required super.substitution,
@@ -181,8 +179,6 @@ abstract class SubstitutedElementImpl implements Element {
   /// The substitution for type parameters referenced in the base element.
   final MapSubstitution substitution;
 
-  /// Initialize a newly created element to represent a member, based on the
-  /// [declaration], and applied [substitution].
   SubstitutedElementImpl({
     required this.baseElement,
     required this.substitution,
@@ -290,12 +286,8 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
 
   FunctionTypeImpl? _type;
 
-  /// Initialize a newly created element to represent a callable element (like a
-  /// method or function or property), based on the [declaration], and applied
-  /// [substitution].
-  ///
   /// The [typeParameters] are fresh, and [substitution] is already applied to
-  /// their bounds.  The [substitution] includes replacing [declaration] type
+  /// their bounds.  The [substitution] includes replacing [baseElement] type
   /// parameters with the provided fresh [typeParameters].
   SubstitutedExecutableElementImpl({
     required ExecutableElementImpl super.baseElement,
@@ -503,8 +495,6 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
 /// parameters are known.
 class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
     with InternalPropertyInducingElement, InternalFieldElement {
-  /// Initialize a newly created element to represent a field, based on the
-  /// [declaration], with applied [substitution].
   SubstitutedFieldElementImpl({
     required FieldElementImpl super.baseElement,
     required super.substitution,
@@ -732,8 +722,6 @@ class SubstitutedFormalParameterElementImpl
     );
   }
 
-  /// Initialize a newly created element to represent a parameter, based on the
-  /// [declaration], with applied [substitution].
   SubstitutedFormalParameterElementImpl._({
     required FormalParameterElementImpl super.baseElement,
     required super.substitution,
@@ -1296,8 +1284,6 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
     with InternalVariableElement {
   TypeImpl? _type;
 
-  /// Initialize a newly created element to represent a variable, based on the
-  /// [declaration], with applied [substitution].
   SubstitutedVariableElementImpl({
     required VariableElementImpl super.baseElement,
     required super.substitution,
