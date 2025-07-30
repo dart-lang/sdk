@@ -884,7 +884,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     IndexRelationKind kind;
     var element = node.propertyName.element;
-    if (element is ConstructorElementMixin2) {
+    if (element is InternalConstructorElement) {
       element = _getActualConstructorElement(element);
       kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
     } else {

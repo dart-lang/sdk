@@ -21,7 +21,6 @@ import 'type_constraint_gatherer.dart' show TypeConstraintGatherer;
 import 'type_demotion.dart';
 import 'type_inference_engine.dart';
 import 'type_schema.dart' show UnknownType;
-import 'type_schema_elimination.dart' show greatestClosure, leastClosure;
 
 typedef GeneratedTypeConstraint
     = shared.GeneratedTypeConstraint<VariableDeclaration>;
@@ -185,26 +184,28 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       MergedTypeConstraint constraint = constraints[typeParam]!;
       if (preliminary) {
         inferredTypes[i] = _inferTypeParameterFromContext(
-            previouslyInferredTypes?[i], constraint, extendsConstraint,
-            isLegacyCovariant: typeParam.isLegacyCovariant,
-            operations: operations,
-            constraints: constraints,
-            typeParameterToInfer: typeParam,
-            typeParametersToInfer: typeParametersToInfer,
-            dataForTesting: dataForTesting,
-            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
+                previouslyInferredTypes?[i], constraint, extendsConstraint,
+                isLegacyCovariant: typeParam.isLegacyCovariant,
+                operations: operations,
+                constraints: constraints,
+                typeParameterToInfer: typeParam,
+                typeParametersToInfer: typeParametersToInfer,
+                dataForTesting: dataForTesting,
+                inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled)
+            as DartType;
       } else {
         inferredTypes[i] = _inferTypeParameterFromAll(
-            previouslyInferredTypes?[i], constraint, extendsConstraint,
-            isContravariant:
-                typeParam.variance == shared.Variance.contravariant,
-            isLegacyCovariant: typeParam.isLegacyCovariant,
-            operations: operations,
-            constraints: constraints,
-            typeParameterToInfer: typeParam,
-            typeParametersToInfer: typeParametersToInfer,
-            dataForTesting: dataForTesting,
-            inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled);
+                previouslyInferredTypes?[i], constraint, extendsConstraint,
+                isContravariant:
+                    typeParam.variance == shared.Variance.contravariant,
+                isLegacyCovariant: typeParam.isLegacyCovariant,
+                operations: operations,
+                constraints: constraints,
+                typeParameterToInfer: typeParam,
+                typeParametersToInfer: typeParametersToInfer,
+                dataForTesting: dataForTesting,
+                inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled)
+            as DartType;
       }
     }
 
@@ -318,78 +319,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return gatherer;
   }
 
-  /// Computes the constraint solution for a type parameter based on a given set
-  /// of constraints.
-  ///
-  /// If [grounded] is `true`, then the returned type is guaranteed to be a
-  /// known type (i.e. it will not contain any instances of `?`) if it is
-  /// constrained at all.  The returned type for unconstrained variables is
-  /// [UnknownType].
-  ///
-  /// If [isContravariant] is `true`, then we are solving for a contravariant
-  /// type parameter which means we choose the upper bound rather than the
-  /// lower bound for normally covariant type parameters.
-  DartType solveTypeConstraint(MergedTypeConstraint constraint,
-      {bool grounded = false,
-      bool isContravariant = false,
-      required covariant OperationsCfe operations}) {
-    if (!isContravariant) {
-      // Prefer the known bound, if any.
-      if (operations.isKnownType(constraint.lower)) {
-        return constraint.lower.unwrapTypeSchemaView();
-      }
-      if (operations.isKnownType(constraint.upper)) {
-        return constraint.upper.unwrapTypeSchemaView();
-      }
-
-      // Otherwise take whatever bound has partial information,
-      // e.g. `Iterable<?>`
-      if (constraint.lower is! SharedUnknownTypeSchemaView) {
-        return grounded
-            ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
-                coreTypes: coreTypes)
-            : constraint.lower.unwrapTypeSchemaView();
-      } else if (constraint.upper is! SharedUnknownTypeSchemaView) {
-        return grounded
-            ? greatestClosure(constraint.upper.unwrapTypeSchemaView(),
-                topType: coreTypes.objectNullableRawType)
-            : constraint.upper.unwrapTypeSchemaView();
-      } else {
-        assert(constraint.lower is SharedUnknownTypeSchemaView);
-        return constraint.lower.unwrapTypeSchemaView();
-      }
-    } else {
-      // Prefer the known bound, if any.
-      if (operations.isKnownType(constraint.upper)) {
-        // Coverage-ignore-block(suite): Not run.
-        return constraint.upper.unwrapTypeSchemaView();
-      }
-      if (operations.isKnownType(constraint.lower)) {
-        return constraint.lower.unwrapTypeSchemaView();
-      }
-
-      // Otherwise take whatever bound has partial information,
-      // e.g. `Iterable<?>`
-      if (constraint.upper is! SharedUnknownTypeSchemaView) {
-        // Coverage-ignore-block(suite): Not run.
-        return grounded
-            ? greatestClosure(constraint.upper.unwrapTypeSchemaView(),
-                topType: coreTypes.objectNullableRawType)
-            : constraint.upper.unwrapTypeSchemaView();
-      } else if (constraint.lower is! UnknownType) {
-        return grounded
-            ? leastClosure(constraint.lower.unwrapTypeSchemaView(),
-                coreTypes: coreTypes)
-            :
-            // Coverage-ignore(suite): Not run.
-            constraint.lower.unwrapTypeSchemaView();
-      } else {
-        assert(constraint.upper is SharedUnknownTypeSchemaView);
-        return constraint.upper.unwrapTypeSchemaView();
-      }
-    }
-  }
-
   // Coverage-ignore(suite): Not run.
   /// Determine if the given [type] satisfies the given type [constraint].
   bool typeSatisfiesConstraint(DartType type, MergedTypeConstraint constraint) {
@@ -437,7 +366,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     return inferredTypes;
   }
 
-  DartType _inferTypeParameterFromAll(DartType? typeFromPreviousInference,
+  SharedType _inferTypeParameterFromAll(DartType? typeFromPreviousInference,
       MergedTypeConstraint constraint, DartType? extendsConstraint,
       {bool isContravariant = false,
       bool isLegacyCovariant = true,
@@ -480,13 +409,11 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
           new SharedTypeSchemaView(extendsConstraint), operations);
     }
 
-    return solveTypeConstraint(constraint,
-        grounded: true,
-        isContravariant: isContravariant,
-        operations: operations);
+    return operations.chooseTypeFromConstraint(constraint,
+        grounded: true, isContravariant: isContravariant);
   }
 
-  DartType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
+  SharedType _inferTypeParameterFromContext(DartType? typeFromPreviousInference,
       MergedTypeConstraint constraint, DartType? extendsConstraint,
       {bool isLegacyCovariant = true,
       required OperationsCfe operations,
@@ -505,7 +432,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       return typeFromPreviousInference;
     }
 
-    DartType t = solveTypeConstraint(constraint, operations: operations);
+    SharedType t = operations.chooseTypeFromConstraint(constraint,
+        grounded: false, isContravariant: false);
     if (!operations.isKnownType(new SharedTypeSchemaView(t))) {
       return t;
     }
@@ -540,7 +468,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       constraint = constraint.clone();
       constraint.mergeInTypeSchemaUpper(
           new SharedTypeSchemaView(extendsConstraint), operations);
-      return solveTypeConstraint(constraint, operations: operations);
+      return operations.chooseTypeFromConstraint(constraint,
+          grounded: false, isContravariant: false);
     }
 
     return t;

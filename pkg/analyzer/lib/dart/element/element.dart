@@ -568,15 +568,15 @@ abstract class DirectiveUriWithUnit extends DirectiveUriWithSource {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Element {
-  /// The non-[Member] version of this element.
+  /// The non-[SubstitutedElementImpl] version of this element.
   ///
   /// If the receiver is a view on an element, such as a method from an
   /// interface type with substituted type parameters, this getter will return
   /// the corresponding element from the class, without any substitutions.
   ///
-  /// If the receiver is already a non-[Member] element (or a synthetic element,
-  /// such as a synthetic property accessor), this getter will return the
-  /// receiver.
+  /// If the receiver is already a non-[SubstitutedElementImpl] element (or a
+  /// synthetic element, such as a synthetic property accessor), this getter
+  /// will return the receiver.
   Element get baseElement;
 
   /// The children of this element.

@@ -100,7 +100,7 @@ void checkForTypeParameterBoundRecursion(
 }
 
 class EnclosingExecutableContext {
-  final ExecutableElement2OrMember? element;
+  final InternalExecutableElement? element;
   final bool isAsynchronous;
   final bool isConstConstructor;
   final bool isGenerativeConstructor;
@@ -133,9 +133,9 @@ class EnclosingExecutableContext {
     required this.isGenerator,
     this.catchErrorOnErrorReturnType,
   }) : isConstConstructor =
-           element is ConstructorElementMixin2 && element.isConst,
+           element is InternalConstructorElement && element.isConst,
        isGenerativeConstructor =
-           element is ConstructorElementMixin2 && !element.isFactory,
+           element is InternalConstructorElement && !element.isFactory,
        inFactoryConstructor = _inFactoryConstructor(element),
        inStaticMethod = _inStaticMethod(element);
 
@@ -2255,7 +2255,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
 
       if (method.isStatic) {
-        void reportStaticConflict(ExecutableElement2OrMember inherited) {
+        void reportStaticConflict(InternalExecutableElement inherited) {
           diagnosticReporter.atElement2(
             method.asElement2,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -2283,7 +2283,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         continue;
       }
 
-      void reportFieldConflict(PropertyAccessorElement2OrMember inherited) {
+      void reportFieldConflict(InternalPropertyAccessorElement inherited) {
         diagnosticReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
@@ -2295,12 +2295,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
 
-      if (getter is GetterElement2OrMember) {
+      if (getter is InternalGetterElement) {
         reportFieldConflict(getter);
         continue;
       }
 
-      if (setter is SetterElement2OrMember) {
+      if (setter is InternalSetterElement) {
         reportFieldConflict(setter);
         continue;
       }
@@ -2331,7 +2331,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           ],
         );
         conflictingDeclaredNames.add(name);
-      } else if (inherited is MethodElement2OrMember) {
+      } else if (inherited is InternalMethodElement) {
         // Extension type accessors preclude inherited accessors/methods.
         if (enclosingClass is ExtensionTypeElementImpl) {
           continue;
@@ -2353,14 +2353,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var inherited = _inheritanceManager.getInheritedMap(enclosingClass);
     for (var entry in inherited.entries) {
       var method = entry.value;
-      if (method is MethodElement2OrMember) {
+      if (method is InternalMethodElement) {
         var methodName = entry.key;
         if (conflictingDeclaredNames.contains(methodName.name)) {
           continue;
         }
         var setterName = methodName.forSetter;
         var setter = inherited[setterName];
-        if (setter is PropertyAccessorElement2OrMember) {
+        if (setter is InternalPropertyAccessorElement) {
           diagnosticReporter.atElement2(
             enclosingClass,
             CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
@@ -6351,7 +6351,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _withEnclosingExecutable(
-    ExecutableElement2OrMember element,
+    InternalExecutableElement element,
     void Function() operation, {
     required bool isAsynchronous,
     required bool isGenerator,

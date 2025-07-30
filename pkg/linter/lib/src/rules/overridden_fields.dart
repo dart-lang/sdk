@@ -44,7 +44,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var overriddenMember = parent.getInheritedConcreteMember(
           Name(parent.library.uri, variable.name.lexeme),
         );
-        if (overriddenMember is GetterElement2OrMember &&
+        if (overriddenMember is InternalGetterElement &&
             overriddenMember.isSynthetic) {
           var definingInterface = overriddenMember.enclosingElement;
           rule.reportAtToken(

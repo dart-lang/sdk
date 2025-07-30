@@ -1371,7 +1371,7 @@ test() {}
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y, TypeMatcher<ParameterMember>());
+    expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1385,7 +1385,7 @@ test() {}
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y, TypeMatcher<ParameterMember>());
+    expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1428,7 +1428,7 @@ test() => new C<bool>.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y, TypeMatcher<ParameterMember>());
+    expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1441,7 +1441,7 @@ C<bool> test() => new C.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y, TypeMatcher<ParameterMember>());
+    expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1454,7 +1454,7 @@ test() => C<bool>.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y, TypeMatcher<ParameterMember>());
+    expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 
@@ -1467,7 +1467,7 @@ C<bool> test() => C.named(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.correspondingParameter!;
-    expect(y, TypeMatcher<ParameterMember>());
+    expect(y, TypeMatcher<SubstitutedFormalParameterElementImpl>());
     expect(y.baseElement, findElement2.parameter('arg'));
   }
 

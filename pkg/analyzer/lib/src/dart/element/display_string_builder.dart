@@ -67,7 +67,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeConstructorElement(ConstructorElementMixin2 element) {
+  void writeConstructorElement(InternalConstructorElement element) {
     _writeType(element.returnType);
 
     var displayName = element.name ?? '<null-name>';
@@ -98,7 +98,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeExecutableElement(ExecutableElement2OrMember element, String name) {
+  void writeExecutableElement(InternalExecutableElement element, String name) {
     if (element.kind != ElementKind.SETTER) {
       _writeType(element.returnType);
       _write(' ');
@@ -139,7 +139,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeFormalParameterElement(FormalParameterElementMixin element) {
+  void writeFormalParameterElement(InternalFormalParameterElement element) {
     if (element.isRequiredPositional) {
       _writeWithoutDelimiters(element, forElement: true);
     } else if (element.isOptionalPositional) {
@@ -367,7 +367,7 @@ class ElementDisplayStringBuilder {
     _write('_');
   }
 
-  void writeVariableElement(VariableElement2OrMember element) {
+  void writeVariableElement(InternalVariableElement element) {
     _writeType(element.type);
     _write(' ${element.displayName}');
   }
@@ -401,7 +401,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeFormalParameters(
-    List<FormalParameterElementMixin> parameters, {
+    List<InternalFormalParameterElement> parameters, {
     required bool forElement,
     bool allowMultiline = false,
   }) {
@@ -527,7 +527,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeWithoutDelimiters(
-    FormalParameterElementMixin element, {
+    InternalFormalParameterElement element, {
     required bool forElement,
   }) {
     if (element.isRequiredNamed) {

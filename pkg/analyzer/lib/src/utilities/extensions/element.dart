@@ -159,9 +159,9 @@ extension ElementOrNullExtension on FragmentImpl? {
       return DynamicElementImpl.instance;
     } else if (self is ExtensionFragmentImpl) {
       return (self as ExtensionFragment).element;
-    } else if (self is ExecutableMember) {
+    } else if (self is SubstitutedExecutableElementImpl) {
       return self as ExecutableElement;
-    } else if (self is FieldMember) {
+    } else if (self is SubstitutedFieldElementImpl) {
       return self as FieldElement;
     } else if (self is FieldFragmentImpl) {
       return (self as FieldFragment).element;
@@ -175,7 +175,7 @@ extension ElementOrNullExtension on FragmentImpl? {
       return self.element;
     } else if (self is NeverFragmentImpl) {
       return NeverElementImpl.instance;
-    } else if (self is ParameterMember) {
+    } else if (self is SubstitutedFormalParameterElementImpl) {
       return (self as FormalParameterFragment).element;
     } else if (self is LibraryImportImpl ||
         self is LibraryExportImpl ||
@@ -194,7 +194,7 @@ extension EnumElementImplExtension on EnumFragmentImpl {
   }
 }
 
-extension ExecutableElement2OrMemberExtension on ExecutableElement2OrMember {
+extension ExecutableElement2OrMemberExtension on InternalExecutableElement {
   ExecutableFragmentImpl get declarationImpl => baseElement.firstFragment;
 }
 

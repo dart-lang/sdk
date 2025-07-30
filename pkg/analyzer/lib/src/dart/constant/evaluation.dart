@@ -183,7 +183,7 @@ class ConstantEvaluationEngine {
           // ignore it here.
           constant.evaluationResult = null;
         }
-      } else if (element is ConstructorElementMixin2 &&
+      } else if (element is InternalConstructorElement &&
           element.isConst &&
           constNode.arguments != null) {
         var diagnosticListener = RecordingDiagnosticListener();
@@ -249,7 +249,7 @@ class ConstantEvaluationEngine {
     }
 
     ReferenceFinder referenceFinder = ReferenceFinder(callback);
-    if (constant case ConstructorElementMixin2 constructor) {
+    if (constant case InternalConstructorElement constructor) {
       constant = constructor.baseElement;
     }
 
@@ -353,7 +353,7 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocationImpl? invocation,
   }) {
@@ -402,7 +402,7 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocationImpl? invocation,
   }) {
@@ -462,8 +462,8 @@ class ConstantEvaluationEngine {
 
   /// If [constructor] redirects to another const constructor, return the
   /// const constructor it redirects to.  Otherwise return `null`.
-  static ConstructorElementMixin2? getConstRedirectedConstructor(
-    ConstructorElementMixin2 constructor,
+  static InternalConstructorElement? getConstRedirectedConstructor(
+    InternalConstructorElement constructor,
   ) {
     if (!constructor.isFactory) {
       return null;
@@ -881,7 +881,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.genericError(node: node);
     }
     var constructor = node.constructorName.element;
-    if (constructor is ConstructorElementMixin2) {
+    if (constructor is InternalConstructorElement) {
       return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
         _library,
         node,
@@ -2137,7 +2137,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     DartObjectImpl value,
   ) {
     var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElement2OrMember) {
+    if (functionElement is! InternalExecutableElement) {
       return value;
     }
     var valueType = functionElement.type;
@@ -2172,7 +2172,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // TODO(srawlins): When all code uses [FunctionReference]s generated via
     // generic function instantiation, remove this method and all call sites.
     var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElement2OrMember) {
+    if (functionElement is! InternalExecutableElement) {
       return value;
     }
     var valueType = functionElement.type;
@@ -2837,7 +2837,7 @@ class _InstanceCreationEvaluator {
   /// The node used for most error reporting.
   final AstNode _errorNode;
 
-  final ConstructorElementMixin2 _constructor;
+  final InternalConstructorElement _constructor;
 
   final List<TypeImpl>? _typeArguments;
 
@@ -3221,7 +3221,10 @@ class _InstanceCreationEvaluator {
         var baseElement = initializer.element;
         if (baseElement != null && baseElement.isConst) {
           // Instantiate the constructor with the in-scope type arguments.
-          var constructor = ConstructorMember.from2(baseElement, definingType);
+          var constructor = SubstitutedConstructorElementImpl.from2(
+            baseElement,
+            definingType,
+          );
           var result = _evaluationEngine.evaluateConstructorCall(
             _library,
             _errorNode,
@@ -3535,8 +3538,8 @@ class _InstanceCreationEvaluator {
   /// Returns a context message that mimics a stack trace where [superConstructor] is
   /// called by [constructor]
   DiagnosticMessageImpl _stackTraceContextMessage(
-    ConstructorElementMixin2 superConstructor,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement superConstructor,
+    InternalConstructorElement constructor,
   ) {
     return DiagnosticMessageImpl(
       filePath: constructor.firstFragment.libraryFragment.source.fullName,
@@ -3556,7 +3559,7 @@ class _InstanceCreationEvaluator {
     DeclaredVariables declaredVariables,
     LibraryElementImpl library,
     AstNode node,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement constructor,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
@@ -3662,10 +3665,10 @@ class _InstanceCreationEvaluator {
   /// chain terminates. If there is a problem (e.g. a redirection can't be
   /// found, or a cycle is encountered), the chain will be followed as far as
   /// possible and then a const factory constructor will be returned.
-  static ConstructorElementMixin2 _followConstantRedirectionChain(
-    ConstructorElementMixin2 constructor,
+  static InternalConstructorElement _followConstantRedirectionChain(
+    InternalConstructorElement constructor,
   ) {
-    var constructorsVisited = <ConstructorElementMixin2>{};
+    var constructorsVisited = <InternalConstructorElement>{};
     while (true) {
       var redirectedConstructor =
           ConstantEvaluationEngine.getConstRedirectedConstructor(constructor);

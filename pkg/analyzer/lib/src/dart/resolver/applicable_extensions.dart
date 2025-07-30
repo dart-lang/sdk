@@ -31,20 +31,20 @@ class InstantiatedExtensionWithMember {
 
   ExtensionElement get extension => candidate.extension;
 
-  ExecutableElement2OrMember? get getter {
+  InternalExecutableElement? get getter {
     var getter = candidate.getter;
     if (getter == null) {
       return null;
     }
-    return ExecutableMember.from(getter, substitution);
+    return SubstitutedExecutableElementImpl.from(getter, substitution);
   }
 
-  ExecutableElement2OrMember? get setter {
+  InternalExecutableElement? get setter {
     var setter = candidate.setter;
     if (setter == null) {
       return null;
     }
-    return ExecutableMember.from(setter, substitution);
+    return SubstitutedExecutableElementImpl.from(setter, substitution);
   }
 }
 

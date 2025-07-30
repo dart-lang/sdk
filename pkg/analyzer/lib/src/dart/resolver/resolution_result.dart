@@ -52,10 +52,10 @@ class ResolutionResult extends SimpleResolutionResult {
 
 class SimpleResolutionResult {
   /// Return the element that is invoked for reading.
-  final ExecutableElement2OrMember? getter2;
+  final InternalExecutableElement? getter2;
 
   /// Return the element that is invoked for writing.
-  final ExecutableElement2OrMember? setter2;
+  final InternalExecutableElement? setter2;
 
   const SimpleResolutionResult({this.getter2, this.setter2});
 }

@@ -675,7 +675,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = accessor.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is MethodElement2OrMember) {
+      if (inherited is InternalMethodElement) {
         _diagnosticReporter.atElement2(
           accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
@@ -697,7 +697,7 @@ class MemberDuplicateDefinitionVerifier {
       }
       var baseName = method.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is PropertyAccessorElement2OrMember) {
+      if (inherited is InternalPropertyAccessorElement) {
         _diagnosticReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
@@ -881,7 +881,7 @@ class MemberDuplicateDefinitionVerifier {
         _InstanceElementContext();
   }
 
-  ExecutableElement2OrMember? _getInheritedMember(
+  InternalExecutableElement? _getInheritedMember(
     InterfaceElementImpl element,
     String baseName,
   ) {
@@ -897,7 +897,7 @@ class MemberDuplicateDefinitionVerifier {
     return _inheritanceManager.getInherited(element, setterName);
   }
 
-  ExecutableElement2OrMember? _getInterfaceMember(
+  InternalExecutableElement? _getInterfaceMember(
     InterfaceElementImpl element,
     String baseName,
   ) {

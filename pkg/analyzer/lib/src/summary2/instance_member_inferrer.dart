@@ -40,7 +40,7 @@ class InstanceMemberInferrer {
   /// same kind as the [element].
   bool _allSameElementKind(
     ExecutableElementImpl element,
-    List<ExecutableElement2OrMember> elements,
+    List<InternalExecutableElement> elements,
   ) {
     var elementKind = element.kind;
     for (int i = 0; i < elements.length; i++) {
@@ -54,10 +54,10 @@ class InstanceMemberInferrer {
   /// Given a method, return the parameter in the method that corresponds to the
   /// given [parameter]. If the parameter is positional, then it appears at the
   /// given [index] in its enclosing element's list of parameters.
-  FormalParameterElementMixin? _getCorrespondingParameter(
+  InternalFormalParameterElement? _getCorrespondingParameter(
     FormalParameterElementImpl parameter,
     int index,
-    List<FormalParameterElementMixin> methodParameters,
+    List<InternalFormalParameterElement> methodParameters,
   ) {
     //
     // Find the corresponding parameter.
@@ -130,7 +130,7 @@ class InstanceMemberInferrer {
     );
     if (overriddenGetters != null) {
       overriddenGetters =
-          overriddenGetters.whereType<GetterElement2OrMember>().toList();
+          overriddenGetters.whereType<InternalGetterElement>().toList();
     } else {
       overriddenGetters = const [];
     }
@@ -548,7 +548,7 @@ class InstanceMemberInferrer {
   void _inferParameterCovariance(
     FormalParameterElementImpl parameter,
     int index,
-    Iterable<ExecutableElement2OrMember> overridden,
+    Iterable<InternalExecutableElement> overridden,
   ) {
     parameter.inheritsCovariant = overridden.any((f) {
       var param = _getCorrespondingParameter(
@@ -602,7 +602,7 @@ class InstanceMemberInferrer {
   /// https://github.com/dart-lang/language/issues/569
   void _resetOperatorEqualParameterTypeToDynamic(
     MethodElementImpl element,
-    List<ExecutableElement2OrMember> overriddenElements,
+    List<InternalExecutableElement> overriddenElements,
   ) {
     if (element.name != '==') return;
 

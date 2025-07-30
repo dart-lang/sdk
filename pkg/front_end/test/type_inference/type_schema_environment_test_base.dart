@@ -67,8 +67,8 @@ abstract class TypeSchemaEnvironmentTestBase {
   void checkConstraintSolving(String constraint, String expected,
       {required bool grounded}) {
     expect(
-        typeSchemaEnvironment.solveTypeConstraint(parseConstraint(constraint),
-            grounded: grounded, operations: _operations),
+        _operations.chooseTypeFromConstraint(parseConstraint(constraint),
+            grounded: grounded, isContravariant: false),
         parseType(expected));
   }
 

@@ -1038,15 +1038,13 @@ class OperationsCfe
   @override
   SharedTypeView greatestClosureOfSchema(SharedTypeSchemaView schema,
       {SharedTypeView? topType}) {
-    return new SharedTypeView(
-        type_schema_elimination.greatestClosure(schema.unwrapTypeSchemaView(),
-            topType: topType?.unwrapTypeView() ??
-                // Coverage-ignore(suite): Not run.
-                typeEnvironment.coreTypes.objectNullableRawType));
+    return new SharedTypeView(type_schema_elimination.greatestClosure(
+        schema.unwrapTypeSchemaView(),
+        topType: topType?.unwrapTypeView() ??
+            typeEnvironment.coreTypes.objectNullableRawType));
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema) {
     return new SharedTypeView(type_schema_elimination.leastClosure(
         schema.unwrapTypeSchemaView(),

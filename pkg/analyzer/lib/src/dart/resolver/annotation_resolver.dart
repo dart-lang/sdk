@@ -40,7 +40,7 @@ class AnnotationResolver {
     ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    ConstructorElementMixin2? constructorElement;
+    InternalConstructorElement? constructorElement;
     if (constructorName != null) {
       constructorElement = classElement.getNamedConstructor(
         constructorName.name,
@@ -108,7 +108,7 @@ class AnnotationResolver {
     String typeDisplayName,
     SimpleIdentifierImpl? constructorName,
     List<TypeParameterElementImpl> typeParameters,
-    ConstructorElementMixin2? constructorElement,
+    InternalConstructorElement? constructorElement,
     ArgumentListImpl argumentList,
     InterfaceType Function(List<TypeImpl> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,

@@ -623,7 +623,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;
         var inherited = parent.getInheritedMember(methodName);
-        if (inherited is MethodElement2OrMember) return inherited;
+        if (inherited is InternalMethodElement) return inherited;
       }
     }
     return null;

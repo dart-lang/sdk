@@ -1479,8 +1479,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       checkIndexExpressionIndex(
         node.index,
         readElement:
-            hasRead ? result.readElement2 as ExecutableElement2OrMember? : null,
-        writeElement: result.writeElement2 as ExecutableElement2OrMember?,
+            hasRead ? result.readElement2 as InternalExecutableElement? : null,
+        writeElement: result.writeElement2 as InternalExecutableElement?,
         whyNotPromoted: whyNotPromoted,
       );
 
@@ -1635,7 +1635,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var getter = result.getter2;
     if (getter != null) {
       fieldNode.element = getter;
-      if (getter is PropertyAccessorElement2OrMember) {
+      if (getter is InternalPropertyAccessorElement) {
         return (getter, SharedTypeView(getter.returnType));
       } else {
         return (getter, SharedTypeView(getter.type));
@@ -1688,7 +1688,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     }
 
-    var element = result.getter2 as MethodElement2OrMember?;
+    var element = result.getter2 as InternalMethodElement?;
     node.element = element;
     if (element == null) {
       return null;
@@ -1714,13 +1714,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var readType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
-      if (element is MethodElement2OrMember) {
+      if (element is InternalMethodElement) {
         readType = element.returnType;
       }
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is GetterElement2OrMember) {
+      if (element is InternalGetterElement) {
         readType = element.returnType;
       } else if (element is VariableElement) {
         readType = localVariableTypeProvider.getType(
@@ -1762,7 +1762,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
-      if (element is MethodElement2OrMember) {
+      if (element is InternalMethodElement) {
         var parameters = element.formalParameters;
         if (parameters.length == 2) {
           writeType = parameters[1].type;
@@ -1771,7 +1771,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is SetterElement2OrMember) {
+      if (element is InternalSetterElement) {
         if (element.isSynthetic) {
           writeType = element.variable.type;
         } else {
@@ -1780,7 +1780,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             writeType = parameters[0].type;
           }
         }
-      } else if (element is VariableElement2OrMember) {
+      } else if (element is InternalVariableElement) {
         writeType = element.type;
       }
     }
@@ -3142,7 +3142,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
     checkIndexExpressionIndex(
       node.index,
-      readElement: result.readElement2 as ExecutableElement2OrMember?,
+      readElement: result.readElement2 as InternalExecutableElement?,
       writeElement: null,
       whyNotPromoted: whyNotPromoted,
     );
@@ -4435,7 +4435,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType type;
     if (element is MethodElement) {
       type = element.type;
-    } else if (element is ConstructorElementMixin2) {
+    } else if (element is InternalConstructorElement) {
       type = element.type;
     } else if (element is GetterElement) {
       type = resolverResult.getType!;
@@ -4580,7 +4580,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
-  static List<FormalParameterElementMixin?> resolveArgumentsToParameters({
+  static List<InternalFormalParameterElement?> resolveArgumentsToParameters({
     required ArgumentList argumentList,
     required List<FormalParameterElement> formalParameters,
     DiagnosticReporter? diagnosticReporter,
@@ -4588,11 +4588,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
-    var unnamedParameters = <FormalParameterElementMixin>[];
-    Map<String, FormalParameterElementMixin>? namedParameters;
+    var unnamedParameters = <InternalFormalParameterElement>[];
+    Map<String, InternalFormalParameterElement>? namedParameters;
     int length = formalParameters.length;
     for (int i = 0; i < length; i++) {
-      var parameter = formalParameters[i] as FormalParameterElementMixin;
+      var parameter = formalParameters[i] as InternalFormalParameterElement;
       if (parameter.isRequiredPositional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
@@ -4608,7 +4608,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     int unnamedIndex = 0;
     NodeList<Expression> arguments = argumentList.arguments;
     int argumentCount = arguments.length;
-    var resolvedParameters = List<FormalParameterElementMixin?>.filled(
+    var resolvedParameters = List<InternalFormalParameterElement?>.filled(
       argumentCount,
       null,
     );

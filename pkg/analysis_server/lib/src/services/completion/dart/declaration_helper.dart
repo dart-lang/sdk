@@ -1131,7 +1131,10 @@ class DeclarationHelper {
             continue;
           }
           // Exclude static methods when completion on an instance.
-          var member = ExecutableMember.from(rawMember, substitution);
+          var member = SubstitutedExecutableElementImpl.from(
+            rawMember,
+            substitution,
+          );
           _suggestMethod(
             method: member as MethodElement,
             referencingInterface: referencingInterface,
@@ -1141,7 +1144,10 @@ class DeclarationHelper {
         }
       } else if (rawMember is GetterElement) {
         if (!excludedGetters.contains(entry.key)) {
-          var member = ExecutableMember.from(rawMember, substitution);
+          var member = SubstitutedExecutableElementImpl.from(
+            rawMember,
+            substitution,
+          );
           _suggestProperty(
             accessor: member as PropertyAccessorElement,
             referencingInterface: referencingInterface,
@@ -1151,7 +1157,10 @@ class DeclarationHelper {
         }
       } else if (rawMember is SetterElement) {
         if (includeSetters) {
-          var member = ExecutableMember.from(rawMember, substitution);
+          var member = SubstitutedExecutableElementImpl.from(
+            rawMember,
+            substitution,
+          );
           _suggestProperty(
             accessor: member as PropertyAccessorElement,
             referencingInterface: referencingInterface,

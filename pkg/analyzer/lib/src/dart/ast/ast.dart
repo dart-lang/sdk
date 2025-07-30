@@ -531,7 +531,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// The list must be the same length as the number of arguments, but can
   /// contain `null` entries if a given argument doesn't correspond to a formal
   /// parameter.
-  List<FormalParameterElementMixin?>? _correspondingStaticParameters;
+  List<InternalFormalParameterElement?>? _correspondingStaticParameters;
 
   @generated
   ArgumentListImpl({
@@ -548,11 +548,11 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     return leftParenthesis;
   }
 
-  List<FormalParameterElementMixin?>? get correspondingStaticParameters =>
+  List<InternalFormalParameterElement?>? get correspondingStaticParameters =>
       _correspondingStaticParameters;
 
   set correspondingStaticParameters(
-    List<FormalParameterElementMixin?>? parameters,
+    List<InternalFormalParameterElement?>? parameters,
   ) {
     if (parameters != null && parameters.length != arguments.length) {
       throw ArgumentError(
@@ -604,7 +604,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// - the function being invoked is known based on static type information
   /// - the expression corresponds to one of the parameters of the function
   ///   being invoked
-  FormalParameterElementMixin? _getStaticParameterElementFor(
+  InternalFormalParameterElement? _getStaticParameterElementFor(
     Expression expression,
   ) {
     if (_correspondingStaticParameters == null ||
@@ -1151,7 +1151,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightHandSide;
 
   @override
-  MethodElement2OrMember? element;
+  InternalMethodElement? element;
 
   @generated
   AssignmentExpressionImpl({
@@ -1211,7 +1211,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForRightHandSide {
+  InternalFormalParameterElement? get _staticParameterElementForRightHandSide {
     Element? executableElement;
     if (operator.type != TokenType.EQ) {
       executableElement = element;
@@ -1226,10 +1226,10 @@ final class AssignmentExpressionImpl extends ExpressionImpl
       }
       if (operator.type == TokenType.EQ && leftHandSide is IndexExpression) {
         return formalParameters.length == 2
-            ? (formalParameters[1] as FormalParameterElementMixin)
+            ? (formalParameters[1] as InternalFormalParameterElement)
             : null;
       }
-      return formalParameters[0] as FormalParameterElementMixin;
+      return formalParameters[0] as InternalFormalParameterElement;
     }
 
     return null;
@@ -5514,7 +5514,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   SimpleIdentifierImpl? _name;
 
   @override
-  ConstructorElementMixin2? element;
+  InternalConstructorElement? element;
 
   @generated
   ConstructorNameImpl({
@@ -6749,7 +6749,7 @@ final class DotShorthandConstructorInvocationImpl
   @override
   bool get canBeConst {
     var element = constructorName.element;
-    if (element is! ConstructorElementMixin2) return false;
+    if (element is! InternalConstructorElement) return false;
     if (!element.isConst) return false;
 
     // Ensure that dependencies (e.g. default parameter values) are computed.
@@ -7520,7 +7520,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   FieldFragmentImpl? declaredFragment;
 
   @override
-  ConstructorElementMixin2? constructorElement;
+  InternalConstructorElement? constructorElement;
 
   @generated
   EnumConstantDeclarationImpl({
@@ -7544,7 +7544,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @Deprecated('Use constructorElement instead')
   @override
-  ConstructorElementMixin2? get constructorElement2 => constructorElement;
+  InternalConstructorElement? get constructorElement2 => constructorElement;
 
   @generated
   @override
@@ -8171,7 +8171,7 @@ sealed class ExpressionImpl extends CollectionElementImpl
 
   @experimental
   @override
-  FormalParameterElementMixin? get correspondingParameter {
+  InternalFormalParameterElement? get correspondingParameter {
     var parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
@@ -13934,7 +13934,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
   /// information.
-  FormalParameterElementMixin? get _staticParameterElementForIndex {
+  InternalFormalParameterElement? get _staticParameterElementForIndex {
     Element? element = this.element;
 
     var parent = this.parent;
@@ -13942,7 +13942,7 @@ final class IndexExpressionImpl extends ExpressionImpl
       element = parent.writeElement ?? parent.readElement;
     }
 
-    if (element is ExecutableElement2OrMember) {
+    if (element is InternalExecutableElement) {
       var formalParameters = element.formalParameters;
       if (formalParameters.isEmpty) {
         return null;
@@ -17078,14 +17078,14 @@ final class NamedExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  FormalParameterElementMixin? get element {
+  InternalFormalParameterElement? get element {
     return _name.label.element?.ifTypeOrNull();
   }
 
   @Deprecated('Use element instead')
   @experimental
   @override
-  FormalParameterElementMixin? get element2 {
+  InternalFormalParameterElement? get element2 {
     return element;
   }
 
@@ -19558,7 +19558,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForOperand {
+  InternalFormalParameterElement? get _staticParameterElementForOperand {
     if (element == null) {
       return null;
     }
@@ -19568,7 +19568,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
     }
     // TODO(paulberry): eliminate this cast by changing the type of
     // `staticElement` to `MethodElement2OrMember?`.
-    return parameters[0] as FormalParameterElementMixin;
+    return parameters[0] as InternalFormalParameterElement;
   }
 
   @generated
@@ -19832,7 +19832,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForOperand {
+  InternalFormalParameterElement? get _staticParameterElementForOperand {
     if (element == null) {
       return null;
     }
@@ -19842,7 +19842,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
     }
     // TODO(paulberry): eliminate this cast by changing the type of
     // `staticElement` to `MethodElementOrMember?`.
-    return parameters[0] as FormalParameterElementMixin;
+    return parameters[0] as InternalFormalParameterElement;
   }
 
   @generated
@@ -22783,7 +22783,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElementMixin2? element;
+  InternalConstructorElement? element;
 
   @generated
   SuperConstructorInvocationImpl({

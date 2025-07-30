@@ -78,7 +78,7 @@ class ManifestFunctionNamedFormalParameter
         other.type == type;
   }
 
-  bool match(MatchContext context, FormalParameterElementMixin element) {
+  bool match(MatchContext context, InternalFormalParameterElement element) {
     return element.isNamed &&
         element.isRequired == isRequired &&
         type.match(context, element.type) &&
@@ -127,7 +127,7 @@ class ManifestFunctionPositionalFormalParameter
         other.type == type;
   }
 
-  bool match(MatchContext context, FormalParameterElementMixin element) {
+  bool match(MatchContext context, InternalFormalParameterElement element) {
     return element.isPositional &&
         element.isRequired == isRequired &&
         type.match(context, element.type);

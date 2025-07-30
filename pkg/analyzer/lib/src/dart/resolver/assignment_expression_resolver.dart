@@ -270,7 +270,7 @@ class AssignmentExpressionResolver {
       propertyErrorEntity: operator,
       nameErrorEntity: operator,
     );
-    node.element = result.getter2 as MethodElement2OrMember?;
+    node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
       _diagnosticReporter.atToken(
         operator,

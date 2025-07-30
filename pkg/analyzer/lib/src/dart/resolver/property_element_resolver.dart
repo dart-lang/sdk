@@ -96,7 +96,7 @@ class PropertyElementResolver with ScopeHelpers {
                   )
                   as FunctionType;
           var inferredType = inferred.returnType;
-          var constructorElement = ConstructorMember.from2(
+          var constructorElement = SubstitutedConstructorElementImpl.from2(
             elementToInfer.element.baseElement,
             inferredType as InterfaceType,
           );
@@ -352,7 +352,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       readElementRequested = readLookup?.requested;
-      if (readElementRequested is PropertyAccessorElement2OrMember &&
+      if (readElementRequested is InternalPropertyAccessorElement &&
           !readElementRequested.isStatic) {
         var unpromotedType = readElementRequested.returnType;
         getType =
@@ -586,8 +586,8 @@ class PropertyElementResolver with ScopeHelpers {
     TypeImpl? getType;
     if (hasRead) {
       var unpromotedType = switch (result.getter2) {
-        MethodElement2OrMember(:var type) => type,
-        PropertyAccessorElement2OrMember(:var returnType) => returnType,
+        InternalMethodElement(:var type) => type,
+        InternalPropertyAccessorElement(:var returnType) => returnType,
         _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType,
       };
       getType =
@@ -919,8 +919,8 @@ class PropertyElementResolver with ScopeHelpers {
     }
     var targetType = target.staticType;
 
-    ExecutableElement2OrMember? readElement;
-    ExecutableElement2OrMember? writeElement;
+    InternalExecutableElement? readElement;
+    InternalExecutableElement? writeElement;
     TypeImpl? getType;
 
     if (targetType is InterfaceTypeImpl) {

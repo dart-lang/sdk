@@ -35,13 +35,13 @@ class TypePropertyResolver {
 
   bool _needsGetterError = false;
   bool _reportedGetterError = false;
-  ExecutableElement2OrMember? _getterRequested;
-  ExecutableElement2OrMember? _getterRecovery;
+  InternalExecutableElement? _getterRequested;
+  InternalExecutableElement? _getterRecovery;
 
   bool _needsSetterError = false;
   bool _reportedSetterError = false;
-  ExecutableElement2OrMember? _setterRequested;
-  ExecutableElement2OrMember? _setterRecovery;
+  InternalExecutableElement? _setterRequested;
+  InternalExecutableElement? _setterRecovery;
 
   TypePropertyResolver(this._resolver)
     : _definingLibrary = _resolver.definingLibrary,

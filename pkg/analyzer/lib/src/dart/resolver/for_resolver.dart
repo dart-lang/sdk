@@ -155,7 +155,7 @@ class ForResolver {
           identifier,
           isRead: false,
         );
-      } else if (identifierElement is SetterElement2OrMember) {
+      } else if (identifierElement is InternalSetterElement) {
         var parameters = identifierElement.formalParameters;
         if (parameters.isNotEmpty) {
           valueType = parameters[0].type;

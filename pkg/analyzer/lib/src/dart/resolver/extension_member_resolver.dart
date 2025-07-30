@@ -177,9 +177,13 @@ class ExtensionMemberResolver {
     );
 
     var getterMember =
-        getter != null ? ExecutableMember.from(getter, substitution) : null;
+        getter != null
+            ? SubstitutedExecutableElementImpl.from(getter, substitution)
+            : null;
     var setterMember =
-        setter != null ? ExecutableMember.from(setter, substitution) : null;
+        setter != null
+            ? SubstitutedExecutableElementImpl.from(setter, substitution)
+            : null;
 
     return SingleExtensionResolutionResult(
       getter2: getterMember,
@@ -496,10 +500,10 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
   ambiguous;
 
   @override
-  ExecutableElement2OrMember? get getter2 => null;
+  InternalExecutableElement? get getter2 => null;
 
   @override
-  ExecutableElement2OrMember? get setter2 => null;
+  InternalExecutableElement? get setter2 => null;
 }
 
 /// The result of attempting to resolve an identifier to elements, where the

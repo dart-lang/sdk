@@ -33,7 +33,7 @@ class ReplacementVisitor
     required FunctionTypeImpl type,
     required InstantiatedTypeAliasElementImpl? newAlias,
     required List<TypeParameterElementImpl>? newTypeParameters,
-    required List<FormalParameterElementMixin>? newParameters,
+    required List<InternalFormalParameterElement>? newParameters,
     required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
   }) {
@@ -241,7 +241,7 @@ class ReplacementVisitor
 
     changeVariance();
 
-    List<FormalParameterElementMixin>? newParameters;
+    List<InternalFormalParameterElement>? newParameters;
     for (var i = 0; i < node.formalParameters.length; i++) {
       var parameter = node.formalParameters[i];
 

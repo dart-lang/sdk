@@ -876,7 +876,7 @@ class ResolutionSink extends _SummaryDataWriter {
         writeEnum(ElementTag.never_);
       case MultiplyDefinedElementImpl():
         writeEnum(ElementTag.multiplyDefined);
-      case Member element:
+      case SubstitutedElementImpl element:
         writeEnum(ElementTag.memberWithTypeArguments);
 
         var baseElement = element.baseElement;
@@ -1014,7 +1014,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }
 
   void _writeFormalParameters2(
-    List<FormalParameterElementMixin> parameters, {
+    List<InternalFormalParameterElement> parameters, {
     required bool withAnnotations,
   }) {
     writeList(parameters, (parameter) {
@@ -1342,7 +1342,7 @@ class _SummaryDataWriter extends BufferedSink {
     }
   }
 
-  void _writeFormalParameterKind2(FormalParameterElementMixin p) {
+  void _writeFormalParameterKind2(InternalFormalParameterElement p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
     } else if (p.isOptionalPositional) {

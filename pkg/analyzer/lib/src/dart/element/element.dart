@@ -733,10 +733,8 @@ class ConstantInitializerImpl {
 }
 
 class ConstructorElementImpl extends ExecutableElementImpl
-    implements
-        ConstantEvaluationTarget,
-        ConstructorElementMixin2,
-        ConstructorElement {
+    with InternalConstructorElement
+    implements ConstantEvaluationTarget {
   @override
   final Reference reference;
 
@@ -747,7 +745,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   final ConstructorFragmentImpl firstFragment;
 
   /// The constructor to which this constructor is redirecting.
-  ConstructorElementMixin2? _redirectedConstructor;
+  InternalConstructorElement? _redirectedConstructor;
 
   /// The super-constructor which this constructor is invoking, or `null` if
   /// this constructor is not generative, or is redirecting, or the
@@ -755,7 +753,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ///
   // TODO(scheglov): We cannot have both super and redirecting constructors.
   // So, ideally we should have some kind of "either" or "variant" here.
-  ConstructorElementMixin2? _superConstructor;
+  InternalConstructorElement? _superConstructor;
 
   ConstructorElementImpl({
     required this.name,
@@ -847,18 +845,18 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ConstructorElementMixin2? get redirectedConstructor {
+  InternalConstructorElement? get redirectedConstructor {
     _ensureReadResolution();
     return _redirectedConstructor;
   }
 
-  set redirectedConstructor(ConstructorElementMixin2? value) {
+  set redirectedConstructor(InternalConstructorElement? value) {
     _redirectedConstructor = value;
   }
 
   @Deprecated('Use redirectedConstructor instead')
   @override
-  ConstructorElementMixin2? get redirectedConstructor2 {
+  InternalConstructorElement? get redirectedConstructor2 {
     return redirectedConstructor;
   }
 
@@ -873,18 +871,18 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  ConstructorElementMixin2? get superConstructor {
+  InternalConstructorElement? get superConstructor {
     _ensureReadResolution();
     return _superConstructor;
   }
 
-  set superConstructor(ConstructorElementMixin2? superConstructor) {
+  set superConstructor(InternalConstructorElement? superConstructor) {
     _superConstructor = superConstructor;
   }
 
   @Deprecated('Use superConstructor instead')
   @override
-  ConstructorElementMixin2? get superConstructor2 {
+  InternalConstructorElement? get superConstructor2 {
     return superConstructor;
   }
 
@@ -929,36 +927,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       child.accept(visitor);
     }
   }
-}
-
-/// Common implementation for methods defined in [ConstructorElement].
-mixin ConstructorElementMixin2 on ExecutableElement2OrMember
-    implements ConstructorElement {
-  @override
-  ConstructorElementImpl get baseElement;
-
-  @override
-  InterfaceElementImpl get enclosingElement;
-
-  @override
-  LibraryElementImpl get library;
-
-  @override
-  ConstructorElementMixin2? get redirectedConstructor;
-
-  @Deprecated('Use redirectedConstructor instead')
-  @override
-  ConstructorElementMixin2? get redirectedConstructor2;
-
-  @override
-  InterfaceTypeImpl get returnType;
-
-  @override
-  ConstructorElementMixin2? get superConstructor;
-
-  @Deprecated('Use superConstructor instead')
-  @override
-  ConstructorElementMixin2? get superConstructor2;
 }
 
 /// A concrete implementation of a [ConstructorFragment].
@@ -2188,30 +2156,8 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `ExecutableElement2`.
-mixin ExecutableElement2OrMember implements ExecutableElement {
-  @override
-  ExecutableElementImpl get baseElement;
-
-  @override
-  List<FormalParameterElementMixin> get formalParameters;
-
-  @override
-  MetadataImpl get metadata;
-
-  @override
-  TypeImpl get returnType;
-
-  @override
-  FunctionTypeImpl get type;
-
-  @override
-  List<TypeParameterElementImpl> get typeParameters;
-}
-
 abstract class ExecutableElementImpl extends FunctionTypedElementImpl
-    with ExecutableElement2OrMember, DeferredResolutionReadingMixin
+    with InternalExecutableElement, DeferredResolutionReadingMixin
     implements AnnotatableElementImpl {
   TypeImpl? _returnType;
   FunctionTypeImpl? _type;
@@ -2817,22 +2763,8 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `FieldElement2`.
-mixin FieldElement2OrMember on PropertyInducingElement2OrMember
-    implements FieldElement {
-  @override
-  FieldElementImpl get baseElement;
-
-  @override
-  FieldFragmentImpl get firstFragment;
-
-  @override
-  List<FieldFragmentImpl> get fragments;
-}
-
 class FieldElementImpl extends PropertyInducingElementImpl
-    with FieldElement2OrMember {
+    with InternalFieldElement {
   @override
   final Reference reference;
 
@@ -3151,7 +3083,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 }
 
 class FormalParameterElementImpl extends PromotableElementImpl
-    with FormalParameterElementMixin {
+    with InternalFormalParameterElement {
   final FormalParameterFragmentImpl wrappedElement;
 
   @override
@@ -3364,39 +3296,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
   // firstFragment.typeParameters
   //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
   //     .toList();
-}
-
-/// A mixin that provides a common implementation for methods defined in
-/// [FormalParameterElement].
-mixin FormalParameterElementMixin on VariableElement2OrMember
-    implements FormalParameterElement, SharedNamedFunctionParameter {
-  @override
-  FormalParameterElementImpl get baseElement;
-
-  ParameterKind get parameterKind;
-
-  @override
-  TypeImpl get type;
-
-  @override
-  List<TypeParameterElementImpl> get typeParameters;
-
-  @override
-  void appendToWithoutDelimiters(StringBuffer buffer) {
-    buffer.write(type.getDisplayString());
-    buffer.write(' ');
-    buffer.write(displayName);
-    if (defaultValueCode != null) {
-      buffer.write(' = ');
-      buffer.write(defaultValueCode);
-    }
-  }
-
-  @Deprecated('Use appendToWithoutDelimiters instead')
-  @override
-  void appendToWithoutDelimiters2(StringBuffer buffer) {
-    appendToWithoutDelimiters(buffer);
-  }
 }
 
 class FormalParameterFragmentImpl extends VariableFragmentImpl
@@ -4060,22 +3959,8 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// [GetterElement].
-mixin GetterElement2OrMember on PropertyAccessorElement2OrMember
-    implements GetterElement {
-  @override
-  GetterElementImpl get baseElement;
-
-  @override
-  GetterFragmentImpl get firstFragment;
-
-  @override
-  List<GetterFragmentImpl> get fragments;
-}
-
 class GetterElementImpl extends PropertyAccessorElementImpl
-    with GetterElement2OrMember {
+    with InternalGetterElement {
   @override
   Reference reference;
 
@@ -4587,7 +4472,7 @@ recorded above.
     }
   }
 
-  Iterable<PropertyAccessorElement2OrMember> _implementationsOfGetter(
+  Iterable<InternalPropertyAccessorElement> _implementationsOfGetter(
     String name,
   ) sync* {
     var visitedElements = <InstanceElement>{};
@@ -4595,7 +4480,7 @@ recorded above.
     while (element != null && visitedElements.add(element)) {
       var getter = element.getGetter(name);
       if (getter != null) {
-        yield getter as PropertyAccessorElement2OrMember;
+        yield getter as InternalPropertyAccessorElement;
       }
       if (element is! InterfaceElement) {
         return;
@@ -4604,7 +4489,7 @@ recorded above.
         mixin as InterfaceTypeImpl;
         getter = mixin.element.getGetter(name);
         if (getter != null) {
-          yield getter as PropertyAccessorElement2OrMember;
+          yield getter as InternalPropertyAccessorElement;
         }
       }
       var supertype = element.firstFragment.supertype;
@@ -4613,13 +4498,13 @@ recorded above.
     }
   }
 
-  Iterable<MethodElement2OrMember> _implementationsOfMethod(String name) sync* {
+  Iterable<InternalMethodElement> _implementationsOfMethod(String name) sync* {
     var visitedElements = <InstanceElement>{};
     InstanceElement? element = this;
     while (element != null && visitedElements.add(element)) {
       var method = element.getMethod(name);
       if (method != null) {
-        yield method as MethodElement2OrMember;
+        yield method as InternalMethodElement;
       }
       if (element is! InterfaceElement) {
         return;
@@ -4628,7 +4513,7 @@ recorded above.
         mixin as InterfaceTypeImpl;
         method = mixin.element.getMethod(name);
         if (method != null) {
-          yield method as MethodElement2OrMember;
+          yield method as InternalMethodElement;
         }
       }
       var supertype = element.firstFragment.supertype;
@@ -4637,7 +4522,7 @@ recorded above.
     }
   }
 
-  Iterable<PropertyAccessorElement2OrMember> _implementationsOfSetter(
+  Iterable<InternalPropertyAccessorElement> _implementationsOfSetter(
     String name,
   ) sync* {
     var visitedElements = <InstanceElement>{};
@@ -4645,7 +4530,7 @@ recorded above.
     while (element != null && visitedElements.add(element)) {
       var setter = element.getSetter(name);
       if (setter != null) {
-        yield setter as PropertyAccessorElement2OrMember;
+        yield setter as InternalPropertyAccessorElement;
       }
       if (element is! InterfaceElement) {
         return;
@@ -4654,7 +4539,7 @@ recorded above.
         mixin as InterfaceTypeImpl;
         setter = mixin.element.getSetter(name);
         if (setter != null) {
-          yield setter as PropertyAccessorElement2OrMember;
+          yield setter as InternalPropertyAccessorElement;
         }
       }
       var supertype = element.firstFragment.supertype;
@@ -5147,7 +5032,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  GetterElement2OrMember? lookupStaticGetter(
+  InternalGetterElement? lookupStaticGetter(
     String name,
     LibraryElement library,
   ) {
@@ -5163,7 +5048,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  MethodElement2OrMember? lookupStaticMethod(
+  InternalMethodElement? lookupStaticMethod(
     String name,
     LibraryElement library,
   ) {
@@ -5177,7 +5062,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   /// This method should be used only for error recovery during analysis,
   /// when instance access to a static class member, defined in this class,
   /// or a superclass.
-  SetterElement2OrMember? lookupStaticSetter(
+  InternalSetterElement? lookupStaticSetter(
     String name,
     LibraryElement library,
   ) {
@@ -5328,6 +5213,190 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
     _constructors.add(fragment);
     fragment.enclosingFragment = this;
   }
+}
+
+mixin InternalConstructorElement on InternalExecutableElement
+    implements ConstructorElement {
+  @override
+  ConstructorElementImpl get baseElement;
+
+  @override
+  InterfaceElementImpl get enclosingElement;
+
+  @override
+  ConstructorFragmentImpl get firstFragment;
+
+  @override
+  List<ConstructorFragmentImpl> get fragments;
+
+  @override
+  LibraryElementImpl get library;
+
+  @override
+  InternalConstructorElement? get redirectedConstructor;
+
+  @Deprecated('Use redirectedConstructor instead')
+  @override
+  InternalConstructorElement? get redirectedConstructor2;
+
+  @override
+  InterfaceTypeImpl get returnType;
+
+  @override
+  InternalConstructorElement? get superConstructor;
+
+  @Deprecated('Use superConstructor instead')
+  @override
+  InternalConstructorElement? get superConstructor2;
+}
+
+mixin InternalExecutableElement implements ExecutableElement {
+  @override
+  ExecutableElementImpl get baseElement;
+
+  @override
+  List<InternalFormalParameterElement> get formalParameters;
+
+  @override
+  MetadataImpl get metadata;
+
+  @override
+  TypeImpl get returnType;
+
+  @override
+  FunctionTypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
+}
+
+mixin InternalFieldElement on InternalPropertyInducingElement
+    implements FieldElement {
+  @override
+  FieldElementImpl get baseElement;
+
+  @override
+  FieldFragmentImpl get firstFragment;
+
+  @override
+  List<FieldFragmentImpl> get fragments;
+}
+
+mixin InternalFormalParameterElement on InternalVariableElement
+    implements FormalParameterElement, SharedNamedFunctionParameter {
+  @override
+  FormalParameterElementImpl get baseElement;
+
+  ParameterKind get parameterKind;
+
+  @override
+  TypeImpl get type;
+
+  @override
+  List<TypeParameterElementImpl> get typeParameters;
+
+  @override
+  void appendToWithoutDelimiters(StringBuffer buffer) {
+    buffer.write(type.getDisplayString());
+    buffer.write(' ');
+    buffer.write(displayName);
+    if (defaultValueCode != null) {
+      buffer.write(' = ');
+      buffer.write(defaultValueCode);
+    }
+  }
+
+  @Deprecated('Use appendToWithoutDelimiters instead')
+  @override
+  void appendToWithoutDelimiters2(StringBuffer buffer) {
+    appendToWithoutDelimiters(buffer);
+  }
+}
+
+mixin InternalGetterElement on InternalPropertyAccessorElement
+    implements GetterElement {
+  @override
+  GetterElementImpl get baseElement;
+
+  @override
+  GetterFragmentImpl get firstFragment;
+
+  @override
+  List<GetterFragmentImpl> get fragments;
+}
+
+mixin InternalMethodElement on InternalExecutableElement
+    implements MethodElement {
+  @override
+  MethodElementImpl get baseElement;
+
+  @override
+  MethodFragmentImpl get firstFragment;
+
+  @override
+  List<MethodFragmentImpl> get fragments;
+}
+
+mixin InternalPropertyAccessorElement on InternalExecutableElement
+    implements PropertyAccessorElement {
+  @override
+  PropertyAccessorElementImpl get baseElement;
+
+  @override
+  PropertyAccessorFragmentImpl get firstFragment;
+
+  @override
+  List<PropertyAccessorFragmentImpl> get fragments;
+
+  @override
+  InternalPropertyInducingElement get variable;
+
+  @Deprecated('Use variable instead')
+  @override
+  InternalPropertyInducingElement? get variable3;
+}
+
+mixin InternalPropertyInducingElement on InternalVariableElement
+    implements PropertyInducingElement {
+  @override
+  PropertyInducingElementImpl get baseElement;
+
+  @override
+  InternalGetterElement? get getter;
+
+  @Deprecated('Use getter instead')
+  @override
+  InternalGetterElement? get getter2;
+
+  @override
+  LibraryElementImpl get library;
+
+  @override
+  MetadataImpl get metadata;
+
+  @override
+  InternalSetterElement? get setter;
+
+  @Deprecated('Use setter instead')
+  @override
+  InternalSetterElement? get setter2;
+}
+
+mixin InternalSetterElement on InternalPropertyAccessorElement
+    implements SetterElement {
+  @override
+  SetterElementImpl get baseElement;
+
+  @override
+  SetterFragmentImpl get firstFragment;
+
+  @override
+  List<SetterFragmentImpl> get fragments;
+}
+
+mixin InternalVariableElement implements VariableElement {
+  @override
+  TypeImpl get type;
 }
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
@@ -7481,22 +7550,8 @@ final class MetadataImpl implements Metadata {
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `MethodElement2`.
-mixin MethodElement2OrMember on ExecutableElement2OrMember
-    implements MethodElement {
-  @override
-  MethodElementImpl get baseElement;
-
-  @override
-  MethodFragmentImpl get firstFragment;
-
-  @override
-  List<MethodFragmentImpl> get fragments;
-}
-
 class MethodElementImpl extends ExecutableElementImpl
-    with MethodElement2OrMember {
+    with InternalMethodElement {
   @override
   final Reference reference;
 
@@ -8609,29 +8664,8 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
 
 abstract class PromotableElementImpl extends VariableElementImpl {}
 
-/// Common base class for all analyzer-internal classes that implement
-/// `PropertyAccessorElement2`.
-mixin PropertyAccessorElement2OrMember on ExecutableElement2OrMember
-    implements PropertyAccessorElement {
-  @override
-  PropertyAccessorElementImpl get baseElement;
-
-  @override
-  PropertyAccessorFragmentImpl get firstFragment;
-
-  @override
-  List<PropertyAccessorFragmentImpl> get fragments;
-
-  @override
-  PropertyInducingElement2OrMember get variable;
-
-  @Deprecated('Use variable instead')
-  @override
-  PropertyInducingElement2OrMember? get variable3;
-}
-
 abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
-    with PropertyAccessorElement2OrMember {
+    with InternalPropertyAccessorElement {
   PropertyInducingElementImpl? _variable3;
 
   @override
@@ -8747,36 +8781,8 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
   }
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// [PropertyInducingElement].
-mixin PropertyInducingElement2OrMember on VariableElement2OrMember
-    implements PropertyInducingElement {
-  @override
-  PropertyInducingElementImpl get baseElement;
-
-  @override
-  GetterElement2OrMember? get getter;
-
-  @Deprecated('Use getter instead')
-  @override
-  GetterElement2OrMember? get getter2;
-
-  @override
-  LibraryElementImpl get library;
-
-  @override
-  MetadataImpl get metadata;
-
-  @override
-  SetterElement2OrMember? get setter;
-
-  @Deprecated('Use setter instead')
-  @override
-  SetterElement2OrMember? get setter2;
-}
-
 abstract class PropertyInducingElementImpl extends VariableElementImpl
-    with PropertyInducingElement2OrMember, DeferredResolutionReadingMixin
+    with InternalPropertyInducingElement, DeferredResolutionReadingMixin
     implements AnnotatableElementImpl {
   @override
   GetterElementImpl? getter;
@@ -8962,22 +8968,8 @@ abstract class PropertyInducingFragmentImpl
   MetadataImpl get metadata2 => metadata;
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// [SetterElement].
-mixin SetterElement2OrMember on PropertyAccessorElement2OrMember
-    implements SetterElement {
-  @override
-  SetterElementImpl get baseElement;
-
-  @override
-  SetterFragmentImpl get firstFragment;
-
-  @override
-  List<SetterFragmentImpl> get fragments;
-}
-
 class SetterElementImpl extends PropertyAccessorElementImpl
-    with SetterElement2OrMember {
+    with InternalSetterElement {
   @override
   Reference reference;
 
@@ -9199,7 +9191,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
   }
 
   @override
-  FormalParameterElementMixin? get superConstructorParameter {
+  InternalFormalParameterElement? get superConstructorParameter {
     var enclosingElement = this.enclosingElement;
     if (enclosingElement is ConstructorElementImpl) {
       var superConstructor = enclosingElement.superConstructor;
@@ -9224,7 +9216,7 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
 
   @Deprecated('Use superConstructorParameter instead')
   @override
-  FormalParameterElementMixin? get superConstructorParameter2 {
+  InternalFormalParameterElement? get superConstructorParameter2 {
     return superConstructorParameter;
   }
 
@@ -10309,15 +10301,8 @@ mixin TypeParameterizedFragmentMixin on FragmentImpl
   void _ensureReadResolution();
 }
 
-/// Common base class for all analyzer-internal classes that implement
-/// `VariableElement2`.
-mixin VariableElement2OrMember implements VariableElement {
-  @override
-  TypeImpl get type;
-}
-
 abstract class VariableElementImpl extends ElementImpl
-    with VariableElement2OrMember
+    with InternalVariableElement
     implements ConstantEvaluationTarget {
   ConstantInitializerImpl? _constantInitializer;
 

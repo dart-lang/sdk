@@ -273,7 +273,7 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       rightHandSide: rightHandSide,
     );
-    node.element = _reader.readElement() as MethodElement2OrMember?;
+    node.element = _reader.readElement() as InternalMethodElement?;
     node.readElement = _reader.readElement();
     node.readType = _reader.readType();
     node.writeElement = _reader.readElement();
@@ -365,7 +365,7 @@ class AstBinaryReader {
       period: name != null ? Tokens.period() : null,
       name: name,
     );
-    node.element = _reader.readElement() as ConstructorElementMixin2?;
+    node.element = _reader.readElement() as InternalConstructorElement?;
     return node;
   }
 
@@ -1286,7 +1286,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       argumentList: argumentList,
     );
-    node.element = _reader.readElement() as ConstructorElementMixin2?;
+    node.element = _reader.readElement() as InternalConstructorElement?;
     _resolveNamedExpressions(node.element, node.argumentList);
     return node;
   }

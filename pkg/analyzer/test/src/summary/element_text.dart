@@ -477,7 +477,7 @@ class _Element2Writer extends _AbstractElementWriter {
             // throws an exception (because it doesn't have an enclosing
             // element, only an enclosing fragment).
           } else {
-            if (expectedEnclosingElement is Member) {
+            if (expectedEnclosingElement is SubstitutedElementImpl) {
               expectedEnclosingElement = expectedEnclosingElement.baseElement;
             }
             expect(element.enclosingElement, expectedEnclosingElement);
@@ -531,7 +531,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFieldElement(FieldElementImpl e) {
-    e as FieldElement2OrMember;
+    e as InternalFieldElement;
     DartType type = e.type;
     expect(type, isNotNull);
 

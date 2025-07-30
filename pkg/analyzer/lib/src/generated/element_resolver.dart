@@ -144,7 +144,7 @@ class ElementResolver {
       // Nothing to do.
     } else if (type is InterfaceTypeImpl) {
       // look up ConstructorElement
-      ConstructorElementMixin2? constructor;
+      InternalConstructorElement? constructor;
       var name = node.name;
       if (name == null) {
         constructor = type.lookUpConstructor(null, _definingLibrary);
@@ -430,7 +430,7 @@ class ElementResolver {
   /// the list of arguments. An error will be reported if any of the arguments
   /// cannot be matched to a parameter. Return the parameters that correspond to
   /// the arguments, or `null` if no correspondence could be computed.
-  List<FormalParameterElementMixin?>? _resolveArgumentsToFunction(
+  List<InternalFormalParameterElement?>? _resolveArgumentsToFunction(
     ArgumentList argumentList,
     ExecutableElement? executableElement, {
     ConstructorDeclaration? enclosingConstructor,
