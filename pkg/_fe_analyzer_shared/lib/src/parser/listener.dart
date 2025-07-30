@@ -2075,10 +2075,7 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Called for `.`, `?.` and `..`.
-  void handleEndingBinaryExpression(Token token, Token endToken) {
-    // TODO(jensj): push implementation into subclasses
-    endBinaryExpression(token, endToken);
-  }
+  void handleEndingBinaryExpression(Token token, Token endToken) {}
 
   /// Called when the parser encounters a `?` operator and begins parsing a
   /// conditional expression.

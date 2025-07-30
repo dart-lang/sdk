@@ -2553,7 +2553,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void endBinaryExpression(Token token, Token endToken) {
+  void handleEndingBinaryExpression(Token token, Token endToken) {
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -2566,13 +2566,35 @@ class BodyBuilder extends StackListenerImpl
         token.isA(TokenType.PERIOD_PERIOD) ||
         token.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
       doDotOrCascadeExpression(token);
-    } else if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
+    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
+      doIfNotNull(token);
+    } else {
+      throw new UnsupportedError("Unexpected ending binary $token.");
+    }
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+      ]),
+    ]));
+  }
+
+  @override
+  void endBinaryExpression(Token token, Token endToken) {
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+    ]));
+    debugEvent("BinaryExpression");
+    if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
         token.isA(TokenType.BAR_BAR)) {
       doLogicalExpression(token);
     } else if (token.isA(TokenType.QUESTION_QUESTION)) {
       doIfNull(token);
-    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
-      doIfNotNull(token);
     } else {
       doBinaryExpression(token);
     }
