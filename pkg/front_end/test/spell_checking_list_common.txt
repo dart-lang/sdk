@@ -551,6 +551,7 @@ compact
 comparable
 comparator
 compare
+comparer
 comparing
 comparison
 comparisons

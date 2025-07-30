@@ -21,7 +21,7 @@ mixin TypeSchemaStandardBounds on StandardBounds {
   DartType leastClosureForUpperBound(DartType typeSchema) {
     //  - We replace all uses of `T1 <: T2` in the `UP` algorithm by `S1 <: S2`
     //  where `Si` is the least closure of `Ti` with respect to `_`.
-    return leastClosure(typeSchema, coreTypes: coreTypes);
+    return leastClosure(typeSchema, coreTypes: hierarchy.coreTypes);
   }
 
   @override
