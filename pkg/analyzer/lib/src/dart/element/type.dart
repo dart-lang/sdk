@@ -327,7 +327,10 @@ class FunctionTypeImpl extends TypeImpl
       typeParameters: const [],
       parameters:
           parameters
-              .map((p) => ParameterMember.from(p, substitution))
+              .map(
+                (p) =>
+                    SubstitutedFormalParameterElementImpl.from(p, substitution),
+              )
               .toFixedList(),
       nullabilitySuffix: nullabilitySuffix,
     );
@@ -639,7 +642,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InternalConstructorElement> get constructors {
     return _constructors ??=
         element.constructors.map((constructor) {
-          return ConstructorMember.from2(constructor, this);
+          return SubstitutedConstructorElementImpl.from2(constructor, this);
         }).toFixedList();
   }
 
@@ -655,7 +658,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InternalGetterElement> get getters {
     return _getters ??=
         element.getters.map((e) {
-          return GetterMember.forTargetType(e, this);
+          return SubstitutedGetterElementImpl.forTargetType(e, this);
         }).toFixedList();
   }
 
@@ -759,7 +762,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InternalMethodElement> get methods {
     return _methods ??=
         element.methods.map((e) {
-          return MethodMember.forTargetType(e, this);
+          return SubstitutedMethodElementImpl.forTargetType(e, this);
         }).toFixedList();
   }
 
@@ -790,7 +793,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<InternalSetterElement> get setters {
     return _setters ??=
         element.setters.map((e) {
-          return SetterMember.forTargetType(e, this);
+          return SubstitutedSetterElementImpl.forTargetType(e, this);
         }).toFixedList();
   }
 
@@ -880,7 +883,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InternalGetterElement? getGetter(String getterName) {
     var element = this.element.getGetter(getterName);
-    return element != null ? GetterMember.forTargetType(element, this) : null;
+    return element != null
+        ? SubstitutedGetterElementImpl.forTargetType(element, this)
+        : null;
   }
 
   @Deprecated('Use getGetter instead')
@@ -892,7 +897,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InternalMethodElement? getMethod(String methodName) {
     var element = this.element.getMethod(methodName);
-    return element != null ? MethodMember.forTargetType(element, this) : null;
+    return element != null
+        ? SubstitutedMethodElementImpl.forTargetType(element, this)
+        : null;
   }
 
   @Deprecated('Use getMethod instead')
@@ -904,7 +911,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   InternalSetterElement? getSetter(String setterName) {
     var element = this.element.getSetter(setterName);
-    return element != null ? SetterMember.forTargetType(element, this) : null;
+    return element != null
+        ? SubstitutedSetterElementImpl.forTargetType(element, this)
+        : null;
   }
 
   @Deprecated('Use getSetter instead')
@@ -931,7 +940,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return null;
     }
     // return member
-    return ConstructorMember.from2(constructorElement, this);
+    return SubstitutedConstructorElementImpl.from2(constructorElement, this);
   }
 
   @Deprecated('Use lookUpConstructor instead')
@@ -963,7 +972,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
         if (rawElement is InternalGetterElement) {
-          return GetterMember.forTargetType(rawElement, this);
+          return SubstitutedGetterElementImpl.forTargetType(rawElement, this);
         }
       }
       return null;
@@ -1019,7 +1028,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
         if (rawElement is InternalMethodElement) {
-          return MethodMember.forTargetType(rawElement, this);
+          return SubstitutedMethodElementImpl.forTargetType(rawElement, this);
         }
       }
       return null;
@@ -1075,7 +1084,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
         if (rawElement is InternalSetterElement) {
-          return SetterMember.forTargetType(rawElement, this);
+          return SubstitutedSetterElementImpl.forTargetType(rawElement, this);
         }
       }
       return null;

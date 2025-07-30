@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// type parameters of the class.
 ///
 /// If the target is a [TypeAliasElement] with an [InterfaceType] as the
-/// aliased type, the [element] is a [ConstructorMember] created from the
+/// aliased type, the [element] is a [SubstitutedConstructorElementImpl] created from the
 /// [ConstructorElement] of the corresponding class, and substituting
 /// the class type parameters with the type arguments specified in the alias,
 /// explicit types or the type parameters of the alias. The [typeParameters]
@@ -32,7 +32,7 @@ class ConstructorElementToInfer {
   /// The type parameters used in [element].
   final List<TypeParameterElementImpl> typeParameters;
 
-  /// The element, might be [ConstructorMember].
+  /// The element, might be [SubstitutedConstructorElementImpl].
   final InternalConstructorElement element;
 
   ConstructorElementToInfer(this.typeParameters, this.element);

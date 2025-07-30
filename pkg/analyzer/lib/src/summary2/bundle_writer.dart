@@ -876,7 +876,7 @@ class ResolutionSink extends _SummaryDataWriter {
         writeEnum(ElementTag.never_);
       case MultiplyDefinedElementImpl():
         writeEnum(ElementTag.multiplyDefined);
-      case Member element:
+      case SubstitutedElementImpl element:
         writeEnum(ElementTag.memberWithTypeArguments);
 
         var baseElement = element.baseElement;

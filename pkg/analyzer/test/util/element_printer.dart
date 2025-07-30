@@ -74,7 +74,7 @@ class ElementPrinter {
       case TypeParameterElementImpl element:
         var idStr = idMap[element];
         _sink.writeln('$idStr ${element.name ?? '<null-name>'}');
-      case Member member:
+      case SubstitutedElementImpl member:
         _writeMember(member);
       case TypeAliasElementImpl element:
         writelnReference(element.reference);
@@ -387,7 +387,7 @@ class ElementPrinter {
     return type.getDisplayString();
   }
 
-  void _writeMember(Member element) {
+  void _writeMember(SubstitutedElementImpl element) {
     _sink.writeln(_nameOfMemberClass(element));
     _sink.withIndent(() {
       writeNamedElement2('baseElement', element.baseElement);
@@ -402,7 +402,7 @@ class ElementPrinter {
 
       writeSubstitution('substitution', element.substitution);
 
-      if (element is ConstructorMember) {
+      if (element is SubstitutedConstructorElementImpl) {
         if (_configuration.withRedirectedConstructors) {
           writeNamedElement2(
             'redirectedConstructor',
@@ -416,8 +416,29 @@ class ElementPrinter {
     });
   }
 
-  static String _nameOfMemberClass(Member member) {
-    return '${member.runtimeType}';
+  static String _nameOfMemberClass(SubstitutedElementImpl member) {
+    // TODO(scheglov): remove during updating expectations
+    switch (member) {
+      case SubstitutedConstructorElementImpl():
+        return 'ConstructorMember';
+      case SubstitutedFieldElementImpl():
+        return 'FieldMember';
+      case SubstitutedFieldFormalParameterElementImpl():
+        return 'FieldFormalParameterMember';
+      case SubstitutedSuperFormalParameterElementImpl():
+        return 'SuperFormalParameterMember';
+      case SubstitutedFormalParameterElementImpl():
+        return 'ParameterMember';
+      case SubstitutedGetterElementImpl():
+        return 'GetterMember';
+      case SubstitutedMethodElementImpl():
+        return 'MethodMember';
+      case SubstitutedSetterElementImpl():
+        return 'SetterMember';
+      default:
+        throw UnimplementedError('(${member.runtimeType}) $member');
+    }
+    // return '${member.runtimeType}';
   }
 }
 

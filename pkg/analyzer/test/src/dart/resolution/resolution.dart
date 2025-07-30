@@ -139,7 +139,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actualDeclaration = element?.baseElement;
     expect(actualDeclaration, same(declaration));
 
-    if (element is Member) {
+    if (element is SubstitutedElementImpl) {
       assertSubstitution(element.substitution, substitution);
     } else if (substitution.isNotEmpty) {
       fail('Expected to be a Member: (${element.runtimeType}) $element');

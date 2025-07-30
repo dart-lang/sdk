@@ -61,8 +61,8 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
   /// The identifier pointing to the constructor that's being invoked, or `null`
   /// if a constructor name couldn't be found (should only happen when
   /// recovering from errors).  If the constructor is generic, this identifier's
-  /// static element will be updated to point to a [ConstructorMember] with type
-  /// arguments filled in.
+  /// static element will be updated to point to a
+  /// [SubstitutedConstructorElementImpl] with type arguments filled in.
   final SimpleIdentifierImpl? constructorName;
 
   AnnotationInferrer({
@@ -97,7 +97,7 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
   ) {
     if (invokeType != null) {
       var elementOrMember = node.element as InternalConstructorElement;
-      var constructorElement = ConstructorMember.from2(
+      var constructorElement = SubstitutedConstructorElementImpl.from2(
         elementOrMember.baseElement,
         invokeType.returnType as InterfaceType,
       );
@@ -150,7 +150,7 @@ class DotShorthandConstructorInvocationInferrer
   ) {
     if (invokeType != null) {
       var constructedType = invokeType.returnType;
-      var constructorElement = ConstructorMember.from2(
+      var constructorElement = SubstitutedConstructorElementImpl.from2(
         node.element!.baseElement,
         constructedType as InterfaceType,
       );
@@ -471,7 +471,7 @@ class InstanceCreationInferrer
     if (invokeType != null) {
       var constructedType = invokeType.returnType;
       node.constructorName.type.type = constructedType;
-      var constructorElement = ConstructorMember.from2(
+      var constructorElement = SubstitutedConstructorElementImpl.from2(
         node.constructorName.element!.baseElement,
         constructedType as InterfaceType,
       );

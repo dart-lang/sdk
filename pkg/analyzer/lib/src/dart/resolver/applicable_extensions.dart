@@ -36,7 +36,7 @@ class InstantiatedExtensionWithMember {
     if (getter == null) {
       return null;
     }
-    return ExecutableMember.from(getter, substitution);
+    return SubstitutedExecutableElementImpl.from(getter, substitution);
   }
 
   InternalExecutableElement? get setter {
@@ -44,7 +44,7 @@ class InstantiatedExtensionWithMember {
     if (setter == null) {
       return null;
     }
-    return ExecutableMember.from(setter, substitution);
+    return SubstitutedExecutableElementImpl.from(setter, substitution);
   }
 }
 

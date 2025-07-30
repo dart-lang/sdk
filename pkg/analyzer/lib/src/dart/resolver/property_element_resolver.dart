@@ -96,7 +96,7 @@ class PropertyElementResolver with ScopeHelpers {
                   )
                   as FunctionType;
           var inferredType = inferred.returnType;
-          var constructorElement = ConstructorMember.from2(
+          var constructorElement = SubstitutedConstructorElementImpl.from2(
             elementToInfer.element.baseElement,
             inferredType as InterfaceType,
           );

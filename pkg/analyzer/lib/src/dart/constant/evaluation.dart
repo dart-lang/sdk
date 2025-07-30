@@ -3221,7 +3221,10 @@ class _InstanceCreationEvaluator {
         var baseElement = initializer.element;
         if (baseElement != null && baseElement.isConst) {
           // Instantiate the constructor with the in-scope type arguments.
-          var constructor = ConstructorMember.from2(baseElement, definingType);
+          var constructor = SubstitutedConstructorElementImpl.from2(
+            baseElement,
+            definingType,
+          );
           var result = _evaluationEngine.evaluateConstructorCall(
             _library,
             _errorNode,

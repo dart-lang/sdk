@@ -177,9 +177,13 @@ class ExtensionMemberResolver {
     );
 
     var getterMember =
-        getter != null ? ExecutableMember.from(getter, substitution) : null;
+        getter != null
+            ? SubstitutedExecutableElementImpl.from(getter, substitution)
+            : null;
     var setterMember =
-        setter != null ? ExecutableMember.from(setter, substitution) : null;
+        setter != null
+            ? SubstitutedExecutableElementImpl.from(setter, substitution)
+            : null;
 
     return SingleExtensionResolutionResult(
       getter2: getterMember,

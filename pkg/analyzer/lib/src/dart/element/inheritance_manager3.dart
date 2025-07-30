@@ -256,7 +256,7 @@ class InheritanceManager3 {
     }
 
     var substitution = Substitution.fromInterfaceType(type);
-    return ExecutableMember.from(rawElement, substitution);
+    return SubstitutedExecutableElementImpl.from(rawElement, substitution);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -287,7 +287,10 @@ class InheritanceManager3 {
       var name = entry.key;
       var candidate = entry.value;
 
-      candidate = ExecutableMember.from(candidate, substitution);
+      candidate = SubstitutedExecutableElementImpl.from(
+        candidate,
+        substitution,
+      );
 
       var candidates = namedCandidates[name];
       if (candidates == null) {
@@ -336,7 +339,10 @@ class InheritanceManager3 {
         continue;
       }
 
-      executable = ExecutableMember.from(executable, substitution);
+      executable = SubstitutedExecutableElementImpl.from(
+        executable,
+        substitution,
+      );
 
       implemented[entry.key] = executable;
     }
@@ -497,7 +503,10 @@ class InheritanceManager3 {
 
       for (var entry in superTypeInterface.implemented.entries) {
         var executable = entry.value;
-        executable = ExecutableMember.from(executable, substitution);
+        executable = SubstitutedExecutableElementImpl.from(
+          executable,
+          substitution,
+        );
         implemented[entry.key] = executable;
       }
 
@@ -530,7 +539,10 @@ class InheritanceManager3 {
       var mixinConflicts = <Conflict>[];
       for (var entry in mixinInterface.map.entries) {
         var name = entry.key;
-        var candidate = ExecutableMember.from(entry.value, substitution);
+        var candidate = SubstitutedExecutableElementImpl.from(
+          entry.value,
+          substitution,
+        );
 
         var currentList = namedCandidates[name];
         if (currentList == null) {
@@ -694,7 +706,10 @@ class InheritanceManager3 {
       var substitution = Substitution.fromInterfaceType(interface);
       for (var entry in getInterface(interface.element).map.entries) {
         var name = entry.key;
-        var executable = ExecutableMember.from(entry.value, substitution);
+        var executable = SubstitutedExecutableElementImpl.from(
+          entry.value,
+          substitution,
+        );
         if (executable.isExtensionTypeMember) {
           (extensionCandidates[name] ??= _ExtensionTypeCandidates(name)).add(
             executable,

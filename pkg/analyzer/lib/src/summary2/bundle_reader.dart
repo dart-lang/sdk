@@ -1530,10 +1530,13 @@ class ResolutionReader {
         );
 
         if (elementImpl is ExecutableElementImpl) {
-          return ExecutableMember.from(elementImpl, substitution);
+          return SubstitutedExecutableElementImpl.from(
+            elementImpl,
+            substitution,
+          );
         } else {
           elementImpl as FieldElementImpl;
-          return FieldMember.from(elementImpl, substitution);
+          return SubstitutedFieldElementImpl.from(elementImpl, substitution);
         }
       case ElementTag.elementImpl:
         var referenceIndex = _reader.readUInt30();
