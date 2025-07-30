@@ -12,7 +12,7 @@ import 'generate.dart';
 /// user to run `generate.dart`.
 void main() async {
   String pkgPath = normalize(join(pkg_root.packageRoot, 'analyzer'));
-  await allTargets.check(
+  await (await allTargets).check(
     pkg_root.packageRoot,
     join(pkgPath, 'tool', 'ast', 'generate.dart'),
   );
