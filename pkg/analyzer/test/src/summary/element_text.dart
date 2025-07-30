@@ -531,7 +531,7 @@ class _Element2Writer extends _AbstractElementWriter {
   }
 
   void _writeFieldElement(FieldElementImpl e) {
-    e as FieldElement2OrMember;
+    e as InternalFieldElement;
     DartType type = e.type;
     expect(type, isNotNull);
 

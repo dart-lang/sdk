@@ -80,8 +80,8 @@ FunctionTypeImpl replaceTypeParameters(
     typeArguments,
   );
 
-  FormalParameterElementMixin transformParameter(
-    FormalParameterElementMixin p,
+  InternalFormalParameterElement transformParameter(
+    InternalFormalParameterElement p,
   ) {
     var type = substitution.substituteType(p.type);
     return p.copyWith(type: type);

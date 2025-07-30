@@ -252,7 +252,7 @@ class TypesBuilder {
     }
   }
 
-  List<FormalParameterElementMixin> _formalParameters(
+  List<InternalFormalParameterElement> _formalParameters(
     FormalParameterList node,
   ) {
     return node.parameters.asImpl.map((parameter) {

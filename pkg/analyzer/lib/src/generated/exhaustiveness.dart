@@ -576,11 +576,11 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
         properties[name] = field.pattern;
         var element = field.element;
         TypeImpl? extensionPropertyType;
-        if (element is PropertyAccessorElement2OrMember &&
+        if (element is InternalPropertyAccessorElement &&
             (element.enclosingElement is ExtensionElementImpl ||
                 element.enclosingElement is ExtensionTypeElementImpl)) {
           extensionPropertyType = element.returnType;
-        } else if (element is ExecutableElement2OrMember &&
+        } else if (element is InternalExecutableElement &&
             (element.enclosingElement is ExtensionElementImpl ||
                 element.enclosingElement is ExtensionTypeElementImpl)) {
           extensionPropertyType = element.type;

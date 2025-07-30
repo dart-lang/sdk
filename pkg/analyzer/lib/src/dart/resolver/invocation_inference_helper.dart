@@ -33,7 +33,7 @@ class ConstructorElementToInfer {
   final List<TypeParameterElementImpl> typeParameters;
 
   /// The element, might be [ConstructorMember].
-  final ConstructorElementMixin2 element;
+  final InternalConstructorElement element;
 
   ConstructorElementToInfer(this.typeParameters, this.element);
 
@@ -82,7 +82,7 @@ class InvocationInferenceHelper {
     required LibraryElementImpl definingLibrary,
   }) {
     List<TypeParameterElementImpl> typeParameters;
-    ConstructorElementMixin2? rawElement;
+    InternalConstructorElement? rawElement;
 
     if (typeElement is InterfaceElementImpl) {
       typeParameters = typeElement.typeParameters;
@@ -92,8 +92,7 @@ class InvocationInferenceHelper {
       } else {
         var name = constructorIdentifier.name;
         rawElement = typeElement.getNamedConstructor(name);
-        if (rawElement != null &&
-            !rawElement.isAccessibleIn(definingLibrary)) {
+        if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
         }
       }

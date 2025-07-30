@@ -538,9 +538,9 @@ class FunctionReferenceResolver {
       targetType = target.typeOrThrow;
     } else if (target is SimpleIdentifierImpl) {
       var targetElement = target.scopeLookupResult!.getter;
-      if (targetElement is VariableElement2OrMember) {
+      if (targetElement is InternalVariableElement) {
         targetType = targetElement.type;
-      } else if (targetElement is PropertyAccessorElement2OrMember) {
+      } else if (targetElement is InternalPropertyAccessorElement) {
         targetType = targetElement.variable.type;
       } else {
         // TODO(srawlins): Can we get here?
@@ -733,7 +733,7 @@ class FunctionReferenceResolver {
           // Continue to assign types.
         }
 
-        if (method is PropertyAccessorElement2OrMember) {
+        if (method is InternalPropertyAccessorElement) {
           function.element = method;
           function.setPseudoExpressionStaticType(method.returnType);
           _resolve(node: node, rawType: method.variable.type);

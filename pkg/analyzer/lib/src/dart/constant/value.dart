@@ -944,7 +944,7 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
-  ExecutableElement2OrMember? toFunctionValue() {
+  InternalExecutableElement? toFunctionValue() {
     var state = this.state;
     return state is FunctionState ? state.element : null;
   }

@@ -20,7 +20,7 @@ extension DartTypeExtension on DartType {
 extension Element2Extension on Element {
   TypeImpl? get firstParameterType {
     var self = this;
-    if (self is MethodElement2OrMember) {
+    if (self is InternalMethodElement) {
       return self.formalParameters.firstOrNull?.type;
     }
     return null;
@@ -153,7 +153,8 @@ extension ExecutableElement2Extension on ExecutableElement {
   }
 }
 
-extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
+extension FormalParameterElementMixinExtension
+    on InternalFormalParameterElement {
   /// Returns [FormalParameterElementImpl] with the specified properties
   /// replaced.
   FormalParameterElementImpl copyWith({

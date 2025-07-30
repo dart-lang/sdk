@@ -211,7 +211,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ) {
     if (node.isConst) {
       var constructor = node.constructorName.element;
-      if (constructor is ConstructorElementMixin2) {
+      if (constructor is InternalConstructorElement) {
         _validateConstructorInvocation(node, constructor, node.argumentList);
       }
     } else {
@@ -911,7 +911,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// arguments are constant expressions.
   void _validateConstructorInvocation(
     AstNode node,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement constructor,
     ArgumentList argumentList,
   ) {
     var constantVisitor = ConstantVisitor(

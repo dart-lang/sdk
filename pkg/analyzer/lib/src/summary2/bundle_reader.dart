@@ -1500,8 +1500,8 @@ class ResolutionReader {
     return _reader.readByte();
   }
 
-  ConstructorElementMixin2? readConstructorElementMixin() {
-    return readElement() as ConstructorElementMixin2?;
+  InternalConstructorElement? readConstructorElementMixin() {
+    return readElement() as InternalConstructorElement?;
   }
 
   double readDouble() {

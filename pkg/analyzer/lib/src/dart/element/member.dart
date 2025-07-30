@@ -19,7 +19,7 @@ import 'package:pub_semver/pub_semver.dart';
 /// A constructor element defined in a parameterized type where the values of
 /// the type parameters are known.
 class ConstructorMember extends ExecutableMember
-    with ConstructorElementMixin2
+    with InternalConstructorElement
     implements ConstructorElement {
   /// Initialize a newly created element to represent a constructor, based on
   /// the [declaration], and applied [substitution].
@@ -40,13 +40,13 @@ class ConstructorMember extends ExecutableMember
   InterfaceElementImpl get enclosingElement2 => enclosingElement;
 
   @override
-  ConstructorFragment get firstFragment => baseElement.firstFragment;
+  ConstructorFragmentImpl get firstFragment => baseElement.firstFragment;
 
   @override
-  List<ConstructorFragment> get fragments {
+  List<ConstructorFragmentImpl> get fragments {
     return [
       for (
-        ConstructorFragment? fragment = firstFragment;
+        ConstructorFragmentImpl? fragment = firstFragment;
         fragment != null;
         fragment = fragment.nextFragment
       )
@@ -74,14 +74,14 @@ class ConstructorMember extends ExecutableMember
   LibraryElementImpl get library2 => library;
 
   @override
-  ConstructorElementMixin2? get redirectedConstructor {
+  InternalConstructorElement? get redirectedConstructor {
     var element = baseElement.redirectedConstructor;
     return _redirect(element);
   }
 
   @Deprecated('Use redirectedConstructor instead')
   @override
-  ConstructorElementMixin2? get redirectedConstructor2 {
+  InternalConstructorElement? get redirectedConstructor2 {
     return redirectedConstructor;
   }
 
@@ -95,13 +95,13 @@ class ConstructorMember extends ExecutableMember
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
-  ConstructorElementMixin2? get superConstructor {
+  InternalConstructorElement? get superConstructor {
     return _redirect(baseElement.superConstructor);
   }
 
   @Deprecated('Use superConstructor instead')
   @override
-  ConstructorElementMixin2? get superConstructor2 {
+  InternalConstructorElement? get superConstructor2 {
     return superConstructor;
   }
 
@@ -119,7 +119,7 @@ class ConstructorMember extends ExecutableMember
     builder.writeConstructorElement(this);
   }
 
-  ConstructorElementMixin2? _redirect(ConstructorElementMixin2? element) {
+  InternalConstructorElement? _redirect(InternalConstructorElement? element) {
     switch (element) {
       case null:
         return null;
@@ -145,7 +145,7 @@ class ConstructorMember extends ExecutableMember
   /// arguments from the [definingType], create a constructor member
   /// representing the given constructor. Return the member that was created, or
   /// the original constructor if no member was created.
-  static ConstructorElementMixin2 from2(
+  static InternalConstructorElement from2(
     ConstructorElementImpl element,
     InterfaceType definingType,
   ) {
@@ -162,7 +162,7 @@ class ConstructorMember extends ExecutableMember
 
 /// An executable element defined in a parameterized type where the values of
 /// the type parameters are known.
-abstract class ExecutableMember extends Member with ExecutableElement2OrMember {
+abstract class ExecutableMember extends Member with InternalExecutableElement {
   @override
   final List<TypeParameterElementImpl> typeParameters;
 
@@ -206,8 +206,8 @@ abstract class ExecutableMember extends Member with ExecutableElement2OrMember {
   ExecutableFragment get firstFragment;
 
   @override
-  List<FormalParameterElementMixin> get formalParameters {
-    return baseElement.formalParameters.map<FormalParameterElementMixin>((
+  List<InternalFormalParameterElement> get formalParameters {
+    return baseElement.formalParameters.map<InternalFormalParameterElement>((
       element,
     ) {
       switch (element) {
@@ -330,12 +330,12 @@ abstract class ExecutableMember extends Member with ExecutableElement2OrMember {
     return visitChildren(visitor);
   }
 
-  static ExecutableElement2OrMember from(
+  static InternalExecutableElement from(
     ExecutableElement element,
     MapSubstitution substitution,
   ) {
     if (identical(substitution, Substitution.empty)) {
-      return element as ExecutableElement2OrMember;
+      return element as InternalExecutableElement;
     }
 
     ExecutableElementImpl baseElement;
@@ -437,7 +437,7 @@ class FieldFormalParameterMember extends ParameterMember
 /// A field element defined in a parameterized type where the values of the type
 /// parameters are known.
 class FieldMember extends VariableMember
-    with PropertyInducingElement2OrMember, FieldElement2OrMember {
+    with InternalPropertyInducingElement, InternalFieldElement {
   /// Initialize a newly created element to represent a field, based on the
   /// [declaration], with applied [substitution].
   FieldMember({
@@ -481,7 +481,7 @@ class FieldMember extends VariableMember
   }
 
   @override
-  GetterElement2OrMember? get getter {
+  InternalGetterElement? get getter {
     var baseGetter = baseElement.getter;
     if (baseGetter == null) {
       return null;
@@ -491,7 +491,7 @@ class FieldMember extends VariableMember
 
   @Deprecated('Use getter instead')
   @override
-  GetterElement2OrMember? get getter2 {
+  InternalGetterElement? get getter2 {
     return getter;
   }
 
@@ -528,7 +528,7 @@ class FieldMember extends VariableMember
   MetadataImpl get metadata2 => metadata;
 
   @override
-  SetterElement2OrMember? get setter {
+  InternalSetterElement? get setter {
     var baseSetter = baseElement.setter;
     if (baseSetter == null) {
       return null;
@@ -538,7 +538,7 @@ class FieldMember extends VariableMember
 
   @Deprecated('Use setter instead')
   @override
-  SetterElement2OrMember? get setter2 {
+  InternalSetterElement? get setter2 {
     return setter;
   }
 
@@ -563,7 +563,7 @@ class FieldMember extends VariableMember
     visitChildren(visitor);
   }
 
-  static FieldElement2OrMember from(
+  static InternalFieldElement from(
     FieldElementImpl element,
     MapSubstitution substitution,
   ) {
@@ -576,7 +576,7 @@ class FieldMember extends VariableMember
 
 /// A getter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class GetterMember extends PropertyAccessorMember with GetterElement2OrMember {
+class GetterMember extends PropertyAccessorMember with InternalGetterElement {
   GetterMember._({
     required super.baseElement,
     required super.substitution,
@@ -587,7 +587,7 @@ class GetterMember extends PropertyAccessorMember with GetterElement2OrMember {
   GetterElementImpl get baseElement => super.baseElement as GetterElementImpl;
 
   @override
-  SetterElement2OrMember? get correspondingSetter {
+  InternalSetterElement? get correspondingSetter {
     var baseSetter = baseElement.variable.setter;
     if (baseSetter == null) {
       return null;
@@ -597,7 +597,7 @@ class GetterMember extends PropertyAccessorMember with GetterElement2OrMember {
 
   @Deprecated('Use correspondingSetter instead')
   @override
-  SetterElement2OrMember? get correspondingSetter2 {
+  InternalSetterElement? get correspondingSetter2 {
     return correspondingSetter;
   }
 
@@ -634,17 +634,17 @@ class GetterMember extends PropertyAccessorMember with GetterElement2OrMember {
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
-  static GetterElement2OrMember forSubstitution(
-    GetterElement2OrMember element,
+  static InternalGetterElement forSubstitution(
+    InternalGetterElement element,
     MapSubstitution substitution,
   ) {
     // TODO(scheglov): avoid type cast
     return ExecutableMember.from(element, substitution)
-        as GetterElement2OrMember;
+        as InternalGetterElement;
   }
 
-  static GetterElement2OrMember forTargetType(
-    GetterElement2OrMember element,
+  static InternalGetterElement forTargetType(
+    InternalGetterElement element,
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
@@ -760,7 +760,7 @@ abstract class Member implements Element {
 
 /// A method element defined in a parameterized type where the values of the
 /// type parameters are known.
-class MethodMember extends ExecutableMember with MethodElement2OrMember {
+class MethodMember extends ExecutableMember with InternalMethodElement {
   factory MethodMember({
     required MethodElementImpl baseElement,
     required MapSubstitution substitution,
@@ -822,20 +822,21 @@ class MethodMember extends ExecutableMember with MethodElement2OrMember {
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
-  static MethodElement2OrMember forTargetType(
-    MethodElement2OrMember element,
+  static InternalMethodElement forTargetType(
+    InternalMethodElement element,
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
     // TODO(scheglov): avoid type cast
     return ExecutableMember.from(element, substitution)
-        as MethodElement2OrMember;
+        as InternalMethodElement;
   }
 }
 
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class ParameterMember extends VariableMember with FormalParameterElementMixin {
+class ParameterMember extends VariableMember
+    with InternalFormalParameterElement {
   @override
   final List<TypeParameterElementImpl> typeParameters;
 
@@ -1003,8 +1004,8 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
     visitChildren(visitor);
   }
 
-  static FormalParameterElementMixin from(
-    FormalParameterElementMixin element,
+  static InternalFormalParameterElement from(
+    InternalFormalParameterElement element,
     MapSubstitution substitution,
   ) {
     FormalParameterElementImpl baseElement;
@@ -1033,7 +1034,7 @@ class ParameterMember extends VariableMember with FormalParameterElementMixin {
 /// A property accessor element defined in a parameterized type where the values
 /// of the type parameters are known.
 abstract class PropertyAccessorMember extends ExecutableMember
-    with PropertyAccessorElement2OrMember {
+    with InternalPropertyAccessorElement {
   factory PropertyAccessorMember({
     required PropertyAccessorElementImpl baseElement,
     required MapSubstitution substitution,
@@ -1079,7 +1080,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
   Version? get sinceSdkVersion => baseElement.sinceSdkVersion;
 
   @override
-  PropertyInducingElement2OrMember get variable {
+  InternalPropertyInducingElement get variable {
     var variable = baseElement.variable;
     switch (variable) {
       case FieldElementImpl():
@@ -1091,7 +1092,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
   @Deprecated('Use variable instead')
   @override
-  PropertyInducingElement2OrMember? get variable3 {
+  InternalPropertyInducingElement? get variable3 {
     return variable;
   }
 
@@ -1106,7 +1107,7 @@ abstract class PropertyAccessorMember extends ExecutableMember
 
 /// A setter element defined in a parameterized type where the values of the
 /// type parameters are known.
-class SetterMember extends PropertyAccessorMember with SetterElement2OrMember {
+class SetterMember extends PropertyAccessorMember with InternalSetterElement {
   SetterMember._({
     required super.baseElement,
     required super.substitution,
@@ -1117,7 +1118,7 @@ class SetterMember extends PropertyAccessorMember with SetterElement2OrMember {
   SetterElementImpl get baseElement => super.baseElement as SetterElementImpl;
 
   @override
-  GetterElement2OrMember? get correspondingGetter {
+  InternalGetterElement? get correspondingGetter {
     var baseGetter = baseElement.variable.getter;
     if (baseGetter == null) {
       return null;
@@ -1127,7 +1128,7 @@ class SetterMember extends PropertyAccessorMember with SetterElement2OrMember {
 
   @Deprecated('Use correspondingGetter instead')
   @override
-  GetterElement2OrMember? get correspondingGetter2 {
+  InternalGetterElement? get correspondingGetter2 {
     return correspondingGetter;
   }
 
@@ -1164,17 +1165,17 @@ class SetterMember extends PropertyAccessorMember with SetterElement2OrMember {
   @override
   T? accept2<T>(ElementVisitor2<T> visitor) => accept(visitor);
 
-  static SetterElement2OrMember forSubstitution(
-    SetterElement2OrMember element,
+  static InternalSetterElement forSubstitution(
+    InternalSetterElement element,
     MapSubstitution substitution,
   ) {
     // TODO(scheglov): avoid type cast
     return ExecutableMember.from(element, substitution)
-        as SetterElement2OrMember;
+        as InternalSetterElement;
   }
 
-  static SetterElement2OrMember forTargetType(
-    SetterElement2OrMember element,
+  static InternalSetterElement forTargetType(
+    InternalSetterElement element,
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
@@ -1221,7 +1222,7 @@ class SuperFormalParameterMember extends ParameterMember
   bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
-  FormalParameterElementMixin? get superConstructorParameter {
+  InternalFormalParameterElement? get superConstructorParameter {
     var superConstructorParameter = baseElement.superConstructorParameter;
     if (superConstructorParameter == null) {
       return null;
@@ -1232,14 +1233,14 @@ class SuperFormalParameterMember extends ParameterMember
 
   @Deprecated('Use superConstructorParameter instead')
   @override
-  FormalParameterElementMixin? get superConstructorParameter2 {
+  InternalFormalParameterElement? get superConstructorParameter2 {
     return superConstructorParameter;
   }
 }
 
 /// A variable element defined in a parameterized type where the values of the
 /// type parameters are known.
-abstract class VariableMember extends Member with VariableElement2OrMember {
+abstract class VariableMember extends Member with InternalVariableElement {
   TypeImpl? _type;
 
   /// Initialize a newly created element to represent a variable, based on the

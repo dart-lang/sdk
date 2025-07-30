@@ -98,7 +98,7 @@ class FunctionTypeImpl extends TypeImpl
   ///
   /// The parameter types are not necessarily in the same order as they appear
   /// in the declaration of the function.
-  final List<FormalParameterElementMixin> parameters;
+  final List<InternalFormalParameterElement> parameters;
 
   @override
   final NullabilitySuffix nullabilitySuffix;
@@ -121,11 +121,11 @@ class FunctionTypeImpl extends TypeImpl
   /// implementation, and was exposed by accident (see
   /// https://github.com/dart-lang/sdk/issues/59763). Please use [parameters]
   /// instead.
-  final List<FormalParameterElementMixin> sortedNamedParameters;
+  final List<InternalFormalParameterElement> sortedNamedParameters;
 
   factory FunctionTypeImpl({
     required List<TypeParameterElementImpl> typeParameters,
-    required List<FormalParameterElementMixin> parameters,
+    required List<InternalFormalParameterElement> parameters,
     required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
@@ -133,7 +133,7 @@ class FunctionTypeImpl extends TypeImpl
     int? firstNamedParameterIndex;
     var requiredPositionalParameterCount = 0;
     var positionalParameterTypes = <TypeImpl>[];
-    List<FormalParameterElementMixin> sortedNamedParameters;
+    List<InternalFormalParameterElement> sortedNamedParameters;
 
     // Check if already sorted.
     var namedParametersAlreadySorted = true;
@@ -187,7 +187,7 @@ class FunctionTypeImpl extends TypeImpl
 
   factory FunctionTypeImpl.v2({
     required List<TypeParameterElementImpl> typeParameters,
-    required List<FormalParameterElementMixin> formalParameters,
+    required List<InternalFormalParameterElement> formalParameters,
     required TypeImpl returnType,
     required NullabilitySuffix nullabilitySuffix,
     InstantiatedTypeAliasElementImpl? alias,
@@ -220,7 +220,7 @@ class FunctionTypeImpl extends TypeImpl
   Null get element3 => null;
 
   @override
-  List<FormalParameterElementMixin> get formalParameters {
+  List<InternalFormalParameterElement> get formalParameters {
     return parameters;
   }
 
@@ -249,7 +249,7 @@ class FunctionTypeImpl extends TypeImpl
   TypeImpl get returnTypeShared => returnType;
 
   @override
-  List<FormalParameterElementMixin> get sortedNamedParametersShared =>
+  List<InternalFormalParameterElement> get sortedNamedParametersShared =>
       sortedNamedParameters;
 
   @override
@@ -561,17 +561,17 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
-  /// Cached [ConstructorElementMixin2]s - members or raw elements.
-  List<ConstructorElementMixin2>? _constructors;
+  /// Cached [InternalConstructorElement]s - members or raw elements.
+  List<InternalConstructorElement>? _constructors;
 
-  /// Cached [GetterElement2OrMember]s - members or raw elements.
-  List<GetterElement2OrMember>? _getters;
+  /// Cached [InternalGetterElement]s - members or raw elements.
+  List<InternalGetterElement>? _getters;
 
-  /// Cached [SetterElement2OrMember]s - members or raw elements.
-  List<SetterElement2OrMember>? _setters;
+  /// Cached [InternalSetterElement]s - members or raw elements.
+  List<InternalSetterElement>? _setters;
 
-  /// Cached [MethodElement2OrMember]s - members or raw elements.
-  List<MethodElement2OrMember>? _methods;
+  /// Cached [InternalMethodElement]s - members or raw elements.
+  List<InternalMethodElement>? _methods;
 
   factory InterfaceTypeImpl({
     required InterfaceElementImpl element,
@@ -636,7 +636,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<ConstructorElementMixin2> get constructors {
+  List<InternalConstructorElement> get constructors {
     return _constructors ??=
         element.constructors.map((constructor) {
           return ConstructorMember.from2(constructor, this);
@@ -645,14 +645,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Use constructors instead')
   @override
-  List<ConstructorElementMixin2> get constructors2 => constructors;
+  List<InternalConstructorElement> get constructors2 => constructors;
 
   @Deprecated('Use element instead')
   @override
   InterfaceElementImpl get element3 => element;
 
   @override
-  List<GetterElement2OrMember> get getters {
+  List<InternalGetterElement> get getters {
     return _getters ??=
         element.getters.map((e) {
           return GetterMember.forTargetType(e, this);
@@ -756,7 +756,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<MethodElement2OrMember> get methods {
+  List<InternalMethodElement> get methods {
     return _methods ??=
         element.methods.map((e) {
           return MethodMember.forTargetType(e, this);
@@ -765,7 +765,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Use methods instead')
   @override
-  List<MethodElement2OrMember> get methods2 => methods;
+  List<InternalMethodElement> get methods2 => methods;
 
   @override
   List<InterfaceTypeImpl> get mixins {
@@ -787,7 +787,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  List<SetterElement2OrMember> get setters {
+  List<InternalSetterElement> get setters {
     return _setters ??=
         element.setters.map((e) {
           return SetterMember.forTargetType(e, this);
@@ -878,43 +878,43 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  GetterElement2OrMember? getGetter(String getterName) {
+  InternalGetterElement? getGetter(String getterName) {
     var element = this.element.getGetter(getterName);
     return element != null ? GetterMember.forTargetType(element, this) : null;
   }
 
   @Deprecated('Use getGetter instead')
   @override
-  GetterElement2OrMember? getGetter2(String getterName) {
+  InternalGetterElement? getGetter2(String getterName) {
     return getGetter(getterName);
   }
 
   @override
-  MethodElement2OrMember? getMethod(String methodName) {
+  InternalMethodElement? getMethod(String methodName) {
     var element = this.element.getMethod(methodName);
     return element != null ? MethodMember.forTargetType(element, this) : null;
   }
 
   @Deprecated('Use getMethod instead')
   @override
-  MethodElement2OrMember? getMethod2(String methodName) {
+  InternalMethodElement? getMethod2(String methodName) {
     return getMethod(methodName);
   }
 
   @override
-  SetterElement2OrMember? getSetter(String setterName) {
+  InternalSetterElement? getSetter(String setterName) {
     var element = this.element.getSetter(setterName);
     return element != null ? SetterMember.forTargetType(element, this) : null;
   }
 
   @Deprecated('Use getSetter instead')
   @override
-  SetterElement2OrMember? getSetter2(String setterName) {
+  InternalSetterElement? getSetter2(String setterName) {
     return getSetter(setterName);
   }
 
   @override
-  ConstructorElementMixin2? lookUpConstructor(
+  InternalConstructorElement? lookUpConstructor(
     String? constructorName,
     LibraryElement library,
   ) {
@@ -936,7 +936,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Use lookUpConstructor instead')
   @override
-  ConstructorElementMixin2? lookUpConstructor2(
+  InternalConstructorElement? lookUpConstructor2(
     String? constructorName,
     LibraryElement library,
   ) {
@@ -944,7 +944,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  GetterElement2OrMember? lookUpGetter(
+  InternalGetterElement? lookUpGetter(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -957,12 +957,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (inherited) {
       if (concrete) {
         var result = inheritance.getMember3(this, nameObj, forSuper: inherited);
-        if (result is GetterElement2OrMember) {
+        if (result is InternalGetterElement) {
           return result;
         }
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
-        if (rawElement is GetterElement2OrMember) {
+        if (rawElement is InternalGetterElement) {
           return GetterMember.forTargetType(rawElement, this);
         }
       }
@@ -970,7 +970,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     var result = inheritance.getMember3(this, nameObj, concrete: concrete);
-    if (result is GetterElement2OrMember) {
+    if (result is InternalGetterElement) {
       return result;
     }
 
@@ -983,7 +983,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Use lookUpGetter instead')
   @override
-  GetterElement2OrMember? lookUpGetter3(
+  InternalGetterElement? lookUpGetter3(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -1000,7 +1000,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  MethodElement2OrMember? lookUpMethod(
+  InternalMethodElement? lookUpMethod(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -1013,12 +1013,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (inherited) {
       if (concrete) {
         var result = inheritance.getMember3(this, nameObj, forSuper: inherited);
-        if (result is MethodElement2OrMember) {
+        if (result is InternalMethodElement) {
           return result;
         }
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
-        if (rawElement is MethodElement2OrMember) {
+        if (rawElement is InternalMethodElement) {
           return MethodMember.forTargetType(rawElement, this);
         }
       }
@@ -1026,7 +1026,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     var result = inheritance.getMember3(this, nameObj, concrete: concrete);
-    if (result is MethodElement2OrMember) {
+    if (result is InternalMethodElement) {
       return result;
     }
 
@@ -1039,7 +1039,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Use lookUpMethod instead')
   @override
-  MethodElement2OrMember? lookUpMethod3(
+  InternalMethodElement? lookUpMethod3(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -1056,7 +1056,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  SetterElement2OrMember? lookUpSetter(
+  InternalSetterElement? lookUpSetter(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -1069,12 +1069,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (inherited) {
       if (concrete) {
         var result = inheritance.getMember3(this, nameObj, forSuper: inherited);
-        if (result is SetterElement2OrMember) {
+        if (result is InternalSetterElement) {
           return result;
         }
       } else {
         var rawElement = inheritance.getInherited(element, nameObj);
-        if (rawElement is SetterElement2OrMember) {
+        if (rawElement is InternalSetterElement) {
           return SetterMember.forTargetType(rawElement, this);
         }
       }
@@ -1082,7 +1082,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     var result = inheritance.getMember3(this, nameObj, concrete: concrete);
-    if (result is SetterElement2OrMember) {
+    if (result is InternalSetterElement) {
       return result;
     }
 
@@ -1095,7 +1095,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Deprecated('Use lookUpSetter instead')
   @override
-  SetterElement2OrMember? lookUpSetter3(
+  InternalSetterElement? lookUpSetter3(
     String name,
     LibraryElement library, {
     bool concrete = false,
@@ -1566,7 +1566,8 @@ abstract class TypeImpl implements DartType, SharedType {
 
   @Deprecated('Use asInstanceOf instead')
   @override
-  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) => asInstanceOf(targetElement);
+  InterfaceTypeImpl? asInstanceOf2(InterfaceElement targetElement) =>
+      asInstanceOf(targetElement);
 
   @override
   TypeImpl asQuestionType(bool isQuestionType) => withNullability(

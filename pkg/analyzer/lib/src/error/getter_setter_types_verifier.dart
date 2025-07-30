@@ -107,7 +107,7 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  void checkStaticGetters(List<GetterElement2OrMember> getters) {
+  void checkStaticGetters(List<InternalGetterElement> getters) {
     if (_skipGetterSetterTypesCheck) {
       return;
     }
@@ -119,7 +119,7 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  void _checkLocalGetter(GetterElement2OrMember getter) {
+  void _checkLocalGetter(InternalGetterElement getter) {
     var name = getter.name;
     if (name == null) {
       return;
@@ -146,12 +146,12 @@ class GetterSetterTypesVerifier {
   }
 
   /// Return the return type of the [getter].
-  static TypeImpl _getGetterType(GetterElement2OrMember getter) {
+  static TypeImpl _getGetterType(InternalGetterElement getter) {
     return getter.returnType;
   }
 
   /// Return the type of the first parameter of the [setter].
-  static TypeImpl? _getSetterType(SetterElement2OrMember setter) {
+  static TypeImpl? _getSetterType(InternalSetterElement setter) {
     var parameters = setter.formalParameters;
     if (parameters.isNotEmpty) {
       return parameters[0].type;

@@ -601,7 +601,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     nameNode.element = member;
 
-    if (member is PropertyAccessorElement2OrMember) {
+    if (member is InternalPropertyAccessorElement) {
       return _rewriteAsFunctionExpressionInvocation(
         node,
         node.target,
@@ -758,7 +758,7 @@ class MethodInvocationResolver with ScopeHelpers {
       if (element is MultiplyDefinedElement) {
         element = element.conflictingElements[0];
       }
-      if (element is PropertyAccessorElement2OrMember) {
+      if (element is InternalPropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(
           node,
           node.target,
@@ -770,7 +770,7 @@ class MethodInvocationResolver with ScopeHelpers {
           isCascaded: node.isCascaded,
         );
       }
-      if (element is ExecutableElement2OrMember) {
+      if (element is InternalExecutableElement) {
         _setResolution(
           node,
           element.type,
@@ -924,7 +924,7 @@ class MethodInvocationResolver with ScopeHelpers {
       element = element.conflictingElements[0];
     }
 
-    if (element is PropertyAccessorElement2OrMember) {
+    if (element is InternalPropertyAccessorElement) {
       return _rewriteAsFunctionExpressionInvocation(
         node,
         node.target,
@@ -937,7 +937,7 @@ class MethodInvocationResolver with ScopeHelpers {
       );
     }
 
-    if (element is ExecutableElement2OrMember) {
+    if (element is InternalExecutableElement) {
       _setResolution(
         node,
         element.type,
@@ -990,7 +990,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // If there is that concrete dispatch target, then we are done.
     if (target != null) {
       nameNode.element = target;
-      if (target is PropertyAccessorElement2OrMember) {
+      if (target is InternalPropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(
           node,
           node.target,
@@ -1191,9 +1191,9 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var element = _resolveElement(receiver, nameNode);
     if (element != null) {
-      if (element is ExecutableElement2OrMember) {
+      if (element is InternalExecutableElement) {
         nameNode.element = element;
-        if (element is PropertyAccessorElement2OrMember) {
+        if (element is InternalPropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
             node,
             node.target,
@@ -1248,9 +1248,9 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     var element = _resolveElement(receiver, node.memberName);
     if (element != null) {
-      if (element is ExecutableElement2OrMember) {
+      if (element is InternalExecutableElement) {
         node.memberName.element = element;
-        if (element is PropertyAccessorElement2OrMember) {
+        if (element is InternalPropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
             node,
             null,

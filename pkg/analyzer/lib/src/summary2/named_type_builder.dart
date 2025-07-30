@@ -175,7 +175,7 @@ class NamedTypeBuilder extends TypeBuilder {
       } else {
         return FunctionTypeImpl.v2(
           typeParameters: const <TypeParameterElementImpl>[],
-          formalParameters: const <FormalParameterElementMixin>[],
+          formalParameters: const <InternalFormalParameterElement>[],
           returnType: _dynamicType,
           nullabilitySuffix: NullabilitySuffix.none,
         );

@@ -1290,7 +1290,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
 
   @override
   TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
-    var variable = node.element as VariableElement2OrMember;
+    var variable = node.element as InternalVariableElement;
     if (variable is PromotableElementImpl) {
       var promotedType =
           isRead

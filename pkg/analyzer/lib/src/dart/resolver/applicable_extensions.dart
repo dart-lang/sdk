@@ -31,7 +31,7 @@ class InstantiatedExtensionWithMember {
 
   ExtensionElement get extension => candidate.extension;
 
-  ExecutableElement2OrMember? get getter {
+  InternalExecutableElement? get getter {
     var getter = candidate.getter;
     if (getter == null) {
       return null;
@@ -39,7 +39,7 @@ class InstantiatedExtensionWithMember {
     return ExecutableMember.from(getter, substitution);
   }
 
-  ExecutableElement2OrMember? get setter {
+  InternalExecutableElement? get setter {
     var setter = candidate.setter;
     if (setter == null) {
       return null;

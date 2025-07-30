@@ -18,7 +18,7 @@ import 'package:meta/meta.dart';
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
   /// The list has at least two items, because the only item is always valid.
-  final List<ExecutableElement2OrMember> candidates;
+  final List<InternalExecutableElement> candidates;
 
   CandidatesConflict({required super.name, required this.candidates});
 }
@@ -33,8 +33,8 @@ class Conflict {
 
 /// Failure because of a getter and a method from direct superinterfaces.
 class GetterMethodConflict extends Conflict {
-  final ExecutableElement2OrMember getter;
-  final ExecutableElement2OrMember method;
+  final InternalExecutableElement getter;
+  final InternalExecutableElement method;
 
   GetterMethodConflict({
     required super.name,
@@ -46,8 +46,8 @@ class GetterMethodConflict extends Conflict {
 /// The extension type has both an extension and non-extension member
 /// signature with the same name.
 class HasNonExtensionAndExtensionMemberConflict extends Conflict {
-  final List<ExecutableElement2OrMember> nonExtension;
-  final List<ExecutableElement2OrMember> extension;
+  final List<InternalExecutableElement> nonExtension;
+  final List<InternalExecutableElement> extension;
 
   HasNonExtensionAndExtensionMemberConflict({
     required super.name,
@@ -68,7 +68,7 @@ class InheritanceManager3 {
 
   /// Tracks signatures from superinterfaces that were combined.
   /// It is used to track dependencies in manifests.
-  final Map<InterfaceElementImpl, Map<Name, List<ExecutableElement2OrMember>>>
+  final Map<InterfaceElementImpl, Map<Name, List<InternalExecutableElement>>>
   _combinedSignatures = {};
 
   /// The set of classes that are currently being processed, used to detect
@@ -81,7 +81,7 @@ class InheritanceManager3 {
   /// not `null`, add a new [Conflict] to it.
   FunctionTypeImpl? combineSignatureTypes({
     required TypeSystemImpl typeSystem,
-    required List<ExecutableElement2OrMember> candidates,
+    required List<InternalExecutableElement> candidates,
     required Name name,
     List<Conflict>? conflicts,
   }) {
@@ -123,10 +123,7 @@ class InheritanceManager3 {
   /// declared at all, or because there is no the most specific signature.
   ///
   /// This is equivalent to `getInheritedMap(type)[name]`.
-  ExecutableElement2OrMember? getInherited(
-    InterfaceElement element,
-    Name name,
-  ) {
+  InternalExecutableElement? getInherited(InterfaceElement element, Name name) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
     return getInheritedMap(element)[name];
   }
@@ -158,7 +155,7 @@ class InheritanceManager3 {
   /// If there is no most specific signature for a name, the corresponding name
   /// will not be included.
   @experimental
-  Map<Name, ExecutableElement2OrMember> getInheritedMap(
+  Map<Name, InternalExecutableElement> getInheritedMap(
     InterfaceElement element,
   ) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
@@ -200,7 +197,7 @@ class InheritanceManager3 {
   /// given number of mixins after it are considered. For example for `1` in
   /// `class C extends S with M1, M2, M3`, only `S` and `M1` are considered.
   @experimental
-  ExecutableElement2OrMember? getMember(
+  InternalExecutableElement? getMember(
     InterfaceElement element,
     Name name, {
     bool concrete = false,
@@ -239,7 +236,7 @@ class InheritanceManager3 {
   }
 
   /// Returns the result of [getMember] with [type] substitution.
-  ExecutableElement2OrMember? getMember3(
+  InternalExecutableElement? getMember3(
     InterfaceType type,
     Name name, {
     bool concrete = false,
@@ -265,7 +262,7 @@ class InheritanceManager3 {
   /// Return all members of mixins, superclasses, and interfaces that a member
   /// with the given [name], defined in the [element], would override; or `null`
   /// if no members would be overridden.
-  List<ExecutableElement2OrMember>? getOverridden(
+  List<InternalExecutableElement>? getOverridden(
     InterfaceElement element,
     Name name,
   ) {
@@ -281,7 +278,7 @@ class InheritanceManager3 {
   }
 
   void _addCandidates({
-    required Map<Name, List<ExecutableElement2OrMember>> namedCandidates,
+    required Map<Name, List<InternalExecutableElement>> namedCandidates,
     required MapSubstitution substitution,
     required Interface interface,
   }) {
@@ -294,7 +291,7 @@ class InheritanceManager3 {
 
       var candidates = namedCandidates[name];
       if (candidates == null) {
-        candidates = <ExecutableElement2OrMember>[];
+        candidates = <InternalExecutableElement>[];
         namedCandidates[name] = candidates;
       }
 
@@ -303,12 +300,12 @@ class InheritanceManager3 {
   }
 
   void _addImplemented(
-    Map<Name, ExecutableElement2OrMember> implemented,
+    Map<Name, InternalExecutableElement> implemented,
     InterfaceElementImpl element,
   ) {
     var libraryUri = element.library.uri;
 
-    void addMember(ExecutableElement2OrMember member) {
+    void addMember(InternalExecutableElement member) {
       if (!member.isAbstract && !member.isStatic) {
         var lookupName = member.lookupName;
         if (lookupName != null) {
@@ -324,7 +321,7 @@ class InheritanceManager3 {
   }
 
   void _addMixinMembers({
-    required Map<Name, ExecutableElement2OrMember> implemented,
+    required Map<Name, InternalExecutableElement> implemented,
     required MapSubstitution substitution,
     required Interface mixin,
   }) {
@@ -350,12 +347,12 @@ class InheritanceManager3 {
   /// new [Conflict] instance that describes it.
   Conflict? _checkForGetterMethodConflict(
     Name name,
-    List<ExecutableElement2OrMember> candidates,
+    List<InternalExecutableElement> candidates,
   ) {
     assert(candidates.length > 1);
 
-    ExecutableElement2OrMember? getter;
-    ExecutableElement2OrMember? method;
+    InternalExecutableElement? getter;
+    InternalExecutableElement? method;
     for (var candidate in candidates) {
       var kind = candidate.kind;
       if (kind == ElementKind.GETTER) {
@@ -377,9 +374,9 @@ class InheritanceManager3 {
   ///
   /// If such signature does not exist, return `null`, and if [conflicts] is
   /// not `null`, add a new [Conflict] to it.
-  ExecutableElement2OrMember? _combineSignatures({
+  InternalExecutableElement? _combineSignatures({
     required InterfaceElementImpl targetClass,
-    required List<ExecutableElement2OrMember> candidates,
+    required List<InternalExecutableElement> candidates,
     required Name name,
     List<Conflict>? conflicts,
   }) {
@@ -413,8 +410,8 @@ class InheritanceManager3 {
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
     InterfaceElementImpl targetClass,
-    Map<Name, ExecutableElement2OrMember> map,
-    Map<Name, List<ExecutableElement2OrMember>> namedCandidates,
+    Map<Name, InternalExecutableElement> map,
+    Map<Name, List<InternalExecutableElement>> namedCandidates,
   ) {
     var conflicts = <Conflict>[];
 
@@ -481,9 +478,9 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceClass(InterfaceElementImpl element) {
-    var namedCandidates = <Name, List<ExecutableElement2OrMember>>{};
-    var superImplemented = <Map<Name, ExecutableElement2OrMember>>[];
-    var implemented = <Name, ExecutableElement2OrMember>{};
+    var namedCandidates = <Name, List<InternalExecutableElement>>{};
+    var superImplemented = <Map<Name, InternalExecutableElement>>[];
+    var implemented = <Name, InternalExecutableElement>{};
 
     InterfaceType? superType = element.supertype;
 
@@ -529,7 +526,7 @@ class InheritanceManager3 {
       // So, each mixin always replaces members in the interface.
       // And there are individual override conflicts for each mixin.
       var candidatesFromSuperAndMixin =
-          <Name, List<ExecutableElement2OrMember>>{};
+          <Name, List<InternalExecutableElement>>{};
       var mixinConflicts = <Conflict>[];
       for (var entry in mixinInterface.map.entries) {
         var name = entry.key;
@@ -561,7 +558,7 @@ class InheritanceManager3 {
 
       // Merge members from the superclass and the mixin interface.
       {
-        var map = <Name, ExecutableElement2OrMember>{};
+        var map = <Name, InternalExecutableElement>{};
         _findMostSpecificFromNamedCandidates(
           element,
           map,
@@ -640,7 +637,7 @@ class InheritanceManager3 {
       }
     }
 
-    implemented = implemented.map<Name, ExecutableElement2OrMember>((
+    implemented = implemented.map<Name, InternalExecutableElement>((
       key,
       value,
     ) {
@@ -669,7 +666,7 @@ class InheritanceManager3 {
   /// member" portions, considering redeclaration and conflicts.
   Interface _getInterfaceExtensionType(ExtensionTypeElementImpl element) {
     // Add instance members implemented by the element itself.
-    var declared = <Name, ExecutableElement2OrMember>{};
+    var declared = <Name, InternalExecutableElement>{};
     _addImplemented(declared, element);
 
     // Prepare precluded names.
@@ -680,9 +677,9 @@ class InheritanceManager3 {
       var name = entry.key;
       precludedNames.add(name);
       switch (entry.value) {
-        case MethodElement2OrMember():
+        case InternalMethodElement():
           precludedSetters.add(name.forSetter);
-        case SetterElement2OrMember():
+        case InternalSetterElement():
           precludedMethods.add(name.forGetter);
       }
     }
@@ -710,7 +707,7 @@ class InheritanceManager3 {
       }
     }
 
-    var redeclared = <Name, List<ExecutableElement2OrMember>>{};
+    var redeclared = <Name, List<InternalExecutableElement>>{};
     var conflicts = <Conflict>[];
 
     // Add extension type members.
@@ -751,7 +748,7 @@ class InheritanceManager3 {
       }
 
       // The inherited member must be unique.
-      ExecutableElement2OrMember? uniqueElement;
+      InternalExecutableElement? uniqueElement;
       for (var candidate in notPrecluded) {
         if (uniqueElement == null) {
           uniqueElement = candidate;
@@ -811,7 +808,7 @@ class InheritanceManager3 {
       implemented[name] = combinedSignature;
     }
 
-    var uniqueRedeclared = <Name, List<ExecutableElement2OrMember>>{};
+    var uniqueRedeclared = <Name, List<InternalExecutableElement>>{};
     for (var entry in redeclared.entries) {
       var name = entry.key;
       var elements = entry.value;
@@ -836,7 +833,7 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceMixin(MixinElementImpl element) {
-    var superCandidates = <Name, List<ExecutableElement2OrMember>>{};
+    var superCandidates = <Name, List<InternalExecutableElement>>{};
     for (var constraint in element.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
       var interfaceObj = getInterface(constraint.element);
@@ -849,7 +846,7 @@ class InheritanceManager3 {
 
     // `mixin M on S1, S2 {}` can call using `super` any instance member
     // from its superclass constraints, whether it is abstract or concrete.
-    var superInterface = <Name, ExecutableElement2OrMember>{};
+    var superInterface = <Name, InternalExecutableElement>{};
     var superConflicts = _findMostSpecificFromNamedCandidates(
       element,
       superInterface,
@@ -874,7 +871,7 @@ class InheritanceManager3 {
       interfaceCandidates,
     );
 
-    var implemented = <Name, ExecutableElement2OrMember>{};
+    var implemented = <Name, InternalExecutableElement>{};
     _addImplemented(implemented, element);
 
     return Interface._(
@@ -895,11 +892,11 @@ class InheritanceManager3 {
   /// a copy of the [executable] with the corresponding parameters marked
   /// covariant. If there are no covariant parameters, or parameters to
   /// update are already covariant, return the [executable] itself.
-  ExecutableElement2OrMember _inheritCovariance(
+  InternalExecutableElement _inheritCovariance(
     InterfaceElementImpl class_,
-    Map<Name, List<ExecutableElement2OrMember>> namedCandidates,
+    Map<Name, List<InternalExecutableElement>> namedCandidates,
     Name name,
-    ExecutableElement2OrMember executable,
+    InternalExecutableElement executable,
   ) {
     if (executable.enclosingElement == class_) {
       return executable;
@@ -953,7 +950,7 @@ class InheritanceManager3 {
       return executable;
     }
 
-    if (executable is MethodElement2OrMember) {
+    if (executable is InternalMethodElement) {
       var fragmentName = executable.name ?? '';
 
       var elementReference = class_.reference!
@@ -1027,10 +1024,10 @@ class InheritanceManager3 {
 
   /// Given one or more [validOverrides], merge them into a single resulting
   /// signature. This signature always exists.
-  ExecutableElement2OrMember _topMerge(
+  InternalExecutableElement _topMerge(
     TypeSystemImpl typeSystem,
     InterfaceElementImpl targetClass,
-    List<ExecutableElement2OrMember> validOverrides,
+    List<InternalExecutableElement> validOverrides,
   ) {
     var first = validOverrides[0];
 
@@ -1054,7 +1051,7 @@ class InheritanceManager3 {
       }
     }
 
-    if (first is MethodElement2OrMember) {
+    if (first is InternalMethodElement) {
       var firstElement = first;
       var fragmentName = firstElement.firstFragment.name!;
 
@@ -1088,13 +1085,13 @@ class InheritanceManager3 {
 
       return resultElement;
     } else {
-      var firstElement = first as PropertyAccessorElement2OrMember;
+      var firstElement = first as InternalPropertyAccessorElement;
       var fragmentName = first.name!;
       var field = FieldFragmentImpl(name: fragmentName, firstTokenOffset: null);
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;
-      if (firstElement is GetterElement2OrMember) {
+      if (firstElement is InternalGetterElement) {
         var elementReference = targetClass.reference!
             .getChild('@getter')
             .getChild(fragmentName);
@@ -1160,13 +1157,13 @@ class InheritanceManager3 {
     }
   }
 
-  static Map<Name, ExecutableElement2OrMember> _getTypeMembers(
+  static Map<Name, InternalExecutableElement> _getTypeMembers(
     InterfaceElementImpl element,
   ) {
-    var declared = <Name, ExecutableElement2OrMember>{};
+    var declared = <Name, InternalExecutableElement>{};
     var libraryUri = element.library.uri;
 
-    void addMember(ExecutableElement2OrMember member) {
+    void addMember(InternalExecutableElement member) {
       if (!member.isStatic) {
         var lookupName = member.lookupName;
         if (lookupName != null) {
@@ -1184,11 +1181,11 @@ class InheritanceManager3 {
   }
 
   /// Returns executables that are valid overrides of [candidates].
-  static List<ExecutableElement2OrMember> _getValidOverrides({
+  static List<InternalExecutableElement> _getValidOverrides({
     required TypeSystemImpl typeSystem,
-    required List<ExecutableElement2OrMember> candidates,
+    required List<InternalExecutableElement> candidates,
   }) {
-    var validOverrides = <ExecutableElement2OrMember>[];
+    var validOverrides = <InternalExecutableElement>[];
     outer:
     for (var i = 0; i < candidates.length; i++) {
       var validOverride = candidates[i];
@@ -1204,14 +1201,14 @@ class InheritanceManager3 {
     return validOverrides;
   }
 
-  static bool _isDeclaredInObject(ExecutableElement2OrMember element) {
+  static bool _isDeclaredInObject(InternalExecutableElement element) {
     var enclosing = element.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
   }
 
   static FunctionTypeImpl _topMergeSignatureTypes({
     required TypeSystemImpl typeSystem,
-    required List<ExecutableElement2OrMember> validOverrides,
+    required List<InternalExecutableElement> validOverrides,
   }) {
     return validOverrides
         .map((e) => typeSystem.normalizeFunctionType(e.type))
@@ -1236,30 +1233,30 @@ class Interface {
   );
 
   /// The map of names to their signature in the interface.
-  final Map<Name, ExecutableElement2OrMember> map;
+  final Map<Name, InternalExecutableElement> map;
 
   /// The map of declared names to their signatures.
-  final Map<Name, ExecutableElement2OrMember> declared;
+  final Map<Name, InternalExecutableElement> declared;
 
   /// The map of names to their concrete implementations.
-  final Map<Name, ExecutableElement2OrMember> implemented;
+  final Map<Name, InternalExecutableElement> implemented;
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
   final Set<Name> noSuchMethodForwarders;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
-  final Map<Name, List<ExecutableElement2OrMember>> overridden;
+  final Map<Name, List<InternalExecutableElement>> overridden;
 
   /// The map of names to the signatures from superinterfaces that a member
   /// declaration in this extension type redeclares.
-  final Map<Name, List<ExecutableElement2OrMember>> redeclared;
+  final Map<Name, List<InternalExecutableElement>> redeclared;
 
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
   /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
-  final List<Map<Name, ExecutableElement2OrMember>> superImplemented;
+  final List<Map<Name, InternalExecutableElement>> superImplemented;
 
   /// The list of conflicts between superinterfaces - the nominal superclass,
   /// mixins, and interfaces.  Does not include conflicts with the declared
@@ -1268,11 +1265,11 @@ class Interface {
 
   /// Tracks signatures from superinterfaces that were combined.
   /// It is used to track dependencies in manifests.
-  final Map<Name, List<ExecutableElement2OrMember>> combinedSignatures;
+  final Map<Name, List<InternalExecutableElement>> combinedSignatures;
 
   /// The map of names to the most specific signatures from the mixins,
   /// superclasses, or interfaces.
-  Map<Name, ExecutableElement2OrMember>? inheritedMap;
+  Map<Name, InternalExecutableElement>? inheritedMap;
 
   Interface._({
     required this.map,
@@ -1379,7 +1376,7 @@ class Name {
 
 /// Failure because of not unique extension type member.
 class NotUniqueExtensionMemberConflict extends Conflict {
-  final List<ExecutableElement2OrMember> candidates;
+  final List<InternalExecutableElement> candidates;
 
   NotUniqueExtensionMemberConflict({
     required super.name,
@@ -1389,28 +1386,28 @@ class NotUniqueExtensionMemberConflict extends Conflict {
 
 class _ExtensionTypeCandidates {
   final Name name;
-  final List<MethodElement2OrMember> methods = [];
-  final List<GetterElement2OrMember> getters = [];
-  final List<SetterElement2OrMember> setters = [];
+  final List<InternalMethodElement> methods = [];
+  final List<InternalGetterElement> getters = [];
+  final List<InternalSetterElement> setters = [];
 
   _ExtensionTypeCandidates(this.name);
 
-  List<ExecutableElement2OrMember> get all {
+  List<InternalExecutableElement> get all {
     return [...methods, ...getters, ...setters];
   }
 
-  void add(ExecutableElement2OrMember element) {
+  void add(InternalExecutableElement element) {
     switch (element) {
-      case MethodElement2OrMember():
+      case InternalMethodElement():
         methods.add(element);
-      case GetterElement2OrMember():
+      case InternalGetterElement():
         getters.add(element);
-      case SetterElement2OrMember():
+      case InternalSetterElement():
         setters.add(element);
     }
   }
 
-  List<ExecutableElement2OrMember> notPrecluded({
+  List<InternalExecutableElement> notPrecluded({
     required Set<Name> precludedNames,
     required Set<Name> precludedMethods,
     required Set<Name> precludedSetters,
