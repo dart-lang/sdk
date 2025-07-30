@@ -19,7 +19,7 @@ import 'compiler.dart' show Compiler;
 
 DiagnosticMessage _createInternalError(Uri uri, int line, int col, String msg) {
   return Message(
-        Code<String>('Expression Compiler Internal error'),
+        Code('Expression Compiler Internal error'),
         problemMessage: msg,
       )
       .withLocation(uri, 0, 0)

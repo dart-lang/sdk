@@ -433,7 +433,7 @@ abstract class StackListener extends Listener with StackChecker {
     );
   }
 
-  bool isIgnoredError(Code<dynamic> code, Token token) {
+  bool isIgnoredError(Code code, Token token) {
     if (code == codeNativeClauseShouldBeAnnotation) {
       // TODO(danrubel): Ignore this error until we deprecate `native`
       // support.

@@ -407,7 +407,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
     return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> code$name = message$name;
+const Code code$name = message$name;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode message$name =
@@ -448,8 +448,8 @@ const Template<Message Function(${parameters.join(', ')})> template$name =
         ${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(${parameters.join(', ')})> code$name =
-    const Code<Message Function(${parameters.join(', ')})>(
+const Code code$name =
+    const Code(
         \"$name\", ${codeArguments.join(', ')});
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

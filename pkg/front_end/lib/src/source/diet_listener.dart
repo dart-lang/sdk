@@ -1344,7 +1344,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  bool isIgnoredError(Code<dynamic> code, Token token) {
+  bool isIgnoredError(Code code, Token token) {
     return isIgnoredParserError(code, token) ||
         super.isIgnoredError(code, token);
   }
