@@ -12,18 +12,7 @@ import 'uris.dart';
 abstract class NameSpace {
   /// Returns the [LookupResult] for the [Builder]s of the given [name] in the
   /// name space.
-  ///
-  /// If the [Builder]s are duplicates, an [AmbiguousBuilder] is created for
-  /// the access, using the [fileUri] and [fileOffset].
-  LookupResult? lookupLocal(String name,
-      {required Uri fileUri, required int fileOffset});
-
-  /// Returns the [LookupResult] for the [Builder]s of the given [name] in the
-  /// name space.
-  ///
-  /// The returned [LookupResult] contains the [Builder]s directly mapped in the
-  /// name space without any filtering or processed of duplicates.
-  LookupResult? lookupLocalMember(String name);
+  LookupResult? lookup(String name);
 
   void forEachLocalExtension(void Function(ExtensionBuilder member) f);
 }
@@ -66,12 +55,7 @@ abstract class DeclarationNameSpace implements NameSpace {
   void forEachLocalExtension(void Function(ExtensionBuilder member) f) {}
 
   @override
-  MemberLookupResult? lookupLocal(String name,
-          {required Uri fileUri, required int fileOffset}) =>
-      _content[name];
-
-  @override
-  MemberLookupResult? lookupLocalMember(String name) => _content[name];
+  MemberLookupResult? lookup(String name) => _content[name];
 
   MemberLookupResult? lookupConstructor(String name) => _constructors[name];
 }
@@ -180,14 +164,7 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
   }
 
   @override
-  LookupResult? lookupLocal(String name,
-      {required Uri fileUri, required int fileOffset}) {
-    return LookupResult.createProcessedResult(_content?[name],
-        name: name, fileUri: fileUri, fileOffset: fileOffset);
-  }
-
-  @override
-  LookupResult? lookupLocalMember(String name) => _content?[name];
+  LookupResult? lookup(String name) => _content?[name];
 }
 
 final class LibraryNameSpace implements NameSpace {
@@ -212,13 +189,7 @@ final class LibraryNameSpace implements NameSpace {
   }
 
   @override
-  LookupResult? lookupLocal(String name,
-      {required Uri fileUri, required int fileOffset}) {
-    return _content[name];
-  }
-
-  @override
-  LookupResult? lookupLocalMember(String name) => _content[name];
+  LookupResult? lookup(String name) => _content[name];
 }
 
 // Coverage-ignore(suite): Not run.
@@ -356,16 +327,16 @@ final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
         LookupResult? replacementResult;
         if (existingGetter != null && existingSetter != null) {
           if (existingGetter == existingSetter) {
-            replacementResult = replacementNameSpaceMap[existingGetter.parent]!
-                .lookupLocalMember(name);
+            replacementResult =
+                replacementNameSpaceMap[existingGetter.parent]!.lookup(name);
           } else {
             NamedBuilder? replacementGetter =
                 replacementNameSpaceMap[existingGetter.parent]
-                    ?.lookupLocalMember(name)
+                    ?.lookup(name)
                     ?.getable;
             NamedBuilder? replacementSetter =
                 replacementNameSpaceMap[existingSetter.parent]
-                    ?.lookupLocalMember(name)
+                    ?.lookup(name)
                     ?.setable;
             replacementResult = LookupResult.createResult(
                 replacementGetter ?? existingGetter,
@@ -374,14 +345,14 @@ final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
         } else if (existingGetter != null) {
           replacementResult = LookupResult.createResult(
               replacementNameSpaceMap[existingGetter.parent]
-                  ?.lookupLocalMember(name)
+                  ?.lookup(name)
                   ?.getable,
               null);
         } else if (existingSetter != null) {
           replacementResult = LookupResult.createResult(
               null,
               replacementNameSpaceMap[existingSetter.parent]
-                  ?.lookupLocalMember(name)
+                  ?.lookup(name)
                   ?.setable);
         }
         if (replacementResult != null) {
@@ -411,12 +382,12 @@ final class DillExportNameSpace extends ComputedMutableNameSpaceImpl {
           if (replacementNameSpaceMap
               .containsKey(extensionBuilder.libraryBuilder)) {
             assert(replacementNameSpaceMap[extensionBuilder.libraryBuilder]!
-                    .lookupLocalMember(extensionBuilder.name)!
+                    .lookup(extensionBuilder.name)!
                     .getable !=
                 null);
             extensionsReplacement.add(
                 replacementNameSpaceMap[extensionBuilder.libraryBuilder]!
-                    .lookupLocalMember(extensionBuilder.name)!
+                    .lookup(extensionBuilder.name)!
                     .getable as ExtensionBuilder);
             break;
           } else {

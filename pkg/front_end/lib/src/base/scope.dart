@@ -122,7 +122,7 @@ enum ScopeKind {
 
 abstract class LookupScope {
   ScopeKind get kind;
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri);
+  LookupResult? lookup(String name);
   // TODO(johnniwinther): Should this be moved to an outer scope interface?
   void forEachExtension(void Function(ExtensionBuilder) f);
 }
@@ -139,10 +139,8 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   LookupScope? get _parent;
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
-    return _nameSpace.lookupLocal(name,
-            fileUri: fileUri, fileOffset: fileOffset) ??
-        _parent?.lookup(name, fileOffset, fileUri);
+  LookupResult? lookup(String name) {
+    return _nameSpace.lookup(name) ?? _parent?.lookup(name);
   }
 
   @override
@@ -174,13 +172,12 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   TypeParameterBuilder? getTypeParameter(String name);
 
   @override
-  // Coverage-ignore(suite): Not run.
   ScopeKind get kind => ScopeKind.typeParameters;
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+  LookupResult? lookup(String name) {
     LookupResult? result = getTypeParameter(name);
-    return result ?? _parent.lookup(name, fileOffset, fileUri);
+    return result ?? _parent.lookup(name);
   }
 
   @override
@@ -377,48 +374,6 @@ NamedBuilder computeAmbiguousDeclarationForImport(
       message.withLocation(
           uriOffset.fileUri, uriOffset.fileOffset, name.length),
       errorHasBeenReported: false);
-}
-
-// Coverage-ignore(suite): Not run.
-abstract class ProblemBuilder extends NamedBuilderImpl {
-  @override
-  final String name;
-
-  final NamedBuilder builder;
-
-  @override
-  final int fileOffset;
-
-  @override
-  final Uri fileUri;
-
-  ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
-
-  Message get message;
-
-  @override
-  String get fullNameForErrors => name;
-}
-
-// Coverage-ignore(suite): Not run.
-class AmbiguousBuilder extends ProblemBuilder {
-  AmbiguousBuilder(
-      String name, NamedBuilder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
-
-  @override
-  Builder? get parent => null;
-
-  @override
-  Message get message => templateDuplicatedDeclarationUse.withArguments(name);
-
-  NamedBuilder getFirstDeclaration() {
-    NamedBuilder declaration = builder;
-    while (declaration.next != null) {
-      declaration = declaration.next!;
-    }
-    return declaration;
-  }
 }
 
 mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {

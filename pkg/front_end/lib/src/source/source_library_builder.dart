@@ -364,7 +364,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (name.startsWith("_")) return false;
     if (member is PrefixBuilder) return false;
     bool isSetter = isMappedAsSetter(member);
-    LookupResult? result = exportNameSpace.lookupLocalMember(name);
+    LookupResult? result = exportNameSpace.lookup(name);
     NamedBuilder? existing = isSetter ? result?.setable : result?.getable;
     if (existing == member) {
       return false;
@@ -404,7 +404,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     NamedBuilder? preferred;
     Uri? uri;
     Uri? otherUri;
-    if (libraryNameSpace.lookupLocalMember(name)?.getable == declaration) {
+    if (libraryNameSpace.lookup(name)?.getable == declaration) {
       return declaration;
     } else {
       uri = computeLibraryUri(declaration);
@@ -824,19 +824,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void becomeCoreLibrary() {
     assert(checkState(required: [SourceLibraryBuilderState.nameSpaceBuilt]));
 
-    if (libraryNameSpace.lookupLocalMember("dynamic")?.getable == null) {
+    if (libraryNameSpace.lookup("dynamic")?.getable == null) {
       DynamicTypeDeclarationBuilder builder =
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1);
       _libraryNameSpace!.addLocalMember("dynamic", builder);
       _memberBuilders.add(builder);
     }
-    if (libraryNameSpace.lookupLocalMember("Never")?.getable == null) {
+    if (libraryNameSpace.lookup("Never")?.getable == null) {
       NeverTypeDeclarationBuilder builder = new NeverTypeDeclarationBuilder(
           const NeverType.nonNullable(), this, -1);
       _libraryNameSpace!.addLocalMember("Never", builder);
       _memberBuilders.add(builder);
     }
-    assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
+    assert(libraryNameSpace.lookup("Null")?.getable != null,
         "No class 'Null' found in dart:core.");
   }
 

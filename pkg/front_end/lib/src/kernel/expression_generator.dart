@@ -35,7 +35,6 @@ import 'package:kernel/type_algebra.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/lookup_result.dart';
 import '../base/problems.dart';
-import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
@@ -3383,11 +3382,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
         Builder? getable = result.getable;
         Builder? setable = result.setable;
         if (getable != null) {
-          if (getable is AmbiguousBuilder) {
-            // Coverage-ignore-block(suite): Not run.
-            return _helper.buildProblem(
-                getable.message, getable.fileOffset, name.text.length);
-          } else if (getable.isStatic &&
+          if (getable.isStatic &&
               getable is! FactoryBuilder &&
               typeArguments != null) {
             return _helper.buildProblem(
@@ -3405,20 +3400,14 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                 isNullAware: isNullAware);
           }
         } else {
-          if (setable is AmbiguousBuilder) {
-            // Coverage-ignore-block(suite): Not run.
-            return _helper.buildProblem(
-                setable.message, setable.fileOffset, name.text.length);
-          } else {
-            generator = new StaticAccessGenerator.fromBuilder(
-                _helper,
-                name.text,
-                send.token,
-                getable is MemberBuilder ? getable : null,
-                setable is MemberBuilder ? setable : null,
-                typeOffset: fileOffset,
-                isNullAware: isNullAware);
-          }
+          generator = new StaticAccessGenerator.fromBuilder(
+              _helper,
+              name.text,
+              send.token,
+              getable is MemberBuilder ? getable : null,
+              setable is MemberBuilder ? setable : null,
+              typeOffset: fileOffset,
+              isNullAware: isNullAware);
         }
       }
 
@@ -4240,7 +4229,7 @@ class PrefixUseGenerator extends Generator {
   }
 
   @override
-  /* Expression | Generator */ Object qualifiedLookup(Token nameToken) {
+  Generator qualifiedLookup(Token nameToken) {
     if (_helper.constantContext != ConstantContext.none && prefix.deferred) {
       // Coverage-ignore-block(suite): Not run.
       _helper.addProblem(
@@ -4248,17 +4237,19 @@ class PrefixUseGenerator extends Generator {
           fileOffset,
           lengthForToken(token));
     }
-    Object result = _helper.scopeLookup(prefix.prefixScope, nameToken,
-        prefix: prefix, prefixToken: token);
+    String name = nameToken.lexeme;
+    Generator result = _helper.processLookupResult(
+        lookupResult: prefix.prefixScope.lookup(name),
+        name: name,
+        nameToken: nameToken,
+        nameOffset: nameToken.charOffset,
+        scopeKind: prefix.prefixScope.kind,
+        prefix: prefix,
+        prefixToken: token);
+
     if (prefix.deferred) {
-      if (result is Generator) {
-        if (result is! LoadLibraryGenerator) {
-          result =
-              new DeferredAccessGenerator(_helper, nameToken, this, result);
-        }
-      } else {
-        // Coverage-ignore-block(suite): Not run.
-        _helper.wrapInDeferredCheck(result as Expression, prefix, fileOffset);
+      if (result is! LoadLibraryGenerator) {
+        result = new DeferredAccessGenerator(_helper, nameToken, this, result);
       }
     }
     return result;

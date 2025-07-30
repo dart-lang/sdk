@@ -39,15 +39,14 @@ class ConstructorReferenceBuilder {
     if (qualifier != null) {
       String prefix = qualifier;
       String middle = typeName.name;
-      declaration = scope.lookup(prefix, charOffset, fileUri)?.getable;
+      declaration = scope.lookup(prefix)?.getable;
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;
-        declaration =
-            prefix.lookup(middle, typeName.nameOffset, fileUri)?.getable;
+        declaration = prefix.lookup(middle)?.getable;
       } else if (declaration is DeclarationBuilder) {
         MemberLookupResult? result =
             declaration.findConstructorOrFactory(middle, accessingLibrary);
@@ -57,7 +56,7 @@ class ConstructorReferenceBuilder {
         }
       }
     } else {
-      declaration = scope.lookup(typeName.name, charOffset, fileUri)?.getable;
+      declaration = scope.lookup(typeName.name)?.getable;
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);

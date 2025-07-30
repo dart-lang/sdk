@@ -42,7 +42,6 @@ import '../base/messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 import '../base/processed_options.dart' show ProcessedOptions;
-import '../base/scope.dart' show AmbiguousBuilder;
 import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uri_translator.dart' show UriTranslator;
@@ -768,13 +767,7 @@ class KernelTarget {
     LibraryBuilder? firstRoot = loader.rootLibrary;
     if (firstRoot != null) {
       // TODO(sigmund): do only for full program
-      Builder? declaration =
-          firstRoot.exportNameSpace.lookupLocalMember("main")?.getable;
-      if (declaration is AmbiguousBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        AmbiguousBuilder problem = declaration;
-        declaration = problem.getFirstDeclaration();
-      }
+      Builder? declaration = firstRoot.exportNameSpace.lookup("main")?.getable;
       if (declaration is MethodBuilder) {
         mainReference = declaration.invokeTargetReference;
       }

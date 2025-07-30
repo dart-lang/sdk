@@ -207,7 +207,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Builder? member;
     String? qualifier = typeName.qualifier;
     if (qualifier != null) {
-      LookupResult? result = scope.lookup(qualifier, charOffset, fileUri);
+      LookupResult? result = scope.lookup(qualifier);
       if (result != null && result.isInvalidLookup) {
         bind(
             problemReporting,
@@ -222,7 +222,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       Builder? prefix = result?.getable;
       if (prefix is PrefixBuilder) {
         _isDeferred = prefix.deferred;
-        result = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
+        result = prefix.lookup(typeName.name);
         if (result != null && result.isInvalidLookup) {
           // Coverage-ignore-block(suite): Not run.
           bind(
@@ -250,8 +250,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         return;
       }
     } else {
-      LookupResult? result =
-          scope.lookup(typeName.name, typeName.nameOffset, fileUri);
+      LookupResult? result = scope.lookup(typeName.name);
       if (result != null && result.isInvalidLookup) {
         bind(
             problemReporting,

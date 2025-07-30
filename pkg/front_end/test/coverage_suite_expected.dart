@@ -180,12 +180,12 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/local_scope.dart": (
-    hitCount: 48,
+    hitCount: 49,
     missCount: 0,
   ),
   // 100.0%.
   "package:front_end/src/base/lookup_result.dart": (
-    hitCount: 43,
+    hitCount: 38,
     missCount: 0,
   ),
   // 100.0%.
@@ -200,7 +200,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/name_space.dart": (
-    hitCount: 146,
+    hitCount: 136,
     missCount: 0,
   ),
   // 100.0%.
@@ -220,7 +220,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/base/scope.dart": (
-    hitCount: 177,
+    hitCount: 178,
     missCount: 0,
   ),
   // 100.0%.
@@ -270,7 +270,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/constructor_reference_builder.dart": (
-    hitCount: 50,
+    hitCount: 43,
     missCount: 0,
   ),
   // 100.0%.
@@ -350,7 +350,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/builder/named_type_builder.dart": (
-    hitCount: 615,
+    hitCount: 611,
     missCount: 0,
   ),
   // 100.0%.
@@ -690,7 +690,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/body_builder.dart": (
-    hitCount: 7204,
+    hitCount: 7198,
     missCount: 0,
   ),
   // 100.0%.
@@ -750,7 +750,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/expression_generator.dart": (
-    hitCount: 2529,
+    hitCount: 2532,
     missCount: 0,
   ),
   // 100.0%.
@@ -840,7 +840,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_target.dart": (
-    hitCount: 1038,
+    hitCount: 1037,
     missCount: 0,
   ),
   // 100.0%.

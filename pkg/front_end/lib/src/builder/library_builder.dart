@@ -177,7 +177,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
           null);
     }
     Builder? cls = (bypassLibraryPrivacy ? libraryNameSpace : exportNameSpace)
-        .lookupLocalMember(className)
+        .lookup(className)
         ?.getable;
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
@@ -217,12 +217,12 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   LookupResult? lookupLocalMember(String name) {
-    return libraryNameSpace.lookupLocalMember(name);
+    return libraryNameSpace.lookup(name);
   }
 
   @override
   NamedBuilder? lookupRequiredLocalMember(String name) {
-    NamedBuilder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
+    NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

@@ -1259,9 +1259,7 @@ severity: $severity
 
     DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? builder = memberScope
-          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri)
-          ?.getable;
+      Builder? builder = memberScope.lookup(enclosingClassOrExtension)?.getable;
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
@@ -2605,8 +2603,7 @@ severity: $severity
 
   void _checkMainMethods(
       SourceLibraryBuilder libraryBuilder, DartType listOfString) {
-    LookupResult? result =
-        libraryBuilder.exportNameSpace.lookupLocalMember('main');
+    LookupResult? result = libraryBuilder.exportNameSpace.lookup('main');
     Builder? mainBuilder = result?.getable;
     mainBuilder ??= result?.setable;
     if (mainBuilder is MemberBuilder) {

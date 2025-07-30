@@ -312,5 +312,5 @@ class _DummyLookupScope implements LookupScope {
   ScopeKind get kind => ScopeKind.library;
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) => null;
+  LookupResult? lookup(String name) => null;
 }
