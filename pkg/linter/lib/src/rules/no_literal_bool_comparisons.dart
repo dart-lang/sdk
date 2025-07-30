@@ -59,18 +59,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
-
-  @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    if (node.thenExpression case BooleanLiteral(:var offset) && var literal) {
-      if (node.elseExpression case BooleanLiteral(:var end)) {
-        rule.reportAtOffset(offset, end - offset);
-      } else if (isBool(node.elseExpression.staticType)) {
-        rule.reportAtNode(literal);
-      }
-    } else if (node.elseExpression case BooleanLiteral literal
-        when isBool(node.thenExpression.staticType)) {
-      rule.reportAtNode(literal);
-    }
-  }
 }

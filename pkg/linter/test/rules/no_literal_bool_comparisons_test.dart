@@ -84,58 +84,10 @@ void f(bool value) {
   }
 
   test_conditional_both_true() async {
-    await assertDiagnostics(
-      r'''
+    // This case should be handled by avoid_bool_literals_in_conditional_expressions
+    await assertNoDiagnostics(r'''
 void f(bool value1, bool value2) {
   print(value1 ? true : true);
-}
-''',
-      [lint(52, 11)],
-    );
-  }
-
-  test_conditional_else_true() async {
-    await assertDiagnostics(
-      r'''
-void f(bool value1, bool value2) {
-  print(value1 ? value2 : true);
-}
-''',
-      [lint(61, 4)],
-    );
-  }
-
-  test_conditional_neither_booleans() async {
-    await assertNoDiagnostics(r'''
-void f(bool value1) {
-  print(value1 ? null : null);
-}
-''');
-  }
-
-  test_conditional_then_null_else_false() async {
-    await assertNoDiagnostics(r'''
-void f(bool value1) {
-  print(value1 ? null : false);
-}
-''');
-  }
-
-  test_conditional_then_true() async {
-    await assertDiagnostics(
-      r'''
-void f(bool value1, bool value2) {
-  print(value1 ? true : value2);
-}
-''',
-      [lint(52, 4)],
-    );
-  }
-
-  test_conditional_then_true_else_null() async {
-    await assertNoDiagnostics(r'''
-void f(bool value1) {
-  print(value1 ? null : false);
 }
 ''');
   }

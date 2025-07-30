@@ -286,6 +286,9 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.annotate_overrides: [AddOverride.new],
   LinterLintCode.annotate_redeclares: [AddRedeclare.new],
   LinterLintCode.avoid_annotating_with_dynamic: [RemoveTypeAnnotation.other],
+  LinterLintCode.avoid_bool_literals_in_conditional_expressions: [
+    ConvertToBooleanExpression.new,
+  ],
   LinterLintCode.avoid_empty_else: [RemoveEmptyElse.new],
   LinterLintCode.avoid_escaping_inner_quotes: [ConvertQuotes.new],
   LinterLintCode.avoid_function_literals_in_foreach_calls: [

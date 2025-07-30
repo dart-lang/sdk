@@ -1874,10 +1874,7 @@ LintCode.annotate_redeclares:
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
 LintCode.avoid_bool_literals_in_conditional_expressions:
-  status: needsFix
-  notes: |-
-    Each expression like `condition ? true : boolExpression` can be universally
-    fixed to not contain a bool literal.
+  status: hasFix
 LintCode.avoid_catches_without_on_clauses:
   status: noFix
   notes: |-
