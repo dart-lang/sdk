@@ -356,7 +356,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   @override
   void becomeCoreLibrary() {
     const String dynamicName = "dynamic";
-    if (libraryNameSpace.lookupLocalMember(dynamicName)?.getable == null) {
+    if (libraryNameSpace.lookup(dynamicName)?.getable == null) {
       DynamicTypeDeclarationBuilder builder =
           new DynamicTypeDeclarationBuilder(const DynamicType(), this, -1);
       _nameSpace.addLocalMember(dynamicName, builder);
@@ -364,14 +364,14 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       _memberBuilders.add(builder);
     }
     const String neverName = "Never";
-    if (libraryNameSpace.lookupLocalMember(neverName)?.getable == null) {
+    if (libraryNameSpace.lookup(neverName)?.getable == null) {
       NeverTypeDeclarationBuilder builder = new NeverTypeDeclarationBuilder(
           const NeverType.nonNullable(), this, -1);
       _nameSpace.addLocalMember(neverName, builder);
       _exportNameSpace.addLocalMember(neverName, builder, setter: false);
       _memberBuilders.add(builder);
     }
-    assert(libraryNameSpace.lookupLocalMember("Null")?.getable != null,
+    assert(libraryNameSpace.lookup("Null")?.getable != null,
         "No class 'Null' found in dart:core.");
   }
 
@@ -401,14 +401,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       if (messageText == exportDynamicSentinel) {
         assert(
             name == 'dynamic', "Unexpected export name for 'dynamic': '$name'");
-        declaration = loader.coreLibrary.exportNameSpace
-            .lookupLocalMember(name)!
-            .getable!;
+        declaration = loader.coreLibrary.exportNameSpace.lookup(name)!.getable!;
       } else if (messageText == exportNeverSentinel) {
         assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
-        declaration = loader.coreLibrary.exportNameSpace
-            .lookupLocalMember(name)!
-            .getable!;
+        declaration = loader.coreLibrary.exportNameSpace.lookup(name)!.getable!;
       } else {
         Message message = templateUnspecified.withArguments(messageText);
         if (!suppressFinalizationErrors) {
@@ -477,12 +473,10 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         assert(library is DillLibraryBuilder,
             "No reference for source declaration of $node.");
         if (isSetter) {
-          declaration =
-              library.exportNameSpace.lookupLocalMember(name)!.setable!;
+          declaration = library.exportNameSpace.lookup(name)!.setable!;
           _exportNameSpace.addLocalMember(name, declaration, setter: true);
         } else {
-          declaration =
-              library.exportNameSpace.lookupLocalMember(name)!.getable!;
+          declaration = library.exportNameSpace.lookup(name)!.getable!;
           _exportNameSpace.addLocalMember(name, declaration, setter: false);
         }
       }

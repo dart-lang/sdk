@@ -9,7 +9,6 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../codes/cfe_codes.dart';
 import 'compiler_context.dart';
-import 'scope.dart';
 
 abstract class LookupResult {
   /// The [NamedBuilder] used for reading this entity, if any.
@@ -60,37 +59,6 @@ abstract class LookupResult {
             Severity.error)
         .plain;
     return new InvalidExpression(text)..fileOffset = fileOffset;
-  }
-
-  /// Creates a [LookupResult] for [getable] and [setable] which filters
-  /// instance members if [staticOnly] is `true`, and creates an
-  /// [AmbiguousBuilder] for duplicates using [fileUri] and [fileOffset].
-  static LookupResult? createProcessedResult(LookupResult? result,
-      {required String name, required Uri fileUri, required int fileOffset}) {
-    if (result == null) return null;
-    NamedBuilder? getable = result.getable;
-    NamedBuilder? setable = result.setable;
-    bool changed = false;
-    if (getable != null) {
-      if (getable.next != null) {
-        // Coverage-ignore-block(suite): Not run.
-        getable = new AmbiguousBuilder(name, getable, fileOffset, fileUri);
-        changed = true;
-      }
-    }
-    if (setable != null) {
-      if (setable.next != null) {
-        // Coverage-ignore-block(suite): Not run.
-        setable = new AmbiguousBuilder(name, setable, fileOffset, fileUri);
-        changed = true;
-      }
-    }
-    if (!changed) {
-      return result;
-    }
-
-    // Coverage-ignore(suite): Not run.
-    return _fromBuilders(getable, setable, assertNoGetterSetterConflict: true);
   }
 
   static LookupResult? createResult(

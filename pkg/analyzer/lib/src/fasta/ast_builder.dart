@@ -1069,37 +1069,26 @@ class AstBuilder extends StackListener {
   void endBinaryExpression(Token operatorToken, Token endToken) {
     assert(
       operatorToken.isOperator ||
-          optional('.', operatorToken) ||
-          optional('?.', operatorToken) ||
-          optional('..', operatorToken) ||
-          optional('?..', operatorToken) ||
           optional('===', operatorToken) ||
           optional('!==', operatorToken),
     );
     debugEvent("BinaryExpression");
 
-    if (identical(".", operatorToken.stringValue) ||
-        identical("?.", operatorToken.stringValue) ||
-        identical("..", operatorToken.stringValue) ||
-        identical("?..", operatorToken.stringValue)) {
-      doDotExpression(operatorToken);
-    } else {
-      var right = pop() as ExpressionImpl;
-      var left = pop() as ExpressionImpl;
-      reportErrorIfSuper(right);
-      push(
-        BinaryExpressionImpl(
-          leftOperand: left,
-          operator: operatorToken,
-          rightOperand: right,
-        ),
+    var right = pop() as ExpressionImpl;
+    var left = pop() as ExpressionImpl;
+    reportErrorIfSuper(right);
+    push(
+      BinaryExpressionImpl(
+        leftOperand: left,
+        operator: operatorToken,
+        rightOperand: right,
+      ),
+    );
+    if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.triple_shift,
+        startToken: operatorToken,
       );
-      if (!enableTripleShift && operatorToken.type == TokenType.GT_GT_GT) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.triple_shift,
-          startToken: operatorToken,
-        );
-      }
     }
   }
 
@@ -4361,6 +4350,19 @@ class AstBuilder extends StackListener {
     debugEvent("EmptyStatement");
 
     push(EmptyStatementImpl(semicolon: semicolon));
+  }
+
+  @override
+  void handleEndingBinaryExpression(Token operatorToken, Token endToken) {
+    assert(
+      optional('.', operatorToken) ||
+          optional('?.', operatorToken) ||
+          optional('..', operatorToken) ||
+          optional('?..', operatorToken),
+    );
+    debugEvent("EndingBinaryExpression");
+
+    doDotExpression(operatorToken);
   }
 
   @override

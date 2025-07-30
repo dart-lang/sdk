@@ -243,8 +243,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     if (!isClassMember) {
       // Getter/setter type conflict for class members is handled in the class
       // hierarchy builder.
-      setterBuilder =
-          nameSpace.lookupLocalMember(name)?.setable as SourcePropertyBuilder?;
+      setterBuilder = nameSpace.lookup(name)?.setable as SourcePropertyBuilder?;
     }
     _introductoryField?.checkFieldTypes(
         library, typeEnvironment, setterBuilder);

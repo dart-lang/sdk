@@ -2592,7 +2592,7 @@ class Parser {
       }
       listener.handleEnumElements(token, elementCount);
       if (token.isA(TokenType.SEMICOLON)) {
-        while (notEofOrValue('}', token.next!)) {
+        while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
           token = parseClassOrMixinOrExtensionOrEnumMemberImpl(
             token,
             DeclarationKind.Enum,
@@ -3718,10 +3718,6 @@ class Parser {
     }
   }
 
-  /// Checks whether the next token is (directly) an identifier. If this returns
-  /// true a call to [ensureIdentifier] will return the next token.
-  bool isNextIdentifier(Token token) => token.next?.kind == IDENTIFIER_TOKEN;
-
   /// Parse a simple identifier at the given [token], and return the identifier
   /// that was parsed.
   ///
@@ -3748,8 +3744,8 @@ class Parser {
     return identifier;
   }
 
-  bool notEofOrValue(String value, Token token) {
-    return token.kind != EOF_TOKEN && value != token.stringValue;
+  bool notEofOrType(TokenType type, Token token) {
+    return !token.isA(TokenType.EOF) && !token.isA(type);
   }
 
   Token parseTypeVariablesOpt(Token token) {
@@ -4849,7 +4845,7 @@ class Parser {
     assert(token.isA(TokenType.OPEN_CURLY_BRACKET));
     listener.beginClassOrMixinOrExtensionBody(kind, token);
     int count = 0;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       token = parseClassOrMixinOrExtensionOrEnumMemberImpl(
         token,
         kind,
@@ -6142,7 +6138,7 @@ class Parser {
     loopState = LoopState.OutsideLoop;
     listener.beginBlockFunctionBody(begin);
     token = next;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token startToken = token.next!;
       token = parseStatement(token);
       if (identical(token.next!, startToken)) {
@@ -8285,8 +8281,10 @@ class Parser {
 
     TypeParamOrArgInfo? potentialTypeArg;
 
-    if (isNextIdentifier(newKeyword)) {
-      Token identifier = newKeyword.next!;
+    Token next = newKeyword.next!;
+
+    if (next.kind == IDENTIFIER_TOKEN) {
+      Token identifier = next;
       String value = identifier.lexeme;
       if ((value == "Map" || value == "Set") &&
           !identifier.next!.isA(TokenType.PERIOD)) {
@@ -8336,7 +8334,7 @@ class Parser {
       // parseConstructorReference.
       // Do special recovery for literal maps/set/list erroneously prepended
       // with 'new'.
-      Token notIdentifier = newKeyword.next!;
+      Token notIdentifier = next;
       String value = notIdentifier.lexeme;
       if (value == "<") {
         potentialTypeArg = computeTypeParamOrArg(newKeyword);
@@ -8739,8 +8737,9 @@ class Parser {
     // send an `handleIdentifier` if we end up recovering.
     TypeParamOrArgInfo? potentialTypeArg;
     Token? afterToken;
-    if (isNextIdentifier(token)) {
-      Token identifier = token.next!;
+    Token next = token.next!;
+    if (next.kind == IDENTIFIER_TOKEN) {
+      Token identifier = next;
       String value = identifier.lexeme;
       if (value == "Map" || value == "Set") {
         potentialTypeArg = computeTypeParamOrArg(identifier);
@@ -9856,7 +9855,7 @@ class Parser {
     listener.beginBlock(begin, blockKind);
     int statementCount = 0;
     Token startToken = token.next!;
-    while (notEofOrValue('}', startToken)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, startToken)) {
       token = parseStatement(token);
       if (identical(token.next!, startToken)) {
         // No progress was made, so we report the current token as being invalid
@@ -10247,7 +10246,7 @@ class Parser {
     int caseCount = 0;
     Token? defaultKeyword = null;
     Token? colonAfterDefault = null;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token beginCase = token.next!;
       int expressionCount = 0;
       int labelCount = 0;
@@ -10733,7 +10732,7 @@ class Parser {
     next = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
     listener.handleEmptyStatement(next);
 
-    while (notEofOrValue('}', next)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, next)) {
       token = next;
       next = token.next!;
     }

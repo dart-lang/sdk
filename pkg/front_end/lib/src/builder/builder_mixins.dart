@@ -28,7 +28,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
         name.startsWith("_")) {
       return null;
     }
-    MemberLookupResult? result = nameSpace.lookupLocalMember(name);
+    MemberLookupResult? result = nameSpace.lookup(name);
     if (result != null && !result.isStatic) {
       result = null;
     }
@@ -60,7 +60,7 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
 
   @override
   LookupResult? lookupLocalMember(String name, {bool required = false}) {
-    LookupResult? result = nameSpace.lookupLocalMember(name);
+    LookupResult? result = nameSpace.lookup(name);
     if (required && result == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(

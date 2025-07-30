@@ -725,7 +725,7 @@ class SourceClassBuilder extends ClassBuilderImpl
 
       if (hasEnumSuperinterface && cls != underscoreEnumClass) {
         // Instance members named `values` are restricted.
-        LookupResult? result = nameSpace.lookupLocalMember("values");
+        LookupResult? result = nameSpace.lookup("values");
         NamedBuilder? customValuesDeclaration = result?.getable;
         if (customValuesDeclaration != null &&
             !customValuesDeclaration.isStatic) {
@@ -788,8 +788,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         // Non-setter concrete instance members named `index` and hashCode and
         // operator == are restricted.
         for (String restrictedMemberName in restrictedNames) {
-          Builder? member =
-              nameSpace.lookupLocalMember(restrictedMemberName)?.getable;
+          Builder? member = nameSpace.lookup(restrictedMemberName)?.getable;
           if (member is MemberBuilder &&
               (member is PropertyBuilder && !member.hasAbstractGetter ||
                   member is MethodBuilder && !member.isAbstract)) {

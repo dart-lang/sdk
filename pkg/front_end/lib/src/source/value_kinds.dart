@@ -21,7 +21,6 @@ import '../base/constant_context.dart' as type;
 import '../base/identifiers.dart' as type;
 import '../base/modifiers.dart' as type;
 import '../base/operator.dart' as type;
-import '../base/scope.dart' as type;
 import '../builder/constructor_reference_builder.dart' as type;
 import '../builder/declaration_builders.dart' as type;
 import '../builder/formal_parameter_builder.dart' as type;
@@ -162,8 +161,6 @@ class ValueKinds {
       const SingleValueKind<List<type.Operator>>(NullValues.OperatorList);
   static const ValueKind ParserRecovery =
       const SingleValueKind<type.ParserRecovery>();
-  static const ValueKind ProblemBuilder =
-      const SingleValueKind<type.ProblemBuilder>();
   static const ValueKind QualifiedName =
       const SingleValueKind<type.QualifiedName>();
   static const ValueKind RecordTypeFieldBuilder =

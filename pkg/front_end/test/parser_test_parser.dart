@@ -1000,15 +1000,6 @@ class TestParser extends Parser {
   }
 
   @override
-  bool isNextIdentifier(Token token) {
-    doPrint('isNextIdentifier(' '$token)');
-    indent++;
-    var result = super.isNextIdentifier(token);
-    indent--;
-    return result;
-  }
-
-  @override
   Token ensureIdentifierPotentiallyRecovered(
     Token token,
     IdentifierContext context,
@@ -1026,10 +1017,10 @@ class TestParser extends Parser {
   }
 
   @override
-  bool notEofOrValue(String value, Token token) {
-    doPrint('notEofOrValue(' '$value, ' '$token)');
+  bool notEofOrType(TokenType type, Token token) {
+    doPrint('notEofOrType(' '$type, ' '$token)');
     indent++;
-    var result = super.notEofOrValue(value, token);
+    var result = super.notEofOrType(type, token);
     indent--;
     return result;
   }

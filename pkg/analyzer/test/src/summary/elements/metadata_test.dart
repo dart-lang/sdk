@@ -1452,6 +1452,81 @@ library
 ''');
   }
 
+  test_metadata_constructor_namedArgument() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A({required int value});
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+@A(value: 42)
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+      functions
+        #F1 f (nameOffset:36) (firstTokenOffset:17) (offset:36)
+          element: <testLibrary>::@function::f
+          metadata
+            Annotation
+              atSign: @ @17
+              name: SimpleIdentifier
+                token: A @18
+                element: package:test/a.dart::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @19
+                arguments
+                  NamedExpression
+                    name: Label
+                      label: SimpleIdentifier
+                        token: value @20
+                        element: package:test/a.dart::@class::A::@constructor::new::@formalParameter::value
+                        staticType: null
+                      colon: : @25
+                    expression: IntegerLiteral
+                      literal: 42 @27
+                      staticType: int
+                rightParenthesis: ) @29
+              element2: package:test/a.dart::@class::A::@constructor::new
+  functions
+    f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F1
+      metadata
+        Annotation
+          atSign: @ @17
+          name: SimpleIdentifier
+            token: A @18
+            element: package:test/a.dart::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @19
+            arguments
+              NamedExpression
+                name: Label
+                  label: SimpleIdentifier
+                    token: value @20
+                    element: package:test/a.dart::@class::A::@constructor::new::@formalParameter::value
+                    staticType: null
+                  colon: : @25
+                expression: IntegerLiteral
+                  literal: 42 @27
+                  staticType: int
+            rightParenthesis: ) @29
+          element2: package:test/a.dart::@class::A::@constructor::new
+      returnType: void
+''');
+  }
+
   test_metadata_constructorDeclaration_named() async {
     var library = await buildLibrary(
       'const a = null; class C { @a C.named(); }',

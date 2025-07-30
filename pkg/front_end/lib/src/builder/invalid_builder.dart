@@ -83,6 +83,7 @@ class InvalidBuilder extends TypeDeclarationBuilderImpl
   }
 
   @override
+  // TODO(johnniwinther): This should probably return `null`.
   MemberBuilder get getable => this;
 
   @override

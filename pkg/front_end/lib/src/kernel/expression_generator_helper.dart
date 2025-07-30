@@ -23,6 +23,7 @@ import '../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 import 'constness.dart' show Constness;
+import 'expression_generator.dart';
 import 'forest.dart' show Forest;
 import 'internal_ast.dart';
 
@@ -62,8 +63,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool isDeclaredInEnclosingCase(VariableDeclaration variable);
 
-  Expression_Generator_Builder scopeLookup(LookupScope scope, Token nameToken,
-      {PrefixBuilder? prefix, Token? prefixToken});
+  Generator processLookupResult(
+      {required LookupResult? lookupResult,
+      required String name,
+      required Token nameToken,
+      required int nameOffset,
+      required ScopeKind scopeKind,
+      PrefixBuilder? prefix,
+      Token? prefixToken});
 
   Expression_Generator_Initializer finishSend(Object receiver,
       List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,

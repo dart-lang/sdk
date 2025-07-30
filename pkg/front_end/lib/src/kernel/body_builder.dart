@@ -642,10 +642,6 @@ class BodyBuilder extends StackListenerImpl
     } else if (node is SuperInitializer) {
       return buildProblem(
           cfe.messageSuperAsExpression, node.fileOffset, noLength);
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (node is ProblemBuilder) {
-      return node.toExpression(libraryBuilder);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -663,11 +659,6 @@ class BodyBuilder extends StackListenerImpl
       return forest.createConstantPattern(node.buildSimpleRead());
     } else if (node is Expression) {
       return forest.createConstantPattern(node);
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (node is ProblemBuilder) {
-      Expression expression = node.toExpression(libraryBuilder);
-      return forest.createConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
     }
@@ -857,7 +848,6 @@ class BodyBuilder extends StackListenerImpl
       /*type*/ unionOfKinds([
         ValueKinds.Generator,
         ValueKinds.QualifiedName,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery
       ])
     ]));
@@ -869,11 +859,7 @@ class BodyBuilder extends StackListenerImpl
       /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
       /*constructor name*/ ValueKinds.Name,
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
-      /*class*/ unionOfKinds([
-        ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.ParserRecovery
-      ]),
+      /*class*/ unionOfKinds([ValueKinds.Generator, ValueKinds.ParserRecovery]),
     ]));
     if (arguments != null) {
       push(arguments);
@@ -1716,7 +1702,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ])
     ]));
     Expression expression = popForValue();
@@ -2159,7 +2144,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     debugEvent("ExpressionStatement");
@@ -2262,7 +2246,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
           ]),
           unionOfKinds([
             ValueKinds.Expression,
@@ -2271,7 +2254,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
           ]),
         ]));
         guard = popForValue();
@@ -2284,7 +2266,6 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       ]));
       reportIfNotEnabled(
@@ -2298,7 +2279,6 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       ]));
       push(new Condition(popForValue()));
@@ -2314,7 +2294,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     debugEvent("ParenthesizedExpression");
@@ -2347,7 +2326,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -2376,7 +2354,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator,
         ValueKinds.Identifier,
         ValueKinds.ParserRecovery,
-        ValueKinds.ProblemBuilder
       ])
     ]));
     debugEvent("Send");
@@ -2424,7 +2401,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Initializer,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Selector,
       ])
     ]));
@@ -2514,12 +2490,10 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       ValueKinds.ConstantContext,
@@ -2558,7 +2532,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     bool isAnd = token.isA(TokenType.AMPERSAND_AMPERSAND);
@@ -2575,7 +2548,34 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
+      ]),
+    ]));
+  }
+
+  @override
+  void handleEndingBinaryExpression(Token token, Token endToken) {
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+    ]));
+    debugEvent("BinaryExpression");
+    if (token.isA(TokenType.PERIOD) ||
+        token.isA(TokenType.PERIOD_PERIOD) ||
+        token.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
+      doDotOrCascadeExpression(token);
+    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
+      doIfNotNull(token);
+    } else {
+      throw new UnsupportedError("Unexpected ending binary $token.");
+    }
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
       ]),
     ]));
   }
@@ -2586,22 +2586,15 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Selector,
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (token.isA(TokenType.PERIOD) ||
-        token.isA(TokenType.PERIOD_PERIOD) ||
-        token.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
-      doDotOrCascadeExpression(token);
-    } else if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
+    if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
         token.isA(TokenType.BAR_BAR)) {
       doLogicalExpression(token);
     } else if (token.isA(TokenType.QUESTION_QUESTION)) {
       doIfNull(token);
-    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
-      doIfNotNull(token);
     } else {
       doBinaryExpression(token);
     }
@@ -2633,7 +2626,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -2675,7 +2667,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -2707,13 +2698,11 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -2781,12 +2770,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression right = popForValue();
@@ -2798,10 +2785,6 @@ class BodyBuilder extends StackListenerImpl
       if (left is Generator) {
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
-        if (left is ProblemBuilder) {
-          // Coverage-ignore-block(suite): Not run.
-          left = left.toExpression(libraryBuilder);
-        }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left as Expression, right,
             isNot: isNot));
@@ -2819,10 +2802,6 @@ class BodyBuilder extends StackListenerImpl
       } else if (left is Generator) {
         push(left.buildBinaryOperation(token, name, right));
       } else {
-        if (left is ProblemBuilder) {
-          // Coverage-ignore-block(suite): Not run.
-          left = left.toExpression(libraryBuilder);
-        }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left as Expression, name, right));
       }
@@ -2838,12 +2817,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression argument = popForValue();
@@ -2867,12 +2844,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression b = popForValue();
@@ -2894,7 +2869,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Initializer,
       ]),
     ]));
@@ -2926,7 +2900,6 @@ class BodyBuilder extends StackListenerImpl
       /* before . or .. */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Initializer,
       ]),
     ]));
@@ -3163,7 +3136,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Identifier,
         ValueKinds.Generator,
         ValueKinds.ParserRecovery,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
   }
@@ -3203,22 +3175,33 @@ class BodyBuilder extends StackListenerImpl
   bool isGuardScope(LocalScope scope) =>
       scope.kind == ScopeKind.caseHead || scope.kind == ScopeKind.ifCaseHead;
 
-  /// Look up [name] in [scope] using [nameToken] as location information (both
-  /// to report problems and as the file offset in the generated kernel code).
-  /// [isQualified] should be true if [name] is a qualified access (which
-  /// implies that it shouldn't be turned into a [ThisPropertyAccessGenerator]
-  /// if the name doesn't resolve in the scope).
-  @override
-  Expression_Generator_Builder scopeLookup(LookupScope scope, Token nameToken,
-      {PrefixBuilder? prefix, Token? prefixToken}) {
+  /// Look up the name from [nameToken] in [scope] using [nameToken] as location
+  /// information.
+  Generator scopeLookup(LocalScope scope, Token nameToken) {
     String name = nameToken.lexeme;
     int nameOffset = nameToken.charOffset;
+    LookupResult? lookupResult = scope.lookup(name, fileOffset: nameOffset);
+    return processLookupResult(
+        lookupResult: lookupResult,
+        name: name,
+        nameToken: nameToken,
+        nameOffset: nameOffset,
+        scopeKind: scope.kind);
+  }
+
+  @override
+  Generator processLookupResult(
+      {required LookupResult? lookupResult,
+      required String name,
+      required Token nameToken,
+      required int nameOffset,
+      required ScopeKind scopeKind,
+      PrefixBuilder? prefix,
+      Token? prefixToken}) {
     if (nameToken.isSynthetic) {
       return new ParserErrorGenerator(
           this, nameToken, cfe.messageSyntheticToken);
     }
-
-    LookupResult? lookupResult = scope.lookup(name, nameOffset, uri);
     if (lookupResult != null && lookupResult.isInvalidLookup) {
       return new DuplicateDeclarationGenerator(this, nameToken, lookupResult,
           new Name(name, libraryBuilder.nameOrigin), name.length);
@@ -3276,9 +3259,8 @@ class BodyBuilder extends StackListenerImpl
     Builder? getable = lookupResult.getable;
     Builder? setable = lookupResult.setable;
     if (getable != null) {
-      if (getable is ProblemBuilder) {
-        return getable;
-      } else if (getable is InvalidBuilder) {
+      if (getable is InvalidBuilder) {
+        // TODO(johnniwinther): Create an `InvalidGenerator` instead.
         return new TypeUseGenerator(
             this,
             nameToken,
@@ -3298,14 +3280,14 @@ class BodyBuilder extends StackListenerImpl
         VariableDeclaration variable = getable.variable!;
         // TODO(johnniwinther): The handling of for-in variables should be
         //  done through the builder.
-        if (scope.kind == ScopeKind.forStatement &&
+        if (scopeKind == ScopeKind.forStatement &&
             variable.isAssignable &&
             variable.isLate &&
             variable.isFinal) {
           return new ForInLateFinalVariableUseGenerator(
               this, nameToken, variable);
         } else if (!getable.isAssignable ||
-            (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
+            (variable.isFinal && scopeKind == ScopeKind.forStatement)) {
           return _createReadOnlyVariableAccess(
               variable,
               nameToken,
@@ -3391,11 +3373,6 @@ class BodyBuilder extends StackListenerImpl
                     prefixToken.charOffset, name, nameOffset)
                 : new IdentifierTypeName(name, nameOffset));
       } else if (getable is MemberBuilder) {
-        if (setable is AmbiguousBuilder) {
-          // TODO(johnniwinther): Handle this. Currently we report unresolved
-          // setter instead of ambiguous setter here.
-          setable = null;
-        }
         assert(getable.isStatic || getable.isTopLevel,
             "Unexpected getable: $getable");
         assert(
@@ -3428,9 +3405,7 @@ class BodyBuilder extends StackListenerImpl
         return new LoadLibraryGenerator(this, nameToken, getable);
       }
     } else {
-      if (setable is ProblemBuilder) {
-        return setable;
-      } else if (setable is InvalidBuilder) {
+      if (setable is InvalidBuilder) {
         // Coverage-ignore-block(suite): Not run.
         return new TypeUseGenerator(
             this,
@@ -3510,7 +3485,6 @@ class BodyBuilder extends StackListenerImpl
       /* suffix */ ValueKinds.IdentifierOrParserRecovery,
       /* prefix */ unionOfKinds([
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
 
@@ -3709,7 +3683,6 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(when, [
       unionOfKinds([
         ValueKinds.Expression,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -4072,13 +4045,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression,
         ValueKinds.Generator,
-        // TODO(johnniwinther): Avoid problem builders here.
-        ValueKinds.ProblemBuilder
       ]),
       unionOfKinds(<ValueKind>[
-        ValueKinds.Expression, ValueKinds.Generator,
-        // TODO(johnniwinther): Avoid problem builders here.
-        ValueKinds.ProblemBuilder
+        ValueKinds.Expression,
+        ValueKinds.Generator,
       ])
     ]));
     debugEvent("AssignmentExpression");
@@ -4194,12 +4164,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -4510,7 +4478,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Generator,
             ValueKinds.Expression,
-            ValueKinds.ProblemBuilder,
           ]),
           count),
       ValueKinds.TypeArgumentsOrNull,
@@ -4562,7 +4529,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Generator,
             ValueKinds.Expression,
-            ValueKinds.ProblemBuilder,
             ValueKinds.Pattern,
           ]),
           count),
@@ -4607,7 +4573,6 @@ class BodyBuilder extends StackListenerImpl
             unionOfKinds([
               ValueKinds.Generator,
               ValueKinds.Expression,
-              ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
               ValueKinds.ParserRecovery,
             ]),
@@ -4701,7 +4666,6 @@ class BodyBuilder extends StackListenerImpl
             unionOfKinds([
               ValueKinds.Generator,
               ValueKinds.Expression,
-              ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
               ValueKinds.Pattern,
             ]),
@@ -4771,7 +4735,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
             ValueKinds.MapLiteralEntry,
           ]),
           count),
@@ -4846,13 +4809,11 @@ class BodyBuilder extends StackListenerImpl
       /* value */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       /* key */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ])
     ]));
     Pattern value = toPattern(pop());
@@ -5052,7 +5013,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Initializer,
-        ValueKinds.ProblemBuilder
       ])
     ]));
     Expression operand = popForValue();
@@ -5068,7 +5028,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.QualifiedName,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
 
@@ -5132,16 +5091,6 @@ class BodyBuilder extends StackListenerImpl
           arguments,
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (name is ProblemBuilder) {
-      result = new NamedTypeBuilderImpl.forInvalidType(
-          name.name,
-          isMarkedAsNullable
-              ? const NullabilityBuilder.nullable()
-              : const NullabilityBuilder.omitted(),
-          name.message
-              .withLocation(name.fileUri, name.fileOffset, name.name.length));
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
@@ -5343,7 +5292,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
@@ -5362,7 +5310,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -5935,7 +5882,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder
       ]),
     ]));
     debugEvent("UnaryPrefixExpression");
@@ -6045,7 +5991,6 @@ class BodyBuilder extends StackListenerImpl
       /*type*/ unionOfKinds([
         ValueKinds.Generator,
         ValueKinds.QualifiedName,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery
       ]),
     ]));
@@ -6094,14 +6039,6 @@ class BodyBuilder extends StackListenerImpl
           }
         // Coverage-ignore(suite): Not run.
         case QualifiedNameBuilder():
-          Builder qualifier = qualified.qualifier;
-          if (qualifier is ProblemBuilder) {
-            type = qualifier;
-          } else {
-            unhandled("${qualifier.runtimeType}", "pushQualifiedReference",
-                start.charOffset, uri);
-          }
-        // Coverage-ignore(suite): Not run.
         case QualifiedNameIdentifier():
           unhandled("${qualified.runtimeType}", "pushQualifiedReference",
               start.charOffset, uri);
@@ -6132,7 +6069,6 @@ class BodyBuilder extends StackListenerImpl
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery,
         ValueKinds.Expression,
       ]),
@@ -6463,7 +6399,6 @@ class BodyBuilder extends StackListenerImpl
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery,
         ValueKinds.Expression,
       ]),
@@ -6508,9 +6443,6 @@ class BodyBuilder extends StackListenerImpl
     } else {
       // Coverage-ignore-block(suite): Not run.
       String? typeName;
-      if (type is ProblemBuilder) {
-        typeName = type.fullNameForErrors;
-      }
       push(buildUnresolvedError(
           debugName(typeName!, name), nameLastToken.charOffset,
           arguments: arguments, kind: UnresolvedKind.Constructor));
@@ -7048,7 +6980,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.Condition,
@@ -7076,7 +7007,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.Condition,
@@ -7126,13 +7056,11 @@ class BodyBuilder extends StackListenerImpl
       /* else element */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       /* then element */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.AssignedVariablesNodeInfo,
@@ -7691,12 +7619,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement, // Variable for non-pattern for-in loop.
         ValueKinds.ParserRecovery,
@@ -7842,9 +7768,6 @@ class BodyBuilder extends StackListenerImpl
       } else if (lvalue is InvalidExpression) {
         // Coverage-ignore-block(suite): Not run.
         elements.expressionProblem = lvalue;
-      } else if (lvalue is AmbiguousBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        elements.expressionProblem = toValue(lvalue);
       } else if (lvalue is ParserRecovery) {
         elements.expressionProblem = buildProblem(
             cfe.messageSyntheticToken, lvalue.charOffset, noLength);
@@ -7890,12 +7813,10 @@ class BodyBuilder extends StackListenerImpl
       /* expression = */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       /* lvalue = */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement,
         ValueKinds.ParserRecovery,
@@ -8389,7 +8310,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       ValueKinds.ConstantContext,
@@ -8411,11 +8331,7 @@ class BodyBuilder extends StackListenerImpl
   void endSwitchCaseWhenClause(Token token) {
     debugEvent("SwitchCaseWhenClause");
     assert(checkState(token, [
-      unionOfKinds([
-        ValueKinds.Expression,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.Generator
-      ]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
       ValueKinds.ConstantContext,
     ]));
     Object? guard = pop();
@@ -8430,7 +8346,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -8700,12 +8615,8 @@ class BodyBuilder extends StackListenerImpl
   void handleSwitchExpressionCasePattern(Token token) {
     debugEvent("SwitchExpressionCasePattern");
     assert(checkState(token, [
-      unionOfKinds([
-        ValueKinds.Expression,
-        ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.Pattern
-      ])
+      unionOfKinds(
+          [ValueKinds.Expression, ValueKinds.Generator, ValueKinds.Pattern])
     ]));
     Object? pattern = pop();
     createAndEnterLocalScope(
@@ -8726,18 +8637,15 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       if (when != null)
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9754,7 +9662,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       ValueKinds.ConstantContext,
     ]));
@@ -9772,7 +9679,6 @@ class BodyBuilder extends StackListenerImpl
             unionOfKinds([
               ValueKinds.Expression,
               ValueKinds.Generator,
-              ValueKinds.ProblemBuilder,
               ValueKinds.Pattern,
             ]),
             count)));
@@ -9842,7 +9748,6 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
           ValueKinds.Pattern,
         ]),
     ]));
@@ -9861,7 +9766,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9907,7 +9811,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9924,7 +9827,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9942,7 +9844,8 @@ class BodyBuilder extends StackListenerImpl
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
     assert(variable.lexeme != '_');
     Pattern pattern;
-    Expression variableUse = toValue(scopeLookup(_localScope, variable));
+    Expression variableUse =
+        scopeLookup(_localScope, variable).buildSimpleRead();
     if (variableUse is VariableGet) {
       VariableDeclaration variableDeclaration = variableUse.variable;
       pattern = forest.createAssignedVariablePattern(
@@ -10014,7 +9917,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       if (colon != null)
@@ -10056,14 +9958,9 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
-      unionOfKinds([
-        ValueKinds.Expression,
-        ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.Pattern
-      ]),
+      unionOfKinds(
+          [ValueKinds.Expression, ValueKinds.Generator, ValueKinds.Pattern]),
       ValueKinds.AnnotationListOrNull,
     ]));
     Expression initializer = popForValue();
@@ -10088,13 +9985,11 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Pattern,
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression expression = popForValue();
@@ -10672,16 +10567,5 @@ extension on MemberKind {
       case MemberKind.PrimaryConstructor:
         return false;
     }
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-extension on ProblemBuilder {
-  Expression toExpression(SourceLibraryBuilder libraryBuilder) {
-    String text = libraryBuilder.loader.target.context
-        .format(
-            message.withLocation(fileUri, fileOffset, noLength), Severity.error)
-        .plain;
-    return new InvalidExpression(text)..fileOffset = fileOffset;
   }
 }

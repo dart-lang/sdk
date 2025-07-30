@@ -214,7 +214,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
       "=="
     ]) {
       NamedBuilder? customIndexDeclaration =
-          nameSpace.lookupLocalMember(restrictedInstanceMemberName)?.getable;
+          nameSpace.lookup(restrictedInstanceMemberName)?.getable;
       NamedBuilder? invalidDeclaration;
       if (customIndexDeclaration is PropertyBuilder &&
           !customIndexDeclaration.hasAbstractGetter &&

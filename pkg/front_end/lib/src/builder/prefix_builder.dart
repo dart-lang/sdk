@@ -68,8 +68,8 @@ class PrefixBuilder extends NamedBuilderImpl
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
 
   /// Lookup a member with [name] in the export scope.
-  LookupResult? lookup(String name, int charOffset, Uri fileUri) {
-    return _prefixScope.lookup(name, charOffset, fileUri);
+  LookupResult? lookup(String name) {
+    return _prefixScope.lookup(name);
   }
 
   void addToPrefixScope(String name, NamedBuilder member,
@@ -81,7 +81,7 @@ class PrefixBuilder extends NamedBuilderImpl
 
     bool isSetter = isMappedAsSetter(member);
 
-    LookupResult? existingResult = _prefixNameSpace.lookupLocalMember(name);
+    LookupResult? existingResult = _prefixNameSpace.lookup(name);
     NamedBuilder? existing =
         isSetter ? existingResult?.setable : existingResult?.getable;
     if (existing != null) {

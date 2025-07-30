@@ -219,19 +219,9 @@ class MiniAstBuilder extends StackListener {
   void endBinaryExpression(Token token, Token endToken) {
     debugEvent("BinaryExpression");
 
-    if (identical('.', token.stringValue)) {
-      var rightOperand = pop() as String;
-      var leftOperand = pop();
-      if (leftOperand is String && !leftOperand.contains('.')) {
-        push(PrefixedIdentifier(leftOperand, token, rightOperand));
-      } else {
-        push(UnknownExpression());
-      }
-    } else {
-      pop(); // RHS
-      pop(); // LHS
-      push(UnknownExpression());
-    }
+    pop(); // RHS
+    pop(); // LHS
+    push(UnknownExpression());
   }
 
   @override
@@ -476,6 +466,25 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
+  }
+
+  @override
+  void handleEndingBinaryExpression(Token token, Token endToken) {
+    debugEvent("EndingBinaryExpression");
+
+    if (identical('.', token.stringValue)) {
+      var rightOperand = pop() as String;
+      var leftOperand = pop();
+      if (leftOperand is String && !leftOperand.contains('.')) {
+        push(PrefixedIdentifier(leftOperand, token, rightOperand));
+      } else {
+        push(UnknownExpression());
+      }
+    } else {
+      pop(); // RHS
+      pop(); // LHS
+      push(UnknownExpression());
+    }
   }
 
   @override

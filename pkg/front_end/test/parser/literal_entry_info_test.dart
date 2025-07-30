@@ -916,6 +916,11 @@ class TestInfoListener implements Listener {
   }
 
   @override
+  void handleEndingBinaryExpression(Token token, Token endToken) {
+    calls.add('handleEndingBinaryExpression $token');
+  }
+
+  @override
   void endBinaryExpression(Token token, Token endToken) {
     calls.add('endBinaryExpression $token');
   }

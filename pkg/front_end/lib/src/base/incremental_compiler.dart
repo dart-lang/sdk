@@ -1689,9 +1689,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Class? cls;
       if (className != null) {
-        Builder? scopeMember = libraryBuilder.libraryNameSpace
-            .lookupLocalMember(className)
-            ?.getable;
+        Builder? scopeMember =
+            libraryBuilder.libraryNameSpace.lookup(className)?.getable;
         if (scopeMember is ClassBuilder) {
           cls = scopeMember.cls;
         } else {
@@ -1706,9 +1705,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         if (indexOfDot >= 0) {
           String beforeDot = methodName.substring(0, indexOfDot);
           String afterDot = methodName.substring(indexOfDot + 1);
-          Builder? builder = libraryBuilder.libraryNameSpace
-              .lookupLocalMember(beforeDot)
-              ?.getable;
+          Builder? builder =
+              libraryBuilder.libraryNameSpace.lookup(beforeDot)?.getable;
           extensionName = beforeDot;
           if (builder is ExtensionBuilder) {
             extension = builder.extension;
