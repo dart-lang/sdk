@@ -223,6 +223,9 @@ class AstBinaryReader {
       arguments: arguments,
     );
     node.element = _reader.readElement();
+    if (arguments != null) {
+      _resolveNamedExpressions(node.element, arguments);
+    }
     return node;
   }
 
