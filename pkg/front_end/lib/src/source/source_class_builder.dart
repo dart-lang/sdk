@@ -315,8 +315,8 @@ class SourceClassBuilder extends ClassBuilderImpl
         onAnonymousMixin: (SourceClassBuilder anonymousMixinBuilder) {
           Reference? reference = anonymousMixinBuilder.indexedClass?.reference;
           if (reference != null) {
-            loader.buildersCreatedWithReferences[reference] =
-                anonymousMixinBuilder;
+            loader.referenceMap
+                .registerNamedBuilder(reference, anonymousMixinBuilder);
           }
           addAnonymousMixinClassBuilder(anonymousMixinBuilder);
           anonymousMixinBuilder.buildScopes(loader.coreLibrary);

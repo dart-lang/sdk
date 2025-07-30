@@ -612,7 +612,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         replacementNameSpaceMap = null;
       }
     }
-    nextGoodKernelTarget.loader.buildersCreatedWithReferences.clear();
+    nextGoodKernelTarget.loader.referenceMap.clear();
     nextGoodKernelTarget.loader.hierarchyBuilder.clear();
     nextGoodKernelTarget.loader.membersBuilder.clear();
     nextGoodKernelTarget.loader.referenceFromIndex = null;

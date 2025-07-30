@@ -626,7 +626,8 @@ class KernelTarget {
       sortedSourceClassBuilders = null;
 
       return new BuildResult(component: component);
-    }, () => loader.currentUriForCrashReporting);
+    }, // Coverage-ignore(suite): Not run.
+        () => loader.currentUriForCrashReporting);
   }
 
   /// Build the kernel representation of the component loaded by this

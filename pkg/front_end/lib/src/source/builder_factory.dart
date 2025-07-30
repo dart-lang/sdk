@@ -298,8 +298,8 @@ class BuilderFactory {
       augmentations.clear();
     }
     if (indexedClass != null) {
-      _loader.buildersCreatedWithReferences[indexedClass.reference] =
-          classBuilder;
+      _loader.referenceMap
+          .registerNamedBuilder(indexedClass.reference, classBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: classBuilder,
@@ -343,7 +343,8 @@ class BuilderFactory {
         introductory: constructorDeclaration,
         augmentations: augmentationDeclarations,
         isConst: isConst);
-    constructorReferences.registerReference(_loader, constructorBuilder);
+    constructorReferences.registerReference(
+        _loader.referenceMap, constructorBuilder);
 
     constructorDeclaration.createEncoding(
         problemReporting: _problemReporting,
@@ -585,8 +586,8 @@ class BuilderFactory {
     fragment.builder = enumBuilder;
     fragment.bodyScope.declarationBuilder = enumBuilder;
     if (indexedClass != null) {
-      _loader.buildersCreatedWithReferences[indexedClass.reference] =
-          enumBuilder;
+      _loader.referenceMap
+          .registerNamedBuilder(indexedClass.reference, enumBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: enumBuilder,
@@ -671,7 +672,7 @@ class BuilderFactory {
         nameSpaceBuilder: nameSpaceBuilder,
         reference: reference);
     if (reference != null) {
-      _loader.buildersCreatedWithReferences[reference] = extensionBuilder;
+      _loader.referenceMap.registerNamedBuilder(reference, extensionBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: extensionBuilder,
@@ -706,8 +707,8 @@ class BuilderFactory {
             indexedContainer: indexedContainer,
             representationFieldFragment: representationFieldFragment);
     if (indexedContainer?.reference != null) {
-      _loader.buildersCreatedWithReferences[indexedContainer!.reference] =
-          extensionTypeDeclarationBuilder;
+      _loader.referenceMap.registerNamedBuilder(
+          indexedContainer!.reference, extensionTypeDeclarationBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: extensionTypeDeclarationBuilder,
@@ -776,7 +777,7 @@ class BuilderFactory {
           encodingStrategy: encodingStrategy);
     }
 
-    factoryReferences.registerReference(_loader, factoryBuilder);
+    factoryReferences.registerReference(_loader.referenceMap, factoryBuilder);
     _builderRegistry.registerBuilder(
         declaration: factoryBuilder, uriOffset: uriOffset, inPatch: inPatch);
   }
@@ -877,7 +878,8 @@ class BuilderFactory {
     }
 
     if (procedureReference != null) {
-      _loader.buildersCreatedWithReferences[procedureReference] = methodBuilder;
+      _loader.referenceMap
+          .registerNamedBuilder(procedureReference, methodBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: methodBuilder,
@@ -910,8 +912,8 @@ class BuilderFactory {
     fragment.builder = mixinBuilder;
     fragment.bodyScope.declarationBuilder = mixinBuilder;
     if (indexedClass != null) {
-      _loader.buildersCreatedWithReferences[indexedClass.reference] =
-          mixinBuilder;
+      _loader.referenceMap
+          .registerNamedBuilder(indexedClass.reference, mixinBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: mixinBuilder,
@@ -955,8 +957,8 @@ class BuilderFactory {
     _mixinApplications[classBuilder] = mixin;
     fragment.builder = classBuilder;
     if (referencesFromIndexedClass != null) {
-      _loader.buildersCreatedWithReferences[
-          referencesFromIndexedClass.reference] = classBuilder;
+      _loader.referenceMap.registerNamedBuilder(
+          referencesFromIndexedClass.reference, classBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: classBuilder,
@@ -1059,7 +1061,7 @@ class BuilderFactory {
           propertyEncodingStrategy, _typeParameterFactory);
     }
 
-    references.registerReference(_loader, propertyBuilder);
+    references.registerReference(_loader.referenceMap, propertyBuilder);
 
     _builderRegistry.registerBuilder(
         declaration: propertyBuilder, uriOffset: uriOffset, inPatch: inPatch);
@@ -1088,7 +1090,7 @@ class BuilderFactory {
         fragment: fragment,
         reference: reference);
     if (reference != null) {
-      _loader.buildersCreatedWithReferences[reference] = typedefBuilder;
+      _loader.referenceMap.registerNamedBuilder(reference, typedefBuilder);
     }
     _builderRegistry.registerBuilder(
         declaration: typedefBuilder,

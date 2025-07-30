@@ -27,6 +27,7 @@ import '../codes/cfe_codes.dart'
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../source/name_scheme.dart';
+import '../util/reference_map.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
 import 'dill_extension_type_declaration_builder.dart';
@@ -418,11 +419,11 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       _exportNameSpace.addLocalMember(name, declaration, setter: false);
     });
 
-    Map<Reference, NamedBuilder>? sourceBuildersMap =
-        loader.currentSourceLoader?.buildersCreatedWithReferences;
+    ReferenceMap? sourceBuildersMap = loader.currentSourceLoader?.referenceMap;
     for (Reference reference in library.additionalExports) {
       NamedNode node = reference.node as NamedNode;
-      NamedBuilder? declaration = sourceBuildersMap?[reference];
+      NamedBuilder? declaration =
+          sourceBuildersMap?.lookupNamedBuilder(reference);
       String name;
       if (declaration != null) {
         // Coverage-ignore-block(suite): Not run.

@@ -465,7 +465,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/dill/dill_loader.dart": (
-    hitCount: 161,
+    hitCount: 163,
     missCount: 0,
   ),
   // 100.0%.
@@ -750,7 +750,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/expression_generator.dart": (
-    hitCount: 2526,
+    hitCount: 2529,
     missCount: 0,
   ),
   // 100.0%.
@@ -840,7 +840,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/kernel/kernel_target.dart": (
-    hitCount: 1041,
+    hitCount: 1038,
     missCount: 0,
   ),
   // 100.0%.
@@ -910,7 +910,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/builder_factory.dart": (
-    hitCount: 1175,
+    hitCount: 1178,
     missCount: 0,
   ),
   // 100.0%.
@@ -985,7 +985,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_constructor_builder.dart": (
-    hitCount: 384,
+    hitCount: 382,
     missCount: 0,
   ),
   // 100.0%.
@@ -1006,7 +1006,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_factory_builder.dart": (
-    hitCount: 157,
+    hitCount: 155,
     missCount: 0,
   ),
   // 100.0%.
@@ -1021,7 +1021,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_loader.dart": (
-    hitCount: 1784,
+    hitCount: 1790,
     missCount: 0,
   ),
   // 100.0%.
@@ -1036,7 +1036,7 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   ),
   // 100.0%.
   "package:front_end/src/source/source_property_builder.dart": (
-    hitCount: 474,
+    hitCount: 471,
     missCount: 0,
   ),
   // 100.0%.
@@ -1187,6 +1187,11 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   // 100.0%.
   "package:front_end/src/util/parser_ast.dart": (
     hitCount: 119,
+    missCount: 0,
+  ),
+  // 100.0%.
+  "package:front_end/src/util/reference_map.dart": (
+    hitCount: 17,
     missCount: 0,
   ),
   // 100.0%.

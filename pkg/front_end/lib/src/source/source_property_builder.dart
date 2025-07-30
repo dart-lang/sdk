@@ -24,10 +24,10 @@ import '../kernel/hierarchy/members_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/member_covariance.dart';
 import '../kernel/type_algorithms.dart';
+import '../util/reference_map.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart';
-import 'source_loader.dart';
 import 'source_member_builder.dart';
 
 class SourcePropertyBuilder extends SourceMemberBuilderImpl
@@ -901,15 +901,16 @@ class PropertyReferences {
   ///
   /// This must be called before [fieldReference], [getterReference] and
   /// [setterReference] are accessed.
-  void registerReference(SourceLoader loader, SourcePropertyBuilder builder) {
+  void registerReference(
+      ReferenceMap referenceMap, SourcePropertyBuilder builder) {
     if (_fieldReference != null) {
-      loader.buildersCreatedWithReferences[_fieldReference!] = builder;
+      referenceMap.registerNamedBuilder(_fieldReference!, builder);
     }
     if (_getterReference != null) {
-      loader.buildersCreatedWithReferences[_getterReference!] = builder;
+      referenceMap.registerNamedBuilder(_getterReference!, builder);
     }
     if (_setterReference != null) {
-      loader.buildersCreatedWithReferences[_setterReference!] = builder;
+      referenceMap.registerNamedBuilder(_setterReference!, builder);
     }
   }
 
