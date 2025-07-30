@@ -207,6 +207,9 @@ const list2_97 = <Object?>[list2_96, list2_96];
 const list2_98 = <Object?>[list2_97, list2_97];
 const list2_99 = <Object?>[list2_98, list2_98];
 
+@pragma("vm:never-inline")
+@pragma("vm:entry-point")
+@pragma("dart2js:noInline")
 confuse(x) {
   try {
     throw x;
