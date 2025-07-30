@@ -1,0 +1,34 @@
+main = <No Member>;
+library from "org-dartlang-test:///a.dart" as a {
+
+  import "org-dartlang-test:///b.dart";
+
+  abstract class MyClassA<C extends b::MyExtensionTypeB% /* erasure=dart.core::int, declared=! */> extends dart.core::Object {
+    synthetic constructor •() → a::MyClassA<a::MyClassA::C%>
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///b.dart" as b {
+
+  import "org-dartlang-test:///a.dart";
+
+  class MyInstance<C extends b::MyExtensionTypeB% /* erasure=dart.core::int, declared=! */, A extends a::MyClassA<b::MyExtensionTypeB% /* erasure=dart.core::int, declared=! */>> extends dart.core::Object /*hasConstConstructor*/  {
+    final field b::MyInstance::C? myClassC;
+    final field b::MyInstance::A? myClassA;
+    const constructor •(b::MyInstance::C? myClassC, b::MyInstance::A? myClassA) → b::MyInstance<b::MyInstance::C%, b::MyInstance::A>
+      : b::MyInstance::myClassC = myClassC, b::MyInstance::myClassA = myClassA, super dart.core::Object::•()
+      ;
+  }
+  extension type MyExtensionTypeB(dart.core::int i) {
+    abstract extension-type-member representation-field get i() → dart.core::int;
+    constructor • = b::MyExtensionTypeB|constructor#;
+    constructor tearoff • = b::MyExtensionTypeB|constructor#_#new#tearOff;
+  }
+  static extension-type-member method MyExtensionTypeB|constructor#(dart.core::int i) → b::MyExtensionTypeB% /* erasure=dart.core::int, declared=! */ {
+    lowered final b::MyExtensionTypeB% /* erasure=dart.core::int, declared=! */ #this = i;
+    return #this;
+  }
+  static extension-type-member synthetic method MyExtensionTypeB|constructor#_#new#tearOff(dart.core::int i) → b::MyExtensionTypeB% /* erasure=dart.core::int, declared=! */
+    return b::MyExtensionTypeB|constructor#(i);
+}

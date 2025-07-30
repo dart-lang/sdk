@@ -35,6 +35,7 @@ import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/type_algorithms.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../util/reference_map.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -667,12 +668,12 @@ class ConstructorReferences {
   /// This must be called before [constructorReference] and [tearOffReference]
   /// are accessed.
   void registerReference(
-      SourceLoader loader, SourceConstructorBuilder builder) {
+      ReferenceMap referenceMap, SourceConstructorBuilder builder) {
     if (_constructorReference != null) {
-      loader.buildersCreatedWithReferences[_constructorReference!] = builder;
+      referenceMap.registerNamedBuilder(_constructorReference!, builder);
     }
     if (_tearOffReference != null) {
-      loader.buildersCreatedWithReferences[_tearOffReference!] = builder;
+      referenceMap.registerNamedBuilder(_tearOffReference!, builder);
     }
   }
 

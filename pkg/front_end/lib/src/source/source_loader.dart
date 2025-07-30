@@ -70,6 +70,7 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
+import '../util/reference_map.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'offset_map.dart';
@@ -109,10 +110,7 @@ class SourceLoader extends Loader {
   CoreTypes? _coreTypes;
   TypeEnvironment? _typeEnvironment;
 
-  /// For builders created with a reference, this maps from that reference to
-  /// that builder. This is used for looking up source builders when finalizing
-  /// exports in dill builders.
-  Map<Reference, NamedBuilder> buildersCreatedWithReferences = {};
+  final ReferenceMap referenceMap = new ReferenceMap();
 
   /// Used when checking whether a return type of an async function is valid.
   ///
@@ -2736,6 +2734,10 @@ severity: $severity
 
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+    ClassBuilder? classBuilder = referenceMap.lookupClassBuilder(cls.reference);
+    if (classBuilder != null) {
+      return classBuilder;
+    }
     Library library = cls.enclosingLibrary;
     LibraryBuilder? libraryBuilder =
         lookupLoadedLibraryBuilder(library.importUri);
@@ -2749,6 +2751,12 @@ severity: $severity
   ExtensionTypeDeclarationBuilder
       computeExtensionTypeBuilderFromTargetExtensionType(
           ExtensionTypeDeclaration extensionType) {
+    ExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder =
+        referenceMap
+            .lookupExtensionTypeDeclarationBuilder(extensionType.reference);
+    if (extensionTypeDeclarationBuilder != null) {
+      return extensionTypeDeclarationBuilder;
+    }
     Library kernelLibrary = extensionType.enclosingLibrary;
     LibraryBuilder? library =
         lookupLoadedLibraryBuilder(kernelLibrary.importUri);

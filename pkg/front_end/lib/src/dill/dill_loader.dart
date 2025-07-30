@@ -324,9 +324,15 @@ severity: $severity
 
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+    ClassBuilder? classBuilder =
+        currentSourceLoader?.referenceMap.lookupClassBuilder(cls.reference);
+    if (classBuilder != null) {
+      return classBuilder;
+    }
     Library kernelLibrary = cls.enclosingLibrary;
     LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
+      // Coverage-ignore-block(suite): Not run.
       library = currentSourceLoader
           ?.lookupLoadedLibraryBuilder(kernelLibrary.importUri);
     }
@@ -337,9 +343,16 @@ severity: $severity
   ExtensionTypeDeclarationBuilder
       computeExtensionTypeBuilderFromTargetExtensionType(
           ExtensionTypeDeclaration extensionType) {
+    ExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder =
+        currentSourceLoader?.referenceMap
+            .lookupExtensionTypeDeclarationBuilder(extensionType.reference);
+    if (extensionTypeDeclarationBuilder != null) {
+      return extensionTypeDeclarationBuilder;
+    }
     Library library = extensionType.enclosingLibrary;
     LibraryBuilder? libraryBuilder = lookupLibraryBuilder(library.importUri);
     if (libraryBuilder == null) {
+      // Coverage-ignore-block(suite): Not run.
       libraryBuilder =
           currentSourceLoader?.lookupLoadedLibraryBuilder(library.importUri);
     }
