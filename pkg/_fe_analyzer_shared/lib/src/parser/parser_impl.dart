@@ -3718,10 +3718,6 @@ class Parser {
     }
   }
 
-  /// Checks whether the next token is (directly) an identifier. If this returns
-  /// true a call to [ensureIdentifier] will return the next token.
-  bool isNextIdentifier(Token token) => token.next?.kind == IDENTIFIER_TOKEN;
-
   /// Parse a simple identifier at the given [token], and return the identifier
   /// that was parsed.
   ///
@@ -8285,8 +8281,10 @@ class Parser {
 
     TypeParamOrArgInfo? potentialTypeArg;
 
-    if (isNextIdentifier(newKeyword)) {
-      Token identifier = newKeyword.next!;
+    Token next = newKeyword.next!;
+
+    if (next.kind == IDENTIFIER_TOKEN) {
+      Token identifier = next;
       String value = identifier.lexeme;
       if ((value == "Map" || value == "Set") &&
           !identifier.next!.isA(TokenType.PERIOD)) {
@@ -8336,7 +8334,7 @@ class Parser {
       // parseConstructorReference.
       // Do special recovery for literal maps/set/list erroneously prepended
       // with 'new'.
-      Token notIdentifier = newKeyword.next!;
+      Token notIdentifier = next;
       String value = notIdentifier.lexeme;
       if (value == "<") {
         potentialTypeArg = computeTypeParamOrArg(newKeyword);
@@ -8739,8 +8737,9 @@ class Parser {
     // send an `handleIdentifier` if we end up recovering.
     TypeParamOrArgInfo? potentialTypeArg;
     Token? afterToken;
-    if (isNextIdentifier(token)) {
-      Token identifier = token.next!;
+    Token next = token.next!;
+    if (next.kind == IDENTIFIER_TOKEN) {
+      Token identifier = next;
       String value = identifier.lexeme;
       if (value == "Map" || value == "Set") {
         potentialTypeArg = computeTypeParamOrArg(identifier);

@@ -1000,15 +1000,6 @@ class TestParser extends Parser {
   }
 
   @override
-  bool isNextIdentifier(Token token) {
-    doPrint('isNextIdentifier(' '$token)');
-    indent++;
-    var result = super.isNextIdentifier(token);
-    indent--;
-    return result;
-  }
-
-  @override
   Token ensureIdentifierPotentiallyRecovered(
     Token token,
     IdentifierContext context,
