@@ -2592,7 +2592,7 @@ class Parser {
       }
       listener.handleEnumElements(token, elementCount);
       if (token.isA(TokenType.SEMICOLON)) {
-        while (notEofOrValue('}', token.next!)) {
+        while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
           token = parseClassOrMixinOrExtensionOrEnumMemberImpl(
             token,
             DeclarationKind.Enum,
@@ -3748,8 +3748,8 @@ class Parser {
     return identifier;
   }
 
-  bool notEofOrValue(String value, Token token) {
-    return token.kind != EOF_TOKEN && value != token.stringValue;
+  bool notEofOrType(TokenType type, Token token) {
+    return !token.isA(TokenType.EOF) && !token.isA(type);
   }
 
   Token parseTypeVariablesOpt(Token token) {
@@ -4849,7 +4849,7 @@ class Parser {
     assert(token.isA(TokenType.OPEN_CURLY_BRACKET));
     listener.beginClassOrMixinOrExtensionBody(kind, token);
     int count = 0;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       token = parseClassOrMixinOrExtensionOrEnumMemberImpl(
         token,
         kind,
@@ -6142,7 +6142,7 @@ class Parser {
     loopState = LoopState.OutsideLoop;
     listener.beginBlockFunctionBody(begin);
     token = next;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token startToken = token.next!;
       token = parseStatement(token);
       if (identical(token.next!, startToken)) {
@@ -9856,7 +9856,7 @@ class Parser {
     listener.beginBlock(begin, blockKind);
     int statementCount = 0;
     Token startToken = token.next!;
-    while (notEofOrValue('}', startToken)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, startToken)) {
       token = parseStatement(token);
       if (identical(token.next!, startToken)) {
         // No progress was made, so we report the current token as being invalid
@@ -10247,7 +10247,7 @@ class Parser {
     int caseCount = 0;
     Token? defaultKeyword = null;
     Token? colonAfterDefault = null;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token beginCase = token.next!;
       int expressionCount = 0;
       int labelCount = 0;
@@ -10733,7 +10733,7 @@ class Parser {
     next = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
     listener.handleEmptyStatement(next);
 
-    while (notEofOrValue('}', next)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, next)) {
       token = next;
       next = token.next!;
     }

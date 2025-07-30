@@ -74,6 +74,7 @@ void main(List<String> args) {
     if (listener is NullListener && listener.hasErrors) {
       numErrors++;
     }
+    // Or maybe - maybe as an option - do another scan here?
   }
 
   stopwatch.stop();
