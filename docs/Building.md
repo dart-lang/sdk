@@ -107,7 +107,7 @@ cd sdk
 ./tools/build.py --mode release create_sdk
 ```
 
-The output will be in `out/ReleaseX64/dart-sdk` on Linux and Windows, and `xcodebuild/ReleaseX64/dart-sdk` on macOS.
+The output will be in `out/ReleaseX64/dart-sdk` on Linux and Windows, and `xcodebuild/ReleaseARM64/dart-sdk` on macOS.
 
 See also [Building Dart SDK for ARM or RISC-V](Building-Dart-SDK-for-ARM-or-RISC-V.md).
 
