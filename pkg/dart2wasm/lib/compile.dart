@@ -7,8 +7,7 @@ import 'dart:typed_data';
 
 import 'package:build_integration/file_system/multi_root.dart'
     show MultiRootFileSystem, MultiRootFileSystemEntity;
-import 'package:front_end/src/api_prototype/standard_file_system.dart'
-    show StandardFileSystem;
+import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
@@ -21,6 +20,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' show writeComponentToText;
 import 'package:kernel/library_index.dart';
+import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
@@ -30,6 +30,7 @@ import 'package:vm/transformations/to_string_transformer.dart'
     as to_string_transformer;
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
+import 'package:vm/transformations/type_flow/utils.dart' as tfa_utils;
 import 'package:vm/transformations/unreachable_code_elimination.dart'
     as unreachable_code_elimination;
 import 'package:wasm_builder/wasm_builder.dart' show Serializer;
@@ -64,7 +65,7 @@ class CompilationSuccess extends CompilationResult {
   CompilationSuccess(this.wasmModules, this.jsRuntime, this.supportJs);
 }
 
-class CompilationError extends CompilationResult {}
+abstract class CompilationError extends CompilationResult {}
 
 /// The CFE has crashed with an exception.
 ///
@@ -74,6 +75,9 @@ class CFECrashError extends CompilationError {
   final StackTrace stackTrace;
 
   CFECrashError(this.error, this.stackTrace);
+
+  @override
+  String toString() => 'CFECrashError($error):\n$stackTrace';
 }
 
 /// Compiling the Dart program resulted in compile-time errors.
@@ -122,8 +126,10 @@ const List<String> _librariesToIndex = [
 /// mappings.
 Future<CompilationResult> compileToModule(
     compiler.WasmCompilerOptions options,
+    FileSystem fileSystem,
     Uri Function(String moduleName)? sourceMapUrlGenerator,
-    void Function(DiagnosticMessage) handleDiagnosticMessage) async {
+    void Function(DiagnosticMessage) handleDiagnosticMessage,
+    {void Function(String, String)? writeFile}) async {
   var hadCompileTimeError = false;
   void diagnosticMessageHandler(DiagnosticMessage message) {
     if (message.severity == Severity.error) {
@@ -161,12 +167,13 @@ Future<CompilationResult> compileToModule(
     }
     ..explicitExperimentalFlags = options.feExperimentalFlags
     ..verbose = false
-    ..onDiagnostic = diagnosticMessageHandler;
+    ..onDiagnostic = diagnosticMessageHandler
+    ..fileSystem = fileSystem;
   if (options.multiRootScheme != null) {
     compilerOptions.fileSystem = MultiRootFileSystem(
         options.multiRootScheme!,
         options.multiRoots.isEmpty ? [Uri.base] : options.multiRoots,
-        StandardFileSystem.instance);
+        compilerOptions.fileSystem);
   }
 
   Future<Uri?> resolveUri(Uri? uri) async {
@@ -229,8 +236,8 @@ Future<CompilationResult> compileToModule(
       ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
   LibraryIndex libraryIndex = LibraryIndex(component, _librariesToIndex);
 
-  if (options.dumpKernelAfterCfe != null) {
-    writeComponentToText(component, path: options.dumpKernelAfterCfe!);
+  if (options.dumpKernelAfterCfe != null && writeFile != null) {
+    writeFile(options.dumpKernelAfterCfe!, writeComponentToString(component));
   }
 
   if (options.deleteToStringPackageUri.isNotEmpty) {
@@ -269,8 +276,8 @@ Future<CompilationResult> compileToModule(
       isDynamicSubmodule: isDynamicSubmodule);
   target.recordClasses = recordClasses;
 
-  if (options.dumpKernelBeforeTfa != null) {
-    writeComponentToText(component, path: options.dumpKernelBeforeTfa!);
+  if (options.dumpKernelBeforeTfa != null && writeFile != null) {
+    writeFile(options.dumpKernelBeforeTfa!, writeComponentToString(component));
   }
 
   mixin_deduplication.transformLibraries(librariesToTransform);
@@ -312,6 +319,11 @@ Future<CompilationResult> compileToModule(
 
   if (!isDynamicSubmodule) {
     _patchMainTearOffs(coreTypes, component);
+
+    // We initialize the [printStats] to `false` to prevent it's field
+    // initializer to run (which only works on VM -- but we want our compiler
+    // to also run if compiled via dart2js/dart2wasm)
+    tfa_utils.printStats = false;
 
     // Keep the flags in-sync with
     // pkg/vm/test/transformations/type_flow/transformer_test.dart
@@ -453,4 +465,10 @@ String _generateSupportJs(TranslatorOptions options) {
     if (options.requireJsStringBuiltin) supportsJsStringBuiltins
   ];
   return '(${requiredFeatures.join('&&')})';
+}
+
+String writeComponentToString(Component component) {
+  final buffer = StringBuffer();
+  Printer(buffer).writeComponentFile(component);
+  return '$buffer';
 }
