@@ -2242,7 +2242,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         _forVariablePattern();
       }
       var isKeywordNeeded = false;
-      if (node.parent?.parent is GuardedPattern) {
+      if (node.thisOrAncestorOfType<GuardedPattern>() != null) {
         isKeywordNeeded = true;
       }
       _forPatternFieldName(

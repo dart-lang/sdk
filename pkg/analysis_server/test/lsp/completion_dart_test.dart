@@ -255,6 +255,47 @@ void f() {
     expectDocumentation(resolved, contains('Enum Member.'));
   }
 
+  Future<void> test_innerPatternKeyword() async {
+    content = '''
+class A {
+  A([this.value]);
+  A? value;
+}
+
+void main() {
+  final value = A(A(A()));
+  if (value case A(value: A(:^))) {}
+}
+''';
+    await initializeServer();
+
+    var code = TestCode.parse(content);
+    var completion = await getCompletionItem('value');
+    expect(completion, isNotNull);
+
+    // Resolve the completion item to get its edits.
+    var resolved = await resolveCompletion(completion);
+
+    // Apply all current-document edits.
+    var newContent = applyTextEdits(code.code, [
+      toTextEdit(resolved.textEdit!),
+    ]);
+    expect(
+      newContent,
+      equals('''
+class A {
+  A([this.value]);
+  A? value;
+}
+
+void main() {
+  final value = A(A(A()));
+  if (value case A(value: A(:var value))) {}
+}
+'''),
+    );
+  }
+
   /// We should not show `var`, `final` or the member type on the display text.
   Future<void> test_pattern_member_name_only() async {
     content = '''
