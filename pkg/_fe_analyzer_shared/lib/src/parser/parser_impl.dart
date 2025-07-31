@@ -3703,25 +3703,30 @@ class Parser {
   /// context that permits `new` to be treated as an identifier, rewrites the
   /// `new` token to an identifier token, and reports the rewritten token to the
   /// listener.  Otherwise does nothing.
+  @pragma("vm:prefer-inline")
   void _tryRewriteNewToIdentifier(Token token, IdentifierContext context) {
     if (!context.allowsNewAsIdentifier) return;
+    _tryRewriteNewToIdentifierImpl(token);
+  }
+
+  void _tryRewriteNewToIdentifierImpl(Token token) {
     Token identifier = token.next!;
-    if (identifier.kind == KEYWORD_TOKEN) {
-      final String? value = token.next!.stringValue;
-      if (value == 'new') {
-        // `new` after `.` is treated as an identifier so that it can represent
-        // an unnamed constructor.
-        Token replacementToken = rewriter.replaceTokenFollowing(
-          token,
-          new StringToken(
-            TokenType.IDENTIFIER,
-            identifier.lexeme,
-            token.next!.charOffset,
-          ),
-        );
-        listener.handleNewAsIdentifier(replacementToken);
-      }
-    }
+    if (identifier.kind != KEYWORD_TOKEN) return;
+
+    final String? value = identifier.stringValue;
+    if (value != 'new') return;
+
+    // `new` after `.` is treated as an identifier so that it can represent
+    // an unnamed constructor.
+    Token replacementToken = rewriter.replaceTokenFollowing(
+      token,
+      new StringToken(
+        TokenType.IDENTIFIER,
+        identifier.lexeme,
+        identifier.charOffset,
+      ),
+    );
+    listener.handleNewAsIdentifier(replacementToken);
   }
 
   /// Parse a simple identifier at the given [token], and return the identifier
@@ -8757,11 +8762,11 @@ class Parser {
     Token next = token.next!;
     if (next.kind == IDENTIFIER_TOKEN) {
       Token identifier = next;
-      String value = identifier.lexeme;
-      if (value == "Map" || value == "Set") {
-        potentialTypeArg = computeTypeParamOrArg(identifier);
-        afterToken = potentialTypeArg.skip(identifier).next!;
-        if (afterToken.isA(TokenType.OPEN_CURLY_BRACKET)) {
+      potentialTypeArg = computeTypeParamOrArg(identifier);
+      afterToken = potentialTypeArg.skip(identifier).next!;
+      if (afterToken.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        String value = identifier.lexeme;
+        if (value == "Map" || value == "Set") {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
           reportRecoverableError(
             identifier,
@@ -8772,12 +8777,11 @@ class Parser {
           );
           return parsePrimary(identifier, context, ConstantPatternContext.none);
         }
-      } else if (value == "List") {
-        potentialTypeArg = computeTypeParamOrArg(identifier);
-        afterToken = potentialTypeArg.skip(identifier).next!;
-        if ((potentialTypeArg != noTypeParamOrArg &&
-                afterToken.isA(TokenType.OPEN_SQUARE_BRACKET)) ||
-            afterToken.isA(TokenType.INDEX)) {
+      } else if ((potentialTypeArg != noTypeParamOrArg &&
+              afterToken.isA(TokenType.OPEN_SQUARE_BRACKET)) ||
+          afterToken.isA(TokenType.INDEX)) {
+        String value = identifier.lexeme;
+        if (value == "List") {
           // Recover by ignoring the `List` and parse as a literal List.
           // Note that we here require the `<...>` for `[` as `List[` would be
           // an indexed expression. `List[]` wouldn't though, so we don't

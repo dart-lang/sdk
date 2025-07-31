@@ -292,6 +292,23 @@ void defineCompileTests() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
 
+    if (Platform.isMacOS && Target.current.architecture == Architecture.arm64) {
+      // Also check that the resulting executable is properly signed on ARM64
+      // macOS, since executables are required to be signed there and checking
+      // this prior to running the executable gives us a clearer test failure
+      // message if for some reason the generated signature was invalid.
+      result = await Process.run('codesign', [
+        '-v',
+        outFile,
+      ]);
+
+      printOnFailure(
+          'Subcommand terminated with exit code ${result.exitCode}.');
+      printOnFailure('Subcommand stdout:\n${result.stdout}');
+      printOnFailure('Subcommand stderr:\n${result.stderr}');
+      expect(result.exitCode, 0);
+    }
+
     result = Process.runSync(
       outFile,
       [],
@@ -1414,35 +1431,6 @@ void main() {
     expect(result.stdout, isEmpty);
     expect(result.stderr, contains(failedAssertionError));
   });
-
-  if (Platform.isMacOS) {
-    test('Compile and run executable from signed dartaotruntime', () async {
-      // Either the locally built dartaotruntime is already linker signed
-      // (on M1) or it is unsigned (on X64). For this test, sign the
-      // dartaotruntime executable with a non-linker signed adhoc signature,
-      // which won't cause issues with any other tests that use it. This
-      // ensures the code signing path in dart2native is exercised on X64
-      // (macOS <11.0), and also mimics the case for end users that are using
-      // the published Dart SDK (which is fully signed, not linker signed).
-      final Directory binDir = File(Platform.resolvedExecutable).parent;
-      final String originalRuntimePath =
-          path.join(binDir.path, 'dartaotruntime');
-      final codeSigningProcess = await Process.start('codesign', [
-        '-o',
-        'runtime',
-        '-s',
-        '-',
-        originalRuntimePath,
-      ]);
-
-      final signingResult = await codeSigningProcess.exitCode;
-      expect(signingResult, 0);
-
-      // Now perform the same basic compile and run test with the signed
-      // dartaotruntime.
-      await basicCompileTest();
-    }, skip: isRunningOnIA32);
-  }
 
   // Tests for --depfile for compiling to AOT snapshots, executables and
   // kernel.
