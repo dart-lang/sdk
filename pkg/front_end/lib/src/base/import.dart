@@ -98,7 +98,9 @@ class Import {
       String name = member.name;
       bool include = true;
       if (combinators != null) {
-        for (CombinatorBuilder combinator in combinators!) {
+        List<CombinatorBuilder> combinators = this.combinators!;
+        for (int i = 0; i < combinators.length; i++) {
+          CombinatorBuilder combinator = combinators[i];
           if (combinator.isShow && !combinator.names.contains(name)) {
             include = false;
             break;

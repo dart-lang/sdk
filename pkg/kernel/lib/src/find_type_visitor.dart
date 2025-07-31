@@ -31,7 +31,8 @@ class FindTypeVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    for (DartType typeArgument in node.typeArguments) {
+    for (int i = 0; i < node.typeArguments.length; i++) {
+      DartType typeArgument = node.typeArguments[i];
       if (typeArgument.accept(this)) return true;
     }
     return false;

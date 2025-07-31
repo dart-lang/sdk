@@ -1153,7 +1153,8 @@ class BodyBuilder extends StackListenerImpl
   List<Object>? createSuperParametersAsArguments(
       List<FormalParameterBuilder> formals) {
     List<Object>? superParametersAsArguments;
-    for (FormalParameterBuilder formal in formals) {
+    for (int i = 0; i < formals.length; i++) {
+      FormalParameterBuilder formal = formals[i];
       if (formal.isSuperInitializingFormal) {
         if (formal.isNamed) {
           (superParametersAsArguments ??= <Object>[]).add(new NamedExpression(
