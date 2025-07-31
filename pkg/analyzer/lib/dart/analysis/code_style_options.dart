@@ -33,6 +33,9 @@ abstract class CodeStyleOptions {
   /// The preferred quote based on the enabled lints, otherwise a single quote.
   String get preferredQuoteForStrings;
 
+  /// Whether the `always_put_required_named_parameters_first` lint is enabled.
+  bool get requiredNamedParametersFirst;
+
   /// Whether combinators should be ordered alphabetically. Difined by
   /// `combinators_ordering`.
   bool get sortCombinators;

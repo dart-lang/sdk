@@ -4,6 +4,8 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart' show printDiagnosticMessage;
 import 'package:path/path.dart' as path;
 
@@ -76,9 +78,12 @@ Future<int> generateWasm(WasmCompilerOptions options,
       ? moduleNameToRelativeSourceMapUri
       : null;
 
-  CompilationResult result =
-      await compileToModule(options, relativeSourceMapUrlMapper, (message) {
+  CompilationResult result = await compileToModule(
+      options, StandardFileSystem.instance, relativeSourceMapUrlMapper,
+      (message) {
     if (!options.dryRun) printDiagnosticMessage(message, errorPrinter);
+  }, writeFile: (String filename, String content) {
+    File(filename).writeAsStringSync(content);
   });
 
   if (result is CompilationDryRunResult) {

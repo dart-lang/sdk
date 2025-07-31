@@ -71,6 +71,69 @@ class Test extends StatelessWidget {
     );
   }
 
+  Future<void> test_class_flutter_lint() async {
+    writeTestPackageConfig(flutter: true);
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  final int _a;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  final int _a;
+
+  const Test({required int a, super.key}) : _a = a;
+}
+''',
+      errorFilter: (error) {
+        return error.message.contains("'_a' must be initialized");
+      },
+    );
+  }
+
+  Future<void> test_class_flutter_lint_notRequired() async {
+    writeTestPackageConfig(flutter: true);
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class Base extends StatelessWidget {
+  final int? a;
+
+  const Base({super.key, this.a});
+}
+
+class Test extends Base {
+  final int other;
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/widgets.dart';
+
+class Base extends StatelessWidget {
+  final int? a;
+
+  const Base({super.key, this.a});
+}
+
+class Test extends Base {
+  final int other;
+
+  Test({required this.other, super.key, super.a});
+}
+''');
+  }
+
   Future<void> test_class_hasSuperClass_withOptionalNamed() async {
     await resolveTestCode('''
 class A {
@@ -135,6 +198,45 @@ class B extends A {
   final int f22;
 
   B({required super.f11, required super.f12, required this.f21, required this.f22});
+}
+''',
+      errorFilter: (error) {
+        return error.message.contains("'f21'");
+      },
+    );
+  }
+
+  Future<void> test_class_hasSuperClass_withRequiredNamed_lint() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class A {
+  final int? f11;
+  final int f12;
+
+  A({this.f11, required this.f12})
+}
+
+class B extends A {
+  final int? f21;
+  int? f22;
+}
+''');
+    await assertHasFix(
+      '''
+class A {
+  final int? f11;
+  final int f12;
+
+  A({this.f11, required this.f12})
+}
+
+class B extends A {
+  final int? f21;
+  int? f22;
+
+  B({required super.f12, required this.f21, super.f11});
 }
 ''',
       errorFilter: (error) {

@@ -16,6 +16,10 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
+/// The boolean value indicates whether the field is required.
+/// The string value is the field/parameter name.
+typedef _FieldRecord = (bool, String);
+
 class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
 
@@ -82,17 +86,22 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         return;
     }
 
+    var requiredNamedParametersFirst =
+        getCodeStyleOptions(unitResult.file).requiredNamedParametersFirst;
+
     if (superType.isExactlyStatelessWidgetType ||
         superType.isExactlyStatefulWidgetType) {
       await _forFlutterWidget(
         fixContext: fixContext,
         classDeclaration: container,
+        requiredNamedParametersFirst: requiredNamedParametersFirst,
       );
     } else {
       await _notFlutterWidget(
         fixContext: fixContext,
         containerDeclaration: container,
         isConst: container is EnumDeclaration,
+        requiredNamedParametersFirst: requiredNamedParametersFirst,
       );
     }
   }
@@ -136,16 +145,19 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   Future<void> _forFlutterWidget({
     required _FixContext fixContext,
     required NamedCompilationUnitMember classDeclaration,
+    required bool requiredNamedParametersFirst,
   }) async {
     if (unit.featureSet.isEnabled(Feature.super_parameters)) {
       await _forFlutterWithSuperParameters(
         fixContext: fixContext,
         classDeclaration: classDeclaration,
+        requiredNamedParametersFirst: requiredNamedParametersFirst,
       );
     } else {
       await _forFlutterWithoutSuperParameters(
         fixContext: fixContext,
         classDeclaration: classDeclaration,
+        requiredNamedParametersFirst: requiredNamedParametersFirst,
       );
     }
   }
@@ -153,6 +165,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   Future<void> _forFlutterWithoutSuperParameters({
     required _FixContext fixContext,
     required NamedCompilationUnitMember classDeclaration,
+    required bool requiredNamedParametersFirst,
   }) async {
     var keyClass = await sessionHelper.getFlutterClass('Key');
     if (keyClass == null) {
@@ -166,20 +179,34 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write('const ');
         builder.write(fixContext.containerName);
         builder.write('({');
-        builder.writeType(
-          keyClass.instantiate(
-            typeArguments: const [],
-            nullabilitySuffix: NullabilitySuffix.question,
-          ),
-        );
-        builder.write(' key');
+        if (!requiredNamedParametersFirst) {
+          builder.writeType(
+            keyClass.instantiate(
+              typeArguments: const [],
+              nullabilitySuffix: NullabilitySuffix.question,
+            ),
+          );
+          builder.write(' key');
+        }
         var fieldsForInitializers = <_Field>[];
 
         _writeFlutterParameters(
           builder: builder,
           variableLists: fixContext.variableLists,
           fieldsForInitializers: fieldsForInitializers,
+          requiredNamedParametersFirst: requiredNamedParametersFirst,
         );
+
+        if (requiredNamedParametersFirst) {
+          builder.write(', ');
+          builder.writeType(
+            keyClass.instantiate(
+              typeArguments: const [],
+              nullabilitySuffix: NullabilitySuffix.question,
+            ),
+          );
+          builder.write(' key');
+        }
 
         builder.write('}) : ');
         if (fieldsForInitializers.isNotEmpty) {
@@ -193,6 +220,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   Future<void> _forFlutterWithSuperParameters({
     required _FixContext fixContext,
     required NamedCompilationUnitMember classDeclaration,
+    required bool requiredNamedParametersFirst,
   }) async {
     await fixContext.builder.addDartFileEdit(file, (builder) {
       builder.insertConstructor(classDeclaration, (builder) {
@@ -201,14 +229,20 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         builder.write('const ');
         builder.write(fixContext.containerName);
         builder.write('({');
-        builder.write('super.key');
+        if (!requiredNamedParametersFirst) {
+          builder.write('super.key');
+        }
 
         var fieldsForInitializers = <_Field>[];
         _writeFlutterParameters(
           builder: builder,
           variableLists: fixContext.variableLists,
           fieldsForInitializers: fieldsForInitializers,
+          requiredNamedParametersFirst: requiredNamedParametersFirst,
         );
+        if (requiredNamedParametersFirst) {
+          builder.write(', super.key');
+        }
 
         builder.write('})');
         if (fieldsForInitializers.isNotEmpty) {
@@ -231,6 +265,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required NamedCompilationUnitMember containerDeclaration,
     required bool isConst,
     required List<_Field> fields,
+    required bool requiredNamedParametersFirst,
   }) async {
     var fieldsForInitializers = <_Field>[];
 
@@ -243,37 +278,58 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
         }
         builder.write(fixContext.containerName);
         builder.write('({');
-        var hasWritten = false;
+        var parameters = <_FieldRecord>[];
+        var buffer = StringBuffer();
         var superNamed = fixContext.superNamed;
         if (superNamed != null) {
           for (var formalParameter in superNamed) {
-            if (hasWritten) {
-              builder.write(', ');
-            }
+            buffer.clear();
+            var required = false;
             if (formalParameter.isRequiredNamed) {
-              builder.write('required ');
+              required = true;
+              buffer.write('required ');
             }
-            builder.write('super.');
-            builder.write(formalParameter.name!);
-            hasWritten = true;
+            buffer.write('super.');
+            buffer.write(formalParameter.name!);
+            parameters.add((required, buffer.toString()));
           }
         }
         for (var field in fields) {
+          buffer.clear();
+          if (field.namedFormalParameterName == field.fieldName) {
+            buffer.write('required this.');
+            buffer.write(field.fieldName);
+          } else {
+            buffer.write('required ');
+            buffer.write(utils.getNodeText(field.typeAnnotation));
+            buffer.write(' ');
+            buffer.write(field.namedFormalParameterName);
+            fieldsForInitializers.add(field);
+          }
+          parameters.add((true, buffer.toString()));
+        }
+
+        if (requiredNamedParametersFirst) {
+          parameters.sort((a, b) {
+            if (a.$1 == b.$1) {
+              return 0;
+            } else if (a.$1) {
+              return -1;
+            } else {
+              return 1;
+            }
+          });
+        }
+
+        var hasWritten = false;
+        for (var parameter in parameters) {
           if (hasWritten) {
             builder.write(', ');
           }
-          if (field.namedFormalParameterName == field.fieldName) {
-            builder.write('required this.');
-            builder.write(field.fieldName);
-          } else {
-            builder.write('required ');
-            builder.write(utils.getNodeText(field.typeAnnotation));
-            builder.write(' ');
-            builder.write(field.namedFormalParameterName);
-            fieldsForInitializers.add(field);
-          }
+          builder.write(parameter.$2);
           hasWritten = true;
         }
+
         builder.write('})');
 
         if (fieldsForInitializers.isNotEmpty) {
@@ -318,6 +374,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required _FixContext fixContext,
     required NamedCompilationUnitMember containerDeclaration,
     required bool isConst,
+    required bool requiredNamedParametersFirst,
   }) async {
     var fields = _fieldsToWrite(fixContext.variableLists);
     if (fields == null) {
@@ -331,6 +388,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
           containerDeclaration: containerDeclaration,
           isConst: isConst,
           fields: fields,
+          requiredNamedParametersFirst: requiredNamedParametersFirst,
         );
       case _Style.requiredPositional:
         await _notFlutterRequiredPositional(
@@ -346,6 +404,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     required DartEditBuilder builder,
     required Iterable<VariableDeclarationList> variableLists,
     required List<_Field> fieldsForInitializers,
+    required bool requiredNamedParametersFirst,
   }) {
     var fields = _fieldsToWrite(variableLists);
     if (fields == null) {
@@ -354,20 +413,46 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
     var childrenLast = fields.stablePartition((field) => !field.isChild);
 
+    var parameters = <_FieldRecord>[];
+    var buffer = StringBuffer();
     for (var field in childrenLast) {
-      builder.write(', ');
+      var required = false;
+      buffer.clear();
       if (field.hasNonNullableType) {
-        builder.write('required ');
+        required = true;
+        buffer.write('required ');
       }
       if (field.namedFormalParameterName == field.fieldName) {
-        builder.write('this.');
-        builder.write(field.fieldName);
+        buffer.write('this.');
+        buffer.write(field.fieldName);
       } else {
-        builder.write(utils.getNodeText(field.typeAnnotation));
-        builder.write(' ');
-        builder.write(field.namedFormalParameterName);
+        buffer.write(utils.getNodeText(field.typeAnnotation));
+        buffer.write(' ');
+        buffer.write(field.namedFormalParameterName);
         fieldsForInitializers.add(field);
       }
+      parameters.add((required, buffer.toString()));
+    }
+    if (requiredNamedParametersFirst) {
+      parameters.sort((a, b) {
+        if (a.$1 == b.$1) {
+          return 0;
+        } else if (a.$1) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
+    }
+    // If this is false, then key is added first.
+    var isFirst = requiredNamedParametersFirst;
+    for (var parameter in parameters) {
+      if (isFirst) {
+        isFirst = false;
+      } else {
+        builder.write(', ');
+      }
+      builder.write(parameter.$2);
     }
   }
 }
