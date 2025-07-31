@@ -3703,25 +3703,30 @@ class Parser {
   /// context that permits `new` to be treated as an identifier, rewrites the
   /// `new` token to an identifier token, and reports the rewritten token to the
   /// listener.  Otherwise does nothing.
+  @pragma("vm:prefer-inline")
   void _tryRewriteNewToIdentifier(Token token, IdentifierContext context) {
     if (!context.allowsNewAsIdentifier) return;
+    _tryRewriteNewToIdentifierImpl(token);
+  }
+
+  void _tryRewriteNewToIdentifierImpl(Token token) {
     Token identifier = token.next!;
-    if (identifier.kind == KEYWORD_TOKEN) {
-      final String? value = token.next!.stringValue;
-      if (value == 'new') {
-        // `new` after `.` is treated as an identifier so that it can represent
-        // an unnamed constructor.
-        Token replacementToken = rewriter.replaceTokenFollowing(
-          token,
-          new StringToken(
-            TokenType.IDENTIFIER,
-            identifier.lexeme,
-            token.next!.charOffset,
-          ),
-        );
-        listener.handleNewAsIdentifier(replacementToken);
-      }
-    }
+    if (identifier.kind != KEYWORD_TOKEN) return;
+
+    final String? value = identifier.stringValue;
+    if (value != 'new') return;
+
+    // `new` after `.` is treated as an identifier so that it can represent
+    // an unnamed constructor.
+    Token replacementToken = rewriter.replaceTokenFollowing(
+      token,
+      new StringToken(
+        TokenType.IDENTIFIER,
+        identifier.lexeme,
+        identifier.charOffset,
+      ),
+    );
+    listener.handleNewAsIdentifier(replacementToken);
   }
 
   /// Parse a simple identifier at the given [token], and return the identifier
