@@ -289,8 +289,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionBody(FunctionBody node) => visitNode(node);
 
   @override
-  R? visitFunctionDeclaration(FunctionDeclaration node) =>
-      visitNamedCompilationUnitMember(node);
+  R? visitFunctionDeclaration(FunctionDeclaration node) {
+    if (node.parent is FunctionDeclarationStatement) {
+      return visitNode(node);
+    }
+    return visitNamedCompilationUnitMember(node);
+  }
 
   @override
   R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>

@@ -216,13 +216,27 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       if (node.isConcrete) {
         out.writeln('@override');
       }
+
+      // TODO(fshcheglov): Remove special case after AST hierarchy is fixed.
+      // https://github.com/dart-lang/sdk/issues/61224
+      if (node.name == 'FunctionDeclaration') {
+        out.writeln(r'''
+R? visitFunctionDeclaration(FunctionDeclaration node) {
+  if (node.parent is FunctionDeclarationStatement) {
+    return visitNode(node);
+  }
+  return visitNamedCompilationUnitMember(node);
+}''');
+        continue;
+      }
+
       if (superNode.element.isAstNodeImplExactly) {
         out.writeln('''
-  R? visit$name($name node) => visitNode(node);
+R? visit$name($name node) => visitNode(node);
 ''');
       } else {
         out.writeln('''
-  R? visit$name($name node) => visit${superNode.name}(node);
+R? visit$name($name node) => visit${superNode.name}(node);
 ''');
       }
     }
