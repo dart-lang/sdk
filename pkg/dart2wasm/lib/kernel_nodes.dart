@@ -57,8 +57,6 @@ mixin KernelNodes {
   late final Class typeErrorClass = index.getClass("dart:core", "_TypeError");
   late final Class javaScriptErrorClass =
       index.getClass("dart:core", "_JavaScriptError");
-  late final Field enumIndexField =
-      index.getField('dart:core', '_Enum', 'index');
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
