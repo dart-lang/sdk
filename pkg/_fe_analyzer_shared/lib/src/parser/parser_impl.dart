@@ -8757,11 +8757,11 @@ class Parser {
     Token next = token.next!;
     if (next.kind == IDENTIFIER_TOKEN) {
       Token identifier = next;
-      String value = identifier.lexeme;
-      if (value == "Map" || value == "Set") {
-        potentialTypeArg = computeTypeParamOrArg(identifier);
-        afterToken = potentialTypeArg.skip(identifier).next!;
-        if (afterToken.isA(TokenType.OPEN_CURLY_BRACKET)) {
+      potentialTypeArg = computeTypeParamOrArg(identifier);
+      afterToken = potentialTypeArg.skip(identifier).next!;
+      if (afterToken.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        String value = identifier.lexeme;
+        if (value == "Map" || value == "Set") {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
           reportRecoverableError(
             identifier,
@@ -8772,12 +8772,11 @@ class Parser {
           );
           return parsePrimary(identifier, context, ConstantPatternContext.none);
         }
-      } else if (value == "List") {
-        potentialTypeArg = computeTypeParamOrArg(identifier);
-        afterToken = potentialTypeArg.skip(identifier).next!;
-        if ((potentialTypeArg != noTypeParamOrArg &&
-                afterToken.isA(TokenType.OPEN_SQUARE_BRACKET)) ||
-            afterToken.isA(TokenType.INDEX)) {
+      } else if ((potentialTypeArg != noTypeParamOrArg &&
+              afterToken.isA(TokenType.OPEN_SQUARE_BRACKET)) ||
+          afterToken.isA(TokenType.INDEX)) {
+        String value = identifier.lexeme;
+        if (value == "List") {
           // Recover by ignoring the `List` and parse as a literal List.
           // Note that we here require the `<...>` for `[` as `List[` would be
           // an indexed expression. `List[]` wouldn't though, so we don't
