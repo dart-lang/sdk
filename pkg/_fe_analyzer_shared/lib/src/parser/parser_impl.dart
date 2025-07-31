@@ -334,6 +334,12 @@ class Parser {
   /// Whether the `enhanced-parts` feature is enabled.
   final bool enableFeatureEnhancedParts;
 
+  /// Whether the parser is allowed to shortcut certain [parseExpression] calls.
+  ///
+  /// Should be false if [parseExpression] is customized, e.g. if skipping
+  /// expressions.
+  bool get allowedToShortcutParseExpression => true;
+
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
@@ -8927,7 +8933,32 @@ class Parser {
             ).next!;
         colon = token;
       }
-      token = parseExpression(token);
+      bool expressionHandled = false;
+
+      // For increased performance we'd prefer to shortcut common cases, but if
+      // a subclass of the parser has a special implementation of
+      // [parseExpression] (say, wanting to skip expressions) we can't do that.
+      if (allowedToShortcutParseExpression) {
+        Token next = token.next!;
+        // TODO(jensj): Possibly also for STRING CLOSE_PAREN / STRING COMMA?
+        if (next.isA(TokenType.IDENTIFIER)) {
+          Token nextNext = next.next!;
+          if (nextNext.isA(TokenType.COMMA) ||
+              nextNext.isA(TokenType.CLOSE_PAREN)) {
+            // Shortcut common cases:
+            // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
+            listener.handleIdentifier(next, IdentifierContext.expression);
+            listener.handleNoTypeArguments(nextNext);
+            listener.handleNoArguments(nextNext);
+            listener.handleSend(next, next);
+            token = next;
+            expressionHandled = true;
+          }
+        }
+      }
+      if (!expressionHandled) {
+        token = parseExpression(token);
+      }
       next = token.next!;
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;

@@ -93,6 +93,15 @@ class TestParser extends Parser {
   }
 
   @override
+  bool get allowedToShortcutParseExpression {
+    doPrint('allowedToShortcutParseExpression()');
+    indent++;
+    var result = super.allowedToShortcutParseExpression;
+    indent--;
+    return result;
+  }
+
+  @override
   bool get inGenerator {
     doPrint('inGenerator()');
     indent++;
