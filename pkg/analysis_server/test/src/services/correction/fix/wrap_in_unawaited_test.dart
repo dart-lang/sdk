@@ -105,7 +105,22 @@ class C {
 }
 
 void main() async {
-  C()..something(); 
+  C()..something();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_cascadeExpression_getter() async {
+    await resolveTestCode('''
+class C {
+  Future<String> get something {
+    return Future.value('hello');
+  }
+}
+
+void f(C Function() fn) async {
+  fn()..something;
 }
 ''');
     await assertNoFix();
@@ -221,6 +236,25 @@ Future<void> f() async {
   var c = C();
   unawaited(c.g());
 }
+''');
+  }
+
+  Future<void> test_nullableFuture() async {
+    await resolveTestCode('''
+Future<void> f() async {
+  g();
+}
+
+Future<void>? g() async { }
+''');
+    await assertHasFix('''
+import 'dart:async';
+
+Future<void> f() async {
+  unawaited(g());
+}
+
+Future<void>? g() async { }
 ''');
   }
 
