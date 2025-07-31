@@ -8939,19 +8939,53 @@ class Parser {
       // a subclass of the parser has a special implementation of
       // [parseExpression] (say, wanting to skip expressions) we can't do that.
       if (allowedToShortcutParseExpression) {
-        Token next = token.next!;
+        Token next1 = token.next!;
         // TODO(jensj): Possibly also for STRING CLOSE_PAREN / STRING COMMA?
-        if (next.isA(TokenType.IDENTIFIER)) {
-          Token nextNext = next.next!;
-          if (nextNext.isA(TokenType.COMMA) ||
-              nextNext.isA(TokenType.CLOSE_PAREN)) {
+        if (next1.isA(TokenType.IDENTIFIER)) {
+          Token next2 = next1.next!;
+          if (next2.isA(TokenType.COMMA) || next2.isA(TokenType.CLOSE_PAREN)) {
             // Shortcut common cases:
             // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
-            listener.handleIdentifier(next, IdentifierContext.expression);
-            listener.handleNoTypeArguments(nextNext);
-            listener.handleNoArguments(nextNext);
-            listener.handleSend(next, next);
-            token = next;
+            listener.handleIdentifier(next1, IdentifierContext.expression);
+            listener.handleNoTypeArguments(next2);
+            listener.handleNoArguments(next2);
+            listener.handleSend(next1, next1);
+            token = next1;
+            expressionHandled = true;
+          } else if (next2.isA(TokenType.PERIOD)) {
+            Token next3 = next2.next!;
+            if (next3.isA(TokenType.IDENTIFIER)) {
+              Token next4 = next3.next!;
+              if (next4.isA(TokenType.COMMA) ||
+                  next4.isA(TokenType.CLOSE_PAREN)) {
+                // Shortcut common cases:
+                // "IDENTIFIER DOT IDENTIFIER COMMA" and
+                // "IDENTIFIER DOT IDENTIFIER CLOSE_PAREN"
+                listener.handleIdentifier(next1, IdentifierContext.expression);
+                listener.handleNoTypeArguments(next2);
+                listener.handleNoArguments(next2);
+                listener.handleSend(next1, next1);
+                listener.handleIdentifier(
+                  next3,
+                  IdentifierContext.expressionContinuation,
+                );
+                listener.handleNoTypeArguments(next4);
+                listener.handleNoArguments(next4);
+                listener.handleSend(next3, next3);
+                listener.handleEndingBinaryExpression(next2, next3);
+                token = next3;
+                expressionHandled = true;
+              }
+            }
+          }
+        } else if (next1.isA(TokenType.STRING)) {
+          Token next2 = next1.next!;
+          if (next2.isA(TokenType.COMMA) || next2.isA(TokenType.CLOSE_PAREN)) {
+            // Shortcut common cases:
+            // "STRING COMMA" and "STRING CLOSE_PAREN"
+            listener.beginLiteralString(next1);
+            listener.endLiteralString(0, next2);
+            token = next1;
             expressionHandled = true;
           }
         }
