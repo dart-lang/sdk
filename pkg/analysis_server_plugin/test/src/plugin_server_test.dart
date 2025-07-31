@@ -146,7 +146,7 @@ bool b = false;
   }
 
   Future<void> test_lintCodesCanHaveCustomSeverity() async {
-    writeAnalysisOptionsWithPlugin({'no_doubles_warning': true});
+    writeAnalysisOptionsWithPlugin({'no_doubles_warning': 'enable'});
     newFile(filePath, 'double x = 3.14;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -157,6 +157,21 @@ bool b = false;
       params.errors.single,
       message: 'No doubles message',
       severity: protocol.AnalysisErrorSeverity.WARNING,
+    );
+  }
+
+  Future<void> test_lintCodesCanHaveConfigurableSeverity() async {
+    writeAnalysisOptionsWithPlugin({'no_doubles_warning': 'error'});
+    newFile(filePath, 'double x = 3.14;');
+    await channel
+        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No doubles message',
+      severity: protocol.AnalysisErrorSeverity.ERROR,
     );
   }
 
@@ -171,7 +186,7 @@ bool b = false;
   }
 
   Future<void> test_lintRulesCanBeEnabled() async {
-    writeAnalysisOptionsWithPlugin({'no_doubles': true});
+    writeAnalysisOptionsWithPlugin({'no_doubles': 'enable'});
     newFile(filePath, 'double x = 3.14;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -276,7 +291,7 @@ bool b = false;
   }
 
   Future<void> test_warningRulesCanBeDisabled() async {
-    writeAnalysisOptionsWithPlugin({'no_bools': false});
+    writeAnalysisOptionsWithPlugin({'no_bools': 'disable'});
     newFile(filePath, 'bool b = false;');
     await channel
         .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
@@ -286,16 +301,16 @@ bool b = false;
   }
 
   void writeAnalysisOptionsWithPlugin(
-      [Map<String, bool> diagnosticConfiguration = const {}]) {
+      [Map<String, String> diagnosticConfiguration = const {}]) {
     var buffer = StringBuffer('''
 plugins:
   no_literals:
     path: some/path
     diagnostics:
 ''');
-    for (var MapEntry(key: diagnosticName, value: isEnabled)
+    for (var MapEntry(key: diagnosticName, value: enablement)
         in diagnosticConfiguration.entries) {
-      buffer.writeln('      $diagnosticName: $isEnabled');
+      buffer.writeln('      $diagnosticName: $enablement');
     }
     newAnalysisOptionsYamlFile(packagePath, buffer.toString());
   }
