@@ -292,17 +292,11 @@ void defineCompileTests() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
 
-    result = Process.runSync(
-      outFile,
-      [],
-    );
-
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(result.stdout, contains('I love executables'));
-
-    if (Platform.isMacOS) {
-      // Also check that the resulting executable is properly signed.
+    if (Platform.isMacOS && Target.current.architecture == Architecture.arm64) {
+      // Also check that the resulting executable is properly signed on ARM64
+      // macOS, since executables are required to be signed there and checking
+      // this prior to running the executable gives us a clearer test failure
+      // message if for some reason the generated signature was invalid.
       result = await Process.run('codesign', [
         '-v',
         outFile,
@@ -314,6 +308,15 @@ void defineCompileTests() {
       printOnFailure('Subcommand stderr:\n${result.stderr}');
       expect(result.exitCode, 0);
     }
+
+    result = Process.runSync(
+      outFile,
+      [],
+    );
+
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('I love executables'));
   }
 
   test('Compile and run executable', basicCompileTest, skip: isRunningOnIA32);
