@@ -1,5 +1,7 @@
 ## 3.8.3
 
+**Released on:** 2025-07-31
+
 This is a patch release that:
 
 - Fixes an issue with the DevTools Network screen and Hot Restart (issue [flutter/devtools#9203])
