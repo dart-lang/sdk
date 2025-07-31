@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -72,6 +73,7 @@ abstract class AbstractCompletionDriverTest
   bool get includeOverrides => true;
 
   @override
+  @protected
   Future<List<CompletionSuggestion>> addTestFile(
     String content, {
     int? offset,
@@ -162,8 +164,6 @@ To accept the current state change the expectation to
     );
   }
 
-  // TODO(scheglov): Use it everywhere instead of [addTestFile].
-  // ignore:unreachable_from_main
   Future<void> computeSuggestions(String content) async {
     // Give the server time to create analysis contexts.
     await pumpEventQueue(times: 1000);
@@ -309,7 +309,7 @@ class BasicCompletionTest extends AbstractCompletionDriverTest
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
   /// Duplicates (and potentially replaces) [DeprecatedMemberRelevanceTest].
   Future<void> test_deprecated_member_relevance() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class A {
   void a1() { }
   @deprecated
@@ -353,7 +353,7 @@ class A {}
 export 'a.dart';
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 import 'a.dart';
 void f() {
   ^
@@ -379,7 +379,7 @@ enum E {
 export 'a.dart';
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 import 'a.dart';
 void f() {
   E v = ^
@@ -400,7 +400,7 @@ class A {
 export 'a.dart';
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 import 'a.dart';
 void f() {
   ^
@@ -423,7 +423,7 @@ class A {}
 export 'a.dart';
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 import 'a.dart';
 import 'b.dart';
 void f() {
@@ -447,7 +447,7 @@ typedef T2 = double;
 var v = 0;
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -474,7 +474,7 @@ class A {
 }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void m() {
   ^
 }
@@ -490,7 +490,7 @@ class A {
 }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -505,7 +505,7 @@ void f() {
 int get g => 0;
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -521,7 +521,7 @@ class A {
 }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -537,7 +537,7 @@ class A {
 }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -555,7 +555,7 @@ class A {}
 export 'a.dart';
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -585,7 +585,7 @@ class A {}
 export 'a.dart';
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 import 'b.dart';
 void f() {
   ^
@@ -605,7 +605,7 @@ void f() {
 class A {}
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 class A {}
 void f() {
   ^
@@ -628,7 +628,7 @@ class A {
 }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -644,7 +644,7 @@ class A {
 }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -659,7 +659,7 @@ void f() {
 set s(int s) {}
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -683,7 +683,7 @@ class A {
 class O { }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 import 'a.dart';
 
 void f(List<String> args) {
@@ -712,7 +712,7 @@ void f(List<String> args) {
 class A { }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 import 'a.dart';
 
 void f(List<String> args) {
@@ -738,7 +738,7 @@ mixin M { }
 mixin class A { }
 ''');
 
-    await addTestFile('''
+    await computeSuggestions('''
 class C extends Object with ^
 ''');
 
@@ -747,7 +747,7 @@ class C extends Object with ^
   }
 
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }
@@ -765,7 +765,7 @@ void f() {
   }
 
   Future<void> test_sdk_lib_suggestions() async {
-    await addTestFile('''
+    await computeSuggestions('''
 void f() {
   ^
 }

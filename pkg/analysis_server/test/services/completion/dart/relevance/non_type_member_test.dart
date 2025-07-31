@@ -19,7 +19,7 @@ class NonTypeMemberTest extends CompletionRelevanceTest
 
 mixin NonTypeMemberTestCases on CompletionRelevanceTest {
   Future<void> test_contextType_constructorInvocation_before_type() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class StrWrap {
   String string;
   StrWrap(this.string);
@@ -45,7 +45,7 @@ void bar() {
 
   @failingTest
   Future<void> test_typeParameters() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class Foo{}
 void foo<T>(List<T> bar) {
   List<^> baz;

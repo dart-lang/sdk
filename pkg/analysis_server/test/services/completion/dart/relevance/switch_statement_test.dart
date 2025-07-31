@@ -18,7 +18,7 @@ class SwitchStatementTest extends CompletionRelevanceTest
 
 mixin SwitchStatementTestCases on CompletionRelevanceTest {
   Future<void> test_caseBody() async {
-    await addTestFile('''
+    await computeSuggestions('''
 void f(Object? x) {
   switch (x) {
     case 0:

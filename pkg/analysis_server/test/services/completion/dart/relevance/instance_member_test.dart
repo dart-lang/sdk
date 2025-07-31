@@ -18,7 +18,7 @@ class InstanceMemberTest extends CompletionRelevanceTest
 
 mixin InstanceMemberTestCases on CompletionRelevanceTest {
   Future<void> test_contextType_interfaceType_method() async {
-    await addTestFile(r'''
+    await computeSuggestions(r'''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -45,7 +45,7 @@ void g(E e) {
   }
 
   Future<void> test_contextType_recordType_named() async {
-    await addTestFile(r'''
+    await computeSuggestions(r'''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -66,7 +66,7 @@ void g(({A foo01, B foo02, C foo03, D foo04}) r) {
   }
 
   Future<void> test_contextType_recordType_positional() async {
-    await addTestFile(r'''
+    await computeSuggestions(r'''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -87,7 +87,7 @@ void g((A, B, C, D) r) {
   }
 
   Future<void> test_elementKind() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class A {
   int get g => 0;
   void m() { }
@@ -109,7 +109,7 @@ void f(A a) {
   }
 
   Future<void> test_hasDeprecated() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class C {
   void a() {}
   @deprecated
@@ -127,7 +127,7 @@ void f(C c) {
   }
 
   Future<void> test_inheritanceDepth() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class A {
   void a() { }
 }
@@ -148,7 +148,7 @@ void f(B b) {
   }
 
   Future<void> test_startsWithDollar() async {
-    await addTestFile(r'''
+    await computeSuggestions(r'''
 class A {
   void a() { }
   void $b() { }
@@ -165,7 +165,7 @@ void f(A a) {
   }
 
   Future<void> test_superMatches() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class A {
   void a() { }
   void b() { }
