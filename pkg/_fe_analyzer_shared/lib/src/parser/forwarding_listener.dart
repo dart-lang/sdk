@@ -678,8 +678,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token, Token endToken) {
-    listener?.handleEndingBinaryExpression(token, endToken);
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    listener?.handleDotAccess(token, endToken, isNullAware);
+  }
+
+  @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    listener?.handleCascadeAccess(token, endToken, isNullAware);
   }
 
   @override

@@ -334,6 +334,12 @@ class Parser {
   /// Whether the `enhanced-parts` feature is enabled.
   final bool enableFeatureEnhancedParts;
 
+  /// Whether the parser is allowed to shortcut certain [parseExpression] calls.
+  ///
+  /// Should be false if [parseExpression] is customized, e.g. if skipping
+  /// expressions.
+  bool get allowedToShortcutParseExpression => true;
+
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
@@ -6802,7 +6808,11 @@ class Parser {
               listener.handleDotShorthandHead(dot);
               isDotShorthand = false;
             } else {
-              listener.handleEndingBinaryExpression(operator, token);
+              listener.handleDotAccess(
+                operator,
+                token,
+                /* isNullAware = */ identical(type, TokenType.QUESTION_PERIOD),
+              );
             }
 
             Token bangToken = token;
@@ -7147,13 +7157,20 @@ class Parser {
         IdentifierContext.expressionContinuation,
         ConstantPatternContext.none,
       );
-      listener.handleEndingBinaryExpression(cascadeOperator, token);
+      listener.handleCascadeAccess(
+        cascadeOperator,
+        token,
+        /* isNullAware = */ cascadeOperator.isA(
+          TokenType.QUESTION_PERIOD_PERIOD,
+        ),
+      );
     }
     Token next = token.next!;
     Token mark;
     do {
       mark = token;
       if (next.isA(TokenType.PERIOD) || next.isA(TokenType.QUESTION_PERIOD)) {
+        bool isNullAware = next.isA(TokenType.QUESTION_PERIOD);
         Token period = next;
         token = parseSend(
           next,
@@ -7161,7 +7178,7 @@ class Parser {
           ConstantPatternContext.none,
         );
         next = token.next!;
-        listener.handleEndingBinaryExpression(period, token);
+        listener.handleDotAccess(period, token, isNullAware);
       } else if (next.isA(TokenType.BANG)) {
         listener.handleNonNullAssertExpression(next);
         token = next;
@@ -8927,7 +8944,70 @@ class Parser {
             ).next!;
         colon = token;
       }
-      token = parseExpression(token);
+      bool expressionHandled = false;
+
+      // For increased performance we'd prefer to shortcut common cases, but if
+      // a subclass of the parser has a special implementation of
+      // [parseExpression] (say, wanting to skip expressions) we can't do that.
+      if (allowedToShortcutParseExpression) {
+        Token next1 = token.next!;
+        // TODO(jensj): Possibly also for STRING CLOSE_PAREN / STRING COMMA?
+        if (next1.isA(TokenType.IDENTIFIER)) {
+          Token next2 = next1.next!;
+          if (next2.isA(TokenType.COMMA) || next2.isA(TokenType.CLOSE_PAREN)) {
+            // Shortcut common cases:
+            // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
+            listener.handleIdentifier(next1, IdentifierContext.expression);
+            listener.handleNoTypeArguments(next2);
+            listener.handleNoArguments(next2);
+            listener.handleSend(next1, next1);
+            token = next1;
+            expressionHandled = true;
+          } else if (next2.isA(TokenType.PERIOD)) {
+            Token next3 = next2.next!;
+            if (next3.isA(TokenType.IDENTIFIER)) {
+              Token next4 = next3.next!;
+              if (next4.isA(TokenType.COMMA) ||
+                  next4.isA(TokenType.CLOSE_PAREN)) {
+                // Shortcut common cases:
+                // "IDENTIFIER DOT IDENTIFIER COMMA" and
+                // "IDENTIFIER DOT IDENTIFIER CLOSE_PAREN"
+                listener.handleIdentifier(next1, IdentifierContext.expression);
+                listener.handleNoTypeArguments(next2);
+                listener.handleNoArguments(next2);
+                listener.handleSend(next1, next1);
+                listener.handleIdentifier(
+                  next3,
+                  IdentifierContext.expressionContinuation,
+                );
+                listener.handleNoTypeArguments(next4);
+                listener.handleNoArguments(next4);
+                listener.handleSend(next3, next3);
+                listener.handleDotAccess(
+                  next2,
+                  next3,
+                  /* isNullAware = */ false,
+                );
+                token = next3;
+                expressionHandled = true;
+              }
+            }
+          }
+        } else if (next1.isA(TokenType.STRING)) {
+          Token next2 = next1.next!;
+          if (next2.isA(TokenType.COMMA) || next2.isA(TokenType.CLOSE_PAREN)) {
+            // Shortcut common cases:
+            // "STRING COMMA" and "STRING CLOSE_PAREN"
+            listener.beginLiteralString(next1);
+            listener.endLiteralString(0, next2);
+            token = next1;
+            expressionHandled = true;
+          }
+        }
+      }
+      if (!expressionHandled) {
+        token = parseExpression(token);
+      }
       next = token.next!;
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;

@@ -135,13 +135,13 @@ vars = {
   "core_rev": "b59ecf4ceebe6153e1c0166b7c9a7fdd9458a89d",
   "dartdoc_rev": "882aea9351262d618c955322f4c9aafe9540b848",
   "ecosystem_rev": "d5233c6dd0767cffa5742e32c4bc7c230c9c4b12",
-  "flute_rev": "e4ea0459a7debae5e9592c85141707b01fac86c9",
+  "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
   "http_rev": "afda3102b7ed5467f435b9ad4a29a1032f195156",
   "i18n_rev": "c45e050426bdeaaa120e5ce856abb486863d0476",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "768a06d7bf34d84ea4ac8fc38bf8cf1d9afb5779", # rolled manually while native assets are experimental
-  "protobuf_rev": "4916e6f7d34443869c27d997749d4362870fd7ce",
+  "protobuf_rev": "44ecd7424fa0a9e023ecac0d894f50926ed111cf",
   "pub_rev": "c3e50919d11896f014cb971e1776d00a0e2d18b3", # rolled manually
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "c07f96f89a7eec7e3daac641fa6c587224fcfbaa",

@@ -2756,10 +2756,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token, Token endToken) {
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
     seen(token);
     seen(endToken);
-    doPrint('handleEndingBinaryExpression(' '$token, ' '$endToken)');
+    doPrint('handleDotAccess(' '$token, ' '$endToken, ' '$isNullAware)');
+  }
+
+  @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    seen(token);
+    seen(endToken);
+    doPrint('handleCascadeAccess(' '$token, ' '$endToken, ' '$isNullAware)');
   }
 
   @override

@@ -130,7 +130,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       required InstanceTypeParameterAccessState instanceTypeParameterAccess}) {
     bool isExplicit = true;
     if (arguments != null) {
-      for (TypeBuilder argument in arguments) {
+      for (int i = 0; i < arguments.length; i++) {
+        TypeBuilder argument = arguments[i];
         if (!argument.isExplicit) {
           isExplicit = false;
         }

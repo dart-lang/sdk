@@ -2581,11 +2581,16 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token, Token endToken) {
-    EndingBinaryExpressionHandle data = new EndingBinaryExpressionHandle(
-        ParserAstType.HANDLE,
-        token: token,
-        endToken: endToken);
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    DotAccessHandle data = new DotAccessHandle(ParserAstType.HANDLE,
+        token: token, endToken: endToken, isNullAware: isNullAware);
+    seen(data);
+  }
+
+  @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    CascadeAccessHandle data = new CascadeAccessHandle(ParserAstType.HANDLE,
+        token: token, endToken: endToken, isNullAware: isNullAware);
     seen(data);
   }
 
@@ -8597,23 +8602,44 @@ class BinaryPatternEnd extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitBinaryPatternEnd(this);
 }
 
-class EndingBinaryExpressionHandle extends ParserAstNode {
+class DotAccessHandle extends ParserAstNode {
   final Token token;
   final Token endToken;
+  final bool isNullAware;
 
-  EndingBinaryExpressionHandle(ParserAstType type,
-      {required this.token, required this.endToken})
-      : super("EndingBinaryExpression", type);
+  DotAccessHandle(ParserAstType type,
+      {required this.token, required this.endToken, required this.isNullAware})
+      : super("DotAccess", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
         "endToken": endToken,
+        "isNullAware": isNullAware,
       };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) =>
-      v.visitEndingBinaryExpressionHandle(this);
+  R accept<R>(ParserAstVisitor<R> v) => v.visitDotAccessHandle(this);
+}
+
+class CascadeAccessHandle extends ParserAstNode {
+  final Token token;
+  final Token endToken;
+  final bool isNullAware;
+
+  CascadeAccessHandle(ParserAstType type,
+      {required this.token, required this.endToken, required this.isNullAware})
+      : super("CascadeAccess", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+        "endToken": endToken,
+        "isNullAware": isNullAware,
+      };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitCascadeAccessHandle(this);
 }
 
 class ConditionalExpressionBegin extends ParserAstNode {
@@ -10736,7 +10762,8 @@ abstract class ParserAstVisitor<R> {
   R visitBinaryExpressionEnd(BinaryExpressionEnd node);
   R visitBinaryPatternBegin(BinaryPatternBegin node);
   R visitBinaryPatternEnd(BinaryPatternEnd node);
-  R visitEndingBinaryExpressionHandle(EndingBinaryExpressionHandle node);
+  R visitDotAccessHandle(DotAccessHandle node);
+  R visitCascadeAccessHandle(CascadeAccessHandle node);
   R visitConditionalExpressionBegin(ConditionalExpressionBegin node);
   R visitConditionalExpressionColonHandle(
       ConditionalExpressionColonHandle node);
@@ -11859,7 +11886,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
   void visitBinaryPatternEnd(BinaryPatternEnd node) => node.visitChildren(this);
 
   @override
-  void visitEndingBinaryExpressionHandle(EndingBinaryExpressionHandle node) =>
+  void visitDotAccessHandle(DotAccessHandle node) => node.visitChildren(this);
+
+  @override
+  void visitCascadeAccessHandle(CascadeAccessHandle node) =>
       node.visitChildren(this);
 
   @override
@@ -13342,8 +13372,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
       defaultNode(node);
 
   @override
-  Future<void> visitEndingBinaryExpressionHandle(
-          EndingBinaryExpressionHandle node) =>
+  Future<void> visitDotAccessHandle(DotAccessHandle node) => defaultNode(node);
+
+  @override
+  Future<void> visitCascadeAccessHandle(CascadeAccessHandle node) =>
       defaultNode(node);
 
   @override

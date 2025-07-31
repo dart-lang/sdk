@@ -4063,6 +4063,18 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleCascadeAccess(
+    Token operatorToken,
+    Token endToken,
+    bool isNullAware,
+  ) {
+    assert(optional('..', operatorToken) || optional('?..', operatorToken));
+    debugEvent("CascadeAccess");
+
+    doDotExpression(operatorToken);
+  }
+
+  @override
   void handleCastPattern(Token asOperator) {
     assert(optional('as', asOperator));
     debugEvent("CastPattern");
@@ -4262,6 +4274,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleDotAccess(Token operatorToken, Token endToken, bool isNullAware) {
+    assert(optional('.', operatorToken) || optional('?.', operatorToken));
+    debugEvent("DotAccess");
+
+    doDotExpression(operatorToken);
+  }
+
+  @override
   void handleDotShorthandContext(Token token) {
     debugEvent("DotShorthandContext");
     if (!enabledDotShorthands) {
@@ -4350,19 +4370,6 @@ class AstBuilder extends StackListener {
     debugEvent("EmptyStatement");
 
     push(EmptyStatementImpl(semicolon: semicolon));
-  }
-
-  @override
-  void handleEndingBinaryExpression(Token operatorToken, Token endToken) {
-    assert(
-      optional('.', operatorToken) ||
-          optional('?.', operatorToken) ||
-          optional('..', operatorToken) ||
-          optional('?..', operatorToken),
-    );
-    debugEvent("EndingBinaryExpression");
-
-    doDotExpression(operatorToken);
   }
 
   @override
