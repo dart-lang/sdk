@@ -349,6 +349,7 @@ package:analyzer/dart/analysis/code_style_options.dart:
     preferConstDeclarations (getter: bool)
     preferIntLiterals (getter: bool)
     preferredQuoteForStrings (getter: String)
+    requiredNamedParametersFirst (getter: bool)
     sortCombinators (getter: bool)
     sortConstructorsFirst (getter: bool)
     specifyReturnTypes (getter: bool)

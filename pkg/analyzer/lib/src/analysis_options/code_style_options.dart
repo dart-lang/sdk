@@ -40,6 +40,10 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   String get preferredQuoteForStrings => _lintQuote() ?? "'";
 
   @override
+  bool get requiredNamedParametersFirst =>
+      _isLintEnabled('always_put_required_named_parameters_first');
+
+  @override
   bool get sortCombinators => _isLintEnabled('combinators_ordering');
 
   @override
