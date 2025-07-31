@@ -2554,7 +2554,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleEndingBinaryExpression(Token token, Token endToken) {
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -2562,16 +2562,32 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Selector,
       ]),
     ]));
-    debugEvent("BinaryExpression");
-    if (token.isA(TokenType.PERIOD) ||
-        token.isA(TokenType.PERIOD_PERIOD) ||
-        token.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
-      doDotOrCascadeExpression(token);
-    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
+    debugEvent("DotAccess");
+    if (isNullAware) {
       doIfNotNull(token);
     } else {
-      throw new UnsupportedError("Unexpected ending binary $token.");
+      doDotExpression(token);
     }
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+      ]),
+    ]));
+  }
+
+  @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+    ]));
+    debugEvent("CascadeAccess");
+    doCascadeExpression(token);
     assert(checkState(token, [
       unionOfKinds([
         ValueKinds.Expression,
@@ -2891,14 +2907,14 @@ class BodyBuilder extends StackListenerImpl
     ]));
   }
 
-  void doDotOrCascadeExpression(Token token) {
+  void doDotExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      /* after . or .. */ unionOfKinds([
+      /* after . */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Selector,
       ]),
-      /* before . or .. */ unionOfKinds([
+      /* before . */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Initializer,
@@ -2906,9 +2922,48 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Object? send = pop();
     if (send is Selector) {
-      Object? receiver = token.isA(TokenType.PERIOD) ? pop() : popForValue();
+      Object? receiver = pop();
       push(send.withReceiver(receiver, token.charOffset));
     } else if (send is IncompleteErrorGenerator) {
+      // Pop the "receiver" and push the error.
+      pop();
+      push(send);
+    } else {
+      // Pop the "receiver" and push the error.
+      pop();
+      token = token.next!;
+      push(buildProblem(cfe.templateExpectedIdentifier.withArguments(token),
+          offsetForToken(token), lengthForToken(token)));
+    }
+    assert(checkState(token, <ValueKind>[
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+      ]),
+    ]));
+  }
+
+  void doCascadeExpression(Token token) {
+    assert(checkState(token, <ValueKind>[
+      /* after .. */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+      /* before .. */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+      ]),
+    ]));
+    Object? send = pop();
+    if (send is Selector) {
+      Object? receiver = popForValue();
+      push(send.withReceiver(receiver, token.charOffset));
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (send is IncompleteErrorGenerator) {
       // Pop the "receiver" and push the error.
       pop();
       push(send);

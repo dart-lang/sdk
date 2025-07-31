@@ -6808,7 +6808,11 @@ class Parser {
               listener.handleDotShorthandHead(dot);
               isDotShorthand = false;
             } else {
-              listener.handleEndingBinaryExpression(operator, token);
+              listener.handleDotAccess(
+                operator,
+                token,
+                /* isNullAware = */ identical(type, TokenType.QUESTION_PERIOD),
+              );
             }
 
             Token bangToken = token;
@@ -7153,13 +7157,20 @@ class Parser {
         IdentifierContext.expressionContinuation,
         ConstantPatternContext.none,
       );
-      listener.handleEndingBinaryExpression(cascadeOperator, token);
+      listener.handleCascadeAccess(
+        cascadeOperator,
+        token,
+        /* isNullAware = */ cascadeOperator.isA(
+          TokenType.QUESTION_PERIOD_PERIOD,
+        ),
+      );
     }
     Token next = token.next!;
     Token mark;
     do {
       mark = token;
       if (next.isA(TokenType.PERIOD) || next.isA(TokenType.QUESTION_PERIOD)) {
+        bool isNullAware = next.isA(TokenType.QUESTION_PERIOD);
         Token period = next;
         token = parseSend(
           next,
@@ -7167,7 +7178,7 @@ class Parser {
           ConstantPatternContext.none,
         );
         next = token.next!;
-        listener.handleEndingBinaryExpression(period, token);
+        listener.handleDotAccess(period, token, isNullAware);
       } else if (next.isA(TokenType.BANG)) {
         listener.handleNonNullAssertExpression(next);
         token = next;
@@ -8972,7 +8983,11 @@ class Parser {
                 listener.handleNoTypeArguments(next4);
                 listener.handleNoArguments(next4);
                 listener.handleSend(next3, next3);
-                listener.handleEndingBinaryExpression(next2, next3);
+                listener.handleDotAccess(
+                  next2,
+                  next3,
+                  /* isNullAware = */ false,
+                );
                 token = next3;
                 expressionHandled = true;
               }

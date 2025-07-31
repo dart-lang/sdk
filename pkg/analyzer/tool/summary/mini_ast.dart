@@ -459,6 +459,15 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    debugEvent("CascadeAccess");
+
+    pop(); // RHS
+    pop(); // LHS
+    push(UnknownExpression());
+  }
+
+  @override
   void handleClassNoWithClause() {
     debugEvent("NoClassWithClause");
   }
@@ -469,10 +478,10 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token, Token endToken) {
-    debugEvent("EndingBinaryExpression");
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    debugEvent("DotAccess");
 
-    if (identical('.', token.stringValue)) {
+    if (!isNullAware) {
       var rightOperand = pop() as String;
       var leftOperand = pop();
       if (leftOperand is String && !leftOperand.contains('.')) {

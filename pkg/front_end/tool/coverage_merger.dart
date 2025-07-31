@@ -1325,7 +1325,7 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   }
 
   @override
-  void visitEndingBinaryExpressionHandle(EndingBinaryExpressionHandle node) {
+  void visitDotAccessHandle(DotAccessHandle node) {
     // Given `a?.b` if `a` is null `b` won't execute.
     // Having the comment before the `?.` formats prettier.
     if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
@@ -1333,7 +1333,19 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
         allowReplace: true)) {
       return;
     }
-    super.visitEndingBinaryExpressionHandle(node);
+    super.visitDotAccessHandle(node);
+  }
+
+  @override
+  void visitCascadeAccessHandle(CascadeAccessHandle node) {
+    // Given `a?..b` if `a` is null `b` won't execute.
+    // Having the comment before the `?..` formats prettier.
+    if (_collector._checkCommentAndIgnoreCoverageWithBeginAndEnd(
+        node.token, node.token, node.endToken,
+        allowReplace: true)) {
+      return;
+    }
+    super.visitCascadeAccessHandle(node);
   }
 
   @override
