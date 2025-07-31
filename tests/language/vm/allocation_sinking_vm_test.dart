@@ -78,6 +78,9 @@ test1x4(c, x, y, z, w) {
   return d * d;
 }
 
+@pragma("vm:never-inline")
+@pragma("vm:entry-point")
+@pragma("dart2js:noInline")
 effects() {
   // This function should not be inlinable.
   try {} catch (e) {}

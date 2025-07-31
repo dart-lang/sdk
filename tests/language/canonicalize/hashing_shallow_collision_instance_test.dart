@@ -20018,6 +20018,9 @@ const list2 = [
   Box(Box(9999)),
 ];
 
+@pragma("vm:never-inline")
+@pragma("vm:entry-point")
+@pragma("dart2js:noInline")
 confuse(x) {
   try {
     throw x;

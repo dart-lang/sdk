@@ -54,6 +54,55 @@ void foo() {
     );
   }
 
+  Future<void> test_extension_getter() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+extension E on int {
+  int get bar => 42;
+}
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart';!]
+
+void f(int i) {
+  i.ba^r;
+}
+'''),
+    );
+  }
+
+  Future<void> test_extension_nestedInvocations() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+extension E on int {
+  void bar() {}
+}
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart';!]
+
+var a = 1.abs().ba^r();
+'''),
+    );
+  }
+
+  Future<void> test_extension_setter() async {
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+extension E on int {
+  set foo(int _) {}
+}
+''');
+    await _verifyGoToImports(
+      TestCode.parse('''
+[!import 'other.dart';!]
+
+void f(int i) {
+  i.fo^o = 0;
+}
+'''),
+    );
+  }
+
   Future<void> test_function() async {
     await _verifyGoToImports(
       TestCode.parse('''
@@ -409,21 +458,6 @@ class A {
 import 'other.dart';
 
 var a = A().foo().ba^r();
-'''),
-    );
-  }
-
-  Future<void> test_nestedInvocations_extension() async {
-    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
-extension E on int {
-  void bar() {}
-}
-''');
-    await _verifyGoToImports(
-      TestCode.parse('''
-[!import 'other.dart';!]
-
-var a = 1.abs().ba^r();
 '''),
     );
   }

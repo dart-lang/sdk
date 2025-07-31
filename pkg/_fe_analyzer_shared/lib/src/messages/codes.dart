@@ -18,7 +18,7 @@ part 'codes_generated.dart';
 
 const int noLength = 1;
 
-class Code<T> {
+class Code {
   final String name;
 
   /// The unique positive integer associated with this code,
@@ -42,7 +42,7 @@ class Code<T> {
 }
 
 class Message {
-  final Code<dynamic> code;
+  final Code code;
 
   final String problemMessage;
 
@@ -71,7 +71,7 @@ class Message {
   }
 }
 
-class MessageCode extends Code<Null> implements Message {
+class MessageCode extends Code implements Message {
   @override
   final String problemMessage;
 
@@ -91,7 +91,7 @@ class MessageCode extends Code<Null> implements Message {
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 
   @override
-  Code<dynamic> get code => this;
+  Code get code => this;
 
   @override
   LocatedMessage withLocation(Uri uri, int charOffset, int length) {
@@ -140,7 +140,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     this.messageObject,
   );
 
-  Code<dynamic> get code => messageObject.code;
+  Code get code => messageObject.code;
 
   String get problemMessage => messageObject.problemMessage;
 
@@ -245,7 +245,7 @@ class FormattedMessage implements DiagnosticMessage {
     this.involvedFiles,
   });
 
-  Code<dynamic> get code => locatedMessage.code;
+  Code get code => locatedMessage.code;
 
   @override
   String get codeName => code.name;
