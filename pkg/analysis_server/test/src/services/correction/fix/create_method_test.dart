@@ -450,6 +450,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_createQualified_emptyClassBody_dotShorthand() async {
+    await resolveTestCode('''
+class A {}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A myUndefinedMethod() {}
+}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
+}
+''');
+  }
+
   Future<void> test_createQualified_fromClass() async {
     await resolveTestCode('''
 class A {
@@ -464,6 +483,26 @@ class A {
 }
 void f() {
   A.myUndefinedMethod();
+}
+''');
+  }
+
+  Future<void> test_createQualified_fromClass_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A myUndefinedMethod() {}
+}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
 }
 ''');
   }
@@ -489,6 +528,30 @@ void f() {
 ''');
   }
 
+  Future<void>
+  test_createQualified_fromClass_hasOtherMember_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  foo() {}
+}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
+}
+''');
+    await assertHasFix('''
+class A {
+  foo() {}
+
+  static A myUndefinedMethod() {}
+}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
+}
+''');
+  }
+
   Future<void> test_createQualified_fromExtensionType() async {
     await resolveTestCode('''
 extension type A(String s) {
@@ -503,6 +566,26 @@ extension type A(String s) {
 }
 void f() {
   A.myUndefinedMethod();
+}
+''');
+  }
+
+  Future<void> test_createQualified_fromExtensionType_dotShorthand() async {
+    await resolveTestCode('''
+extension type A(String s) {
+}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
+}
+''');
+    await assertHasFix('''
+extension type A(String s) {
+  static A myUndefinedMethod() {}
+}
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
 }
 ''');
   }
@@ -548,6 +631,17 @@ void f(A a) {
 typedef A();
 void f() {
   A.myUndefinedMethod();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_createQualified_targetIsFunctionType_dotShorthand() async {
+    await resolveTestCode('''
+typedef A();
+void f() {
+  A a = .myUndefinedMethod();
+  print(a);
 }
 ''');
     await assertNoFix();
@@ -863,6 +957,33 @@ enum E {
 
 void test() {
   E.bar();
+}
+''');
+  }
+
+  Future<void> test_enum_invocation_static_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  e1,
+  e2;
+}
+
+void test() {
+  E e = .bar();
+  print(e);
+}
+''');
+    await assertHasFix('''
+enum E {
+  e1,
+  e2;
+
+  static E bar() {}
+}
+
+void test() {
+  E e = .bar();
+  print(e);
 }
 ''');
   }
@@ -1469,6 +1590,15 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_inSDK_dotShorthand() async {
+    await resolveTestCode('''
+List f() {
+  return .foo();
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_internal_instance_extension() async {
     await resolveTestCode('''
 extension E on String {
@@ -1554,6 +1684,40 @@ export 'test3.dart';
 
 class D {
   void foo(bbb.E e) {}
+}
+''', target: '$testPackageLibPath/test2.dart');
+  }
+
+  Future<void>
+  test_parameterType_differentPrefixInTargetUnit_dotShorthand() async {
+    var code2 = r'''
+import 'test3.dart' as bbb;
+export 'test3.dart';
+
+class D {
+}
+''';
+
+    newFile('$testPackageLibPath/test2.dart', code2);
+    newFile('$testPackageLibPath/test3.dart', r'''
+library test3;
+class E {}
+''');
+
+    await resolveTestCode('''
+import 'test2.dart' as aaa;
+
+aaa.D f(aaa.E e) {
+  return .foo(e);
+}
+''');
+
+    await assertHasFix('''
+import 'test3.dart' as bbb;
+export 'test3.dart';
+
+class D {
+  static D foo(bbb.E e) {}
 }
 ''', target: '$testPackageLibPath/test2.dart');
   }

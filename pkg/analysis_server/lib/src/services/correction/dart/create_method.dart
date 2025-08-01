@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -88,14 +88,48 @@ class CreateMethod extends ResolvedCorrectionProducer {
   }
 
   Future<void> _createMethod(ChangeBuilder builder) async {
-    if (node is! SimpleIdentifier || node.parent is! MethodInvocation) {
-      return;
-    }
+    if (node is! SimpleIdentifier) return;
     _memberName = (node as SimpleIdentifier).name;
-    var invocation = node.parent as MethodInvocation;
+
+    var invocation = node.parent;
+    switch (invocation) {
+      case MethodInvocation():
+        await _createMethodFromMethodInvocation(builder, invocation);
+      case DotShorthandInvocation():
+        await _createMethodFromDotShorthandInvocation(builder, invocation);
+    }
+  }
+
+  Future<void> _createMethodFromDotShorthandInvocation(
+    ChangeBuilder builder,
+    DotShorthandInvocation invocation,
+  ) async {
+    var targetClassElement = computeDotShorthandContextTypeElement(
+      invocation,
+      unitResult.libraryElement,
+    );
+    if (targetClassElement == null) return;
+
+    var targetNode = await _declarationNodeFromElement(targetClassElement);
+    if (targetNode is! CompilationUnitMember) return;
+
+    await _writeMethod(
+      builder,
+      invocation,
+      invocation.argumentList,
+      targetClassElement.firstFragment,
+      targetNode,
+      hasStaticModifier: true,
+    );
+  }
+
+  Future<void> _createMethodFromMethodInvocation(
+    ChangeBuilder builder,
+    MethodInvocation invocation,
+  ) async {
     // Prepare environment.
     Fragment? targetFragment;
-    var staticModifier = false;
+    var hasStaticModifier = false;
 
     CompilationUnitMember? targetNode;
     var target = invocation.realTarget;
@@ -117,7 +151,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
       if (enclosingMemberParent is CompilationUnitMember &&
           enclosingMemberParent is! ExtensionDeclaration) {
         targetNode = enclosingMemberParent;
-        staticModifier = switch (enclosingMember) {
+        hasStaticModifier = switch (enclosingMember) {
           ConstructorDeclaration(:var factoryKeyword) => factoryKeyword != null,
           MethodDeclaration(:var isStatic) => isStatic,
           FieldDeclaration(
@@ -129,64 +163,72 @@ class CreateMethod extends ResolvedCorrectionProducer {
       }
     } else {
       var targetClassElement = getTargetInterfaceElement(target);
-      if (targetClassElement == null) {
-        return;
-      }
+      if (targetClassElement == null) return;
       targetFragment = targetClassElement.firstFragment;
-      if (targetClassElement.library.isInSdk) {
-        return;
-      }
-      // Prepare target ClassDeclaration.
-      if (targetClassElement is MixinElement) {
-        var fragment = targetClassElement.firstFragment;
-        targetNode = await getMixinDeclaration(fragment);
-      } else if (targetClassElement is ClassElement) {
-        var fragment = targetClassElement.firstFragment;
-        targetNode = await getClassDeclaration(fragment);
-      } else if (targetClassElement is ExtensionTypeElement) {
-        var fragment = targetClassElement.firstFragment;
-        targetNode = await getExtensionTypeDeclaration(fragment);
-      } else if (targetClassElement is EnumElement) {
-        var fragment = targetClassElement.firstFragment;
-        targetNode = await getEnumDeclaration(fragment);
-      }
-      if (targetNode == null) {
-        return;
-      }
+
+      targetNode = await _declarationNodeFromElement(targetClassElement);
+      if (targetNode == null) return;
+
       // Maybe static.
       if (target is Identifier) {
-        staticModifier =
+        hasStaticModifier =
             target.element?.kind == ElementKind.CLASS ||
             target.element?.kind == ElementKind.ENUM ||
             target.element?.kind == ElementKind.EXTENSION_TYPE ||
             target.element?.kind == ElementKind.MIXIN;
       }
-      // Use different utils.
-      var targetPath = targetFragment.libraryFragment!.source.fullName;
-      var targetResolveResult = await unitResult.session.getResolvedUnit(
-        targetPath,
-      );
-      if (targetResolveResult is! ResolvedUnitResult) {
-        return;
-      }
     }
+    await _writeMethod(
+      builder,
+      invocation,
+      invocation.argumentList,
+      targetFragment,
+      targetNode,
+      hasStaticModifier: hasStaticModifier,
+    );
+  }
+
+  Future<CompilationUnitMember?> _declarationNodeFromElement(
+    InterfaceElement element,
+  ) async {
+    if (element.library.isInSdk) return null;
+    if (element is MixinElement) {
+      var fragment = element.firstFragment;
+      return await getMixinDeclaration(fragment);
+    } else if (element is ClassElement) {
+      var fragment = element.firstFragment;
+      return await getClassDeclaration(fragment);
+    } else if (element is ExtensionTypeElement) {
+      var fragment = element.firstFragment;
+      return await getExtensionTypeDeclaration(fragment);
+    } else if (element is EnumElement) {
+      var fragment = element.firstFragment;
+      return await getEnumDeclaration(fragment);
+    }
+    return null;
+  }
+
+  /// Inserts the new method into the source code.
+  Future<void> _writeMethod(
+    ChangeBuilder builder,
+    Expression invocation,
+    ArgumentList argumentList,
+    Fragment? targetFragment,
+    CompilationUnitMember? targetNode, {
+    required bool hasStaticModifier,
+  }) async {
     var targetSource = targetFragment?.libraryFragment!.source;
-    if (targetSource == null) {
-      return;
-    }
+    if (targetSource == null) return;
+
     var targetFile = targetSource.fullName;
-    // Build method source.
     await builder.addDartFileEdit(targetFile, (builder) {
-      if (targetNode == null) {
-        return;
-      }
+      if (targetNode == null) return;
       builder.insertMethod(targetNode, (builder) {
         // Maybe 'static'.
-        if (staticModifier) {
+        if (hasStaticModifier) {
           builder.write('static ');
         }
         // Append return type.
-
         var type = inferUndefinedExpressionType(invocation);
         if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
           builder.write(' ');
@@ -197,7 +239,7 @@ class CreateMethod extends ResolvedCorrectionProducer {
           builder.write(_memberName);
         });
         builder.write('(');
-        builder.writeParametersMatchingArguments(invocation.argumentList);
+        builder.writeParametersMatchingArguments(argumentList);
         builder.write(')');
         if (type?.isDartAsyncFuture == true) {
           builder.write(' async');

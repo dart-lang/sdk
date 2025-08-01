@@ -106,7 +106,11 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
                       invocation.offset,
                       invocation.argumentList.leftParenthesis.end,
                     );
-            builder.addDeletion(deletion);
+            if (hasComment) {
+              builder.addDeletion(deletion);
+            } else {
+              builder.addSimpleReplacement(deletion, ' ');
+            }
             builder.addDeletion(
               range.entity(invocation.argumentList.rightParenthesis),
             );
@@ -154,12 +158,12 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var lastColon = lastCase.colon;
 
             var patternCode = group.patternCases
-                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((patternCase) => patternCase.guardedPattern)
                 .map((pattern) => utils.getNodeText(pattern))
                 .join(' || ');
             builder.addSimpleReplacement(
               range.startEnd(firstCase.keyword, lastColon),
-              '$patternCode => ',
+              '$patternCode =>',
             );
 
             convertArgumentStatements(
@@ -248,7 +252,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var lastColon = lastCase.colon;
 
             var patternCode = group.patternCases
-                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((patternCase) => patternCase.guardedPattern)
                 .map((pattern) => utils.getNodeText(pattern))
                 .join(' || ');
             builder.addSimpleReplacement(
@@ -334,7 +338,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var lastCase = group.patternCases.last;
 
             var patternCode = group.patternCases
-                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((patternCase) => patternCase.guardedPattern)
                 .map((pattern) => utils.getNodeText(pattern))
                 .join(' || ');
             builder.addSimpleReplacement(

@@ -19,7 +19,7 @@ class IsNoSuchMethodTest extends CompletionRelevanceTest
 
 mixin IsNoSuchMethodTestCases on CompletionRelevanceTest {
   Future<void> test_notSuper() async {
-    await addTestFile('''
+    await computeSuggestions('''
 void foo(Object o) {
   o.^;
 }
@@ -41,7 +41,7 @@ void foo(Object o) {
   }
 
   Future<void> test_super() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class C {
   dynamic noSuchMethod(Invocation i) => super.^;
 }

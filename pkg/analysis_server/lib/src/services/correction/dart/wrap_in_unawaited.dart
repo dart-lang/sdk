@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -79,6 +80,12 @@ class WrapInUnawaited extends ResolvedCorrectionProducer {
     if (type.isDartAsyncFutureOr) {
       return true;
     }
-    return typeSystem.isAssignableTo(type, typeProvider.futureDynamicType);
+    return typeSystem.isAssignableTo(
+      type,
+      typeProvider.futureElement.instantiate(
+        typeArguments: [typeProvider.dynamicType],
+        nullabilitySuffix: NullabilitySuffix.question,
+      ),
+    );
   }
 }

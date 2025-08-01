@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
@@ -19,7 +19,10 @@ Map<String, RuleConfig> parseDiagnosticsSection(YamlNode value) {
     return {
       for (var ruleNode in value.nodes)
         if (ruleNode case YamlScalar(value: String ruleName))
-          ruleName: RuleConfig._(name: ruleName, isEnabled: true),
+          ruleName: RuleConfig._(
+            name: ruleName,
+            severity: ConfiguredSeverity.enable,
+          ),
     };
   }
 
@@ -81,7 +84,14 @@ RuleConfig? _parseRuleConfig(
   // For example: `{unnecessary_getters: false}`.
   if (configKey case YamlScalar(value: String ruleName)) {
     if (configNode case YamlScalar(value: bool isEnabled)) {
-      return RuleConfig._(name: ruleName, isEnabled: isEnabled, group: group);
+      var severity =
+          isEnabled ? ConfiguredSeverity.enable : ConfiguredSeverity.disable;
+      return RuleConfig._(name: ruleName, group: group, severity: severity);
+    } else if (configNode case YamlScalar(value: String severityString)) {
+      var severity =
+          ConfiguredSeverity.values.asNameMap()[severityString] ??
+          ConfiguredSeverity.enable;
+      return RuleConfig._(name: ruleName, group: group, severity: severity);
     }
   }
 
@@ -97,18 +107,39 @@ RuleConfig? _parseRuleConfig(
 /// via the name of the lint rule that reports the diagnostic.)
 typedef DiagnosticConfig = RuleConfig;
 
+/// The possible values for an analysis rule's configured severity.
+enum ConfiguredSeverity {
+  /// A severity indicating the rule is simply disabled.
+  disable,
+
+  /// A severity indicating the rule is enabled with its default severity.
+  enable,
+
+  /// A severity indicating the rule is enabled with the 'info' severity.
+  info,
+
+  /// A severity indicating the rule is enabled with the 'warning' severity.
+  warning,
+
+  /// A severity indicating the rule is enabled with the 'error' severity.
+  error,
+}
+
 /// The configuration of a single analysis rule within an analysis options file.
 class RuleConfig {
-  /// Whether this rule is enabled or disabled in this configuration.
-  final bool isEnabled;
-
   /// The name of the group under which this configuration is found.
   final String? group;
 
   /// The name of the rule.
   final String name;
 
-  RuleConfig._({required this.name, required this.isEnabled, this.group});
+  /// The rule's severity in this configuration.
+  final ConfiguredSeverity severity;
+
+  RuleConfig._({required this.name, this.group, required this.severity});
+
+  /// Whether this rule is enabled or disabled in this configuration.
+  bool get isEnabled => severity != ConfiguredSeverity.disable;
 
   /// Returns whether [ruleName] is disabled in this configuration.
   bool disables(String ruleName) => ruleName == name && !isEnabled;

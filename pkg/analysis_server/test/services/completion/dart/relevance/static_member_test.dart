@@ -18,7 +18,7 @@ class StaticMemberTest extends CompletionRelevanceTest
 
 mixin StaticMemberTestCases on CompletionRelevanceTest {
   Future<void> test_contextType() async {
-    await addTestFile(r'''
+    await computeSuggestions(r'''
 class A {}
 class B extends A {}
 class C extends B {}
@@ -45,7 +45,7 @@ void g() {
   }
 
   Future<void> test_elementKind() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class C {
   static int f = 0;
   static void get g {}
@@ -69,7 +69,7 @@ void g() {
   }
 
   Future<void> test_hasDeprecated() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class C {
   static void a() {}
   @deprecated

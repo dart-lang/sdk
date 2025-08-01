@@ -25,7 +25,7 @@ mixin NamedArgumentTestCases on CompletionRelevanceTest {
   }
 
   Future<void> test_required() async {
-    await addTestFile('''
+    await computeSuggestions('''
 void f({int a = 0, required int b}) {}
 
 void g() => f(^);
@@ -37,7 +37,7 @@ void g() => f(^);
   }
 
   Future<void> test_requiredAnnotation() async {
-    await addTestFile('''
+    await computeSuggestions('''
 import 'package:meta/meta.dart';
 
 void f({int a, @required int b}) {}
