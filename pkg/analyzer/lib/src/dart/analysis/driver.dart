@@ -150,6 +150,9 @@ class AnalysisDriver {
   /// The [Packages] object with packages and their language versions.
   final Packages _packages;
 
+  /// Whether fine-grained dependencies experiment is enabled.
+  final bool withFineDependencies;
+
   /// The [SourceFactory] is used to resolve URIs to paths and restore URIs
   /// from file paths.
   final SourceFactory _sourceFactory;
@@ -291,6 +294,7 @@ class AnalysisDriver {
     required ByteStore byteStore,
     required SourceFactory sourceFactory,
     required Packages packages,
+    required this.withFineDependencies,
     LinkedBundleProvider? linkedBundleProvider,
     this.ownedFiles,
     this.analysisContext,
@@ -315,7 +319,11 @@ class AnalysisDriver {
        _logger = logger,
        _packages = packages,
        linkedBundleProvider =
-           linkedBundleProvider ?? LinkedBundleProvider(byteStore: byteStore),
+           linkedBundleProvider ??
+           LinkedBundleProvider(
+             byteStore: byteStore,
+             withFineDependencies: withFineDependencies,
+           ),
        _sourceFactory = sourceFactory,
        _externalSummaries = externalSummaries,
        declaredVariables = declaredVariables ?? DeclaredVariables(),
@@ -405,6 +413,7 @@ class AnalysisDriver {
       externalSummaries: _externalSummaries,
       fileSystemState: _fsState,
       linkedBundleProvider: linkedBundleProvider,
+      withFineDependencies: withFineDependencies,
     );
   }
 
@@ -1623,6 +1632,7 @@ class AnalysisDriver {
       isGenerated: (_) => false,
       onNewFile: _onNewFile,
       testData: testView?.fileSystem,
+      withFineDependencies: withFineDependencies,
     );
     _fileTracker = FileTracker(_logger, _fsState, _fileContentStrategy);
   }

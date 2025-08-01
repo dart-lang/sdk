@@ -764,7 +764,7 @@ class LibraryReader {
     return _reader.readUInt30();
   }
 
-  void _readFragmentMetadata<T extends AnnotatableFragmentImpl>(
+  void _readFragmentMetadata<T extends FragmentImpl>(
     T fragment,
     ResolutionReader reader,
   ) {

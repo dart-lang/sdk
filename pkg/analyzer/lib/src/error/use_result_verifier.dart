@@ -180,13 +180,7 @@ class UseResultVerifier {
       element = element.variable;
     }
 
-    if (element case Annotatable annotatable) {
-      return annotatable.metadata.annotations.firstWhereOrNull(
-        (e) => e.isUseResult,
-      );
-    }
-
-    return null;
+    return element.metadata.annotations.firstWhereOrNull((e) => e.isUseResult);
   }
 
   static bool _isUsed(AstNode node) {

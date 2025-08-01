@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_overrides.dart';
-import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
@@ -36,7 +35,7 @@ class DartDocumentationComputer {
       if (element case PropertyAccessorElement(:var variable)) variable,
     ];
     for (var candidate in candidates) {
-      if (candidate.documentationCommentOrNull != null) {
+      if (candidate.documentationComment != null) {
         documentedElement = candidate;
         break;
       }
@@ -54,7 +53,7 @@ class DartDocumentationComputer {
       return null;
     }
 
-    var rawDoc = documentedElement.documentationCommentOrNull;
+    var rawDoc = documentedElement.documentationComment;
     if (rawDoc == null) {
       return null;
     }

@@ -1120,9 +1120,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   static bool _hasPragmaVmEntryPoint(Element element) {
-    return element is Annotatable &&
-        ((element as Annotatable).metadata as MetadataImpl)
-            .hasPragmaVmEntryPoint;
+    return (element.metadata as MetadataImpl).hasPragmaVmEntryPoint;
   }
 }
 

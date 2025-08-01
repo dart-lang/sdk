@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
@@ -157,12 +156,6 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest
     super.setUp();
     registerLintRules();
     useEmptyByteStore();
-  }
-
-  @override
-  Future<void> tearDown() async {
-    withFineDependencies = false;
-    return super.tearDown();
   }
 
   test_addedFiles() async {
@@ -5448,6 +5441,7 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
 
   @override
   void setUp() {
+    withFineDependencies = true;
     super.setUp();
     registerLintRules();
     useEmptyByteStore();
@@ -5456,7 +5450,6 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
   @override
   Future<void> tearDown() async {
     testFineAfterLibraryAnalyzerHook = null;
-    withFineDependencies = false;
     return super.tearDown();
   }
 
@@ -46777,7 +46770,6 @@ import 'a.dart';
       NodeTextExpectationsCollector.intraInvocationId = id;
     }
 
-    withFineDependencies = true;
     configuration
       ..withResultRequirements = true
       ..withLibraryManifest = true
@@ -46864,7 +46856,6 @@ import 'a.dart';
 
     newFile(testFile.path, initialCode);
 
-    withFineDependencies = true;
     configuration
       ..withGetLibraryByUri = false
       ..withLibraryManifest = true
@@ -46914,7 +46905,6 @@ import 'a.dart';
   Future<void> _runManualRequirementsRecording({
     required String expectedEvents,
   }) async {
-    withFineDependencies = true;
     configuration
       ..withAnalyzeFileEvents = false
       ..withLibraryManifest = true

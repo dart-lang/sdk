@@ -221,8 +221,8 @@ extension on InvocationExpressionImpl {
       _ => null,
     };
 
-    if (element case Annotatable annotatable) {
-      return annotatable.metadata.hasWidgetFactory;
+    if (element != null) {
+      return element.metadata.hasWidgetFactory;
     }
     return false;
   }

@@ -38,9 +38,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required EncodeContext context,
     required ClassElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ClassItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -103,9 +101,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     required EncodeContext context,
     required EnumElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return EnumItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -168,9 +164,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     required EncodeContext context,
     required ExtensionElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -239,9 +233,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required EncodeContext context,
     required ExtensionTypeElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionTypeItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -626,7 +618,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
   }
 }
 
-sealed class InstanceItemMemberItem<E extends AnnotatableElementImpl>
+sealed class InstanceItemMemberItem<E extends ElementImpl>
     extends ManifestItem<E> {
   final bool isStatic;
 
@@ -669,9 +661,7 @@ sealed class InstanceItemMemberItem<E extends AnnotatableElementImpl>
     write(sink);
   }
 
-  static InstanceItemMemberItem<AnnotatableElementImpl> read(
-    SummaryDataReader reader,
-  ) {
+  static InstanceItemMemberItem<ElementImpl> read(SummaryDataReader reader) {
     var kind = reader.readEnum(_InstanceItemMemberItemKind.values);
     switch (kind) {
       case _InstanceItemMemberItemKind.field:
@@ -1052,7 +1042,7 @@ class ManifestInterface {
   }
 }
 
-sealed class ManifestItem<E extends AnnotatableElementImpl> {
+sealed class ManifestItem<E extends ElementImpl> {
   /// The unique identifier of this item.
   final ManifestItemId id;
   final ManifestMetadata metadata;
@@ -1144,9 +1134,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required EncodeContext context,
     required MixinElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return MixinItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -1287,8 +1275,7 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
   }
 }
 
-sealed class TopLevelItem<E extends AnnotatableElementImpl>
-    extends ManifestItem<E> {
+sealed class TopLevelItem<E extends ElementImpl> extends ManifestItem<E> {
   TopLevelItem({required super.id, required super.metadata});
 }
 
@@ -1401,9 +1388,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
     required EncodeContext context,
     required TypeAliasElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return TypeAliasItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -1472,7 +1457,7 @@ extension SummaryDataReaderExtension on SummaryDataReader {
   }
 }
 
-extension _AnnotatableElementExtension on AnnotatableElementImpl {
+extension _AnnotatableElementExtension on ElementImpl {
   MetadataImpl get effectiveMetadata {
     if (this case PropertyAccessorElementImpl accessor) {
       return accessor.thisOrVariableMetadata;

@@ -1424,29 +1424,45 @@ abstract class AstCodeGenerator
       b.end();
     }
 
-    // Compare against all case values
-    for (SwitchCase c in node.cases) {
-      for (Expression exp in c.expressions) {
-        if (exp is NullLiteral ||
-            exp is ConstantExpression && exp.constant is NullConstant) {
-          // Null already checked, skip
-        } else {
-          switchInfo.compare(
-            switchValueNonNullableLocal,
-            () => translateExpression(exp, switchInfo.nonNullableType),
-          );
-          b.br_if(switchLabels[c]!);
+    final brTable = switchInfo.brTable;
+    if (brTable != null) {
+      // Map each entry in the range to the appropriate jump table entry.
+      final indexBlocks = <w.Label>[];
+      final defaultLabel =
+          defaultCase != null ? switchLabels[defaultCase]! : doneLabel;
+      for (int i = brTable.minValue; i <= brTable.maxValue; ++i) {
+        final c = brTable.caseMap[i];
+        indexBlocks.add(c == null ? defaultLabel : switchLabels[c]!);
+      }
+
+      brTable.emitBrTableExpr(b, switchValueNonNullableLocal);
+
+      b.br_table(indexBlocks, defaultLabel);
+    } else {
+      // Compare against all case values
+      for (SwitchCase c in node.cases) {
+        for (Expression exp in c.expressions) {
+          if (exp is NullLiteral ||
+              exp is ConstantExpression && exp.constant is NullConstant) {
+            // Null already checked, skip
+          } else {
+            switchInfo.compare(
+              switchValueNonNullableLocal,
+              () => translateExpression(exp, switchInfo.nonNullableType),
+            );
+            b.br_if(switchLabels[c]!);
+          }
         }
       }
-    }
 
-    // No explicit cases matched
-    if (node.isExplicitlyExhaustive) {
-      b.unreachable();
-    } else {
-      w.Label defaultLabel =
-          defaultCase != null ? switchLabels[defaultCase]! : doneLabel;
-      b.br(defaultLabel);
+      // No explicit cases matched
+      if (node.isExplicitlyExhaustive) {
+        b.unreachable();
+      } else {
+        w.Label defaultLabel =
+            defaultCase != null ? switchLabels[defaultCase]! : doneLabel;
+        b.br(defaultLabel);
+      }
     }
 
     // Emit case bodies
@@ -4297,6 +4313,63 @@ class SwitchBackwardJumpInfo {
       : defaultLoopLabel = null;
 }
 
+/// Info needed to represent a switch statement using a br_table instruction.
+///
+/// This is used for switches on integers and enums (using their indicies). We
+/// map each option to an index in the jump table and then jump directly to the
+/// target case. This is much faster than iteratively comparing each cases's
+/// expression to the switch expression.
+///
+/// Sometimes switches over ranges of ints are sparse enough that a table would
+/// bloat the code compared to the iterative comparison.
+class BrTableInfo {
+  // At least 50% of the [min, max] must be occupied for us to use `br_table`.
+  static const double _minimumTableOccupancy = 0.5;
+  // This is the maximum size where it's always worth it to use a br_table.
+  // If the br_table is bigger than this then we start to check sparseness.
+  // Below this point we always accept the potential code size hit.
+  static const int _maxSparseSize = 50;
+
+  int get rangeSize => _rangeSize(minValue, maxValue);
+  final int minValue;
+  final int maxValue;
+  final void Function(w.Local switchExprLocal) _brTableExpr;
+  final Map<int, SwitchCase> caseMap;
+
+  BrTableInfo._(this.minValue, this.maxValue, this.caseMap, this._brTableExpr)
+      : assert(!_isTooSparse(minValue, maxValue, caseMap));
+
+  /// Heuristically validate whether the provided table would be too sparse and
+  /// if so return null. Otherwise return the expected table.
+  static BrTableInfo? build(Map<int, SwitchCase> caseMap,
+      void Function(w.Local switchExprLocal) brTableExpr,
+      {required int minValue, required int maxValue}) {
+    // Validate the table density and size is worth putting into a br_table.
+    if (_isTooSparse(minValue, maxValue, caseMap)) return null;
+
+    return BrTableInfo._(minValue, maxValue, caseMap, brTableExpr);
+  }
+
+  static bool _isTooSparse(int min, int max, Map<int, SwitchCase> caseMap) {
+    int rangeSize = _rangeSize(min, max);
+    return (caseMap.length / rangeSize) < _minimumTableOccupancy &&
+        rangeSize > _maxSparseSize;
+  }
+
+  static int _rangeSize(int min, int max) => max - min + 1;
+
+  void emitBrTableExpr(w.InstructionsBuilder b, w.Local switchExprLocal) {
+    _brTableExpr(switchExprLocal);
+    // Normalize on 0.
+    if (minValue != 0) {
+      b.i64_const(minValue);
+      b.i64_sub();
+    }
+    // Now that we've normalized on 0 it should be safe to switch to i32.
+    b.i32_wrap_i64();
+  }
+}
+
 class SwitchInfo {
   /// Non-nullable Wasm type of the `switch` expression. Used when the
   /// expression is not nullable, and after the null check.
@@ -4322,6 +4395,11 @@ class SwitchInfo {
 
   /// The `null: ...` case, if exists.
   late final SwitchCase? nullCase;
+
+  /// Info needed to compile this switch statement into a wasm br_table. If null
+  /// this switch statement should not use a br_table and should use comparison
+  /// based case matching instead.
+  BrTableInfo? brTable;
 
   SwitchInfo(AstCodeGenerator codeGen, SwitchStatement node) {
     final translator = codeGen.translator;
@@ -4453,6 +4531,31 @@ class SwitchInfo {
       nonNullableType = w.NumType.i64;
       nullableType =
           translator.classInfo[translator.boxedIntClass]!.nullableType;
+
+      // Calculate the range covered by the cases and create the jump table.
+      int? minValue;
+      int? maxValue;
+      Map<int, SwitchCase> caseMap = {};
+      for (final c in node.cases) {
+        for (final e in c.expressions) {
+          final value = e is IntLiteral
+              ? e.value
+              : ((e as ConstantExpression).constant as IntConstant).value;
+          caseMap[value] = c;
+          if (minValue == null || value < minValue) minValue = value;
+          if (maxValue == null || value > maxValue) maxValue = value;
+        }
+      }
+      if (maxValue != null) {
+        brTable = BrTableInfo.build(
+            minValue: minValue!,
+            maxValue: maxValue,
+            caseMap, (switchExprLocal) {
+          codeGen.b.local_get(switchExprLocal);
+        });
+      }
+
+      // Provide a compare as a fallback in case the range is too sparse.
       compare = (switchExprLocal, pushCaseExpr) {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
@@ -4466,6 +4569,64 @@ class SwitchInfo {
         codeGen.b.local_get(switchExprLocal);
         pushCaseExpr();
         codeGen.call(translator.jsStringEquals.reference);
+      };
+    } else if (switchExprClass.isEnum) {
+      // If this is an applicable switch over enums, create a jump table.
+      bool isValid = true;
+      var caseMap = <int, SwitchCase>{};
+      int? minIndex;
+      int? maxIndex;
+      outer:
+      for (final c in node.cases) {
+        for (final e in c.expressions) {
+          if (e is! ConstantExpression) {
+            isValid = false;
+            break outer;
+          }
+          final constant = e.constant;
+          if (constant is! InstanceConstant) {
+            isValid = false;
+            break outer;
+          }
+          if (constant.classNode != switchExprClass) {
+            isValid = false;
+            break outer;
+          }
+          final enumIndex =
+              (constant.fieldValues[translator.enumIndexField.fieldReference]
+                      as IntConstant)
+                  .value;
+          caseMap[enumIndex] = c;
+          if (maxIndex == null || enumIndex > maxIndex) maxIndex = enumIndex;
+          if (minIndex == null || enumIndex < minIndex) minIndex = enumIndex;
+        }
+      }
+
+      if (isValid && maxIndex != null) {
+        brTable = BrTableInfo.build(
+            minValue: minIndex!,
+            maxValue: maxIndex,
+            caseMap, (switchExprLocal) {
+          codeGen.b.local_get(switchExprLocal);
+          codeGen.call(translator.enumIndexField.getterReference);
+        });
+      }
+
+      if (brTable == null) {
+        // Object identity switch
+        nonNullableType = translator.topTypeNonNullable;
+        nullableType = translator.topType;
+      } else {
+        nonNullableType =
+            translator.classInfo[switchExprClass]!.nonNullableType;
+        nullableType = translator.classInfo[switchExprClass]!.nullableType;
+      }
+
+      // Set compare anyway for state machine handling
+      compare = (switchExprLocal, pushCaseExpr) {
+        codeGen.b.local_get(switchExprLocal);
+        pushCaseExpr();
+        codeGen.call(translator.coreTypes.identicalProcedure.reference);
       };
     } else {
       // Object identity switch

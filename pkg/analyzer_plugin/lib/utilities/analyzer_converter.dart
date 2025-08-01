@@ -135,8 +135,7 @@ class AnalyzerConverter {
       name,
       Element.makeFlags(
         isPrivate: element.isPrivate,
-        isDeprecated: (element is analyzer.Annotatable) &&
-            (element as analyzer.Annotatable).metadata.hasDeprecated,
+        isDeprecated: element.metadata.hasDeprecated,
         isAbstract: _isAbstract(element),
         isConst: _isConst(element),
         isFinal: _isFinal(element),

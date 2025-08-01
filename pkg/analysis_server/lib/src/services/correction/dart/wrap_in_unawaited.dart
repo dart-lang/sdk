@@ -26,12 +26,21 @@ class WrapInUnawaited extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     AstNode? node = this.node;
+    if (node is CascadeExpression) {
+      // If this is the target of a cascade, than wrapping in unawaited is not
+      // necesarily correct because the access will not be on the future.
+      // So we don't do anything here.
+      return;
+    }
     // The reported node may be the `identifier` in a PrefixedIdentifier,
     // the `propertyName` in a PropertyAccess, or the `methodName` in a
     // MethodInvocation. Check whether the grandparent is a
     // CascadeExpression. If it is, we cannot simply add an await
     // expression; we must also change the cascade(s) into a regular
     // property access or method call.
+    // If this is ever broken we must fix here and at:
+    // - DartFixKind.ADD_AWAIT
+    // - DartFixKind.ADD_ASYNC
     if (node.parent?.parent is CascadeExpression) {
       return;
     }

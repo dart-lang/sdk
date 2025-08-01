@@ -1007,15 +1007,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       libraryExport,
     );
     exportNamespace.definedNames2.forEach((String name, Element element) {
-      if (element case Annotatable annotatable) {
-        if (annotatable.metadata.hasInternal) {
-          _diagnosticReporter.atNode(
-            node,
-            WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
-            arguments: [element.displayName],
-          );
-          return;
-        }
+      if (element.metadata.hasInternal) {
+        _diagnosticReporter.atNode(
+          node,
+          WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT,
+          arguments: [element.displayName],
+        );
+        return;
       }
       if (element is ExecutableElement) {
         var signatureTypes = [
@@ -2030,10 +2028,8 @@ class _InvalidAccessVerifier {
   }
 
   bool _hasDoNotSubmit(Element element) {
-    if (element case Annotatable annotatable) {
-      if (annotatable.metadata.hasDoNotSubmit) {
-        return true;
-      }
+    if (element.metadata.hasDoNotSubmit) {
+      return true;
     }
     if (element is PropertyAccessorElement) {
       return element.variable.metadata.hasDoNotSubmit;
@@ -2052,10 +2048,8 @@ class _InvalidAccessVerifier {
   }
 
   bool _hasVisibleForOverriding(Element element) {
-    if (element case Annotatable annotatable) {
-      if (annotatable.metadata.hasVisibleForOverriding) {
-        return true;
-      }
+    if (element.metadata.hasVisibleForOverriding) {
+      return true;
     }
 
     if (element is PropertyAccessorElement) {
@@ -2069,10 +2063,8 @@ class _InvalidAccessVerifier {
     if (element == null) {
       return false;
     }
-    if (element case Annotatable annotatable) {
-      if (annotatable.metadata.hasVisibleForTemplate) {
-        return true;
-      }
+    if (element.metadata.hasVisibleForTemplate) {
+      return true;
     }
     if (element is PropertyAccessorElement) {
       if (element.variable.metadata.hasVisibleForTemplate) {
@@ -2087,10 +2079,8 @@ class _InvalidAccessVerifier {
   }
 
   bool _hasVisibleOutsideTemplate(Element element) {
-    if (element case Annotatable annotatable) {
-      if (annotatable.metadata.hasVisibleOutsideTemplate) {
-        return true;
-      }
+    if (element.metadata.hasVisibleOutsideTemplate) {
+      return true;
     }
     if (element is PropertyAccessorElement) {
       if (element.variable.metadata.hasVisibleOutsideTemplate) {

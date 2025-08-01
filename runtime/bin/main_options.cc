@@ -226,9 +226,11 @@ bool Options::ParseArguments(int argc,
     // Store the executable name.
     if (Options::executable_name() != nullptr) {
       Platform::SetExecutableName(Options::executable_name());
-      Platform::SetResolvedExecutableName(Options::executable_name());
     } else {
       Platform::SetExecutableName(argv[0]);
+    }
+    if (Options::resolved_executable_name() != nullptr) {
+      Platform::SetResolvedExecutableName(Options::resolved_executable_name());
     }
   }
 

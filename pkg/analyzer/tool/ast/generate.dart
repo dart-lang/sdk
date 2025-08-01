@@ -33,6 +33,12 @@ Future<List<GeneratedContent>> get allTargets async {
       var generator = _LinterVisitorGenerator(astLibrary);
       return await generator.generate();
     }),
+    GeneratedFile('analyzer/lib/analysis_rule/rule_visitor_registry.g.dart', (
+      _,
+    ) async {
+      var generator = _RuleVisitorGenerator(astLibrary);
+      return await generator.generate();
+    }),
   ];
 }
 
@@ -112,7 +118,7 @@ part of 'ast.dart';
   _AstVisitorGenerator(this.astLibrary);
 
   Future<String> generate() async {
-    _writeAstVisitor(astLibrary);
+    _writeAstVisitor();
 
     var resultPath = normalize(
       join(_analyzerPath, 'lib', 'src', 'dart', 'ast', 'ast.g.dart'),
@@ -120,7 +126,7 @@ part of 'ast.dart';
     return _formatSortCode(resultPath, out.toString());
   }
 
-  void _writeAstVisitor(LibraryElement astLibrary) {
+  void _writeAstVisitor() {
     out.write('''
 /// An object that can be used to visit an AST structure.
 ///
@@ -419,6 +425,7 @@ part of 'linter_visitor.dart';
 
   Future<String> generate() async {
     _writeLinterVisitor();
+    _writeRuleVisitorRegistryImpl();
 
     var resultPath = normalize(
       join(_analyzerPath, 'lib', 'src', 'lint', 'linter_visitor.g.dart'),
@@ -512,6 +519,47 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     }
     out.writeln('}');
   }
+
+  void _writeRuleVisitorRegistryImpl() {
+    out.write('''
+class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
+  final bool _enableTiming;
+  final List<_AfterLibrarySubscription> _afterLibrary = [];
+
+  RuleVisitorRegistryImpl({required bool enableTiming})
+  : _enableTiming = enableTiming;
+
+  /// Get the timer associated with the given [rule].
+  Stopwatch? _getTimer(AbstractAnalysisRule rule) {
+    if (_enableTiming) {
+      return analysisRuleTimers.getTimer(rule);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  void afterLibrary(AbstractAnalysisRule rule, void Function() callback) {
+    _afterLibrary.add(
+      _AfterLibrarySubscription(rule, callback, _getTimer(rule)),
+    );
+  }
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete) {
+        var name = node.name;
+        out.writeln('''
+final List<_Subscription<$name>> _for$name = [];
+
+@override
+void add$name(AbstractAnalysisRule rule, AstVisitor visitor) {
+  _for$name.add(_Subscription(rule, visitor, _getTimer(rule)));
+}
+''');
+      }
+    }
+    out.writeln('}');
+  }
 }
 
 class _Node {
@@ -524,6 +572,62 @@ class _Node {
 
   _Node? get superNode {
     return element.supertype?.element.ifTypeOrNull<ClassElement>()?.asNode;
+  }
+}
+
+class _RuleVisitorGenerator {
+  final LibraryElement astLibrary;
+
+  final StringBuffer out = StringBuffer('''
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Run 'dart pkg/analyzer/tool/ast/generate.dart' to update.
+
+part of 'rule_visitor_registry.dart';
+''');
+
+  _RuleVisitorGenerator(this.astLibrary);
+
+  Future<String> generate() async {
+    _writeRuleVisitor();
+
+    var resultPath = normalize(
+      join(
+        _analyzerPath,
+        'lib',
+        'analysis_rule',
+        'rule_visitor_registry.g.dart',
+      ),
+    );
+    return _formatSortCode(resultPath, out.toString());
+  }
+
+  void _writeRuleVisitor() {
+    out.write('''
+/// The container to register visitors for separate AST node types.
+///
+/// Source files are visited by the Dart analysis server recursively. Only the
+/// visitors that are registered to visit a given node type will visit such
+/// nodes. Each analysis rule overrides
+/// [AbstractAnalysisRule.registerNodeProcessors] and calls `add*` for each of
+/// the node types it needs to visit with an [AstVisitor], which registers that
+/// visitor.
+abstract class RuleVisitorRegistry {
+  void afterLibrary(AbstractAnalysisRule rule, void Function() callback);
+''');
+    for (var node in astLibrary.nodes) {
+      if (node.isConcrete) {
+        var name = node.name;
+        out.writeln('''
+void add$name(AbstractAnalysisRule rule, AstVisitor visitor);
+''');
+      }
+    }
+    out.writeln('}');
   }
 }
 

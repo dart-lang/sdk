@@ -395,9 +395,7 @@ extension on Element {
     ) when setter.isInAnalyzerPublicApi) {
       return true;
     }
-    if (this case Annotatable(
-      metadata: Metadata(:var annotations),
-    ) when annotations.any(_isPublicApiAnnotation)) {
+    if (metadata.annotations.any(_isPublicApiAnnotation)) {
       return true;
     }
     if (name case var name? when !name.isPublic) return false;

@@ -148,6 +148,9 @@ bool Options::ParseDartDevArguments(int argc,
                                     CommandLineOptions* dart_vm_options,
                                     CommandLineOptions* dart_options,
                                     bool* skip_dartdev) {
+  // Store the executable name.
+  Platform::SetExecutableName(argv[0]);
+
   // First figure out if a dartdev command has been explicitly specified.
   *skip_dartdev = false;
   int tmp_i = 1;
@@ -316,9 +319,6 @@ bool Options::ParseDartDevArguments(int argc,
     }
     i++;
   }
-
-  // Store the executable name.
-  Platform::SetExecutableName(argv[0]);
 
   // Verify consistency of arguments.
   if ((packages_file_ != nullptr) && (strlen(packages_file_) == 0)) {

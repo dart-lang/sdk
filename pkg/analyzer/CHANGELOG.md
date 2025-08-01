@@ -1,6 +1,8 @@
 ## 8.1.0-dev
 * Add `DartObject.constructorInvocation` with the constructor and arguments.
 * Make `PropertyAccessorElement.variable` non-nullable.
+* Add `documentationComment` to `Element` and `Fragment`.
+* Add `metadata` to `Element` and `Fragment`.`
 * Fix draining analysis events when used by `package:build`.
 * Deprecate `LibraryElementResult.element2`, use `element` instead.
 * Deprecate `ResolvedLibraryResult.element2`, use `element` instead.
@@ -10,6 +12,7 @@
 * Deprecate `resolveFile2`, use `resolveFile` instead.
 * Deprecate `DartObject.variable2`, use `variable` instead.
 * Deprecate `DartObject.toFunctionValue2`, use `toFunctionValue` instead.
+* Deprecate `Annotatable`, use `documentationComment` and `metadata` of `Element` or `Fragment` directly.
 
 ## 8.0.0
 * Remove deprecated element model V1.
