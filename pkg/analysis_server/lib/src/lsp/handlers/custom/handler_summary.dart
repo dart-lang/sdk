@@ -70,6 +70,14 @@ class SummaryWriter {
 
   String summarize() {
     var libraryElement = result.element;
+
+    // Write a summary of the imports.
+    var libraryImports = libraryElement.firstFragment.libraryImports;
+    for (var libraryImport in libraryImports) {
+      summarizeImport(libraryImport);
+    }
+
+    // Write a summary of the declarations in the export namespace.
     var definedNames = libraryElement.exportNamespace.definedNames2;
     var needsSeparator = false;
     for (var element in definedNames.values) {
@@ -351,6 +359,35 @@ class SummaryWriter {
     buffer.write(' ');
   }
 
+  void summarizeImport(LibraryImport libraryImport) {
+    if (libraryImport.isSynthetic) return;
+    buffer.write("import '");
+    buffer.write(libraryImport.uri.uriString);
+    buffer.write("'");
+    if (libraryImport.prefix?.name case var prefix?) {
+      buffer.write(' as ');
+      buffer.write(prefix);
+    }
+    for (var combinator in libraryImport.combinators) {
+      if (combinator is ShowElementCombinator) {
+        var prefix = ' show ';
+        for (var name in combinator.shownNames) {
+          buffer.write(prefix);
+          buffer.write(name);
+          prefix = ', ';
+        }
+      } else if (combinator is HideElementCombinator) {
+        var prefix = ' hide ';
+        for (var name in combinator.hiddenNames) {
+          buffer.write(prefix);
+          buffer.write(name);
+          prefix = ', ';
+        }
+      }
+    }
+    buffer.writeln(';');
+  }
+
   void summarizeList<E>(List<E> list, void Function(E) summarizeElement) {
     var separator = '';
     for (var element in list) {
@@ -496,4 +533,14 @@ class SummaryWriter {
     buffer.write(' with ');
     summarizeTypes(types);
   }
+}
+
+extension on DirectiveUri {
+  String get uriString => switch (this) {
+    DirectiveUriWithLibrary(:var source) => source.uri.toString(),
+    DirectiveUriWithRelativeUriString(:var relativeUriString) =>
+      relativeUriString,
+    DirectiveUri() =>
+      throw UnimplementedError('Unhandled instance of type $runtimeType'),
+  };
 }
