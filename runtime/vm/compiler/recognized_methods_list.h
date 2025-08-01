@@ -38,6 +38,8 @@ namespace dart {
   V(CoreLibrary, _GrowableList, ._withData, GrowableArrayAllocateWithData,     \
     0x192ac0e1)                                                                \
   V(CoreLibrary, _GrowableList, []=, GrowableArraySetIndexed, 0x3a23c6fa)      \
+  V(CoreLibrary, _GrowableList, get:_emptyList, GrowableArrayGetEmptyList,     \
+    0x735785f0)                                                                \
   V(CoreLibrary, _Record, get:_fieldNames, Record_fieldNames, 0x68c8319e)      \
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \

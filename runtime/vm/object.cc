@@ -781,6 +781,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   *empty_array_ = Array::null();
   *empty_instantiations_cache_array_ = Array::null();
   *empty_subtype_test_cache_array_ = Array::null();
+  *mutable_empty_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -1035,6 +1036,14 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     empty_array_->untag()->set_length(Smi::New(0));
     empty_array_->SetCanonical();
+  }
+  {
+    uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
+    InitializeObjectVariant<Array>(address, kArrayCid, 0);
+    Array::initializeHandle(mutable_empty_array_,
+                            static_cast<ArrayPtr>(address + kHeapObjectTag));
+    mutable_empty_array_->untag()->set_length(Smi::New(0));
+    mutable_empty_array_->SetCanonical();
   }
 
   Smi& smi = Smi::Handle();

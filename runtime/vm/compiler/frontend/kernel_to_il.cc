@@ -1103,6 +1103,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kClassIDgetID:
     case MethodRecognizer::kGrowableArrayAllocateWithData:
     case MethodRecognizer::kGrowableArrayCapacity:
+    case MethodRecognizer::kGrowableArrayGetEmptyList:
     case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
@@ -1481,6 +1482,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::GrowableObjectArray_data());
       body += LoadNativeField(Slot::Array_length());
+      break;
+    case MethodRecognizer::kGrowableArrayGetEmptyList:
+      body += Constant(Object::mutable_empty_array());
       break;
     case MethodRecognizer::kObjectArrayAllocate:
       ASSERT(function.IsFactory() && (function.NumParameters() == 2));
