@@ -502,7 +502,7 @@ class DartDev {
     int idx = 0;
     char err_msg[256];
     err_msg[0] = '\0';
-    intptr_t num_args = argc + 2;
+    intptr_t num_args = argc + 3;
     char** exec_argv = new char*[num_args];
 #if defined(DART_HOST_OS_WINDOWS)
     char* exec_name = StringUtilsWin::ArgumentEscape(dartvm_path.get());
@@ -515,11 +515,20 @@ class DartDev {
     Platform::ResolveExecutablePathInto(dart_path, kPathBufSize);
     idx += 1;
 #if defined(DART_HOST_OS_WINDOWS)
-    char* dart_name = Utils::SCreate("--executable_name=%s", dart_path);
+    char* dart_name =
+        Utils::SCreate("--resolved_executable_name=%s", dart_path);
+    exec_argv[idx] = StringUtilsWin::ArgumentEscape(dart_name);
+    free(dart_name);
+    idx += 1;
+    dart_name =
+        Utils::SCreate("--executable_name=%s", Platform::GetExecutableName());
     exec_argv[idx] = StringUtilsWin::ArgumentEscape(dart_name);
     free(dart_name);
 #else
-    exec_argv[idx] = Utils::SCreate("--executable_name=%s", dart_path);
+    exec_argv[idx] = Utils::SCreate("--resolved_executable_name=%s", dart_path);
+    idx += 1;
+    exec_argv[idx] =
+        Utils::SCreate("--executable_name=%s", Platform::GetExecutableName());
 #endif
     for (intptr_t i = 1; i < argc; ++i) {
 #if defined(DART_HOST_OS_WINDOWS)
@@ -629,9 +638,9 @@ class DartDev {
     };
     // Total count of arguments to be passed to the script being execed.
     if (mark_main_isolate_as_system_isolate) {
-      argc_ = argc + num_vm_options + 4;
+      argc_ = argc + num_vm_options + 5;
     } else {
-      argc_ = argc + num_vm_options + 3;
+      argc_ = argc + num_vm_options + 4;
     }
 
     // Array of arguments to be passed to the script being execed.
@@ -657,11 +666,18 @@ class DartDev {
       char dart_path[kPathBufSize];
       Platform::ResolveExecutablePathInto(dart_path, kPathBufSize);
 #if defined(DART_HOST_OS_WINDOWS)
-      char* dart_name = Utils::SCreate("--executable_name=%s", dart_path);
+      char* dart_name =
+          Utils::SCreate("--resolved_executable_name=%s", dart_path);
+      argv_[idx++] = StringUtilsWin::ArgumentEscape(dart_name);
+      free(dart_name);
+      dart_name =
+          Utils::SCreate("--executable_name=%s", Platform::GetExecutableName());
       argv_[idx++] = StringUtilsWin::ArgumentEscape(dart_name);
       free(dart_name);
 #else
-      argv_[idx++] = Utils::SCreate("--executable_name=%s", dart_path);
+      argv_[idx++] = Utils::SCreate("--resolved_executable_name=%s", dart_path);
+      argv_[idx++] =
+          Utils::SCreate("--executable_name=%s", Platform::GetExecutableName());
 #endif
     }
     if (mark_main_isolate_as_system_isolate) {
