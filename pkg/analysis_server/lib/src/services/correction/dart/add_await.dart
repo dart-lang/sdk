@@ -68,14 +68,27 @@ class AddAwait extends ResolvedCorrectionProducer {
           await _addAwait(builder, convertToAsync: _functionBodyIfNotAsync);
         }
       case _CorrectionKind.unawaited:
+        if (node is CascadeExpression) {
+          // If this is the target of a cascade, than adding `await` is not
+          // necesarily correct because parentheses may be needed.
+          // For example, `a..b().c` should become `await (a..b()).c`.
+          // So we don't do anything here.
+          return;
+        }
         // The reported node may be the `identifier` in a PrefixedIdentifier,
         // the `propertyName` in a PropertyAccess, or the `methodName` in a
         // MethodInvocation. Check whether the grandparent is a
         // CascadeExpression. If it is, we cannot simply add an await
         // expression; we must also change the cascade(s) into a regular
         // property access or method call.
-        if (node.parent?.parent is! CascadeExpression) {
-          await _addAwait(builder);
+        // If this is ever broken we must fix here and at:
+        // - DartFixKind.ADD_ASYNC
+        // - DartFixKind.WRAP_IN_UNAWAITED
+        if (node.parent case AstNode(
+          :var offset,
+          :var parent,
+        ) when parent is! CascadeExpression) {
+          await _addAwait(builder, offset: offset);
         }
       case _CorrectionKind.forIn:
         if (node.parent case ForEachPartsWithDeclaration(

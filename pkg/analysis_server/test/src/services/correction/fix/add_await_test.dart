@@ -26,6 +26,65 @@ class AddAwaitTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unawaited_futures;
 
+  Future<void> test_addAwaitBeforeParent_getter() async {
+    await resolveTestCode('''
+class A {
+  Future<void> get getter async {}
+  A get self => this;
+}
+
+Future<void> foo(A a) async {
+  final local = a.self;
+  local.getter;
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> get getter async {}
+  A get self => this;
+}
+
+Future<void> foo(A a) async {
+  final local = a.self;
+  await local.getter;
+}
+''');
+  }
+
+  Future<void> test_addAwaitBeforeParent_method() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+}
+
+Future<void> foo(A a) async {
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> m() async {}
+}
+
+Future<void> foo(A a) async {
+  await a.m();
+}
+''');
+  }
+
+  Future<void> test_cascade_after() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+}
+
+Future<void> foo(A a) async {
+  a.m()..hashCode;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_cascadeExpression() async {
     await resolveTestCode('''
 class C {
@@ -35,10 +94,39 @@ class C {
 }
 
 void main() async {
-  C()..something(); 
+  C()..something();
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_closureAfterCascade() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() async {
+    a.m();
+  });
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() async {
+    await a.m();
+  });
+}
+''');
   }
 
   Future<void> test_methodInvocation() async {
