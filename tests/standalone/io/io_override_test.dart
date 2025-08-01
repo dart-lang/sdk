@@ -305,7 +305,7 @@ Future<Null> ioOverridesRunTest() async {
   await f;
 }
 
-class MyIOOverrides extends IOOverrides {
+final class MyIOOverrides extends IOOverrides {
   Directory createDirectory(String path) => DirectoryMock.createDirectory(path);
 }
 
@@ -331,7 +331,7 @@ globalIOOverridesZoneTest() {
   Expect.isTrue(dir is Directory);
 }
 
-class EmptyOverride extends IOOverrides {}
+final class EmptyOverride extends IOOverrides {}
 
 void emptyIOOverride() {
   IOOverrides.runWithIOOverrides(
