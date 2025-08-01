@@ -44,7 +44,19 @@ bar() {
   Baz.foo = 42;
 }
 
+@pragma('vm:shared')
+var list_length = 0;
+
 main() {
+  IsolateGroup.runSync(() {
+    final l = <int>[];
+    for (int i = 0; i < 100; i++) {
+      l.add(i);
+    }
+    list_length = l.length;
+  });
+  Expect.equals(100, list_length);
+
   Expect.equals(42, IsolateGroup.runSync(() => 42));
 
   Expect.listEquals([1, 2, 3], IsolateGroup.runSync(() => [1, 2, 3]));

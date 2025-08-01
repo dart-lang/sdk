@@ -132,6 +132,22 @@ extension type E(int self) {
     );
   }
 
+  Future<void> test_imports() async {
+    failTestOnErrorDiagnostic = false;
+    await verifySummary(
+      '''
+import 'dart:async' show Stream;
+import 'package:test/test.dart' as test;
+import 'other.dart' deferred as o hide SomeClass;
+''',
+      '''
+import 'dart:async' show Stream;
+import 'package:test/test.dart' as test;
+import 'package:test/other.dart' as o hide SomeClass;
+''',
+    );
+  }
+
   Future<void> test_mixin() async {
     await verifySummary(
       '''

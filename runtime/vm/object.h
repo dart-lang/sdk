@@ -514,6 +514,7 @@ class Object {
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
   V(Array, empty_subtype_test_cache_array)                                     \
+  V(Array, mutable_empty_array)                                                \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
   V(CompressedStackMaps, empty_compressed_stackmaps)                           \
