@@ -4209,8 +4209,10 @@ DEFINE_RUNTIME_ENTRY(ResumeFrame, 2) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #if !defined(PRODUCT)
-  if (isolate->has_resumption_breakpoints()) {
-    isolate->debugger()->ResumptionBreakpoint();
+  if (isolate != nullptr) {
+    if (isolate->has_resumption_breakpoints()) {
+      isolate->debugger()->ResumptionBreakpoint();
+    }
   }
 #endif
 
