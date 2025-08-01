@@ -392,13 +392,11 @@ class ApiDescription {
         throw UnimplementedError('Unexpected element: $runtimeType');
     }
 
-    if (element case Annotatable element) {
-      if (element.metadata.hasDeprecated) {
-        parentheticals.add(['deprecated']);
-      }
-      if (element.metadata.hasExperimental) {
-        parentheticals.add(['experimental']);
-      }
+    if (element.metadata.hasDeprecated) {
+      parentheticals.add(['deprecated']);
+    }
+    if (element.metadata.hasExperimental) {
+      parentheticals.add(['experimental']);
     }
 
     if (parentheticals.isNotEmpty) {
@@ -657,9 +655,7 @@ extension on Element {
     if (packageName == 'analyzer') {
       // Any element annotated with `@analyzerPublicApi` is considered to be
       // part of the public API of the analyzer package.
-      if (this case Annotatable(
-        metadata: Metadata(:var annotations),
-      ) when annotations.any(_isPublicApiAnnotation)) {
+      if (metadata.annotations.any(_isPublicApiAnnotation)) {
         return true;
       }
     }

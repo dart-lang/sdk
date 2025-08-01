@@ -1828,7 +1828,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _setOrCreateMetadataElements(
-    AnnotatableFragmentImpl element,
+    FragmentImpl element,
     NodeList<AnnotationImpl> annotations, {
     bool visitNodes = true,
   }) {

@@ -30,10 +30,8 @@ extension Element2Extension on Element {
   /// the enclosing library, has been annotated with the `@doNotStore`
   /// annotation.
   bool get hasOrInheritsDoNotStore {
-    if (this case Annotatable annotatable) {
-      if (annotatable.metadata.hasDoNotStore) {
-        return true;
-      }
+    if (metadata.hasDoNotStore) {
+      return true;
     }
 
     var ancestor = enclosingElement;

@@ -36,9 +36,7 @@ class ElementWriter with TreeWriter {
   Map<String, Object?> _computeProperties(Element element) {
     var properties = <String, Object?>{};
 
-    if (element case Annotatable element) {
-      properties['annotations'] = element.metadata.annotations;
-    }
+    properties['annotations'] = element.metadata.annotations;
     if (element is InterfaceElement) {
       properties['interfaces'] = element.interfaces;
       properties['isEnum'] = element is EnumElement;

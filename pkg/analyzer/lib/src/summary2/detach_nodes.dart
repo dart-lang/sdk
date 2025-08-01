@@ -59,12 +59,10 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
 
   @override
   void visitElement(Element element) {
-    if (element case Annotatable annotatable) {
-      for (var annotation in annotatable.metadata.annotations) {
-        var ast = (annotation as ElementAnnotationImpl).annotationAst;
-        _detachNode(ast);
-        _sanitizeArguments(ast.arguments?.arguments);
-      }
+    for (var annotation in element.metadata.annotations) {
+      var ast = (annotation as ElementAnnotationImpl).annotationAst;
+      _detachNode(ast);
+      _sanitizeArguments(ast.arguments?.arguments);
     }
     super.visitElement(element);
   }

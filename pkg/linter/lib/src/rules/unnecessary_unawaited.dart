@@ -5,7 +5,6 @@
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -51,7 +50,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       SimpleIdentifier(:var element) => element,
       _ => null,
     };
-    if (element is! Annotatable) return;
     if (element.hasAwaitNotRequired) {
       rule.reportAtNode(node.methodName);
     }

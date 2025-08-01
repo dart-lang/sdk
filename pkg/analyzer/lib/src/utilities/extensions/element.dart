@@ -91,10 +91,8 @@ extension ConstructorElementImplExtension on ConstructorFragmentImpl {
 extension Element2Extension on Element {
   /// Whether the element is effectively [internal].
   bool get isInternal {
-    if (this case Annotatable annotatable) {
-      if (annotatable.metadata.hasInternal) {
-        return true;
-      }
+    if (metadata.hasInternal) {
+      return true;
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable;
@@ -128,10 +126,8 @@ extension Element2Extension on Element {
 
   /// Whether the element is effectively [visibleForTesting].
   bool get isVisibleForTesting {
-    if (this case Annotatable annotatable) {
-      if (annotatable.metadata.hasVisibleForTesting) {
-        return true;
-      }
+    if (metadata.hasVisibleForTesting) {
+      return true;
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable;
@@ -140,13 +136,6 @@ extension Element2Extension on Element {
       }
     }
     return false;
-  }
-
-  List<ElementAnnotation> get metadataAnnotations {
-    if (this case Annotatable annotatable) {
-      return annotatable.metadata.annotations;
-    }
-    return [];
   }
 }
 

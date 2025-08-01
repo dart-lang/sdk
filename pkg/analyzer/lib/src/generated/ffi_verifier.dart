@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -454,7 +453,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         formalParameterList?.parameters ?? <FormalParameter>[];
     var hadNativeAnnotation = false;
 
-    for (var annotation in declarationElement.metadataAnnotations) {
+    for (var annotation in declarationElement.metadata.annotations) {
       var annotationValue = annotation.computeConstantValue();
       var annotationType = annotationValue?.type; // Native<T>
 
@@ -1740,7 +1739,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     };
 
     if (referencedElement != null) {
-      for (var annotation in referencedElement.metadataAnnotations) {
+      for (var annotation in referencedElement.metadata.annotations) {
         var value = annotation.computeConstantValue();
         var annotationType = value?.type;
 

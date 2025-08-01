@@ -344,8 +344,8 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   void _withDeprecatedFragment(Fragment? fragment, void Function() recurse) {
     var isDeprecated = false;
-    if (fragment?.element case Annotatable annotatable) {
-      isDeprecated = annotatable.metadata.hasDeprecated;
+    if (fragment?.element case var element?) {
+      isDeprecated = element.metadata.hasDeprecated;
     }
 
     _deprecatedVerifier.pushInDeprecatedValue(isDeprecated);

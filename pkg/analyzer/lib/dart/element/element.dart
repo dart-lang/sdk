@@ -165,6 +165,7 @@ typedef VariableElement2 = VariableElement;
 
 /// An element or fragment that can have either annotations (metadata), a
 /// documentation comment, or both associated with it.
+@Deprecated('Use Element or Fragment directly instead')
 abstract class Annotatable {
   /// The content of the documentation comment (including delimiters) for this
   /// element or fragment.
@@ -600,6 +601,14 @@ abstract class Element {
   /// but the `displayName` is `s`.
   String get displayName;
 
+  /// The content of the documentation comment (including delimiters) for this
+  /// element.
+  ///
+  /// This is a concatenation of the comments from all of the fragments.
+  ///
+  /// Returns `null` if the element doesn't have documentation.
+  String? get documentationComment;
+
   /// The element that either physically or logically encloses this element.
   ///
   /// Returns `null` if this element is a library because libraries are the
@@ -675,6 +684,13 @@ abstract class Element {
   /// For an unary operator `-` the result is `unary-`.
   /// For a binary operator `-` the result is just `-`.
   String? get lookupName;
+
+  /// The metadata associated with the element.
+  ///
+  /// It includes all annotations from all of the fragments.
+  ///
+  /// The list will be empty if the element does not have any metadata.
+  Metadata get metadata;
 
   /// The name of this element.
   ///
@@ -1012,7 +1028,10 @@ abstract class ElementAnnotation {
 /// A directive within a library fragment.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ElementDirective implements Annotatable {
+abstract class ElementDirective
+    implements
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   /// The library fragment that contains this object.
   LibraryFragment get libraryFragment;
 
@@ -1581,7 +1600,10 @@ abstract class FieldFragment implements PropertyInducingFragment {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FormalParameterElement
-    implements VariableElement, Annotatable, LocalElement {
+    implements
+        VariableElement,
+        Annotatable, // ignore:deprecated_member_use_from_same_package
+        LocalElement {
   @override
   FormalParameterElement get baseElement;
 
@@ -1692,7 +1714,10 @@ abstract class FormalParameterElement
 ///
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FormalParameterFragment
-    implements VariableFragment, Annotatable, LocalFragment {
+    implements
+        VariableFragment,
+        Annotatable, // ignore:deprecated_member_use_from_same_package
+        LocalFragment {
   @override
   FormalParameterElement get element;
 
@@ -1735,6 +1760,12 @@ abstract class Fragment {
   @Deprecated('Use children instead')
   List<Fragment> get children3;
 
+  /// The content of the documentation comment (including delimiters) for this
+  /// fragment.
+  ///
+  /// Returns `null` if the fragment doesn't have documentation.
+  String? get documentationComment;
+
   /// The element composed from this fragment and possibly other fragments.
   Element get element;
 
@@ -1748,6 +1779,11 @@ abstract class Fragment {
   ///
   /// This will be the fragment itself if it is a library fragment.
   LibraryFragment? get libraryFragment;
+
+  /// The metadata associated with the fragment.
+  ///
+  /// The list will be empty if the fragment does not have any metadata.
+  Metadata get metadata;
 
   /// The name of the fragment.
   ///
@@ -2564,7 +2600,11 @@ abstract class LabelFragment implements Fragment {
 /// A library.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class LibraryElement implements Element, Annotatable {
+abstract class LibraryElement
+    implements
+        Element,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   /// The classes defined in this library.
   ///
   /// There is no guarantee of the order in which the classes will be returned.
@@ -3045,7 +3085,11 @@ abstract class LocalFunctionFragment
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LocalVariableElement
-    implements VariableElement, LocalElement, Annotatable {
+    implements
+        VariableElement,
+        LocalElement,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   @override
   LocalVariableElement get baseElement;
 
@@ -3523,7 +3567,11 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 ///   [PropertyInducingElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class PropertyInducingElement implements VariableElement, Annotatable {
+abstract class PropertyInducingElement
+    implements
+        VariableElement,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   @override
   PropertyInducingFragment get firstFragment;
 
@@ -3584,7 +3632,10 @@ abstract class PropertyInducingElement implements VariableElement, Annotatable {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyInducingFragment
-    implements VariableFragment, Annotatable {
+    implements
+        VariableFragment,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   @override
   PropertyInducingElement get element;
 
@@ -3868,7 +3919,11 @@ abstract class TypeAliasFragment
 /// An element that defines a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningElement implements Element, Annotatable {
+abstract class TypeDefiningElement
+    implements
+        Element,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   // TODO(brianwilkerson): Evaluate to see whether this type is actually needed
   //  after converting clients to the new API.
 
@@ -3882,7 +3937,11 @@ abstract class TypeDefiningElement implements Element, Annotatable {
 /// The portion of a [TypeDefiningElement] contributed by a single declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeDefiningFragment implements Fragment, Annotatable {
+abstract class TypeDefiningFragment
+    implements
+        Fragment,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeDefiningElement get element;
 
@@ -3943,7 +4002,11 @@ abstract class TypeParameterFragment implements TypeDefiningFragment {
 /// An element that has type parameters, such as a class, typedef, or method.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterizedElement implements Element, Annotatable {
+abstract class TypeParameterizedElement
+    implements
+        Element,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeParameterizedFragment get firstFragment;
 
@@ -3982,7 +4045,11 @@ abstract class TypeParameterizedElement implements Element, Annotatable {
 /// declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class TypeParameterizedFragment implements Fragment, Annotatable {
+abstract class TypeParameterizedFragment
+    implements
+        Fragment,
+        Annotatable // ignore:deprecated_member_use_from_same_package
+        {
   @override
   TypeParameterizedElement get element;
 

@@ -63,16 +63,6 @@ import 'package:pub_semver/pub_semver.dart';
 @Deprecated('Use VariableFragmentImpl instead')
 typedef ConstVariableElement = VariableFragmentImpl;
 
-abstract class AnnotatableElementImpl implements ElementImpl, Annotatable {
-  @override
-  MetadataImpl get metadata;
-}
-
-abstract class AnnotatableFragmentImpl implements FragmentImpl, Annotatable {
-  @override
-  abstract MetadataImpl metadata;
-}
-
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   BindPatternVariableElementImpl(super._wrappedElement);
@@ -1297,9 +1287,6 @@ class DynamicFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final DynamicFragmentImpl instance = DynamicFragmentImpl._();
 
-  @override
-  final MetadataImpl metadata = MetadataImpl(const []);
-
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
@@ -1831,14 +1818,11 @@ abstract class ElementImpl implements Element {
   @override
   String get displayName => name ?? '<unnamed>';
 
-  /// The content of the documentation comment (including delimiters).
-  ///
-  /// It is a concatenation of the comments from all of the fragments.
-  /// It is `null` if the element does not have documentation.
+  @override
   String? get documentationComment {
     var buffer = StringBuffer();
     for (var fragment in fragments) {
-      var comment = fragment.documentationCommentOrNull;
+      var comment = fragment.documentationComment;
       if (comment != null) {
         if (buffer.isNotEmpty) {
           buffer.writeln();
@@ -1886,6 +1870,9 @@ abstract class ElementImpl implements Element {
   String? get lookupName {
     return name;
   }
+
+  @override
+  MetadataImpl get metadata => MetadataImpl.empty;
 
   @override
   Element get nonSynthetic => this;
@@ -2157,8 +2144,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
 }
 
 abstract class ExecutableElementImpl extends FunctionTypedElementImpl
-    with InternalExecutableElement, DeferredResolutionReadingMixin
-    implements AnnotatableElementImpl {
+    with InternalExecutableElement, DeferredResolutionReadingMixin {
   TypeImpl? _returnType;
   FunctionTypeImpl? _type;
 
@@ -3306,9 +3292,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   @override
   int? nameOffset;
 
-  @override
-  MetadataImpl metadata = MetadataImpl(const []);
-
   /// A list containing all of the parameters defined by this parameter element.
   /// There will only be parameters if this parameter is a function typed
   /// parameter.
@@ -3534,9 +3517,11 @@ abstract class FragmentImpl implements Fragment {
   /// The modifiers associated with this element.
   EnumSet<Modifier> _modifiers = EnumSet.empty();
 
-  /// The content of the documentation comment (including delimiters) for this
-  /// element, or `null` if this element does not or cannot have documentation.
+  @override
   String? documentationComment;
+
+  @override
+  MetadataImpl metadata = MetadataImpl.empty;
 
   /// The offset of the beginning of the element's code in the file that
   /// contains the element, or `null` if the element is synthetic.
@@ -4101,10 +4086,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 @elementClass
 abstract class InstanceElementImpl extends ElementImpl
     with DeferredMembersReadingMixin, DeferredResolutionReadingMixin
-    implements
-        InstanceElement,
-        TypeParameterizedElement,
-        AnnotatableElementImpl {
+    implements InstanceElement, TypeParameterizedElement {
   List<FieldElementImpl> _fields = [];
   List<GetterElementImpl> _getters = [];
   List<SetterElementImpl> _setters = [];
@@ -7117,9 +7099,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   @override
   int? nameOffset;
 
-  @override
-  MetadataImpl metadata = MetadataImpl(const []);
-
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
   LocalVariableFragmentImpl({
@@ -7140,10 +7119,6 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   @override
   LibraryFragmentImpl get libraryFragment => enclosingUnit;
 
-  @Deprecated('Use metadata instead')
-  @override
-  MetadataImpl get metadata2 => metadata;
-
   @override
   LocalVariableFragmentImpl? get nextFragment => null;
 
@@ -7152,6 +7127,8 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 }
 
 final class MetadataImpl implements Metadata {
+  static final MetadataImpl empty = MetadataImpl(const []);
+
   static const _isReady = 1 << 0;
   static const _hasDeprecated = 1 << 1;
   static const _hasOverride = 1 << 2;
@@ -8195,10 +8172,16 @@ class MultiplyDefinedFragmentImpl implements MultiplyDefinedFragment {
   List<Fragment> get children3 => children;
 
   @override
+  String? get documentationComment => null;
+
+  @override
   LibraryFragment get enclosingFragment => element.libraryFragment;
 
   @override
   LibraryFragment get libraryFragment => enclosingFragment;
+
+  @override
+  MetadataImpl get metadata => MetadataImpl.empty;
 
   @override
   String? get name => element.name;
@@ -8309,9 +8292,6 @@ class NeverElementImpl extends ElementImpl implements TypeDefiningElement {
 class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
   /// The unique instance of this class.
   static final instance = NeverFragmentImpl._();
-
-  @override
-  final MetadataImpl metadata = MetadataImpl(const []);
 
   /// Initialize a newly created instance of this class. Instances of this class
   /// should <b>not</b> be created except as part of creating the type
@@ -8782,8 +8762,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 }
 
 abstract class PropertyInducingElementImpl extends VariableElementImpl
-    with InternalPropertyInducingElement, DeferredResolutionReadingMixin
-    implements AnnotatableElementImpl {
+    with InternalPropertyInducingElement, DeferredResolutionReadingMixin {
   @override
   GetterElementImpl? getter;
 
@@ -8910,9 +8889,6 @@ abstract class PropertyInducingFragmentImpl
 
   @override
   int? nameOffset;
-
-  @override
-  MetadataImpl metadata = MetadataImpl(const []);
 
   @override
   PropertyInducingFragmentImpl? previousFragment;
@@ -9595,7 +9571,7 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
 
 class TypeAliasElementImpl extends ElementImpl
     with DeferredResolutionReadingMixin
-    implements AnnotatableElementImpl, TypeAliasElement {
+    implements TypeAliasElement {
   @override
   final Reference reference;
 
@@ -9947,10 +9923,7 @@ class TypeAliasFragmentImpl extends FragmentImpl
 }
 
 class TypeParameterElementImpl extends ElementImpl
-    implements
-        TypeParameterElement,
-        AnnotatableElementImpl,
-        SharedTypeParameter {
+    implements TypeParameterElement, SharedTypeParameter {
   @override
   final TypeParameterFragmentImpl firstFragment;
 
@@ -10079,15 +10052,12 @@ class TypeParameterElementImpl extends ElementImpl
 }
 
 class TypeParameterFragmentImpl extends FragmentImpl
-    implements AnnotatableFragmentImpl, TypeParameterFragment {
+    implements TypeParameterFragment {
   @override
   final String? name;
 
   @override
   int? nameOffset;
-
-  @override
-  MetadataImpl metadata = MetadataImpl(const []);
 
   /// The default value of the type parameter. It is used to provide the
   /// corresponding missing type argument in type annotations and as the
@@ -10261,11 +10231,8 @@ class TypeParameterFragmentImpl extends FragmentImpl
 
 /// Mixin representing an element which can have type parameters.
 mixin TypeParameterizedFragmentMixin on FragmentImpl
-    implements AnnotatableFragmentImpl, TypeParameterizedFragment {
+    implements TypeParameterizedFragment {
   List<TypeParameterFragmentImpl> _typeParameters = const [];
-
-  @override
-  MetadataImpl metadata = MetadataImpl(const []);
 
   /// If the element defines a type, indicates whether the type may safely
   /// appear without explicit type parameters as the bounds of a type parameter
@@ -10391,7 +10358,7 @@ abstract class VariableElementImpl extends ElementImpl
 }
 
 abstract class VariableFragmentImpl extends FragmentImpl
-    implements AnnotatableFragmentImpl, VariableFragment {
+    implements VariableFragment {
   /// If this element represents a constant variable, and it has an initializer,
   /// a copy of the initializer for the constant.  Otherwise `null`.
   ///
@@ -10536,18 +10503,4 @@ class _Sentinel {
 
   static final List<LibraryExportImpl> libraryExport = List.unmodifiable([]);
   static final List<LibraryImportImpl> libraryImport = List.unmodifiable([]);
-}
-
-extension on Fragment {
-  /// The content of the documentation comment (including delimiters) for this
-  /// fragment.
-  ///
-  /// Returns `null` if the receiver does not have or does not support
-  /// documentation.
-  String? get documentationCommentOrNull {
-    return switch (this) {
-      Annotatable(:var documentationComment) => documentationComment,
-      _ => null,
-    };
-  }
 }

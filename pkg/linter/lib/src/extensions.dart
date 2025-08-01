@@ -86,10 +86,8 @@ extension AstNodeExtension on AstNode {
     var parent = thisOrAncestorOfType<CompilationUnitMember>();
     if (parent == null) return false;
 
-    return switch (parent.declaredFragment?.element) {
-      Annotatable(:var metadata) => metadata.hasInternal,
-      _ => false,
-    };
+    var metadata = parent.declaredFragment?.element.metadata;
+    return metadata?.hasInternal ?? false;
   }
 }
 
@@ -334,13 +332,13 @@ extension ElementExtension on Element? {
     _ => this,
   };
 
-  /// Whether this is an [Annotatable] which is annotated with `@awaitNotRequired`.
+  /// Whether this is annotated with `@awaitNotRequired`.
   bool get hasAwaitNotRequired {
     var self = this;
-    if (self == null || self is! Annotatable) {
+    if (self == null) {
       return false;
     }
-    return (self as Annotatable).metadata.hasAwaitNotRequired ||
+    return self.metadata.hasAwaitNotRequired ||
         (self is PropertyAccessorElement && self.variable.hasAwaitNotRequired);
   }
 

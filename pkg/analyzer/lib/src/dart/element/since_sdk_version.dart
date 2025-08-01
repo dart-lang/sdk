@@ -24,11 +24,7 @@ class SinceSdkVersionComputer {
       return null;
     }
 
-    Version? specified;
-    if (element is Annotatable) {
-      specified = _specifiedVersion(element as Annotatable);
-    }
-
+    var specified = _specifiedVersion(element);
     var enclosing = element.enclosingElement?.sinceSdkVersion;
     return specified.maxWith(enclosing);
   }
@@ -49,7 +45,7 @@ class SinceSdkVersionComputer {
   }
 
   /// Returns the maximal specified `@Since()` version, `null` if none.
-  static Version? _specifiedVersion(Annotatable element) {
+  static Version? _specifiedVersion(Element element) {
     var annotations =
         element.metadata.annotations.cast<ElementAnnotationImpl>();
     Version? result;

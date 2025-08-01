@@ -3283,7 +3283,7 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  Annotatable (class extends Object):
+  Annotatable (class extends Object, deprecated):
     new (constructor: Annotatable Function())
     documentationComment (getter: String?)
     metadata (getter: Metadata)
@@ -3379,6 +3379,7 @@ package:analyzer/dart/element/element.dart:
     children (getter: List<Element>)
     children2 (getter: List<Element>, deprecated)
     displayName (getter: String)
+    documentationComment (getter: String?)
     enclosingElement (getter: Element?)
     enclosingElement2 (getter: Element?, deprecated)
     firstFragment (getter: Fragment)
@@ -3391,6 +3392,7 @@ package:analyzer/dart/element/element.dart:
     library (getter: LibraryElement?)
     library2 (getter: LibraryElement?, deprecated)
     lookupName (getter: String?)
+    metadata (getter: Metadata)
     name (getter: String?)
     name3 (getter: String?, deprecated)
     nonSynthetic (getter: Element)
@@ -3648,9 +3650,11 @@ package:analyzer/dart/element/element.dart:
     new (constructor: Fragment Function())
     children (getter: List<Fragment>)
     children3 (getter: List<Fragment>, deprecated)
+    documentationComment (getter: String?)
     element (getter: Element)
     enclosingFragment (getter: Fragment?)
     libraryFragment (getter: LibraryFragment?)
+    metadata (getter: Metadata)
     name (getter: String?)
     name2 (getter: String?, deprecated)
     nameOffset (getter: int?)

@@ -80,12 +80,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     }
     completion ??= element.displayName;
 
-    Annotatable? annotatable;
-    if (element case Annotatable annotatable2) {
-      annotatable = annotatable2;
-    }
-
-    var isDeprecated = annotatable?.metadata.hasDeprecated ?? false;
+    var isDeprecated = element.metadata.hasDeprecated;
     var suggestion = CompletionSuggestion(
         kind ?? CompletionSuggestionKind.INVOCATION,
         isDeprecated ? DART_RELEVANCE_LOW : relevance,
@@ -96,7 +91,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         false);
 
     // Attach docs.
-    var doc = removeDartDocDelimiters(annotatable?.documentationComment);
+    var doc = removeDartDocDelimiters(element.documentationComment);
     suggestion.docComplete = doc;
     suggestion.docSummary = getDartDocSummary(doc);
 

@@ -742,7 +742,7 @@ class GenericInferrer {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.
         var element = errorEntity.name.element;
-        if (element != null && !element.hasOptionalTypeArgs) {
+        if (element != null && !element.metadata.hasOptionalTypeArgs) {
           String constructorName =
               errorEntity.constructorName == null
                   ? errorEntity.name.name
@@ -770,7 +770,7 @@ class GenericInferrer {
             return;
           }
         }
-        if (!element.hasOptionalTypeArgs) {
+        if (!element.metadata.hasOptionalTypeArgs) {
           diagnosticReporter.atNode(
             errorEntity,
             WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
@@ -901,14 +901,5 @@ class GenericInferrer {
     );
 
     return messageLines.join('\n');
-  }
-}
-
-extension on Element {
-  bool get hasOptionalTypeArgs {
-    if (this case Annotatable annotatable) {
-      return annotatable.metadata.hasOptionalTypeArgs;
-    }
-    return false;
   }
 }

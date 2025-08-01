@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 
@@ -260,7 +259,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     if (element.isSynthetic && element is PropertyAccessorElement) {
       element = element.variable;
     }
-    var annotation = element.metadataAnnotations.firstWhereOrNull(
+    var annotation = element.metadata.annotations.firstWhereOrNull(
       (e) => e.isDeprecated,
     );
     if (annotation == null || annotation.element is PropertyAccessorElement) {
@@ -288,10 +287,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       return element.variable.metadata.hasDeprecated;
     }
-    if (element is Annotatable) {
-      return (element as Annotatable).metadata.hasDeprecated;
-    }
-    return false;
+    return element.metadata.hasDeprecated;
   }
 
   /// Returns whether [element] is a [FormalParameterElement] declared in
