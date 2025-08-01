@@ -636,6 +636,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION: [
     ChangeTo.method,
+    CreateConstructor.new,
     CreateMethod.method,
   ],
   CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
