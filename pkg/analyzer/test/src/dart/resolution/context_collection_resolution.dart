@@ -98,6 +98,9 @@ abstract class ContextResolutionTest
 
   final IdProvider _idProvider = IdProvider();
 
+  /// Whether fine-grained dependencies experiment is enabled.
+  bool withFineDependencies = false;
+
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   AnalysisContextCollectionImpl get analysisContextCollection {
@@ -124,6 +127,7 @@ abstract class ContextResolutionTest
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions3: updateAnalysisOptions,
       drainStreams: false,
+      withFineDependencies: withFineDependencies,
     );
 
     _analysisContextCollection = collection;

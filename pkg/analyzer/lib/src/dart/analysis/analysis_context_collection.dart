@@ -47,6 +47,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     List<String>? librarySummaryPaths,
     String? optionsFile,
     String? packagesFile,
+    bool withFineDependencies = false,
     PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
     bool retainDataForTesting = false,
@@ -92,7 +93,10 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     );
 
     byteStore ??= MemoryByteStore();
-    var linkedBundleProvider = LinkedBundleProvider(byteStore: byteStore);
+    var linkedBundleProvider = LinkedBundleProvider(
+      byteStore: byteStore,
+      withFineDependencies: withFineDependencies,
+    );
 
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
@@ -118,6 +122,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         ownedFiles: ownedFiles,
         enableLintRuleTiming: enableLintRuleTiming,
+        withFineDependencies: withFineDependencies,
       );
       contexts.add(context);
     }

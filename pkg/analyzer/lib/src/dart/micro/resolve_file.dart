@@ -334,9 +334,10 @@ class FileResolver {
       var bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
-        diagnostics = data.errors.map((error) {
-          return ErrorEncoding.decode(file.source, error)!;
-        }).toList();
+        diagnostics =
+            data.errors.map((error) {
+              return ErrorEncoding.decode(file.source, error)!;
+            }).toList();
       } else {
         var unitResult = await resolve(path: path, performance: performance);
         diagnostics = unitResult.diagnostics;
@@ -655,15 +656,16 @@ class FileResolver {
         });
       });
 
-      var resolvedUnits = results.map((fileResult) {
-        var file = fileResult.file;
-        return ResolvedUnitResultImpl(
-          session: contextObjects!.analysisSession,
-          fileState: file,
-          unit: fileResult.unit,
-          diagnostics: fileResult.diagnostics,
-        );
-      }).toList();
+      var resolvedUnits =
+          results.map((fileResult) {
+            var file = fileResult.file;
+            return ResolvedUnitResultImpl(
+              session: contextObjects!.analysisSession,
+              fileState: file,
+              unit: fileResult.unit,
+              diagnostics: fileResult.diagnostics,
+            );
+          }).toList();
 
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(
@@ -696,12 +698,13 @@ class FileResolver {
       return;
     }
 
-    var analysisOptions = (AnalysisOptionsBuilder()
-          ..strictInference = fileAnalysisOptions.strictInference
-          ..contextFeatures =
-              FeatureSet.latestLanguageVersion() as ExperimentStatus
-          ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
-        .build();
+    var analysisOptions =
+        (AnalysisOptionsBuilder()
+              ..strictInference = fileAnalysisOptions.strictInference
+              ..contextFeatures =
+                  FeatureSet.latestLanguageVersion() as ExperimentStatus
+              ..nonPackageFeatureSet = FeatureSet.latestLanguageVersion())
+            .build();
 
     if (fsState == null) {
       var featureSetProvider = FeatureSetProvider.build(
@@ -730,6 +733,7 @@ class FileResolver {
         onNewFile: (file) {},
         testData: testData?.fileSystem,
         unlinkedUnitStore: UnlinkedUnitStoreImpl(),
+        withFineDependencies: false,
       );
     }
 
@@ -759,8 +763,12 @@ class FileResolver {
         sourceFactory: sourceFactory,
         externalSummaries: SummaryDataStore(),
         packagesFile: null,
+        withFineDependencies: false,
         testData: testData?.libraryContext,
-        linkedBundleProvider: LinkedBundleProvider(byteStore: byteStore),
+        linkedBundleProvider: LinkedBundleProvider(
+          byteStore: byteStore,
+          withFineDependencies: false,
+        ),
       );
 
       contextObjects!.analysisSession.elementFactory =
@@ -783,8 +791,8 @@ class FileResolver {
     YamlMap? optionMap;
 
     var separator = resourceProvider.pathContext.separator;
-    var isThirdParty = path
-            .contains('${separator}third_party${separator}dart$separator') ||
+    var isThirdParty =
+        path.contains('${separator}third_party${separator}dart$separator') ||
         path.contains('${separator}third_party${separator}dart_lang$separator');
 
     File? optionsFile;
@@ -882,15 +890,16 @@ class FileResolver {
       );
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;
-      var infos = visitor.results
-          .map(
-            (searchResult) => CiderSearchInfo(
-              lineInfo.getLocation(searchResult.offset),
-              searchResult.length,
-              MatchKind.REFERENCE,
-            ),
-          )
-          .toList();
+      var infos =
+          visitor.results
+              .map(
+                (searchResult) => CiderSearchInfo(
+                  lineInfo.getLocation(searchResult.offset),
+                  searchResult.length,
+                  MatchKind.REFERENCE,
+                ),
+              )
+              .toList();
       results.add(CiderSearchMatch(unitPath, infos));
     }
     return results;

@@ -90,10 +90,14 @@ class ContextBuilderImpl {
     OwnedFiles? ownedFiles,
     bool enableLintRuleTiming = false,
     LinkedBundleProvider? linkedBundleProvider,
+    required bool withFineDependencies,
   }) {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
-    linkedBundleProvider ??= LinkedBundleProvider(byteStore: byteStore);
+    linkedBundleProvider ??= LinkedBundleProvider(
+      byteStore: byteStore,
+      withFineDependencies: withFineDependencies,
+    );
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -173,6 +177,7 @@ class ContextBuilderImpl {
       testView: retainDataForTesting ? AnalysisDriverTestView() : null,
       ownedFiles: ownedFiles,
       enableLintRuleTiming: enableLintRuleTiming,
+      withFineDependencies: withFineDependencies,
     );
 
     // AnalysisDriver reports results into streams.

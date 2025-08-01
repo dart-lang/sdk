@@ -9,15 +9,18 @@ import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart'
     show DependencyWalker, Node;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
 /// Ensure that the `FileState._libraryCycle` for the [file] and anything it
 /// depends on is computed.
-void computeLibraryCycle(Uint32List salt, LibraryFileKind file) {
-  var libraryWalker = _LibraryWalker(salt);
+void computeLibraryCycle(
+  bool withFineDependencies,
+  Uint32List salt,
+  LibraryFileKind file,
+) {
+  var libraryWalker = _LibraryWalker(withFineDependencies, salt);
   libraryWalker.walk(libraryWalker.getNode(file));
 }
 
@@ -25,6 +28,8 @@ void computeLibraryCycle(Uint32List salt, LibraryFileKind file) {
 class LibraryCycle {
   static int _nextId = 0;
   final int id = _nextId++;
+
+  final bool withFineDependencies;
 
   /// The libraries that belong to this cycle.
   final List<LibraryFileKind> libraries;
@@ -65,6 +70,7 @@ class LibraryCycle {
   final String nonTransitiveApiSignature;
 
   LibraryCycle({
+    required this.withFineDependencies,
     required this.libraries,
     required this.libraryUris,
     required this.directDependencies,
@@ -148,10 +154,11 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
 /// Helper that organizes dependencies of a library into topologically
 /// sorted [LibraryCycle]s.
 class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
+  final bool withFineDependencies;
   final Uint32List _salt;
   final Map<LibraryFileKind, _LibraryNode> nodesOfFiles = {};
 
-  _LibraryWalker(this._salt);
+  _LibraryWalker(this.withFineDependencies, this._salt);
 
   @override
   void evaluate(_LibraryNode v) {
@@ -220,6 +227,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
 
     // Create the LibraryCycle instance for the cycle.
     var cycle = LibraryCycle(
+      withFineDependencies: withFineDependencies,
       libraries: libraries.toFixedList(),
       libraryUris: libraryUris,
       directDependencies: directDependencies,

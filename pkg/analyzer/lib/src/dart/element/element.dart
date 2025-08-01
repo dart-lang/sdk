@@ -5745,7 +5745,7 @@ class LibraryElementImpl extends ElementImpl
   /// The map of top-level declarations, from all units.
   LibraryDeclarations? _libraryDeclarations;
 
-  /// If [withFineDependencies] is `true`, the manifest of the library.
+  /// With fine-grained dependencies, the manifest of the library.
   LibraryManifest? manifest;
 
   /// Initialize a newly created library element in the given [context] to have

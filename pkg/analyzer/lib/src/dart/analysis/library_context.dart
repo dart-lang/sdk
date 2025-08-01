@@ -46,6 +46,7 @@ class LibraryContext {
   final StreamController<Object>? eventsController;
   final FileSystemState fileSystemState;
   final File? packagesFile;
+  final bool withFineDependencies;
   final SummaryDataStore store = SummaryDataStore();
 
   late final AnalysisContextImpl analysisContext;
@@ -66,6 +67,7 @@ class LibraryContext {
     required DeclaredVariables declaredVariables,
     required SourceFactory sourceFactory,
     required this.packagesFile,
+    required this.withFineDependencies,
     required SummaryDataStore? externalSummaries,
   }) {
     testData?.instance = this;
@@ -448,7 +450,7 @@ class LinkedBundleEntry {
   ///
   /// These requirements are to the libraries in dependencies.
   ///
-  /// If [withFineDependencies] is `false`, the requirements are empty.
+  /// Without fine-grained dependencies, the requirements are empty.
   final RequirementsManifest requirements;
 
   /// The serialized libraries, for [BundleReader].
@@ -473,6 +475,7 @@ class LinkedBundleEntry {
 /// but this is relatively cheap.
 class LinkedBundleProvider {
   final ByteStore byteStore;
+  final bool withFineDependencies;
 
   /// The cache of deserialized bundles, used only when [withFineDependencies]
   /// to avoid reading requirements and manifests again and again.
@@ -480,7 +483,10 @@ class LinkedBundleProvider {
   /// The keys are [LibraryCycle.linkedKey].
   final Map<String, LinkedBundleEntry> map = {};
 
-  LinkedBundleProvider({required this.byteStore});
+  LinkedBundleProvider({
+    required this.byteStore,
+    required this.withFineDependencies,
+  });
 
   LinkedBundleEntry? get(String key) {
     if (map[key] case var entry?) {

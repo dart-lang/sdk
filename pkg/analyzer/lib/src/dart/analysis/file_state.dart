@@ -1194,6 +1194,7 @@ class FileSystemState {
   final SourceFactory _sourceFactory;
   final Workspace? _workspace;
   final DeclaredVariables _declaredVariables;
+  final bool withFineDependencies;
   final Uint32List _saltForUnlinked;
   final Uint32List _saltForElements;
 
@@ -1272,6 +1273,7 @@ class FileSystemState {
     required this.isGenerated,
     required this.onNewFile,
     required this.testData,
+    required this.withFineDependencies,
   }) : _analysisOptionsMap = analysisOptionsMap {
     _testView = FileSystemStateTestView(this);
   }
@@ -1886,7 +1888,11 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
     if (_libraryCycle == null) {
-      computeLibraryCycle(file._fsState._saltForElements, this);
+      computeLibraryCycle(
+        file._fsState.withFineDependencies,
+        file._fsState._saltForElements,
+        this,
+      );
     }
 
     return _libraryCycle!;

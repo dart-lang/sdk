@@ -73,6 +73,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
     fileContentCache: fileContentCache,
     externalSummaries: dataStore,
     packages: packages,
+    withFineDependencies: false,
     shouldReportInconsistentAnalysisException: false,
   );
 
