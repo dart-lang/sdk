@@ -20,6 +20,14 @@
   Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
   architecture is retained)
 
+### Libraries
+
+#### `dart:io`
+
+- **Breaking Change** [#56468][]: Marked `IOOverrides` as an `abstract base`
+  class.
+
+[#56468]: https://github.com/dart-lang/sdk/issues/56468
 
 ## 3.9.0
 
@@ -890,6 +898,7 @@ The AOT snapshot can be used as follows to run DDC:
 [pub#4445]: https://github.com/dart-lang/pub/issues/4445
 [#57084]: https://github.com/dart-lang/sdk/issues/57084
 [#56552]: https://github.com/dart-lang/sdk/issues/56552
+>>>>>>> BASE      (d73f7bdb4366b447eb9874fe80381b8efd03c718 Generate `GeneralizingAstVisitor`, `TimedAstVisitor`, `Analy)
 
 ## 3.6.0
 

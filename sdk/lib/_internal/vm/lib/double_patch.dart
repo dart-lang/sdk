@@ -72,8 +72,7 @@ class double {
       } else if ((c | 0x20) == _e) {
         i++;
         if (i == end) return null;
-        // int._tryParseSmi treats its end argument as inclusive.
-        final int? expPart = int._tryParseSmi(str, i, end - 1);
+        final int? expPart = int._tryParseSmi(str, i, end);
         if (expPart == null) return null;
         exponent += expPart;
         break;

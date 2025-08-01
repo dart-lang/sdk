@@ -29,7 +29,7 @@ final _ioOverridesToken = Object();
 ///   }, createDirectory: (String path) => new MyDirectory(path));
 /// }
 /// ```
-abstract class IOOverrides {
+abstract base class IOOverrides {
   static IOOverrides? _global;
 
   static IOOverrides? get current {
@@ -379,7 +379,7 @@ abstract class IOOverrides {
   }
 }
 
-class _IOOverridesScope extends IOOverrides {
+final class _IOOverridesScope extends IOOverrides {
   final IOOverrides? _previous;
 
   // Directory
