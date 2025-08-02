@@ -5696,9 +5696,6 @@ class LibraryElementImpl extends ElementImpl
   int nameLength;
 
   @override
-  bool isSynthetic = false;
-
-  @override
   List<ClassElementImpl> classes = [];
 
   @override
@@ -5895,6 +5892,15 @@ class LibraryElementImpl extends ElementImpl
   bool get isInSdk {
     var uri = definingCompilationUnit.source.uri;
     return DartUriResolver.isDartUri(uri);
+  }
+
+  @override
+  bool get isSynthetic {
+    return hasModifier(Modifier.SYNTHETIC);
+  }
+
+  set isSynthetic(bool isSynthetic) {
+    setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
   @override

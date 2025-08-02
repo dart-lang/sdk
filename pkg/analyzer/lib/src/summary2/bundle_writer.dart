@@ -20,7 +20,6 @@ import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
-import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
@@ -101,7 +100,7 @@ class BundleWriter {
     // Write non-resolution data for the library.
     _sink._writeStringReference(libraryElement.name);
     _writeFeatureSet(libraryElement.featureSet);
-    LibraryElementFlags.write(_sink, libraryElement);
+    libraryElement.writeModifiers(_sink);
     _writeLanguageVersion(libraryElement.languageVersion);
     _writeExportedReferences(libraryElement.exportedReferences);
     _sink.writeUint30List(libraryElement.nameUnion.mask);
@@ -628,7 +627,7 @@ class BundleWriter {
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
     _sink._writeFormalParameterKind(element);
-    ParameterElementFlags.write(_sink, element);
+    element.writeModifiers(_sink);
 
     _resolutionSink._writeMetadata(element.metadata);
 

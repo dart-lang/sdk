@@ -26,7 +26,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_reader.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/element_flags.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
@@ -146,7 +145,7 @@ class LibraryReader {
     _libraryElement.reference = _reference;
 
     // Read the rest of non-resolution data for the library.
-    LibraryElementFlags.read(_reader, _libraryElement);
+    _libraryElement.readModifiers(_reader);
     _libraryElement.languageVersion = _readLanguageVersion();
 
     _libraryElement.exportedReferences = _reader.readTypedList(
@@ -1084,7 +1083,7 @@ class LibraryReader {
         );
       }
       idFragmentMap[id] = element;
-      ParameterElementFlags.read(_reader, element);
+      element.readModifiers(_reader);
       element.typeParameters = _readTypeParameters();
       element.formalParameters = _readParameters();
       return element;
