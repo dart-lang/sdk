@@ -4149,22 +4149,32 @@ LintCode:
       Future<void> createDir(String path) async {}
       ```
   do_not_use_environment:
-    problemMessage: "Invalid use of an environment declaration."
-    correctionMessage: "Try removing the environment declaration usage."
+    problemMessage: "Avoid using environment values like '{0}' which create hidden global state."
+    correctionMessage: "Try using 'Platform.environment' for runtime access or remove environment-dependent code."
     state:
       stable: "2.9"
     categories: [errorProne]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      Using values derived from the environment at compile-time, creates
+      Using values derived from environment variables at compile-time creates
       hidden global state and makes applications hard to understand and maintain.
+      Environment values are resolved at compile-time and become embedded in the
+      compiled code, making behavior unpredictable across different environments.
 
       **DON'T** use `fromEnvironment` or `hasEnvironment` factory constructors.
 
       **BAD:**
       ```dart
-      const loggingLevel =
-        bool.hasEnvironment('logging') ? String.fromEnvironment('logging') : null;
+      const bool usingAppEngine = bool.hasEnvironment('APPENGINE_RUNTIME');
+      const loggingLevel = String.fromEnvironment('LOGGING_LEVEL');
+      ```
+
+      **GOOD:**
+      ```dart
+      import 'dart:io';
+
+      final bool usingAppEngine = Platform.environment.containsKey('APPENGINE_RUNTIME');
+      final String loggingLevel = Platform.environment['LOGGING_LEVEL'] ?? 'info';
       ```
   document_ignores:
     problemMessage: "Missing documentation explaining why the diagnostic is ignored."
