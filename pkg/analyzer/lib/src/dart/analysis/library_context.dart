@@ -278,7 +278,6 @@ class LibraryContext {
               apiSignature: cycle.nonTransitiveApiSignature,
               performance: performance,
               inputLibraries: cycle.libraries,
-              inputLibraryManifests: inputLibraryManifests,
             );
           });
           linkedBytes = linkResult.resolutionBytes;
@@ -328,7 +327,6 @@ class LibraryContext {
               apiSignature: cycle.nonTransitiveApiSignature,
               performance: performance,
               inputLibraries: cycle.libraries,
-              inputLibraryManifests: inputLibraryManifests,
             );
           });
           linkedBytes = linkResult.resolutionBytes;
