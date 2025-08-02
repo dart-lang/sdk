@@ -280,14 +280,14 @@ sealed class InstanceItem<E extends InstanceElementImpl>
 
   /// The names of duplicate or otherwise conflicting members.
   /// Such names will not be added to `declaredXyz` maps.
-  final Map<LookupName, ManifestItemId> declaredConflicts;
+  Map<LookupName, ManifestItemId> declaredConflicts;
 
-  final Map<LookupName, InstanceItemFieldItem> declaredFields;
-  final Map<LookupName, InstanceItemGetterItem> declaredGetters;
-  final Map<LookupName, InstanceItemSetterItem> declaredSetters;
-  final Map<LookupName, InstanceItemMethodItem> declaredMethods;
-  final Map<LookupName, InterfaceItemConstructorItem> declaredConstructors;
-  final Map<LookupName, ManifestItemId> inheritedConstructors;
+  Map<LookupName, InstanceItemFieldItem> declaredFields;
+  Map<LookupName, InstanceItemGetterItem> declaredGetters;
+  Map<LookupName, InstanceItemSetterItem> declaredSetters;
+  Map<LookupName, InstanceItemMethodItem> declaredMethods;
+  Map<LookupName, InterfaceItemConstructorItem> declaredConstructors;
+  Map<LookupName, ManifestItemId> inheritedConstructors;
 
   InstanceItem({
     required super.id,
@@ -426,13 +426,13 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void beforeUpdatingMembers() {
-    declaredConflicts.clear();
-    declaredFields.clear();
-    declaredGetters.clear();
-    declaredSetters.clear();
-    declaredMethods.clear();
-    declaredConstructors.clear();
-    inheritedConstructors.clear();
+    declaredConflicts = {};
+    declaredFields = {};
+    declaredGetters = {};
+    declaredSetters = {};
+    declaredMethods = {};
+    declaredConstructors = {};
+    inheritedConstructors = {};
   }
 
   ManifestItemId? getConstructorId(LookupName name) {
