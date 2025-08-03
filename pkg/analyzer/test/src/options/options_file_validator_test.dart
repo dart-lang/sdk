@@ -154,12 +154,22 @@ analyzer:
     );
   }
 
-  test_analyzer_enableExperiment_notAList() {
+  test_analyzer_enableExperiment_mapValue() {
     validate(
       '''
 analyzer:
   enable-experiment:
     experiment: true
+    ''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
+  }
+
+  test_analyzer_enableExperiment_scalarValue() {
+    validate(
+      '''
+analyzer:
+  enable-experiment: 7
     ''',
       [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
     );
@@ -308,6 +318,15 @@ analyzer:
 ''', []);
   }
 
+  test_analyzer_scalarValue() {
+    validate(
+      '''
+analyzer: 7
+    ''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
+  }
+
   test_analyzer_supported_exclude() {
     validate('''
 analyzer:
@@ -378,6 +397,15 @@ code-style:
 code-style:
   format: true
 ''', []);
+  }
+
+  test_codeStyle_nonMap() {
+    validate(
+      '''
+code-style: 7
+''',
+      [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT],
+    );
   }
 
   test_codeStyle_unsupported_list() {
