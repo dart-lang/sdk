@@ -375,7 +375,7 @@ class AnalyzerOptionsValidator extends _CompositeValidator {
         _AnalyzerTopLevelOptionsValidator(),
         _StrongModeOptionValueValidator(),
         _ErrorFilterOptionValidator(),
-        _EnabledExperimentsValidator(),
+        _EnableExperimentsValidator(),
         _LanguageOptionValidator(),
         _OptionalChecksValueValidator(),
         _CannotIgnoreOptionValidator(),
@@ -524,30 +524,24 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
   }
 
   void _validateFormat(DiagnosticReporter reporter, YamlNode format) {
-    if (format is YamlMap) {
+    if (format is! YamlScalar) {
       reporter.atSourceSpan(
         format.span,
         AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
         arguments: [AnalysisOptionsFile.format],
       );
-    } else if (format is YamlScalar) {
-      var formatValue = toBool(format.valueOrThrow);
-      if (formatValue == null) {
-        reporter.atSourceSpan(
-          format.span,
-          AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-          arguments: [
-            AnalysisOptionsFile.format,
-            format.valueOrThrow,
-            AnalysisOptionsFile._trueOrFalseProposal,
-          ],
-        );
-      }
-    } else if (format is YamlList) {
+      return;
+    }
+    var formatValue = toBool(format.valueOrThrow);
+    if (formatValue == null) {
       reporter.atSourceSpan(
         format.span,
-        AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
-        arguments: [AnalysisOptionsFile.format],
+        AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+        arguments: [
+          AnalysisOptionsFile.format,
+          format.valueOrThrow,
+          AnalysisOptionsFile._trueOrFalseProposal,
+        ],
       );
     }
   }
@@ -567,8 +561,8 @@ class _CompositeValidator extends OptionsValidator {
   }
 }
 
-/// Validates `analyzer` enabled experiments configuration options.
-class _EnabledExperimentsValidator extends OptionsValidator {
+/// Validates the `analyzer` `enable-experiments` configuration options.
+class _EnableExperimentsValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
     var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
@@ -1170,8 +1164,9 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
 /// Validates top-level options. For example,
 ///
 /// ```yaml
-///     plugin:
-///       top-level-option: true
+/// analyzer:
+///   exclude:
+///   - lib/generated/
 /// ```
 class _TopLevelOptionValidator extends OptionsValidator {
   final String pluginName;
@@ -1190,21 +1185,28 @@ class _TopLevelOptionValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
     var node = options.valueAt(pluginName);
-    if (node is YamlMap) {
-      node.nodes.forEach((k, v) {
-        if (k is YamlScalar) {
-          if (!supportedOptions.contains(k.value)) {
-            reporter.atSourceSpan(
-              k.span,
-              _warningCode,
-              arguments: [pluginName, k.valueOrThrow, _valueProposal],
-            );
-          }
-        }
-        // TODO(pq): consider an error if the node is not a Scalar.
-      });
+    if (node == null) {
+      return;
     }
-    // TODO(srawlins): Report non-Map with
-    //  AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT.
+    if (node is! YamlMap) {
+      reporter.atSourceSpan(
+        node.span,
+        AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+        arguments: [AnalysisOptionsFile.cannotIgnore],
+      );
+      return;
+    }
+    node.nodes.forEach((k, v) {
+      if (k is YamlScalar) {
+        if (!supportedOptions.contains(k.value)) {
+          reporter.atSourceSpan(
+            k.span,
+            _warningCode,
+            arguments: [pluginName, k.valueOrThrow, _valueProposal],
+          );
+        }
+      }
+      // TODO(pq): consider an error if the node is not a Scalar.
+    });
   }
 }
