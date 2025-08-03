@@ -33,18 +33,13 @@ LinkResult link({
   required LinkedElementFactory elementFactory,
   required OperationPerformanceImpl performance,
   required List<LibraryFileKind> inputLibraries,
-  required Map<Uri, LibraryManifest> inputLibraryManifests,
   required String apiSignature,
 }) {
   var linker = Linker(
     elementFactory: elementFactory,
     apiSignature: apiSignature,
   );
-  linker.link(
-    performance: performance,
-    inputLibraries: inputLibraries,
-    inputLibraryManifests: inputLibraryManifests,
-  );
+  linker.link(performance: performance, inputLibraries: inputLibraries);
 
   return LinkResult(resolutionBytes: linker.resolutionBytes);
 }
@@ -95,7 +90,6 @@ class Linker {
   void link({
     required OperationPerformanceImpl performance,
     required List<LibraryFileKind> inputLibraries,
-    required Map<Uri, LibraryManifest> inputLibraryManifests,
   }) {
     performance.run('LibraryBuilder.build', (performance) {
       for (var inputLibrary in inputLibraries) {
