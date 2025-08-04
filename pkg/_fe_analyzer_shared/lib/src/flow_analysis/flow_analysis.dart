@@ -2795,14 +2795,14 @@ class FlowModel<Type extends Object> {
         newPromotedTypes =
             helper.typeAnalyzerOptions.soundFlowAnalysisEnabled
                 ? PromotionModel.rebasePromotedTypes(
-                  helper,
-                  afterFinallyModel.promotedTypes,
-                  thisModel.promotedTypes,
+                  basePromotions: thisModel.promotedTypes,
+                  newPromotions: afterFinallyModel.promotedTypes,
+                  helper: helper,
                 )
                 : PromotionModel.rebasePromotedTypes(
-                  helper,
-                  thisModel.promotedTypes,
-                  afterFinallyModel.promotedTypes,
+                  basePromotions: afterFinallyModel.promotedTypes,
+                  newPromotions: thisModel.promotedTypes,
+                  helper: helper,
                 );
         // And we can safely restore the SSA node from the end of the try block.
         newSsaNode = thisModel.ssaNode;
@@ -3081,9 +3081,9 @@ class FlowModel<Type extends Object> {
         // usual "promotion chain" invariant (each promoted type is a subtype of
         // the previous).
         newPromotedTypes = PromotionModel.rebasePromotedTypes(
-          helper,
-          thisModel.promotedTypes,
-          baseModel.promotedTypes,
+          basePromotions: baseModel.promotedTypes,
+          newPromotions: thisModel.promotedTypes,
+          helper: helper,
         );
       }
       // Tests are kept regardless of whether they are in `this` model or the
@@ -4286,46 +4286,51 @@ class PromotionModel<Type extends Object> {
     return types2;
   }
 
-  /// Forms a promotion chain by starting with [basePromotedTypes] and applying
-  /// promotions from [thisPromotedTypes] to it, to the extent possible without
+  /// Forms a promotion chain by starting with [basePromotions] and applying
+  /// promotions from [newPromotions] to it, to the extent possible without
   /// violating the usual ordering invariant (each promoted type must be a
   /// subtype of the previous).
   ///
   /// In degenerate cases, the returned chain will be identical to
-  /// [thisPromotedTypes] or [basePromotedTypes] (to make it easier for the
+  /// [newPromotions] or [basePromotions] (to make it easier for the
   /// caller to detect when data structures may be re-used).
-  static List<Type>? rebasePromotedTypes<Type extends Object>(
-    FlowModelHelper<Type> helper,
-    List<Type>? thisPromotedTypes,
-    List<Type>? basePromotedTypes,
-  ) {
-    if (basePromotedTypes == null) {
+  static List<Type>? rebasePromotedTypes<Type extends Object>({
+    required List<Type>? basePromotions,
+    required List<Type>? newPromotions,
+    required FlowModelHelper<Type> helper,
+  }) {
+    if (basePromotions == null) {
       // The base promotion chain contributes nothing so we just use this
       // promotion chain directly.
-      return thisPromotedTypes;
-    } else if (thisPromotedTypes == null) {
+      return newPromotions;
+    } else if (newPromotions == null) {
       // This promotion chain contributes nothing so we just use the base
-      // promotion chain directly.
-      return basePromotedTypes;
+      // promotion chain directly. Note: this is a performance optimization of
+      // the `else` block below; it is not required by the spec.
+      return basePromotions;
     } else {
       // Start with basePromotedTypes and apply each of the promotions in
       // thisPromotedTypes (discarding any that don't follow the ordering
       // invariant)
-      List<Type> newPromotedTypes = basePromotedTypes;
-      Type otherPromotedType = basePromotedTypes.last;
-      for (int i = 0; i < thisPromotedTypes.length; i++) {
-        Type nextType = thisPromotedTypes[i];
-        if (helper.typeOperations.isSubtypeOf(nextType, otherPromotedType) &&
+      Type basePromotedType = basePromotions.last;
+      for (int i = 0; i < newPromotions.length; i++) {
+        Type nextType = newPromotions[i];
+        // Determine if `nextType` is safe to attach to `basePromotedTypes`.
+        if (helper.typeOperations.isSubtypeOf(nextType, basePromotedType) &&
             helper.isValidPromotionStep(
-              previousType: otherPromotedType,
+              previousType: basePromotedType,
               newType: nextType,
             )) {
-          newPromotedTypes =
-              basePromotedTypes.toList()..addAll(thisPromotedTypes.skip(i));
-          break;
+          // Since `newPromotions` is a valid promotion chain, it follows that
+          // all the types that follow `nextType` are also safe to attach to the
+          // base promotion chain, so simply concatenate `basePromotions` with
+          // the remainder of `newPromotions`.
+          return basePromotions.toList()..addAll(newPromotions.skip(i));
         }
       }
-      return newPromotedTypes;
+      // No types from `newPromotions` were safe to attach to
+      // `basePromotedTypes`, so return `basePromotions` unchanged.
+      return basePromotions;
     }
   }
 
@@ -4753,9 +4758,9 @@ class SsaNode<Type extends Object> {
       }
       List<Type>? newPromotedTypes = newModel.promotedTypes;
       List<Type>? rebasedPromotedTypes = PromotionModel.rebasePromotedTypes(
-        helper,
-        afterFinallyPromotedTypes,
-        newPromotedTypes,
+        basePromotions: newPromotedTypes,
+        newPromotions: afterFinallyPromotedTypes,
+        helper: helper,
       );
       if (!identical(newPromotedTypes, rebasedPromotedTypes)) {
         newFlowModel = newFlowModel.updatePromotionInfo(

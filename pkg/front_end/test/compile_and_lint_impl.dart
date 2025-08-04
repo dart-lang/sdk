@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/io.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, SimpleToken, Token;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/builder/declaration_builders.dart'
@@ -109,7 +109,7 @@ Future<int> runCompileAndLintTest(
       compileSdk: true,
       omitPlatform: false,
       packagesFileUri: packageConfigUri,
-      onDiagnostic: (api.DiagnosticMessage message) {
+      onDiagnostic: (api.CfeDiagnosticMessage message) {
         if (message.severity == Severity.error) {
           print(message.plainTextFormatted.join('\n'));
           errorCount++;

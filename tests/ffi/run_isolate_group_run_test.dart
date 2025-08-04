@@ -47,6 +47,9 @@ bar() {
 @pragma('vm:shared')
 var list_length = 0;
 
+@pragma('vm:shared')
+String string_foo = "";
+
 main() {
   IsolateGroup.runSync(() {
     final l = <int>[];
@@ -143,6 +146,11 @@ main() {
     bar();
     Expect.equals(42, Baz.foo);
   }
+
+  IsolateGroup.runSync(() {
+    string_foo = "foo bar";
+  });
+  Expect.equals("foo bar", string_foo);
 
   print("All tests completed :)");
 }

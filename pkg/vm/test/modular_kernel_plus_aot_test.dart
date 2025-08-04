@@ -122,7 +122,7 @@ Future compileToKernel(
     const <String, String>{},
   );
 
-  void onDiagnostic(fe.DiagnosticMessage message) {
+  void onDiagnostic(fe.CfeDiagnosticMessage message) {
     message.plainTextFormatted.forEach(print);
   }
 

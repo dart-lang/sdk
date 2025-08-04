@@ -20,7 +20,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerOptions,
         CompilerResult,
         InvocationMode,
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         DiagnosticMessageHandler,
         FileSystem,
         FileSystemEntity,
@@ -416,7 +416,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
           parseExperimentalArguments(experimentalFlags),
           onError: print,
         )
-        ..onDiagnostic = (DiagnosticMessage m) {
+        ..onDiagnostic = (CfeDiagnosticMessage m) {
           errorDetector(m);
         }
         ..embedSourceText = embedSources
@@ -878,7 +878,7 @@ class ErrorDetector {
 
   ErrorDetector({this.previousErrorHandler});
 
-  void call(DiagnosticMessage message) {
+  void call(CfeDiagnosticMessage message) {
     if (message.severity == Severity.error) {
       hasCompilationErrors = true;
     }
@@ -890,8 +890,8 @@ class ErrorDetector {
 class ErrorPrinter {
   final Verbosity verbosity;
   final DiagnosticMessageHandler? previousErrorHandler;
-  final Map<Uri?, List<DiagnosticMessage>> compilationMessages =
-      <Uri?, List<DiagnosticMessage>>{};
+  final Map<Uri?, List<CfeDiagnosticMessage>> compilationMessages =
+      <Uri?, List<CfeDiagnosticMessage>>{};
   final void Function(String) println;
 
   ErrorPrinter(
@@ -900,9 +900,9 @@ class ErrorPrinter {
     this.println = print,
   });
 
-  void call(DiagnosticMessage message) {
+  void call(CfeDiagnosticMessage message) {
     final sourceUri = getMessageUri(message);
-    (compilationMessages[sourceUri] ??= <DiagnosticMessage>[]).add(message);
+    (compilationMessages[sourceUri] ??= <CfeDiagnosticMessage>[]).add(message);
     previousErrorHandler?.call(message);
   }
 
@@ -921,7 +921,8 @@ class ErrorPrinter {
           return 0;
         });
     for (final Uri? sourceUri in sortedUris) {
-      for (final DiagnosticMessage message in compilationMessages[sourceUri]!) {
+      for (final CfeDiagnosticMessage message
+          in compilationMessages[sourceUri]!) {
         if (Verbosity.shouldPrint(verbosity, message)) {
           printDiagnosticMessage(message, println);
         }

@@ -145,7 +145,7 @@ class TestCompiler {
     final List<Code> formattedErrorsCodes = <Code>[];
     final List<Code> formattedWarningsCodes = <Code>[];
 
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       String stringId = message.ansiFormatted.join("\n");
       if (message is FormattedMessage) {
         stringId = message.toJsonString();

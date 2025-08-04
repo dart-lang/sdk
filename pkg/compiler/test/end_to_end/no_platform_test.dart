@@ -28,7 +28,7 @@ main() {
       initializedCompilerState,
       false,
       fe.StandardFileSystem.instance,
-      (fe.DiagnosticMessage message) {
+      (fe.CfeDiagnosticMessage message) {
         message.plainTextFormatted.forEach(print);
         Expect.notEquals(fe.Severity.error, message.severity);
       },

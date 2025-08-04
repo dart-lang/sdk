@@ -365,7 +365,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         verbose: verbose);
   }
 
-  void onDiagnostic(fe.DiagnosticMessage message) {
+  void onDiagnostic(fe.CfeDiagnosticMessage message) {
     if (fe.Verbosity.shouldPrint(verbosity, message)) {
       fe.printDiagnosticMessage(message, out.writeln);
     }

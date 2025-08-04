@@ -5,7 +5,7 @@
 import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
+    show CfeDiagnosticMessage, getMessageCodeObject;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -50,8 +50,8 @@ class Tester {
   late Uri entryPointImportDartFoo;
   late Uri platformUri;
   late List<int> sdkSummaryData;
-  late List<DiagnosticMessage> errorMessages;
-  late List<DiagnosticMessage> warningMessages;
+  late List<CfeDiagnosticMessage> errorMessages;
+  late List<CfeDiagnosticMessage> warningMessages;
   late MemoryFileSystem fs;
   late CompilerOptions options;
   late IncrementalCompiler compiler;
@@ -119,8 +119,8 @@ class Tester {
     entryPointImportDartFoo = base.resolve("small_foo.dart");
     platformUri = sdkRoot.resolve("vm_platform.dill");
     sdkSummaryData = await new File.fromUri(platformUri).readAsBytes();
-    errorMessages = <DiagnosticMessage>[];
-    warningMessages = <DiagnosticMessage>[];
+    errorMessages = <CfeDiagnosticMessage>[];
+    warningMessages = <CfeDiagnosticMessage>[];
     fs = new MemoryFileSystem(base);
     options = getOptions();
 
@@ -128,7 +128,7 @@ class Tester {
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
     options.omitPlatform = true;
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       if (message.severity == Severity.error) {
         errorMessages.add(message);
       } else if (message.severity == Severity.warning) {
@@ -254,6 +254,6 @@ class DeleteTempFilesRecorderForTesting extends RecorderForTesting {
   }
 }
 
-String joinMessages(List<DiagnosticMessage> messages) {
+String joinMessages(List<CfeDiagnosticMessage> messages) {
   return messages.map((m) => m.plainTextFormatted.join("\n")).join("\n");
 }

@@ -4,7 +4,7 @@
 
 import 'package:front_end/src/api_unstable/vm.dart';
 
-class NativeAssetsDiagnosticMessage implements DiagnosticMessage {
+class NativeAssetsDiagnosticMessage implements CfeDiagnosticMessage {
   final String message;
 
   @override

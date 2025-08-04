@@ -5,7 +5,7 @@
 library front_end.compiler_options;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler;
+    show CfeDiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:kernel/ast.dart' show Component, Version;
 import 'package:kernel/default_language_version.dart' as kernel
@@ -27,7 +27,7 @@ import 'file_system.dart' show FileSystem;
 import 'standard_file_system.dart' show StandardFileSystem;
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -552,7 +552,7 @@ class Verbosity {
   }
 
   // Coverage-ignore(suite): Not run.
-  static bool shouldPrint(Verbosity verbosity, DiagnosticMessage message) {
+  static bool shouldPrint(Verbosity verbosity, CfeDiagnosticMessage message) {
     Severity severity = message.severity;
     switch (verbosity) {
       case Verbosity.error:

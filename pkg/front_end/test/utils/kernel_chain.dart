@@ -14,7 +14,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/messages.dart'
     show DiagnosticMessageFromJson;
@@ -507,7 +507,7 @@ class MatchExpectation
     void addProblemsAsJson(List<String>? problems) {
       if (problems != null) {
         for (String jsonString in problems) {
-          DiagnosticMessage message =
+          CfeDiagnosticMessage message =
               new DiagnosticMessageFromJson.fromJson(jsonString);
           problemsAsJson.add(message.plainTextFormatted.join('\n'));
         }

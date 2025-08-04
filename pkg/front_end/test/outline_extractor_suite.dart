@@ -135,7 +135,7 @@ class CompileAndCompareStep
     Map<Uri, String> processedFiles =
         await extractOutline([description.uri], packages: packages);
 
-    void onDiagnostic(DiagnosticMessage message) {
+    void onDiagnostic(CfeDiagnosticMessage message) {
       if (message.severity == Severity.error ||
           message.severity == Severity.warning) {
         throw ("Unexpected error: ${message.plainTextFormatted.join('\n')}");

@@ -67,7 +67,7 @@ class DartDocTest {
   late CompilerOptions options;
   late ProcessedOptions processedOpts;
   bool errors = false;
-  List<DiagnosticMessage> errorMessages = [];
+  List<CfeDiagnosticMessage> errorMessages = [];
   final FileSystem? underlyingFileSystem;
   final bool silent;
   final bool onlyIncludeFirstError;
@@ -189,7 +189,7 @@ class DartDocTest {
       _print("Got errors when compiling $uri "
           "in ${stopwatch.elapsedMilliseconds} ms.");
       List<String> errorStrings = [];
-      for (DiagnosticMessage message in errorMessages) {
+      for (CfeDiagnosticMessage message in errorMessages) {
         for (String errorString in message.plainTextFormatted) {
           errorStrings.add(errorString);
           if (onlyIncludeFirstError) break;
@@ -222,7 +222,7 @@ class DartDocTest {
 
       // Map back to the offending test.
       List<List<String>?> testsWithErrors = List.filled(tests.length + 1, null);
-      for (DiagnosticMessage message in errorMessages) {
+      for (CfeDiagnosticMessage message in errorMessages) {
         int testIndex = tests.length; // indicating no test.
         if (message is FormattedMessage) {
           testIndex = binarySearch(lineNumberForStartOfTest, message.line);
@@ -406,7 +406,7 @@ class DartDocTest {
     Target target = new VmTarget(targetFlags);
     options.target = target;
     options.omitPlatform = true;
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       if (printOnDiagnostic) {
         _print(message.plainTextFormatted.first);
       }

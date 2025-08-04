@@ -51,7 +51,7 @@ Future<void> runPlatformAnalysis(
 Future<void> _runAnalysis(CompilerOptions options, Iterable<Uri> entryPoints,
     PerformAnalysisFunction performAnalysis) async {
   options.packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json');
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
   };
   InternalCompilerResult compilerResult = await kernelForProgramInternal(

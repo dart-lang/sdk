@@ -7,7 +7,7 @@ import "dart:io" show File;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import "package:front_end/src/api_prototype/incremental_kernel_generator.dart"
     show IncrementalKernelGenerator;
 import "package:front_end/src/api_prototype/memory_file_system.dart"
@@ -40,7 +40,7 @@ final Uri entryPoint = base.resolve("main.dart");
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
-  final List<DiagnosticMessage> errors;
+  final List<CfeDiagnosticMessage> errors;
 
   @override
   final List<Step> steps = const <Step>[
@@ -65,8 +65,9 @@ class Context extends ChainContext {
     errors.clear();
   }
 
-  List<DiagnosticMessage> takeErrors() {
-    List<DiagnosticMessage> result = new List<DiagnosticMessage>.from(errors);
+  List<CfeDiagnosticMessage> takeErrors() {
+    List<CfeDiagnosticMessage> result =
+        new List<CfeDiagnosticMessage>.from(errors);
     errors.clear();
     return result;
   }
@@ -139,7 +140,7 @@ class RunCompilations extends Step<TestCase, TestCase, Context> {
       var compilerResult =
           await compiler.computeDelta(entryPoints: [entryPoint]);
       Component component = compilerResult.component;
-      List<DiagnosticMessage> errors = context.takeErrors();
+      List<CfeDiagnosticMessage> errors = context.takeErrors();
       if (test.expectations![edits].hasCompileTimeError) {
         if (errors.isEmpty) {
           return fail(test, "Compile-time error expected, but none reported");
@@ -207,13 +208,13 @@ Future<Context> createContext(
       .entityForUri(sdkSummary)
       .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
 
-  final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
+  final List<CfeDiagnosticMessage> errors = <CfeDiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..verbose = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       if (message.severity == Severity.error) {
         errors.add(message);

@@ -12,7 +12,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
         CompilerResult,
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         kernelForProgram,
         Severity;
 import 'package:kernel/ast.dart';
@@ -128,10 +128,10 @@ Future<CompilationResult> compileToModule(
     compiler.WasmCompilerOptions options,
     FileSystem fileSystem,
     Uri Function(String moduleName)? sourceMapUrlGenerator,
-    void Function(DiagnosticMessage) handleDiagnosticMessage,
+    void Function(CfeDiagnosticMessage) handleDiagnosticMessage,
     {void Function(String, String)? writeFile}) async {
   var hadCompileTimeError = false;
-  void diagnosticMessageHandler(DiagnosticMessage message) {
+  void diagnosticMessageHandler(CfeDiagnosticMessage message) {
     if (message.severity == Severity.error) {
       hadCompileTimeError = true;
     }

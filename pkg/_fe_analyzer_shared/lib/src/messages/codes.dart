@@ -6,7 +6,7 @@ library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
 
-import 'diagnostic_message.dart' show DiagnosticMessage;
+import 'diagnostic_message.dart' show CfeDiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
 
@@ -215,7 +215,7 @@ class PlainAndColorizedString {
   const PlainAndColorizedString.plainOnly(this.plain) : this.colorized = plain;
 }
 
-class FormattedMessage implements DiagnosticMessage {
+class FormattedMessage implements CfeDiagnosticMessage {
   final LocatedMessage locatedMessage;
 
   final String formattedPlain;
@@ -300,7 +300,7 @@ class FormattedMessage implements DiagnosticMessage {
   }
 }
 
-class DiagnosticMessageFromJson implements DiagnosticMessage {
+class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
   @override
   final Iterable<String> ansiFormatted;
 

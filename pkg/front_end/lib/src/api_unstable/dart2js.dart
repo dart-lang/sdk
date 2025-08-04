@@ -25,7 +25,7 @@ export 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show LocatedMessage;
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         DiagnosticMessageHandler,
         getMessageCharOffset,
         getMessageHeaderText,
