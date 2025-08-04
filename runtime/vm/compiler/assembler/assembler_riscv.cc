@@ -2880,8 +2880,7 @@ void Assembler::PushRegisters(const RegisterSet& regs) {
   // The order in which the registers are pushed must match the order
   // in which the registers are encoded in the safepoint's stack map.
 
-  intptr_t size = (regs.CpuRegisterCount() * target::kWordSize) +
-                  (regs.FpuRegisterCount() * kFpuRegisterSize);
+  intptr_t size = regs.SpillSize();
   if (size == 0) {
     return;  // Skip no-op SP update.
   }
@@ -2909,8 +2908,7 @@ void Assembler::PopRegisters(const RegisterSet& regs) {
   // The order in which the registers are pushed must match the order
   // in which the registers are encoded in the safepoint's stack map.
 
-  intptr_t size = (regs.CpuRegisterCount() * target::kWordSize) +
-                  (regs.FpuRegisterCount() * kFpuRegisterSize);
+  intptr_t size = regs.SpillSize();
   if (size == 0) {
     return;  // Skip no-op SP update.
   }
@@ -3084,21 +3082,103 @@ void Assembler::Jump(const Address& address) {
   jr(TMP2);
 }
 
-void Assembler::TsanLoadAcquire(Register addr) {
-  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
-  MoveRegister(A0, addr);
-  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
+void Assembler::TsanLoadAcquire(Register dst,
+                                const Address& addr,
+                                OperandSize size) {
+  ASSERT(addr.base() != SP);
+  ASSERT(addr.base() != FP);
+  ASSERT(dst != SP);
+  ASSERT(dst != FP);
+
+  RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
+                        kAbiVolatileFpuRegs);
+
+  subi(SP, SP, 4 * target::kWordSize);
+  sx(RA, Address(SP, 3 * target::kWordSize));
+  sx(FP, Address(SP, 2 * target::kWordSize));
+  sx(CODE_REG, Address(SP, 1 * target::kWordSize));
+  sx(PP, Address(SP, 0 * target::kWordSize));
+  addi(FP, SP, 4 * target::kWordSize);
+
+  PushRegisters(registers);
+  ReserveAlignedFrameSpace(0);
+
+  AddImmediate(A0, addr.base(), addr.offset());
+  LoadImmediate(A1, __ATOMIC_ACQUIRE);
+
+  switch (size) {
+    case kEightBytes:
+      lx(TMP2, compiler::Address(
+                   THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    case kUnsignedFourBytes:
+      lx(TMP2, compiler::Address(
+                   THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+  sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  jalr(TMP2);
+  LoadImmediate(TMP2, VMTag::kDartTagId);
+  sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
+
+  MoveRegister(dst, A0);
+
+  subi(SP, FP, registers.SpillSize() + 4 * target::kWordSize);
+  PopRegisters(registers);
+
+  subi(SP, FP, 4 * target::kWordSize);
+  lx(PP, Address(SP, 0 * target::kWordSize));
+  lx(CODE_REG, Address(SP, 1 * target::kWordSize));
+  lx(FP, Address(SP, 2 * target::kWordSize));
+  lx(RA, Address(SP, 3 * target::kWordSize));
+  addi(SP, SP, 4 * target::kWordSize);
 }
-void Assembler::TsanStoreRelease(Register addr) {
+
+void Assembler::TsanStoreRelease(Register src,
+                                 const Address& addr,
+                                 OperandSize size) {
+  ASSERT(addr.base() != SP);
+  ASSERT(addr.base() != FP);
+  ASSERT(src != SP);
+  ASSERT(src != FP);
+
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
-  MoveRegister(A0, addr);
-  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
+
+  if (src == A0) {
+    MoveRegister(A1, src);
+    AddImmediate(A0, addr.base(), addr.offset());
+  } else {
+    AddImmediate(A0, addr.base(), addr.offset());
+    MoveRegister(A1, src);
+  }
+  LoadImmediate(A2, __ATOMIC_RELEASE);
+
+  switch (size) {
+    case kEightBytes:
+      rt.Call(kTsanAtomic64StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      rt.Call(kTsanAtomic32StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Assembler::LoadAcquire(Register dst,
                             const Address& address,
                             OperandSize size) {
   ASSERT(dst != address.base());
+
+  if (FLAG_target_thread_sanitizer) {
+    TsanLoadAcquire(dst, address, size);
+    return;
+  }
 
   if (Supports(RV_Zalasr)) {
     Address addr = PrepareAtomicOffset(address.base(), address.offset());
@@ -3124,20 +3204,16 @@ void Assembler::LoadAcquire(Register dst,
     Load(dst, address, size);
     fence(HartEffects::kRead, HartEffects::kMemory);
   }
-
-  if (FLAG_target_thread_sanitizer) {
-    if (address.offset() == 0) {
-      TsanLoadAcquire(address.base());
-    } else {
-      AddImmediate(TMP2, address.base(), address.offset());
-      TsanLoadAcquire(TMP2);
-    }
-  }
 }
 
 void Assembler::StoreRelease(Register src,
                              const Address& address,
                              OperandSize size) {
+  if (FLAG_target_thread_sanitizer) {
+    TsanStoreRelease(src, address, size);
+    return;
+  }
+
   if (Supports(RV_Zalasr)) {
     Address addr = PrepareAtomicOffset(address.base(), address.offset());
     switch (size) {
@@ -4781,13 +4857,8 @@ void LeafRuntimeScope::Call(const RuntimeEntry& entry,
 
 LeafRuntimeScope::~LeafRuntimeScope() {
   if (preserve_registers_) {
-    const intptr_t kSavedRegistersSize =
-        kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
-        kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize +
-        4 * target::kWordSize;
-
-    __ subi(SP, FP, kSavedRegistersSize);
-
+    __ subi(SP, FP,
+            kRuntimeCallSavedRegisters.SpillSize() + 4 * target::kWordSize);
     __ PopRegisters(kRuntimeCallSavedRegisters);
   }
 

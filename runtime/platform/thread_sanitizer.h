@@ -17,8 +17,14 @@
 
 #if defined(USING_THREAD_SANITIZER)
 #define NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
-extern "C" void __tsan_acquire(void* addr);
-extern "C" void __tsan_release(void* addr);
+extern "C" void __tsan_atomic32_load(uint32_t* addr, int order);
+extern "C" void __tsan_atomic32_store(uint32_t* addr,
+                                      uint32_t value,
+                                      int order);
+extern "C" void __tsan_atomic64_load(uint64_t* addr, int order);
+extern "C" void __tsan_atomic64_store(uint64_t* addr,
+                                      uint64_t value,
+                                      int order);
 #else
 #define NO_SANITIZE_THREAD
 #endif

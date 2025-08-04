@@ -6095,9 +6095,8 @@ class ShiftInt64OpSlowPath : public ThrowErrorSlowPathCode {
     // The unboxed int64 argument is passed through a dedicated slot in Thread.
     // TODO(dartbug.com/33549): Clean this up when unboxed values
     // could be passed as arguments.
-    __ sx(right,
-          compiler::Address(
-              THR, compiler::target::Thread::unboxed_runtime_arg_offset()));
+    __ StoreToOffset(right, THR,
+                     compiler::target::Thread::unboxed_runtime_arg_offset());
 #endif
   }
 };

@@ -4872,10 +4872,20 @@ extern "C" void __msan_unpoison_param(size_t) {
 #endif
 
 #if !defined(USING_THREAD_SANITIZER)
-extern "C" void __tsan_acquire(void* addr) {
+extern "C" uint32_t __tsan_atomic32_load(uint32_t* addr, int order) {
   UNREACHABLE();
 }
-extern "C" void __tsan_release(void* addr) {
+extern "C" void __tsan_atomic32_store(uint32_t* addr,
+                                      uint32_t value,
+                                      int order) {
+  UNREACHABLE();
+}
+extern "C" uint64_t __tsan_atomic64_load(uint64_t* addr, int order) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_atomic64_store(uint64_t* addr,
+                                      uint64_t value,
+                                      int order) {
   UNREACHABLE();
 }
 #endif
@@ -4885,7 +4895,9 @@ extern "C" void __tsan_release(void* addr) {
 
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoison, 2, __msan_unpoison);
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam, 1, __msan_unpoison_param);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanLoadAcquire, 1, __tsan_acquire);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanStoreRelease, 1, __tsan_release);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Load, 2, __tsan_atomic32_load);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
 
 }  // namespace dart

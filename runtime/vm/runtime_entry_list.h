@@ -127,8 +127,10 @@ namespace dart {
   V(void, PropagateError, Dart_Handle)                                         \
   V(void, MsanUnpoison, void*, size_t)                                         \
   V(void, MsanUnpoisonParam, size_t)                                           \
-  V(void, TsanLoadAcquire, void*)                                              \
-  V(void, TsanStoreRelease, void*)                                             \
+  V(uint32_t, TsanAtomic32Load, void*, int)                                    \
+  V(void, TsanAtomic32Store, void*, uint32_t, int)                             \
+  V(uint64_t, TsanAtomic64Load, void*, int)                                    \
+  V(void, TsanAtomic64Store, void*, uint64_t, int)                             \
   V(bool, TryDoubleAsInteger, Thread*)                                         \
   V(void*, MemoryMove, void*, const void*, size_t)
 

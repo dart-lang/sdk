@@ -286,16 +286,69 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
   ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
 }
 
-void Assembler::TsanLoadAcquire(Register addr) {
-  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
+  RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
+                        kAllFpuRegistersList);
+
+  EnterFrame(0);
+  PushRegisters(registers);
+  ReserveAlignedFrameSpace(0);
+
   MoveRegister(R0, addr);
-  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
+  LoadImmediate(R1, __ATOMIC_ACQUIRE);
+
+  mov(CSP, SP);
+  switch (size) {
+    case kEightBytes:
+      ldr(TMP, compiler::Address(
+                   THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    case kUnsignedFourBytes:
+      ldr(TMP, compiler::Address(
+                   THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  blr(TMP);
+  LoadImmediate(TMP, VMTag::kDartTagId);
+  str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  SetupCSPFromThread(THR);
+
+  MoveRegister(dst, R0);
+
+  AddImmediate(SP, FP, -registers.SpillSize());
+  PopRegisters(registers);
+  LeaveFrame();
 }
 
-void Assembler::TsanStoreRelease(Register addr) {
+void Assembler::TsanStoreRelease(Register src,
+                                 Register addr,
+                                 OperandSize size) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
-  MoveRegister(R0, addr);
-  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
+
+  if (src == R0) {
+    MoveRegister(R1, src);
+    MoveRegister(R0, addr);
+  } else {
+    MoveRegister(R0, addr);
+    MoveRegister(R1, src);
+  }
+  LoadImmediate(R2, __ATOMIC_RELEASE);
+
+  switch (size) {
+    case kEightBytes:
+      rt.Call(kTsanAtomic64StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      rt.Call(kTsanAtomic32StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
 }
 
 static int CountLeadingZeros(uint64_t value, int width) {
@@ -1779,10 +1832,7 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // SP might have been modified to reserve space for arguments
     // and ensure proper alignment of the stack frame.
     // We need to restore it before restoring registers.
-    const intptr_t kPushedRegistersSize =
-        kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
-        kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize;
-    __ AddImmediate(SP, FP, -kPushedRegistersSize);
+    __ AddImmediate(SP, FP, -kRuntimeCallSavedRegisters.SpillSize());
     __ PopRegisters(kRuntimeCallSavedRegisters);
   }
 
