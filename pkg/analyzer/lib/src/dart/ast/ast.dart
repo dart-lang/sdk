@@ -5620,6 +5620,11 @@ abstract final class Declaration implements AnnotatedNode {
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  ///
+  /// Returns `null` for [FieldDeclaration] and [TopLevelVariableDeclaration]
+  /// because these nodes don't declare any fragments, but individual
+  /// [VariableDeclaration]s inside them do. They are [Declaration]s mostly to
+  /// fit into [ClassDeclaration.members] and [CompilationUnit.declarations].
   @experimental
   Fragment? get declaredFragment;
 }
