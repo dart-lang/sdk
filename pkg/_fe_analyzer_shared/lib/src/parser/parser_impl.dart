@@ -7867,7 +7867,7 @@ class Parser {
   ///
   /// ```
   /// listLiteral:
-  ///   'const'? typeArguments? '[' (expressionList ','?)? ']'
+  ///   'const'? typeArguments? '[' (elementList ','?)? ']'
   /// ;
   /// ```
   ///
@@ -7900,12 +7900,13 @@ class Parser {
         break;
       }
       int ifCount = 0;
-      LiteralEntryInfo? info = computeLiteralEntry(token);
+      LiteralEntryInfo? info = _computeLiteralEntry(token);
       while (info != null) {
+        next = token.next!;
         if (info.hasEntry) {
-          if (token.next!.isA(TokenType.QUESTION)) {
-            Token nullAwareToken = token.next!;
-            token = token.next!;
+          if (next.isA(TokenType.QUESTION)) {
+            Token nullAwareToken = next;
+            token = next;
             token = parseExpression(token);
             listener.handleNullAwareElement(nullAwareToken);
           } else {
@@ -7915,7 +7916,7 @@ class Parser {
           token = info.parse(token, this);
         }
         ifCount += info.ifConditionDelta;
-        info = info.computeNext(token);
+        info = _nextLiteralEntry(info, token);
       }
       next = token.next!;
       ++count;
@@ -7983,7 +7984,7 @@ class Parser {
 
     while (true) {
       int ifCount = 0;
-      LiteralEntryInfo? info = computeLiteralEntry(token);
+      LiteralEntryInfo? info = _computeLiteralEntry(token);
       if (info == simpleEntry) {
         // TODO(danrubel): Remove this section and use the while loop below
         // once hasSetEntry is no longer needed.
@@ -7992,77 +7993,66 @@ class Parser {
         hasSetEntry ??= !isMapEntry;
         if (isMapEntry) {
           Token colon = token.next!;
-          Token next = colon.next!;
-          if (next.isA(TokenType.QUESTION)) {
-            // Null-aware value. For example:
-            //   <int, String>{ x: ?y }
-            token = parseExpression(next);
-            listener.handleLiteralMapEntry(
-              colon,
-              token,
-              nullAwareKeyToken: null,
-              nullAwareValueToken: next,
-            );
-          } else {
-            // Non null-aware entry. For example:
-            //   <bool, num>{ x: y }
-            token = parseExpression(colon);
-            listener.handleLiteralMapEntry(colon, token.next!);
+          token = colon;
+          Token next = token.next!;
+          Token? nullAwareValueToken;
+          if (next.isA(TokenType.QUESTION_PERIOD)) {
+            token = nullAwareValueToken = _splitFollowingQuestionPeriod(token);
+          } else if (next.isA(TokenType.QUESTION)) {
+            token = nullAwareValueToken = next;
           }
+
+          token = parseExpression(token);
+          listener.handleLiteralMapEntry(
+            colon,
+            token.next!,
+            nullAwareValueToken: nullAwareValueToken,
+          );
         }
       } else {
         while (info != null) {
           if (info.hasEntry) {
             Token? nullAwareKeyToken;
-            if (token.next!.isA(TokenType.QUESTION)) {
+            Token next = token.next!;
+            if (next.isA(TokenType.QUESTION)) {
               // Null-aware key, for example:
               //   <double, Symbol>{ if (b) ?x: y }
               //   <double, Symbol>{ if (b) ?x: ?y }
-              nullAwareKeyToken = token.next!;
-
-              // Parse the expression after '?'.
+              nullAwareKeyToken = next;
               token = nullAwareKeyToken;
-              token = parseExpression(token);
-            } else {
-              token = parseExpression(token);
             }
+            token = parseExpression(token);
+
             if (token.next!.isA(TokenType.COLON)) {
               Token colon = token.next!;
-              Token next = colon.next!;
-              if (next.isA(TokenType.QUESTION)) {
-                token = parseExpression(next);
-                // Null-aware value. For example:
-                //   <double, Symbol>{ if (b) x: ?y }
-                //   <double, Symbol>{ if (b) ?x: ?y }
-                listener.handleLiteralMapEntry(
-                  colon,
-                  token.next!,
-                  nullAwareKeyToken: nullAwareKeyToken,
-                  nullAwareValueToken: next,
-                );
-              } else {
-                // Non null-aware value. For example:
-                //   <String, int>{ if (b) x : y }
-                //   <String, int>{ if (b) ?x : y }
-                token = parseExpression(colon);
-                listener.handleLiteralMapEntry(
-                  colon,
-                  token.next!,
-                  nullAwareKeyToken: nullAwareKeyToken,
-                );
+              token = colon;
+
+              Token? nullAwareValueToken;
+              Token next = token.next!;
+              if (next.isA(TokenType.QUESTION_PERIOD)) {
+                token = nullAwareValueToken =
+                    _splitFollowingQuestionPeriod(token);
+              } else if (next.isA(TokenType.QUESTION)) {
+                token = nullAwareValueToken = next;
               }
-            } else {
-              if (nullAwareKeyToken != null) {
-                // Null-aware element. For example:
-                //   <String>{ if (b) ?x }
-                listener.handleNullAwareElement(nullAwareKeyToken);
-              }
+
+              token = parseExpression(token);
+              listener.handleLiteralMapEntry(
+                colon,
+                token.next!,
+                nullAwareKeyToken: nullAwareKeyToken,
+                nullAwareValueToken: nullAwareValueToken,
+              );
+            } else if (nullAwareKeyToken != null) {
+              // Null-aware element. For example:
+              //   <String>{ if (b) ?x }
+              listener.handleNullAwareElement(nullAwareKeyToken);
             }
           } else {
             token = info.parse(token, this);
           }
           ifCount += info.ifConditionDelta;
-          info = info.computeNext(token);
+          info = _nextLiteralEntry(info, token);
         }
       }
       ++count;
@@ -8119,6 +8109,35 @@ class Parser {
         }
       }
     }
+  }
+
+  LiteralEntryInfo? _computeLiteralEntry(Token token) {
+    if (token.next!.isA(TokenType.QUESTION_PERIOD)) {
+      _splitFollowingQuestionPeriod(token);
+    }
+    return computeLiteralEntry(token);
+  }
+
+  LiteralEntryInfo? _nextLiteralEntry(LiteralEntryInfo info, Token token) {
+    if (token.next!.isA(TokenType.QUESTION_PERIOD)) {
+      _splitFollowingQuestionPeriod(token);
+    }
+    return info.computeNext(token);
+  }
+
+  Token _splitFollowingQuestionPeriod(Token token) {
+    Token next = token.next!;
+    assert(next.isA(TokenType.QUESTION_PERIOD));
+    int offset = next.charOffset;
+    Token newNext = rewriter.replaceTokenFollowing(
+      token,
+      new Token(TokenType.QUESTION, offset),
+    );
+    rewriter.insertToken(
+      newNext,
+      new Token(TokenType.PERIOD, offset + 1),
+    );
+    return newNext;
   }
 
   /// formalParameterList functionBody.

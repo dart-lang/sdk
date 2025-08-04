@@ -1,0 +1,51 @@
+NOTICE: Stream was rewritten by parser!
+
+test1() {
+return <int>[
+?.tryParse("a"),
+?.tryParse("1"),
+];
+}
+
+test2() {
+return <int>{
+?.tryParse("a"),
+?.tryParse("1"),
+};
+}
+
+test3() {
+return <int, int>{
+?.tryParse("a"): 0,
+0: ?.tryParse("a"),
+?.tryParse("0"): ?.tryParse("a"),
+?.tryParse("a"): ?.tryParse("0"),
+?.tryParse("1"): ?.tryParse("1"),
+};
+}
+
+
+test1[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"a"[StringToken])[SimpleToken],[SimpleToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"1"[StringToken])[SimpleToken],[SimpleToken]
+][SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test2[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] <[BeginToken]int[StringToken]>[SimpleToken]{[BeginToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"a"[StringToken])[SimpleToken],[SimpleToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"1"[StringToken])[SimpleToken],[SimpleToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+
+test3[StringToken]([BeginToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] <[BeginToken]int[StringToken],[SimpleToken] int[StringToken]>[SimpleToken]{[BeginToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"a"[StringToken])[SimpleToken]:[SimpleToken] 0[StringToken],[SimpleToken]
+0[StringToken]:[SimpleToken] ?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"a"[StringToken])[SimpleToken],[SimpleToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"0"[StringToken])[SimpleToken]:[SimpleToken] ?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"a"[StringToken])[SimpleToken],[SimpleToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"a"[StringToken])[SimpleToken]:[SimpleToken] ?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"0"[StringToken])[SimpleToken],[SimpleToken]
+?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"1"[StringToken])[SimpleToken]:[SimpleToken] ?[SimpleToken].[SimpleToken]tryParse[StringToken]([BeginToken]"1"[StringToken])[SimpleToken],[SimpleToken]
+}[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]
