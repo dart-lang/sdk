@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
@@ -78,7 +79,7 @@ sealed class CompilationUnit {
   void addProblem(Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false});
 }
 

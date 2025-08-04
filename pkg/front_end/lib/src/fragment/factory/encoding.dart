@@ -461,8 +461,8 @@ class FactoryEncoding implements InferredTypeListener {
       required Uri fileUri}) {
     libraryBuilder.addProblem(message, fileOffset, length, fileUri);
     String text = libraryBuilder.loader.target.context
-        .format(
-            message.withLocation(fileUri, fileOffset, length), Severity.error)
+        .format(message.withLocation(fileUri, fileOffset, length),
+            CfeSeverity.error)
         .plain;
     _setRedirectingFactoryError(message: text);
   }

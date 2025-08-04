@@ -7,7 +7,8 @@ library front_end.kernel_generator_impl;
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -163,7 +164,7 @@ Future<InternalCompilerResult> _buildInternal(CompilerContext compilerContext,
       List<LocatedMessage> errors = verifyComponent(
           compilerContext, VerificationStage.outline, summaryComponent);
       for (LocatedMessage error in errors) {
-        options.report(compilerContext, error, Severity.error);
+        options.report(compilerContext, error, CfeSeverity.error);
       }
       assert(errors.isEmpty, "Verification errors found.");
     }

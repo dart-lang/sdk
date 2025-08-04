@@ -121,19 +121,19 @@ void reportFrontEndMessage(
       ? relatedInformation.map(convertMessage).toList()
       : const [];
   switch (message.severity) {
-    case fe.Severity.internalProblem:
+    case fe.CfeSeverity.internalProblem:
       throw mainMessage.message.message;
-    case fe.Severity.error:
+    case fe.CfeSeverity.error:
       reporter.reportError(mainMessage, infos);
       break;
-    case fe.Severity.warning:
+    case fe.CfeSeverity.warning:
       reporter.reportWarning(mainMessage, infos);
       break;
-    case fe.Severity.info:
+    case fe.CfeSeverity.info:
       reporter.reportInfo(mainMessage, infos);
       break;
-    case fe.Severity.context:
-    case fe.Severity.ignored:
+    case fe.CfeSeverity.context:
+    case fe.CfeSeverity.ignored:
       throw UnimplementedError('unhandled severity ${message.severity}');
   }
 }

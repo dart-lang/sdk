@@ -23,7 +23,7 @@ import '../builder/member_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart'
-    show LocatedMessage, Message, Severity, noLength, templateUnspecified;
+    show LocatedMessage, Message, CfeSeverity, noLength, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../source/name_scheme.dart';
@@ -54,7 +54,7 @@ class DillCompilationUnitImpl extends DillCompilationUnit {
   void addProblem(Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false}) {
     _dillLibraryBuilder.addProblem(message, charOffset, length, fileUri,
         wasHandled: wasHandled,

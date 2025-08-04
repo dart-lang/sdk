@@ -43,7 +43,7 @@ extension ProblemReportingExtension on ProblemReporting {
   void addProblem2(Message message, UriOffsetLength uriOffset,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false}) {
     addProblem(
         message, uriOffset.fileOffset, uriOffset.length, uriOffset.fileUri,

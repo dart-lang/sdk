@@ -5,7 +5,8 @@
 import "dart:convert" show JsonEncoder;
 import "dart:io" show File;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, CfeDiagnosticMessage;
 import "package:front_end/src/api_prototype/incremental_kernel_generator.dart"
@@ -216,7 +217,7 @@ Future<Context> createContext(
     ..sdkSummary = sdkSummary
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       printDiagnosticMessage(message, print);
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         errors.add(message);
       }
     };

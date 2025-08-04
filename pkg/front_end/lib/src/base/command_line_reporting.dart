@@ -12,7 +12,7 @@ import 'dart:math' show min;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show Severity, severityPrefixes;
+    show CfeSeverity, severityPrefixes;
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $CARET, $SPACE, $TAB;
 import 'package:_fe_analyzer_shared/src/util/colors.dart'
@@ -37,7 +37,7 @@ const bool hideWarnings = false;
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
 PlainAndColorizedString format(
-    CompilerContext context, LocatedMessage message, Severity severity,
+    CompilerContext context, LocatedMessage message, CfeSeverity severity,
     {Location? location}) {
   try {
     int length = message.length;
@@ -87,7 +87,7 @@ PlainAndColorizedString format(
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
 PlainAndColorizedString formatWithLocationNoSdk(
-    LocatedMessage message, Severity severity,
+    LocatedMessage message, CfeSeverity severity,
     {required Location location, required Map<Uri, Source> uriToSource}) {
   int length = message.length;
   if (length < 1) {
@@ -123,7 +123,7 @@ PlainAndColorizedString formatWithLocationNoSdk(
 /// looked up in uriToSource anyway, or we don't have or can get any
 /// line-position for it.
 PlainAndColorizedString formatNoSourceLine(
-    LocatedMessage message, Severity severity) {
+    LocatedMessage message, CfeSeverity severity) {
   int length = message.length;
   if (length < 1) {
     // TODO(ahe): Throw in this situation. It is normally an error caused by
@@ -149,7 +149,7 @@ PlainAndColorizedString formatNoSourceLine(
   }
 }
 
-String _createMessageText(Severity severity, LocatedMessage message) {
+String _createMessageText(CfeSeverity severity, LocatedMessage message) {
   String? prefix = severityPrefixes[severity];
   String messageText = prefix == null
       ?
@@ -162,25 +162,25 @@ String _createMessageText(Severity severity, LocatedMessage message) {
   return messageText;
 }
 
-String _colorizeMessageText(Severity severity, String messageTextPlain) {
+String _colorizeMessageText(CfeSeverity severity, String messageTextPlain) {
   switch (severity) {
-    case Severity.error:
-    case Severity.internalProblem:
+    case CfeSeverity.error:
+    case CfeSeverity.internalProblem:
       return red(messageTextPlain);
 
-    case Severity.warning:
+    case CfeSeverity.warning:
       // Coverage-ignore(suite): Not run.
       return magenta(messageTextPlain);
 
-    case Severity.context:
+    case CfeSeverity.context:
       return green(messageTextPlain);
 
     // Coverage-ignore(suite): Not run.
-    case Severity.info:
+    case CfeSeverity.info:
       return yellow(messageTextPlain);
 
     // Coverage-ignore(suite): Not run.
-    case Severity.ignored:
+    case CfeSeverity.ignored:
       throw unhandled("$severity", "format", -1, null);
   }
 }
@@ -225,45 +225,45 @@ String formatErrorMessage(String? sourceLine, Location? location,
 }
 
 /// Are problems of [severity] suppressed?
-bool isHidden(Severity severity) {
+bool isHidden(CfeSeverity severity) {
   switch (severity) {
-    case Severity.error:
+    case CfeSeverity.error:
     // Coverage-ignore(suite): Not run.
-    case Severity.internalProblem:
+    case CfeSeverity.internalProblem:
     // Coverage-ignore(suite): Not run.
-    case Severity.context:
+    case CfeSeverity.context:
     // Coverage-ignore(suite): Not run.
-    case Severity.info:
+    case CfeSeverity.info:
       return false;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.warning:
+    case CfeSeverity.warning:
       return hideWarnings;
     // Coverage-ignore(suite): Not run.
-    case Severity.ignored:
+    case CfeSeverity.ignored:
       return true;
   }
 }
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
 /// immediately?
-bool shouldThrowOn(ProcessedOptions options, Severity severity) {
+bool shouldThrowOn(ProcessedOptions options, CfeSeverity severity) {
   switch (severity) {
-    case Severity.error:
+    case CfeSeverity.error:
       return options.throwOnErrorsForDebugging;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.internalProblem:
+    case CfeSeverity.internalProblem:
       return true;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.warning:
+    case CfeSeverity.warning:
       return options.throwOnWarningsForDebugging;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.info:
-    case Severity.ignored:
-    case Severity.context:
+    case CfeSeverity.info:
+    case CfeSeverity.ignored:
+    case CfeSeverity.context:
       return false;
   }
 }

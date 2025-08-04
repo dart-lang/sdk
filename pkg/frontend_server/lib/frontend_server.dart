@@ -471,15 +471,15 @@ class FrontendCompiler implements CompilerInterface {
 
   void _onDiagnostic(CfeDiagnosticMessage message) {
     switch (message.severity) {
-      case Severity.error:
-      case Severity.internalProblem:
+      case CfeSeverity.error:
+      case CfeSeverity.internalProblem:
         errors.addAll(message.plainTextFormatted);
         break;
-      case Severity.warning:
-      case Severity.info:
+      case CfeSeverity.warning:
+      case CfeSeverity.info:
         break;
-      case Severity.context:
-      case Severity.ignored:
+      case CfeSeverity.context:
+      case CfeSeverity.ignored:
         throw 'Unexpected severity: ${message.severity}';
     }
     if (Verbosity.shouldPrint(_compilerOptions.verbosity, message)) {

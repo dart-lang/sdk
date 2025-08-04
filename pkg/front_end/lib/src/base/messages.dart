@@ -36,7 +36,7 @@ abstract interface class ProblemReporting {
   void addProblem(Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false});
 }
 
@@ -59,7 +59,7 @@ class LibraryProblemReporting implements ProblemReporting {
   void addProblem(Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false}) {
     // Coverage-ignore(suite): Not run.
     fileUri ??= _fileUri;

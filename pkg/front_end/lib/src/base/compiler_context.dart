@@ -5,7 +5,8 @@
 import 'dart:async' show Zone, runZoned;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart'
     show clearStringCanonicalizationCache;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
@@ -41,14 +42,14 @@ class CompilerContext {
   }
 
   /// Report [message], for example, by printing it.
-  void report(LocatedMessage message, Severity severity,
+  void report(LocatedMessage message, CfeSeverity severity,
       {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
     options.report(this, message, severity,
         context: context, involvedFiles: involvedFiles);
   }
 
   /// Format [message] as a text string that can be included in generated code.
-  PlainAndColorizedString format(LocatedMessage message, Severity severity) {
+  PlainAndColorizedString format(LocatedMessage message, CfeSeverity severity) {
     return command_line_reporting.format(this, message, severity);
   }
 

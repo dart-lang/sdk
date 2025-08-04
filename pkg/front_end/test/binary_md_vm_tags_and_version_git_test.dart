@@ -4,7 +4,8 @@
 
 import 'dart:io' show File, Platform;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CfeDiagnosticMessage;
 import 'package:kernel/kernel.dart'
@@ -84,7 +85,7 @@ Future<void> main() async {
       options: getOptions()
         ..target = new NoneTarget(new TargetFlags())
         ..onDiagnostic = (CfeDiagnosticMessage message) {
-          if (message.severity == Severity.error) {
+          if (message.severity == CfeSeverity.error) {
             print(message.plainTextFormatted.join('\n'));
           }
         });

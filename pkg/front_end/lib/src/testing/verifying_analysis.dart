@@ -148,13 +148,13 @@ class VerifyingAnalysis extends AnalysisVisitor {
                             correctionMessage:
                                 locatedMessage.messageObject.correctionMessage,
                             arguments: locatedMessage.messageObject.arguments)),
-                    Severity.warning,
+                    CfeSeverity.warning,
                     location: new Location(
                         message.uri!, message.line, message.column),
                     uriToSource: component.uriToSource),
                 message.line,
                 message.column,
-                Severity.warning,
+                CfeSeverity.warning,
                 []);
             onDiagnostic(message);
           }

@@ -4,7 +4,8 @@
 
 import 'dart:collection' show Queue;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart'
     show Class, Component, DartType, ExtensionTypeDeclaration, Library;
 
@@ -192,7 +193,7 @@ class DillLoader extends Loader {
       Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     return _addMessage(message, charOffset, length, fileUri, severity,
@@ -214,7 +215,7 @@ class DillLoader extends Loader {
   /// [handledErrors] if [wasHandled] is true or to [unhandledErrors] if
   /// [wasHandled] is false.
   FormattedMessage? _addMessage(Message message, int charOffset, int length,
-      Uri? fileUri, Severity? severity,
+      Uri? fileUri, CfeSeverity? severity,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
       bool problemOnLibrary = false,
@@ -222,7 +223,7 @@ class DillLoader extends Loader {
     assert(
         fileUri != missingUri, "Message unexpectedly reported on missing uri.");
     severity ??= message.code.severity;
-    if (severity == Severity.ignored) return null;
+    if (severity == CfeSeverity.ignored) return null;
     String trace = """
 message: ${message.problemMessage}
 charOffset: $charOffset
@@ -230,7 +231,7 @@ fileUri: $fileUri
 severity: $severity
 """;
     if (!seenMessages.add(trace)) return null;
-    if (message.code.severity == Severity.context) {
+    if (message.code.severity == CfeSeverity.context) {
       internalProblem(
           templateInternalProblemContextSeverity
               .withArguments(message.code.name),
@@ -246,7 +247,7 @@ severity: $severity
         severity,
         context: context,
         involvedFiles: involvedFiles);
-    if (severity == Severity.error) {
+    if (severity == CfeSeverity.error) {
       (wasHandled
               ?
               // Coverage-ignore(suite): Not run.

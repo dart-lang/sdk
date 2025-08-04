@@ -10,7 +10,7 @@ import 'diagnostic_message.dart' show CfeDiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
 
@@ -28,13 +28,13 @@ class Code {
 
   final List<String>? analyzerCodes;
 
-  final Severity severity;
+  final CfeSeverity severity;
 
   const Code(
     this.name, {
     this.index = -1,
     this.analyzerCodes,
-    this.severity = Severity.error,
+    this.severity = CfeSeverity.error,
   });
 
   @override
@@ -161,7 +161,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     PlainAndColorizedString formatted,
     int line,
     int column,
-    Severity severity,
+    CfeSeverity severity,
     List<FormattedMessage>? relatedInformation, {
     List<Uri>? involvedFiles,
   }) {
@@ -227,7 +227,7 @@ class FormattedMessage implements CfeDiagnosticMessage {
   final int column;
 
   @override
-  final Severity severity;
+  final CfeSeverity severity;
 
   final List<FormattedMessage>? relatedInformation;
 
@@ -308,7 +308,7 @@ class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
   final Iterable<String> plainTextFormatted;
 
   @override
-  final Severity severity;
+  final CfeSeverity severity;
 
   final Uri? uri;
 
@@ -335,7 +335,7 @@ class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
     List<String> plainTextFormatted = _asListOfString(
       decoded["plainTextFormatted"],
     );
-    Severity severity = Severity.values[decoded["severity"] as int];
+    CfeSeverity severity = CfeSeverity.values[decoded["severity"] as int];
     Uri? uri =
         decoded["uri"] == null ? null : Uri.parse(decoded["uri"] as String);
     List<Uri>? involvedFiles =

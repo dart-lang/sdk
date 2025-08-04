@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart' show Source;
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -57,7 +58,7 @@ class DillTarget {
       int length,
       Uri? fileUri,
       List<LocatedMessage>? messageContext,
-      Severity severity,
+      CfeSeverity severity,
       {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(

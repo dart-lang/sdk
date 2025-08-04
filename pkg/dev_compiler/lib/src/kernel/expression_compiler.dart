@@ -32,7 +32,7 @@ CfeDiagnosticMessage _createInternalError(
         PlainAndColorizedString.plainOnly('Internal error: $msg'),
         line,
         col,
-        Severity.internalProblem,
+        CfeSeverity.internalProblem,
         [],
       );
 }

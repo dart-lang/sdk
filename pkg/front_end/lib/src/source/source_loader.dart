@@ -797,7 +797,7 @@ class SourceLoader extends Loader {
       Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     return addMessage(message, charOffset, length, fileUri, severity,
@@ -819,7 +819,7 @@ class SourceLoader extends Loader {
   /// [handledErrors] if [wasHandled] is true or to [unhandledErrors] if
   /// [wasHandled] is false.
   FormattedMessage? addMessage(Message message, int charOffset, int length,
-      Uri? fileUri, Severity? severity,
+      Uri? fileUri, CfeSeverity? severity,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
       bool problemOnLibrary = false,
@@ -827,7 +827,7 @@ class SourceLoader extends Loader {
     assert(
         fileUri != missingUri, "Message unexpectedly reported on missing uri.");
     severity ??= message.code.severity;
-    if (severity == Severity.ignored) return null;
+    if (severity == CfeSeverity.ignored) return null;
     String trace = """
 message: ${message.problemMessage}
 charOffset: $charOffset
@@ -835,10 +835,10 @@ fileUri: $fileUri
 severity: $severity
 """;
     if (!seenMessages.add(trace)) return null;
-    if (message.code.severity == Severity.error) {
+    if (message.code.severity == CfeSeverity.error) {
       _hasSeenError = true;
     }
-    if (message.code.severity == Severity.context) {
+    if (message.code.severity == CfeSeverity.context) {
       internalProblem(
           templateInternalProblemContextSeverity
               .withArguments(message.code.name),
@@ -854,7 +854,7 @@ severity: $severity
         severity,
         context: context,
         involvedFiles: involvedFiles);
-    if (severity == Severity.error) {
+    if (severity == CfeSeverity.error) {
       (wasHandled ? handledErrors : unhandledErrors).add(fileUri != null
           ? message.withLocation(fileUri, charOffset, length)
           :

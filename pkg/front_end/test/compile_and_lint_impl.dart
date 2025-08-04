@@ -4,7 +4,8 @@
 
 import 'dart:io' show Directory, File, FileSystemEntity;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/io.dart'
     show readBytesFromFileSync;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
@@ -110,7 +111,7 @@ Future<int> runCompileAndLintTest(
       omitPlatform: false,
       packagesFileUri: packageConfigUri,
       onDiagnostic: (api.CfeDiagnosticMessage message) {
-        if (message.severity == Severity.error) {
+        if (message.severity == CfeSeverity.error) {
           print(message.plainTextFormatted.join('\n'));
           errorCount++;
         }

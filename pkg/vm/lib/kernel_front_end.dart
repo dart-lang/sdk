@@ -25,7 +25,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         FileSystem,
         FileSystemEntity,
         ProcessedOptions,
-        Severity,
+        CfeSeverity,
         StandardFileSystem,
         Verbosity,
         getMessageUri,
@@ -879,7 +879,7 @@ class ErrorDetector {
   ErrorDetector({this.previousErrorHandler});
 
   void call(CfeDiagnosticMessage message) {
-    if (message.severity == Severity.error) {
+    if (message.severity == CfeSeverity.error) {
       hasCompilationErrors = true;
     }
 

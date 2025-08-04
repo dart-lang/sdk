@@ -4,7 +4,8 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -220,7 +221,7 @@ class KernelTarget {
       int length,
       Uri? fileUri,
       List<LocatedMessage>? messageContext,
-      Severity severity,
+      CfeSeverity severity,
       {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(

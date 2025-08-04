@@ -91,8 +91,8 @@ class SetupCompilerOptions {
        ) {
     options.onDiagnostic = (fe.CfeDiagnosticMessage m) {
       diagnosticMessages.addAll(m.plainTextFormatted);
-      if (m.severity == fe.Severity.error ||
-          m.severity == fe.Severity.internalProblem) {
+      if (m.severity == fe.CfeSeverity.error ||
+          m.severity == fe.CfeSeverity.internalProblem) {
         errors.addAll(m.plainTextFormatted);
       }
     };

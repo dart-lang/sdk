@@ -14,7 +14,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerResult,
         CfeDiagnosticMessage,
         kernelForProgram,
-        Severity;
+        CfeSeverity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -132,7 +132,7 @@ Future<CompilationResult> compileToModule(
     {void Function(String, String)? writeFile}) async {
   var hadCompileTimeError = false;
   void diagnosticMessageHandler(CfeDiagnosticMessage message) {
-    if (message.severity == Severity.error) {
+    if (message.severity == CfeSeverity.error) {
       hadCompileTimeError = true;
     }
     handleDiagnosticMessage(message);

@@ -8,7 +8,8 @@ import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
         DiagnosticMessageHandler,
         getMessageCodeObject,
         getMessageArguments;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import "package:front_end/src/api_prototype/compiler_options.dart"
@@ -58,7 +59,7 @@ void main() {
 
 DiagnosticMessageHandler _makeDiagnosticMessageHandler(Set<String> names) {
   return (CfeDiagnosticMessage message) {
-    Expect.equals(Severity.error, message.severity);
+    Expect.equals(CfeSeverity.error, message.severity);
     Expect.identical(codeSuperclassHasNoMethod, getMessageCodeObject(message));
     Expect.isTrue(message.plainTextFormatted.length == 1);
     names.add(getMessageArguments(message)!['name']);
