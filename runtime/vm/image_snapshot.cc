@@ -656,7 +656,8 @@ static constexpr uword kReadOnlyGCBits =
 
 uword ImageWriter::GetMarkedTags(classid_t cid,
                                  intptr_t size,
-                                 bool is_canonical /* = false */) {
+                                 bool is_canonical /* = false */,
+                                 bool is_immutable /* = false */) {
   // UntaggedObject::SizeTag expects a size divisible by kObjectAlignment and
   // checks this in debug mode, but the size on the target machine may not be
   // divisible by the host machine's object alignment if they differ.
@@ -676,12 +677,14 @@ uword ImageWriter::GetMarkedTags(classid_t cid,
 
   return kReadOnlyGCBits | UntaggedObject::ClassIdTag::encode(cid) |
          UntaggedObject::SizeTag::encode(adjusted_size) |
-         UntaggedObject::CanonicalBit::encode(is_canonical);
+         UntaggedObject::CanonicalBit::encode(is_canonical) |
+         UntaggedObject::ImmutableBit::encode(is_immutable);
 }
 
 uword ImageWriter::GetMarkedTags(const Object& obj) {
-  uword tags = GetMarkedTags(obj.ptr()->untag()->GetClassId(),
-                             SizeInSnapshot(obj), obj.IsCanonical());
+  uword tags =
+      GetMarkedTags(obj.ptr()->untag()->GetClassId(), SizeInSnapshot(obj),
+                    obj.IsCanonical(), obj.IsImmutable());
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(obj.ptr()->untag()->GetHeaderHash(),
                                          tags);
