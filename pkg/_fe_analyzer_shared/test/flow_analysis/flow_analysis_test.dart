@@ -1509,11 +1509,14 @@ main() {
         getSsaNodes((nodes) {
           var info = nodes[x]!.expressionInfo!;
           var key = h.promotionKeyStore.keyForVariable(y);
-          expect(info.ifTrue.promotionInfo!.get(h, key)!.promotedTypes, null);
+          expect(
+            info.ifTrue.promotionInfo!.get(h, key)!.promotedTypes,
+            isEmpty,
+          );
           expect(
             info.ifFalse.promotionInfo!
                 .get(h, key)!
-                .promotedTypes!
+                .promotedTypes
                 .single
                 .unwrapTypeView<Type>()
                 .type,
@@ -4561,11 +4564,11 @@ main() {
         var s2 = s0._tryPromoteForTypeCheck(h, a, 'int').ifTrue;
         expect(
           s1.rebaseForward(h, s2)._infoFor(h, a),
-          _matchVariableModel(writeCaptured: true, chain: isNull),
+          _matchVariableModel(writeCaptured: true, chain: isEmpty),
         );
         expect(
           s2.rebaseForward(h, s1)._infoFor(h, a),
-          _matchVariableModel(writeCaptured: true, chain: isNull),
+          _matchVariableModel(writeCaptured: true, chain: isEmpty),
         );
       });
 
@@ -4603,12 +4606,12 @@ main() {
               result.promotionInfo.unwrap(h),
               contains(h.promotionKeyStore.keyForVariable(x)),
             );
-            expect(result._infoFor(h, x).promotedTypes, isNull);
+            expect(result._infoFor(h, x).promotedTypes, isEmpty);
           } else {
             expect(
               result
                   ._infoFor(h, x)
-                  .promotedTypes!
+                  .promotedTypes
                   .map((t) => t.unwrapTypeView<Type>().type)
                   .toList(),
               expectedChain,
@@ -4633,11 +4636,9 @@ main() {
       test('promotion chains', () {
         // Verify that the given promotion chain matches the expected list of
         // strings.
-        void _checkChain(List<SharedTypeView>? chain, List<String> expected) {
+        void _checkChain(List<SharedTypeView> chain, List<String> expected) {
           var strings =
-              (chain ?? <SharedTypeView>[])
-                  .map((t) => t.unwrapTypeView<Type>().type)
-                  .toList();
+              chain.map((t) => t.unwrapTypeView<Type>().type).toList();
           expect(strings, expected);
         }
 
@@ -4771,29 +4772,29 @@ main() {
       objectType = Type('Object');
     });
 
-    test('should handle nulls', () {
+    test('should handle empty promotion chains', () {
       expect(
-        PromotionModel.joinPromotedTypes(null, null, h.typeOperations),
-        null,
+        PromotionModel.joinPromotedTypes(<Type>[], <Type>[], h.typeOperations),
+        isEmpty,
       );
       expect(
-        PromotionModel.joinPromotedTypes(null, [intType], h.typeOperations),
-        null,
+        PromotionModel.joinPromotedTypes(<Type>[], [intType], h.typeOperations),
+        isEmpty,
       );
       expect(
-        PromotionModel.joinPromotedTypes([intType], null, h.typeOperations),
-        null,
+        PromotionModel.joinPromotedTypes([intType], <Type>[], h.typeOperations),
+        isEmpty,
       );
     });
 
-    test('should return null if there are no common types', () {
+    test('should return empty list if there are no common types', () {
       expect(
         PromotionModel.joinPromotedTypes(
           [intType],
           [doubleType],
           h.typeOperations,
         ),
-        null,
+        isEmpty,
       );
     });
 
@@ -5024,7 +5025,7 @@ main() {
       List<SharedTypeView>? typesOfInterest,
       bool assigned = false,
     }) => PromotionModel<SharedTypeView>(
-      promotedTypes: promotionChain,
+      promotedTypes: promotionChain ?? const [],
       tested: typesOfInterest ?? promotionChain ?? [],
       assigned: assigned,
       unassigned: !assigned,
@@ -5274,7 +5275,7 @@ main() {
     PromotionModel<SharedTypeView> model(
       List<SharedTypeView> typesOfInterest,
     ) => PromotionModel<SharedTypeView>(
-      promotedTypes: null,
+      promotedTypes: const [],
       tested: typesOfInterest,
       assigned: true,
       unassigned: false,
@@ -12786,7 +12787,7 @@ Matcher _matchOfInterestSet(List<String> expectedTypes) {
 }
 
 Matcher _matchPromotionChain(List<String>? expectedTypes) {
-  if (expectedTypes == null) return isNull;
+  if (expectedTypes == null) return isEmpty;
   return predicate(
     (List<SharedTypeView> x) => equals(
       expectedTypes,
@@ -12918,7 +12919,7 @@ extension on FlowModel<SharedTypeView> {
         promotionInfo
             ?.get(h, h.promotionKeyStore.keyForVariable(variable))
             ?.promotedTypes
-            ?.last ??
+            .lastOrNull ??
         SharedTypeView(variable.type),
     isThisOrSuper: false,
     ssaNode: SsaNode(null),
