@@ -35,6 +35,55 @@ suggestions
 ''');
   }
 
+  Future<void> test_class_assignment() async {
+    allowedIdentifiers = {'setter', 'self'};
+    await computeSuggestions('''
+class C {
+  set setter(int value) {}
+  late C self = this;
+}
+
+void f(C foo) {var foo.^ = C()}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_class_assignment_prefix() async {
+    allowedIdentifiers = {'setter', 'self'};
+    await computeSuggestions('''
+class C {
+  set setter(int value) {}
+  late C self = this;
+}
+
+void f(C foo) {var foo.s^ = C()}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void> test_class_assignment_prefix_chain() async {
+    allowedIdentifiers = {'setter', 'self'};
+    await computeSuggestions('''
+class C {
+  set setter(int value) {}
+  late C self = this;
+}
+
+void f(C foo) {var foo.s^.self = C()}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
   Future<void> test_class_chain() async {
     allowedIdentifiers = {'getter', 'anotherGetter', 'notStatic'};
     await computeSuggestions('''

@@ -1515,6 +1515,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     } else if (node is PropertyAccessImpl) {
       if (node.target case var target?) {
+        if (isDotShorthand(node)) {
+          // Recovery.
+          // It's a compile-time error to use a dot shorthand as the target of a
+          // write, but to prevent any crashing we provide an unknown context
+          // type since this shouldn't be valid code.
+          pushDotShorthandContext(target, operations.unknownType);
+        }
         analyzeExpression(target, operations.unknownType);
         popRewrite();
       }
