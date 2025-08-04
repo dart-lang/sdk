@@ -94,9 +94,11 @@ class AddCallSuper extends ResolvedCorrectionProducer {
     var expression = body.expression;
     var semicolon = body.semicolon;
     var prefix = utils.getLinePrefix(expression.offset);
-    var prefixWithLine = eol + prefix + utils.oneIndent;
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
+      var prefixWithLine = eol + prefix + utils.oneIndent;
+
       builder.addSimpleReplacement(
         range.startStart(body.functionDefinition, expression),
         '{${prefixWithLine}super.$_addition;${prefixWithLine}return ',

@@ -21,7 +21,7 @@ class TestGroupDefinition extends DartSnippetProducer with TestSnippetMixin {
   Future<Snippet> compute() async {
     var builder = ChangeBuilder(
       session: request.analysisSession,
-      eol: utils.endOfLine,
+      defaultEol: utils.endOfLine,
     );
     var indent = utils.getLinePrefix(request.offset);
 

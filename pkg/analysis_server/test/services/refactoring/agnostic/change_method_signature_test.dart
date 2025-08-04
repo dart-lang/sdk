@@ -3243,7 +3243,7 @@ void f() {
   ) async {
     var builder = ChangeBuilder(
       session: refactoringContext.session,
-      eol: refactoringContext.utils.endOfLine,
+      defaultEol: refactoringContext.utils.endOfLine,
     );
 
     var status = await computeSourceChange(

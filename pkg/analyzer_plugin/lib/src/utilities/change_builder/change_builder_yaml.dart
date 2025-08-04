@@ -43,8 +43,9 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given [filePath], [document], and [timeStamp].
   YamlFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, String filePath,
-      this.document, int timeStamp)
-      : super(changeBuilder, filePath, timeStamp);
+      this.document, int timeStamp,
+      {required String eol})
+      : super(changeBuilder, filePath, timeStamp, eol: eol);
 
   @override
   void addInsertion(
@@ -67,7 +68,8 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
       {Map<YamlFileEditBuilderImpl, YamlFileEditBuilderImpl> editBuilderMap =
           const {}}) {
     var copy = YamlFileEditBuilderImpl(
-        changeBuilder, fileEdit.file, document, fileEdit.fileStamp);
+        changeBuilder, fileEdit.file, document, fileEdit.fileStamp,
+        eol: eol);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     return copy;
   }

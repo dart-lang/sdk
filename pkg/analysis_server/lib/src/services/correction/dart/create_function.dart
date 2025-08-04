@@ -42,15 +42,15 @@ class CreateFunction extends ResolvedCorrectionProducer {
 
     // prepare environment
     int insertOffset;
-    String sourcePrefix;
     var enclosingMember = node.thisOrAncestorOfType<CompilationUnitMember>();
     if (enclosingMember == null) {
       return;
     }
     insertOffset = enclosingMember.end;
-    sourcePrefix = '$eol$eol';
     // Build method source.
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
+      var sourcePrefix = '$eol$eol';
       builder.addInsertion(insertOffset, (builder) {
         builder.write(sourcePrefix);
         // append return type

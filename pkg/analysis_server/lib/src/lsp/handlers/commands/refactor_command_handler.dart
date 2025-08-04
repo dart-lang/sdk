@@ -115,7 +115,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler<AnalysisServer> {
     var producer = generator(context);
     var builder = ChangeBuilder(
       workspace: context.workspace,
-      eol: context.utils.endOfLine,
+      defaultEol: context.utils.endOfLine,
     );
     var status = await producer.compute(arguments, builder);
 

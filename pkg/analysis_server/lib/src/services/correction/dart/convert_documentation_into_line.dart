@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -39,7 +40,12 @@ class ConvertDocumentationIntoLine extends ParsedCorrectionProducer {
       return;
     }
     var text = token.lexeme;
-    var lines = text.split(eol);
+    var eol = text.endOfLine;
+    var lines = eol != null ? text.split(eol) : [text];
+    // To simplify the code below which builds prefixes with eols in the loop,
+    // ensure we have a value. In the case of a single line (eol=null) these
+    // eols are only assigned to variables and not used.
+    eol ??= builder.defaultEol;
     var prefix = utils.getNodePrefix(comment);
     var newLines = <String>[];
     var firstLine = true;

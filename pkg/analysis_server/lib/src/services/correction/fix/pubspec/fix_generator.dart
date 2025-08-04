@@ -166,7 +166,7 @@ class PubspecFixGenerator {
     }
     var builder = ChangeBuilder(
       workspace: _NonDartChangeWorkspace(resourceProvider),
-      eol: endOfLine,
+      defaultEol: endOfLine,
     );
 
     var data = diagnostic.data as MissingDependencyData;
@@ -307,7 +307,7 @@ class PubspecFixGenerator {
     var packageName = _identifierFrom(context.basename(context.dirname(file)));
     var builder = ChangeBuilder(
       workspace: _NonDartChangeWorkspace(resourceProvider),
-      eol: endOfLine,
+      defaultEol: endOfLine,
     );
     var firstOffset = _initialOffset(node);
     if (firstOffset < 0) {

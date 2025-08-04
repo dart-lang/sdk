@@ -1628,7 +1628,8 @@ package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
     addAssist (method: void Function(AssistKind, ChangeBuilder, {List<Object>? args}))
 package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
   ChangeBuilder (class extends Object):
-    new (constructor: ChangeBuilder Function({String eol, AnalysisSession session, ChangeWorkspace workspace}))
+    new (constructor: ChangeBuilder Function({String? defaultEol, String? eol, AnalysisSession session, ChangeWorkspace workspace}))
+    defaultEol (getter: String)
     selectionRange (getter: SourceRange?)
     sourceChange (getter: SourceChange)
     addDartFileEdit (method: Future<void> Function(String, FutureOr<void> Function(DartFileEditBuilder), {bool createEditsForImports, String Function(Uri) importPrefixGenerator}))
@@ -1647,6 +1648,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     writeln (method: void Function([String]))
   FileEditBuilder (class extends Object):
     new (constructor: FileEditBuilder Function())
+    eol (getter: String)
     addDeletion (method: void Function(SourceRange))
     addInsertion (method: void Function(int, void Function(EditBuilder)))
     addLinkedPosition (method: void Function(SourceRange, String))

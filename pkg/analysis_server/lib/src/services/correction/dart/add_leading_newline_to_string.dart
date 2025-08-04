@@ -29,6 +29,7 @@ class AddLeadingNewlineToString extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addSimpleInsertion(stringLiteral.contentsOffset, eol);
     });
   }

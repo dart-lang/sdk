@@ -16,9 +16,8 @@ Future<SourceEdit?> buildEditForInsertedConstructor(
   void Function(DartEditBuilder builder) buildEdit, {
   required ResolvedUnitResult resolvedUnit,
   required AnalysisSession session,
-  required String eol,
 }) async {
-  var builder = ChangeBuilder(session: session, eol: eol);
+  var builder = ChangeBuilder(session: session);
   await builder.addDartFileEdit(resolvedUnit.path, (builder) {
     builder.insertConstructor(container, buildEdit);
   });

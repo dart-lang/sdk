@@ -227,7 +227,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         constructorName: newName,
         isConst: node is EnumDeclaration,
       ),
-      eol: utils.endOfLine,
     );
     if (edit == null) {
       return;

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -14,6 +15,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_yaml.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart';
@@ -25,10 +27,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// The workspace in which the change builder should operate.
   final ChangeWorkspace workspace;
 
-  /// The end-of-line marker used in the file being edited, or `null` if the
-  /// default marker should be used.
-  final String? eol;
-
   /// A table mapping group ids to the associated linked edit groups.
   final Map<String, LinkedEditGroup> _linkedEditGroups =
       <String, LinkedEditGroup>{};
@@ -39,6 +37,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// The range of the selection for the change being built, or `null` if there
   /// is no selection.
   SourceRange? _selectionRange;
+
+  /// The default EOL to be used for new files and files that do not have EOLs.
+  ///
+  /// Existing files with EOL markers will always have the same EOL in inserted
+  /// text.
+  @override
+  final String defaultEol;
 
   /// A description to be applied to the [SourceEdit]s being built.
   ///
@@ -79,9 +84,16 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// create changes for Dart files, then either a [session] or a [workspace]
   /// must be provided (but not both).
   ChangeBuilderImpl(
-      {AnalysisSession? session, ChangeWorkspace? workspace, this.eol})
+      {AnalysisSession? session,
+      ChangeWorkspace? workspace,
+      @Deprecated('Use defaultEol instead, as this is only a '
+          'default for files without existing EOLs')
+      String? eol,
+      String? defaultEol})
       : assert(session == null || workspace == null),
-        workspace = workspace ?? _SingleSessionWorkspace(session!);
+        assert(eol == null || defaultEol == null),
+        workspace = workspace ?? _SingleSessionWorkspace(session!),
+        defaultEol = defaultEol ?? eol ?? Platform.lineTerminator;
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits {
@@ -193,7 +205,8 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     var builder = _genericFileEditBuilders[path];
     if (builder == null) {
-      builder = FileEditBuilderImpl(this, path, 0);
+      var eol = _getLineEnding(path);
+      builder = FileEditBuilderImpl(this, path, 0, eol: eol);
       _genericFileEditBuilders[path] = builder;
       _revertData._addedGenericFileEditBuilders.add(path);
     }
@@ -215,13 +228,18 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
     var builder = _yamlFileEditBuilders[path];
     if (builder == null) {
+      String content;
+      try {
+        // TODO(dantup): Can this use FileContentCache?
+        content = workspace.resourceProvider.getFile(path).readAsStringSync();
+      } catch (_) {
+        content = '';
+      }
+      var eol = content.endOfLine ?? defaultEol;
+
       builder = YamlFileEditBuilderImpl(
-          this,
-          path,
-          loadYamlDocument(
-              workspace.resourceProvider.getFile(path).readAsStringSync(),
-              recover: true),
-          0);
+          this, path, loadYamlDocument(content, recover: true), 0,
+          eol: eol);
       _yamlFileEditBuilders[path] = builder;
       _revertData._addedYamlFileEditBuilders.add(path);
     }
@@ -262,7 +280,7 @@ class ChangeBuilderImpl implements ChangeBuilder {
       'method now use `commit` and `revert` instead.')
   @override
   ChangeBuilder copy() {
-    var copy = ChangeBuilderImpl(workspace: workspace, eol: eol);
+    var copy = ChangeBuilderImpl(workspace: workspace, defaultEol: defaultEol);
     for (var entry in _linkedEditGroups.entries) {
       copy._linkedEditGroups[entry.key] = _copyLinkedEditGroup(entry.value);
     }
@@ -427,8 +445,22 @@ class ChangeBuilderImpl implements ChangeBuilder {
       }, createEditsForImports: createEditsForImports);
     }
 
+    var eol = result.content.endOfLine ?? defaultEol;
     return DartFileEditBuilderImpl(this, result, timeStamp, libraryEditBuilder,
-        createEditsForImports: createEditsForImports);
+        createEditsForImports: createEditsForImports, eol: eol);
+  }
+
+  /// Reads the EOL used in [filePath], defaulting to [Platform.lineTerminator] if
+  /// there was no line ending or the file cannot be read.
+  String _getLineEnding(String filePath) {
+    String? eol;
+    try {
+      // TODO(dantup): Can this use FileContentCache?
+      var content =
+          workspace.resourceProvider.getFile(filePath).readAsStringSync();
+      eol = content.endOfLine;
+    } catch (_) {}
+    return eol ?? defaultEol;
   }
 
   void _setSelectionRange(SourceRange range) {
@@ -488,10 +520,6 @@ class EditBuilderImpl implements EditBuilder {
   /// selection is not inside the change being built.
   SourceRange? _selectionRange;
 
-  /// The end-of-line marker used in the file being edited, or `null` if the
-  /// default marker should be used.
-  final String? _eol;
-
   /// The buffer in which the content of the edit is being composed.
   final StringBuffer _buffer = StringBuffer();
 
@@ -503,8 +531,10 @@ class EditBuilderImpl implements EditBuilder {
 
   /// Initialize a newly created builder to build a source edit.
   EditBuilderImpl(this.fileEditBuilder, this.offset, this.length,
-      {this.description})
-      : _eol = fileEditBuilder.changeBuilder.eol;
+      {this.description});
+
+  /// The end-of-line marker used in the file being edited.
+  String get eol => fileEditBuilder.eol;
 
   /// Create and return an edit representing the replacement of a region of the
   /// file with the accumulated text.
@@ -590,11 +620,7 @@ class EditBuilderImpl implements EditBuilder {
     if (string != null) {
       _buffer.write(string);
     }
-    if (_eol == null) {
-      _buffer.writeln();
-    } else {
-      _buffer.write(_eol);
-    }
+    _buffer.write(eol);
   }
 }
 
@@ -607,6 +633,10 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// The source file edit that is being built.
   final SourceFileEdit fileEdit;
 
+  /// The end of line marker being used by this file.
+  @override
+  final String eol;
+
   /// A description to be applied to the changes being built.
   ///
   /// This is usually set temporarily to mark a whole set of fixes with a
@@ -618,7 +648,8 @@ class FileEditBuilderImpl implements FileEditBuilder {
   /// Initialize a newly created builder to build a source file edit within the
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given absolute [path] and [timeStamp].
-  FileEditBuilderImpl(this.changeBuilder, String path, int timeStamp)
+  FileEditBuilderImpl(this.changeBuilder, String path, int timeStamp,
+      {required this.eol})
       : fileEdit = SourceFileEdit(path, timeStamp);
 
   /// Return `true` if this builder has edits to be applied.
@@ -696,8 +727,9 @@ class FileEditBuilderImpl implements FileEditBuilder {
   @Deprecated('Copying change builders is expensive. Internal users of this '
       'method now use `commit` and `revert` instead.')
   FileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder) {
-    var copy =
-        FileEditBuilderImpl(changeBuilder, fileEdit.file, fileEdit.fileStamp);
+    var copy = FileEditBuilderImpl(
+        changeBuilder, fileEdit.file, fileEdit.fileStamp,
+        eol: eol);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.currentChangeDescription = currentChangeDescription;
     return copy;
