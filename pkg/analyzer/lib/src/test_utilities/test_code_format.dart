@@ -4,6 +4,7 @@
 
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:collection/collection.dart';
 
 /// A class for parsing and representing test code that contains special markup
@@ -181,6 +182,23 @@ class TestCode {
       markedCode: markedCode,
       positions: positions.values.toList(),
       ranges: ranges.values.toList(),
+    );
+  }
+
+  /// A version of [TestCode.parse] that normalizes newlines in the code to
+  /// match that for the current platform so that tests on Windows test using
+  /// `\r\n` and tests on other platforms test using `\n`.
+  static TestCode parseNormalized(
+    String markedCode, {
+    bool positionShorthand = true,
+    bool rangeShorthand = true,
+    bool zeroWidthMarker = true,
+  }) {
+    return parse(
+      normalizeNewlinesForPlatform(markedCode),
+      positionShorthand: positionShorthand,
+      rangeShorthand: rangeShorthand,
+      zeroWidthMarker: zeroWidthMarker,
     );
   }
 }

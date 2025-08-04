@@ -3300,6 +3300,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         matcherScore: 0.0,
         includeTypes: includeTypes,
         indent: state.indent,
+        endOfLine: state.endOfLine,
       ),
     );
     collector.addSuggestion(
@@ -3310,6 +3311,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         useBlockStatement: false,
         includeTypes: includeTypes,
         indent: state.indent,
+        endOfLine: state.endOfLine,
       ),
     );
   }

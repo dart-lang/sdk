@@ -4,6 +4,13 @@
 
 import 'dart:io';
 
+/// The EOL being used for file content in the current test run.
+String get testEol =>
+    // TODO(dantup): Support overridding this with an env var to allow testing
+    //  `\n` on Windows or `\r\n` on non-Windows, to ensure we don't have any
+    //  code just assuming the platform EOL (instead of the files EOL).
+    Platform.lineTerminator;
+
 /// Normalizes content to use platform-specific newlines.
 ///
 /// This ensures that when running on Windows, '\r\n' is used, even though
@@ -16,5 +23,5 @@ String normalizeNewlinesForPlatform(String input) {
   }
 
   var newlinePattern = RegExp(r'\r?\n'); // Either '\r\n' or '\n'.
-  return input.replaceAll(newlinePattern, Platform.lineTerminator);
+  return input.replaceAll(newlinePattern, testEol);
 }

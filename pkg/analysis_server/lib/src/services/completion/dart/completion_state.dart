@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
@@ -11,6 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/utilities/completion_matcher.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 
 /// The information used to compute the suggestions for a completion request.
 class CompletionState {
@@ -46,6 +49,9 @@ class CompletionState {
   ClassMember? get enclosingMember {
     return selection.coveringNode.thisOrAncestorOfType<ClassMember>();
   }
+
+  /// The EOL marker for the completion text.
+  String get endOfLine => request.content.endOfLine ?? Platform.lineTerminator;
 
   /// Indicates if types should be specified whenever possible.
   bool get includeTypes => codeStyleOptions.specifyTypes;
