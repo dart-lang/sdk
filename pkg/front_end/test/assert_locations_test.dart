@@ -5,7 +5,7 @@
 import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/testing/compiler_common.dart' show compileScript;
 import 'package:kernel/ast.dart'
     show Component, RecursiveVisitor, Procedure, AssertStatement;
@@ -127,7 +127,7 @@ void main() {
   asyncTest(() async {
     Test test = generateTest();
     CompilerOptions options = new CompilerOptions()
-      ..onDiagnostic = (DiagnosticMessage message) {
+      ..onDiagnostic = (CfeDiagnosticMessage message) {
         Expect.fail(
             "Unexpected message: ${message.plainTextFormatted.join('\n')}");
       };

@@ -15,7 +15,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
         computePlatformBinariesLocation,
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         kernelForProgram;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
@@ -65,7 +65,7 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
     ..target = target
     ..additionalDills = <Uri>[platformKernel]
     ..environmentDefines = {}
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
     };
 

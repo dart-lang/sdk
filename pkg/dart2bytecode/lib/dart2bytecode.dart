@@ -10,7 +10,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
         InvocationMode,
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         Verbosity,
         parseExperimentalArguments,
         parseExperimentalFlags,
@@ -219,7 +219,7 @@ Future<int> runCompilerWithOptions({
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: printMessage)
-    ..onDiagnostic = (DiagnosticMessage m) {
+    ..onDiagnostic = (CfeDiagnosticMessage m) {
       errorDetector(m);
     }
     ..embedSourceText = false

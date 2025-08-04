@@ -16,7 +16,7 @@ class MemoryCompilerResult {
   final fe.DdcResult ddcResult;
   final ProgramCompiler compiler;
   final Program program;
-  final List<fe.DiagnosticMessage> errors;
+  final List<fe.CfeDiagnosticMessage> errors;
 
   MemoryCompilerResult(
     this.ddcResult,
@@ -32,7 +32,7 @@ class MemoryCompilerResult {
 /// components without calling DDC.
 class MemoryComponentResult {
   final fe.DdcResult ddcResult;
-  final List<fe.DiagnosticMessage> errors;
+  final List<fe.CfeDiagnosticMessage> errors;
   fe.InitializedCompilerState? initialCompilerState;
 
   MemoryComponentResult(this.ddcResult, this.errors, this.initialCompilerState);
@@ -55,8 +55,8 @@ Future<MemoryComponentResult> componentFromMemory(
   Uri? baseUri,
 }) async {
   baseUri ??= memoryDirectory;
-  var errors = <fe.DiagnosticMessage>[];
-  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
+  var errors = <fe.CfeDiagnosticMessage>[];
+  void diagnosticMessageHandler(fe.CfeDiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
       errors.add(message);
     }
@@ -106,8 +106,8 @@ Future<MemoryComponentResult> incrementalComponentFromMemory(
   Uri? packageConfigUri,
 }) async {
   baseUri ??= memoryDirectory;
-  var errors = <fe.DiagnosticMessage>[];
-  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
+  var errors = <fe.CfeDiagnosticMessage>[];
+  void diagnosticMessageHandler(fe.CfeDiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
       errors.add(message);
     }

@@ -6,7 +6,7 @@ import 'dart:io' show File, Platform;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 import 'package:kernel/kernel.dart'
     show Class, Component, ConstantExpression, Field, IntConstant, Library;
 import 'package:kernel/target/targets.dart' show NoneTarget, TargetFlags;
@@ -83,7 +83,7 @@ Future<void> main() async {
   Component c = await normalCompileToComponent(kernelTagUri,
       options: getOptions()
         ..target = new NoneTarget(new TargetFlags())
-        ..onDiagnostic = (DiagnosticMessage message) {
+        ..onDiagnostic = (CfeDiagnosticMessage message) {
           if (message.severity == Severity.error) {
             print(message.plainTextFormatted.join('\n'));
           }

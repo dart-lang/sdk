@@ -7,7 +7,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
@@ -266,7 +266,7 @@ CompilerOptions getOptions(Uri sdkRoot) {
     ..sdkRoot = sdkRoot
     ..target = target
     ..omitPlatform = true
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       if (message.severity == Severity.error) {
         throw "Unexpected error: ${message.plainTextFormatted.join('\n')}";
       }

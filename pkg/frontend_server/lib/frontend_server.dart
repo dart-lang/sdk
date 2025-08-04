@@ -469,7 +469,7 @@ class FrontendCompiler implements CompilerInterface {
   final ProgramTransformer? transformer;
   bool? unsafePackageSerialization;
 
-  void _onDiagnostic(DiagnosticMessage message) {
+  void _onDiagnostic(CfeDiagnosticMessage message) {
     switch (message.severity) {
       case Severity.error:
       case Severity.internalProblem:

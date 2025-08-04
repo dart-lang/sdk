@@ -27,7 +27,7 @@ Future<Component?> compileHelper(Map<Uri, String> data) async {
 
   BuildResult result = await compile(
     inputs: [data.keys.first],
-    onDiagnostic: (api.DiagnosticMessage message) {
+    onDiagnostic: (api.CfeDiagnosticMessage message) {
       if (message.severity == Severity.error) {
         print(message.plainTextFormatted.join('\n'));
       }

@@ -19,7 +19,7 @@ import 'package:kernel/target/targets.dart'
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, HooksForTesting, Verbosity, DiagnosticMessage;
+    show CompilerOptions, HooksForTesting, Verbosity, CfeDiagnosticMessage;
 import '../api_prototype/experimental_flags.dart' as flags;
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
@@ -315,7 +315,7 @@ class ProcessedOptions {
         format: formatNoSourceLine);
   }
 
-  void reportDiagnosticMessage(DiagnosticMessage message) {
+  void reportDiagnosticMessage(CfeDiagnosticMessage message) {
     (_raw.onDiagnostic ?? // Coverage-ignore(suite): Not run.
         defaultDiagnosticMessageHandler)(message);
   }
@@ -331,7 +331,7 @@ class ProcessedOptions {
   }
 
   // Coverage-ignore(suite): Not run.
-  void defaultDiagnosticMessageHandler(DiagnosticMessage message) {
+  void defaultDiagnosticMessageHandler(CfeDiagnosticMessage message) {
     if (Verbosity.shouldPrint(_raw.verbosity, message)) {
       printDiagnosticMessage(message, print);
     }

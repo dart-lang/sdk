@@ -4,7 +4,7 @@
 
 import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
     show
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         DiagnosticMessageHandler,
         getMessageCodeObject,
         getMessageArguments;
@@ -57,7 +57,7 @@ void main() {
 ''';
 
 DiagnosticMessageHandler _makeDiagnosticMessageHandler(Set<String> names) {
-  return (DiagnosticMessage message) {
+  return (CfeDiagnosticMessage message) {
     Expect.equals(Severity.error, message.severity);
     Expect.identical(codeSuperclassHasNoMethod, getMessageCodeObject(message));
     Expect.isTrue(message.plainTextFormatted.length == 1);

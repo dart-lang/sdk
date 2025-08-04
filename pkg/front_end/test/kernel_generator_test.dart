@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:front_end/src/api_prototype/front_end.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show FormattedMessage, messageMissingMain;
 import 'package:front_end/src/kernel/utils.dart' show serializeComponent;
@@ -78,7 +78,7 @@ void main() {
     });
 
     test('compiler requires a main method', () async {
-      var errors = <DiagnosticMessage>[];
+      var errors = <CfeDiagnosticMessage>[];
       var options = new CompilerOptions()..onDiagnostic = errors.add;
       await compileScript('a() => print("hi");', options: options);
       expect((errors.first as FormattedMessage).problemMessage,

@@ -12,7 +12,7 @@ Future<void> main() async {
   options.sdkSummary = options.sdkSummary!.resolve("nonexisting.dill");
   options.librariesSpecificationUri = null;
   int diagnosticCount = 0;
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     // ignoring
     diagnosticCount++;
   };

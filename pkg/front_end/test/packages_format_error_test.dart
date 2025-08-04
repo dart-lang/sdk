@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
+    show CfeDiagnosticMessage, getMessageCodeObject;
 import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -21,7 +21,7 @@ void main() {
   MemoryFileSystem fs = new MemoryFileSystem(root);
   Uri packages = root.resolve(".dart_tool/package_config.json");
   fs.entityForUri(packages).writeAsStringSync("bad\n");
-  List<DiagnosticMessage> messages = <DiagnosticMessage>[];
+  List<CfeDiagnosticMessage> messages = <CfeDiagnosticMessage>[];
   CompilerContext c = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
         ..fileSystem = fs

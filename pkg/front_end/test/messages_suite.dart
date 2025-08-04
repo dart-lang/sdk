@@ -7,7 +7,7 @@ import 'dart:io' show File, Platform;
 import "dart:typed_data" show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
+    show CfeDiagnosticMessage, getMessageCodeObject;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show Severity, severityEnumValues;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -468,7 +468,7 @@ class MessageTestSuite extends ChainContext {
   }
 
   String formatProblems(
-      String message, Example example, List<DiagnosticMessage> messages) {
+      String message, Example example, List<CfeDiagnosticMessage> messages) {
     var span = example.node.span;
     StringBuffer buffer = new StringBuffer();
     buffer
@@ -480,7 +480,7 @@ class MessageTestSuite extends ChainContext {
       ..write(": error: ")
       ..write(message);
     buffer.write("\n${span.text}");
-    for (DiagnosticMessage message in messages) {
+    for (CfeDiagnosticMessage message in messages) {
       buffer.write("\nCode: ${getMessageCodeObject(message)!.name}");
       buffer.write("\n  > ");
       buffer.write(
@@ -604,7 +604,7 @@ class ScriptExample extends Example {
     if (script is! String && script is! Map) {
       throw suite.formatProblems(
           "A script must be either a String or a Map in $code:",
-          this, <DiagnosticMessage>[]);
+          this, <CfeDiagnosticMessage>[]);
     }
   }
 
@@ -734,7 +734,7 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     }
 
     print("Compiling $main");
-    List<DiagnosticMessage> messages = <DiagnosticMessage>[];
+    List<CfeDiagnosticMessage> messages = <CfeDiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
         new CompilerOptions()
@@ -750,17 +750,17 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
         main,
         output);
 
-    List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
+    List<CfeDiagnosticMessage> unexpectedMessages = <CfeDiagnosticMessage>[];
     if (example.allowMoreCodes) {
-      List<DiagnosticMessage> messagesFiltered = <DiagnosticMessage>[];
-      for (DiagnosticMessage message in messages) {
+      List<CfeDiagnosticMessage> messagesFiltered = <CfeDiagnosticMessage>[];
+      for (CfeDiagnosticMessage message in messages) {
         if (getMessageCodeObject(message)!.name == example.expectedCode) {
           messagesFiltered.add(message);
         }
       }
       messages = messagesFiltered;
     }
-    for (DiagnosticMessage message in messages) {
+    for (CfeDiagnosticMessage message in messages) {
       if (getMessageCodeObject(message)!.name != example.expectedCode) {
         unexpectedMessages.add(message);
       }

@@ -255,7 +255,7 @@ Future<CompilerResult> _compile(
       argResults['packages'] as String? ?? _findPackagesFilePath();
 
   var succeeded = true;
-  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
+  void diagnosticMessageHandler(fe.CfeDiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
       succeeded = false;
     }

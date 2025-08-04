@@ -10,7 +10,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/target/targets.dart';
 
 import '../api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import '../api_prototype/experimental_flags.dart'
     show AllowedExperimentalFlags, ExperimentalFlag;
 import '../api_prototype/terminal_color_support.dart'
@@ -196,7 +196,7 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     required Uri nullUri}) async {
   CompilerOptions options = new CompilerOptions();
   List<FormattedMessage> errors = [];
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     if (message is FormattedMessage && message.severity == Severity.error) {
       errors.add(message);
     }

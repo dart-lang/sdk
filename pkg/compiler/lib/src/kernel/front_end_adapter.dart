@@ -93,9 +93,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 /// [DiagnosticReporter].
 void reportFrontEndMessage(
   DiagnosticReporter reporter,
-  fe.DiagnosticMessage message,
+  fe.CfeDiagnosticMessage message,
 ) {
-  Spannable getSpannable(fe.DiagnosticMessage message) {
+  Spannable getSpannable(fe.CfeDiagnosticMessage message) {
     Uri? uri = fe.getMessageUri(message);
     int offset = fe.getMessageCharOffset(message)!;
     int length = fe.getMessageLength(message)!;
@@ -106,7 +106,7 @@ void reportFrontEndMessage(
     }
   }
 
-  DiagnosticMessage convertMessage(fe.DiagnosticMessage message) {
+  DiagnosticMessage convertMessage(fe.CfeDiagnosticMessage message) {
     Spannable span = getSpannable(message);
     String? text = fe.getMessageHeaderText(message);
     return reporter.createMessage(span, MessageKind.generic, {
@@ -114,7 +114,7 @@ void reportFrontEndMessage(
     });
   }
 
-  Iterable<fe.DiagnosticMessage>? relatedInformation = fe
+  Iterable<fe.CfeDiagnosticMessage>? relatedInformation = fe
       .getMessageRelatedInformation(message);
   DiagnosticMessage mainMessage = convertMessage(message);
   List<DiagnosticMessage> infos = relatedInformation != null

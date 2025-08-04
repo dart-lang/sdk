@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageUri;
+    show CfeDiagnosticMessage, getMessageUri;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
@@ -68,7 +68,7 @@ void main() {
   }
 }
 
-void compareMessages(DiagnosticMessage a, DiagnosticMessage b) {
+void compareMessages(CfeDiagnosticMessage a, CfeDiagnosticMessage b) {
   List<String> list1 = a.ansiFormatted.toList();
   List<String> list2 = b.ansiFormatted.toList();
   expect(list1.length, list2.length);

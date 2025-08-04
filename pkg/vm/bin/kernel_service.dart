@@ -130,7 +130,7 @@ CompilerOptions setupCompilerOptions(
       },
     )
     ..environmentDefines = new EnvironmentMap()
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       bool printToStdErr = false;
       bool printToStdOut = false;
       switch (message.severity) {
