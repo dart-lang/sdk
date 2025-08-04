@@ -702,6 +702,12 @@ hooks = [
     'action': ['python3', Var("dart_root") + '/tools/generate_sdk_version_file.py'],
   },
   {
+    # Generate large tests.
+    'name': 'Generate large tests',
+    'pattern': '.',
+    'action': ['python3', Var("dart_root") + '/tools/generate_large_tests.py'],
+  },
+  {
     'name': 'buildtools',
     'pattern': '.',
     'action': ['python3', Var("dart_root") + '/tools/buildtools/update.py'],

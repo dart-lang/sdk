@@ -561,8 +561,7 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class,
     }
     return Class::null();
   }
-  const Class& klass =
-      Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
+  const Class& klass = Class::Handle(Z, library.LookupClass(class_name));
   if (klass.IsNull()) {
     if (required) {
       LookupFailed(kernel_class);
@@ -602,9 +601,8 @@ FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field,
     }
     return Field::null();
   }
-  Field& field = Field::Handle(
-      Z, klass.LookupFieldAllowPrivate(
-             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  Field& field =
+      Field::Handle(Z, klass.LookupField(DartFieldName(kernel_field)));
   if (field.IsNull() && required) {
     LookupFailed(kernel_field);
   }
@@ -625,9 +623,8 @@ FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
     }
     return Field::null();
   }
-  const Field& field = Field::Handle(
-      Z, klass.LookupFieldAllowPrivate(
-             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  const Field& field =
+      Field::Handle(Z, klass.LookupField(DartFieldName(kernel_field)));
   if (field.IsNull() && required) {
     LookupFailed(kernel_field);
   }
@@ -654,7 +651,7 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   const auto& error = klass.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
   Function& function =
-      Function::Handle(Z, klass.LookupFunctionAllowPrivate(procedure_name));
+      Function::Handle(Z, klass.LookupFunction(procedure_name));
   if (function.IsNull() && required) {
     LookupFailed(procedure);
   }
@@ -687,7 +684,7 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
   const auto& error = owner.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
   Function& function = Function::Handle(
-      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
+      Z, owner.LookupConstructor(DartConstructorName(constructor)));
   if (function.IsNull() && required) {
     LookupFailed(constructor);
   }
@@ -708,7 +705,7 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
       String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
   const auto& error = owner.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
-  FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
+  FunctionPtr function = owner.LookupConstructor(new_name);
   if (function == Object::null() && required) {
     LookupFailed(constructor_name);
   }
@@ -723,7 +720,7 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
       Z, LookupClassByKernelClass(kernel_class, /*required=*/false));
   Function& function = Function::Handle(Z);
   if (!klass.IsNull() && klass.EnsureIsFinalized(thread_) == Error::null()) {
-    function = klass.LookupFunctionAllowPrivate(method_name);
+    function = klass.LookupFunction(method_name);
   }
   if (function.IsNull() && required) {
     LookupFailed(target);
@@ -746,34 +743,18 @@ ObjectPtr TranslationHelper::LookupMemberByMember(NameIndex kernel_name,
 
   Object& member = Object::Handle(Z);
   if (IsField(kernel_name)) {
-    member = klass.LookupFieldAllowPrivate(
-        DartSymbolObfuscate(CanonicalNameString(kernel_name)));
+    member = klass.LookupField(DartFieldName(kernel_name));
   } else {
     const String& procedure_name = DartProcedureName(kernel_name);
 
     const auto& error = klass.EnsureIsFinalized(thread_);
     ASSERT(error == Error::null());
-    member = klass.LookupFunctionAllowPrivate(procedure_name);
+    member = klass.LookupFunction(procedure_name);
   }
   if (member.IsNull() && required) {
     LookupFailed(kernel_name);
   }
   return member.ptr();
-}
-
-FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
-                                                     const String& name) {
-  // Search the superclass chain for the selector.
-  Class& iterate_klass = Class::Handle(Z, klass.ptr());
-  while (!iterate_klass.IsNull()) {
-    FunctionPtr function =
-        iterate_klass.LookupDynamicFunctionAllowPrivate(name);
-    if (function != Object::null()) {
-      return function;
-    }
-    iterate_klass = iterate_klass.SuperClass();
-  }
-  return Function::null();
 }
 
 Type& TranslationHelper::GetDeclarationType(const Class& klass) {

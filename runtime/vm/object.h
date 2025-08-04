@@ -1717,10 +1717,10 @@ class Class : public Object {
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
+  FunctionPtr LookupFunction(const String& name) const;
   FunctionPtr LookupFunctionReadLocked(const String& name) const;
   FunctionPtr LookupDynamicFunctionUnsafe(const String& name) const;
 
-  FunctionPtr LookupDynamicFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupStaticFunction(const String& name) const;
   FunctionPtr LookupStaticFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupConstructor(const String& name) const;
@@ -1728,8 +1728,6 @@ class Class : public Object {
   FunctionPtr LookupFactory(const String& name) const;
   FunctionPtr LookupFactoryAllowPrivate(const String& name) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name) const;
-  FunctionPtr LookupGetterFunction(const String& name) const;
-  FunctionPtr LookupSetterFunction(const String& name) const;
   FieldPtr LookupInstanceField(const String& name) const;
   FieldPtr LookupStaticField(const String& name) const;
   FieldPtr LookupField(const String& name) const;
@@ -2247,10 +2245,6 @@ class Class : public Object {
   FunctionPtr LookupFunctionAllowPrivate(const String& name,
                                          MemberKind kind) const;
   FieldPtr LookupField(const String& name, MemberKind kind) const;
-
-  FunctionPtr LookupAccessorFunction(const char* prefix,
-                                     intptr_t prefix_length,
-                                     const String& name) const;
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance, class TargetFakeInstance>
@@ -10598,8 +10592,6 @@ class String : public Instance {
                                Heap::Space space = Heap::kNew);
   static StringPtr ToLowerCase(const String& str,
                                Heap::Space space = Heap::kNew);
-
-  static StringPtr RemovePrivateKey(const String& name);
 
   static const char* ScrubName(const String& name, bool is_extension = false);
   static StringPtr ScrubNameRetainPrivate(const String& name,

@@ -176,7 +176,6 @@ class TranslationHelper {
                                    const String& method_name,
                                    bool required = true);
   ObjectPtr LookupMemberByMember(NameIndex kernel_name, bool required = true);
-  FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
 
