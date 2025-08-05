@@ -11,13 +11,13 @@ static method method(core::int? i) → dynamic
     #L1:
     {
       {
-        if(#0#2#isSet ?{core::bool} #0#2{core::bool} : let final dynamic #t2 = #0#2#isSet = true in #0#2 = #0#0 == null) {
+        if(#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t2 = #0#2#isSet = true in #0#2 = #0#0 == null) {
           #t1 = null;
           break #L1;
         }
       }
       {
-        if(!(#0#2#isSet ?{core::bool} #0#2{core::bool} : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{core::int} == null)) {
+        if(!(#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{core::int} == null)) {
           #t1 = i{core::int};
           break #L1;
         }

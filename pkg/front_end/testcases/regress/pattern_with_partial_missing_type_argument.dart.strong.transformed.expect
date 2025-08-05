@@ -19,7 +19,7 @@ static method foo(dynamic bar) → void {
     final synthesized dynamic #0#0 = bar as{TypeError,ForDynamic} core::List<core::Map<invalid-type, (void, void)>>;
     synthesized dynamic #0#6;
     synthesized core::bool #0#6#isSet = false;
-    if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t1 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::Map<invalid-type, (void, void)> && (let final dynamic #t2 = a = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t3 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::Map<invalid-type, (void, void)> in true))))
+    if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6 : let final dynamic #t1 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::Map<invalid-type, (void, void)> && (let final dynamic #t2 = a = (#0#6#isSet ?{dynamic} #0#6 : let final dynamic #t3 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::Map<invalid-type, (void, void)> in true))))
       throw{for-error-handling} new core::StateError::•("Pattern matching error");
   }
 }
