@@ -5,7 +5,8 @@
 import 'dart:convert' show jsonDecode;
 import 'dart:io' show File;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -136,8 +137,8 @@ class CompileAndCompareStep
         await extractOutline([description.uri], packages: packages);
 
     void onDiagnostic(CfeDiagnosticMessage message) {
-      if (message.severity == Severity.error ||
-          message.severity == Severity.warning) {
+      if (message.severity == CfeSeverity.error ||
+          message.severity == CfeSeverity.warning) {
         throw ("Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
     }

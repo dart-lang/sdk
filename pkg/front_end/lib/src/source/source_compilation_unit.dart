@@ -347,7 +347,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   void addProblem(Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false}) {
     _problemReporting.addProblem(message, charOffset, length, fileUri,
         wasHandled: wasHandled,

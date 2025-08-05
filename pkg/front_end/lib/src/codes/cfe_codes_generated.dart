@@ -1938,7 +1938,7 @@ const Template<Message Function(String string, DartType _type)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemUnsupportedNullability = const Code(
   "InternalProblemUnsupportedNullability",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4090,7 +4090,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeSuperBoundedHint = const Code(
   "SuperBoundedHint",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

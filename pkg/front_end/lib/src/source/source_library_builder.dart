@@ -845,7 +845,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false}) {
     FormattedMessage? formattedMessage = super.addProblem(
         message, charOffset, length, fileUri,

@@ -134,22 +134,22 @@ CompilerOptions setupCompilerOptions(
       bool printToStdErr = false;
       bool printToStdOut = false;
       switch (message.severity) {
-        case Severity.error:
-        case Severity.internalProblem:
+        case CfeSeverity.error:
+        case CfeSeverity.internalProblem:
           // TODO(sigmund): support emitting code with errors as long as they
           // are handled in the generated code.
           printToStdErr = false; // errors are printed by VM
           errorsPlain.addAll(message.plainTextFormatted);
           errorsColorized.addAll(message.ansiFormatted);
           break;
-        case Severity.warning:
+        case CfeSeverity.warning:
           printToStdErr = true;
           break;
-        case Severity.info:
+        case CfeSeverity.info:
           printToStdErr = true;
           break;
-        case Severity.context:
-        case Severity.ignored:
+        case CfeSeverity.context:
+        case CfeSeverity.ignored:
           throw "Unexpected severity: ${message.severity}";
       }
       if (Verbosity.shouldPrint(verbosity, message)) {

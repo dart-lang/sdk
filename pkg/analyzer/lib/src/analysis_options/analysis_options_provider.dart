@@ -5,7 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/analysis_options/options_file_validator.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';

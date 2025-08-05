@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -9081,7 +9082,8 @@ class BodyBuilder extends StackListenerImpl
           wasHandled: true, context: context);
     }
     String text = libraryBuilder.loader.target.context
-        .format(message.withLocation(uri, charOffset, length), Severity.error)
+        .format(
+            message.withLocation(uri, charOffset, length), CfeSeverity.error)
         .plain;
     return new InvalidExpression(text, expression)..fileOffset = charOffset;
   }
@@ -9090,8 +9092,8 @@ class BodyBuilder extends StackListenerImpl
   Expression wrapInProblem(
       Expression expression, Message message, int fileOffset, int length,
       {List<LocatedMessage>? context}) {
-    Severity severity = message.code.severity;
-    if (severity == Severity.error) {
+    CfeSeverity severity = message.code.severity;
+    if (severity == CfeSeverity.error) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, fileOffset, length),
           context: context,
@@ -9596,7 +9598,7 @@ class BodyBuilder extends StackListenerImpl
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity}) {
+      CfeSeverity? severity}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context, severity: severity);
   }
@@ -9607,9 +9609,9 @@ class BodyBuilder extends StackListenerImpl
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.
-    Severity severity = message.code.severity;
+    CfeSeverity severity = message.code.severity;
     if (constantContext != ConstantContext.none) {
-      severity = Severity.error;
+      severity = CfeSeverity.error;
     }
     addProblem(message, charOffset, length,
         wasHandled: wasHandled, context: context, severity: severity);
@@ -9622,7 +9624,8 @@ class BodyBuilder extends StackListenerImpl
     addProblemErrorIfConst(message, charOffset, length,
         wasHandled: wasHandled, context: context);
     String text = libraryBuilder.loader.target.context
-        .format(message.withLocation(uri, charOffset, length), Severity.error)
+        .format(
+            message.withLocation(uri, charOffset, length), CfeSeverity.error)
         .plain;
     InvalidExpression expression = new InvalidExpression(text)
       ..fileOffset = charOffset;

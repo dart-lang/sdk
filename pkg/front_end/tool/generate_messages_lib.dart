@@ -396,7 +396,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
     if (severityEnumName == null) {
       throw "Unknown severity '$severity'";
     }
-    codeArguments.add('severity: Severity.$severityEnumName');
+    codeArguments.add('severity: CfeSeverity.$severityEnumName');
   }
 
   if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {

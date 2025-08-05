@@ -21,15 +21,22 @@ abstract class ChangeBuilder {
   /// If the builder is used to create changes for Dart files, then either a
   /// [session] or a [workspace] must be provided (but not both).
   ///
-  /// Note that omitting [eol], the EOL sequence to use, can result in
-  /// inconsistent EOL sequences being added to files.
-  // TODO(srawlins): Should `eol` be required? Each `DartFileEditBuilderImpl`
-  //  has a `ResolvedUnitResult` that can be relied on to detect the existing
-  //  EOL sequences, so could `eol` be removed? (dantup: but non-Dart builders?)
+  /// [defaultEol] is the default EOL to be used for new files and files that do
+  /// not have EOLs. Existing files with EOL markers will always have the same
+  /// EOL in inserted text. If not specified, Platform.lineTerminator will be
+  /// used.
   factory ChangeBuilder(
       {AnalysisSession session,
       ChangeWorkspace workspace,
-      String eol}) = ChangeBuilderImpl;
+      @Deprecated('Use defaultEol instead, as this is only a '
+          'default for files without existing EOLs')
+      String? eol,
+      String? defaultEol}) = ChangeBuilderImpl;
+
+  /// The default EOL to be used for new files and files that do not have EOLs.
+  /// Existing files with EOL markers will always have the same EOL in inserted
+  /// text. If not specified, Platform.lineTerminator will be used.
+  String get defaultEol;
 
   /// Return the range of the selection for the change being built, or `null` if
   /// there is no selection.
@@ -125,6 +132,9 @@ abstract class EditBuilder {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileEditBuilder {
+  /// The end of line marker used for this file.
+  String get eol;
+
   /// Add a deletion of text specified by the given [range]. The [range] is
   /// relative to the original source. This is fully equivalent to
   ///

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
 import 'package:analysis_server_plugin/edit/fix/fix.dart';
@@ -57,8 +58,9 @@ final class FixInFileProcessor {
     for (var generator in generators) {
       if (generator(context: StubCorrectionProducerContext.instance)
           .canBeAppliedAcrossSingleFile) {
-        _FixState fixState =
-            _EmptyFixState(ChangeBuilder(workspace: _fixContext.workspace));
+        _FixState fixState = _EmptyFixState(ChangeBuilder(
+            workspace: _fixContext.workspace,
+            defaultEol: CorrectionUtils(_fixContext.unitResult).endOfLine));
 
         // First, try to fix the specific error we started from. We should only
         // include fix-all-in-file when we produce an individual fix at this

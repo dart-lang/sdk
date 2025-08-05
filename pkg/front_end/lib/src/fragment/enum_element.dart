@@ -390,7 +390,7 @@ class EnumElementDeclaration
                 templateConstructorNotFound
                     .withArguments(fullConstructorNameForErrors)
                     .withLocation(fileUri, fileOffset, noLength),
-                Severity.error)
+                CfeSeverity.error)
             .plain;
         assert(
             _field!.initializer == null,

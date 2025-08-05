@@ -1252,7 +1252,8 @@
           "arguments": [
             "-nvm-aot-dyn-${system}-${mode}-${arch}",
             "corelib",
-            "language"
+            "language",
+            "co19"
           ],
           "fileset": "vm",
           "shards": 5
@@ -1293,7 +1294,8 @@
           "arguments": [
             "-nvm-aot-dyn-${system}-${mode}-${arch}",
             "corelib",
-            "language"
+            "language",
+            "co19"
           ],
           "fileset": "vm",
           "shards": 5
@@ -1335,6 +1337,7 @@
             "-nvm-dyn-${system}-${mode}-${arch}",
             "corelib",
             "language",
+            "co19",
             "vm",
             "pkg/vm_service/"
           ],

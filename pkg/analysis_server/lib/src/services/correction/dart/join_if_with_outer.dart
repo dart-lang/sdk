@@ -99,6 +99,7 @@ class JoinIfWithOuter extends ResolvedCorrectionProducer {
     var newSource = utils.indentSourceLeftRight(oldSource);
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addSimpleReplacement(
         range.node(outerIfStatement),
         'if ($condition) {$eol$newSource$prefix}',

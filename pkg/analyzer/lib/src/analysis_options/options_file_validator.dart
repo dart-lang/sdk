@@ -6,8 +6,8 @@ import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
@@ -260,114 +260,6 @@ List<Diagnostic> _validateLegacyPluginsOption(
   return recorder.diagnostics;
 }
 
-/// Options (keys) that can be specified in an analysis options file.
-final class AnalysisOptionsFile {
-  // Top-level options.
-  static const String analyzer = 'analyzer';
-  static const String codeStyle = 'code-style';
-  static const String formatter = 'formatter';
-  static const String linter = 'linter';
-
-  /// The shared key for top-level plugins and `analyzer`-level plugins.
-  static const String plugins = 'plugins';
-
-  // `analyzer` analysis options.
-  static const String cannotIgnore = 'cannot-ignore';
-  static const String enableExperiment = 'enable-experiment';
-  static const String errors = 'errors';
-  static const String exclude = 'exclude';
-  static const String include = 'include';
-  static const String language = 'language';
-  static const String optionalChecks = 'optional-checks';
-  static const String strongMode = 'strong-mode';
-
-  // Optional checks options.
-  static const String chromeOsManifestChecks = 'chrome-os-manifest-checks';
-
-  // Strong mode options (see AnalysisOptionsImpl for documentation).
-  static const String declarationCasts = 'declaration-casts';
-  static const String implicitCasts = 'implicit-casts';
-  static const String implicitDynamic = 'implicit-dynamic';
-
-  // Language options (see AnalysisOptionsImpl for documentation).
-  static const String strictCasts = 'strict-casts';
-  static const String strictInference = 'strict-inference';
-  static const String strictRawTypes = 'strict-raw-types';
-
-  // Code style options.
-  static const String format = 'format';
-
-  /// Ways to say `ignore`.
-  static const List<String> ignoreSynonyms = ['ignore', 'false'];
-
-  /// Valid error `severity`s.
-  static final List<String> severities = List.unmodifiable(severityMap.keys);
-
-  /// Ways to say `include`.
-  static const List<String> includeSynonyms = ['include', 'true'];
-
-  // Formatter options.
-  static const String pageWidth = 'page_width';
-  static const String trailingCommas = 'trailing_commas';
-
-  // Linter options.
-  static const String rules = 'rules';
-
-  // Plugins options.
-  static const String diagnostics = 'diagnostics';
-  static const String path = 'path';
-  static const String version = 'version';
-
-  /// Supported 'plugins' options.
-  static const Set<String> _pluginsOptions = {diagnostics, path, version};
-
-  static const String propagateLinterExceptions = 'propagate-linter-exceptions';
-
-  /// Ways to say `true` or `false`.
-  static const List<String> _trueOrFalse = ['true', 'false'];
-
-  /// Supported top-level `analyzer` options.
-  static const Set<String> _analyzerOptions = {
-    cannotIgnore,
-    enableExperiment,
-    errors,
-    exclude,
-    language,
-    optionalChecks,
-    plugins,
-    strongMode,
-  };
-
-  /// Supported `analyzer` strong-mode options.
-  ///
-  /// This section is deprecated.
-  static const Set<String> _strongModeOptions = {
-    declarationCasts,
-    implicitCasts,
-    implicitDynamic,
-  };
-
-  /// Supported `analyzer` language options.
-  static const Set<String> _languageOptions = {
-    strictCasts,
-    strictInference,
-    strictRawTypes,
-  };
-
-  /// Supported 'linter' options.
-  static const Set<String> _linterOptions = {rules};
-
-  /// Supported 'analyzer' optional checks options.
-  static const Set<String> _optionalChecksOptions = {
-    chromeOsManifestChecks,
-    propagateLinterExceptions,
-  };
-
-  /// Proposed values for a `true` or `false` option.
-  static String get _trueOrFalseProposal =>
-      AnalysisOptionsFile._trueOrFalse.quotedAndCommaSeparatedWithAnd;
-}
-
 /// Validates `analyzer` options.
 class AnalyzerOptionsValidator extends _CompositeValidator {
   AnalyzerOptionsValidator()
@@ -419,7 +311,7 @@ class OptionsFileValidator {
 /// Validates `analyzer` top-level options.
 class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _AnalyzerTopLevelOptionsValidator()
-    : super(AnalysisOptionsFile.analyzer, AnalysisOptionsFile._analyzerOptions);
+    : super(AnalysisOptionsFile.analyzer, AnalysisOptionsFile.analyzerOptions);
 }
 
 /// Validates the `analyzer` `cannot-ignore` option.
@@ -540,7 +432,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
         arguments: [
           AnalysisOptionsFile.format,
           format.valueOrThrow,
-          AnalysisOptionsFile._trueOrFalseProposal,
+          AnalysisOptionsFile.trueOrFalseProposal,
         ],
       );
     }
@@ -812,7 +704,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
 /// Validates `analyzer` language configuration options.
 class _LanguageOptionValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile._languageOptions,
+    AnalysisOptionsFile.languageOptions,
   );
 
   @override
@@ -826,7 +718,7 @@ class _LanguageOptionValidator extends OptionsValidator {
           bool validKey = false;
           if (k is YamlScalar) {
             key = k.value?.toString();
-            if (!AnalysisOptionsFile._languageOptions.contains(key)) {
+            if (!AnalysisOptionsFile.languageOptions.contains(key)) {
               _builder.reportError(reporter, AnalysisOptionsFile.language, k);
             } else {
               // If we have a valid key, go on and check the value.
@@ -837,14 +729,14 @@ class _LanguageOptionValidator extends OptionsValidator {
             value = toLowerCase(v.value);
             // `null` is not a valid key, so we can safely assume `key` is
             // non-`null`.
-            if (!AnalysisOptionsFile._trueOrFalse.contains(value)) {
+            if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
               reporter.atSourceSpan(
                 v.span,
                 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
                 arguments: [
                   key!,
                   v.valueOrThrow,
-                  AnalysisOptionsFile._trueOrFalseProposal,
+                  AnalysisOptionsFile.trueOrFalseProposal,
                 ],
               );
             }
@@ -967,13 +859,13 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
 /// Validates `linter` top-level options.
 class _LinterTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _LinterTopLevelOptionsValidator()
-    : super(AnalysisOptionsFile.linter, AnalysisOptionsFile._linterOptions);
+    : super(AnalysisOptionsFile.linter, AnalysisOptionsFile.linterOptions);
 }
 
 /// Validates `analyzer` optional-checks value configuration options.
 class _OptionalChecksValueValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile._optionalChecksOptions,
+    AnalysisOptionsFile.optionalChecksOptions,
   );
 
   @override
@@ -1003,14 +895,14 @@ class _OptionalChecksValueValidator extends OptionsValidator {
               );
             } else {
               value = toLowerCase(v.value);
-              if (!AnalysisOptionsFile._trueOrFalse.contains(value)) {
+              if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
                 reporter.atSourceSpan(
                   v.span,
                   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
                   arguments: [
                     key!,
                     v.valueOrThrow,
-                    AnalysisOptionsFile._trueOrFalseProposal,
+                    AnalysisOptionsFile.trueOrFalseProposal,
                   ],
                 );
               }
@@ -1031,7 +923,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
 /// Validates options for each `plugins` map value.
 class _PluginsOptionsValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile._pluginsOptions,
+    AnalysisOptionsFile.pluginsOptions,
   );
 
   @override
@@ -1082,7 +974,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
   ) {
     pluginValue.nodes.forEach((pluginMapKeyNode, pluginMapValueNode) {
       if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
-        if (!AnalysisOptionsFile._pluginsOptions.contains(pluginMapKey)) {
+        if (!AnalysisOptionsFile.pluginsOptions.contains(pluginMapKey)) {
           _builder.reportError(
             reporter,
             '${AnalysisOptionsFile.plugins}/$pluginName',
@@ -1100,7 +992,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
 /// Validates `analyzer` strong-mode value configuration options.
 class _StrongModeOptionValueValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile._strongModeOptions,
+    AnalysisOptionsFile.strongModeOptions,
   );
 
   @override
@@ -1127,7 +1019,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
     strongModeNode.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         var key = k.value?.toString();
-        if (!AnalysisOptionsFile._strongModeOptions.contains(key)) {
+        if (!AnalysisOptionsFile.strongModeOptions.contains(key)) {
           _builder.reportError(reporter, AnalysisOptionsFile.strongMode, k);
         } else if (key == AnalysisOptionsFile.declarationCasts) {
           reporter.atSourceSpan(
@@ -1136,21 +1028,21 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
             arguments: [
               AnalysisOptionsFile.strongMode,
               v.valueOrThrow,
-              AnalysisOptionsFile._trueOrFalseProposal,
+              AnalysisOptionsFile.trueOrFalseProposal,
             ],
           );
         } else {
           // The key is valid.
           if (v is YamlScalar) {
             var value = toLowerCase(v.value);
-            if (!AnalysisOptionsFile._trueOrFalse.contains(value)) {
+            if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
               reporter.atSourceSpan(
                 v.span,
                 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
                 arguments: [
                   key!,
                   v.valueOrThrow,
-                  AnalysisOptionsFile._trueOrFalseProposal,
+                  AnalysisOptionsFile.trueOrFalseProposal,
                 ],
               );
             }

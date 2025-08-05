@@ -728,12 +728,15 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// Whether the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context._applyingBulkFixes;
 
+  /// The default EOL to be used for new files and files that do not have EOLs.
+  ///
+  /// Existing files with EOL markers will always have the same EOL in inserted
+  /// text.
+  String get defaultEol => utils.endOfLine;
+
   /// The diagnostic being fixed, or `null` if this producer is being
   /// used to produce an assist.
   Diagnostic? get diagnostic => _context._diagnostic;
-
-  /// The EOL sequence to use for this [CompilationUnit].
-  String get eol => utils.endOfLine;
 
   String get file => _context.path;
 

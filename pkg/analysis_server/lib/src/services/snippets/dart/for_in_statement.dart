@@ -20,7 +20,7 @@ class ForInStatement extends DartSnippetProducer {
   Future<Snippet> compute() async {
     var builder = ChangeBuilder(
       session: request.analysisSession,
-      eol: utils.endOfLine,
+      defaultEol: utils.endOfLine,
     );
     var indent = utils.getLinePrefix(request.offset);
     var varOrFinal = codeStyleOptions.makeLocalsFinal ? 'final' : 'var';

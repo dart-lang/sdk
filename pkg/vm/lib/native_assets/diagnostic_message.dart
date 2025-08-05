@@ -8,11 +8,11 @@ class NativeAssetsDiagnosticMessage implements CfeDiagnosticMessage {
   final String message;
 
   @override
-  final Severity severity;
+  final CfeSeverity severity;
 
   NativeAssetsDiagnosticMessage({
     required this.message,
-    this.severity = Severity.error,
+    this.severity = CfeSeverity.error,
     this.involvedFiles,
   });
 

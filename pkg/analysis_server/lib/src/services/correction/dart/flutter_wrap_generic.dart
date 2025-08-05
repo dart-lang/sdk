@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -32,6 +33,7 @@ class FlutterWrapGeneric extends ResolvedCorrectionProducer {
     )) {
       return;
     }
+    var eol = unitResult.content.endOfLine ?? builder.defaultEol;
     var literalSrc = utils.getNodeText(node);
     var newlineIdx = literalSrc.lastIndexOf(eol);
     if (newlineIdx < 0 || newlineIdx == literalSrc.length - 1) {

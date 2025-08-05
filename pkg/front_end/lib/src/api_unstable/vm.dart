@@ -4,7 +4,8 @@
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, DiagnosticMessageHandler, getMessageUri;
-export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+export 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 export 'package:_fe_analyzer_shared/src/util/options.dart';
 export 'package:_fe_analyzer_shared/src/util/resolve_input_uri.dart'
     show resolveInputUri;

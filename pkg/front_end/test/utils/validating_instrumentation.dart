@@ -6,7 +6,8 @@ import 'dart:convert' show utf8;
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/io.dart' show readBytesFromFile;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ScannerResult, Token, scan;
@@ -230,7 +231,7 @@ class ValidatingInstrumentation implements Instrumentation {
                 .withArguments(
                     '$desc${stackTrace == null ? '' : '\n$stackTrace'}')
                 .withLocation(uri, offset, noLength),
-            Severity.internalProblem)
+            CfeSeverity.internalProblem)
         .plain;
   }
 

@@ -59,6 +59,7 @@ class CreateFile extends ResolvedCorrectionProducer {
           var relativeUri = pathContext.split(relativePath).join('/');
 
           await builder.addDartFileEdit(source.fullName, (builder) {
+            var eol = builder.eol;
             builder.addSimpleInsertion(0, "part of '$relativeUri';$eol$eol");
           });
           _fileName = source.shortName;

@@ -131,27 +131,27 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "7fbe88a5d05fa4debcc3fb9bcd6c29dddafee745",
+  "ai_rev": "72a9283b421e5ee85c089822ddf6735aade849da",
   "core_rev": "b59ecf4ceebe6153e1c0166b7c9a7fdd9458a89d",
-  "dartdoc_rev": "882aea9351262d618c955322f4c9aafe9540b848",
-  "ecosystem_rev": "d5233c6dd0767cffa5742e32c4bc7c230c9c4b12",
+  "dartdoc_rev": "414953ed17ea534078f26a8526909ab014c1ad09",
+  "ecosystem_rev": "2fe3618849cbcfcb798e4e001f042423b602e549",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
   "http_rev": "afda3102b7ed5467f435b9ad4a29a1032f195156",
   "i18n_rev": "c45e050426bdeaaa120e5ce856abb486863d0476",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "16ae2d8619e23fc2bd83fbff087a26ac032a1145", # rolled manually while native assets are experimental
-  "protobuf_rev": "44ecd7424fa0a9e023ecac0d894f50926ed111cf",
+  "protobuf_rev": "0b73b0d64c15e34d35f6e5f9036aac52e4a64033",
   "pub_rev": "c3e50919d11896f014cb971e1776d00a0e2d18b3", # rolled manually
   "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "c07f96f89a7eec7e3daac641fa6c587224fcfbaa",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "6aeb1e4fbc409c142d786b90d81b867e16486699",
-  "tools_rev": "2a2a2d611f2b98888bb6a93b03aa350c97310d87",
-  "vector_math_rev": "13f185f7e97d559e003f5ac79201da12f9a01049",
-  "web_rev": "da1dd5d7701d5f2ae9be380ba7de1e3a3201cc64",
+  "test_rev": "953e8282c6e1d08d47d53169fea7ccb7db8475fa",
+  "tools_rev": "5e977d6f0698a220279a50538c89a440d56b0c44",
+  "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
+  "web_rev": "1d5771b74a97f8d59375daa3029617ce2cd1bae8",
   "webdev_rev": "4fc5d8c1941403200b09e51d4d89ae8cb8c07bd3",
-  "webdriver_rev": "cfab787b30fbfb5509f9fc45cfce51157fb9f369",
+  "webdriver_rev": "595649d890f69b9d05a596426ca93681b1921132",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
   # Windows deps
@@ -700,6 +700,12 @@ hooks = [
     'name': 'Generate sdk/version',
     'pattern': '.',
     'action': ['python3', Var("dart_root") + '/tools/generate_sdk_version_file.py'],
+  },
+  {
+    # Generate large tests.
+    'name': 'Generate large tests',
+    'pattern': '.',
+    'action': ['python3', Var("dart_root") + '/tools/generate_large_tests.py'],
   },
   {
     'name': 'buildtools',

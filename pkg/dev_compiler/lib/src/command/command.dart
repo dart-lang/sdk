@@ -256,7 +256,7 @@ Future<CompilerResult> _compile(
 
   var succeeded = true;
   void diagnosticMessageHandler(fe.CfeDiagnosticMessage message) {
-    if (message.severity == fe.Severity.error) {
+    if (message.severity == fe.CfeSeverity.error) {
       succeeded = false;
     }
     fe.printDiagnosticMessage(message, print);

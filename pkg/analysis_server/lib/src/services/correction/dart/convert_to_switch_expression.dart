@@ -561,6 +561,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     required String text,
     required _Indentation indentation,
   }) {
+    var eol = builder.eol;
     var insertOffset = utils.getLineContentStart(nextLineOffset);
     var nextLinePrefix = utils.getLinePrefix(nextLineOffset);
 

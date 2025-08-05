@@ -182,8 +182,6 @@ class _CreateClass extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // prepare environment
     LibraryFragment targetUnit;
-    var prefix = '';
-    var suffix = '';
     var offset = -1;
     String? filePath;
     if (_prefixElement == null) {
@@ -197,7 +195,6 @@ class _CreateClass extends ResolvedCorrectionProducer {
       }
       offset = enclosingMember.end;
       filePath = file;
-      prefix = '$eol$eol';
     } else {
       for (var import in libraryElement2.firstFragment.libraryImports) {
         if (_prefixElement is PrefixElement &&
@@ -209,8 +206,6 @@ class _CreateClass extends ResolvedCorrectionProducer {
             try {
               offset = targetSource.contents.data.length;
               filePath = targetSource.fullName;
-              prefix = eol;
-              suffix = eol;
             } on FileSystemException {
               // If we can't read the file to get the offset, then we can't
               // create a fix.
@@ -226,6 +221,9 @@ class _CreateClass extends ResolvedCorrectionProducer {
 
     var className2 = _className;
     await builder.addDartFileEdit(filePath, (builder) {
+      var eol = builder.eol;
+      var prefix = filePath == file ? '$eol$eol' : eol;
+      var suffix = filePath == file ? '' : eol;
       builder.addInsertion(offset, (builder) {
         builder.write(prefix);
         if (_arguments == null && !_requiresConstConstructor) {

@@ -1007,8 +1007,8 @@ class Assembler : public MicroAssembler {
     StoreToOffset(src, base, offset, kWordBytes);
   }
 
-  void TsanLoadAcquire(Register addr);
-  void TsanStoreRelease(Register addr);
+  void TsanLoadAcquire(Register dst, const Address& address, OperandSize size);
+  void TsanStoreRelease(Register src, const Address& address, OperandSize size);
 
   void LoadAcquire(Register dst,
                    const Address& address,

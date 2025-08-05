@@ -820,6 +820,10 @@ class RegisterSet : public ValueObject {
 
   intptr_t CpuRegisterCount() const { return RegisterCount(cpu_registers()); }
   intptr_t FpuRegisterCount() const { return RegisterCount(fpu_registers()); }
+  intptr_t SpillSize() const {
+    return CpuRegisterCount() * compiler::target::kWordSize +
+           FpuRegisterCount() * kFpuRegisterSize;
+  }
 
   bool IsEmpty() const {
     return CpuRegisterCount() == 0 && FpuRegisterCount() == 0;

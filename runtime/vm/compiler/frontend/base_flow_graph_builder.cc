@@ -580,9 +580,9 @@ Fragment BaseFlowGraphBuilder::StoreNativeField(
     compiler::Assembler::MemoryOrder memory_order /* = kRelaxed */) {
   Value* value = Pop();
   Value* instance = Pop();
-  StoreFieldInstr* store = new (Z)
-      StoreFieldInstr(slot, instance, value, emit_store_barrier,
-                      stores_inner_pointer, InstructionSource(position), kind);
+  StoreFieldInstr* store = new (Z) StoreFieldInstr(
+      slot, instance, value, emit_store_barrier, stores_inner_pointer,
+      InstructionSource(position), kind, memory_order);
   return Fragment(store);
 }
 

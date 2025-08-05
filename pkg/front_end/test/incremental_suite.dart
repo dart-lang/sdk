@@ -9,7 +9,8 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, getMessageCodeObject;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import "package:dev_compiler/src/kernel/target.dart" show DevCompilerTarget;
@@ -1266,12 +1267,12 @@ class NewWorldTest {
         } else if (message is DiagnosticMessageFromJson) {
           stringId = message.toJsonString();
         }
-        if (message.severity == Severity.error) {
+        if (message.severity == CfeSeverity.error) {
           gotError = true;
           if (!formattedErrors.add(stringId) && !world.allowDuplicateErrors) {
             Expect.fail("Got the same message twice: ${stringId}");
           }
-        } else if (message.severity == Severity.warning) {
+        } else if (message.severity == CfeSeverity.warning) {
           gotWarning = true;
           if (!formattedWarnings.add(stringId) &&
               !world.allowDuplicateWarnings) {
@@ -2496,8 +2497,8 @@ CompilerOptions getOptions({Target? target, String? sdkSummary}) {
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
     ..onDiagnostic = (CfeDiagnosticMessage message) {
-      if (message.severity == Severity.error ||
-          message.severity == Severity.warning) {
+      if (message.severity == CfeSeverity.error ||
+          message.severity == CfeSeverity.warning) {
         Expect.fail(
             "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }

@@ -6,7 +6,7 @@ library front_end.diagnostic_message;
 
 import 'codes.dart' show Code, DiagnosticMessageFromJson, FormattedMessage;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show CfeSeverity;
 
 /// The type of a diagnostic message callback. For example:
 ///
@@ -33,7 +33,7 @@ abstract class CfeDiagnosticMessage {
 
   Iterable<String> get plainTextFormatted;
 
-  Severity get severity;
+  CfeSeverity get severity;
 
   Iterable<Uri>? get involvedFiles;
 

@@ -31,6 +31,8 @@ mixin DartChangeBuilderMixin implements AbstractContextTest {
 
   /// Return a newly created Dart change builder.
   Future<ChangeBuilderImpl> newBuilder() async {
-    return ChangeBuilder(session: await session) as ChangeBuilderImpl;
+    // TODO(dantup): Currently these tests all assume \n and need updating.
+    return ChangeBuilder(session: await session, defaultEol: '\n')
+        as ChangeBuilderImpl;
   }
 }

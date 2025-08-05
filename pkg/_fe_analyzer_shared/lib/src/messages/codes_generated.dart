@@ -242,7 +242,7 @@ const Code codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAmbiguousExtensionCause = const MessageCode(
   "AmbiguousExtensionCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is one of the extension members.""",
 );
 
@@ -481,7 +481,7 @@ const Template<Message Function(String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeBaseOrFinalClassImplementedOutsideOfLibraryCause = const Code(
   "BaseOrFinalClassImplementedOutsideOfLibraryCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -741,7 +741,7 @@ const Code codeCandidateFound = messageCandidateFound;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCandidateFound = const MessageCode(
   "CandidateFound",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""Found this candidate, but the arguments don't match.""",
 );
 
@@ -758,7 +758,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeCandidateFoundIsDefaultConstructor = const Code(
   "CandidateFoundIsDefaultConstructor",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1513,7 +1513,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeConflictsWithImplicitSetterCause = const Code(
   "ConflictsWithImplicitSetterCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1564,7 +1564,7 @@ const Code codeConflictsWithTypeParameterCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConflictsWithTypeParameterCause = const MessageCode(
   "ConflictsWithTypeParameterCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the type variable.""",
 );
 
@@ -1600,7 +1600,7 @@ const Code codeConstConstructorLateFinalFieldCause =
 const MessageCode messageConstConstructorLateFinalFieldCause =
     const MessageCode(
   "ConstConstructorLateFinalFieldCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This constructor is const.""",
 );
 
@@ -1635,7 +1635,7 @@ const Code codeConstConstructorNonFinalFieldCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorNonFinalFieldCause = const MessageCode(
   "ConstConstructorNonFinalFieldCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""Field isn't final, but constructor is 'const'.""",
 );
 
@@ -2226,7 +2226,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeConstructorConflictsWithMemberCause = const Code(
   "ConstructorConflictsWithMemberCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2435,7 +2435,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeConstructorWithWrongNameContext = const Code(
   "ConstructorWithWrongNameContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2721,7 +2721,7 @@ const Template<Message Function(String name, String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDebugTrace = const Code(
   "DebugTrace",
-  severity: Severity.ignored,
+  severity: CfeSeverity.ignored,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2780,7 +2780,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDeclarationConflictsWithSetterCause = const Code(
   "DeclarationConflictsWithSetterCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2817,7 +2817,7 @@ const Code codeDeclaredMemberConflictsWithInheritedMemberCause =
 const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
     const MessageCode(
   "DeclaredMemberConflictsWithInheritedMemberCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the inherited member.""",
 );
 
@@ -2829,7 +2829,7 @@ const Code codeDeclaredMemberConflictsWithInheritedMembersCause =
 const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
     const MessageCode(
   "DeclaredMemberConflictsWithInheritedMembersCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is one of the inherited members.""",
 );
 
@@ -2841,7 +2841,7 @@ const Code codeDeclaredMemberConflictsWithOverriddenMembersCause =
 const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
     const MessageCode(
   "DeclaredMemberConflictsWithOverriddenMembersCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is one of the overridden members.""",
 );
 
@@ -2971,7 +2971,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDeferredPrefixDuplicatedCause = const Code(
   "DeferredPrefixDuplicatedCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3198,7 +3198,7 @@ const Code codeDuplicatePatternAssignmentVariableContext =
 const MessageCode messageDuplicatePatternAssignmentVariableContext =
     const MessageCode(
   "DuplicatePatternAssignmentVariableContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""The first assigned variable pattern.""",
 );
 
@@ -3253,7 +3253,7 @@ const Code codeDuplicateRecordPatternFieldContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicateRecordPatternFieldContext = const MessageCode(
   "DuplicateRecordPatternFieldContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""The first field.""",
 );
 
@@ -3278,7 +3278,7 @@ const Code codeDuplicateRestElementInPatternContext =
 const MessageCode messageDuplicateRestElementInPatternContext =
     const MessageCode(
   "DuplicateRestElementInPatternContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""The first rest element.""",
 );
 
@@ -3321,7 +3321,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDuplicatedDeclarationCause = const Code(
   "DuplicatedDeclarationCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3350,7 +3350,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDuplicatedDeclarationSyntheticCause = const Code(
   "DuplicatedDeclarationSyntheticCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3559,7 +3559,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDuplicatedParameterNameCause = const Code(
   "DuplicatedParameterNameCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3619,7 +3619,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDuplicatedRecordLiteralFieldNameContext = const Code(
   "DuplicatedRecordLiteralFieldNameContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3680,7 +3680,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeDuplicatedRecordTypeFieldNameContext = const Code(
   "DuplicatedRecordTypeFieldNameContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3999,7 +3999,7 @@ const Code codeEnumInheritsRestrictedMember =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumInheritsRestrictedMember = const MessageCode(
   "EnumInheritsRestrictedMember",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the inherited member""",
 );
 
@@ -4081,7 +4081,7 @@ const Code codeEqualKeysInMapPatternContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEqualKeysInMapPatternContext = const MessageCode(
   "EqualKeysInMapPatternContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the previous use of the same key.""",
 );
 
@@ -4892,7 +4892,7 @@ const Template<Message Function(String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeExperimentOptOutComment = const Code(
   "ExperimentOptOutComment",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5057,7 +5057,7 @@ const Code codeExportedMain = messageExportedMain;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExportedMain = const MessageCode(
   "ExportedMain",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is exported 'main' declaration.""",
 );
 
@@ -5307,7 +5307,7 @@ const Code codeExtensionTypeDeclarationCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
   "ExtensionTypeDeclarationCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""The issue arises via this extension type declaration.""",
 );
 
@@ -5369,7 +5369,7 @@ const Code codeExtensionTypeMemberContext = messageExtensionTypeMemberContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionTypeMemberContext = const MessageCode(
   "ExtensionTypeMemberContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the inherited extension type member.""",
 );
 
@@ -5380,7 +5380,7 @@ const Code codeExtensionTypeMemberOneOfContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
   "ExtensionTypeMemberOneOfContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is one of the inherited extension type members.""",
 );
 
@@ -5781,7 +5781,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeFactoryConflictsWithMemberCause = const Code(
   "FactoryConflictsWithMemberCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6746,7 +6746,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeFieldAlreadyInitializedAtDeclarationCause = const Code(
   "FieldAlreadyInitializedAtDeclarationCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7645,7 +7645,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeIllegalMixinDueToConstructorsCause = const Code(
   "IllegalMixinDueToConstructorsCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8094,7 +8094,7 @@ Detailed import paths for (some of) the these imports:
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeImportChainContext = const Code(
   "ImportChainContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8135,7 +8135,7 @@ const Template<Message Function(Uri uri_, String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeImportChainContextSimple = const Code(
   "ImportChainContextSimple",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8162,7 +8162,7 @@ const Code codeIncorrectTypeArgumentVariable =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
   "IncorrectTypeArgumentVariable",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage:
       r"""This is the type variable whose bound isn't conformed to.""",
 );
@@ -8240,7 +8240,7 @@ const Code codeInheritedMembersConflictCause1 =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInheritedMembersConflictCause1 = const MessageCode(
   "InheritedMembersConflictCause1",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is one inherited member.""",
 );
 
@@ -8251,7 +8251,7 @@ const Code codeInheritedMembersConflictCause2 =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
   "InheritedMembersConflictCause2",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the other inherited member.""",
 );
 
@@ -8306,7 +8306,7 @@ Either way, you should probably delete the file so it doesn't use unnecessary di
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInitializeFromDillNotSelfContained = const Code(
   "InitializeFromDillNotSelfContained",
-  severity: Severity.warning,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8344,7 +8344,7 @@ The Dart team would greatly appreciate it if you would take a moment to report t
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInitializeFromDillNotSelfContainedNoDump = const Code(
   "InitializeFromDillNotSelfContainedNoDump",
-  severity: Severity.warning,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8383,7 +8383,7 @@ Either way, you should probably delete the file so it doesn't use unnecessary di
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInitializeFromDillUnknownProblem = const Code(
   "InitializeFromDillUnknownProblem",
-  severity: Severity.warning,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8431,7 +8431,7 @@ The Dart team would greatly appreciate it if you would take a moment to report t
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInitializeFromDillUnknownProblemNoDump = const Code(
   "InitializeFromDillUnknownProblemNoDump",
-  severity: Severity.warning,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8507,7 +8507,7 @@ const Code codeInitializingFormalTypeMismatchField =
 const MessageCode messageInitializingFormalTypeMismatchField =
     const MessageCode(
   "InitializingFormalTypeMismatchField",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""The field that corresponds to the parameter.""",
 );
 
@@ -8608,7 +8608,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInstanceConflictsWithStaticCause = const Code(
   "InstanceConflictsWithStaticCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8819,7 +8819,7 @@ const Code codeInternalProblemAlreadyInitialized =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemAlreadyInitialized = const MessageCode(
   "InternalProblemAlreadyInitialized",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage:
       r"""Attempt to set initializer on field without initializer.""",
 );
@@ -8832,7 +8832,7 @@ const Code codeInternalProblemBodyOnAbstractMethod =
 const MessageCode messageInternalProblemBodyOnAbstractMethod =
     const MessageCode(
   "InternalProblemBodyOnAbstractMethod",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage: r"""Attempting to set body on abstract method.""",
 );
 
@@ -8848,7 +8848,7 @@ const Template<Message Function(String name, Uri uri_)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemConstructorNotFound = const Code(
   "InternalProblemConstructorNotFound",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8880,7 +8880,7 @@ const Template<Message Function(String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemContextSeverity = const Code(
   "InternalProblemContextSeverity",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8908,7 +8908,7 @@ const Template<Message Function(String name, String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemDebugAbort = const Code(
   "InternalProblemDebugAbort",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8935,7 +8935,7 @@ const Code codeInternalProblemExtendingUnmodifiableScope =
 const MessageCode messageInternalProblemExtendingUnmodifiableScope =
     const MessageCode(
   "InternalProblemExtendingUnmodifiableScope",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage: r"""Can't extend an unmodifiable scope.""",
 );
 
@@ -8947,7 +8947,7 @@ const Code codeInternalProblemLabelUsageInVariablesDeclaration =
 const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
     const MessageCode(
   "InternalProblemLabelUsageInVariablesDeclaration",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage:
       r"""Unexpected usage of label inside declaration of variables.""",
 );
@@ -8959,7 +8959,7 @@ const Code codeInternalProblemMissingContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInternalProblemMissingContext = const MessageCode(
   "InternalProblemMissingContext",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage: r"""Compiler cannot run without a compiler context.""",
   correctionMessage:
       r"""Are calls to the compiler wrapped in CompilerContext.runInContext?""",
@@ -8976,7 +8976,7 @@ const Template<Message Function(String name)> templateInternalProblemNotFound =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemNotFound = const Code(
   "InternalProblemNotFound",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9004,7 +9004,7 @@ const Template<Message Function(String name, String name2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemNotFoundIn = const Code(
   "InternalProblemNotFoundIn",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9031,7 +9031,7 @@ const Code codeInternalProblemOmittedTypeNameInConstructorReference =
 const MessageCode messageInternalProblemOmittedTypeNameInConstructorReference =
     const MessageCode(
   "InternalProblemOmittedTypeNameInConstructorReference",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage:
       r"""Unsupported omission of the type name in a constructor reference outside of an enum element declaration.""",
 );
@@ -9044,7 +9044,7 @@ const Code codeInternalProblemPreviousTokenNotFound =
 const MessageCode messageInternalProblemPreviousTokenNotFound =
     const MessageCode(
   "InternalProblemPreviousTokenNotFound",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage: r"""Couldn't find previous token.""",
 );
 
@@ -9060,7 +9060,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemPrivateConstructorAccess = const Code(
   "InternalProblemPrivateConstructorAccess",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9084,7 +9084,7 @@ const Code codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
 const MessageCode messageInternalProblemProvidedBothCompileSdkAndSdkSummary =
     const MessageCode(
   "InternalProblemProvidedBothCompileSdkAndSdkSummary",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
   problemMessage:
       r"""The compileSdk and sdkSummary options are mutually exclusive""",
 );
@@ -9102,7 +9102,7 @@ const Template<Message Function(String name, String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemStackNotEmpty = const Code(
   "InternalProblemStackNotEmpty",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9133,7 +9133,7 @@ const Template<Message Function(String string, String string2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemUnexpected = const Code(
   "InternalProblemUnexpected",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9162,7 +9162,7 @@ const Template<Message Function(String string, String string2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemUnhandled = const Code(
   "InternalProblemUnhandled",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9191,7 +9191,7 @@ const Template<Message Function(String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemUnimplemented = const Code(
   "InternalProblemUnimplemented",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9218,7 +9218,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemUnsupported = const Code(
   "InternalProblemUnsupported",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9246,7 +9246,7 @@ const Template<Message Function(Uri uri_)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemUriMissingScheme = const Code(
   "InternalProblemUriMissingScheme",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9274,7 +9274,7 @@ const Template<Message Function(String string)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInternalProblemVerificationError = const Code(
   "InternalProblemVerificationError",
-  severity: Severity.internalProblem,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9551,7 +9551,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInvalidGetterSetterTypeFieldContext = const Code(
   "InvalidGetterSetterTypeFieldContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9579,7 +9579,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInvalidGetterSetterTypeGetterContext = const Code(
   "InvalidGetterSetterTypeGetterContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9607,7 +9607,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeInvalidGetterSetterTypeSetterContext = const Code(
   "InvalidGetterSetterTypeSetterContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10224,7 +10224,7 @@ const Code codeJsInteropEnclosingClassJSAnnotationContext =
 const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
     const MessageCode(
   "JsInteropEnclosingClassJSAnnotationContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the enclosing class.""",
 );
 
@@ -10276,7 +10276,7 @@ const Template<Message Function(String name)>
 const Code codeJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
     const Code(
   "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
-  severity: Severity.warning,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10895,7 +10895,7 @@ const Code codeJsInteropStaticInteropParameterInitializersAreIgnored =
 const MessageCode messageJsInteropStaticInteropParameterInitializersAreIgnored =
     const MessageCode(
   "JsInteropStaticInteropParameterInitializersAreIgnored",
-  severity: Severity.warning,
+  severity: CfeSeverity.warning,
   problemMessage:
       r"""Initializers for parameters are ignored on static interop external functions.""",
   correctionMessage:
@@ -11171,7 +11171,7 @@ const Code codeLanguageVersionLibraryContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLanguageVersionLibraryContext = const MessageCode(
   "LanguageVersionLibraryContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is language version annotation in the library.""",
 );
 
@@ -11203,7 +11203,7 @@ const Code codeLanguageVersionPartContext = messageLanguageVersionPartContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLanguageVersionPartContext = const MessageCode(
   "LanguageVersionPartContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is language version annotation in the part.""",
 );
 
@@ -11213,7 +11213,7 @@ const Code codeLanguageVersionPatchContext = messageLanguageVersionPatchContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLanguageVersionPatchContext = const MessageCode(
   "LanguageVersionPatchContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is language version annotation in the patch.""",
 );
 
@@ -11587,7 +11587,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeLocalVariableUsedBeforeDeclaredContext = const Code(
   "LocalVariableUsedBeforeDeclaredContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11794,7 +11794,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeMemberConflictsWithConstructorCause = const Code(
   "MemberConflictsWithConstructorCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11850,7 +11850,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeMemberConflictsWithFactoryCause = const Code(
   "MemberConflictsWithFactoryCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12148,7 +12148,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeMissingImplementationCause = const Code(
   "MissingImplementationCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12434,7 +12434,7 @@ const Code codeMixinApplicationNoConcreteMemberContext =
 const MessageCode messageMixinApplicationNoConcreteMemberContext =
     const MessageCode(
   "MixinApplicationNoConcreteMemberContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage:
       r"""This is the super-access that doesn't have a concrete target.""",
 );
@@ -13187,7 +13187,7 @@ const Code codeNonAugmentationClassConflictCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonAugmentationClassConflictCause = const MessageCode(
   "NonAugmentationClassConflictCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the existing class.""",
 );
 
@@ -13265,7 +13265,7 @@ const Code codeNonAugmentationConstructorConflictCause =
 const MessageCode messageNonAugmentationConstructorConflictCause =
     const MessageCode(
   "NonAugmentationConstructorConflictCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the existing constructor.""",
 );
 
@@ -13277,7 +13277,7 @@ const Code codeNonAugmentationDeclarationConflictCause =
 const MessageCode messageNonAugmentationDeclarationConflictCause =
     const MessageCode(
   "NonAugmentationDeclarationConflictCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the existing declaration.""",
 );
 
@@ -13352,7 +13352,7 @@ const Code codeNonAugmentationMemberConflictCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonAugmentationMemberConflictCause = const MessageCode(
   "NonAugmentationMemberConflictCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the existing member.""",
 );
 
@@ -13412,7 +13412,7 @@ const Code codeNonExtensionTypeMemberContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonExtensionTypeMemberContext = const MessageCode(
   "NonExtensionTypeMemberContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the inherited non-extension type member.""",
 );
 
@@ -13423,7 +13423,7 @@ const Code codeNonExtensionTypeMemberOneOfContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonExtensionTypeMemberOneOfContext = const MessageCode(
   "NonExtensionTypeMemberOneOfContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage:
       r"""This is one of the inherited non-extension type members.""",
 );
@@ -13653,7 +13653,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeNonSimpleBoundViaReference = const Code(
   "NonSimpleBoundViaReference",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13682,7 +13682,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeNonSimpleBoundViaVariable = const Code(
   "NonSimpleBoundViaVariable",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13799,7 +13799,7 @@ const Code codeNotATypeContext = messageNotATypeContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNotATypeContext = const MessageCode(
   "NotATypeContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This isn't a type.""",
 );
 
@@ -14261,7 +14261,7 @@ const Template<Message Function(String name)> templateOverriddenMethodCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeOverriddenMethodCause = const Code(
   "OverriddenMethodCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14557,7 +14557,7 @@ const Code codePartExportContext = messagePartExportContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartExportContext = const MessageCode(
   "PartExportContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the file that can't be exported.""",
 );
 
@@ -14580,7 +14580,7 @@ const Code codePartInPartLibraryContext = messagePartInPartLibraryContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartInPartLibraryContext = const MessageCode(
   "PartInPartLibraryContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the containing library.""",
 );
 
@@ -14691,7 +14691,7 @@ const Code codePartOfTwoLibrariesContext = messagePartOfTwoLibrariesContext;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfTwoLibrariesContext = const MessageCode(
   "PartOfTwoLibrariesContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""Used as a part in this library.""",
 );
 
@@ -14808,7 +14808,7 @@ const Code codePatchClassOrigin = messagePatchClassOrigin;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchClassOrigin = const MessageCode(
   "PatchClassOrigin",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the origin class.""",
 );
 
@@ -14838,7 +14838,7 @@ const Code codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchDeclarationOrigin = const MessageCode(
   "PatchDeclarationOrigin",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the origin declaration.""",
 );
 
@@ -14848,7 +14848,7 @@ const Code codePatchExtensionOrigin = messagePatchExtensionOrigin;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchExtensionOrigin = const MessageCode(
   "PatchExtensionOrigin",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the origin extension.""",
 );
 
@@ -15598,7 +15598,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeSetterConflictsWithDeclarationCause = const Code(
   "SetterConflictsWithDeclarationCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15759,7 +15759,7 @@ const Code codeSpreadElement = messageSpreadElement;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSpreadElement = const MessageCode(
   "SpreadElement",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""Iterable spread.""",
 );
 
@@ -15769,7 +15769,7 @@ const Code codeSpreadMapElement = messageSpreadMapElement;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSpreadMapElement = const MessageCode(
   "SpreadMapElement",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""Map spread.""",
 );
 
@@ -15827,7 +15827,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeStaticConflictsWithInstanceCause = const Code(
   "StaticConflictsWithInstanceCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16060,7 +16060,7 @@ const Code codeSuperInitializerParameter = messageSuperInitializerParameter;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperInitializerParameter = const MessageCode(
   "SuperInitializerParameter",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the super-initializer parameter.""",
 );
 
@@ -16369,7 +16369,7 @@ const Code codeSwitchExpressionNotAssignableCause =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchExpressionNotAssignableCause = const MessageCode(
   "SwitchExpressionNotAssignableCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""The switch expression is here.""",
 );
 
@@ -16760,7 +16760,7 @@ const Template<Message Function(String name)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code codeTypeParameterDuplicatedNameCause = const Code(
   "TypeParameterDuplicatedNameCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16815,7 +16815,7 @@ const Code codeTypedefCause = messageTypedefCause;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefCause = const MessageCode(
   "TypedefCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""The issue arises via this type alias.""",
 );
 
@@ -16878,7 +16878,7 @@ const Code codeTypedefTypeParameterNotConstructorCause =
 const MessageCode messageTypedefTypeParameterNotConstructorCause =
     const MessageCode(
   "TypedefTypeParameterNotConstructorCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the type variable ultimately denoted.""",
 );
 
@@ -16888,7 +16888,7 @@ const Code codeTypedefUnaliasedTypeCause = messageTypedefUnaliasedTypeCause;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
   "TypedefUnaliasedTypeCause",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage: r"""This is the type denoted by the type alias.""",
 );
 
@@ -17719,7 +17719,7 @@ const Code codeVerificationErrorOriginContext =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVerificationErrorOriginContext = const MessageCode(
   "VerificationErrorOriginContext",
-  severity: Severity.context,
+  severity: CfeSeverity.context,
   problemMessage:
       r"""The node most likely is taken from here by a transformer.""",
 );

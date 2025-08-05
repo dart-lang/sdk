@@ -57,7 +57,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
           if (before != null) {
             builder.write(before);
           }
-          builder.write(eol);
+          builder.writeln();
           builder.write(utils.getLinePrefix(range.offset));
           if (after != null) {
             builder.write(after);

@@ -138,6 +138,7 @@ cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash i
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart/b162922506_test: SkipSlow # Generates very large input file
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
+dart/many_functions_test: SkipSlow # Too slow in debug mode.
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analysis_server_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -35,22 +36,7 @@ final class CorrectionUtils {
 
   /// The EOL sequence to use for this [CompilationUnit].
   String get endOfLine {
-    var endOfLine = _endOfLine;
-    if (endOfLine != null) {
-      return endOfLine;
-    }
-
-    var indexOfNewline = _buffer.indexOf('\n');
-    if (indexOfNewline < 0) {
-      // No `\n` (and thus no `\r\n` either) found.
-      return Platform.lineTerminator;
-    }
-
-    if (indexOfNewline > 0 &&
-        _buffer.codeUnitAt(indexOfNewline - 1) == 13 /* \r */) {
-      return _endOfLine = '\r\n';
-    }
-    return _endOfLine = '\n';
+    return _endOfLine ??= _buffer.endOfLine ?? Platform.lineTerminator;
   }
 
   String get oneIndent => _oneIndent;

@@ -142,7 +142,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     var builder = ChangeBuilder(
       session: sessionHelper.session,
-      eol: utils.endOfLine,
+      defaultEol: utils.endOfLine,
     );
     await builder.addDartFileEdit(resolveResult.path, (builder) {
       var expression = _expression;

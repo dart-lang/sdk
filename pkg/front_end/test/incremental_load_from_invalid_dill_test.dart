@@ -6,7 +6,8 @@ import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, getMessageCodeObject;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -129,9 +130,9 @@ class Tester {
     options.sdkSummary = sdkSummary;
     options.omitPlatform = true;
     options.onDiagnostic = (CfeDiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         errorMessages.add(message);
-      } else if (message.severity == Severity.warning) {
+      } else if (message.severity == CfeSeverity.warning) {
         warningMessages.add(message);
       }
     };

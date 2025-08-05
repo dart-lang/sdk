@@ -30,7 +30,7 @@ class MainFunction extends DartSnippetProducer {
   Future<Snippet> compute() async {
     var builder = ChangeBuilder(
       session: request.analysisSession,
-      eol: utils.endOfLine,
+      defaultEol: utils.endOfLine,
     );
 
     var typeProvider = request.unit.typeProvider;

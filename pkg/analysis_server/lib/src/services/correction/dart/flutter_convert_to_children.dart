@@ -44,7 +44,6 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       _convertFlutterChildToChildren(
         namedExp,
-        eol,
         utils.getNodeText,
         utils.getLinePrefix,
         utils.getText,
@@ -55,12 +54,12 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
 
   void _convertFlutterChildToChildren(
     NamedExpression namedExp,
-    String eol,
     String Function(Expression) getNodeText,
     String Function(int) getLinePrefix,
     String Function(int, int) getText,
     FileEditBuilder builder,
   ) {
+    var eol = builder.eol;
     var childArg = namedExp.expression;
     var childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');

@@ -14,7 +14,7 @@ import '../base/messages.dart'
         LocatedMessage,
         Message,
         ProblemReporting,
-        Severity,
+        CfeSeverity,
         Template,
         messageClassImplementsDeferredClass,
         messageExtendsDeferredClass,
@@ -655,7 +655,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
               declaration.message.charOffset,
               declaration.message.length,
               declaration.message.uri,
-              severity: Severity.error);
+              severity: CfeSeverity.error);
         }
         return null;
       case NominalParameterBuilder():
@@ -692,7 +692,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
               declaration.message.charOffset,
               declaration.message.length,
               declaration.message.uri,
-              severity: Severity.error);
+              severity: CfeSeverity.error);
         }
         return null;
       case NominalParameterBuilder():

@@ -57,7 +57,7 @@ Future<MemoryComponentResult> componentFromMemory(
   baseUri ??= memoryDirectory;
   var errors = <fe.CfeDiagnosticMessage>[];
   void diagnosticMessageHandler(fe.CfeDiagnosticMessage message) {
-    if (message.severity == fe.Severity.error) {
+    if (message.severity == fe.CfeSeverity.error) {
       errors.add(message);
     }
     fe.printDiagnosticMessage(message, print);
@@ -108,7 +108,7 @@ Future<MemoryComponentResult> incrementalComponentFromMemory(
   baseUri ??= memoryDirectory;
   var errors = <fe.CfeDiagnosticMessage>[];
   void diagnosticMessageHandler(fe.CfeDiagnosticMessage message) {
-    if (message.severity == fe.Severity.error) {
+    if (message.severity == fe.CfeSeverity.error) {
       errors.add(message);
     }
     fe.printDiagnosticMessage(message, print);

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, DataRegistry, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
@@ -197,7 +198,7 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
   CompilerOptions options = new CompilerOptions();
   List<FormattedMessage> errors = [];
   options.onDiagnostic = (CfeDiagnosticMessage message) {
-    if (message is FormattedMessage && message.severity == Severity.error) {
+    if (message is FormattedMessage && message.severity == CfeSeverity.error) {
       errors.add(message);
     }
     if (!succinct) printDiagnosticMessage(message, print);

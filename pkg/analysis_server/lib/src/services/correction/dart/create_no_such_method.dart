@@ -33,18 +33,18 @@ class CreateNoSuchMethod extends ResolvedCorrectionProducer {
         builder.selectHere();
         // insert empty line before existing member
         if (targetClass.members.isNotEmpty) {
-          builder.write(eol);
+          builder.writeln();
         }
         // append method
         builder.write(prefix);
         builder.write('@override');
-        builder.write(eol);
+        builder.writeln();
         builder.write(prefix);
         builder.write(
           'dynamic noSuchMethod(Invocation invocation) => '
           'super.noSuchMethod(invocation);',
         );
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }

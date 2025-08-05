@@ -91,7 +91,7 @@ api.CompilerOptions getOptions() {
     ..librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
     ..onDiagnostic = (api.CfeDiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         print(message.plainTextFormatted.join('\n'));
         errorCount++;
         exitCode = 1;

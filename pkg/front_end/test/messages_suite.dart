@@ -9,7 +9,7 @@ import "dart:typed_data" show Uint8List;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, getMessageCodeObject;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show Severity, severityEnumValues;
+    show CfeSeverity, severityEnumValues;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -124,7 +124,7 @@ class MessageTestSuite extends ChainContext {
       String? externalTest;
       bool frontendInternal = false;
       List<String>? analyzerCodes;
-      Severity? severity;
+      CfeSeverity? severity;
       YamlNode? badSeverity;
       YamlNode? unnecessarySeverity;
       List<String> badHasPublishedDocsValue = <String>[];
@@ -221,7 +221,7 @@ class MessageTestSuite extends ChainContext {
             severity = severityEnumValues[value];
             if (severity == null) {
               badSeverity = node;
-            } else if (severity == Severity.error) {
+            } else if (severity == CfeSeverity.error) {
               unnecessarySeverity = node;
             }
             break;
@@ -427,9 +427,9 @@ class MessageTestSuite extends ChainContext {
               ? spellingMessages.join("\n") + spellingPostMessage
               : null));
 
-      bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
-          severity != Severity.internalProblem &&
-          severity != Severity.ignored;
+      bool exampleAndAnalyzerCodeRequired = severity != CfeSeverity.context &&
+          severity != CfeSeverity.internalProblem &&
+          severity != CfeSeverity.ignored;
 
       result.add(createDescription(
           "externalExample",

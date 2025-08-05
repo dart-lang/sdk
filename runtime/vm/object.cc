@@ -233,27 +233,6 @@ PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
   }
 #endif
 
-// Remove private keys, but retain getter/setter/constructor/mixin manglings.
-StringPtr String::RemovePrivateKey(const String& name) {
-  ASSERT(name.IsOneByteString());
-  GrowableArray<uint8_t> without_key(name.Length());
-  intptr_t i = 0;
-  while (i < name.Length()) {
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i++);
-      if (c == '@') break;
-      without_key.Add(c);
-    }
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i);
-      if ((c < '0') || (c > '9')) break;
-      i++;
-    }
-  }
-
-  return String::FromLatin1(without_key.data(), without_key.length());
-}
-
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -6670,10 +6649,6 @@ FunctionPtr Class::LookupDynamicFunctionUnsafe(const String& name) const {
   return LookupFunctionReadLocked(name, kInstance);
 }
 
-FunctionPtr Class::LookupDynamicFunctionAllowPrivate(const String& name) const {
-  return LookupFunctionAllowPrivate(name, kInstance);
-}
-
 FunctionPtr Class::LookupStaticFunction(const String& name) const {
   Thread* thread = Thread::Current();
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
@@ -6708,32 +6683,14 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kAny);
 }
 
-FunctionPtr Class::LookupFunctionReadLocked(const String& name) const {
-  return LookupFunctionReadLocked(name, kAny);
+FunctionPtr Class::LookupFunction(const String& name) const {
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+  return LookupFunctionReadLocked(name);
 }
 
-// Returns true if 'prefix' and 'accessor_name' match 'name'.
-static bool MatchesAccessorName(const String& name,
-                                const char* prefix,
-                                intptr_t prefix_length,
-                                const String& accessor_name) {
-  intptr_t name_len = name.Length();
-  intptr_t accessor_name_len = accessor_name.Length();
-
-  if (name_len != (accessor_name_len + prefix_length)) {
-    return false;
-  }
-  for (intptr_t i = 0; i < prefix_length; i++) {
-    if (name.CharAt(i) != prefix[i]) {
-      return false;
-    }
-  }
-  for (intptr_t i = 0, j = prefix_length; i < accessor_name_len; i++, j++) {
-    if (name.CharAt(j) != accessor_name.CharAt(i)) {
-      return false;
-    }
-  }
-  return true;
+FunctionPtr Class::LookupFunctionReadLocked(const String& name) const {
+  return LookupFunctionReadLocked(name, kAny);
 }
 
 FunctionPtr Class::CheckFunctionType(const Function& func, MemberKind kind) {
@@ -6841,42 +6798,6 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name,
       return CheckFunctionType(function, kind);
     }
   }
-  // No function found.
-  return Function::null();
-}
-
-FunctionPtr Class::LookupGetterFunction(const String& name) const {
-  return LookupAccessorFunction(kGetterPrefix, kGetterPrefixLength, name);
-}
-
-FunctionPtr Class::LookupSetterFunction(const String& name) const {
-  return LookupAccessorFunction(kSetterPrefix, kSetterPrefixLength, name);
-}
-
-FunctionPtr Class::LookupAccessorFunction(const char* prefix,
-                                          intptr_t prefix_length,
-                                          const String& name) const {
-  ASSERT(!IsNull());
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  Array& funcs = thread->ArrayHandle();
-  funcs = current_functions();
-  intptr_t len = funcs.Length();
-  Function& function = thread->FunctionHandle();
-  String& function_name = thread->StringHandle();
-  for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    function_name = function.name();
-    if (MatchesAccessorName(function_name, prefix, prefix_length, name)) {
-      return function.ptr();
-    }
-  }
-
   // No function found.
   return Function::null();
 }

@@ -410,7 +410,7 @@ class DartDocTest {
       if (printOnDiagnostic) {
         _print(message.plainTextFormatted.first);
       }
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         errors = true;
         errorMessages.add(message);
       }

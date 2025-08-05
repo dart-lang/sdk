@@ -123,7 +123,7 @@ native-assets:
     ).parseAndValidate(yamlString);
     expect(errorDetector.hasCompilationErrors, false);
     // Invalid targets only issue warnings.
-    expect(errors.single.severity, Severity.warning);
+    expect(errors.single.severity, CfeSeverity.warning);
     expect(
       errors.single.message,
       startsWith('Unexpected target: target_does_not_exist.'),

@@ -558,7 +558,7 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
   options.packagesFileUri = computePackageConfig(repoDir);
   options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
-    if (message.severity == Severity.error) {
+    if (message.severity == CfeSeverity.error) {
       errorsFound = true;
     }
   };

@@ -1484,9 +1484,8 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
   ArgumentsDescriptor args_desc(
       Array::Handle(Z, ArgumentsDescriptor::NewBoxed(
                            type_args_len, argument_count, argument_names)));
-  return Function::Handle(
-      Z, Resolver::ResolveDynamicForReceiverClassAllowPrivate(klass, name,
-                                                              args_desc));
+  return Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
+                                 klass, name, args_desc, /*allow_add=*/false));
 }
 
 bool StreamingFlowGraphBuilder::NeedsDebugStepCheck(const Function& function,

@@ -1465,9 +1465,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// The file being edited has the given [resolvedUnit] and [timeStamp].
   DartFileEditBuilderImpl(ChangeBuilderImpl changeBuilder, this.resolvedUnit,
       int timeStamp, this.libraryChangeBuilder,
-      {bool createEditsForImports = true})
+      {required String eol, bool createEditsForImports = true})
       : _createEditsForImports = createEditsForImports,
-        super(changeBuilder, resolvedUnit.path, timeStamp);
+        super(changeBuilder, resolvedUnit.path, timeStamp, eol: eol);
 
   @override
   bool get hasEdits =>
@@ -1567,7 +1567,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           const {}}) {
     var copy = DartFileEditBuilderImpl(changeBuilder, resolvedUnit,
         fileEdit.fileStamp, editBuilderMap[libraryChangeBuilder],
-        createEditsForImports: _createEditsForImports);
+        eol: eol, createEditsForImports: _createEditsForImports);
     copy.fileEdit.edits.addAll(fileEdit.edits);
     copy.importPrefixGenerator = importPrefixGenerator;
     for (var entry in _librariesToImport.entries) {
@@ -1614,8 +1614,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       }
     }
 
-    var languageVersion =
-        resolvedUnit.libraryElement.languageVersion.effective;
+    var languageVersion = resolvedUnit.libraryElement.languageVersion.effective;
     var formattedResult =
         DartFormatter(languageVersion: languageVersion).formatSource(
       SourceCode(

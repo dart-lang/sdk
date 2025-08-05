@@ -56,7 +56,7 @@ abstract class LookupResult {
                 fileUri: fileUri,
                 fileOffset: fileOffset,
                 length: length),
-            Severity.error)
+            CfeSeverity.error)
         .plain;
     return new InvalidExpression(text)..fileOffset = fileOffset;
   }

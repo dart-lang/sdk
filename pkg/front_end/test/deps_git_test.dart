@@ -204,7 +204,7 @@ CompilerOptions getOptions() {
     ..librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
     ..onDiagnostic = (CfeDiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         Expect.fail(
             "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }

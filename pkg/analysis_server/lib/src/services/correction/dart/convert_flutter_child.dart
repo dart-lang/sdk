@@ -33,6 +33,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
     var expression = named.expression;
     if (expression.isWidgetExpression) {
       await builder.addDartFileEdit(file, (builder) {
+        var eol = builder.eol;
         var childLoc = named.offset + 'child'.length;
         builder.addSimpleInsertion(childLoc, 'ren');
         var listLoc = expression.offset;
