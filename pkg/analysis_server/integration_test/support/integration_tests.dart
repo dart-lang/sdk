@@ -11,6 +11,7 @@ import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
@@ -175,6 +176,9 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     });
     return completer.future;
   }
+
+  /// The line terminator being used for test files and to be expected in edits.
+  String get eol => testEol;
 
   @override
   String get packagesRootPath => packagesDirectory.path;

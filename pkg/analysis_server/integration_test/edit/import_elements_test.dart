@@ -55,11 +55,13 @@ class AnalysisGetImportElementsIntegrationTest
       expect(edit.file, expectedFile);
     }
     var actual = edit.edits;
+    expect(actual, unorderedEquals(expected));
     expect(actual, hasLength(expected.length));
     for (var expectedEdit in expected) {
       var index = find(actual, expectedEdit);
       if (index < 0) {
-        fail('Expected $expectedEdit; not found');
+        var actualDescription = actual.map((edit) => '  - $edit').join('\n');
+        fail('Expected $expectedEdit; not found in:\n$actualDescription');
       }
       actual.removeAt(index);
     }
@@ -96,7 +98,7 @@ class AnalysisGetImportElementsIntegrationTest
       <ImportedElements>[
         ImportedElements(mathPath, '', <String>['Random']),
       ],
-      [SourceEdit(0, 0, "import 'dart:math';\n\n")],
+      [SourceEdit(0, 0, "import 'dart:math';$eol$eol")],
     );
   }
 
