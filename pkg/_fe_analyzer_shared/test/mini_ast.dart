@@ -3299,6 +3299,11 @@ class MiniAstOperations
   }
 
   @override
+  bool isInvalidType(SharedTypeView type) {
+    return type is InvalidType;
+  }
+
+  @override
   bool isKnownType(SharedTypeSchemaView typeSchema) {
     var unwrapped = typeSchema.unwrapTypeSchemaView<Type>();
     switch (unwrapped) {

@@ -326,6 +326,37 @@ f(List<int>? x) {
 ''');
   }
 
+  test_invalid_nonNullable() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nonNull;
+  i.isEven;
+}
+''',
+      [
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10),
+        error(
+          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          44,
+          6,
+        ),
+      ],
+    );
+  }
+
+  test_invalid_nullable() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nullable;
+  i?.isEven;
+}
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+    );
+  }
+
   test_method_class() async {
     await assertErrorsInCode(
       '''

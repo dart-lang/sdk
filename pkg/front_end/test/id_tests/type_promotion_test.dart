@@ -30,6 +30,9 @@ class TypePromotionDataComputer extends CfeDataComputer<DartType> {
   DataInterpreter<DartType> get dataValidator =>
       const _TypePromotionDataInterpreter();
 
+  @override
+  bool get supportsErrors => true;
+
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.

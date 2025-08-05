@@ -592,6 +592,11 @@ class OperationsCfe
   }
 
   @override
+  bool isInvalidType(SharedTypeView type) {
+    return type.unwrapTypeView<DartType>() is InvalidType;
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   bool isObject(SharedTypeView type) {
     DartType unwrappedType = type.unwrapTypeView();

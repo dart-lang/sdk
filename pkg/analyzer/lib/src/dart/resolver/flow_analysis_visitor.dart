@@ -665,6 +665,11 @@ class TypeSystemOperations
   }
 
   @override
+  bool isInvalidType(SharedTypeView type) {
+    return type.unwrapTypeView<TypeImpl>() is InvalidType;
+  }
+
+  @override
   bool isKnownType(SharedTypeSchemaView typeSchema) {
     return UnknownInferredType.isKnown(
       typeSchema.unwrapTypeSchemaView<TypeImpl>(),

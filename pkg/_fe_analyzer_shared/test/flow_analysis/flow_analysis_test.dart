@@ -12639,6 +12639,28 @@ main() {
         ]);
       });
 
+      test('Invalid type does not promote on assignment', () {
+        // Declared type is `num?`; assigning an invalid type does not promote
+        // to `num`.
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('num?')),
+          checkNotPromoted(x),
+          x.write(expr('error')),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('Invalid type does not promote on declaration', () {
+        // Declared type is `num?`; initializing an invalid type does not
+        // promote to `num`.
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num?', initializer: expr('error')),
+          checkNotPromoted(x),
+        ]);
+      });
+
       test('Untested type is not a type of interest', () {
         // Declared type is `Object`; assigning an `int` does not promote.
         var x = Var('x');

@@ -88,6 +88,10 @@ abstract interface class FlowAnalysisTypeOperations<Type extends Object> {
   /// Returns `true` if [type] is a reference to a type parameter.
   bool isTypeParameterType(Type type);
 
+  /// Returns `true` if [type] represents the invalid type, i.e. the type of
+  /// an invalid expression.
+  bool isInvalidType(Type type);
+
   /// Computes the nullable form of [type], in other words the least upper bound
   /// of [type] and `Null`.
   ///
