@@ -37,7 +37,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
     if (change.edits.isNotEmpty) {
       // We use a carat in the expected code to prevent lines containing only
       // whitespace from being made empty.
-      var expectedCode = TestCode.parse(normalizeSource(expected));
+      var expectedCode = TestCode.parseNormalized(expected);
       var resultCode = SourceEdit.applySequence(
         testCode,
         change.edits[0].edits,
@@ -68,7 +68,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
   }
 
   Future<void> _prepareProcessor(String key, String code) async {
-    testCodeCode = TestCode.parse(normalizeSource(code));
+    testCodeCode = TestCode.parseNormalized(code);
 
     verifyNoTestUnitErrors = false;
     await resolveTestCode(testCodeCode.code);

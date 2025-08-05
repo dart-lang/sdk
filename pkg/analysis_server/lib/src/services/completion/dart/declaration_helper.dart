@@ -2058,6 +2058,7 @@ class DeclarationHelper {
             referencingInterface: referencingInterface,
             matcherScore: matcherScore,
             indent: state.indent,
+            endOfLine: state.endOfLine,
             addTypeAnnotation: addTypeAnnotation,
             keyword: keyword,
           );

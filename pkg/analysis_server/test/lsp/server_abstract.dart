@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manage
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -77,6 +78,9 @@ abstract class AbstractLspAnalysisServerTest
   @override
   LspClientCapabilities get editorClientCapabilities =>
       server.editorClientCapabilities!;
+
+  /// The line terminator being used for test files and to be expected in edits.
+  String get eol => testEol;
 
   String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
 
@@ -139,6 +143,12 @@ abstract class AbstractLspAnalysisServerTest
 
     return info;
   }
+
+  /// Returns a matcher that checks that the input matches [expected] after
+  /// newlines have been normalized to the current platforms (only in
+  /// [expected]).
+  Matcher equalsNormalized(String expected) =>
+      equals(normalizeNewlinesForPlatform(expected));
 
   void expectContextBuilds() => expect(
     server.contextBuilds - _previousContextBuilds,
