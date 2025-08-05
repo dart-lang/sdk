@@ -133,6 +133,7 @@ const Template<Message Function(String name, DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""'#name' can't implement both '#type' and '#type2'""",
   withArguments: _withArgumentsAmbiguousSupertypes,
+  analyzerCodes: <String>["AMBIGUOUS_SUPERTYPES"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -172,6 +173,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""The argument type '#type' can't be assigned to the parameter type '#type2'.""",
   withArguments: _withArgumentsArgumentTypeNotAssignable,
+  analyzerCodes: <String>["ARGUMENT_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -239,6 +241,7 @@ const Template<Message Function(Constant _constant)>
   problemMessageTemplate:
       r"""The element '#constant' conflicts with another existing element in the set.""",
   withArguments: _withArgumentsConstEvalDuplicateElement,
+  analyzerCodes: <String>["EQUAL_ELEMENTS_IN_CONST_SET"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -271,6 +274,7 @@ const Template<Message Function(Constant _constant)>
   problemMessageTemplate:
       r"""The key '#constant' conflicts with another existing key in the map.""",
   withArguments: _withArgumentsConstEvalDuplicateKey,
+  analyzerCodes: <String>["EQUAL_KEYS_IN_CONST_MAP"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -303,6 +307,7 @@ const Template<Message Function(Constant _constant)>
   problemMessageTemplate:
       r"""The element '#constant' does not have a primitive operator '=='.""",
   withArguments: _withArgumentsConstEvalElementImplementsEqual,
+  analyzerCodes: <String>["CONST_SET_ELEMENT_TYPE_IMPLEMENTS_EQUALS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -510,6 +515,7 @@ const Template<Message Function(String stringOKEmpty, Constant _constant)>
   problemMessageTemplate:
       r"""The method '#stringOKEmpty' can't be invoked on '#constant' in a constant expression.""",
   withArguments: _withArgumentsConstEvalInvalidMethodInvocation,
+  analyzerCodes: <String>["UNDEFINED_OPERATOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -545,6 +551,7 @@ const Template<Message Function(String stringOKEmpty, Constant _constant)>
   problemMessageTemplate:
       r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArguments: _withArgumentsConstEvalInvalidPropertyGet,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -580,6 +587,7 @@ const Template<Message Function(String stringOKEmpty, Constant _constant)>
   problemMessageTemplate:
       r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArguments: _withArgumentsConstEvalInvalidRecordIndexGet,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -615,6 +623,7 @@ const Template<Message Function(String stringOKEmpty, Constant _constant)>
   problemMessageTemplate:
       r"""The property '#stringOKEmpty' can't be accessed on '#constant' in a constant expression.""",
   withArguments: _withArgumentsConstEvalInvalidRecordNameGet,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -651,6 +660,7 @@ const Template<Message Function(Constant _constant)>
       r"""The constant value '#constant' can't be used as part of a string interpolation in a constant expression.
 Only values of type 'null', 'bool', 'int', 'double', or 'String' can be used.""",
   withArguments: _withArgumentsConstEvalInvalidStringInterpolationOperand,
+  analyzerCodes: <String>["CONST_EVAL_TYPE_BOOL_NUM_STRING"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -685,6 +695,7 @@ const Template<Message Function(Constant _constant)>
   problemMessageTemplate:
       r"""The symbol name must be a valid public Dart member name, public constructor name, or library name, optionally qualified, but was '#constant'.""",
   withArguments: _withArgumentsConstEvalInvalidSymbolName,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -756,6 +767,7 @@ const Template<Message Function(Constant _constant)>
   problemMessageTemplate:
       r"""The key '#constant' does not have a primitive operator '=='.""",
   withArguments: _withArgumentsConstEvalKeyImplementsEqual,
+  analyzerCodes: <String>["CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -850,6 +862,7 @@ const Template<Message Function(DartType _type, String name)>
   correctionMessageTemplate:
       r"""Try removing 'deferred' from the import of '#name' or use a supertype of '#type' that isn't deferred.""",
   withArguments: _withArgumentsDeferredTypeAnnotation,
+  analyzerCodes: <String>["TYPE_ANNOTATION_DEFERRED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1230,6 +1243,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
       r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
   correctionMessageTemplate: r"""Try changing the type of the variable.""",
   withArguments: _withArgumentsForInLoopElementTypeNotAssignable,
+  analyzerCodes: <String>["FOR_IN_OF_INVALID_ELEMENT_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1267,6 +1281,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""The type '#type' used in the 'for' loop must implement '#type2'.""",
   withArguments: _withArgumentsForInLoopTypeNotIterable,
+  analyzerCodes: <String>["FOR_IN_OF_INVALID_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1305,6 +1320,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Try providing a non-generic function type explicitly.""",
   withArguments: _withArgumentsGenericFunctionTypeAsTypeArgumentThroughTypedef,
+  analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1345,6 +1361,7 @@ const Template<Message Function(DartType _type)>
   correctionMessageTemplate:
       r"""Try providing a non-generic function type explicitly.""",
   withArguments: _withArgumentsGenericFunctionTypeInferredAsActualTypeArgument,
+  analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1382,6 +1399,7 @@ const Template<Message Function(DartType _type)>
   correctionMessageTemplate:
       r"""Try changing 'call' to a method or explicitly invoke 'call'.""",
   withArguments: _withArgumentsImplicitCallOfNonMethod,
+  analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1446,6 +1464,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""The constructor function type '#type' isn't a subtype of '#type2'.""",
   withArguments: _withArgumentsIncompatibleRedirecteeFunctionType,
+  analyzerCodes: <String>["REDIRECT_TO_INVALID_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1487,6 +1506,7 @@ const Template<
   correctionMessageTemplate:
       r"""Try changing type arguments so that they conform to the bounds.""",
   withArguments: _withArgumentsIncorrectTypeArgument,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1536,6 +1556,7 @@ const Template<
   correctionMessageTemplate:
       r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArguments: _withArgumentsIncorrectTypeArgumentInferred,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1585,6 +1606,7 @@ const Template<
   correctionMessageTemplate:
       r"""Try changing type arguments so that they conform to the bounds.""",
   withArguments: _withArgumentsIncorrectTypeArgumentInstantiation,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1634,6 +1656,7 @@ const Template<
   correctionMessageTemplate:
       r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArguments: _withArgumentsIncorrectTypeArgumentInstantiationInferred,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1686,6 +1709,7 @@ const Template<
   correctionMessageTemplate:
       r"""Try changing type arguments so that they conform to the bounds.""",
   withArguments: _withArgumentsIncorrectTypeArgumentQualified,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1738,6 +1762,7 @@ const Template<
   correctionMessageTemplate:
       r"""Try specifying type arguments explicitly so that they conform to the bounds.""",
   withArguments: _withArgumentsIncorrectTypeArgumentQualifiedInferred,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1821,6 +1846,7 @@ const Template<Message Function(String name, DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Try changing the type of parameter '#name' to a subtype of '#type2'.""",
   withArguments: _withArgumentsInitializingFormalTypeMismatch,
+  analyzerCodes: <String>["INVALID_PARAMETER_DECLARATION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1899,6 +1925,7 @@ const Template<Message Function(DartType _type)>
   correctionMessageTemplate:
       r"""Try changing the operand or remove the type arguments.""",
   withArguments: _withArgumentsInstantiationNullableGenericFunctionType,
+  analyzerCodes: <String>["DISALLOWED_TYPE_INSTANTIATION_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1933,6 +1960,7 @@ const Template<Message Function(String string, DartType _type)>
   problemMessageTemplate:
       r"""Unsupported nullability value '#string' on type '#type'.""",
   withArguments: _withArgumentsInternalProblemUnsupportedNullability,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1968,6 +1996,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""A value of type '#type' can't be assigned to a variable of type '#type2'.""",
   withArguments: _withArgumentsInvalidAssignmentError,
+  analyzerCodes: <String>["INVALID_ASSIGNMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2005,6 +2034,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the function expression or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastFunctionExpr,
+  analyzerCodes: <String>["INVALID_CAST_FUNCTION_EXPR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2044,6 +2074,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the list literal or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastLiteralList,
+  analyzerCodes: <String>["INVALID_CAST_LITERAL_LIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2083,6 +2114,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the map literal or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastLiteralMap,
+  analyzerCodes: <String>["INVALID_CAST_LITERAL_MAP"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2122,6 +2154,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the set literal or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastLiteralSet,
+  analyzerCodes: <String>["INVALID_CAST_LITERAL_SET"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2161,6 +2194,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the function or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastLocalFunction,
+  analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2201,6 +2235,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the object being constructed or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastNewExpr,
+  analyzerCodes: <String>["INVALID_CAST_NEW_EXPR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2240,6 +2275,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the method or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastStaticMethod,
+  analyzerCodes: <String>["INVALID_CAST_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2279,6 +2315,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Change the type of the function or the context in which it is used.""",
   withArguments: _withArgumentsInvalidCastTopLevelFunction,
+  analyzerCodes: <String>["INVALID_CAST_FUNCTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3213,6 +3250,7 @@ const Template<
   problemMessageTemplate:
       r"""'#type' doesn't implement '#type2' so it can't be used with '#type3'.""",
   withArguments: _withArgumentsMixinApplicationIncompatibleSupertype,
+  analyzerCodes: <String>["MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3252,6 +3290,7 @@ const Template<Message Function(String name, String name2, DartType _type)>
   problemMessageTemplate:
       r"""Type parameters couldn't be inferred for the mixin '#name' because '#name2' does not implement the mixin's supertype constraint '#type'.""",
   withArguments: _withArgumentsMixinInferenceNoMatchingClass,
+  analyzerCodes: <String>["MIXIN_INFERENCE_NO_POSSIBLE_SUBSTITUTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3327,6 +3366,7 @@ const Template<Message Function(DartType _type, String string, String string2)>
   correctionMessageTemplate:
       r"""Try adding a wildcard pattern or cases that match '#string2'.""",
   withArguments: _withArgumentsNonExhaustiveSwitchExpression,
+  analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3368,6 +3408,7 @@ const Template<Message Function(DartType _type, String string, String string2)>
   correctionMessageTemplate:
       r"""Try adding a default case or cases that match '#string2'.""",
   withArguments: _withArgumentsNonExhaustiveSwitchStatement,
+  analyzerCodes: <String>["NON_EXHAUSTIVE_SWITCH_STATEMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3577,6 +3618,7 @@ const Template<Message Function(String name, DartType _type)>
   correctionMessageTemplate:
       r"""Try adding either an explicit non-'null' default value or the 'required' modifier.""",
   withArguments: _withArgumentsOptionalNonNullableWithoutInitializerError,
+  analyzerCodes: <String>["MISSING_DEFAULT_VALUE_FOR_PARAMETER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3654,6 +3696,7 @@ const Template<
   correctionMessageTemplate:
       r"""Change to a supertype of '#type2', or, for a covariant parameter, a subtype.""",
   withArguments: _withArgumentsOverrideTypeMismatchParameter,
+  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3705,6 +3748,7 @@ const Template<
       r"""The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'.""",
   correctionMessageTemplate: r"""Change to a subtype of '#type2'.""",
   withArguments: _withArgumentsOverrideTypeMismatchReturnType,
+  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3751,6 +3795,7 @@ const Template<
   problemMessageTemplate:
       r"""The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'.""",
   withArguments: _withArgumentsOverrideTypeMismatchSetter,
+  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3842,6 +3887,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   correctionMessageTemplate:
       r"""Try changing the required type of the pattern, or the matched value type.""",
   withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
+  analyzerCodes: <String>["PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3880,6 +3926,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate: r"""The type '#type' doesn't extend '#type2'.""",
   correctionMessageTemplate: r"""Try using a different type as argument.""",
   withArguments: _withArgumentsRedirectingFactoryIncompatibleTypeArgument,
+  analyzerCodes: <String>["TYPE_ARGUMENT_NOT_MATCHING_BOUNDS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3916,6 +3963,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""Can't assign spread elements of type '#type' to collection elements of type '#type2'.""",
   withArguments: _withArgumentsSpreadElementTypeMismatch,
+  analyzerCodes: <String>["LIST_ELEMENT_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3952,6 +4000,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""Can't assign spread entry keys of type '#type' to map entry keys of type '#type2'.""",
   withArguments: _withArgumentsSpreadMapEntryElementKeyTypeMismatch,
+  analyzerCodes: <String>["MAP_KEY_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3988,6 +4037,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""Can't assign spread entry values of type '#type' to map entry values of type '#type2'.""",
   withArguments: _withArgumentsSpreadMapEntryElementValueTypeMismatch,
+  analyzerCodes: <String>["MAP_VALUE_TYPE_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4085,6 +4135,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""If you want '#type' to be a super-bounded type, note that the inverted type '#type2' must then satisfy its bounds, which it does not.""",
   withArguments: _withArgumentsSuperBoundedHint,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4190,6 +4241,7 @@ const Template<Message Function(String name, DartType _type)>
   problemMessageTemplate:
       r"""The type '#name' which is an alias of '#type' can't be used as supertype.""",
   withArguments: _withArgumentsSupertypeIsIllegalAliased,
+  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4225,6 +4277,7 @@ const Template<Message Function(String name, DartType _type)>
   problemMessageTemplate:
       r"""The type '#name' which is an alias of '#type' can't be used as supertype because it is nullable.""",
   withArguments: _withArgumentsSupertypeIsNullableAliased,
+  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4260,6 +4313,7 @@ const Template<Message Function(DartType _type, DartType _type2)>
   problemMessageTemplate:
       r"""Type '#type' of the switch expression isn't assignable to the type '#type2' of this case expression.""",
   withArguments: _withArgumentsSwitchExpressionNotAssignable,
+  analyzerCodes: <String>["SWITCH_EXPRESSION_NOT_ASSIGNABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4516,6 +4570,7 @@ const Template<Message Function(String name, DartType _type)>
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing getter, or defining a getter or field named '#name'.""",
   withArguments: _withArgumentsUndefinedGetter,
+  analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4555,6 +4610,7 @@ const Template<Message Function(String name, DartType _type)>
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing method, or defining a method named '#name'.""",
   withArguments: _withArgumentsUndefinedMethod,
+  analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4594,6 +4650,7 @@ const Template<Message Function(String name, DartType _type)>
   correctionMessageTemplate:
       r"""Try correcting the operator to an existing operator, or defining a '#name' operator.""",
   withArguments: _withArgumentsUndefinedOperator,
+  analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4633,6 +4690,7 @@ const Template<Message Function(String name, DartType _type)>
   correctionMessageTemplate:
       r"""Try correcting the name to the name of an existing setter, or defining a setter or field named '#name'.""",
   withArguments: _withArgumentsUndefinedSetter,
+  analyzerCodes: <String>["UNDEFINED_SETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4670,6 +4728,7 @@ const Template<Message Function(String name, DartType _type)>
   problemMessageTemplate:
       r"""'#name' can't be used contravariantly or invariantly in '#type'.""",
   withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
+  analyzerCodes: <String>["WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
