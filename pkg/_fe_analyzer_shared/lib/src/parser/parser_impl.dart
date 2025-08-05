@@ -6736,30 +6736,184 @@ class Parser {
       // Avoid additional constant pattern errors.
       constantPatternContext = ConstantPatternContext.none;
     }
-    bool enteredLoop = false;
-    for (int level = tokenLevel; level >= precedence; --level) {
-      int lastBinaryExpressionLevel = -1;
-      Token? lastCascade;
-      while (tokenLevel == level) {
-        enteredLoop = true;
-        Token operator = next;
-        if (tokenLevel == CASCADE_PRECEDENCE) {
-          if (!allowCascades) {
-            return token;
-          } else if (lastCascade != null &&
-              next.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
-            reportRecoverableError(
-              next,
-              codes.messageNullAwareCascadeOutOfOrder,
+    if (tokenLevel < precedence) {
+      if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
+        // Attempt recovery
+        if (_attemptPrecedenceLevelRecovery(
+          token,
+          precedence,
+          /* currentLevel = */ -1,
+          allowCascades,
+          typeArg,
+        )) {
+          return _parsePrecedenceExpressionLoop(
+            precedence,
+            allowCascades,
+            typeArg,
+            token,
+            ConstantPatternContext.none,
+          );
+        }
+      }
+      return token;
+    }
+    int level = tokenLevel;
+    int lastBinaryExpressionLevel = -1;
+    Token? lastCascade;
+    while (true) {
+      Token operator = next;
+      if (tokenLevel == CASCADE_PRECEDENCE) {
+        if (!allowCascades) {
+          return token;
+        } else if (lastCascade != null &&
+            next.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
+          reportRecoverableError(next, codes.messageNullAwareCascadeOutOfOrder);
+        }
+        lastCascade = next;
+        token = parseCascadeExpression(token);
+      } else if (tokenLevel == ASSIGNMENT_PRECEDENCE) {
+        // Right associative, so we recurse at the same precedence
+        // level.
+        Token next = token.next!;
+        if (next.next!.isA(TokenType.GT_EQ)) {
+          // Special case use of triple-shift in cases where it isn't
+          // enabled.
+          reportExperimentNotEnabled(
+            ExperimentalFlag.tripleShift,
+            next,
+            next.next!,
+          );
+          assert(next == operator);
+          next = rewriter.replaceNextTokensWithSyntheticToken(
+            token,
+            /* count = */ 2,
+            TokenType.GT_GT_GT_EQ,
+          );
+          operator = next;
+        }
+        token =
+            next.next!.isA(Keyword.THROW)
+                ? parseThrowExpression(next, allowCascades)
+                : parsePrecedenceExpression(
+                  next,
+                  level,
+                  allowCascades,
+                  ConstantPatternContext.none,
+                );
+        listener.handleAssignmentExpression(operator, token);
+      } else if (tokenLevel == POSTFIX_PRECEDENCE) {
+        if ((identical(type, TokenType.PLUS_PLUS)) ||
+            (identical(type, TokenType.MINUS_MINUS))) {
+          listener.handleUnaryPostfixAssignmentExpression(token.next!);
+          token = next;
+        } else if (identical(type, TokenType.BANG)) {
+          listener.handleNonNullAssertExpression(next);
+          token = next;
+        }
+      } else if (tokenLevel == SELECTOR_PRECEDENCE) {
+        if (identical(type, TokenType.PERIOD) ||
+            identical(type, TokenType.QUESTION_PERIOD)) {
+          // Left associative, so we recurse at the next higher precedence
+          // level. However, SELECTOR_PRECEDENCE is the highest level, so we
+          // should just call [parseUnaryExpression] directly. However, a
+          // unary expression isn't legal after a period, so we call
+          // [parsePrimary] instead.
+          Token dot = token.next!;
+          token = parsePrimary(
+            dot,
+            IdentifierContext.expressionContinuation,
+            constantPatternContext,
+          );
+
+          if (isDotShorthand) {
+            listener.handleDotShorthandHead(dot);
+            isDotShorthand = false;
+          } else {
+            listener.handleDotAccess(
+              operator,
+              token,
+              /* isNullAware = */ identical(type, TokenType.QUESTION_PERIOD),
             );
           }
-          lastCascade = next;
-          token = parseCascadeExpression(token);
-        } else if (tokenLevel == ASSIGNMENT_PRECEDENCE) {
-          // Right associative, so we recurse at the same precedence
-          // level.
-          Token next = token.next!;
-          if (next.next!.isA(TokenType.GT_EQ)) {
+
+          Token bangToken = token;
+          if (token.next!.isA(TokenType.BANG)) {
+            bangToken = token.next!;
+          }
+          typeArg = computeMethodTypeArguments(bangToken);
+          if (typeArg != noTypeParamOrArg) {
+            // For example e.f<T>(c), where token is before '<'.
+            if (bangToken.isA(TokenType.BANG)) {
+              listener.handleNonNullAssertExpression(bangToken);
+            }
+            token = typeArg.parseArguments(bangToken, this);
+            if (!token.next!.isA(TokenType.OPEN_PAREN)) {
+              if (constantPatternContext != ConstantPatternContext.none) {
+                reportRecoverableError(
+                  bangToken.next!,
+                  codes.messageInvalidConstantPatternGeneric,
+                );
+              }
+              listener.handleTypeArgumentApplication(bangToken.next!);
+              typeArg = noTypeParamOrArg;
+            }
+          }
+        } else if (identical(type, TokenType.OPEN_PAREN) ||
+            identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
+          token = parseArgumentOrIndexStar(
+            token,
+            typeArg,
+            /* checkedNullAware = */ false,
+          );
+        } else if (identical(type, TokenType.QUESTION)) {
+          // We have determined selector precedence so this is a null-aware
+          // bracket operator.
+          token = parseArgumentOrIndexStar(
+            token,
+            typeArg,
+            /* checkedNullAware = */ true,
+          );
+        } else if (identical(type, TokenType.INDEX)) {
+          rewriteSquareBrackets(token);
+          token = parseArgumentOrIndexStar(
+            token,
+            noTypeParamOrArg,
+            /* checkedNullAware = */ false,
+          );
+        } else if (identical(type, TokenType.BANG)) {
+          listener.handleNonNullAssertExpression(token.next!);
+          token = next;
+        } else {
+          // Recovery
+          reportRecoverableErrorWithToken(
+            token.next!,
+            codes.templateUnexpectedToken,
+          );
+          token = next;
+        }
+      } else if (identical(type, TokenType.IS)) {
+        token = parseIsOperatorRest(token);
+      } else if (identical(type, TokenType.AS)) {
+        token = parseAsOperatorRest(token);
+      } else if (identical(type, TokenType.QUESTION)) {
+        token = parseConditionalExpressionRest(token);
+      } else {
+        if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
+          // We don't allow (a == b == c) or (a < b < c).
+          if (lastBinaryExpressionLevel == level) {
+            // Report an error, then continue parsing as if it is legal.
+            reportRecoverableError(
+              next,
+              codes.messageEqualityCannotBeEqualityOperand,
+            );
+          } else {
+            // Set a flag to catch subsequent binary expressions of this type.
+            lastBinaryExpressionLevel = level;
+          }
+        }
+        if (next.isA(TokenType.GT_GT) &&
+            next.charEnd == next.next!.charOffset) {
+          if (next.next!.isA(TokenType.GT)) {
             // Special case use of triple-shift in cases where it isn't
             // enabled.
             reportExperimentNotEnabled(
@@ -6771,182 +6925,44 @@ class Parser {
             next = rewriter.replaceNextTokensWithSyntheticToken(
               token,
               /* count = */ 2,
-              TokenType.GT_GT_GT_EQ,
+              TokenType.GT_GT_GT,
             );
             operator = next;
           }
-          token =
-              next.next!.isA(Keyword.THROW)
-                  ? parseThrowExpression(next, allowCascades)
-                  : parsePrecedenceExpression(
-                    next,
-                    level,
-                    allowCascades,
-                    ConstantPatternContext.none,
-                  );
-          listener.handleAssignmentExpression(operator, token);
-        } else if (tokenLevel == POSTFIX_PRECEDENCE) {
-          if ((identical(type, TokenType.PLUS_PLUS)) ||
-              (identical(type, TokenType.MINUS_MINUS))) {
-            listener.handleUnaryPostfixAssignmentExpression(token.next!);
-            token = next;
-          } else if (identical(type, TokenType.BANG)) {
-            listener.handleNonNullAssertExpression(next);
-            token = next;
-          }
-        } else if (tokenLevel == SELECTOR_PRECEDENCE) {
-          if (identical(type, TokenType.PERIOD) ||
-              identical(type, TokenType.QUESTION_PERIOD)) {
-            // Left associative, so we recurse at the next higher precedence
-            // level. However, SELECTOR_PRECEDENCE is the highest level, so we
-            // should just call [parseUnaryExpression] directly. However, a
-            // unary expression isn't legal after a period, so we call
-            // [parsePrimary] instead.
-            Token dot = token.next!;
-            token = parsePrimary(
-              dot,
-              IdentifierContext.expressionContinuation,
-              constantPatternContext,
-            );
-
-            if (isDotShorthand) {
-              listener.handleDotShorthandHead(dot);
-              isDotShorthand = false;
-            } else {
-              listener.handleDotAccess(
-                operator,
-                token,
-                /* isNullAware = */ identical(type, TokenType.QUESTION_PERIOD),
-              );
-            }
-
-            Token bangToken = token;
-            if (token.next!.isA(TokenType.BANG)) {
-              bangToken = token.next!;
-            }
-            typeArg = computeMethodTypeArguments(bangToken);
-            if (typeArg != noTypeParamOrArg) {
-              // For example e.f<T>(c), where token is before '<'.
-              if (bangToken.isA(TokenType.BANG)) {
-                listener.handleNonNullAssertExpression(bangToken);
-              }
-              token = typeArg.parseArguments(bangToken, this);
-              if (!token.next!.isA(TokenType.OPEN_PAREN)) {
-                if (constantPatternContext != ConstantPatternContext.none) {
-                  reportRecoverableError(
-                    bangToken.next!,
-                    codes.messageInvalidConstantPatternGeneric,
-                  );
-                }
-                listener.handleTypeArgumentApplication(bangToken.next!);
-                typeArg = noTypeParamOrArg;
-              }
-            }
-          } else if (identical(type, TokenType.OPEN_PAREN) ||
-              identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
-            token = parseArgumentOrIndexStar(
-              token,
-              typeArg,
-              /* checkedNullAware = */ false,
-            );
-          } else if (identical(type, TokenType.QUESTION)) {
-            // We have determined selector precedence so this is a null-aware
-            // bracket operator.
-            token = parseArgumentOrIndexStar(
-              token,
-              typeArg,
-              /* checkedNullAware = */ true,
-            );
-          } else if (identical(type, TokenType.INDEX)) {
-            rewriteSquareBrackets(token);
-            token = parseArgumentOrIndexStar(
-              token,
-              noTypeParamOrArg,
-              /* checkedNullAware = */ false,
-            );
-          } else if (identical(type, TokenType.BANG)) {
-            listener.handleNonNullAssertExpression(token.next!);
-            token = next;
-          } else {
-            // Recovery
-            reportRecoverableErrorWithToken(
-              token.next!,
-              codes.templateUnexpectedToken,
-            );
-            token = next;
-          }
-        } else if (identical(type, TokenType.IS)) {
-          token = parseIsOperatorRest(token);
-        } else if (identical(type, TokenType.AS)) {
-          token = parseAsOperatorRest(token);
-        } else if (identical(type, TokenType.QUESTION)) {
-          token = parseConditionalExpressionRest(token);
-        } else {
-          if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
-            // We don't allow (a == b == c) or (a < b < c).
-            if (lastBinaryExpressionLevel == level) {
-              // Report an error, then continue parsing as if it is legal.
-              reportRecoverableError(
-                next,
-                codes.messageEqualityCannotBeEqualityOperand,
-              );
-            } else {
-              // Set a flag to catch subsequent binary expressions of this type.
-              lastBinaryExpressionLevel = level;
-            }
-          }
-          if (next.isA(TokenType.GT_GT) &&
-              next.charEnd == next.next!.charOffset) {
-            if (next.next!.isA(TokenType.GT)) {
-              // Special case use of triple-shift in cases where it isn't
-              // enabled.
-              reportExperimentNotEnabled(
-                ExperimentalFlag.tripleShift,
-                next,
-                next.next!,
-              );
-              assert(next == operator);
-              next = rewriter.replaceNextTokensWithSyntheticToken(
-                token,
-                /* count = */ 2,
-                TokenType.GT_GT_GT,
-              );
-              operator = next;
-            }
-          }
-          listener.beginBinaryExpression(next);
-          // Left associative, so we recurse at the next higher
-          // precedence level.
-          token = parsePrecedenceExpression(
-            token.next!,
-            level + 1,
-            allowCascades,
-            ConstantPatternContext.none,
-          );
-          listener.endBinaryExpression(operator, token);
         }
-        next = token.next!;
-        type = next.type;
-        tokenLevel = _computePrecedence(next, forPattern: false);
-        if (constantPatternContext != ConstantPatternContext.none) {
-          // For error recovery we allow too much when parsing constant
-          // patterns, so for the cases that shouldn't be parsed as expressions
-          // in this context we break out of the parsing loop directly.
-          if (type == TokenType.BANG) {
-            if (tokenLevel == POSTFIX_PRECEDENCE) {
-              // This is a suffixed ! which is a null assert pattern.
-              return token;
-            } else if (next.next!.isA(TokenType.QUESTION)) {
-              // This is a suffixed !? which is a null assert pattern in a null
-              // check pattern.
-              return token;
-            }
-          } else if (type == TokenType.AS) {
-            // This is a suffixed `as` which is a case pattern.
+        listener.beginBinaryExpression(next);
+        // Left associative, so we recurse at the next higher
+        // precedence level.
+        token = parsePrecedenceExpression(
+          token.next!,
+          level + 1,
+          allowCascades,
+          ConstantPatternContext.none,
+        );
+        listener.endBinaryExpression(operator, token);
+      }
+      next = token.next!;
+      type = next.type;
+      tokenLevel = _computePrecedence(next, forPattern: false);
+      if (constantPatternContext != ConstantPatternContext.none) {
+        // For error recovery we allow too much when parsing constant
+        // patterns, so for the cases that shouldn't be parsed as expressions
+        // in this context we break out of the parsing loop directly.
+        if (type == TokenType.BANG) {
+          if (tokenLevel == POSTFIX_PRECEDENCE) {
+            // This is a suffixed ! which is a null assert pattern.
+            return token;
+          } else if (next.next!.isA(TokenType.QUESTION)) {
+            // This is a suffixed !? which is a null assert pattern in a null
+            // check pattern.
             return token;
           }
+        } else if (type == TokenType.AS) {
+          // This is a suffixed `as` which is a case pattern.
+          return token;
         }
       }
+
       if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
         // Attempt recovery
         if (_attemptPrecedenceLevelRecovery(
@@ -6957,32 +6973,22 @@ class Parser {
           typeArg,
         )) {
           // Recovered - try again at same level with the replacement token.
-          level++;
           next = token.next!;
           type = next.type;
           tokenLevel = _computePrecedence(next, forPattern: false);
         }
       }
-    }
 
-    if (!enteredLoop && _recoverAtPrecedenceLevel && !_currentlyRecovering) {
-      // Attempt recovery
-      if (_attemptPrecedenceLevelRecovery(
-        token,
-        precedence,
-        /* currentLevel = */ -1,
-        allowCascades,
-        typeArg,
-      )) {
-        return _parsePrecedenceExpressionLoop(
-          precedence,
-          allowCascades,
-          typeArg,
-          token,
-          ConstantPatternContext.none,
-        );
+      if (tokenLevel <= level) {
+        if (tokenLevel < precedence) {
+          break;
+        }
+        level = tokenLevel;
+      } else {
+        break;
       }
     }
+
     return token;
   }
 
