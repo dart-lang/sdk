@@ -152,5 +152,34 @@ main() {
   });
   Expect.equals("foo bar", string_foo);
 
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        ReceivePort();
+      });
+    },
+    (e) =>
+        e is ArgumentError &&
+        e.toString().contains("Only available when running in context"),
+  );
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.exit();
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawn((_) {}, null);
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawnUri(Uri.parse("http://127.0.0.1"), [], (_) {});
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
   print("All tests completed :)");
 }
