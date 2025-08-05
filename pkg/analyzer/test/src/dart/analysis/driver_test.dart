@@ -14942,8 +14942,8 @@ final a = 0;
   exportCountMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
+    expected: 2
     actual: 1
-    required: 2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap

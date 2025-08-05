@@ -483,8 +483,8 @@ class DriverEventsPrinter {
         sink.writeProperties({
           'fragmentUri': failure.fragmentUri,
           'exportedUri': failure.exportedUri,
+          'expected': failure.expectedCount,
           'actual': failure.actualCount,
-          'required': failure.requiredCount,
         });
       case ExportIdMismatch():
         sink.writelnWithIndent('exportIdMismatch');

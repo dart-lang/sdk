@@ -8,40 +8,61 @@ import 'package:analyzer/src/fine/manifest_id.dart';
 final class ExportCountMismatch extends ExportFailure {
   final Uri fragmentUri;
   final Uri exportedUri;
+  final int expectedCount;
   final int actualCount;
-  final int requiredCount;
 
   ExportCountMismatch({
     required this.fragmentUri,
     required this.exportedUri,
+    required this.expectedCount,
     required this.actualCount,
-    required this.requiredCount,
   });
+
+  @override
+  String toString() {
+    return 'ExportCountMismatch(fragmentUri: $fragmentUri, '
+        'exportedUri: $exportedUri, '
+        'expectedCount: $expectedCount, '
+        'actualCount: $actualCount)';
+  }
 }
 
-// TODO(scheglov): break down
 sealed class ExportFailure extends RequirementFailure {}
 
 final class ExportIdMismatch extends ExportFailure {
   final Uri fragmentUri;
   final Uri exportedUri;
   final LookupName name;
-  final ManifestItemId actualId;
   final ManifestItemId? expectedId;
+  final ManifestItemId actualId;
 
   ExportIdMismatch({
     required this.fragmentUri,
     required this.exportedUri,
     required this.name,
-    required this.actualId,
     required this.expectedId,
+    required this.actualId,
   });
+
+  @override
+  String toString() {
+    return 'ExportIdMismatch(fragmentUri: $fragmentUri, '
+        'exportedUri: $exportedUri, '
+        'name: ${name.asString}, '
+        'expectedId: $expectedId, '
+        'actualId: $actualId)';
+  }
 }
 
 final class ExportLibraryMissing extends ExportFailure {
   final Uri uri;
 
   ExportLibraryMissing({required this.uri});
+
+  @override
+  String toString() {
+    return 'ExportLibraryMissing(uri: $uri)';
+  }
 }
 
 class InstanceChildrenIdsMismatch extends RequirementFailure {
@@ -58,6 +79,14 @@ class InstanceChildrenIdsMismatch extends RequirementFailure {
     required this.expectedIds,
     required this.actualIds,
   });
+
+  @override
+  String toString() {
+    return 'InstanceChildrenIdsMismatch(libraryUri: $libraryUri, '
+        'instanceName: ${instanceName.asString}, '
+        'childrenPropertyName: $childrenPropertyName, '
+        'expectedIds: $expectedIds, actualIds: $actualIds)';
+  }
 }
 
 class InstanceFieldIdMismatch extends RequirementFailure {
@@ -74,6 +103,15 @@ class InstanceFieldIdMismatch extends RequirementFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  String toString() {
+    return 'InstanceFieldIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'fieldName: ${fieldName.asString}, '
+        'expectedId: $expectedId, '
+        'actualId: $actualId)';
+  }
 }
 
 class InstanceMethodIdMismatch extends RequirementFailure {
@@ -90,6 +128,14 @@ class InstanceMethodIdMismatch extends RequirementFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  String toString() {
+    return 'InstanceMethodIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'methodName: ${methodName.asString}, '
+        'expectedId: $expectedId, actualId: $actualId)';
+  }
 }
 
 class InterfaceConstructorIdMismatch extends RequirementFailure {
@@ -106,6 +152,15 @@ class InterfaceConstructorIdMismatch extends RequirementFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  String toString() {
+    return 'InterfaceConstructorIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'constructorName: ${constructorName.asString}, '
+        'expectedId: $expectedId, '
+        'actualId: $actualId)';
+  }
 }
 
 class InterfaceIdMismatch extends RequirementFailure {
@@ -120,12 +175,25 @@ class InterfaceIdMismatch extends RequirementFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  String toString() {
+    return 'InterfaceIdMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'expectedId: $expectedId, '
+        'actualId: $actualId)';
+  }
 }
 
 class LibraryMissing extends RequirementFailure {
   final Uri uri;
 
   LibraryMissing({required this.uri});
+
+  @override
+  String toString() {
+    return 'LibraryMissing(uri: $uri)';
+  }
 }
 
 sealed class RequirementFailure {}
@@ -147,8 +215,22 @@ class TopLevelIdMismatch extends TopLevelFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  String toString() {
+    return 'TopLevelIdMismatch(libraryUri: $libraryUri, '
+        'name: ${name.asString}, '
+        'expectedId: $expectedId, '
+        'actualId: $actualId)';
+  }
 }
 
 class TopLevelNotInterface extends TopLevelFailure {
   TopLevelNotInterface({required super.libraryUri, required super.name});
+
+  @override
+  String toString() {
+    return 'TopLevelNotInterface(libraryUri: $libraryUri, '
+        'name: ${name.asString})';
+  }
 }
