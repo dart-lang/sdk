@@ -62,8 +62,8 @@ export 'dart:js_util' show NullRejectionException;
 /// - Renaming external declarations by parameterizing the annotation on the
 ///   member with [name].
 ///
-/// In the case where [name] is not specified, the Dart name of the extension
-/// type or external declaration is used as the default.
+/// In the case where [name] is not specified, is `null`, or is empty, the Dart
+/// name of the extension type or external declaration is used as the default.
 ///
 /// See https://dart.dev/interop/js-interop/usage#js for more details on how to
 /// use this annotation.
