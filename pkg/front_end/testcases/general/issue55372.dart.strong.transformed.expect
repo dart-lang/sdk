@@ -34,8 +34,8 @@ static extension-member method E|[](lowered final dynamic #this, core::String ke
 static method main() → dynamic {
   {
     self::A a = new self::A::•();
-    let final self::A #t6 = a in #t6 == null ?{core::double?} null : #t6{self::A}.{self::A::foo1}{core::double?} == null ?{core::double?} #t6{self::A}.{self::A::foo1} = 42.0 : null;
-    core::double? x = let final self::A #t7 = a in #t7 == null ?{core::double?} null : let final core::double? #t8 = #t7{self::A}.{self::A::foo1}{core::double?} in #t8 == null ?{core::double} #t7{self::A}.{self::A::foo1} = 42.0 : #t8{core::double};
+    let final self::A #t6 = a in #t6 == null ?{core::double?} null : #t6.{self::A::foo1}{core::double?} == null ?{core::double?} #t6.{self::A::foo1} = 42.0 : null;
+    core::double? x = let final self::A #t7 = a in #t7 == null ?{core::double?} null : let final core::double? #t8 = #t7.{self::A::foo1}{core::double?} in #t8 == null ?{core::double} #t7.{self::A::foo1} = 42.0 : #t8{core::double};
   }
   {
     final core::Map<core::String, core::Map<core::String, core::String>> nestedMap = <core::String, core::Map<core::String, core::String>>{};
