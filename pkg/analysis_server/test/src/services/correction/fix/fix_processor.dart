@@ -39,6 +39,12 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
     return DartChangeWorkspace([await session]);
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+    verifyNoTestUnitErrors = false;
+  }
+
   /// Computes fixes for the given [diagnostic] in [testUnit].
   Future<List<Fix>> _computeFixes(Diagnostic diagnostic) async {
     var libraryResult = testLibraryResult;
@@ -276,13 +282,6 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     return fixes;
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    verifyNoTestUnitErrors = false;
-    useLineEndingsForPlatform = true;
-  }
-
   /// Computes fixes for the given [diagnostic] in [testUnit].
   @override
   Future<List<Fix>> _computeFixes(
@@ -318,13 +317,6 @@ abstract class FixPriorityTest extends BaseFixProcessorTest {
     var kinds = computedFixes.map((fix) => fix.kind).toList();
     kinds.sort((a, b) => b.priority.compareTo(a.priority));
     expect(kinds, containsAllInOrder(fixKinds));
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    verifyNoTestUnitErrors = false;
-    useLineEndingsForPlatform = true;
   }
 }
 
@@ -502,13 +494,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     return values.map((value) {
       return LinkedEditSuggestion(value, kind);
     }).toList();
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    verifyNoTestUnitErrors = false;
-    useLineEndingsForPlatform = true;
   }
 
   /// Computes fixes, verifies that there is a fix for the given [diagnostic] of
