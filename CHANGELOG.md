@@ -29,6 +29,14 @@
 
 [#56468]: https://github.com/dart-lang/sdk/issues/56468
 
+#### `dart:js_interop`
+
+- `JSArray.add` is added to avoid cases where during migration from `List` to
+  `JSArray`, `JSAnyOperatorExtension.add` is accidentally used. See [#59830][]
+  for more details.
+
+[#59830]: https://github.com/dart-lang/sdk/issues/59830
+
 ## 3.9.0
 
 **Released on:** Unreleased
