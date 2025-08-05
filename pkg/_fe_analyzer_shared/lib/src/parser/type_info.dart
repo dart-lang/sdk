@@ -416,6 +416,7 @@ TypeInfo computeVariablePatternType(Token token, [bool required = false]) {
 ///
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
+@pragma("vm:prefer-inline")
 TypeParamOrArgInfo computeTypeParamOrArg(
   Token token, [
   bool inDeclaration = false,
@@ -425,7 +426,20 @@ TypeParamOrArgInfo computeTypeParamOrArg(
   if (!beginGroup.isA(TokenType.LT)) {
     return noTypeParamOrArg;
   }
+  return _computeTypeParamOrArgImpl(
+    token,
+    beginGroup,
+    inDeclaration,
+    allowsVariance,
+  );
+}
 
+TypeParamOrArgInfo _computeTypeParamOrArgImpl(
+  Token token,
+  Token beginGroup,
+  bool inDeclaration,
+  bool allowsVariance,
+) {
   // identifier `<` `void` `>` and `<` `dynamic` `>`
   // are handled by ComplexTypeInfo.
   Token next = beginGroup.next!;
