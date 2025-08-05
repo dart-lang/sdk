@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
 import 'package:analyzer/workspace/workspace.dart';
@@ -343,11 +344,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _withDeprecatedFragment(Fragment? fragment, void Function() recurse) {
-    var isDeprecated = false;
-    if (fragment?.element case var element?) {
-      isDeprecated = element.metadata.hasDeprecated;
-    }
-
+    var isDeprecated = fragment?.element.isUseDeprecated ?? false;
     _deprecatedVerifier.pushInDeprecatedValue(isDeprecated);
     try {
       recurse();

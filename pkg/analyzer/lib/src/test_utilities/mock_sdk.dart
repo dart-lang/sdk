@@ -314,7 +314,21 @@ class DateTime extends Object {
 
 class Deprecated extends Object {
   final String message;
-  const Deprecated(this.message);
+  final bool _isUse;
+  final bool _isImplement;
+  final bool _isExtend;
+  const Deprecated(this.message)
+      : _isUse = true,
+        _isImplement = false,
+        _isExtend = false;
+  const Deprecated.implement([this.message = "next release"])
+      : _isUse = false,
+        _isImplement = true,
+        _isExtend = false;
+  const Deprecated.extend([this.message = "next release"])
+      : _isUse = false,
+        _isImplement = false,
+        _isExtend = true;
 }
 
 class pragma {

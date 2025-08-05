@@ -15,6 +15,7 @@ void main() {
     defineReflectiveTests(ExtendsDisallowedClassTest);
     defineReflectiveTests(ExtendsNonClassTest);
     defineReflectiveTests(ExtendsTypeAliasExpandsToTypeParameterTest);
+    defineReflectiveTests(ImplementsDeprecatedImplementTest);
     defineReflectiveTests(ImplementsDisallowedClassTest);
     defineReflectiveTests(ImplementsRepeatedTest);
     defineReflectiveTests(ImplementsSuperClassTest);
@@ -88,6 +89,27 @@ class C extends T {}
     await assertHasFix('''
 typedef T<int> = int;
 class C {}
+''');
+  }
+}
+
+@reflectiveTest
+class ImplementsDeprecatedImplementTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_NAME_FROM_DECLARATION_CLAUSE;
+
+  Future<void> test_deprecatedExtends() async {
+    newFile('$testPackageLibPath/a.dart', '''
+@Deprecated.implement()
+class A {}
+''');
+    await resolveTestCode('''
+import 'a.dart';
+class B implements A {}
+''');
+    await assertHasFix('''
+import 'a.dart';
+class B {}
 ''');
   }
 }

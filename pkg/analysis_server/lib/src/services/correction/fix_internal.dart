@@ -1197,6 +1197,8 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     //  a place where it can be reached (when possible).
     RemoveDeadCode.new,
   ],
+  WarningCode.DEPRECATED_EXTEND: [RemoveExtendsClause.new],
+  WarningCode.DEPRECATED_IMPLEMENT: [RemoveNameFromDeclarationClause.new],
   WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
     RemoveNameFromDeclarationClause.new,
   ],
