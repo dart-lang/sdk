@@ -84,7 +84,7 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
   }
 
   TestCode parseCode(String content) {
-    return TestCode.parse(normalizeSource(content));
+    return TestCode.parseNormalized(content);
   }
 
   /// Gets the expected range that follows the string [prefix] in [content] with a

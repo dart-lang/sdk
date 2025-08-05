@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
@@ -51,35 +52,19 @@ class PubspecFixGenerator {
   /// The fixes that were generated.
   final List<Fix> fixes = <Fix>[];
 
-  /// The end-of-line marker used in the `pubspec.yaml` file.
-  String? _endOfLine;
+  /// The end-of-line marker to be used in this `pubspec.yaml` file.
+  final String endOfLine;
 
   PubspecFixGenerator(
     this.resourceProvider,
     this.diagnostic,
     this.content,
-    this.node,
-  ) : diagnosticOffset = diagnostic.offset,
-      diagnosticLength = diagnostic.length,
-      lineInfo = LineInfo.fromContent(content);
-
-  /// Returns the end-of-line marker to use for the `pubspec.yaml` file.
-  String get endOfLine {
-    // TODO(brianwilkerson): Share this with CorrectionUtils, probably by
-    //  creating a subclass of CorrectionUtils containing utilities that are
-    //  only dependent on knowing the content of the file. Also consider moving
-    //  this kind of utility into the ChangeBuilder API directly.
-    var endOfLine = _endOfLine;
-    if (endOfLine != null) {
-      return endOfLine;
-    }
-
-    if (content.contains('\r\n')) {
-      return _endOfLine = '\r\n';
-    } else {
-      return _endOfLine = '\n';
-    }
-  }
+    this.node, {
+    required String defaultEol,
+  }) : diagnosticOffset = diagnostic.offset,
+       diagnosticLength = diagnostic.length,
+       lineInfo = LineInfo.fromContent(content),
+       endOfLine = content.endOfLine ?? defaultEol;
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -332,10 +317,12 @@ class PubspecFixGenerator {
     var section = node[sectionName];
     var buffer = StringBuffer();
     if (section == null) {
-      buffer.writeln('$sectionName:');
+      buffer.write('$sectionName:');
+      buffer.write(endOfLine);
     }
     for (var name in packageNames) {
-      buffer.writeln('  $name: any');
+      buffer.write('  $name: any');
+      buffer.write(endOfLine);
     }
 
     var offset =

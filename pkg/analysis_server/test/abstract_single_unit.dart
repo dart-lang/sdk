@@ -44,8 +44,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   String get testCode => parsedTestCode.code;
   set testCode(String value) {
-    parsedTestCode = TestCode.parse(
-      normalizeSource(value),
+    parsedTestCode = TestCode.parseNormalized(
+      value,
       positionShorthand: allowTestCodeShorthand,
       rangeShorthand: allowTestCodeShorthand,
     );

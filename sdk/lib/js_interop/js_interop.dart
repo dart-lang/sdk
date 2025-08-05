@@ -184,6 +184,14 @@ extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
   /// Sets the [value] at [position] in this `Array`.
   @Since('3.6')
   external void operator []=(int position, T value);
+
+  /// Adds [value] to the end of this `Array`, extending the length by one.
+  // This maps to `List.add` to avoid accidental usage of
+  // `JSAnyOperatorExtension.add` when migrating `List`s to `JSArray`s. See
+  // https://github.com/dart-lang/sdk/issues/59830.
+  @Since('3.10')
+  @JS('push')
+  external void add(T value);
 }
 
 /// A JavaScript `Promise` or a promise-like object.

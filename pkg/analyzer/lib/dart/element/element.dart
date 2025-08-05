@@ -268,6 +268,9 @@ abstract class ClassElement implements InterfaceElement {
   /// you have covered all possible instances of the type.
   bool get isExhaustive;
 
+  /// Whether this class can be extended outside of its library.
+  bool get isExtendableOutside;
+
   /// Whether the class is a final class.
   ///
   /// A class is a final class if it has an explicit `final` modifier, or the
@@ -276,6 +279,9 @@ abstract class ClassElement implements InterfaceElement {
   /// or mixed in.
   bool get isFinal;
 
+  /// Whether the class can be implemented outside of its library.
+  bool get isImplementableOutside;
+
   /// Whether the class is an interface class.
   ///
   /// A class is an interface class if it has an explicit `interface` modifier,
@@ -283,6 +289,9 @@ abstract class ClassElement implements InterfaceElement {
   /// as well. The interface modifier allows the class to be implemented, but
   /// not extended or mixed in.
   bool get isInterface;
+
+  /// Whether the class can be mixed-in outside of its library.
+  bool get isMixableOutside;
 
   /// Whether the class is a mixin application.
   ///
@@ -314,31 +323,34 @@ abstract class ClassElement implements InterfaceElement {
   /// </blockquote>
   bool get isValidMixin;
 
-  /// Whether the class, assuming that it is within scope, can be extended by
-  /// classes in the given [library].
+  /// Whether the class, assuming that it is within scope, can be extended in
+  /// the given [library].
+  @Deprecated('Use isExtendableOutside instead')
   bool isExtendableIn(LibraryElement library);
 
-  /// Whether the class, assuming that it is within scope, can be extended by
-  /// classes in the given [library].
-  @Deprecated('Use isExtendableIn instead')
+  /// Whether the class, assuming that it is within scope, can be extended in
+  /// the given [library].
+  @Deprecated('Use isExtendableOutside instead')
   bool isExtendableIn2(LibraryElement library);
 
-  /// Whether the class, assuming that it is within scope, can be implemented by
-  /// classes, mixins, and enums in the given [library].
+  /// Whether the class, assuming that it is within scope, can be implemented in
+  /// the given [library].
+  @Deprecated('Use isImplementableOutside instead')
   bool isImplementableIn(LibraryElement library);
 
-  /// Whether the class, assuming that it is within scope, can be implemented by
-  /// classes, mixins, and enums in the given [library].
-  @Deprecated('Use isImplementableIn instead')
+  /// Whether the class, assuming that it is within scope, can be implemented in
+  /// the given [library].
+  @Deprecated('Use isImplementableOutside instead')
   bool isImplementableIn2(LibraryElement library);
 
-  /// Whether the class, assuming that it is within scope, can be mixed-in by
-  /// classes and enums in the given [library].
+  /// Whether the class, assuming that it is within scope, can be mixed-in in
+  /// the given [library].
+  @Deprecated('Use isMixableOutside instead')
   bool isMixableIn(LibraryElement library);
 
-  /// Whether the class, assuming that it is within scope, can be mixed-in by
-  /// classes and enums in the given [library].
-  @Deprecated('Use isMixableIn instead')
+  /// Whether the class, assuming that it is within scope, can be mixed-in in
+  /// the given [library].
+  @Deprecated('Use isMixableOutside instead')
   bool isMixableIn2(LibraryElement library);
 }
 
@@ -3286,6 +3298,10 @@ abstract class MixinElement implements InterfaceElement {
   /// The base modifier allows a mixin to be mixed in, but not implemented.
   bool get isBase;
 
+  /// Whether the mixin can be implemented by declarations outside of its
+  /// library.
+  bool get isImplementableOutside;
+
   /// The superclass constraints defined for this mixin.
   ///
   /// If the declaration does not have an `on` clause, then the list will
@@ -3298,13 +3314,14 @@ abstract class MixinElement implements InterfaceElement {
   /// guard against infinite loops.
   List<InterfaceType> get superclassConstraints;
 
-  /// Whether the element, assuming that it is within scope, is
-  /// implementable to classes, mixins, and enums in the given [library].
+  /// Whether the mixin, assuming that it is within scope, is implementable by
+  /// declarations in the given [library].
+  @Deprecated('Use isImplementableOutside instead')
   bool isImplementableIn(LibraryElement library);
 
-  /// Whether the element, assuming that it is within scope, is
-  /// implementable to classes, mixins, and enums in the given [library].
-  @Deprecated('Use isImplementableIn instead')
+  /// Whether the mixin, assuming that it is within scope, is implementable by
+  /// declarations in the given [library].
+  @Deprecated('Use isImplementableOutside instead')
   bool isImplementableIn2(LibraryElement library);
 }
 

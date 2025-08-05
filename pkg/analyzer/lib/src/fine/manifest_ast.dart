@@ -43,12 +43,18 @@ enum ManifestAstElementKind {
 
 /// Enough information to decide if the node is the same.
 ///
+/// We used it to store information AST nodes exposed through the element
+/// model: constant initializers, constructor initializers, and annotations.
+///
 /// We don't store ASTs, instead we rely on the fact that the same tokens
 /// are parsed into the same AST (when the same language features, which is
 /// ensured outside).
 ///
 /// In addition we record all referenced elements.
 class ManifestNode {
+  /// Whether the encoded AST node has only nodes that we support.
+  final bool isValid;
+
   /// The concatenated lexemes of all tokens.
   final String tokenBuffer;
 
@@ -86,19 +92,31 @@ class ManifestNode {
     );
     node.accept(collector);
 
-    return ManifestNode._(
-      tokenBuffer: buffer.toString(),
-      tokenLengthList: Uint32List.fromList(lengthList),
-      elements:
-          collector.map.keys
-              .map((element) => ManifestElement.encode(context, element))
-              .toFixedList(),
-      elementIndexList: Uint32List.fromList(collector.elementIndexList),
-    );
+    if (collector.isValid) {
+      return ManifestNode._(
+        isValid: true,
+        tokenBuffer: buffer.toString(),
+        tokenLengthList: Uint32List.fromList(lengthList),
+        elements:
+            collector.map.keys
+                .map((element) => ManifestElement.encode(context, element))
+                .toFixedList(),
+        elementIndexList: Uint32List.fromList(collector.elementIndexList),
+      );
+    } else {
+      return ManifestNode._(
+        isValid: false,
+        tokenBuffer: '',
+        tokenLengthList: Uint32List(0),
+        elements: const [],
+        elementIndexList: Uint32List(0),
+      );
+    }
   }
 
   factory ManifestNode.read(SummaryDataReader reader) {
     return ManifestNode._(
+      isValid: reader.readBool(),
       tokenBuffer: reader.readStringUtf8(),
       tokenLengthList: reader.readUInt30List(),
       elements: ManifestElement.readList(reader),
@@ -107,6 +125,7 @@ class ManifestNode {
   }
 
   ManifestNode._({
+    required this.isValid,
     required this.tokenBuffer,
     required this.tokenLengthList,
     required this.elements,
@@ -114,6 +133,10 @@ class ManifestNode {
   });
 
   bool match(MatchContext context, AstNode node) {
+    if (!isValid) {
+      return false;
+    }
+
     var tokenIndex = 0;
     var tokenOffset = 0;
     var token = node.beginToken;
@@ -162,6 +185,7 @@ class ManifestNode {
   }
 
   void write(BufferedSink sink) {
+    sink.writeBool(isValid);
     sink.writeStringUtf8(tokenBuffer);
     sink.writeUint30List(tokenLengthList);
     sink.writeList(elements, (e) => e.write(sink));
@@ -177,7 +201,8 @@ class ManifestNode {
   }
 }
 
-class _ElementCollector extends ThrowingAstVisitor<void> {
+class _ElementCollector extends GeneralizingAstVisitor<void> {
+  bool isValid = true;
   final int Function(TypeParameterElementImpl) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
   final Map<Element, int> map = Map.identity();
@@ -258,6 +283,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _addElement(node.element);
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.visitChildren(this);
   }
@@ -289,6 +319,17 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (node.methodName.element case TopLevelFunctionElement element) {
+      if (element.isDartCoreIdentical) {
+        node.visitChildren(this);
+        return;
+      }
+    }
+    isValid = false;
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     node.expression.accept(this);
   }
@@ -297,6 +338,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   void visitNamedType(NamedType node) {
     node.visitChildren(this);
     _addElement(node.element);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    isValid = false;
   }
 
   @override
@@ -363,6 +409,9 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     node.visitChildren(this);
   }
+
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) {}
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {

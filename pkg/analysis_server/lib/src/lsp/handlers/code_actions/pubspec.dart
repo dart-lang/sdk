@@ -82,6 +82,7 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
         error,
         content,
         node,
+        defaultEol: server.defaultEol,
       );
       var fixes = await generator.computeFixes();
       if (fixes.isEmpty) {

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
@@ -311,7 +309,7 @@ class AbstractContextTest
   }) {
     for (var fileEdit in sourceChange.edits) {
       var file = getFile(fileEdit.file);
-      buffer.write('>>>>>>>>>> ${file.posixPath}${Platform.lineTerminator}');
+      buffer.write('>>>>>>>>>> ${file.posixPath}$testEol');
       var current = file.readAsStringSync();
       var updated = SourceEdit.applySequence(current, fileEdit.edits);
       buffer.write(updated);

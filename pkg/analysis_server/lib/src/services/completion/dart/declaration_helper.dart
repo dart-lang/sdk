@@ -1741,34 +1741,49 @@ class DeclarationHelper {
 
   /// Adds a suggestion for the class represented by the [element].
   void _suggestClass(ClassElement element, ImportData? importData) {
-    if (visibilityTracker.isVisible(element: element, importData: importData)) {
-      if ((mustBeExtendable &&
-              !element.isExtendableIn(request.libraryElement)) ||
-          (mustBeImplementable &&
-              !element.isImplementableIn(request.libraryElement)) ||
-          (mustBeMixable && !element.isMixableIn(request.libraryElement))) {
+    if (!visibilityTracker.isVisible(
+      element: element,
+      importData: importData,
+    )) {
+      return;
+    }
+    if (mustBeExtendable) {
+      if (request.libraryElement != element.library &&
+          !element.isExtendableOutside) {
         return;
       }
-      if (!(mustBeConstant && !objectPatternAllowed) && !excludeTypeNames) {
-        var matcherScore = state.matcher.score(element.displayName);
-        if (matcherScore != -1) {
-          var suggestion = ClassSuggestion(
-            importData: importData,
-            element: element,
-            matcherScore: matcherScore,
-          );
-          collector.addSuggestion(suggestion);
-        }
+    }
+    if (mustBeImplementable) {
+      if (request.libraryElement != element.library &&
+          !element.isImplementableOutside) {
+        return;
       }
-      if (!mustBeType) {
-        _suggestStaticFields(element.fields, importData);
-        _suggestConstructors(
-          element.constructors,
-          importData,
-          allowNonFactory: !element.isAbstract,
-          checkVisibility: false,
+    }
+    if (mustBeMixable) {
+      if (request.libraryElement != element.library &&
+          !element.isMixableOutside) {
+        return;
+      }
+    }
+    if (!(mustBeConstant && !objectPatternAllowed) && !excludeTypeNames) {
+      var matcherScore = state.matcher.score(element.displayName);
+      if (matcherScore != -1) {
+        var suggestion = ClassSuggestion(
+          importData: importData,
+          element: element,
+          matcherScore: matcherScore,
         );
+        collector.addSuggestion(suggestion);
       }
+    }
+    if (!mustBeType) {
+      _suggestStaticFields(element.fields, importData);
+      _suggestConstructors(
+        element.constructors,
+        importData,
+        allowNonFactory: !element.isAbstract,
+        checkVisibility: false,
+      );
     }
   }
 
@@ -2083,10 +2098,12 @@ class DeclarationHelper {
   /// Adds a suggestion for the mixin represented by the [element].
   void _suggestMixin(MixinElement element, ImportData? importData) {
     if (visibilityTracker.isVisible(element: element, importData: importData)) {
-      if (mustBeExtendable ||
-          (mustBeImplementable &&
-              !element.isImplementableIn(request.libraryElement))) {
-        return;
+      if (mustBeExtendable) return;
+      if (mustBeImplementable) {
+        if (request.libraryElement != element.library &&
+            !element.isImplementableOutside) {
+          return;
+        }
       }
       var matcherScore = state.matcher.score(element.displayName);
       if (matcherScore != -1) {

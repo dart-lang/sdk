@@ -93,8 +93,8 @@ class ExportRequirement {
       return ExportCountMismatch(
         fragmentUri: fragmentUri,
         exportedUri: exportedUri,
+        expectedCount: exportedIds.length,
         actualCount: actualCount,
-        requiredCount: exportedIds.length,
       );
     }
 

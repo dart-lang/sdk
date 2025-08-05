@@ -129,7 +129,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     );
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
     var edits = [for (var fix in fixes) ...fix.edits];
-    var result = SourceEdit.applySequence(original, edits);
+    var result = SourceEdit.applySequence(normalizeSource(original), edits);
     expect(result, normalizeSource(expected));
   }
 
@@ -198,11 +198,6 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   @override
   void setUp() {
-    // TODO(dantup): Many of these tests produce edits with \n on Windows (for
-    //  example AddKeyToConstructorsBulkTest.test_singleFile inserts \n before
-    //  the new constructor).
-    useLineEndingsForPlatform = false;
-
     super.setUp();
     verifyNoTestUnitErrors = false;
     _createAnalysisOptionsFile();

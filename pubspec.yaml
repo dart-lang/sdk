@@ -94,22 +94,6 @@ workspace:
 
 # All third_party packages are retrieved via the DEPS-file and overridden here.
 dependency_overrides:
-  _experiment_sound:
-    path: third_party/pkg/webdev/fixtures/_experimentSound
-  _test_circular1_sound:
-    path: third_party/pkg/webdev/fixtures/_testCircular1Sound
-  _test_circular2_sound:
-    path: third_party/pkg/webdev/fixtures/_testCircular2Sound
-  _test_hot_restart1:
-    path: third_party/pkg/webdev/fixtures/_testHotRestart1Sound
-  _test_hot_restart2:
-    path: third_party/pkg/webdev/fixtures/_testHotRestart2Sound
-  _test_package_sound:
-    path: third_party/pkg/webdev/fixtures/_testPackageSound
-  _test_sound:
-    path: third_party/pkg/webdev/fixtures/_testSound
-  _webdev_sound_smoke:
-    path: third_party/pkg/webdev/fixtures/_webdevSoundSmoke
   analysis_config:
     path: third_party/pkg/webdev/_analysis_config
   args:

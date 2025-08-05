@@ -4153,6 +4153,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.AWAIT);
       declarationHelper(
         mustBeStatic: node.inStaticContext,
+        mustBeNonVoid: true,
       ).addLexicalDeclarations(node);
     }
   }

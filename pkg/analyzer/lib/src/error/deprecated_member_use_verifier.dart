@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
@@ -16,10 +17,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// can be marked as deprecated - a class, a method, fields (multiple).
   final List<bool> _inDeprecatedMemberStack = [false];
 
-  final bool _strictCasts;
-
-  BaseDeprecatedMemberUseVerifier({bool strictCasts = false})
-    : _strictCasts = strictCasts;
+  BaseDeprecatedMemberUseVerifier();
 
   void assignmentExpression(AssignmentExpression node) {
     _checkForDeprecated(node.readElement, node.leftHandSide);
@@ -98,7 +96,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
   }
 
   void pushInDeprecatedMetadata(List<Annotation> metadata) {
-    var hasDeprecated = _hasDeprecatedAnnotation(metadata);
+    var hasDeprecated = _hasDeprecatedUseAnnotation(metadata);
     pushInDeprecatedValue(hasDeprecated);
   }
 
@@ -161,11 +159,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _invocationArguments(node.element, node.argumentList);
   }
 
-  /// Given some [element], look at the associated metadata and report the use
-  /// of the member if it is declared as deprecated. If a diagnostic is reported
-  /// it should be reported at the given [node].
+  /// Reports the use of [element] at [node] if its use is deprecated.
   void _checkForDeprecated(Element? element, AstNode node) {
-    if (!_isDeprecated(element)) {
+    if (element == null || !element.isUseDeprecated) {
       return;
     }
 
@@ -212,7 +208,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
       }
     }
 
-    String displayName = element!.displayName;
+    String displayName = element.displayName;
     if (element is ConstructorElement) {
       // TODO(jwren): We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
@@ -227,9 +223,9 @@ abstract class BaseDeprecatedMemberUseVerifier {
         displayName == MethodElement.CALL_METHOD_NAME) {
       var invokeType = node.staticInvokeType as InterfaceType;
       var invokeClass = invokeType.element;
-      displayName = "${invokeClass.name}.${element.displayName}";
+      displayName = '${invokeClass.name}.${element.displayName}';
     }
-    var message = _deprecatedMessage(element, strictCasts: _strictCasts);
+    var message = _deprecatedMessage(element);
     reportError(errorEntity, element, displayName, message);
   }
 
@@ -248,13 +244,10 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _checkForDeprecated(identifier.element, identifier);
   }
 
-  /// Return the message in the deprecated annotation on the given [element], or
+  /// The message in the deprecated annotation on the given [element], or
   /// `null` if the element doesn't have a deprecated annotation or if the
   /// annotation does not have a message.
-  static String? _deprecatedMessage(
-    Element element, {
-    required bool strictCasts,
-  }) {
+  static String? _deprecatedMessage(Element element) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
       element = element.variable;
@@ -270,24 +263,19 @@ abstract class BaseDeprecatedMemberUseVerifier {
         constantValue?.getField('expires')?.toStringValue();
   }
 
-  static bool _hasDeprecatedAnnotation(List<Annotation> annotations) {
-    for (var i = 0; i < annotations.length; i++) {
-      if (annotations[i].elementAnnotation!.isDeprecated) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  static bool _isDeprecated(Element? element) {
-    if (element == null) {
-      return false;
-    }
-
-    if (element is PropertyAccessorElement && element.isSynthetic) {
-      return element.variable.metadata.hasDeprecated;
-    }
-    return element.metadata.hasDeprecated;
+  /// Whether [annotations] includes an annotation indicating "deprecated use."
+  ///
+  /// This amounts to any annotation using `deprecated` or `Deprecated()` (the
+  /// default constructor) from `dart:core`.
+  static bool _hasDeprecatedUseAnnotation(List<Annotation> annotations) {
+    var deprecatedAnnotations = annotations
+        .map((a) => a.elementAnnotation)
+        .nonNulls
+        .where((a) => a.isDeprecated);
+    return deprecatedAnnotations.any((deprecated) {
+      var value = deprecated.computeConstantValue();
+      return value?.getField('_isUse')?.toBoolValue() ?? true;
+    });
   }
 
   /// Returns whether [element] is a [FormalParameterElement] declared in
@@ -357,11 +345,7 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   final WorkspacePackageImpl? _workspacePackage;
   final DiagnosticReporter _diagnosticReporter;
 
-  DeprecatedMemberUseVerifier(
-    this._workspacePackage,
-    this._diagnosticReporter, {
-    required super.strictCasts,
-  });
+  DeprecatedMemberUseVerifier(this._workspacePackage, this._diagnosticReporter);
 
   @override
   void reportError(

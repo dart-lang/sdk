@@ -74,6 +74,22 @@ extension Element2Extension on Element {
     return false;
   }
 
+  /// Whether the use of this element is deprecated.
+  bool get isUseDeprecated {
+    var element = this;
+
+    var metadata =
+        (element is PropertyAccessorElement && element.isSynthetic)
+            ? element.variable.metadata
+            : element.metadata;
+
+    var annotations = metadata.annotations.where((e) => e.isDeprecated);
+    return annotations.any((annotation) {
+      var value = annotation.computeConstantValue();
+      return value?.getField('_isUse')?.toBoolValue() ?? true;
+    });
+  }
+
   /// Whether this element is a wildcard variable.
   bool get isWildcardVariable {
     return name == '_' &&

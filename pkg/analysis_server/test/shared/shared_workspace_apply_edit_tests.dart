@@ -37,7 +37,7 @@ mixin SharedWorkspaceApplyEditTests
   }
 
   Future<void> test_applyEdit_existingFile() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 void f() {
   print('--/*[0*/replace/*0]*/--');
   // --/*[1*/delete/*1]*/--

@@ -1452,7 +1452,7 @@ class AnalysisDriver {
         if (withFineDependencies && requirements != null) {
           requirements.removeReqForLibs({library.file.uri});
 
-          performance.run('writeResolvedLibrary', (_) {
+          performance.run('writeResolvedLibrary', (performance) {
             var mapSink = BufferedSink();
             mapSink.writeMap(
               fileResultBytesMap,
@@ -1470,6 +1470,7 @@ class AnalysisDriver {
             requirements.write(sink);
             sink.writeUint8List(mapBytes);
             var allBytes = sink.takeBytes();
+            performance.getDataInt('bytes').add(allBytes.length);
 
             var key = library.resolvedKey;
             _byteStore.putGet(key, allBytes);
@@ -2088,50 +2089,50 @@ class AnalysisDriver {
           }
           return;
         }
-      }
-
-      // Check if we have cached errors for all library files.
-      List<(FileState, String, Uint8List)>? forAllFiles = [];
-      for (var file in library.files) {
-        // If the file is priority, we need the resolved unit.
-        // So, the cached errors is not enough.
-        if (priorityFiles.contains(file.path)) {
-          forAllFiles = null;
-          break;
-        }
-
-        var signature = _getResolvedUnitSignature(library, file);
-        var key = _getResolvedUnitKey(signature);
-
-        var bytes = _byteStore.get(key);
-        if (bytes == null) {
-          forAllFiles = null;
-          break;
-        }
-
-        // Will not be `null` here.
-        forAllFiles?.add((file, signature, bytes));
-      }
-
-      // If we have results for all library files, produce them.
-      if (forAllFiles != null) {
-        for (var (file, signature, bytes) in forAllFiles) {
-          // We have the result for this file.
-          _fileTracker.fileWasAnalyzed(file.path);
-
-          // Don't produce the result if the signature is the same.
-          if (_lastProducedSignatures[file.path] == signature) {
-            continue;
+      } else {
+        // Check if we have cached errors for all library files.
+        List<(FileState, String, Uint8List)>? forAllFiles = [];
+        for (var file in library.files) {
+          // If the file is priority, we need the resolved unit.
+          // So, the cached errors is not enough.
+          if (priorityFiles.contains(file.path)) {
+            forAllFiles = null;
+            break;
           }
 
-          // Produce the result from bytes.
-          var result = _createErrorsResultFromBytes(file, library, bytes);
-          _lastProducedSignatures[file.path] = signature;
-          _errorsRequestedFiles.completeAll(file.path, result);
-          _scheduler.eventsController.add(result);
+          var signature = _getResolvedUnitSignature(library, file);
+          var key = _getResolvedUnitKey(signature);
+
+          var bytes = _byteStore.get(key);
+          if (bytes == null) {
+            forAllFiles = null;
+            break;
+          }
+
+          // Will not be `null` here.
+          forAllFiles?.add((file, signature, bytes));
         }
-        // We produced all results for the library.
-        return;
+
+        // If we have results for all library files, produce them.
+        if (forAllFiles != null) {
+          for (var (file, signature, bytes) in forAllFiles) {
+            // We have the result for this file.
+            _fileTracker.fileWasAnalyzed(file.path);
+
+            // Don't produce the result if the signature is the same.
+            if (_lastProducedSignatures[file.path] == signature) {
+              continue;
+            }
+
+            // Produce the result from bytes.
+            var result = _createErrorsResultFromBytes(file, library, bytes);
+            _lastProducedSignatures[file.path] = signature;
+            _errorsRequestedFiles.completeAll(file.path, result);
+            _scheduler.eventsController.add(result);
+          }
+          // We produced all results for the library.
+          return;
+        }
       }
 
       performance.run('analyzeFile', (performance) {

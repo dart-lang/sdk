@@ -3462,10 +3462,14 @@ WarningCode.DEPRECATED_EXPORT_USE:
   status: hasFix
   notes: |-
     A data driven fix using `replacedBy`.
+WarningCode.DEPRECATED_EXTEND:
+  status: hasFix
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
-    The fix is to remove `Function` from where it's referenced.
+    The fix is to remove the class from the implements list.
+WarningCode.DEPRECATED_IMPLEMENT:
+  status: hasFix
 WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
   status: hasFix
 WarningCode.DEPRECATED_MIXIN_FUNCTION:
@@ -3551,6 +3555,12 @@ WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
 WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
   status: needsFix
+WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-

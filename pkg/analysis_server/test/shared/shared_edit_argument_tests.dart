@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
@@ -871,6 +872,9 @@ const myConst = E.one;
     String expectedContent, {
     bool open = true,
   }) async {
+    content = normalizeNewlinesForPlatform(content);
+    expectedContent = normalizeNewlinesForPlatform(expectedContent);
+
     code = TestCode.parse(content);
     createFile(testFilePath, code.code);
     await initializeServer();

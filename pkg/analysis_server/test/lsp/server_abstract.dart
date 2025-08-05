@@ -15,6 +15,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -188,6 +189,12 @@ abstract class AbstractLspAnalysisServerTest
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  File newFile(String path, String content) {
+    content = normalizeNewlinesForPlatform(content);
+    return super.newFile(path, content);
   }
 
   /// Finds the registration for a given LSP method.

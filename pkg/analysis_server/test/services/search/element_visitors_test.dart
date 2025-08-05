@@ -26,7 +26,7 @@ class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
 
   @override
   Future<void> resolveTestCode(String content) {
-    code = TestCode.parse(normalizeSource(content));
+    code = TestCode.parseNormalized(content);
     return super.resolveTestCode(code.code);
   }
 

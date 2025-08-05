@@ -963,6 +963,7 @@ class BulkFixProcessor {
         errors[0],
         contents,
         node,
+        defaultEol: builder.defaultEol,
       );
       return await generator.computeFixes();
     }
