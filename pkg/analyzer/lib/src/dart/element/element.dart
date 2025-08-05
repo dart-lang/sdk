@@ -352,6 +352,9 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   bool get isExhaustive => firstFragment.isExhaustive;
 
   @override
+  bool get isExtendableOutside => !isInterface && !isFinal && !isSealed;
+
+  @override
   @trackedIncludedIntoId
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
@@ -362,6 +365,9 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   }
 
   @override
+  bool get isImplementableOutside => !isBase && !isFinal && !isSealed;
+
+  @override
   @trackedIncludedIntoId
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
@@ -369,6 +375,14 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
   set isInterface(bool isInterface) {
     setModifier(Modifier.INTERFACE, isInterface);
+  }
+
+  @override
+  bool get isMixableOutside {
+    if (library.featureSet.isEnabled(Feature.class_modifiers)) {
+      return isMixinClass && !isInterface && !isFinal && !isSealed;
+    }
+    return true;
   }
 
   @override
@@ -421,48 +435,40 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     builder.writeClassElement(this);
   }
 
+  @Deprecated('Use isExtendableOutside instead')
   @override
   @trackedIndirectly
   bool isExtendableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isInterface && !isFinal && !isSealed;
+    return library == this.library || isExtendableOutside;
   }
 
-  @Deprecated('Use isExtendableIn instead')
+  @Deprecated('Use isExtendableOutside instead')
   @override
   bool isExtendableIn2(LibraryElement library) {
     return isExtendableIn(library);
   }
 
+  @Deprecated('Use isImplementableOutside instead')
   @override
   @trackedIndirectly
   bool isImplementableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    }
-    return !isBase && !isFinal && !isSealed;
+    return library == this.library || isImplementableOutside;
   }
 
-  @Deprecated('Use isImplementableIn instead')
+  @Deprecated('Use isImplementableOutside instead')
   @override
   bool isImplementableIn2(LibraryElement library) {
     return isImplementableIn(library);
   }
 
+  @Deprecated('Use isMixableOutside instead')
   @override
   @trackedIndirectly
   bool isMixableIn(LibraryElement library) {
-    if (library == this.library) {
-      return true;
-    } else if (this.library.featureSet.isEnabled(Feature.class_modifiers)) {
-      return isMixinClass && !isInterface && !isFinal && !isSealed;
-    }
-    return true;
+    return (library == this.library) || isMixableOutside;
   }
 
-  @Deprecated('Use isMixableIn instead')
+  @Deprecated('Use isMixableOutside instead')
   @override
   bool isMixableIn2(LibraryElement library) {
     return isMixableIn(library);
@@ -7742,6 +7748,9 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   }
 
   @override
+  bool get isImplementableOutside => !isBase;
+
+  @override
   ElementKind get kind => ElementKind.MIXIN;
 
   @override
@@ -7768,6 +7777,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
     builder.writeMixinElement(this);
   }
 
+  @Deprecated('Use isImplementableOutside instead')
   @override
   bool isImplementableIn(LibraryElement library) {
     if (library == this.library) {
@@ -7776,7 +7786,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
     return !isBase;
   }
 
-  @Deprecated('Use isImplementableIn instead')
+  @Deprecated('Use isImplementableOutside instead')
   @override
   bool isImplementableIn2(LibraryElement library) {
     return isImplementableIn(library);

@@ -13,6 +13,10 @@
 * Deprecate `DartObject.variable2`, use `variable` instead.
 * Deprecate `DartObject.toFunctionValue2`, use `toFunctionValue` instead.
 * Deprecate `Annotatable`, use `documentationComment` and `metadata` of `Element` or `Fragment` directly.
+* Deprecate `ClassElement.isExtendableIn`; use `isExtendableOutside` instead.
+* Deprecate `ClassElement.isImplementableIn`; use `isImplementableOutside` instead.
+* Deprecate `ClassElement.isMixableIn`; use `isMixableOutside` instead.
+* Deprecate `MixinElement.isImplementableIn`; use `isImplementableOutside` instead.
 
 ## 8.0.0
 * Remove deprecated element model V1.
