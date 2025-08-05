@@ -9,6 +9,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart'
     as pubspec_validator;
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -28,6 +29,8 @@ abstract class PubspecFixTest with ResourceProviderMixin {
   FixKind get kind;
 
   Future<void> assertHasFix(String expected) async {
+    expected = normalizeNewlinesForPlatform(expected);
+
     var fixes = await _getFixes();
     expect(fixes, hasLength(1));
     var fix = fixes[0];
@@ -44,7 +47,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
   }
 
   void validatePubspec(String content) {
-    this.content = content;
+    this.content = content = normalizeNewlinesForPlatform(content);
     var pubspecFile = newFile('/home/test/pubspec.yaml', content);
     var node = loadYamlNode(content);
     this.node = node;
@@ -63,6 +66,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
       diagnostic,
       content,
       node,
+      defaultEol: testEol,
     );
     return await generator.computeFixes();
   }

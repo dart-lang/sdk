@@ -64,7 +64,7 @@ typedef ExpectedLabel =
 abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
   late String content;
-  late final code = TestCode.parseNormalized(content);
+  late final TestCode code = TestCode.parseNormalized(content);
 
   AbstractCompletionTest() {
     defaultInitializationOptions = {
@@ -5384,7 +5384,7 @@ stle^
 abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
   late String content;
-  late final code = TestCode.parseNormalized(content);
+  late final TestCode code = TestCode.parseNormalized(content);
 
   /// Expect that there is a snippet for [prefix] at [position] with the label
   /// [label] and return the results of applying it to [content].

@@ -5,8 +5,11 @@
 import 'dart:io';
 
 /// The EOL being used for file content in the current test run.
+///
+/// This is not used by the server itself.
 String get testEol =>
-    // TODO(dantup): Support overridding this with an env var to allow testing
+    // TODO(dantup): Support overridding this with an env var (similar to the
+    //  existing `TEST_ANALYZER_WINDOWS_PATHS` var) to allow testing
     //  `\n` on Windows or `\r\n` on non-Windows, to ensure we don't have any
     //  code just assuming the platform EOL (instead of the files EOL).
     Platform.lineTerminator;
@@ -16,6 +19,10 @@ String get testEol =>
 /// This ensures that when running on Windows, '\r\n' is used, even though
 /// source files are checked out using '\n'.
 String normalizeNewlinesForPlatform(String input) {
+  // TODO(dantup): Once all instances of useLineEndingsForPlatform have been
+  //  removed, we should try to minimize the number of explicit calls here from
+  //  tests and have them automatically normalized.
+
   // Skip normalising for other platforms, as the 'gitattributes' for the Dart
   // SDK ensures all files are '\n'.
   if (!Platform.isWindows) {

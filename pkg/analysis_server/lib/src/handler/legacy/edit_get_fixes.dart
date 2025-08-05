@@ -297,6 +297,7 @@ error.errorCode: ${diagnostic.diagnosticCode}
         diagnostic,
         content,
         node,
+        defaultEol: server.defaultEol,
       );
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {

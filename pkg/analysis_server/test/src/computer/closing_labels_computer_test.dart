@@ -386,7 +386,7 @@ void myMethod() {
   /// Compares provided closing labels with expected
   /// labels extracted from the comments in the provided content.
   Future<void> _compareLabels(String content, List<String> texts) async {
-    var testCode = TestCode.parse(normalizeSource(content));
+    var testCode = TestCode.parseNormalized(content);
 
     var ranges = testCode.ranges;
     expect(

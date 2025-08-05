@@ -9,6 +9,7 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -63,8 +64,8 @@ class C {
 }
 ''';
 
-    var code = TestCode.parse(content);
-    var otherCode = TestCode.parse(otherContent);
+    var code = TestCode.parseNormalized(content);
+    var otherCode = TestCode.parseNormalized(otherContent);
 
     var expectedStart = [
       _Token('import', SemanticTokenTypes.keyword),
@@ -144,7 +145,7 @@ class C {
     await initialize();
 
     var tokens = await getSemanticTokens(mainFileUri);
-    var decoded = _decodeSemanticTokens(content, tokens);
+    var decoded = _decodeSemanticTokens(code.code, tokens);
     expect(
       // Only check the first expectedStart.length items since the test code
       // is mostly unrelated to the annotations.
@@ -1116,7 +1117,7 @@ void f() {
 // test
 ''';
 
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     newFile(mainFilePath, code.code);
     await initialize(allowEmptyRootUri: true);
 
@@ -1165,7 +1166,7 @@ extension type E(int i) {}
     var pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     var pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
     var content = 'CLASS STRING VARIABLE';
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
 
     var expected = [
       _Token('CLASS', SemanticTokenTypes.class_),
@@ -1200,8 +1201,10 @@ extension type E(int i) {}
   ///
   /// https://github.com/dart-lang/sdk/issues/55084
   Future<void> test_immediatelyAfterUpdate() async {
-    const initialContent = 'class A {}\nclass B {}';
-    const updatedContent = 'class Aaaaa {}\nclass Bbbbb {}';
+    var initialContent = normalizeNewlinesForPlatform('''class A {}
+class B {}''');
+    var updatedContent = normalizeNewlinesForPlatform('''class Aaaaa {}
+class Bbbbb {}''');
 
     newFile(mainFilePath, initialContent);
     await initialize();
@@ -1268,7 +1271,7 @@ class MyClass2 {
   // class comment 2
 }
 ''';
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
 
     // Expect the correct tokens for the valid code before/after but don't
     // check the tokens for the invalid code as there are no concrete
@@ -1298,7 +1301,7 @@ class MyClass2 {
     await openFile(mainFileUri, code.code);
 
     var tokens = await getSemanticTokens(mainFileUri);
-    var decoded = _decodeSemanticTokens(content, tokens);
+    var decoded = _decodeSemanticTokens(code.code, tokens);
 
     // Remove the tokens between the two expected sets.
     decoded.removeRange(expected1.length, decoded.length - expected2.length);
@@ -1445,10 +1448,10 @@ myLabel:
  */''';
 
     var expected = [
-      _Token('/**\n', SemanticTokenTypes.comment, [
+      _Token('/**$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
-      _Token(' * Trailing comment\n', SemanticTokenTypes.comment, [
+      _Token(' * Trailing comment$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
       _Token(' */', SemanticTokenTypes.comment, [
@@ -1615,19 +1618,19 @@ class MyClass {}
 ''';
 
     var expected = [
-      _Token('/**\n', SemanticTokenTypes.comment, [
+      _Token('/**$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
-      _Token(' * This is my class comment\n', SemanticTokenTypes.comment, [
+      _Token(' * This is my class comment$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
-      _Token(' *\n', SemanticTokenTypes.comment, [
+      _Token(' *$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
-      _Token(' * There are\n', SemanticTokenTypes.comment, [
+      _Token(' * There are$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
-      _Token(' * multiple lines\n', SemanticTokenTypes.comment, [
+      _Token(' * multiple lines$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
       _Token(' */', SemanticTokenTypes.comment, [
@@ -2146,10 +2149,10 @@ class!] MyClass {}
 ''';
 
     var expected = [
-      _Token(' * There are\n', SemanticTokenTypes.comment, [
+      _Token(' * There are$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
-      _Token(' * multiple lines\n', SemanticTokenTypes.comment, [
+      _Token(' * multiple lines$eol', SemanticTokenTypes.comment, [
         SemanticTokenModifiers.documentation,
       ]),
       _Token(' */', SemanticTokenTypes.comment, [
@@ -2297,10 +2300,10 @@ multi
       _Token('string4', SemanticTokenTypes.variable, [
         SemanticTokenModifiers.declaration,
       ]),
-      _Token("'''\n", SemanticTokenTypes.string),
-      _Token('multi\n', SemanticTokenTypes.string),
-      _Token('  line\n', SemanticTokenTypes.string),
-      _Token('    string\n', SemanticTokenTypes.string),
+      _Token("'''$eol", SemanticTokenTypes.string),
+      _Token('multi$eol', SemanticTokenTypes.string),
+      _Token('  line$eol', SemanticTokenTypes.string),
+      _Token('    string$eol', SemanticTokenTypes.string),
       _Token("'''", SemanticTokenTypes.string),
     ];
 
@@ -2913,7 +2916,7 @@ void f() {
 
   /// Decode tokens according to the LSP spec and pair with relevant file contents.
   List<_Token> _decodeSemanticTokens(String content, SemanticTokens tokens) {
-    var contentLines = content.split('\n').map((line) => '$line\n').toList();
+    var contentLines = content.split(eol).map((line) => '$line$eol').toList();
     var results = <_Token>[];
 
     var lastLine = 0;
@@ -2953,11 +2956,11 @@ void f() {
     Uri? uri,
   }) async {
     uri ??= mainFileUri;
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     newFile(fromUri(uri), code.code);
     await initialize();
 
-    await _verifyTokens(uri, content, expected);
+    await _verifyTokens(uri, code.code, expected);
   }
 
   /// Initializes the server with [content] in [uri] and then checks the
@@ -2968,7 +2971,7 @@ void f() {
     Uri? uri,
   }) async {
     uri ??= mainFileUri;
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     newFile(fromUri(uri), code.code);
     await initialize();
 

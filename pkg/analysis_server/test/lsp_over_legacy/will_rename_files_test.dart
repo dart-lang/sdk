@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_will_rename_files.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -118,22 +119,22 @@ part '../dest2/other.dart';<<<<<<<<<<
     var otherFilePath = join(testPackageLibPath, 'other.dart');
     var otherFileNewPath = join(testPackageLibPath, 'other_new.dart');
 
-    var mainContent = '''
+    var mainContent = normalizeNewlinesForPlatform('''
 import 'other.dart';
 
 final a = A();
-''';
+''');
 
-    var otherContent = '''
+    var otherContent = normalizeNewlinesForPlatform('''
 class A {}
-''';
+''');
 
-    var expectedContent = '''
+    var expectedContent = normalizeNewlinesForPlatform('''
 >>>>>>>>>> lib/test.dart
 import 'other_new.dart';
 
 final a = A();
-''';
+''');
 
     newFile(testFilePath, mainContent);
     newFile(otherFilePath, otherContent);

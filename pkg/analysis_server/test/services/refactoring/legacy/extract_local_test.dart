@@ -1900,7 +1900,7 @@ void f() {
   /// [SourceChange] to [testUnit] is [expectedContent] after parsing with
   /// [TestCode].
   Future<void> _assertSuccessfulRefactoring(String expectedContent) async {
-    parsedExpectedCode = TestCode.parse(normalizeSource(expectedContent));
+    parsedExpectedCode = TestCode.parseNormalized(expectedContent);
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;

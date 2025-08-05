@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
@@ -10,6 +14,10 @@ import 'request_helpers_mixin.dart';
 
 /// Applies LSP [WorkspaceEdit]s to produce a flattened string describing the
 /// new file contents and any create/rename/deletes to use in test expectations.
+///
+/// Expects all file content to use [testEol] and automatically
+/// normalizes expectations to use the same. Does not normalize edits, as line
+/// ending differences in edits indicate a bug in the edit creation.
 class LspChangeVerifier {
   /// Marks that signifies the start of an edit description.
   static final editMarkerStart = '>>>>>>>>>>';
@@ -27,11 +35,16 @@ class LspChangeVerifier {
   /// The [WorkspaceEdit] being applied/verified.
   final WorkspaceEdit edit;
 
+  /// The line terminator to use in the output.
+  final String endOfLine = testEol;
+
   LspChangeVerifier(this.editHelpers, this.edit) {
     _applyEdit();
   }
 
   void verifyFiles(String expected, {Map<Uri, int>? expectedVersions}) {
+    expected = normalizeNewlinesForPlatform(expected);
+
     var actual = _toChangeString();
     if (actual != expected) {
       print('-' * 64);
@@ -182,6 +195,18 @@ class LspChangeVerifier {
   String _applyTextEdits(String content, List<TextEdit> changes) =>
       editHelpers.applyTextEdits(content, changes);
 
+  /// Assert that [input] uses the current platforms line endings.
+  void _assertLineEnding(String input) {
+    var actualLineEnding = input.endOfLine;
+    if (actualLineEnding != null) {
+      assert(
+        actualLineEnding == endOfLine,
+        'Expected line ending ${jsonEncode(endOfLine)} '
+        'but string uses ${jsonEncode(actualLineEnding)}',
+      );
+    }
+  }
+
   _Change _change(Uri fileUri) => _changes.putIfAbsent(
     fileUri,
     () => _Change(_getCurrentFileContent(fileUri)),
@@ -197,8 +222,13 @@ class LspChangeVerifier {
     expect(edit.textDocument.version, equals(expectedVersion));
   }
 
-  String? _getCurrentFileContent(Uri uri) =>
-      editHelpers.getCurrentFileContent(uri);
+  String? _getCurrentFileContent(Uri uri) {
+    var content = editHelpers.getCurrentFileContent(uri);
+    if (content != null) {
+      _assertLineEnding(content);
+    }
+    return content;
+  }
 
   String _relativeUri(Uri uri) => editHelpers.relativeUri(uri);
 
@@ -220,7 +250,7 @@ class LspChangeVerifier {
       if (content?.isEmpty ?? false) {
         buffer.write(' empty');
       }
-      buffer.writeln();
+      buffer.write(endOfLine);
 
       // Write any annotations.
       if (annotations.isNotEmpty) {
@@ -231,7 +261,7 @@ class LspChangeVerifier {
             buffer.write(' (${annotation.description})');
           }
           buffer.write(': ${operations.join(', ')}');
-          buffer.writeln();
+          buffer.write(endOfLine);
         }
       }
 
@@ -242,7 +272,8 @@ class LspChangeVerifier {
         // If the content didn't end with a newline we need to add one, but
         // add a marked so it's clear there was no trailing newline.
         if (content.isNotEmpty && !content.endsWith('\n')) {
-          buffer.writeln(editMarkerEnd);
+          buffer.write(editMarkerEnd);
+          buffer.write(endOfLine);
         }
       }
     }

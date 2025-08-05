@@ -550,13 +550,11 @@ class B extends A {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
-    var libCode = TestCode.parse(
-      normalizeSource(r'''
+    var libCode = TestCode.parseNormalized(r'''
 class A {
   /*[0*/newName/*0]*/() {}
 }
-'''),
-    );
+''');
     await indexUnit('$testPackageLibPath/lib.dart', libCode.code);
     await indexTestUnit('''
 import 'lib.dart';
@@ -1930,13 +1928,11 @@ enum E with M {
 
   Future<void>
   test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
-    var libCode = TestCode.parse(
-      normalizeSource(r'''
+    var libCode = TestCode.parseNormalized(r'''
 mixin M {
   void /*[0*/newName/*0]*/() {}
 }
-'''),
-    );
+''');
     await indexUnit('$testPackageLibPath/lib.dart', libCode.code);
     await indexTestUnit('''
 import 'lib.dart';

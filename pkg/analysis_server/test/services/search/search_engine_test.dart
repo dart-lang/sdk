@@ -61,12 +61,8 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
     return SearchEngineImpl(allDrivers);
   }
 
-  TestCode parseCode(String content) {
-    return TestCode.parse(normalizeSource(content));
-  }
-
   Future<TestCode> resolveParsedCode(String content) async {
-    var code = parseCode(content);
+    var code = TestCode.parseNormalized(content);
     await resolveTestCode(code.code);
     return code;
   }
@@ -310,13 +306,13 @@ mixin E implements C {}
   }
 
   Future<void> test_searchMemberDeclarations() async {
-    var codeA = parseCode('''
+    var codeA = TestCode.parseNormalized('''
 class A {
   int ^test;
   int testTwo;
 }
 ''');
-    var codeB = parseCode('''
+    var codeB = TestCode.parseNormalized('''
 class B {
   void ^test() {}
   void testTwo() {}
@@ -431,9 +427,7 @@ int t;
         await driverFor(testFile).getLibraryByUri('dart:core')
             as LibraryElementResult;
     var intElement =
-        coreLibResult.element.classes.firstWhereOrNull(
-          (e) => e.name == 'int',
-        )!;
+        coreLibResult.element.classes.firstWhereOrNull((e) => e.name == 'int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
 

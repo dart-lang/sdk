@@ -154,7 +154,7 @@ var a = [!!]1;
   }
 
   Future<void> test_good() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 var a = [!!]'';
 ''');
 

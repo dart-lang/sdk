@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -837,8 +838,8 @@ class MyNewClass {}
     const mainVersion = 111;
     const referencedVersion = 222;
 
-    var mainCode = TestCode.parse(mainContent);
-    var referencedCode = TestCode.parse(referencedContent);
+    var mainCode = TestCode.parseNormalized(mainContent);
+    var referencedCode = TestCode.parseNormalized(referencedContent);
 
     // Create initial files (to avoid diagnostics).
     newFile(mainFilePath, mainCode.code);
@@ -1017,7 +1018,7 @@ final a = new My^Class();
 class MyNewClass {}
 final a = new MyNewClass();
 ''';
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
 
     await initialize();
     await openFile(mainFileUri, code.code, version: 222);
@@ -1186,7 +1187,7 @@ final a = new MyNewClass();
   }) async {
     setDocumentChangesSupport();
 
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     await initialize(
       experimentalCapabilities:
           supportsWindowShowMessageRequest
@@ -1239,6 +1240,11 @@ final a = new MyNewClass();
     bool supportsWindowShowMessageRequest = true,
     List<Uri>? workspaceFolders,
   }) async {
+    content = normalizeNewlinesForPlatform(content);
+    if (expectedContent != null) {
+      expectedContent = normalizeNewlinesForPlatform(expectedContent);
+    }
+
     filePath ??= mainFilePath;
     expectedFilePath ??= filePath;
     var fileUri = pathContext.toUri(filePath);
