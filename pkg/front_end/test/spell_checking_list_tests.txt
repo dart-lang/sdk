@@ -49,6 +49,7 @@ aoo
 aotruntime
 applier
 approval
+approve
 approximation
 arbitrarily
 area

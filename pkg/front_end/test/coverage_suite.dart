@@ -11,8 +11,6 @@ import 'package:args/src/arg_results.dart';
 
 import '../tool/coverage_merger.dart' as coverageMerger;
 
-part 'coverage_suite_expected.dart';
-
 bool debug = false;
 
 Future<void> main([List<String> arguments = const <String>[]]) async {
@@ -111,20 +109,6 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
     }
   }
 
-  StringBuffer updatedExpectations = new StringBuffer();
-  updatedExpectations.write("""
-// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-part of "coverage_suite.dart";
-
-// This is the currently recorded state
-// using out/ReleaseX64/dart-sdk/bin/dart (which for instance makes a
-// difference for compute_platform_binaries_location.dart).
-const Map<String, ({int hitCount, int missCount})> _expect = {
-""");
-
   for (MapEntry<Uri, coverageMerger.CoverageInfo> coverageEntry
       in coverageData.entries) {
     if (coverageEntry.value.error) {
@@ -134,64 +118,34 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
       StringBuffer sb = new StringBuffer();
       int hitCount = coverageEntry.value.hitCount;
       int missCount = coverageEntry.value.missCount;
-      double percent = (hitCount / (hitCount + missCount) * 100);
-      if (percent.isNaN) percent = 100;
-      if (options.updateExpectations) {
-        updatedExpectations.writeln("  // $percent%.");
-        updatedExpectations.writeln("  \"${coverageEntry.key}\": "
-            "(hitCount: $hitCount, missCount: $missCount,),");
-        continue;
-      }
-      bool pass = true;
-      ({int hitCount, int missCount})? expected =
-          _expect[coverageEntry.key.toString()];
-      if (expected != null) {
-        // TODO(jensj): Should we warn if hitCount goes down?
-        // Or be ok with it if both hitCount and missCount goes up?
-        // Or something else?
-        double expectedPercent = (expected.hitCount /
-            (expected.hitCount + expected.missCount) *
-            100);
-        if (expectedPercent.isNaN) expectedPercent = 100;
-        int requireAtLeast = expectedPercent.floor();
-        pass = percent >= requireAtLeast;
-        if (!pass) {
-          sb.write("${coverageEntry.value.visualization}");
-          sb.write("\n\nExpected at least $requireAtLeast%, got $percent% "
-              "($hitCount hits (expected: ${expected.hitCount}) and "
-              "$missCount misses (expected: ${expected.missCount})).");
-          sb.write("\n\nTo re-run this test, run:");
-          var extraFlags = _assertsEnabled ? ' --enable-asserts' : '';
-          // It looks like coverage results vary slightly based on the number of
-          // tasks, so include a `--tasks=` argument in the repro instructions.
-          //
-          // TODO(paulberry): why do coverage results vary based on the number
-          // of tasks? (Note: possibly due to
-          // https://github.com/dart-lang/sdk/issues/42061)
-          sb.write(
-              "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
-              "--tasks=${options.numberOfWorkers}");
-          sb.write("\n\n   Or update the expectations directly via");
-          sb.write(
-              "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
-              "--tasks=${options.numberOfWorkers} "
-              "--add-and-remove-comments "
-              "--update-expectations");
-        }
+      final bool pass = missCount == 0;
+      if (!pass) {
+        sb.write("${coverageEntry.value.visualization}");
+        double percent = (hitCount / (hitCount + missCount) * 100);
+        sb.write("\n\nExpected 100% coverage, but got $percent% "
+            "($hitCount hits and $missCount misses).");
+        sb.write("\n\nTo re-run this test, run:");
+        var extraFlags = _assertsEnabled ? ' --enable-asserts' : '';
+        // It looks like coverage results vary slightly based on the number of
+        // tasks, so include a `--tasks=` argument in the repro instructions.
+        //
+        // TODO(paulberry): why do coverage results vary based on the number
+        // of tasks? (Note: possibly due to
+        // https://github.com/dart-lang/sdk/issues/42061)
+        sb.write(
+            "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
+            "--tasks=${options.numberOfWorkers}");
+        sb.write("\n\n   Or automatically insert ignore comments via");
+        sb.write(
+            "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
+            "--tasks=${options.numberOfWorkers} "
+            "--add-and-remove-comments");
+        sb.write("\n\nIf that does not work, create a bug report and approve "
+            "the failure.");
       }
       addResult(coverageEntry.key.toString(), pass,
           log: sb.isEmpty ? null : sb.toString());
     }
-  }
-
-  updatedExpectations.writeln("};");
-  if (options.updateExpectations) {
-    File f = new File.fromUri(
-        Uri.base.resolve("pkg/front_end/test/coverage_suite_expected.dart"));
-    f.writeAsStringSync(updatedExpectations.toString());
-    ProcessResult formatResult =
-        Process.runSync(Platform.resolvedExecutable, ["format", f.path]);
-    print("Formatting exit-code: ${formatResult.exitCode}");
   }
 
   // Write results.json and logs.json.
@@ -237,7 +191,6 @@ class Options {
   final String? configurationName;
   final bool verbose;
   final bool debug;
-  final bool updateExpectations;
   final bool addAndRemoveCommentsInFiles;
   final Uri outputDirectory;
   final int numberOfWorkers;
@@ -246,7 +199,6 @@ class Options {
     this.configurationName,
     this.verbose,
     this.debug,
-    this.updateExpectations,
     this.addAndRemoveCommentsInFiles,
     this.outputDirectory, {
     required this.numberOfWorkers,
@@ -266,8 +218,6 @@ class Options {
           abbr: "j",
           help: "The number of parallel tasks to run.",
           defaultsTo: "${getDefaultThreads()}")
-      ..addFlag("update-expectations",
-          help: "update expectations", defaultsTo: false)
       ..addFlag("add-and-remove-comments",
           help: "Automatically remove old and then "
               "re-add ignore comments in files",
@@ -288,7 +238,6 @@ class Options {
     if (tasks == null || tasks < 1) {
       throw "--tasks (-j) has to be an integer >= 1";
     }
-    bool updateExpectations = parsedOptions["update-expectations"];
     bool addAndRemoveCommentsInFiles = parsedOptions["add-and-remove-comments"];
 
     if (verbose) {
@@ -298,7 +247,6 @@ class Options {
           "debug = ${debug},\n  "
           "${outputDirectory},\n  "
           "numberOfWorkers: ${tasks},\n  "
-          "updateExpectations = ${updateExpectations}\n  "
           "addAndRemoveCommentsInFiles = ${addAndRemoveCommentsInFiles}");
     }
 
@@ -306,7 +254,6 @@ class Options {
       parsedOptions["named-configuration"],
       verbose,
       debug,
-      updateExpectations,
       addAndRemoveCommentsInFiles,
       outputDirectory,
       numberOfWorkers: tasks,
