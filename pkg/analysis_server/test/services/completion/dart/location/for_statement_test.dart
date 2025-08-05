@@ -46,9 +46,26 @@ suggestions
 
   Future<void> test_afterIn() async {
     await computeSuggestions('''
-void f(List<(int, int)> x01) {
-  for (final (a, b) in ^)
+void f(List<int> x01) {
+  for (final a in ^)
 }
+''');
+    assertResponse(r'''
+suggestions
+  x01
+    kind: parameter
+  await
+    kind: keyword
+''');
+  }
+
+  Future<void> test_afterIn_notVoid() async {
+    await computeSuggestions('''
+void f(List<int> x01) {
+  for (final a in ^)
+}
+
+void f01() {}
 ''');
     assertResponse(r'''
 suggestions
