@@ -104,8 +104,8 @@ class MessageCode extends Code implements Message {
   }
 }
 
-class Template<T> {
-  final String messageCode;
+class Template<T> extends Code {
+  String get messageCode => name;
 
   final String problemMessageTemplate;
 
@@ -114,13 +114,13 @@ class Template<T> {
   final T withArguments;
 
   const Template(
-    this.messageCode, {
+    super.name, {
     this.correctionMessageTemplate,
     required this.problemMessageTemplate,
     required this.withArguments,
-    int index = -1,
-    List<String>? analyzerCodes,
-    CfeSeverity severity = CfeSeverity.error,
+    super.index = -1,
+    super.analyzerCodes,
+    super.severity = CfeSeverity.error,
   });
 
   @override
