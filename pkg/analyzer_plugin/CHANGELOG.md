@@ -1,18 +1,27 @@
+## 0.13.6-dev
+
+- Require version `^8.1.0` of the `analyzer` package.
+
 ## 0.13.5
+
 - Require version `^8.0.0` of the `analyzer` package.
 
 ## 0.13.4
+
 - Require version `^7.5.1` of the `analyzer` package.
 
 ## 0.13.2
+
 - Deprecated: `RangeFactory.error` is replaced by `RangeFactory.diagnostic`.
 - Require version `^7.4.6` of the `analyzer` package.
 
 ## 0.13.1
+
 - Updated SDK constraint to `^3.5.0`.
 - Require version `7.4.x` of the `analyzer` package.
 
 ## 0.13.0
+
 - Remove `elementName()` from `RangeFactory`. Use `fragmentName()` instead.
 - Breaking changes to `DartFileEditBuilder` and `DartEditBuilder`.
 - Breaking changes to `AnalyzerConverter`.
@@ -20,6 +29,7 @@
   `isAnalyzing` `bool` field.
 
 ## 0.12.0
+
 - Breaking changes to `DartFileEditBuilder`: `convertFunctionFromSyncToAsync`
   and `replaceTypeWithFuture`.
 - Breaking changes to all classes in `lib/protocol/protocol_common.dart` and
