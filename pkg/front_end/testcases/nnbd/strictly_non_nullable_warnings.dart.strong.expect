@@ -70,7 +70,7 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   let final core::String #t15 = s in #t15 == null ?{core::String?} null : #t15.{core::String::substring}(0, 0){(core::int, [core::int?]) → core::String};
   let final core::List<core::String> #t16 = l in #t16 == null ?{core::int?} null : #t16.{core::List::length} = 42;
   let final core::List<core::String> #t17 = l in #t17 == null ?{core::int?} null : #t17.{core::List::length} = #t17.{core::List::length}{core::int}.{core::num::+}(42){(core::num) → core::int};
-  let final core::List<core::String> #t18 = l in #t18 == null ?{core::int?} null : #t18.{core::List::length}{core::int} == null ?{core::int?} #t18.{core::List::length} = 42 : null;
+  let final core::List<core::String> #t18 = l in #t18 == null ?{core::int?} null : #t18{core::List<core::String>}.{core::List::length}{core::int} == null ?{core::int?} #t18{core::List<core::String>}.{core::List::length} = 42 : null;
   let final core::String #t19 = s in #t19 == null ?{core::int?} null : self::E|get#foo(#t19);
   let final core::String #t20 = s in let final core::int #t21 = 42 in self::E|[](#t20, #t21) == null ?{core::int?} self::E|[]=(#t20, #t21, 42) : null;
   let final core::List<core::String> #t22 = l in let final core::int #t23 = 42 in #t22.{core::List::[]}(#t23){(core::int) → core::String} == null ?{core::String?} #t22.{core::List::[]=}(#t23, "foo"){(core::int, core::String) → void} : null;

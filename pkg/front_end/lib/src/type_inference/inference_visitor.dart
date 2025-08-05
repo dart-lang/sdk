@@ -8205,9 +8205,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration receiverVariable =
         createVariable(receiver, receiverType);
     createNullAwareGuard(receiverVariable);
-    Expression readReceiver = createVariableGet(receiverVariable);
-    Expression writeReceiver = createVariableGet(receiverVariable);
     DartType nonNullReceiverType = receiverType.toNonNull();
+
+    Expression readReceiver =
+        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
+    Expression writeReceiver =
+        createVariableGet(receiverVariable, promotedType: nonNullReceiverType);
 
     ExpressionInferenceResult readResult = _computePropertyGet(node.readOffset,
             readReceiver, nonNullReceiverType, node.name, typeContext,

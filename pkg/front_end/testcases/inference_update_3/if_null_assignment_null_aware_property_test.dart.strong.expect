@@ -45,7 +45,7 @@ static method contextB1Question<T extends core::Object? = dynamic>(self::B1<self
 static method main() → dynamic {
   self::Test? test = new self::Test::•() as self::Test?;
   self::C2<core::double> c2Double = new self::C2::•<core::double>();
-  self::contextB1Question<dynamic>(let final self::Test? #t1 = test in #t1 == null ?{self::B1<dynamic>?} null : let final self::C1<core::int>? #t2 = #t1.{self::Test::pC1IntQuestion}{self::C1<core::int>?} in #t2 == null ?{self::B1<dynamic>?} #t1.{self::Test::pC1IntQuestion} = c2Double : #t2{self::C1<core::int>});
+  self::contextB1Question<dynamic>(let final self::Test? #t1 = test in #t1 == null ?{self::B1<dynamic>?} null : let final self::C1<core::int>? #t2 = #t1{self::Test}.{self::Test::pC1IntQuestion}{self::C1<core::int>?} in #t2 == null ?{self::B1<dynamic>?} #t1{self::Test}.{self::Test::pC1IntQuestion} = c2Double : #t2{self::C1<core::int>});
   core::List<core::num> listNum = <core::num>[];
-  self::contextIterableQuestion<core::num>(let final self::Test? #t3 = test in #t3 == null ?{core::Iterable<core::num>?} null : let final core::Iterable<core::int>? #t4 = #t3.{self::Test::pIterableIntQuestion}{core::Iterable<core::int>?} in #t4 == null ?{core::Iterable<core::num>?} #t3.{self::Test::pIterableIntQuestion} = listNum : #t4{core::Iterable<core::int>});
+  self::contextIterableQuestion<core::num>(let final self::Test? #t3 = test in #t3 == null ?{core::Iterable<core::num>?} null : let final core::Iterable<core::int>? #t4 = #t3{self::Test}.{self::Test::pIterableIntQuestion}{core::Iterable<core::int>?} in #t4 == null ?{core::Iterable<core::num>?} #t3{self::Test}.{self::Test::pIterableIntQuestion} = listNum : #t4{core::Iterable<core::int>});
 }

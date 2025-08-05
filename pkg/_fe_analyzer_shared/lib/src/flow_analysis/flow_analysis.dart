@@ -4034,6 +4034,11 @@ class PromotionModel<Type extends Object> {
     List<Type>? candidates = null;
 
     void handleTypeOfInterest(Type type) {
+      // If the written type is invalid, we assume no promotion.
+      if (helper.typeOperations.isInvalidType(writtenType)) {
+        return;
+      }
+
       // The written type must be a subtype of the type.
       if (!helper.typeOperations.isSubtypeOf(writtenType, type)) {
         return;

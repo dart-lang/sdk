@@ -86,6 +86,32 @@ f() {
 
 @reflectiveTest
 class UnnecessaryNullComparisonTrueTest extends PubPackageResolutionTest {
+  test_equal_invalid_nonNull() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nonNull;
+  i == null;
+  null == i;
+}
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+    );
+  }
+
+  test_equal_invalid_nullable() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nullable;
+  i == null;
+  null == i;
+}
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+    );
+  }
+
   test_notEqual_intLiteral() async {
     await assertNoErrorsInCode('''
 f(int a, int? b) {
@@ -95,6 +121,32 @@ f(int a, int? b) {
   0 != b;
 }
 ''');
+  }
+
+  test_notEqual_invalid_nonNull() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nonNull;
+  i != null;
+  null != i;
+}
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+    );
+  }
+
+  test_notEqual_invalid_nullable() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nullable;
+  i != null;
+  null != i;
+}
+''',
+      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 2, 10)],
+    );
   }
 
   test_notEqual_notNullable() async {

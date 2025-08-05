@@ -1285,6 +1285,11 @@ class TypeSystem {
     //   types with a single name and no type arguments (this covers both
     //   primitive types and type variables).
     switch ((t0, t1)) {
+      case (InvalidType(), _):
+      case (_, InvalidType()):
+        // `InvalidType` is treated as a top and a bottom type, which is
+        // consistent with CFE and analyzer implementations.
+        return true;
       case (
             PrimaryType(nameInfo: var t0Info, isQuestionType: false, args: []),
             PrimaryType(nameInfo: var t1Info, isQuestionType: false, args: []),
@@ -1316,7 +1321,7 @@ class TypeSystem {
     if (_isTop(t1)) return true;
 
     // Left Top: if T0 is dynamic or void then T0 <: T1 if Object? <: T1
-    if (t0 is DynamicType || t0 is InvalidType || t0 is VoidType) {
+    if (t0 is DynamicType || t0 is VoidType) {
       return isSubtype(_objectQuestionType, t1);
     }
 
@@ -1355,7 +1360,6 @@ class TypeSystem {
       //   false).
       if (t0 is NullType ||
           t0 is DynamicType ||
-          t0 is InvalidType ||
           t0 is VoidType ||
           t0.isQuestionType) {
         return false;
