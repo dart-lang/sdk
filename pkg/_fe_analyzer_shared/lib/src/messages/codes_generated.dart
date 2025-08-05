@@ -29,6 +29,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' is abstract and can't be instantiated.""",
   withArguments: _withArgumentsAbstractClassInstantiation,
+  analyzerCodes: <String>["NEW_WITH_ABSTRACT_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -165,6 +166,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Factory redirects to class '#name', which is abstract and can't be instantiated.""",
   withArguments: _withArgumentsAbstractRedirectedClassInstantiation,
+  analyzerCodes: <String>["FACTORY_REDIRECTS_TO_ABSTRACT_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -300,6 +302,7 @@ const Template<Message Function(int codePoint)> templateAsciiControlCharacter =
   problemMessageTemplate:
       r"""The control character #unicode can only be used in strings and comments.""",
   withArguments: _withArgumentsAsciiControlCharacter,
+  analyzerCodes: <String>["ILLEGAL_CHARACTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -405,6 +408,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' can't be implemented outside of its library because it's a base class.""",
   withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
+  analyzerCodes: <String>["BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -446,6 +450,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The mixin '#name' can't be implemented outside of its library because it's a base mixin.""",
   withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
+  analyzerCodes: <String>["BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -476,6 +481,7 @@ const Template<Message Function(String name, String name2)>
   problemMessageTemplate:
       r"""The type '#name' is a subtype of '#name2', and '#name2' is defined here.""",
   withArguments: _withArgumentsBaseOrFinalClassImplementedOutsideOfLibraryCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -511,6 +517,7 @@ const Template<Message Function(String string, String string2)>
       r"""Binary operator '#string' is written as '#string2' instead of the written out word.""",
   correctionMessageTemplate: r"""Try replacing '#string' with '#string2'.""",
   withArguments: _withArgumentsBinaryOperatorWrittenOut,
+  index: 112,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -545,6 +552,7 @@ const Template<Message Function(String name, String name2)>
   correctionMessageTemplate:
       r"""Try providing type arguments to '#name2' here or to some other raw types in the bounds along the reference chain.""",
   withArguments: _withArgumentsBoundIssueViaCycleNonSimplicity,
+  analyzerCodes: <String>["NOT_INSTANTIATED_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -583,6 +591,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try providing type arguments to '#name' here.""",
   withArguments: _withArgumentsBoundIssueViaLoopNonSimplicity,
+  analyzerCodes: <String>["NOT_INSTANTIATED_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -616,6 +625,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try providing type arguments to '#name' here.""",
   withArguments: _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds,
+  analyzerCodes: <String>["NOT_INSTANTIATED_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -659,6 +669,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Can't break to '#name' in a different function.""",
   withArguments: _withArgumentsBreakTargetOutsideFunction,
+  analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -687,6 +698,7 @@ const Template<Message Function(Token token)> templateBuiltInIdentifierAsType =
   problemMessageTemplate:
       r"""The built-in identifier '#lexeme' can't be used as a type.""",
   withArguments: _withArgumentsBuiltInIdentifierAsType,
+  analyzerCodes: <String>["BUILT_IN_IDENTIFIER_AS_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -715,6 +727,7 @@ const Template<Message Function(Token token)>
   "BuiltInIdentifierInDeclaration",
   problemMessageTemplate: r"""Can't use '#lexeme' as a name here.""",
   withArguments: _withArgumentsBuiltInIdentifierInDeclaration,
+  analyzerCodes: <String>["BUILT_IN_IDENTIFIER_IN_DECLARATION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -753,6 +766,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' has a constructor that takes no arguments.""",
   withArguments: _withArgumentsCandidateFoundIsDefaultConstructor,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1014,6 +1028,7 @@ const Template<Message Function(String name)>
       r"""Can't infer a return type for '#name' as the overridden members don't have a combined signature.""",
   correctionMessageTemplate: r"""Try adding an explicit type.""",
   withArguments: _withArgumentsCantInferReturnTypeDueToNoCombinedSignature,
+  analyzerCodes: <String>["COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1046,6 +1061,7 @@ const Template<Message Function(String string)>
       r"""Can't infer the type of '#string': circularity found during type inference.""",
   correctionMessageTemplate: r"""Specify the type explicitly.""",
   withArguments: _withArgumentsCantInferTypeDueToCircularity,
+  analyzerCodes: <String>["RECURSIVE_COMPILE_TIME_CONSTANT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1077,6 +1093,7 @@ const Template<Message Function(String name)>
       r"""Can't infer a type for '#name' as the overridden members don't have a combined signature.""",
   correctionMessageTemplate: r"""Try adding an explicit type.""",
   withArguments: _withArgumentsCantInferTypeDueToNoCombinedSignature,
+  analyzerCodes: <String>["COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1109,6 +1126,7 @@ const Template<Message Function(String name)>
       r"""Can't infer types for '#name' as the overridden members don't have a combined signature.""",
   correctionMessageTemplate: r"""Try adding explicit types.""",
   withArguments: _withArgumentsCantInferTypesDueToNoCombinedSignature,
+  analyzerCodes: <String>["COMPILE_TIME_ERROR.NO_COMBINED_SUPER_SIGNATURE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1138,6 +1156,7 @@ const Template<Message Function(Uri uri_, String string)> templateCantReadFile =
   "CantReadFile",
   problemMessageTemplate: r"""Error when reading '#uri': #string""",
   withArguments: _withArgumentsCantReadFile,
+  analyzerCodes: <String>["URI_DOES_NOT_EXIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1167,6 +1186,7 @@ const Template<Message Function(String name)> templateCantUseClassAsMixin =
   problemMessageTemplate:
       r"""The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
   withArguments: _withArgumentsCantUseClassAsMixin,
+  analyzerCodes: <String>["CLASS_USED_AS_MIXIN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1197,6 +1217,7 @@ const Template<Message Function(Token token)>
   problemMessageTemplate:
       r"""'#lexeme' is not supported in constant expressions.""",
   withArguments: _withArgumentsCantUseControlFlowOrSpreadAsConstant,
+  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1228,6 +1249,7 @@ const Template<Message Function(Token token)>
       r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
   withArguments: _withArgumentsCantUseDeferredPrefixAsConstant,
+  analyzerCodes: <String>["CONST_DEFERRED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1411,6 +1433,7 @@ const Template<Message Function(String name, String name2)>
   correctionMessageTemplate:
       r"""Try adding a declaration of '#name2' to '#name'.""",
   withArguments: _withArgumentsCombinedMemberSignatureFailed,
+  analyzerCodes: <String>["INCONSISTENT_INHERITANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1447,6 +1470,7 @@ const Template<Message Function(String string, String string2)>
       r"""Members can't be declared to be both '#string' and '#string2'.""",
   correctionMessageTemplate: r"""Try removing one of the keywords.""",
   withArguments: _withArgumentsConflictingModifiers,
+  index: 59,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1479,6 +1503,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Conflicts with the implicit setter of the field '#name'.""",
   withArguments: _withArgumentsConflictsWithImplicitSetter,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1508,6 +1533,7 @@ const Template<Message Function(String name)>
   "ConflictsWithImplicitSetterCause",
   problemMessageTemplate: r"""Field '#name' with the implicit setter.""",
   withArguments: _withArgumentsConflictsWithImplicitSetterCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1536,6 +1562,7 @@ const Template<Message Function(String name)>
   "ConflictsWithTypeParameter",
   problemMessageTemplate: r"""Conflicts with type variable '#name'.""",
   withArguments: _withArgumentsConflictsWithTypeParameter,
+  analyzerCodes: <String>["CONFLICTING_TYPE_VARIABLE_AND_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1705,6 +1732,9 @@ const Template<Message Function(String nameOKEmpty)>
       r"""Try moving the constant from the deferred library, or removing 'deferred' from the import.
 """,
   withArguments: _withArgumentsConstEvalDeferredLibrary,
+  analyzerCodes: <String>[
+    "INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY"
+  ],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1806,6 +1836,7 @@ const Template<Message Function(String stringOKEmpty)>
   problemMessageTemplate:
       r"""This assertion failed with message: #stringOKEmpty""",
   withArguments: _withArgumentsConstEvalFailedAssertionWithMessage,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1873,6 +1904,7 @@ const Template<Message Function(String nameOKEmpty)>
   problemMessageTemplate:
       r"""The invocation of '#nameOKEmpty' is not allowed in a constant expression.""",
   withArguments: _withArgumentsConstEvalInvalidStaticInvocation,
+  analyzerCodes: <String>["CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1935,6 +1967,7 @@ const Template<Message Function(String nameOKEmpty)>
   problemMessageTemplate:
       r"""The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed.""",
   withArguments: _withArgumentsConstEvalNonConstantVariableGet,
+  analyzerCodes: <String>["NON_CONSTANT_VALUE_IN_INITIALIZER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2079,6 +2112,7 @@ const Template<Message Function(String string, String string2)>
   problemMessageTemplate:
       r"""Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'.""",
   withArguments: _withArgumentsConstEvalZeroDivisor,
+  analyzerCodes: <String>["CONST_EVAL_THROWS_IDBZE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2139,6 +2173,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try adding an initializer ('= expression') to the declaration.""",
   withArguments: _withArgumentsConstFieldWithoutInitializer,
+  analyzerCodes: <String>["CONST_NOT_INITIALIZED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2193,6 +2228,7 @@ const Template<Message Function(String name)>
   "ConstructorConflictsWithMember",
   problemMessageTemplate: r"""The constructor conflicts with member '#name'.""",
   withArguments: _withArgumentsConstructorConflictsWithMember,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2221,6 +2257,7 @@ const Template<Message Function(String name)>
   "ConstructorConflictsWithMemberCause",
   problemMessageTemplate: r"""Conflicting member '#name'.""",
   withArguments: _withArgumentsConstructorConflictsWithMemberCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2263,6 +2300,7 @@ const Template<Message Function(String name)>
       r"""'#name' was already initialized by this constructor.""",
   withArguments:
       _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes,
+  analyzerCodes: <String>["FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2293,6 +2331,7 @@ const Template<Message Function(String name)> templateConstructorNotFound =
   "ConstructorNotFound",
   problemMessageTemplate: r"""Couldn't find constructor '#name'.""",
   withArguments: _withArgumentsConstructorNotFound,
+  analyzerCodes: <String>["CONSTRUCTOR_NOT_FOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2430,6 +2469,7 @@ const Template<Message Function(String name)>
   "ConstructorWithWrongNameContext",
   problemMessageTemplate: r"""The name of the enclosing class is '#name'.""",
   withArguments: _withArgumentsConstructorWithWrongNameContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2482,6 +2522,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Can't continue at '#name' in a different function.""",
   withArguments: _withArgumentsContinueTargetOutsideFunction,
+  analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2581,6 +2622,7 @@ const Template<Message Function(String name, String string)>
   correctionMessageTemplate:
       r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
   withArguments: _withArgumentsCycleInTypeParameters,
+  analyzerCodes: <String>["TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2612,6 +2654,7 @@ const Template<Message Function(String name)> templateCyclicClassHierarchy =
   "CyclicClassHierarchy",
   problemMessageTemplate: r"""'#name' is a supertype of itself.""",
   withArguments: _withArgumentsCyclicClassHierarchy,
+  analyzerCodes: <String>["RECURSIVE_INTERFACE_INHERITANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2640,6 +2683,7 @@ const Template<Message Function(String name)>
   "CyclicRedirectingFactoryConstructors",
   problemMessageTemplate: r"""Cyclic definition of factory '#name'.""",
   withArguments: _withArgumentsCyclicRedirectingFactoryConstructors,
+  analyzerCodes: <String>["RECURSIVE_FACTORY_REDIRECT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2678,6 +2722,7 @@ const Template<Message Function(String name)> templateCyclicTypedef =
   "CyclicTypedef",
   problemMessageTemplate: r"""The typedef '#name' has a reference to itself.""",
   withArguments: _withArgumentsCyclicTypedef,
+  analyzerCodes: <String>["TYPE_ALIAS_CANNOT_REFERENCE_ITSELF"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2716,6 +2761,7 @@ const Template<Message Function(String name, String string)>
   problemMessageTemplate: r"""Fatal '#name' at:
 #string""",
   withArguments: _withArgumentsDebugTrace,
+  severity: CfeSeverity.ignored,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2747,6 +2793,7 @@ const Template<Message Function(String name)>
   "DeclarationConflictsWithSetter",
   problemMessageTemplate: r"""The declaration conflicts with setter '#name'.""",
   withArguments: _withArgumentsDeclarationConflictsWithSetter,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2775,6 +2822,7 @@ const Template<Message Function(String name)>
   "DeclarationConflictsWithSetterCause",
   problemMessageTemplate: r"""Conflicting setter '#name'.""",
   withArguments: _withArgumentsDeclarationConflictsWithSetterCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2865,6 +2913,7 @@ const Template<Message Function(String name)>
       r"""Can't have a default value here because any default values of '#name' would be used instead.""",
   correctionMessageTemplate: r"""Try removing the default value.""",
   withArguments: _withArgumentsDefaultValueInRedirectingFactoryConstructor,
+  analyzerCodes: <String>["DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2937,6 +2986,7 @@ const Template<Message Function(String name)> templateDeferredPrefixDuplicated =
   problemMessageTemplate:
       r"""Can't use the name '#name' for a deferred library, as the name is used elsewhere.""",
   withArguments: _withArgumentsDeferredPrefixDuplicated,
+  analyzerCodes: <String>["SHARED_DEFERRED_PREFIX"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2966,6 +3016,7 @@ const Template<Message Function(String name)>
   "DeferredPrefixDuplicatedCause",
   problemMessageTemplate: r"""'#name' is used here.""",
   withArguments: _withArgumentsDeferredPrefixDuplicatedCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3036,6 +3087,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
   withArguments: _withArgumentsDirectCycleInTypeParameters,
+  analyzerCodes: <String>["TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3135,6 +3187,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try choosing a different name for this label.""",
   withArguments: _withArgumentsDuplicateLabelInSwitchStatement,
+  index: 72,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3167,6 +3220,7 @@ const Template<Message Function(String name)>
       r"""The variable '#name' is already assigned in this pattern.""",
   correctionMessageTemplate: r"""Try renaming the variable.""",
   withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
+  analyzerCodes: <String>["DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3223,6 +3277,7 @@ const Template<Message Function(String name)>
       r"""The field '#name' is already matched in this pattern.""",
   correctionMessageTemplate: r"""Try removing the duplicate field.""",
   withArguments: _withArgumentsDuplicateRecordPatternField,
+  analyzerCodes: <String>["DUPLICATE_RECORD_PATTERN_FIELD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3288,6 +3343,7 @@ const Template<Message Function(String name)> templateDuplicatedDeclaration =
   "DuplicatedDeclaration",
   problemMessageTemplate: r"""'#name' is already declared in this scope.""",
   withArguments: _withArgumentsDuplicatedDeclaration,
+  analyzerCodes: <String>["DUPLICATE_DEFINITION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3316,6 +3372,7 @@ const Template<Message Function(String name)>
   "DuplicatedDeclarationCause",
   problemMessageTemplate: r"""Previous declaration of '#name'.""",
   withArguments: _withArgumentsDuplicatedDeclarationCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3345,6 +3402,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Previous declaration of '#name' is implied by this definition.""",
   withArguments: _withArgumentsDuplicatedDeclarationSyntheticCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3403,6 +3461,7 @@ const Template<Message Function(String name, Uri uri_, Uri uri2_)>
   problemMessageTemplate:
       r"""'#name' is exported from both '#uri' and '#uri2'.""",
   withArguments: _withArgumentsDuplicatedExport,
+  analyzerCodes: <String>["AMBIGUOUS_EXPORT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3437,6 +3496,7 @@ const Template<Message Function(String name, Uri uri_, Uri uri2_)>
   problemMessageTemplate:
       r"""'#name' is imported from both '#uri' and '#uri2'.""",
   withArguments: _withArgumentsDuplicatedImport,
+  analyzerCodes: <String>["AMBIGUOUS_IMPORT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3471,6 +3531,7 @@ const Template<Message Function(Token token)> templateDuplicatedModifier =
   correctionMessageTemplate:
       r"""Try removing all but one occurrence of the modifier.""",
   withArguments: _withArgumentsDuplicatedModifier,
+  index: 70,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3499,6 +3560,7 @@ const Template<Message Function(String name)> templateDuplicatedNamedArgument =
   "DuplicatedNamedArgument",
   problemMessageTemplate: r"""Duplicated named argument '#name'.""",
   withArguments: _withArgumentsDuplicatedNamedArgument,
+  analyzerCodes: <String>["DUPLICATE_NAMED_ARGUMENT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3526,6 +3588,7 @@ const Template<Message Function(String name)> templateDuplicatedParameterName =
   "DuplicatedParameterName",
   problemMessageTemplate: r"""Duplicated parameter name '#name'.""",
   withArguments: _withArgumentsDuplicatedParameterName,
+  analyzerCodes: <String>["DUPLICATE_DEFINITION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3554,6 +3617,7 @@ const Template<Message Function(String name)>
   "DuplicatedParameterNameCause",
   problemMessageTemplate: r"""Other parameter named '#name'.""",
   withArguments: _withArgumentsDuplicatedParameterNameCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3614,6 +3678,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""This is the existing record literal field named '#name'.""",
   withArguments: _withArgumentsDuplicatedRecordLiteralFieldNameContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3675,6 +3740,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""This is the existing record type field named '#name'.""",
   withArguments: _withArgumentsDuplicatedRecordTypeFieldNameContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3780,6 +3846,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Name of enum constant '#name' can't be the same as the enum's own name.""",
   withArguments: _withArgumentsEnumConstantSameNameAsEnclosing,
+  analyzerCodes: <String>["ENUM_CONSTANT_WITH_ENUM_NAME"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4133,6 +4200,7 @@ const Template<Message Function(String string)> templateExpectedAfterButGot =
   "ExpectedAfterButGot",
   problemMessageTemplate: r"""Expected '#string' after this.""",
   withArguments: _withArgumentsExpectedAfterButGot,
+  analyzerCodes: <String>["EXPECTED_TOKEN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4202,6 +4270,7 @@ const Template<Message Function(String string)> templateExpectedButGot =
   "ExpectedButGot",
   problemMessageTemplate: r"""Expected '#string' before this.""",
   withArguments: _withArgumentsExpectedButGot,
+  analyzerCodes: <String>["EXPECTED_TOKEN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4251,6 +4320,7 @@ const Template<Message Function(Token token)> templateExpectedClassMember =
   "ExpectedClassMember",
   problemMessageTemplate: r"""Expected a class member, but got '#lexeme'.""",
   withArguments: _withArgumentsExpectedClassMember,
+  analyzerCodes: <String>["EXPECTED_CLASS_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4277,6 +4347,7 @@ const Template<Message Function(Token token)> templateExpectedDeclaration =
   "ExpectedDeclaration",
   problemMessageTemplate: r"""Expected a declaration, but got '#lexeme'.""",
   withArguments: _withArgumentsExpectedDeclaration,
+  analyzerCodes: <String>["EXPECTED_EXECUTABLE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4315,6 +4386,7 @@ const Template<Message Function(Token token)> templateExpectedEnumBody =
   correctionMessageTemplate:
       r"""An enum definition must have a body with at least one constant name.""",
   withArguments: _withArgumentsExpectedEnumBody,
+  analyzerCodes: <String>["MISSING_ENUM_BODY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4379,6 +4451,7 @@ const Template<Message Function(Token token)> templateExpectedFunctionBody =
   "ExpectedFunctionBody",
   problemMessageTemplate: r"""Expected a function body, but got '#lexeme'.""",
   withArguments: _withArgumentsExpectedFunctionBody,
+  analyzerCodes: <String>["MISSING_FUNCTION_BODY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4417,6 +4490,7 @@ const Template<Message Function(Token token)> templateExpectedIdentifier =
   correctionMessageTemplate:
       r"""Try inserting an identifier before '#lexeme'.""",
   withArguments: _withArgumentsExpectedIdentifier,
+  analyzerCodes: <String>["MISSING_IDENTIFIER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4448,6 +4522,7 @@ const Template<Message Function(Token token)>
   correctionMessageTemplate:
       r"""Try renaming this to be an identifier that isn't a keyword.""",
   withArguments: _withArgumentsExpectedIdentifierButGotKeyword,
+  index: 113,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4477,6 +4552,7 @@ const Template<Message Function(String string)> templateExpectedInstead =
   "ExpectedInstead",
   problemMessageTemplate: r"""Expected '#string' instead of this.""",
   withArguments: _withArgumentsExpectedInstead,
+  index: 41,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4573,6 +4649,7 @@ const Template<Message Function(Token token)> templateExpectedString =
   "ExpectedString",
   problemMessageTemplate: r"""Expected a String, but got '#lexeme'.""",
   withArguments: _withArgumentsExpectedString,
+  analyzerCodes: <String>["EXPECTED_STRING_LITERAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4624,6 +4701,7 @@ const Template<Message Function(String string)> templateExpectedToken =
   "ExpectedToken",
   problemMessageTemplate: r"""Expected to find '#string'.""",
   withArguments: _withArgumentsExpectedToken,
+  analyzerCodes: <String>["EXPECTED_TOKEN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4661,6 +4739,7 @@ const Template<Message Function(Token token)> templateExpectedType =
   "ExpectedType",
   problemMessageTemplate: r"""Expected a type, but got '#lexeme'.""",
   withArguments: _withArgumentsExpectedType,
+  analyzerCodes: <String>["EXPECTED_TYPE_NAME"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4699,6 +4778,7 @@ const Template<Message Function(String string)> templateExperimentDisabled =
   correctionMessageTemplate:
       r"""The feature is on by default but is currently disabled, maybe because the '--enable-experiment=no-#string' command line option is passed.""",
   withArguments: _withArgumentsExperimentDisabled,
+  analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4730,6 +4810,7 @@ const Template<Message Function(String string, String string2)>
   problemMessageTemplate:
       r"""This requires the '#string' language feature, which requires language version of #string2 or higher.""",
   withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion,
+  analyzerCodes: <String>["ParserErrorCode.EXPERIMENT_NOT_ENABLED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4821,6 +4902,7 @@ const Template<Message Function(String string, String string2)>
   correctionMessageTemplate:
       r"""Try updating your pubspec.yaml to set the minimum SDK constraint to #string2 or higher, and running 'pub get'.""",
   withArguments: _withArgumentsExperimentNotEnabled,
+  index: 48,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4856,6 +4938,7 @@ const Template<Message Function(String string)>
   correctionMessageTemplate:
       r"""Try passing the '--enable-experiment=#string' command line option.""",
   withArguments: _withArgumentsExperimentNotEnabledOffByDefault,
+  index: 133,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4887,6 +4970,7 @@ const Template<Message Function(String string)>
   problemMessageTemplate:
       r"""This is the annotation that opts out this library from the '#string' language feature.""",
   withArguments: _withArgumentsExperimentOptOutComment,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5078,6 +5162,7 @@ const Template<Message Function(String name)> templateExtendingEnum =
   problemMessageTemplate:
       r"""'#name' is an enum and can't be extended or implemented.""",
   withArguments: _withArgumentsExtendingEnum,
+  analyzerCodes: <String>["EXTENDS_ENUM"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5107,6 +5192,7 @@ const Template<Message Function(String name)> templateExtendingRestricted =
   problemMessageTemplate:
       r"""'#name' is restricted and can't be extended or implemented.""",
   withArguments: _withArgumentsExtendingRestricted,
+  analyzerCodes: <String>["EXTENDS_DISALLOWED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5257,6 +5343,7 @@ const Template<Message Function(String name, String name2)>
   correctionMessageTemplate:
       r"""Try adding a declaration of '#name2' to '#name'.""",
   withArguments: _withArgumentsExtensionTypeCombinedMemberSignatureFailed,
+  analyzerCodes: <String>["INCONSISTENT_INHERITANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5630,6 +5717,7 @@ const Template<Message Function(Token token)> templateExtraneousModifier =
   problemMessageTemplate: r"""Can't have modifier '#lexeme' here.""",
   correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArguments: _withArgumentsExtraneousModifier,
+  index: 77,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5659,6 +5747,7 @@ const Template<Message Function(Token token)>
   problemMessageTemplate: r"""Can't have modifier '#lexeme' in an extension.""",
   correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArguments: _withArgumentsExtraneousModifierInExtension,
+  index: 98,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5689,6 +5778,7 @@ const Template<Message Function(Token token)>
       r"""Can't have modifier '#lexeme' in an extension type.""",
   correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArguments: _withArgumentsExtraneousModifierInExtensionType,
+  index: 174,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5719,6 +5809,7 @@ const Template<Message Function(Token token)>
       r"""Can't have modifier '#lexeme' in a primary constructor.""",
   correctionMessageTemplate: r"""Try removing '#lexeme'.""",
   withArguments: _withArgumentsExtraneousModifierInPrimaryConstructor,
+  index: 175,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5748,6 +5839,7 @@ const Template<Message Function(String name)>
   "FactoryConflictsWithMember",
   problemMessageTemplate: r"""The factory conflicts with member '#name'.""",
   withArguments: _withArgumentsFactoryConflictsWithMember,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5776,6 +5868,7 @@ const Template<Message Function(String name)>
   "FactoryConflictsWithMemberCause",
   problemMessageTemplate: r"""Conflicting member '#name'.""",
   withArguments: _withArgumentsFactoryConflictsWithMemberCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6712,6 +6805,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""'#name' is a final instance variable that was initialized at the declaration.""",
   withArguments: _withArgumentsFieldAlreadyInitializedAtDeclaration,
+  analyzerCodes: <String>["FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6741,6 +6835,7 @@ const Template<Message Function(String name)>
   "FieldAlreadyInitializedAtDeclarationCause",
   problemMessageTemplate: r"""'#name' was initialized here.""",
   withArguments: _withArgumentsFieldAlreadyInitializedAtDeclarationCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7118,6 +7213,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' can't be extended outside of its library because it's a final class.""",
   withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
+  analyzerCodes: <String>["FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7148,6 +7244,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' can't be implemented outside of its library because it's a final class.""",
   withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
+  analyzerCodes: <String>["FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7178,6 +7275,9 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
   withArguments: _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
+  analyzerCodes: <String>[
+    "FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY"
+  ],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7222,6 +7322,7 @@ const Template<Message Function(String name)> templateFinalFieldNotInitialized =
   correctionMessageTemplate:
       r"""Try to initialize the field in the declaration or in every constructor.""",
   withArguments: _withArgumentsFinalFieldNotInitialized,
+  analyzerCodes: <String>["FINAL_NOT_INITIALIZED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7255,6 +7356,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try to initialize the field using an initializing formal or a field initializer.""",
   withArguments: _withArgumentsFinalFieldNotInitializedByConstructor,
+  analyzerCodes: <String>["FINAL_NOT_INITIALIZED_CONSTRUCTOR_1"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7289,6 +7391,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try adding an initializer ('= expression') to the declaration.""",
   withArguments: _withArgumentsFinalFieldWithoutInitializer,
+  analyzerCodes: <String>["FINAL_NOT_INITIALIZED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7341,6 +7444,7 @@ const Template<Message Function(String name)> templateFinalNotAssignedError =
   problemMessageTemplate:
       r"""Final variable '#name' must be assigned before it can be used.""",
   withArguments: _withArgumentsFinalNotAssignedError,
+  analyzerCodes: <String>["READ_POTENTIALLY_UNASSIGNED_FINAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7371,6 +7475,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Final variable '#name' might already be assigned at this point.""",
   withArguments: _withArgumentsFinalPossiblyAssignedError,
+  analyzerCodes: <String>["ASSIGNMENT_TO_FINAL_LOCAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7497,6 +7602,7 @@ const Template<Message Function(String name)> templateGetterNotFound =
   "GetterNotFound",
   problemMessageTemplate: r"""Getter not found: '#name'.""",
   withArguments: _withArgumentsGetterNotFound,
+  analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7581,6 +7687,7 @@ const Template<Message Function(String name)> templateIllegalMixin =
   "IllegalMixin",
   problemMessageTemplate: r"""The type '#name' can't be mixed in.""",
   withArguments: _withArgumentsIllegalMixin,
+  analyzerCodes: <String>["ILLEGAL_MIXIN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7610,6 +7717,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Can't use '#name' as a mixin because it has constructors.""",
   withArguments: _withArgumentsIllegalMixinDueToConstructors,
+  analyzerCodes: <String>["MIXIN_DECLARES_CONSTRUCTOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7640,6 +7748,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""This constructor prevents using '#name' as a mixin.""",
   withArguments: _withArgumentsIllegalMixinDueToConstructorsCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7670,6 +7779,7 @@ const Template<Message Function(Token token)>
       r"""A variable assigned by a pattern assignment can't be named '#lexeme'.""",
   correctionMessageTemplate: r"""Choose a different name.""",
   withArguments: _withArgumentsIllegalPatternAssignmentVariableName,
+  index: 160,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7701,6 +7811,7 @@ const Template<Message Function(Token token)>
       r"""A pattern can't refer to an identifier named '#lexeme'.""",
   correctionMessageTemplate: r"""Match the identifier using '==""",
   withArguments: _withArgumentsIllegalPatternIdentifierName,
+  index: 161,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7732,6 +7843,7 @@ const Template<Message Function(Token token)>
       r"""The variable declared by a variable pattern can't be named '#lexeme'.""",
   correctionMessageTemplate: r"""Choose a different name.""",
   withArguments: _withArgumentsIllegalPatternVariableName,
+  index: 159,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7916,6 +8028,7 @@ const Template<Message Function(String name, int count)>
   problemMessageTemplate: r"""'#name' can only be implemented once.""",
   correctionMessageTemplate: r"""Try removing #count of the occurrences.""",
   withArguments: _withArgumentsImplementsRepeated,
+  analyzerCodes: <String>["IMPLEMENTS_REPEATED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7947,6 +8060,7 @@ const Template<Message Function(String name)> templateImplementsSuperClass =
       r"""'#name' can't be used in both 'extends' and 'implements' clauses.""",
   correctionMessageTemplate: r"""Try removing one of the occurrences.""",
   withArguments: _withArgumentsImplementsSuperClass,
+  analyzerCodes: <String>["IMPLEMENTS_SUPER_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8040,6 +8154,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try adding an explicit super initializer with the required arguments.""",
   withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
+  analyzerCodes: <String>["IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8089,6 +8204,7 @@ Detailed import paths for (some of) the these imports:
 
 #string2""",
   withArguments: _withArgumentsImportChainContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8130,6 +8246,7 @@ const Template<Message Function(Uri uri_, String string)>
 
 #string""",
   withArguments: _withArgumentsImportChainContextSimple,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8263,6 +8380,7 @@ const Template<Message Function(String name, String name2)>
   problemMessageTemplate:
       r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
   withArguments: _withArgumentsInheritedRestrictedMemberOfEnumImplementer,
+  analyzerCodes: <String>["ILLEGAL_CONCRETE_ENUM_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8301,6 +8419,7 @@ The Dart team would greatly appreciate it if you would take a moment to report t
 If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
 Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
   withArguments: _withArgumentsInitializeFromDillNotSelfContained,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8339,6 +8458,7 @@ const Template<Message Function(String string)>
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
   withArguments: _withArgumentsInitializeFromDillNotSelfContainedNoDump,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8378,6 +8498,7 @@ The Dart team would greatly appreciate it if you would take a moment to report t
 If you are comfortable with it, it would improve the chances of fixing any bug if you included the file #uri in your error report, but be aware that this file includes your source code.
 Either way, you should probably delete the file so it doesn't use unnecessary disk space.""",
   withArguments: _withArgumentsInitializeFromDillUnknownProblem,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8426,6 +8547,7 @@ This might be a bug.
 
 The Dart team would greatly appreciate it if you would take a moment to report this problem at http://dartbug.com/new.""",
   withArguments: _withArgumentsInitializeFromDillUnknownProblemNoDump,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8478,6 +8600,7 @@ const Template<Message Function(String name)>
   "InitializerForStaticField",
   problemMessageTemplate: r"""'#name' isn't an instance field of this class.""",
   withArguments: _withArgumentsInitializerForStaticField,
+  analyzerCodes: <String>["INITIALIZER_FOR_STATIC_FIELD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8544,6 +8667,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""This instance member conflicts with the synthesized static member called '#name'.""",
   withArguments: _withArgumentsInstanceAndSynthesizedStaticConflict,
+  analyzerCodes: <String>["CONFLICTING_STATIC_AND_INSTANCE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8574,6 +8698,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Instance property '#name' conflicts with static property of the same name.""",
   withArguments: _withArgumentsInstanceConflictsWithStatic,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8603,6 +8728,7 @@ const Template<Message Function(String name)>
   "InstanceConflictsWithStaticCause",
   problemMessageTemplate: r"""Conflicting static property '#name'.""",
   withArguments: _withArgumentsInstanceConflictsWithStaticCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8694,6 +8820,7 @@ const Template<Message Function(String string)>
   correctionMessageTemplate:
       r"""Try using the BigInt class if you need an integer larger than 9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.""",
   withArguments: _withArgumentsIntegerLiteralIsOutOfRange,
+  analyzerCodes: <String>["INTEGER_LITERAL_OUT_OF_RANGE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8757,6 +8884,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' can't be extended outside of its library because it's an interface class.""",
   withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
+  analyzerCodes: <String>["INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8843,6 +8971,7 @@ const Template<Message Function(String name, Uri uri_)>
   "InternalProblemConstructorNotFound",
   problemMessageTemplate: r"""No constructor named '#name' in '#uri'.""",
   withArguments: _withArgumentsInternalProblemConstructorNotFound,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8875,6 +9004,7 @@ const Template<Message Function(String string)>
   problemMessageTemplate:
       r"""Non-context message has context severity: #string""",
   withArguments: _withArgumentsInternalProblemContextSeverity,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8903,6 +9033,7 @@ const Template<Message Function(String name, String string)>
   problemMessageTemplate: r"""Compilation aborted due to fatal '#name' at:
 #string""",
   withArguments: _withArgumentsInternalProblemDebugAbort,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8971,6 +9102,7 @@ const Template<Message Function(String name)> templateInternalProblemNotFound =
   "InternalProblemNotFound",
   problemMessageTemplate: r"""Couldn't find '#name'.""",
   withArguments: _withArgumentsInternalProblemNotFound,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8999,6 +9131,7 @@ const Template<Message Function(String name, String name2)>
   "InternalProblemNotFoundIn",
   problemMessageTemplate: r"""Couldn't find '#name' in '#name2'.""",
   withArguments: _withArgumentsInternalProblemNotFoundIn,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9055,6 +9188,7 @@ const Template<Message Function(String name)>
   "InternalProblemPrivateConstructorAccess",
   problemMessageTemplate: r"""Can't access private constructor '#name'.""",
   withArguments: _withArgumentsInternalProblemPrivateConstructorAccess,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9097,6 +9231,7 @@ const Template<Message Function(String name, String string)>
   problemMessageTemplate: r"""#name.stack isn't empty:
   #string""",
   withArguments: _withArgumentsInternalProblemStackNotEmpty,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9128,6 +9263,7 @@ const Template<Message Function(String string, String string2)>
   "InternalProblemUnexpected",
   problemMessageTemplate: r"""Expected '#string', but got '#string2'.""",
   withArguments: _withArgumentsInternalProblemUnexpected,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9157,6 +9293,7 @@ const Template<Message Function(String string, String string2)>
   "InternalProblemUnhandled",
   problemMessageTemplate: r"""Unhandled #string in #string2.""",
   withArguments: _withArgumentsInternalProblemUnhandled,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9186,6 +9323,7 @@ const Template<Message Function(String string)>
   "InternalProblemUnimplemented",
   problemMessageTemplate: r"""Unimplemented #string.""",
   withArguments: _withArgumentsInternalProblemUnimplemented,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9213,6 +9351,7 @@ const Template<Message Function(String name)>
   "InternalProblemUnsupported",
   problemMessageTemplate: r"""Unsupported operation: '#name'.""",
   withArguments: _withArgumentsInternalProblemUnsupported,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9241,6 +9380,7 @@ const Template<Message Function(Uri uri_)>
   "InternalProblemUriMissingScheme",
   problemMessageTemplate: r"""The URI '#uri' has no scheme.""",
   withArguments: _withArgumentsInternalProblemUriMissingScheme,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9269,6 +9409,7 @@ const Template<Message Function(String string)>
   problemMessageTemplate: r"""Verification of the generated program failed:
 #string""",
   withArguments: _withArgumentsInternalProblemVerificationError,
+  severity: CfeSeverity.internalProblem,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9380,6 +9521,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try wrapping the expression in 'const ( ... )'.""",
   withArguments: _withArgumentsInvalidConstantPatternBinary,
+  index: 141,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9479,6 +9621,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try wrapping the expression in 'const ( ... )'.""",
   withArguments: _withArgumentsInvalidConstantPatternUnary,
+  index: 136,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9546,6 +9689,7 @@ const Template<Message Function(String name)>
   "InvalidGetterSetterTypeFieldContext",
   problemMessageTemplate: r"""This is the declaration of the field '#name'.""",
   withArguments: _withArgumentsInvalidGetterSetterTypeFieldContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9574,6 +9718,7 @@ const Template<Message Function(String name)>
   "InvalidGetterSetterTypeGetterContext",
   problemMessageTemplate: r"""This is the declaration of the getter '#name'.""",
   withArguments: _withArgumentsInvalidGetterSetterTypeGetterContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9602,6 +9747,7 @@ const Template<Message Function(String name)>
   "InvalidGetterSetterTypeSetterContext",
   problemMessageTemplate: r"""This is the declaration of the setter '#name'.""",
   withArguments: _withArgumentsInvalidGetterSetterTypeSetterContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9714,6 +9860,7 @@ const Template<Message Function(Token token)> templateInvalidOperator =
   problemMessageTemplate:
       r"""The string '#lexeme' isn't a user-definable operator.""",
   withArguments: _withArgumentsInvalidOperator,
+  index: 39,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10007,6 +10154,7 @@ const Template<Message Function(String name)> templateInvokeNonFunction =
   problemMessageTemplate:
       r"""'#name' isn't a function or method and can't be invoked.""",
   withArguments: _withArgumentsInvokeNonFunction,
+  analyzerCodes: <String>["INVOCATION_OF_NON_FUNCTION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10037,6 +10185,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The variable '#name' is available in some, but not all cases that share this body.""",
   withArguments: _withArgumentsJointPatternVariableNotInAll,
+  analyzerCodes: <String>["INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10067,6 +10216,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The variable '#name' is not available because there is a label or 'default' case.""",
   withArguments: _withArgumentsJointPatternVariableWithLabelDefault,
+  analyzerCodes: <String>["INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10270,6 +10420,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate: r"""Remove the value in the annotation.""",
   withArguments:
       _withArgumentsJsInteropExportDartInterfaceHasNonEmptyJSExportValue,
+  severity: CfeSeverity.warning,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11129,6 +11280,7 @@ const Template<Message Function(String name)> templateLabelNotFound =
   correctionMessageTemplate:
       r"""Try defining the label, or correcting the name to match an existing label.""",
   withArguments: _withArgumentsLabelNotFound,
+  analyzerCodes: <String>["LABEL_UNDEFINED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11467,6 +11619,7 @@ const Template<Message Function(String string, Token token)>
       r"""A #string literal can't be prefixed by '#lexeme'.""",
   correctionMessageTemplate: r"""Try removing '#lexeme'""",
   withArguments: _withArgumentsLiteralWithClass,
+  index: 116,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11499,6 +11652,7 @@ const Template<Message Function(String string, Token token)>
       r"""A #string literal can't be prefixed by 'new #lexeme'.""",
   correctionMessageTemplate: r"""Try removing 'new' and '#lexeme'""",
   withArguments: _withArgumentsLiteralWithClassAndNew,
+  index: 115,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11552,6 +11706,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Local variable '#name' can't be referenced before it is declared.""",
   withArguments: _withArgumentsLocalVariableUsedBeforeDeclared,
+  analyzerCodes: <String>["REFERENCED_BEFORE_DECLARATION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11582,6 +11737,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""This is the declaration of the variable '#name'.""",
   withArguments: _withArgumentsLocalVariableUsedBeforeDeclaredContext,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11761,6 +11917,7 @@ const Template<Message Function(String name)>
   "MemberConflictsWithConstructor",
   problemMessageTemplate: r"""The member conflicts with constructor '#name'.""",
   withArguments: _withArgumentsMemberConflictsWithConstructor,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11789,6 +11946,7 @@ const Template<Message Function(String name)>
   "MemberConflictsWithConstructorCause",
   problemMessageTemplate: r"""Conflicting constructor '#name'.""",
   withArguments: _withArgumentsMemberConflictsWithConstructorCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11817,6 +11975,7 @@ const Template<Message Function(String name)>
   "MemberConflictsWithFactory",
   problemMessageTemplate: r"""The member conflicts with factory '#name'.""",
   withArguments: _withArgumentsMemberConflictsWithFactory,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11845,6 +12004,7 @@ const Template<Message Function(String name)>
   "MemberConflictsWithFactoryCause",
   problemMessageTemplate: r"""Conflicting factory '#name'.""",
   withArguments: _withArgumentsMemberConflictsWithFactoryCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11872,6 +12032,7 @@ const Template<Message Function(String name)> templateMemberNotFound =
   "MemberNotFound",
   problemMessageTemplate: r"""Member not found: '#name'.""",
   withArguments: _withArgumentsMemberNotFound,
+  analyzerCodes: <String>["UNDEFINED_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12020,6 +12181,7 @@ const Template<Message Function(String name)> templateMethodNotFound =
   "MethodNotFound",
   problemMessageTemplate: r"""Method not found: '#name'.""",
   withArguments: _withArgumentsMethodNotFound,
+  analyzerCodes: <String>["UNDEFINED_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12143,6 +12305,7 @@ const Template<Message Function(String name)>
   "MissingImplementationCause",
   problemMessageTemplate: r"""'#name' is defined here.""",
   withArguments: _withArgumentsMissingImplementationCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12179,6 +12342,7 @@ const Template<Message Function(String name, List<String> _names)>
  - provide a 'noSuchMethod' implementation.
 """,
   withArguments: _withArgumentsMissingImplementationNotAbstract,
+  analyzerCodes: <String>["CONCRETE_CLASS_WITH_ABSTRACT_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12276,6 +12440,7 @@ const Template<Message Function(Uri uri_)> templateMissingPartOf =
   problemMessageTemplate:
       r"""Can't use '#uri' as a part, because it has no 'part of' declaration.""",
   withArguments: _withArgumentsMissingPartOf,
+  analyzerCodes: <String>["PART_OF_NON_PART"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12373,6 +12538,7 @@ const Template<Message Function(String name)> templateMissingVariablePattern =
   correctionMessageTemplate:
       r"""Try declaring this variable pattern in the branch.""",
   withArguments: _withArgumentsMissingVariablePattern,
+  analyzerCodes: <String>["MISSING_VARIABLE_PATTERN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12404,6 +12570,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class doesn't have a concrete implementation of the super-accessed member '#name'.""",
   withArguments: _withArgumentsMixinApplicationNoConcreteGetter,
+  analyzerCodes: <String>["MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12447,6 +12614,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class doesn't have a concrete implementation of the super-invoked member '#name'.""",
   withArguments: _withArgumentsMixinApplicationNoConcreteMethod,
+  analyzerCodes: <String>["MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12477,6 +12645,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class doesn't have a concrete implementation of the super-accessed setter '#name'.""",
   withArguments: _withArgumentsMixinApplicationNoConcreteSetter,
+  analyzerCodes: <String>["MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12528,6 +12697,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' can't be used as a mixin because it extends a class other than 'Object'.""",
   withArguments: _withArgumentsMixinInheritsFromNotObject,
+  analyzerCodes: <String>["MIXIN_INHERITS_FROM_NOT_OBJECT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12559,6 +12729,7 @@ const Template<Message Function(String name, String name2)>
       r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'base'.""",
   correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
   withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
+  analyzerCodes: <String>["MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12594,6 +12765,7 @@ const Template<Message Function(String name, String name2)>
       r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'final'.""",
   correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
   withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
+  analyzerCodes: <String>["MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12653,6 +12825,7 @@ const Template<Message Function(String string, String string2)>
       r"""The modifier '#string' should be before the modifier '#string2'.""",
   correctionMessageTemplate: r"""Try re-ordering the modifiers.""",
   withArguments: _withArgumentsModifierOutOfOrder,
+  index: 56,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12697,6 +12870,7 @@ const Template<Message Function(String string, String string2)>
   correctionMessageTemplate:
       r"""Try combining all of the '#string2' clauses into a single clause.""",
   withArguments: _withArgumentsMultipleClauses,
+  index: 121,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12815,6 +12989,7 @@ const Template<Message Function(String name)> templateNameNotFound =
   "NameNotFound",
   problemMessageTemplate: r"""Undefined name '#name'.""",
   withArguments: _withArgumentsNameNotFound,
+  analyzerCodes: <String>["UNDEFINED_NAME"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13014,6 +13189,7 @@ const Template<Message Function(Token token)> templateNoFormals =
   correctionMessageTemplate:
       r"""Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter.""",
   withArguments: _withArgumentsNoFormals,
+  analyzerCodes: <String>["MISSING_FUNCTION_PARAMETERS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13051,6 +13227,7 @@ const Template<Message Function(String name)> templateNoSuchNamedParameter =
   "NoSuchNamedParameter",
   problemMessageTemplate: r"""No named parameter with the name '#name'.""",
   withArguments: _withArgumentsNoSuchNamedParameter,
+  analyzerCodes: <String>["UNDEFINED_NAMED_PARAMETER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13092,6 +13269,7 @@ const Template<Message Function(String character, int codePoint)>
   correctionMessageTemplate:
       r"""Try using an US-ASCII letter, a digit, '_' (an underscore), or '$' (a dollar sign).""",
   withArguments: _withArgumentsNonAsciiIdentifier,
+  analyzerCodes: <String>["ILLEGAL_CHARACTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13125,6 +13303,7 @@ const Template<Message Function(int codePoint)> templateNonAsciiWhitespace =
   problemMessageTemplate:
       r"""The non-ASCII space character #unicode can only be used in strings and comments.""",
   withArguments: _withArgumentsNonAsciiWhitespace,
+  analyzerCodes: <String>["ILLEGAL_CHARACTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13648,6 +13827,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Bound of this variable references raw type '#name'.""",
   withArguments: _withArgumentsNonSimpleBoundViaReference,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13677,6 +13857,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Bound of this variable references variable '#name' from the same declaration.""",
   withArguments: _withArgumentsNonSimpleBoundViaVariable,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13741,6 +13922,7 @@ const Template<Message Function(String name, String name2)>
   problemMessageTemplate:
       r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
   withArguments: _withArgumentsNotAPrefixInTypeAnnotation,
+  analyzerCodes: <String>["NOT_A_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13772,6 +13954,7 @@ const Template<Message Function(String name)> templateNotAType =
   "NotAType",
   problemMessageTemplate: r"""'#name' isn't a type.""",
   withArguments: _withArgumentsNotAType,
+  analyzerCodes: <String>["NOT_A_TYPE"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13844,6 +14027,7 @@ const Template<Message Function(String string)> templateNotConstantExpression =
   "NotConstantExpression",
   problemMessageTemplate: r"""#string is not a constant expression.""",
   withArguments: _withArgumentsNotConstantExpression,
+  analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14072,6 +14256,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""With zero parameters, it has the syntactic form '-a', formally known as 'unary-'. With one parameter, it has the syntactic form 'a - b', formally known as '-'.""",
   withArguments: _withArgumentsOperatorMinusParameterMismatch,
+  analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14131,6 +14316,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Operator '#name' should have exactly one parameter.""",
   withArguments: _withArgumentsOperatorParameterMismatch1,
+  analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14160,6 +14346,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Operator '#name' should have exactly two parameters.""",
   withArguments: _withArgumentsOperatorParameterMismatch2,
+  analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14225,6 +14412,7 @@ const Template<Message Function(String string, String string2)>
   correctionMessageTemplate:
       r"""Try moving the '#string' clause before the '#string2' clause.""",
   withArguments: _withArgumentsOutOfOrderClauses,
+  index: 122,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14256,6 +14444,7 @@ const Template<Message Function(String name)> templateOverriddenMethodCause =
   "OverriddenMethodCause",
   problemMessageTemplate: r"""This is the overridden method ('#name').""",
   withArguments: _withArgumentsOverriddenMethodCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14285,6 +14474,7 @@ const Template<Message Function(String name, String name2)>
   problemMessageTemplate:
       r"""The method '#name' has fewer named arguments than those of overridden method '#name2'.""",
   withArguments: _withArgumentsOverrideFewerNamedArguments,
+  analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14318,6 +14508,7 @@ const Template<Message Function(String name, String name2)>
   problemMessageTemplate:
       r"""The method '#name' has fewer positional arguments than those of overridden method '#name2'.""",
   withArguments: _withArgumentsOverrideFewerPositionalArguments,
+  analyzerCodes: <String>["INVALID_OVERRIDE_POSITIONAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14352,6 +14543,7 @@ const Template<Message Function(String name, String name2, String name3)>
   problemMessageTemplate:
       r"""The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'.""",
   withArguments: _withArgumentsOverrideMismatchNamedParameter,
+  analyzerCodes: <String>["INVALID_OVERRIDE_NAMED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14425,6 +14617,7 @@ const Template<Message Function(String name, String name2)>
   problemMessageTemplate:
       r"""The method '#name' has more required arguments than those of overridden method '#name2'.""",
   withArguments: _withArgumentsOverrideMoreRequiredArguments,
+  analyzerCodes: <String>["INVALID_OVERRIDE_REQUIRED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14458,6 +14651,7 @@ const Template<Message Function(String name, String name2)>
   problemMessageTemplate:
       r"""Declared type variables of '#name' doesn't match those on overridden method '#name2'.""",
   withArguments: _withArgumentsOverrideTypeParametersMismatch,
+  analyzerCodes: <String>["INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14593,6 +14787,7 @@ const Template<Message Function(Uri uri_)> templatePartOfInLibrary =
   correctionMessageTemplate:
       r"""Try removing the 'part of' declaration, or using '#uri' as a part.""",
   withArguments: _withArgumentsPartOfInLibrary,
+  analyzerCodes: <String>["IMPORT_OF_NON_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14624,6 +14819,7 @@ const Template<Message Function(Uri uri_, String name, String name2)>
   problemMessageTemplate:
       r"""Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'.""",
   withArguments: _withArgumentsPartOfLibraryNameMismatch,
+  analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14703,6 +14899,7 @@ const Template<Message Function(Uri uri_, Uri uri2_, Uri uri3_)>
   problemMessageTemplate:
       r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'.""",
   withArguments: _withArgumentsPartOfUriMismatch,
+  analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14738,6 +14935,7 @@ const Template<Message Function(Uri uri_, Uri uri2_, String name)>
   correctionMessageTemplate:
       r"""Try changing the 'part of' declaration to use a relative file name.""",
   withArguments: _withArgumentsPartOfUseUri,
+  analyzerCodes: <String>["PART_OF_UNNAMED_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14782,6 +14980,7 @@ const Template<Message Function(Uri uri_)> templatePartTwice =
   "PartTwice",
   problemMessageTemplate: r"""Can't use '#uri' as a part more than once.""",
   withArguments: _withArgumentsPartTwice,
+  analyzerCodes: <String>["DUPLICATE_PART"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14918,6 +15117,7 @@ const Template<Message Function(String name)>
   correctionMessageTemplate:
       r"""Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
   withArguments: _withArgumentsPatternAssignmentDeclaresVariable,
+  index: 145,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15224,6 +15424,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Redirection constructor target not found: '#name'""",
   withArguments: _withArgumentsRedirectionTargetNotFound,
+  analyzerCodes: <String>["REDIRECT_TO_MISSING_CONSTRUCTOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15481,6 +15682,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
   withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
+  analyzerCodes: <String>["SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15565,6 +15767,7 @@ const Template<Message Function(String name)>
   "SetterConflictsWithDeclaration",
   problemMessageTemplate: r"""The setter conflicts with declaration '#name'.""",
   withArguments: _withArgumentsSetterConflictsWithDeclaration,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15593,6 +15796,7 @@ const Template<Message Function(String name)>
   "SetterConflictsWithDeclarationCause",
   problemMessageTemplate: r"""Conflicting declaration '#name'.""",
   withArguments: _withArgumentsSetterConflictsWithDeclarationCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15631,6 +15835,7 @@ const Template<Message Function(String name)> templateSetterNotFound =
   "SetterNotFound",
   problemMessageTemplate: r"""Setter not found: '#name'.""",
   withArguments: _withArgumentsSetterNotFound,
+  analyzerCodes: <String>["UNDEFINED_SETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15793,6 +15998,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""Static property '#name' conflicts with instance property of the same name.""",
   withArguments: _withArgumentsStaticConflictsWithInstance,
+  analyzerCodes: <String>["CONFLICTS_WITH_MEMBER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15822,6 +16028,7 @@ const Template<Message Function(String name)>
   "StaticConflictsWithInstanceCause",
   problemMessageTemplate: r"""Conflicting instance property '#name'.""",
   withArguments: _withArgumentsStaticConflictsWithInstanceCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15898,6 +16105,7 @@ const Template<Message Function(String name, String name2)>
   correctionMessageTemplate:
       r"""Try adding 'base', 'final', or 'sealed' to the type.""",
   withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
+  analyzerCodes: <String>["SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15936,6 +16144,7 @@ const Template<Message Function(String name, String name2)>
   correctionMessageTemplate:
       r"""Try adding 'base', 'final', or 'sealed' to the type.""",
   withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
+  analyzerCodes: <String>["SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16096,6 +16305,10 @@ const Template<Message Function(String name)>
   "SuperclassHasNoConstructor",
   problemMessageTemplate: r"""Superclass has no constructor named '#name'.""",
   withArguments: _withArgumentsSuperclassHasNoConstructor,
+  analyzerCodes: <String>[
+    "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER",
+    "UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT"
+  ],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16128,6 +16341,7 @@ const Template<Message Function(String name)>
   problemMessageTemplate:
       r"""The superclass, '#name', has no unnamed constructor that takes no arguments.""",
   withArguments: _withArgumentsSuperclassHasNoDefaultConstructor,
+  analyzerCodes: <String>["NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16156,6 +16370,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoGetter =
   "SuperclassHasNoGetter",
   problemMessageTemplate: r"""Superclass has no getter named '#name'.""",
   withArguments: _withArgumentsSuperclassHasNoGetter,
+  analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16183,6 +16398,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoMember =
   "SuperclassHasNoMember",
   problemMessageTemplate: r"""Superclass has no member named '#name'.""",
   withArguments: _withArgumentsSuperclassHasNoMember,
+  analyzerCodes: <String>["UNDEFINED_SUPER_GETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16210,6 +16426,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoMethod =
   "SuperclassHasNoMethod",
   problemMessageTemplate: r"""Superclass has no method named '#name'.""",
   withArguments: _withArgumentsSuperclassHasNoMethod,
+  analyzerCodes: <String>["UNDEFINED_SUPER_METHOD"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16237,6 +16454,7 @@ const Template<Message Function(String name)> templateSuperclassHasNoSetter =
   "SuperclassHasNoSetter",
   problemMessageTemplate: r"""Superclass has no setter named '#name'.""",
   withArguments: _withArgumentsSuperclassHasNoSetter,
+  analyzerCodes: <String>["UNDEFINED_SUPER_SETTER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16302,6 +16520,7 @@ const Template<Message Function(String name)> templateSupertypeIsIllegal =
   "SupertypeIsIllegal",
   problemMessageTemplate: r"""The type '#name' can't be used as supertype.""",
   withArguments: _withArgumentsSupertypeIsIllegal,
+  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16330,6 +16549,7 @@ const Template<Message Function(String name)> templateSupertypeIsTypeParameter =
   problemMessageTemplate:
       r"""The type variable '#name' can't be used as supertype.""",
   withArguments: _withArgumentsSupertypeIsTypeParameter,
+  analyzerCodes: <String>["EXTENDS_NON_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16479,6 +16699,7 @@ const Template<Message Function(String string)>
   "ThisOrSuperAccessInFieldInitializer",
   problemMessageTemplate: r"""Can't access '#string' in a field initializer.""",
   withArguments: _withArgumentsThisOrSuperAccessInFieldInitializer,
+  analyzerCodes: <String>["THIS_ACCESS_FROM_INITIALIZER"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16507,6 +16728,7 @@ const Template<Message Function(int count, int count2)>
   problemMessageTemplate:
       r"""Too few positional arguments: #count required, #count2 given.""",
   withArguments: _withArgumentsTooFewArguments,
+  analyzerCodes: <String>["NOT_ENOUGH_REQUIRED_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16538,6 +16760,7 @@ const Template<Message Function(int count, int count2)>
   correctionMessageTemplate:
       r"""Try removing the extra positional arguments.""",
   withArguments: _withArgumentsTooManyArguments,
+  analyzerCodes: <String>["EXTRA_POSITIONAL_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16590,6 +16813,7 @@ const Template<Message Function(int count)> templateTypeArgumentMismatch =
   "TypeArgumentMismatch",
   problemMessageTemplate: r"""Expected #count type arguments.""",
   withArguments: _withArgumentsTypeArgumentMismatch,
+  analyzerCodes: <String>["WRONG_NUMBER_OF_TYPE_ARGUMENTS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16618,6 +16842,7 @@ const Template<Message Function(String name)>
       r"""Can't use type arguments with type variable '#name'.""",
   correctionMessageTemplate: r"""Try removing the type arguments.""",
   withArguments: _withArgumentsTypeArgumentsOnTypeVariable,
+  index: 13,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16658,6 +16883,7 @@ const Template<Message Function(String name)> templateTypeNotFound =
   "TypeNotFound",
   problemMessageTemplate: r"""Type '#name' not found.""",
   withArguments: _withArgumentsTypeNotFound,
+  analyzerCodes: <String>["UNDEFINED_CLASS"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16755,6 +16981,7 @@ const Template<Message Function(String name)>
   "TypeParameterDuplicatedNameCause",
   problemMessageTemplate: r"""The other type variable named '#name'.""",
   withArguments: _withArgumentsTypeParameterDuplicatedNameCause,
+  severity: CfeSeverity.context,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16899,6 +17126,7 @@ const Template<Message Function(Uri uri_)> templateUnavailableDartLibrary =
   problemMessageTemplate:
       r"""Dart library '#uri' is not available on this platform.""",
   withArguments: _withArgumentsUnavailableDartLibrary,
+  analyzerCodes: <String>["URI_DOES_NOT_EXIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16940,6 +17168,7 @@ const Template<Message Function(Token token)>
   problemMessageTemplate:
       r"""The modifier '#lexeme' is only available in null safe libraries.""",
   withArguments: _withArgumentsUnexpectedModifierInNonNnbd,
+  analyzerCodes: <String>["UNEXPECTED_TOKEN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -16992,6 +17221,7 @@ const Template<Message Function(Token token)> templateUnexpectedToken =
   "UnexpectedToken",
   problemMessageTemplate: r"""Unexpected token '#lexeme'.""",
   withArguments: _withArgumentsUnexpectedToken,
+  analyzerCodes: <String>["UNEXPECTED_TOKEN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17387,6 +17617,7 @@ const Template<Message Function(String string, Token token)>
   "UnmatchedToken",
   problemMessageTemplate: r"""Can't find '#string' to match '#lexeme'.""",
   withArguments: _withArgumentsUnmatchedToken,
+  analyzerCodes: <String>["EXPECTED_TOKEN"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17505,6 +17736,7 @@ const Template<Message Function(Token token)> templateUnsupportedOperator =
   "UnsupportedOperator",
   problemMessageTemplate: r"""The '#lexeme' operator is not supported.""",
   withArguments: _withArgumentsUnsupportedOperator,
+  analyzerCodes: <String>["UNSUPPORTED_OPERATOR"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17554,6 +17786,7 @@ const Template<Message Function(String string, String string2)>
   problemMessageTemplate:
       r"""String starting with #string must end with #string2.""",
   withArguments: _withArgumentsUnterminatedString,
+  analyzerCodes: <String>["UNTERMINATED_STRING_LITERAL"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -17592,6 +17825,7 @@ const Template<Message Function(Uri uri_)> templateUntranslatableUri =
   "UntranslatableUri",
   problemMessageTemplate: r"""Not found: '#uri'""",
   withArguments: _withArgumentsUntranslatableUri,
+  analyzerCodes: <String>["URI_DOES_NOT_EXIST"],
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

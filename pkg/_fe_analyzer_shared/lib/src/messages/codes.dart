@@ -118,6 +118,9 @@ class Template<T> {
     this.correctionMessageTemplate,
     required this.problemMessageTemplate,
     required this.withArguments,
+    int index = -1,
+    List<String>? analyzerCodes,
+    CfeSeverity severity = CfeSeverity.error,
   });
 
   @override

@@ -424,6 +424,7 @@ const MessageCode message$name =
   }
 
   templateArguments.add("withArguments: _withArguments$name");
+  templateArguments.addAll(codeArguments);
 
   List<String> messageArguments = <String>[];
   String message = interpolate(problemMessage);
