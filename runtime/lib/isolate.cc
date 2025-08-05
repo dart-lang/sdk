@@ -57,10 +57,21 @@ DEFINE_NATIVE_ENTRY(Capability_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
+static void ThrowCantRunWithoutIsolateError() {
+  const auto& error =
+      String::Handle(String::New("Only available when running in context of "
+                                 "an isolate, rather than isolate group."));
+  Exceptions::ThrowArgumentError(error);
+}
+
 DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   return isolate->CreateReceivePort(debug_name);
 }
 
@@ -498,6 +509,11 @@ class MessageValidator : private WorkSet {
 
 // TODO(http://dartbug.com/47777): Add support for Finalizers.
 DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
+
   GET_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   if (!port.IsNull()) {
     GET_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
@@ -534,8 +550,7 @@ DEFINE_NATIVE_ENTRY(Isolate_exit_, 0, 2) {
       Exceptions::PropagateError(Error::Cast(validated_result));
       UNREACHABLE();
     }
-    PersistentHandle* handle =
-        isolate->group()->api_state()->AllocatePersistentHandle();
+    PersistentHandle* handle = group->api_state()->AllocatePersistentHandle();
     handle->set_ptr(msg_array);
     isolate->bequeath(std::unique_ptr<Bequest>(new Bequest(handle, port.Id())));
   }
@@ -1061,6 +1076,11 @@ static const char* String2UTF8(const String& str) {
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
+
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, script_uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Closure, closure, arguments->NativeArgAt(2));
@@ -1080,8 +1100,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   ASSERT(closure_copy_tuple.IsArray());
   ASSERT(
       Object::Handle(zone, Array::Cast(closure_copy_tuple).At(0)).IsClosure());
-  closure_tuple_handle =
-      isolate->group()->api_state()->AllocatePersistentHandle();
+  auto isolate_group = thread->isolate_group();
+  closure_tuple_handle = isolate_group->api_state()->AllocatePersistentHandle();
   closure_tuple_handle->set_ptr(closure_copy_tuple.ptr());
 
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
@@ -1107,10 +1127,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 0, 10) {
   std::unique_ptr<IsolateSpawnState> state(new IsolateSpawnState(
       port.Id(), String2UTF8(script_uri), closure_tuple_handle, &message_buffer,
       utf8_package_config, paused.value(), fatal_errors, on_exit_port,
-      on_error_port, utf8_debug_name, isolate->group()));
+      on_error_port, utf8_debug_name, isolate_group));
 
-  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
-                                                         std::move(state));
+  isolate_group->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                      std::move(state));
   return Object::null();
 }
 
@@ -1146,6 +1166,11 @@ static const char* CanonicalizeUri(Thread* thread,
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
+
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
@@ -1177,8 +1202,9 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
   }
 
   // Canonicalize the uri with respect to the current isolate.
+  auto isolate_group = thread->isolate_group();
   const Library& root_lib =
-      Library::Handle(isolate->group()->object_store()->root_library());
+      Library::Handle(isolate_group->object_store()->root_library());
   char* error = nullptr;
   const char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
   if (canonical_uri == nullptr) {
@@ -1204,8 +1230,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 0, 12) {
     flags->enable_asserts = enableAsserts.value();
   }
 
-  isolate->group()->thread_pool()->Run<SpawnIsolateTask>(isolate,
-                                                         std::move(state));
+  isolate_group->thread_pool()->Run<SpawnIsolateTask>(isolate,
+                                                      std::move(state));
   return Object::null();
 }
 
@@ -1229,8 +1255,8 @@ DEFINE_NATIVE_ENTRY(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0, 0) {
 }
 
 DEFINE_NATIVE_ENTRY(Isolate_getCurrentRootUriStr, 0, 0) {
-  const Library& root_lib =
-      Library::Handle(zone, isolate->group()->object_store()->root_library());
+  const Library& root_lib = Library::Handle(
+      zone, thread->isolate_group()->object_store()->root_library());
   return root_lib.url();
 }
 
