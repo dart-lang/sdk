@@ -27,8 +27,8 @@ library;
 import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class ManifestWarningCode extends DiagnosticCode {
-  ///  A code indicating that the camera permissions is not supported on Chrome
-  ///  OS.
+  /// A code indicating that the camera permissions is not supported on Chrome
+  /// OS.
   static const ManifestWarningCode
   CAMERA_PERMISSIONS_INCOMPATIBLE = ManifestWarningCode(
     'CAMERA_PERMISSIONS_INCOMPATIBLE',
@@ -42,7 +42,7 @@ class ManifestWarningCode extends DiagnosticCode {
         "android:required=\"false\">`.",
   );
 
-  ///  A code indicating that the activity is set to be non resizable.
+  /// A code indicating that the activity is set to be non resizable.
   static const ManifestWarningCode NON_RESIZABLE_ACTIVITY = ManifestWarningCode(
     'NON_RESIZABLE_ACTIVITY',
     "The `<activity>` element should be allowed to be resized to allow users "
@@ -52,8 +52,8 @@ class ManifestWarningCode extends DiagnosticCode {
         "`resizableActivity=\"true\"` attribute.",
   );
 
-  ///  A code indicating that the touchscreen feature is not specified in the
-  ///  manifest.
+  /// A code indicating that the touchscreen feature is not specified in the
+  /// manifest.
   static const ManifestWarningCode NO_TOUCHSCREEN_FEATURE = ManifestWarningCode(
     'NO_TOUCHSCREEN_FEATURE',
     "The default \"android.hardware.touchscreen\" needs to be optional for "
@@ -64,11 +64,11 @@ class ManifestWarningCode extends DiagnosticCode {
         "/> to the manifest.",
   );
 
-  ///  A code indicating that a specified permission is not supported on Chrome
-  ///  OS.
+  /// A code indicating that a specified permission is not supported on Chrome
+  /// OS.
   ///
-  ///  Parameters:
-  ///  0: the name of the feature tag
+  /// Parameters:
+  /// 0: the name of the feature tag
   static const ManifestWarningCode
   PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE = ManifestWarningCode(
     'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
@@ -79,7 +79,7 @@ class ManifestWarningCode extends DiagnosticCode {
         "android:required=\"false\">`.",
   );
 
-  ///  A code indicating that the activity is locked to an orientation.
+  /// A code indicating that the activity is locked to an orientation.
   static const ManifestWarningCode
   SETTING_ORIENTATION_ON_ACTIVITY = ManifestWarningCode(
     'SETTING_ORIENTATION_ON_ACTIVITY',
@@ -91,10 +91,10 @@ class ManifestWarningCode extends DiagnosticCode {
         "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
   );
 
-  ///  A code indicating that a specified feature is not supported on Chrome OS.
+  /// A code indicating that a specified feature is not supported on Chrome OS.
   ///
-  ///  Parameters:
-  ///  0: the name of the feature
+  /// Parameters:
+  /// 0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_FEATURE =
       ManifestWarningCode(
         'UNSUPPORTED_CHROME_OS_FEATURE',
@@ -104,11 +104,11 @@ class ManifestWarningCode extends DiagnosticCode {
             "Try changing to `android:required=\"false\"` for this feature.",
       );
 
-  ///  A code indicating that a specified hardware feature is not supported on
-  ///  Chrome OS.
+  /// A code indicating that a specified hardware feature is not supported on
+  /// Chrome OS.
   ///
-  ///  Parameters:
-  ///  0: the name of the feature
+  /// Parameters:
+  /// 0: the name of the feature
   static const ManifestWarningCode UNSUPPORTED_CHROME_OS_HARDWARE =
       ManifestWarningCode(
         'UNSUPPORTED_CHROME_OS_HARDWARE',

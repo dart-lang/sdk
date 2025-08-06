@@ -27,8 +27,8 @@ library;
 import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class PubspecWarningCode extends DiagnosticCode {
-  ///  Parameters:
-  ///  0: the path to the asset directory as given in the file.
+  /// Parameters:
+  /// 0: the path to the asset directory as given in the file.
   static const PubspecWarningCode ASSET_DIRECTORY_DOES_NOT_EXIST =
       PubspecWarningCode(
         'ASSET_DIRECTORY_DOES_NOT_EXIST',
@@ -38,8 +38,8 @@ class PubspecWarningCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
-  ///  Parameters:
-  ///  0: the path to the asset as given in the file.
+  /// Parameters:
+  /// 0: the path to the asset as given in the file.
   static const PubspecWarningCode ASSET_DOES_NOT_EXIST = PubspecWarningCode(
     'ASSET_DOES_NOT_EXIST',
     "The asset file '{0}' doesn't exist.",
@@ -47,7 +47,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode ASSET_FIELD_NOT_LIST = PubspecWarningCode(
     'ASSET_FIELD_NOT_LIST',
     "The value of the 'assets' field is expected to be a list of relative file "
@@ -57,7 +57,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode ASSET_MISSING_PATH = PubspecWarningCode(
     'ASSET_MISSING_PATH',
     "Asset map entry must contain a 'path' field.",
@@ -65,10 +65,10 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   ///
-  ///  This code is deprecated in favor of the
-  ///  'ASSET_NOT_STRING_OR_MAP' code, and will be removed.
+  /// This code is deprecated in favor of the
+  /// 'ASSET_NOT_STRING_OR_MAP' code, and will be removed.
   static const PubspecWarningCode ASSET_NOT_STRING = PubspecWarningCode(
     'ASSET_NOT_STRING',
     "Assets are required to be file paths (strings).",
@@ -76,7 +76,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode ASSET_NOT_STRING_OR_MAP = PubspecWarningCode(
     'ASSET_NOT_STRING_OR_MAP',
     "An asset value is required to be a file path (string) or map.",
@@ -84,7 +84,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode ASSET_PATH_NOT_STRING = PubspecWarningCode(
     'ASSET_PATH_NOT_STRING',
     "Asset paths are required to be file paths (strings).",
@@ -92,8 +92,8 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the name of the field
+  /// Parameters:
+  /// 0: the name of the field
   static const PubspecWarningCode DEPENDENCIES_FIELD_NOT_MAP =
       PubspecWarningCode(
         'DEPENDENCIES_FIELD_NOT_MAP',
@@ -102,8 +102,8 @@ class PubspecWarningCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
-  ///  Parameters:
-  ///  0: the name of the field
+  /// Parameters:
+  /// 0: the name of the field
   static const PubspecWarningCode DEPRECATED_FIELD = PubspecWarningCode(
     'DEPRECATED_FIELD',
     "The '{0}' field is no longer used and can be removed.",
@@ -111,7 +111,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode FLUTTER_FIELD_NOT_MAP = PubspecWarningCode(
     'FLUTTER_FIELD_NOT_MAP',
     "The value of the 'flutter' field is expected to be a map.",
@@ -119,8 +119,8 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the kind of dependency.
+  /// Parameters:
+  /// 0: the kind of dependency.
   static const PubspecWarningCode INVALID_DEPENDENCY = PubspecWarningCode(
     'INVALID_DEPENDENCY',
     "Publishable packages can't have '{0}' dependencies.",
@@ -130,7 +130,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode INVALID_PLATFORMS_FIELD = PubspecWarningCode(
     'INVALID_PLATFORMS_FIELD',
     "The 'platforms' field must be a map with platforms as keys.",
@@ -139,9 +139,9 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the list of packages missing from the dependencies and the list of
-  ///  packages missing from the dev_dependencies (if any) in the pubspec file.
+  /// Parameters:
+  /// 0: the list of packages missing from the dependencies and the list of
+  /// packages missing from the dev_dependencies (if any) in the pubspec file.
   static const PubspecWarningCode MISSING_DEPENDENCY = PubspecWarningCode(
     'MISSING_DEPENDENCY',
     "Missing a dependency on imported package '{0}'.",
@@ -149,7 +149,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode MISSING_NAME = PubspecWarningCode(
     'MISSING_NAME',
     "The 'name' field is required but missing.",
@@ -157,7 +157,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode NAME_NOT_STRING = PubspecWarningCode(
     'NAME_NOT_STRING',
     "The value of the 'name' field is required to be a string.",
@@ -165,8 +165,8 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the path to the dependency as given in the file.
+  /// Parameters:
+  /// 0: the path to the dependency as given in the file.
   static const PubspecWarningCode PATH_DOES_NOT_EXIST = PubspecWarningCode(
     'PATH_DOES_NOT_EXIST',
     "The path '{0}' doesn't exist.",
@@ -175,8 +175,8 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the path as given in the file.
+  /// Parameters:
+  /// 0: the path as given in the file.
   static const PubspecWarningCode PATH_NOT_POSIX = PubspecWarningCode(
     'PATH_NOT_POSIX',
     "The path '{0}' isn't a POSIX-style path.",
@@ -184,8 +184,8 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the path to the dependency as given in the file.
+  /// Parameters:
+  /// 0: the path to the dependency as given in the file.
   static const PubspecWarningCode
   PATH_PUBSPEC_DOES_NOT_EXIST = PubspecWarningCode(
     'PATH_PUBSPEC_DOES_NOT_EXIST',
@@ -196,7 +196,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode PLATFORM_VALUE_DISALLOWED =
       PubspecWarningCode(
         'PLATFORM_VALUE_DISALLOWED',
@@ -205,8 +205,8 @@ class PubspecWarningCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
-  ///  Parameters:
-  ///  0: the unknown platform.
+  /// Parameters:
+  /// 0: the unknown platform.
   static const PubspecWarningCode UNKNOWN_PLATFORM = PubspecWarningCode(
     'UNKNOWN_PLATFORM',
     "The platform '{0}' is not a recognized platform.",
@@ -214,8 +214,8 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the name of the package in the dev_dependency list.
+  /// Parameters:
+  /// 0: the name of the package in the dev_dependency list.
   static const PubspecWarningCode
   UNNECESSARY_DEV_DEPENDENCY = PubspecWarningCode(
     'UNNECESSARY_DEV_DEPENDENCY',
@@ -225,7 +225,7 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode WORKSPACE_FIELD_NOT_LIST = PubspecWarningCode(
     'WORKSPACE_FIELD_NOT_LIST',
     "The value of the 'workspace' field is required to be a list of relative "
@@ -234,7 +234,7 @@ class PubspecWarningCode extends DiagnosticCode {
         "Try converting the value to be a list of relative file paths.",
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const PubspecWarningCode WORKSPACE_VALUE_NOT_STRING =
       PubspecWarningCode(
         'WORKSPACE_VALUE_NOT_STRING',
@@ -242,8 +242,8 @@ class PubspecWarningCode extends DiagnosticCode {
         correctionMessage: "Try converting the value to be a string.",
       );
 
-  ///  Parameters:
-  ///  0: the path of the directory that contains the pubspec.yaml file.
+  /// Parameters:
+  /// 0: the path of the directory that contains the pubspec.yaml file.
   static const PubspecWarningCode WORKSPACE_VALUE_NOT_SUBDIRECTORY =
       PubspecWarningCode(
         'WORKSPACE_VALUE_NOT_SUBDIRECTORY',

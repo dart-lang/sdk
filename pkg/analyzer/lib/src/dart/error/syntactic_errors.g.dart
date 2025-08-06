@@ -286,9 +286,9 @@ class ParserErrorCode extends DiagnosticCode {
     "An annotation with type arguments must be followed by an argument list.",
   );
 
-  ///  16.32 Identifier Reference: It is a compile-time error if any of the
-  ///  identifiers async, await, or yield is used as an identifier in a function
-  ///  body marked with either async, async, or sync.
+  /// 16.32 Identifier Reference: It is a compile-time error if any of the
+  /// identifiers async, await, or yield is used as an identifier in a function
+  /// body marked with either async, async, or sync.
   static const ParserErrorCode ASYNC_KEYWORD_USED_AS_IDENTIFIER =
       ParserErrorCode(
         'ASYNC_KEYWORD_USED_AS_IDENTIFIER',
@@ -432,14 +432,14 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing the 'covariant' keyword.",
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode DEFAULT_IN_SWITCH_EXPRESSION = ParserErrorCode(
     'DEFAULT_IN_SWITCH_EXPRESSION',
     "A switch expression may not use the `default` keyword.",
     correctionMessage: "Try replacing `default` with `_`.",
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode DEFAULT_VALUE_IN_FUNCTION_TYPE = ParserErrorCode(
     'DEFAULT_VALUE_IN_FUNCTION_TYPE',
     "Parameters in a function type can't have default values.",
@@ -460,8 +460,8 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try moving the directive before any declarations.",
   );
 
-  ///  Parameters:
-  ///  0: the modifier that was duplicated
+  /// Parameters:
+  /// 0: the modifier that was duplicated
   static const ParserErrorCode DUPLICATED_MODIFIER = ParserErrorCode(
     'DUPLICATED_MODIFIER',
     "The modifier '{0}' was already specified.",
@@ -474,8 +474,8 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing all but one 'deferred' keyword.",
   );
 
-  ///  Parameters:
-  ///  0: the label that was duplicated
+  /// Parameters:
+  /// 0: the label that was duplicated
   static const ParserErrorCode DUPLICATE_LABEL_IN_SWITCH_STATEMENT =
       ParserErrorCode(
         'DUPLICATE_LABEL_IN_SWITCH_STATEMENT',
@@ -683,8 +683,8 @@ class ParserErrorCode extends DiagnosticCode {
     uniqueName: 'EXPECTED_SWITCH_STATEMENT_BODY',
   );
 
-  ///  Parameters:
-  ///  0: the token that was expected but not found
+  /// Parameters:
+  /// 0: the token that was expected but not found
   static const ParserErrorCode EXPECTED_TOKEN = ParserErrorCode(
     'EXPECTED_TOKEN',
     "Expected to find '{0}'.",
@@ -726,7 +726,7 @@ class ParserErrorCode extends DiagnosticCode {
             "Try moving the export directives before the part directives.",
       );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode EXTENSION_AUGMENTATION_HAS_ON_CLAUSE =
       ParserErrorCode(
         'EXTENSION_AUGMENTATION_HAS_ON_CLAUSE',
@@ -734,7 +734,7 @@ class ParserErrorCode extends DiagnosticCode {
         correctionMessage: "Try removing the 'on' clause.",
       );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode EXTENSION_DECLARES_ABSTRACT_MEMBER =
       ParserErrorCode(
         'EXTENSION_DECLARES_ABSTRACT_MEMBER',
@@ -743,7 +743,7 @@ class ParserErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode EXTENSION_DECLARES_CONSTRUCTOR = ParserErrorCode(
     'EXTENSION_DECLARES_CONSTRUCTOR',
     "Extensions can't declare constructors.",
@@ -1010,8 +1010,8 @@ class ParserErrorCode extends DiagnosticCode {
         "Illegal assignment to non-assignable expression.",
       );
 
-  ///  Parameters:
-  ///  0: the illegal name
+  /// Parameters:
+  /// 0: the illegal name
   static const ParserErrorCode ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME =
       ParserErrorCode(
         'ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME',
@@ -1019,8 +1019,8 @@ class ParserErrorCode extends DiagnosticCode {
         correctionMessage: "Choose a different name.",
       );
 
-  ///  Parameters:
-  ///  0: the illegal name
+  /// Parameters:
+  /// 0: the illegal name
   static const ParserErrorCode ILLEGAL_PATTERN_IDENTIFIER_NAME =
       ParserErrorCode(
         'ILLEGAL_PATTERN_IDENTIFIER_NAME',
@@ -1028,8 +1028,8 @@ class ParserErrorCode extends DiagnosticCode {
         correctionMessage: "Match the identifier using '==",
       );
 
-  ///  Parameters:
-  ///  0: the illegal name
+  /// Parameters:
+  /// 0: the illegal name
   static const ParserErrorCode ILLEGAL_PATTERN_VARIABLE_NAME = ParserErrorCode(
     'ILLEGAL_PATTERN_VARIABLE_NAME',
     "The variable declared by a variable pattern can't be named '{0}'.",
@@ -1096,8 +1096,8 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing the keyword, or use a for-each statement.",
   );
 
-  ///  Parameters:
-  ///  0: the invalid escape sequence
+  /// Parameters:
+  /// 0: the invalid escape sequence
   static const ParserErrorCode INVALID_CODE_POINT = ParserErrorCode(
     'INVALID_CODE_POINT',
     "The escape sequence '{0}' isn't a valid code point.",
@@ -1181,7 +1181,7 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "To initialize a field, use the syntax 'name = value'.",
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode INVALID_INSIDE_UNARY_PATTERN = ParserErrorCode(
     'INVALID_INSIDE_UNARY_PATTERN',
     "This pattern cannot appear inside a unary pattern (cast pattern, null "
@@ -1198,18 +1198,18 @@ class ParserErrorCode extends DiagnosticCode {
         correctionMessage: "Try removing the interpolation expressions.",
       );
 
-  ///  Parameters:
-  ///  0: the operator that is invalid
+  /// Parameters:
+  /// 0: the operator that is invalid
   static const ParserErrorCode INVALID_OPERATOR = ParserErrorCode(
     'INVALID_OPERATOR',
     "The string '{0}' isn't a user-definable operator.",
   );
 
-  ///  Parameters:
-  ///  0: the operator being applied to 'super'
+  /// Parameters:
+  /// 0: the operator being applied to 'super'
   ///
-  ///  Only generated by the old parser.
-  ///  Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
+  /// Only generated by the old parser.
+  /// Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
   static const ParserErrorCode INVALID_OPERATOR_FOR_SUPER = ParserErrorCode(
     'INVALID_OPERATOR_FOR_SUPER',
     "The operator '{0}' can't be used with 'super'.",
@@ -1275,7 +1275,7 @@ class ParserErrorCode extends DiagnosticCode {
         "digits or from 1 to 6 digits between '{' and '}'.",
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode INVALID_USE_OF_COVARIANT_IN_EXTENSION =
       ParserErrorCode(
         'INVALID_USE_OF_COVARIANT_IN_EXTENSION',
@@ -1292,7 +1292,7 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try using a different identifier.",
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode LATE_PATTERN_VARIABLE_DECLARATION =
       ParserErrorCode(
         'LATE_PATTERN_VARIABLE_DECLARATION',
@@ -1504,8 +1504,8 @@ class ParserErrorCode extends DiagnosticCode {
     "Expected a statement.",
   );
 
-  ///  Parameters:
-  ///  0: the terminator that is missing
+  /// Parameters:
+  /// 0: the terminator that is missing
   static const ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
         'MISSING_TERMINATOR_FOR_PARAMETER_GROUP',
@@ -1614,8 +1614,8 @@ class ParserErrorCode extends DiagnosticCode {
         "Try combining fields into a record, or removing extra fields.",
   );
 
-  ///  Parameters:
-  ///  0: the number of variables being declared
+  /// Parameters:
+  /// 0: the number of variables being declared
   static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = ParserErrorCode(
     'MULTIPLE_VARIABLES_IN_FOR_EACH',
     "A single loop variable must be declared in a for-each loop before the "
@@ -1709,8 +1709,8 @@ class ParserErrorCode extends DiagnosticCode {
         "Try enclosing the URI in either single or double quotes.",
   );
 
-  ///  Parameters:
-  ///  0: the operator that the user is trying to define
+  /// Parameters:
+  /// 0: the operator that the user is trying to define
   static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR = ParserErrorCode(
     'NON_USER_DEFINABLE_OPERATOR',
     "The operator '{0}' isn't user definable.",
@@ -1755,7 +1755,7 @@ class ParserErrorCode extends DiagnosticCode {
             "pattern variable declaration.",
       );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode
   PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD = ParserErrorCode(
     'PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD',
@@ -1946,16 +1946,16 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try removing the type parameters.",
   );
 
-  ///  7.1.1 Operators: Type parameters are not syntactically supported on an
-  ///  operator.
+  /// 7.1.1 Operators: Type parameters are not syntactically supported on an
+  /// operator.
   static const ParserErrorCode TYPE_PARAMETER_ON_OPERATOR = ParserErrorCode(
     'TYPE_PARAMETER_ON_OPERATOR',
     "Types parameters aren't allowed when defining an operator.",
     correctionMessage: "Try removing the type parameters.",
   );
 
-  ///  Parameters:
-  ///  0: the starting character that was missing
+  /// Parameters:
+  /// 0: the starting character that was missing
   static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
         'UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP',
@@ -1964,8 +1964,8 @@ class ParserErrorCode extends DiagnosticCode {
             "Try inserting the '{0}' at the appropriate location.",
       );
 
-  ///  Parameters:
-  ///  0: the unexpected text that was found
+  /// Parameters:
+  /// 0: the unexpected text that was found
   static const ParserErrorCode UNEXPECTED_TOKEN = ParserErrorCode(
     'UNEXPECTED_TOKEN',
     "Unexpected text '{0}'.",
@@ -1977,7 +1977,7 @@ class ParserErrorCode extends DiagnosticCode {
     "Unexpected tokens.",
   );
 
-  ///  No parameters.
+  /// No parameters.
   static const ParserErrorCode
   VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT = ParserErrorCode(
     'VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT',
@@ -2052,9 +2052,9 @@ class ParserErrorCode extends DiagnosticCode {
     correctionMessage: "Try replacing the ':' with '='.",
   );
 
-  ///  Parameters:
-  ///  0: the terminator that was expected
-  ///  1: the terminator that was found
+  /// Parameters:
+  /// 0: the terminator that was expected
+  /// 1: the terminator that was found
   static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
         'WRONG_TERMINATOR_FOR_PARAMETER_GROUP',
