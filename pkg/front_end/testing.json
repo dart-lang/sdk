@@ -232,6 +232,16 @@
       "status": "test/dartdoctest_suite.status"
     },
     {
+      "name": "coverage_merger",
+      "kind": "Chain",
+      "source": "test/coverage_merger_suite.dart",
+      "root": "test/coverage_merger_tests/",
+      "includeEndsWith": [
+        ".dart"
+      ],
+      "status": "test/coverage_merger_suite.status"
+    },
+    {
       "name": "spelling_test_src",
       "kind": "Chain",
       "source": "test/spelling_test_src_suite.dart",

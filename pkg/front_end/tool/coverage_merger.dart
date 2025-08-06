@@ -78,6 +78,8 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
   bool addCommentsToFiles = false,
   bool removeCommentsFromFiles = false,
   bool addAndRemoveCommentsInFiles = false,
+  void Function(String line)? stdoutReceiver,
+  void Function(String line)? stderrReceiver,
 }) async {
   void output(Object? object) {
     if (silent) return;
@@ -198,19 +200,31 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
-      stderr.writeln("stderr> $line");
+      if (stderrReceiver != null) {
+        stderrReceiver(line);
+      } else {
+        stderr.writeln("stderr> $line");
+      }
     });
     p.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
-      stdout.writeln("stdout> $line");
+      if (stdoutReceiver != null) {
+        stdoutReceiver(line);
+      } else {
+        stdout.writeln("stdout> $line");
+      }
     });
+    await p.exitCode;
   }
 
   output("Processed $filesCount files with $errorsCount error(s) and "
       "$allCoveredCount files being covered 100%.");
-  int percentHit = (hitsTotal * 100) ~/ (hitsTotal + missesTotal);
+  int percentHit = 0;
+  if (hitsTotal > 0) {
+    percentHit = (hitsTotal * 100) ~/ (hitsTotal + missesTotal);
+  }
   output("All-in-all $hitsTotal hits and $missesTotal misses ($percentHit%).");
 
   return result;

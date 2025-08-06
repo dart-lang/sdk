@@ -24,6 +24,7 @@ import 'modular_suite.dart' as modular show createContext;
 import 'outline_suite.dart' as outline show createContext;
 import 'strong_suite.dart' as strong show createContext;
 import 'textual_outline_suite.dart' as textual_outline show createContext;
+import 'coverage_merger_suite.dart' as coverage_merger show createContext;
 import 'incremental_bulk_compiler_smoke_suite.dart' as incremental_bulk_compiler
     show createContext;
 import 'incremental_suite.dart' as incremental show createContext;
@@ -456,6 +457,12 @@ const List<Suite> suites = [
   const Suite(
     "textual_outline",
     textual_outline.createContext,
+    "../testing.json",
+    shardCount: 1,
+  ),
+  const Suite(
+    "coverage_merger",
+    coverage_merger.createContext,
     "../testing.json",
     shardCount: 1,
   ),
