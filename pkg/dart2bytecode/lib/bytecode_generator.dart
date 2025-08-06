@@ -1298,7 +1298,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     if (typeArgs.isEmpty || !hasFreeTypeParameters(typeArgs)) {
-      asm.emitPushConstant(typeArgsCPIndex());
+      // Instantiated type arguments should not depend on
+      // the type parameters of the enclosing function.
+      objectTable.withoutEnclosingFunctionTypeParameters(() {
+        asm.emitPushConstant(typeArgsCPIndex());
+      });
     } else {
       final flattenedTypeArgs = (instantiatingClass != null &&
               (instantiatorTypeArguments != null ||
@@ -1581,11 +1585,16 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (hasFreeTypeParameters([type])) {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
+      asm.emitPushConstant(cp.addType(type));
     } else {
       asm.emitPushNull(); // Instantiator type arguments.
       asm.emitPushNull(); // Function type arguments.
+      // Instantiated type should not depend on
+      // the type parameters of the enclosing function.
+      objectTable.withoutEnclosingFunctionTypeParameters(() {
+        asm.emitPushConstant(cp.addType(type));
+      });
     }
-    asm.emitPushConstant(cp.addType(type));
     final argDesc = objectTable.getArgDescHandle(4);
     final cpIndex =
         cp.addInterfaceCall(InvocationKind.method, objectInstanceOf, argDesc);
@@ -3568,12 +3577,15 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitTypeLiteral(TypeLiteral node) {
     final DartType type = node.type;
-    final int typeCPIndex = cp.addType(type);
     if (!hasFreeTypeParameters([type])) {
-      asm.emitPushConstant(typeCPIndex);
+      // Instantiated type should not depend on
+      // the type parameters of the enclosing function.
+      objectTable.withoutEnclosingFunctionTypeParameters(() {
+        asm.emitPushConstant(cp.addType(type));
+      });
     } else {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
-      asm.emitInstantiateType(typeCPIndex);
+      asm.emitInstantiateType(cp.addType(type));
     }
   }
 

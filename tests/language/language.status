@@ -24,9 +24,6 @@ unsorted/invocation_mirror_test: SkipByDesign # Relies on symbol names
 vm/type_cast_vm_test: SkipByDesign # Relies on symbol names
 
 [ $compiler == dart2bytecode ]
-class_modifiers/trans_legacy/legacy_superdeclaration_test: Crash
-const/inference_test: Crash
-regress/regress45763_test: Crash
 vm/reflect_core_vm_test: Crash
 
 [ $compiler != fasta ]

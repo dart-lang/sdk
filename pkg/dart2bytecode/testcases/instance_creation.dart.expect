@@ -241,9 +241,9 @@ Bytecode {
   Push                 r0
   PushInt              1
   Push                 FP[-5]
-  LoadTypeArgumentsField CP#4
+  LoadTypeArgumentsField CP#3
   PushNull
-  InstantiateType      CP#3
+  InstantiateType      CP#4
   StoreIndexedTOS
   Push                 r0
   PushInt              2
@@ -252,7 +252,7 @@ Bytecode {
   Push                 r0
   PushInt              3
   Push                 FP[-5]
-  LoadTypeArgumentsField CP#4
+  LoadTypeArgumentsField CP#3
   PushNull
   InstantiateType      CP#6
   StoreIndexedTOS
@@ -267,8 +267,8 @@ ConstantPool {
   [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
   [2] = ObjectRef 'Base: '
-  [3] = Type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base::TypeParam/0
-  [4] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base
+  [3] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base
+  [4] = Type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base::TypeParam/0
   [5] = ObjectRef ', '
   [6] = Type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base::TypeParam/1
   [7] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
@@ -325,9 +325,9 @@ Bytecode {
   Push                 r0
   PushInt              1
   Push                 FP[-5]
-  LoadTypeArgumentsField CP#4
+  LoadTypeArgumentsField CP#3
   PushNull
-  InstantiateType      CP#3
+  InstantiateType      CP#4
   StoreIndexedTOS
   DirectCall           CP#5, 1
   DirectCall           CP#7, 1
@@ -339,8 +339,8 @@ ConstantPool {
   [0] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::Base:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
   [1] = Reserved
   [2] = ObjectRef 'B: '
-  [3] = Type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::B::TypeParam/0
-  [4] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::B
+  [3] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::B
+  [4] = Type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::B::TypeParam/0
   [5] = DirectCall 'dart:core::_StringBase::_interpolate', ArgDesc num-args 1, num-type-args 0, names []
   [6] = Reserved
   [7] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []

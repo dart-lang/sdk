@@ -1707,6 +1707,16 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     _nodeVisitor = _NodeVisitor(this, coreTypes);
   }
 
+  // Can be used to add instantiated types and constants which
+  // should not depend on type parameters of the enclosing function.
+  T withoutEnclosingFunctionTypeParameters<T>(T Function() action) {
+    final saved = numEnclosingFunctionTypeParameters;
+    numEnclosingFunctionTypeParameters = 0;
+    final result = action();
+    numEnclosingFunctionTypeParameters = saved;
+    return result;
+  }
+
   ObjectHandle? getHandle(Node? node) {
     if (node == null) {
       return null;
