@@ -313,6 +313,24 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_classContainingWith() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await resolveTestCode('''
+class B extends A with M {}
+
+mixin M {}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+class B extends A with M {}
+
+mixin M {}
+''');
+  }
+
   Future<void> test_extension_name() async {
     createAnalysisOptionsFile(lints: [LintNames.comment_references]);
     newFile('$testPackageLibPath/lib.dart', '''

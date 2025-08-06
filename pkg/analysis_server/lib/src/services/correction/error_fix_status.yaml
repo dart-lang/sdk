@@ -1125,7 +1125,7 @@ CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
   status: hasFix
 CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.MIXINS_SUPER_CLASS:
   status: needsFix
   notes: |-

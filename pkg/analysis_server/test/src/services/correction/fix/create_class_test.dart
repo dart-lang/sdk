@@ -304,6 +304,22 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_classContainingWith() async {
+    await resolveTestCode('''
+class B extends A with M {}
+
+mixin M {}
+''');
+    await assertHasFix('''
+class B extends A with M {}
+
+class A {
+}
+
+mixin M {}
+''');
+  }
+
   Future<void> test_extends() async {
     await resolveTestCode('''
 class MyClass extends BaseClass {}

@@ -1361,6 +1361,10 @@ final _builtInNonLintMultiGenerators = {
     DataDriven.new,
     ImportLibrary.forType,
   ],
+  CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS: [
+    CreateClass.new,
+    ImportLibrary.forType,
+  ],
   CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
     CreateClass.new,
     ImportLibrary.forType,
