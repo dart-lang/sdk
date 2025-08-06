@@ -5465,6 +5465,7 @@ class A {
 ''',
       testCode: r'''
 import 'a.dart';
+
 void f() {
   var a = A.foo(0);
   a.foo;
@@ -8215,6 +8216,537 @@ class A {
 [operation] getErrorsFromBytes
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_extends_class_getterSetter() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  int get foo {}
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+
+class B extends A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        declaredSetters
+          foo=: #M3
+        interface: #M4
+          map
+            foo: #M2
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M6
+        interface: #M7
+          map
+            foo: #M2
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          interfaceId: #M4
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          allDeclaredGetters: #M2
+          allDeclaredSetters: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M8
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  double get foo {}
+  set foo(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredFields
+          foo: #M9
+        declaredGetters
+          foo: #M10
+        declaredSetters
+          foo=: #M3
+        interface: #M11
+          map
+            foo: #M10
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M12
+        int: #M5
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M4
+    actualId: #M11
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M6
+        interface: #M13
+          map
+            foo: #M10
+            foo=: #M3
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          interfaceId: #M11
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M9
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M9
+          allDeclaredGetters: #M10
+          allDeclaredSetters: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M8
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_extends_class_method() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+
+class B extends A {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M1
+          foo: #M2
+        interface: #M3
+          map
+            bar: #M1
+            foo: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M4
+        interface: #M5
+          map
+            bar: #M1
+            foo: #M2
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          interfaceId: #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M2 #M1
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M6
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  int foo() {}
+  void bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M1
+          foo: #M7
+        interface: #M8
+          map
+            bar: #M1
+            foo: #M7
+  requirements
+    topLevels
+      dart:core
+        int: #M9
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M3
+    actualId: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      B: #M4
+        interface: #M10
+          map
+            bar: #M1
+            foo: #M7
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          interfaceId: #M8
+[operation] getErrorsCannotReuse
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: A
+    childrenPropertyName: methods
+    expectedIds: #M2 #M1
+    actualIds: #M7 #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M7 #M1
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M6
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_extends_class_method_topMerged() async {
+    configuration.withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void foo() {}
+}
+
+class B {
+  dynamic foo() {}
+}
+
+class C extends A implements B {}
+''',
+      testCode: r'''
+import 'a.dart';
+
+class X extends C {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M5
+          map
+            foo: #M4
+      C: #M6
+        interface: #M7
+          map
+            foo: #M8
+          combinedIds
+            [#M1, #M4]: #M8
+  requirements
+    topLevels
+      dart:core
+        dynamic: <null>
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      X: #M9
+        interface: #M10
+          map
+            foo: #M8
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M6
+    interfaces
+      package:test/a.dart
+        C
+          interfaceId: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M6
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M1
+        B
+          allDeclaredMethods: #M4
+        C
+    interfaces
+      package:test/a.dart
+        C
+          constructors
+            new: #M11
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  int foo() {}
+}
+
+class B {
+  dynamic foo() {}
+}
+
+class C extends A implements B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M12
+        interface: #M13
+          map
+            foo: #M12
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M5
+          map
+            foo: #M4
+      C: #M6
+        interface: #M14
+          map
+            foo: #M15
+          combinedIds
+            [#M12, #M4]: #M15
+  requirements
+    topLevels
+      dart:core
+        dynamic: <null>
+        int: #M16
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] cannotReuseLinkedBundle
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: C
+    expectedId: #M7
+    actualId: #M14
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      X: #M9
+        interface: #M17
+          map
+            foo: #M12
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M6
+    interfaces
+      package:test/a.dart
+        C
+          interfaceId: #M14
+[operation] getErrorsCannotReuse
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: A
+    childrenPropertyName: methods
+    expectedIds: #M1
+    actualIds: #M12
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        C: <null>
+      package:test/a.dart
+        C: #M6
+    instances
+      package:test/a.dart
+        A
+          allDeclaredMethods: #M12
+        B
+          allDeclaredMethods: #M4
+        C
+    interfaces
+      package:test/a.dart
+        C
+          constructors
+            new: #M11
 [status] idle
 ''',
     );
@@ -38630,67 +39162,155 @@ const d = A.b;
   }
 
   test_manifest_constInitializer_prefixedIdentifier_importPrefix_className_fieldName() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-import '' as self;
-
+    var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const a = 0;
   static const b = 0;
 }
+''');
 
-const c = self.A.a;
-const d = self.A.b;
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart' as prefix;
+
+const c = prefix.A.a;
+const d = prefix.A.b;
 ''',
       expectedInitialEvents: r'''
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
-  package:test/test.dart
+  package:test/a.dart
     declaredClasses
       A: #M0
+        supertype: Object @ dart:core
         declaredFields
           a: #M1
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: 0
+              tokenLengthList: [1]
           b: #M2
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: 0
+              tokenLengthList: [1]
         declaredGetters
           a: #M3
+            returnType: int @ dart:core
           b: #M4
+            returnType: int @ dart:core
         interface: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
     declaredGetters
       c: #M6
+        returnType: int @ dart:core
       d: #M7
+        returnType: int @ dart:core
     declaredVariables
       c: #M8
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: prefix.A.a
+          tokenLengthList: [6, 1, 1, 1, 1]
+          elements
+            [0] (package:test/a.dart, class_, A) #M0
+            [1] (package:test/a.dart, instanceGetter, A, a) #M3
+            [2] (package:test/a.dart, instanceField, A, a) #M1
+          elementIndexList
+            3 = importPrefix
+            5 = element 0
+            13 = element 1
+            21 = element 2
       d: #M9
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: prefix.A.b
+          tokenLengthList: [6, 1, 1, 1, 1]
+          elements
+            [0] (package:test/a.dart, class_, A) #M0
+            [1] (package:test/a.dart, instanceGetter, A, b) #M4
+            [2] (package:test/a.dart, instanceField, A, b) #M2
+          elementIndexList
+            3 = importPrefix
+            5 = element 0
+            13 = element 1
+            21 = element 2
 ''',
+      updatedCodeFile: a,
       updatedCode: r'''
-import '' as self;
-
 class A {
   static const a = 0;
   static const b = 1;
 }
-
-const c = self.A.a;
-const d = self.A.b;
 ''',
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
-  package:test/test.dart
+  package:test/a.dart
     declaredClasses
       A: #M0
+        supertype: Object @ dart:core
         declaredFields
           a: #M1
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: 0
+              tokenLengthList: [1]
           b: #M10
+            type: int @ dart:core
+            constInitializer
+              tokenBuffer: 1
+              tokenLengthList: [1]
         declaredGetters
           a: #M3
+            returnType: int @ dart:core
           b: #M4
+            returnType: int @ dart:core
         interface: #M5
+[operation] cannotReuseLinkedBundle
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: b
+    expectedId: #M2
+    actualId: #M10
+[operation] linkLibraryCycle
+  package:test/test.dart
     declaredGetters
       c: #M6
+        returnType: int @ dart:core
       d: #M7
+        returnType: int @ dart:core
     declaredVariables
       c: #M8
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: prefix.A.a
+          tokenLengthList: [6, 1, 1, 1, 1]
+          elements
+            [0] (package:test/a.dart, class_, A) #M0
+            [1] (package:test/a.dart, instanceGetter, A, a) #M3
+            [2] (package:test/a.dart, instanceField, A, a) #M1
+          elementIndexList
+            3 = importPrefix
+            5 = element 0
+            13 = element 1
+            21 = element 2
       d: #M11
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: prefix.A.b
+          tokenLengthList: [6, 1, 1, 1, 1]
+          elements
+            [0] (package:test/a.dart, class_, A) #M0
+            [1] (package:test/a.dart, instanceGetter, A, b) #M4
+            [2] (package:test/a.dart, instanceField, A, b) #M10
+          elementIndexList
+            3 = importPrefix
+            5 = element 0
+            13 = element 1
+            21 = element 2
 ''',
     );
   }
@@ -47728,6 +48348,7 @@ import 'a.dart';
     String? expectedInitialEvents,
     String? expectedInitialDriverState,
     List<File> Function()? updateFiles,
+    File? updatedCodeFile,
     required String updatedCode,
     required String expectedUpdatedEvents,
     String? expectedUpdatedDriverState,
@@ -47769,8 +48390,9 @@ import 'a.dart';
       }
     }
 
-    modifyFile2(testFile, updatedCode);
-    driver.changeFile2(testFile);
+    updatedCodeFile ??= testFile;
+    modifyFile2(updatedCodeFile, updatedCode);
+    driver.changeFile2(updatedCodeFile);
 
     collector.getLibraryByUri('T2', '$libraryUri');
 
