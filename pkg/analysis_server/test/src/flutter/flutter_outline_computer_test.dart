@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,13 +20,36 @@ void main() {
 @reflectiveTest
 class FlutterOutlineComputerTest extends AbstractContextTest {
   late String testPath;
-  late String testCode;
+  late TestCode testCode;
   late ResolvedUnitResult resolveResult;
   late FlutterOutlineComputer computer;
 
+  Matcher hasCodeOffsetLength(TestCodeRange range) {
+    return TypeMatcher<FlutterOutline>()
+        .having(
+          (outline) => outline.codeOffset,
+          'codeOffset',
+          range.sourceRange.offset,
+        )
+        .having(
+          (outline) => outline.codeLength,
+          'codeLength',
+          range.sourceRange.length,
+        );
+  }
+
+  Matcher hasOffsetLength(TestCodeRange range) {
+    return TypeMatcher<FlutterOutline>()
+        .having((outline) => outline.offset, 'offset', range.sourceRange.offset)
+        .having(
+          (outline) => outline.length,
+          'length',
+          range.sourceRange.length,
+        );
+  }
+
   @override
   void setUp() {
-    useLineEndingsForPlatform = false;
     super.setUp();
     writeTestPackageConfig(flutter: true);
     testPath = convertPath('$testPackageLibPath/test.dart');
@@ -37,7 +61,7 @@ import 'package:flutter/widgets.dart';
 
 void f() {
   return new WidgetA(
-    value: 42,
+    /*[0*/value/*0]*/: /*[1*/42/*1]*/,
   ); // WidgetA
 }
 
@@ -52,8 +76,8 @@ class WidgetA extends StatelessWidget {
     var attribute = widget.attributes![0];
     expect(attribute.name, 'value');
     expect(attribute.label, '42');
-    _assertLocation(attribute.nameLocation!, 77, 5);
-    _assertLocation(attribute.valueLocation!, 84, 2);
+    _assertLocation(attribute.nameLocation!, testCode.ranges[0]);
+    _assertLocation(attribute.valueLocation!, testCode.ranges[1]);
   }
 
   Future<void> test_attributes_bool() async {
@@ -191,10 +215,10 @@ import 'package:flutter/widgets.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Column(children: [
-      const Text('aaa'),
-      const Text('bbb'),
-    ]); // Column
+    return /*[0*/new Column(children: [
+      /*[1*/const Text('aaa')/*1]*/,
+      /*[2*/const Text('bbb')/*2]*/,
+    ])/*0]*/; // Column
   }
 }
 ''');
@@ -210,28 +234,9 @@ class MyWidget extends StatelessWidget {
     var build = myWidget.children![0];
 
     var columnOutline = build.children![0];
-    {
-      var offset = testCode.indexOf('new Column');
-      var length = testCode.indexOf('; // Column') - offset;
-      expect(columnOutline.offset, offset);
-      expect(columnOutline.length, length);
-    }
-
-    {
-      var textOutline = columnOutline.children![0];
-      var text = "const Text('aaa')";
-      var offset = testCode.indexOf(text);
-      expect(textOutline.offset, offset);
-      expect(textOutline.length, text.length);
-    }
-
-    {
-      var textOutline = columnOutline.children![1];
-      var text = "const Text('bbb')";
-      var offset = testCode.indexOf(text);
-      expect(textOutline.offset, offset);
-      expect(textOutline.length, text.length);
-    }
+    expect(columnOutline, hasOffsetLength(testCode.ranges[0]));
+    expect(columnOutline.children![0], hasOffsetLength(testCode.ranges[1]));
+    expect(columnOutline.children![1], hasOffsetLength(testCode.ranges[2]));
   }
 
   Future<void> test_children_closure_blockBody() async {
@@ -384,31 +389,26 @@ class MyWidget extends StatelessWidget {
     var unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
-/// Comment
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return new Container();
-  }
-}
+/*[0*//// Comment
+/*[1*/class MyWidget extends StatelessWidget {
+  /*[2*/@override
+  /*[3*/Widget build(BuildContext context) {
+    return /*[4*/new Container()/*4]*/;
+  }/*3]*//*2]*/
+}/*1]*//*0]*/
 ''');
     var myWidget = unitOutline.children![0];
-    expect(myWidget.offset, 40);
-    expect(myWidget.length, 137);
-    expect(myWidget.codeOffset, 52);
-    expect(myWidget.codeLength, 125);
+    expect(myWidget, hasOffsetLength(testCode.ranges[0]));
+    expect(myWidget, hasCodeOffsetLength(testCode.ranges[1]));
 
     var build = myWidget.children![0];
-    expect(build.offset, 95);
-    expect(build.length, 80);
-    expect(build.codeOffset, 107);
-    expect(build.codeLength, 68);
+    expect(build, hasOffsetLength(testCode.ranges[2]));
+    expect(build, hasCodeOffsetLength(testCode.ranges[3]));
 
     var container = build.children![0];
-    expect(container.offset, 155);
-    expect(container.length, 15);
-    expect(container.codeOffset, 155);
-    expect(container.codeLength, 15);
+    expect(container, hasOffsetLength(testCode.ranges[4]));
+    // Same range for element/code.
+    expect(container, hasCodeOffsetLength(testCode.ranges[4]));
   }
 
   Future<void> test_enum() async {
@@ -418,7 +418,7 @@ import 'package:flutter/widgets.dart';
 enum E {
   v;
   Widget build(BuildContext context) {
-    return const Text('A');
+    return [!const Text('A')!];
   }
 }
 ''');
@@ -431,13 +431,7 @@ enum E {
 ''');
     var E = unitOutline.children![0];
     var build = E.children![1];
-    {
-      var textOutline = build.children![0];
-      var text = "const Text('A')";
-      var offset = testCode.indexOf(text);
-      expect(textOutline.offset, offset);
-      expect(textOutline.length, text.length);
-    }
+    expect(build.children![0], hasOffsetLength(testCode.range));
   }
 
   Future<void> test_genericLabel_invocation() async {
@@ -601,18 +595,14 @@ class MyWidget extends StatelessWidget {
     expect(textRef.variableName, 'text');
   }
 
-  void _assertLocation(
-    Location actual,
-    int expectedOffset,
-    int expectedLength,
-  ) {
-    expect(actual.offset, expectedOffset);
-    expect(actual.length, expectedLength);
+  void _assertLocation(Location actual, TestCodeRange range) {
+    expect(actual.offset, range.sourceRange.offset);
+    expect(actual.length, range.sourceRange.length);
   }
 
-  Future<FlutterOutline> _computeOutline(String code) async {
-    testCode = code;
-    newFile(testPath, code);
+  Future<FlutterOutline> _computeOutline(String content) async {
+    testCode = TestCode.parseNormalized(content);
+    newFile(testPath, testCode.code);
     resolveResult = await getResolvedUnit(testFile);
     computer = FlutterOutlineComputer(resolveResult);
     return computer.compute();
@@ -626,7 +616,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  new MyWidget($value);
+  new MyWidget([!$value!]);
 }
 
 class MyWidget extends StatelessWidget {
@@ -646,7 +636,7 @@ class MyWidget extends StatelessWidget {
     var attribute = newMyWidget.attributes![0];
     expect(attribute.name, name);
     expect(attribute.nameLocation, isNull);
-    _assertLocation(attribute.valueLocation!, 66, value.length);
+    _assertLocation(attribute.valueLocation!, testCode.range);
 
     return attribute;
   }
