@@ -630,6 +630,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveRequired.new,
   ],
   CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER: [
+    AddEnumConstant.new,
     ChangeTo.getterOrSetter,
     CreateGetter.new,
     CreateField.new,

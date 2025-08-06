@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -236,6 +237,73 @@ void f() {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_dotShorthand_enum() async {
+    await resolveTestCode('''
+enum A {
+  ONE
+}
+A f() {
+  return .test;
+}
+''');
+    await assertHasFix('''
+enum A {
+  ONE;
+
+  static final A test;
+}
+A f() {
+  return .test;
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_enum_empty() async {
+    await resolveTestCode('''
+enum A {}
+A f() {
+  return .test;
+}
+''');
+    await assertHasFix(
+      '''
+enum A {;
+  static final A test;
+}
+A f() {
+  return .test;
+}
+''',
+      errorFilter: (e) {
+        return e.diagnosticCode ==
+            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER;
+      },
+    );
+  }
+
+  Future<void> test_dotShorthand_enum_empty_semicolon() async {
+    await resolveTestCode('''
+enum A {;}
+A f() {
+  return .test;
+}
+''');
+    await assertHasFix(
+      '''
+enum A {;
+  static final A test;
+}
+A f() {
+  return .test;
+}
+''',
+      errorFilter: (e) {
+        return e.diagnosticCode ==
+            CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER;
+      },
+    );
   }
 
   Future<void> test_dotShorthand_extensionType() async {
