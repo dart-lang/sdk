@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart' // ignore: implementation_imports
     show BaseDeprecatedMemberUseVerifier;
+import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 import 'package:analyzer/workspace/workspace.dart';
 
 import '../analyzer.dart';
@@ -132,7 +133,7 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
     if (library == null) {
       return;
     }
-    _deprecatedVerifier.pushInDeprecatedValue(library.metadata.hasDeprecated);
+    _deprecatedVerifier.pushInDeprecatedValue(library.isUseDeprecated);
 
     super.visitCompilationUnit(node);
   }
@@ -192,7 +193,9 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
+    _deprecatedVerifier.pushInDeprecatedValue(
+      node.firstVariableElement.isUseDeprecated,
+    );
 
     try {
       super.visitFieldDeclaration(node);
@@ -320,7 +323,9 @@ class _RecursiveVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _deprecatedVerifier.pushInDeprecatedMetadata(node.metadata);
+    _deprecatedVerifier.pushInDeprecatedValue(
+      node.firstVariableElement.isUseDeprecated,
+    );
 
     try {
       super.visitTopLevelVariableDeclaration(node);

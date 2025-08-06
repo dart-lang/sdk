@@ -95,11 +95,6 @@ abstract class BaseDeprecatedMemberUseVerifier {
     _checkForDeprecated(node.element, node);
   }
 
-  void pushInDeprecatedMetadata(List<Annotation> metadata) {
-    var hasDeprecated = _hasDeprecatedUseAnnotation(metadata);
-    pushInDeprecatedValue(hasDeprecated);
-  }
-
   void pushInDeprecatedValue(bool value) {
     var newValue = _inDeprecatedMemberStack.last || value;
     _inDeprecatedMemberStack.add(newValue);
@@ -261,21 +256,6 @@ abstract class BaseDeprecatedMemberUseVerifier {
     var constantValue = annotation.computeConstantValue();
     return constantValue?.getField('message')?.toStringValue() ??
         constantValue?.getField('expires')?.toStringValue();
-  }
-
-  /// Whether [annotations] includes an annotation indicating "deprecated use."
-  ///
-  /// This amounts to any annotation using `deprecated` or `Deprecated()` (the
-  /// default constructor) from `dart:core`.
-  static bool _hasDeprecatedUseAnnotation(List<Annotation> annotations) {
-    var deprecatedAnnotations = annotations
-        .map((a) => a.elementAnnotation)
-        .nonNulls
-        .where((a) => a.isDeprecated);
-    return deprecatedAnnotations.any((deprecated) {
-      var value = deprecated.computeConstantValue();
-      return value?.getField('_isUse')?.toBoolValue() ?? true;
-    });
   }
 
   /// Returns whether [element] is a [FormalParameterElement] declared in
