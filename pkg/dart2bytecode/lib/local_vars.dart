@@ -936,6 +936,7 @@ class _Allocator extends RecursiveVisitor {
         _allocateParameter(_currentFrame.receiverVar!, 0);
         if (_currentFrame.capturedReceiverVar != null) {
           _allocateVariable(_currentFrame.capturedReceiverVar!);
+          _currentFrame.hasCapturedParameters = true;
         }
       }
       _allocateSpecialVariables();
