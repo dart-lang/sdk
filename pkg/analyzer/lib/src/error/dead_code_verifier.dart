@@ -472,7 +472,8 @@ class NullSafetyDeadCodeVerifier {
     var flowAnalysis = _flowAnalysis;
     if (flowAnalysis == null) return;
 
-    var operatorType = operator?.type;
+    if (operator == null) return;
+    var operatorType = operator.type;
     if (operatorType != TokenType.QUESTION &&
         operatorType != TokenType.QUESTION_PERIOD &&
         operatorType != TokenType.QUESTION_PERIOD_PERIOD) {
@@ -494,7 +495,11 @@ class NullSafetyDeadCodeVerifier {
           node = parent!;
           parent = node.parent;
         }
-        _diagnosticReporter.atNode(node, WarningCode.DEAD_CODE);
+        _diagnosticReporter.atOffset(
+          offset: operator.offset,
+          length: node.end - operator.offset,
+          diagnosticCode: WarningCode.DEAD_CODE,
+        );
       }
     }
   }
