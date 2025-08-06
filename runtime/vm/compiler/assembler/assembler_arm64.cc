@@ -604,7 +604,6 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
   Operand op;
   // PP is _un_tagged on ARM64.
   const uint32_t offset = target::ObjectPool::element_offset(index);
-  ASSERT(offset < (1 << 24));
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   if (Address::CanHoldOffset(offset, Address::PairOffset)) {
@@ -618,7 +617,7 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
              Address::CanHoldOffset(lower12, Address::PairOffset)) {
     add(TMP, PP, op);
     ldp(lower, upper, Address(TMP, lower12, Address::PairOffset));
-  } else {
+  } else if (Utils::IsUint(24, offset)) {
     const uint32_t lower12 = offset & 0xfff;
     const uint32_t higher12 = offset & 0xfff000;
 
@@ -632,6 +631,15 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
     add(TMP, PP, op_high);
     add(TMP, TMP, op_low);
     ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else if (Utils::IsUint(32, offset)) {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(TMP, Immediate(offset_low), 0);
+    movk(TMP, Immediate(offset_high), 1);
+    add(TMP, TMP, Operand(PP));
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else {
+    UNIMPLEMENTED();
   }
 }
 

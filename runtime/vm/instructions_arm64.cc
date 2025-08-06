@@ -247,6 +247,11 @@ uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
   //      add tmp, tmp, #lower12
   //      ldp reg1, reg2, [tmp, 0]
   //
+  //   4. movz tmp, #lower16
+  //      movk tmp, #upper16
+  //      add tmp, tmp, pp
+  //      ldp reg1, reg2, [tmp, 0]
+  //
   // Note that the pp register is untagged!
   //
   uword start = end - Instr::kInstrSize;
@@ -267,31 +272,52 @@ uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
     // Case 1.
     pool_offset = base_offset;
   } else {
-    // Case 2 & 3.
     ASSERT(base_reg == TMP);
 
     pool_offset = base_offset;
 
     start -= Instr::kInstrSize;
     Instr* add_instr = Instr::At(start);
-    ASSERT(add_instr->IsAddSubImmOp());
-    ASSERT(add_instr->RdField() == TMP);
+    if (add_instr->IsAddSubShiftExtOp()) {
+      // Case 4.
+      ASSERT(add_instr->RdField() == TMP);
 
-    const auto shift = add_instr->Imm12ShiftField();
-    ASSERT(shift == 0 || shift == 1);
-    pool_offset += (add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
-
-    if (add_instr->RnField() == TMP) {
       start -= Instr::kInstrSize;
-      Instr* prev_add_instr = Instr::At(start);
-      ASSERT(prev_add_instr->IsAddSubImmOp());
-      ASSERT(prev_add_instr->RnField() == PP);
+      Instr* movk_instr = Instr::At(start);
+      ASSERT(movk_instr->IsMoveWideOp());
+      ASSERT(movk_instr->Bits(29, 2) == 3);
+      ASSERT(movk_instr->HWField() == 1);  // movk tmp, imm1, 1
+      ASSERT(movk_instr->RdField() == TMP);
+      pool_offset += (movk_instr->Imm16Field() << 16);
 
-      const auto shift = prev_add_instr->Imm12ShiftField();
-      ASSERT(shift == 0 || shift == 1);
-      pool_offset += (prev_add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+      start -= Instr::kInstrSize;
+      Instr* movz_instr = Instr::At(start);
+      ASSERT(movz_instr->IsMoveWideOp());
+      ASSERT(movz_instr->Bits(29, 2) == 2);
+      ASSERT(movz_instr->HWField() == 0);  // movz tmp, imm0, 0
+      ASSERT(movz_instr->RdField() == TMP);
+      pool_offset += movz_instr->Imm16Field();
     } else {
-      ASSERT(add_instr->RnField() == PP);
+      // Case 2 & 3.
+      ASSERT(add_instr->IsAddSubImmOp());
+      ASSERT(add_instr->RdField() == TMP);
+
+      const auto shift = add_instr->Imm12ShiftField();
+      ASSERT(shift == 0 || shift == 1);
+      pool_offset += (add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+
+      if (add_instr->RnField() == TMP) {
+        start -= Instr::kInstrSize;
+        Instr* prev_add_instr = Instr::At(start);
+        ASSERT(prev_add_instr->IsAddSubImmOp());
+        ASSERT(prev_add_instr->RnField() == PP);
+
+        const auto shift = prev_add_instr->Imm12ShiftField();
+        ASSERT(shift == 0 || shift == 1);
+        pool_offset += (prev_add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+      } else {
+        ASSERT(add_instr->RnField() == PP);
+      }
     }
   }
   *index = ObjectPool::IndexFromOffset(pool_offset - kHeapObjectTag);
