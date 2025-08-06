@@ -445,13 +445,12 @@ const MessageCode message$name =
   return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(${parameters.join(', ')})> template$name =
-    const Template<Message Function(${parameters.join(', ')})>(
-        ${templateArguments.join(', ')},);
+    code$name;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code code$name =
-    const Code(
-        \"$name\", ${codeArguments.join(', ')});
+const Template<Message Function(${parameters.join(', ')})> code$name =
+    const Template<Message Function(${parameters.join(', ')})>(
+        ${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArguments$name(${parameters.join(', ')}) {

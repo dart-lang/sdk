@@ -877,7 +877,7 @@ String typeVariableBuilderToText(NominalParameterBuilder typeParameter) {
 /// Returns a textual representation of [errors] to be used in testing.
 String errorsToText(List<FormattedMessage> errors, {bool useCodes = false}) {
   if (useCodes) {
-    return errors.map((m) => m.code).join(',');
+    return errors.map((m) => m.code.name).join(',');
   } else {
     return errors.map((m) => m.problemMessage).join(',');
   }
