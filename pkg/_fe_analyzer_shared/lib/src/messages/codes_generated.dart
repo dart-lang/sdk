@@ -12,7 +12,7 @@
 part of _fe_analyzer_shared.messages.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractClassConstructorTearOff =
+const MessageCode codeAbstractClassConstructorTearOff =
     messageAbstractClassConstructorTearOff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -46,7 +46,7 @@ Message _withArgumentsAbstractClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractClassMember = messageAbstractClassMember;
+const MessageCode codeAbstractClassMember = messageAbstractClassMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractClassMember = const MessageCode(
@@ -58,7 +58,7 @@ const MessageCode messageAbstractClassMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractExtensionField = messageAbstractExtensionField;
+const MessageCode codeAbstractExtensionField = messageAbstractExtensionField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractExtensionField = const MessageCode(
@@ -69,7 +69,7 @@ const MessageCode messageAbstractExtensionField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractExternalField = messageAbstractExternalField;
+const MessageCode codeAbstractExternalField = messageAbstractExternalField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractExternalField = const MessageCode(
@@ -81,7 +81,7 @@ const MessageCode messageAbstractExternalField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractFieldConstructorInitializer =
+const MessageCode codeAbstractFieldConstructorInitializer =
     messageAbstractFieldConstructorInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -94,7 +94,8 @@ const MessageCode messageAbstractFieldConstructorInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractFieldInitializer = messageAbstractFieldInitializer;
+const MessageCode codeAbstractFieldInitializer =
+    messageAbstractFieldInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractFieldInitializer = const MessageCode(
@@ -105,7 +106,7 @@ const MessageCode messageAbstractFieldInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractFinalBaseClass = messageAbstractFinalBaseClass;
+const MessageCode codeAbstractFinalBaseClass = messageAbstractFinalBaseClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractFinalBaseClass = const MessageCode(
@@ -117,7 +118,8 @@ const MessageCode messageAbstractFinalBaseClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractFinalInterfaceClass = messageAbstractFinalInterfaceClass;
+const MessageCode codeAbstractFinalInterfaceClass =
+    messageAbstractFinalInterfaceClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractFinalInterfaceClass = const MessageCode(
@@ -130,7 +132,7 @@ const MessageCode messageAbstractFinalInterfaceClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractLateField = messageAbstractLateField;
+const MessageCode codeAbstractLateField = messageAbstractLateField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractLateField = const MessageCode(
@@ -141,7 +143,7 @@ const MessageCode messageAbstractLateField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractNotSync = messageAbstractNotSync;
+const MessageCode codeAbstractNotSync = messageAbstractNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractNotSync = const MessageCode(
@@ -177,7 +179,7 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractSealedClass = messageAbstractSealedClass;
+const MessageCode codeAbstractSealedClass = messageAbstractSealedClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractSealedClass = const MessageCode(
@@ -189,7 +191,7 @@ const MessageCode messageAbstractSealedClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAbstractStaticField = messageAbstractStaticField;
+const MessageCode codeAbstractStaticField = messageAbstractStaticField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractStaticField = const MessageCode(
@@ -221,7 +223,7 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
+const MessageCode codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAmbiguousExtensionCause = const MessageCode(
@@ -231,7 +233,7 @@ const MessageCode messageAmbiguousExtensionCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAnnotationOnFunctionTypeTypeParameter =
+const MessageCode codeAnnotationOnFunctionTypeTypeParameter =
     messageAnnotationOnFunctionTypeTypeParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -243,7 +245,8 @@ const MessageCode messageAnnotationOnFunctionTypeTypeParameter =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAnnotationOnTypeArgument = messageAnnotationOnTypeArgument;
+const MessageCode codeAnnotationOnTypeArgument =
+    messageAnnotationOnTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAnnotationOnTypeArgument = const MessageCode(
@@ -254,7 +257,7 @@ const MessageCode messageAnnotationOnTypeArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAnonymousBreakTargetOutsideFunction =
+const MessageCode codeAnonymousBreakTargetOutsideFunction =
     messageAnonymousBreakTargetOutsideFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -266,7 +269,7 @@ const MessageCode messageAnonymousBreakTargetOutsideFunction =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAnonymousContinueTargetOutsideFunction =
+const MessageCode codeAnonymousContinueTargetOutsideFunction =
     messageAnonymousContinueTargetOutsideFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -302,7 +305,7 @@ Message _withArgumentsAsciiControlCharacter(int codePoint) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAssertAsExpression = messageAssertAsExpression;
+const MessageCode codeAssertAsExpression = messageAssertAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAssertAsExpression = const MessageCode(
@@ -311,7 +314,8 @@ const MessageCode messageAssertAsExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAssertExtraneousArgument = messageAssertExtraneousArgument;
+const MessageCode codeAssertExtraneousArgument =
+    messageAssertExtraneousArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAssertExtraneousArgument = const MessageCode(
@@ -320,7 +324,7 @@ const MessageCode messageAssertExtraneousArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAwaitAsIdentifier = messageAwaitAsIdentifier;
+const MessageCode codeAwaitAsIdentifier = messageAwaitAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitAsIdentifier = const MessageCode(
@@ -331,7 +335,7 @@ const MessageCode messageAwaitAsIdentifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAwaitForNotAsync = messageAwaitForNotAsync;
+const MessageCode codeAwaitForNotAsync = messageAwaitForNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitForNotAsync = const MessageCode(
@@ -344,7 +348,8 @@ const MessageCode messageAwaitForNotAsync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAwaitInLateLocalInitializer = messageAwaitInLateLocalInitializer;
+const MessageCode codeAwaitInLateLocalInitializer =
+    messageAwaitInLateLocalInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitInLateLocalInitializer = const MessageCode(
@@ -354,7 +359,7 @@ const MessageCode messageAwaitInLateLocalInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAwaitNotAsync = messageAwaitNotAsync;
+const MessageCode codeAwaitNotAsync = messageAwaitNotAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAwaitNotAsync = const MessageCode(
@@ -365,7 +370,7 @@ const MessageCode messageAwaitNotAsync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeAwaitOfExtensionTypeNotFuture =
+const MessageCode codeAwaitOfExtensionTypeNotFuture =
     messageAwaitOfExtensionTypeNotFuture;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -402,7 +407,7 @@ Message _withArgumentsBaseClassImplementedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeBaseEnum = messageBaseEnum;
+const MessageCode codeBaseEnum = messageBaseEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageBaseEnum = const MessageCode(
@@ -584,7 +589,7 @@ Message _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeBreakOutsideOfLoop = messageBreakOutsideOfLoop;
+const MessageCode codeBreakOutsideOfLoop = messageBreakOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageBreakOutsideOfLoop = const MessageCode(
@@ -664,7 +669,7 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCandidateFound = messageCandidateFound;
+const MessageCode codeCandidateFound = messageCandidateFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCandidateFound = const MessageCode(
@@ -720,7 +725,8 @@ Message _withArgumentsCannotAssignToConstVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCannotAssignToExtensionThis = messageCannotAssignToExtensionThis;
+const MessageCode codeCannotAssignToExtensionThis =
+    messageCannotAssignToExtensionThis;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCannotAssignToExtensionThis = const MessageCode(
@@ -750,7 +756,7 @@ Message _withArgumentsCannotAssignToFinalVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCannotAssignToParenthesizedExpression =
+const MessageCode codeCannotAssignToParenthesizedExpression =
     messageCannotAssignToParenthesizedExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -762,7 +768,7 @@ const MessageCode messageCannotAssignToParenthesizedExpression =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCannotAssignToSuper = messageCannotAssignToSuper;
+const MessageCode codeCannotAssignToSuper = messageCannotAssignToSuper;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCannotAssignToSuper = const MessageCode(
@@ -772,7 +778,8 @@ const MessageCode messageCannotAssignToSuper = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCannotAssignToTypeLiteral = messageCannotAssignToTypeLiteral;
+const MessageCode codeCannotAssignToTypeLiteral =
+    messageCannotAssignToTypeLiteral;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCannotAssignToTypeLiteral = const MessageCode(
@@ -804,7 +811,7 @@ Message _withArgumentsCannotReadSdkSpecification(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCantDisambiguateAmbiguousInformation =
+const MessageCode codeCantDisambiguateAmbiguousInformation =
     messageCantDisambiguateAmbiguousInformation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -816,7 +823,7 @@ const MessageCode messageCantDisambiguateAmbiguousInformation =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCantDisambiguateNotEnoughInformation =
+const MessageCode codeCantDisambiguateNotEnoughInformation =
     messageCantDisambiguateNotEnoughInformation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -874,7 +881,7 @@ Message _withArgumentsCantHaveOptionalParameters(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCantInferPackagesFromManyInputs =
+const MessageCode codeCantInferPackagesFromManyInputs =
     messageCantInferPackagesFromManyInputs;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -887,7 +894,7 @@ const MessageCode messageCantInferPackagesFromManyInputs = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCantInferPackagesFromPackageUri =
+const MessageCode codeCantInferPackagesFromPackageUri =
     messageCantInferPackagesFromPackageUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1107,7 +1114,8 @@ Message _withArgumentsCantUseDeferredPrefixAsConstant(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCantUsePrefixAsExpression = messageCantUsePrefixAsExpression;
+const MessageCode codeCantUsePrefixAsExpression =
+    messageCantUsePrefixAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCantUsePrefixAsExpression = const MessageCode(
@@ -1117,7 +1125,8 @@ const MessageCode messageCantUsePrefixAsExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCantUsePrefixWithNullAware = messageCantUsePrefixWithNullAware;
+const MessageCode codeCantUsePrefixWithNullAware =
+    messageCantUsePrefixWithNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
@@ -1128,7 +1137,7 @@ const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCatchSyntax = messageCatchSyntax;
+const MessageCode codeCatchSyntax = messageCatchSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntax = const MessageCode(
@@ -1141,7 +1150,8 @@ const MessageCode messageCatchSyntax = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCatchSyntaxExtraParameters = messageCatchSyntaxExtraParameters;
+const MessageCode codeCatchSyntaxExtraParameters =
+    messageCatchSyntaxExtraParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
@@ -1154,7 +1164,7 @@ const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeClassImplementsDeferredClass =
+const MessageCode codeClassImplementsDeferredClass =
     messageClassImplementsDeferredClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1167,7 +1177,7 @@ const MessageCode messageClassImplementsDeferredClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeClassInClass = messageClassInClass;
+const MessageCode codeClassInClass = messageClassInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageClassInClass = const MessageCode(
@@ -1235,7 +1245,7 @@ Message _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeColonInPlaceOfIn = messageColonInPlaceOfIn;
+const MessageCode codeColonInPlaceOfIn = messageColonInPlaceOfIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageColonInPlaceOfIn = const MessageCode(
@@ -1375,7 +1385,7 @@ Message _withArgumentsConflictsWithTypeParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConflictsWithTypeParameterCause =
+const MessageCode codeConflictsWithTypeParameterCause =
     messageConflictsWithTypeParameterCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1386,7 +1396,7 @@ const MessageCode messageConflictsWithTypeParameterCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstAndFinal = messageConstAndFinal;
+const MessageCode codeConstAndFinal = messageConstAndFinal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstAndFinal = const MessageCode(
@@ -1398,7 +1408,7 @@ const MessageCode messageConstAndFinal = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstClass = messageConstClass;
+const MessageCode codeConstClass = messageConstClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstClass = const MessageCode(
@@ -1410,7 +1420,7 @@ const MessageCode messageConstClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstConstructorLateFinalFieldCause =
+const MessageCode codeConstConstructorLateFinalFieldCause =
     messageConstConstructorLateFinalFieldCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1422,7 +1432,7 @@ const MessageCode messageConstConstructorLateFinalFieldCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstConstructorLateFinalFieldError =
+const MessageCode codeConstConstructorLateFinalFieldError =
     messageConstConstructorLateFinalFieldError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1434,7 +1444,7 @@ const MessageCode messageConstConstructorLateFinalFieldError =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstConstructorNonFinalField =
+const MessageCode codeConstConstructorNonFinalField =
     messageConstConstructorNonFinalField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1446,7 +1456,7 @@ const MessageCode messageConstConstructorNonFinalField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstConstructorNonFinalFieldCause =
+const MessageCode codeConstConstructorNonFinalFieldCause =
     messageConstConstructorNonFinalFieldCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1457,7 +1467,7 @@ const MessageCode messageConstConstructorNonFinalFieldCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstConstructorRedirectionToNonConst =
+const MessageCode codeConstConstructorRedirectionToNonConst =
     messageConstConstructorRedirectionToNonConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1469,7 +1479,8 @@ const MessageCode messageConstConstructorRedirectionToNonConst =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstConstructorWithBody = messageConstConstructorWithBody;
+const MessageCode codeConstConstructorWithBody =
+    messageConstConstructorWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstConstructorWithBody = const MessageCode(
@@ -1481,7 +1492,7 @@ const MessageCode messageConstConstructorWithBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstConstructorWithNonConstSuper =
+const MessageCode codeConstConstructorWithNonConstSuper =
     messageConstConstructorWithNonConstSuper;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1493,7 +1504,7 @@ const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalCircularity = messageConstEvalCircularity;
+const MessageCode codeConstEvalCircularity = messageConstEvalCircularity;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalCircularity = const MessageCode(
@@ -1503,7 +1514,7 @@ const MessageCode messageConstEvalCircularity = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalContext = messageConstEvalContext;
+const MessageCode codeConstEvalContext = messageConstEvalContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalContext = const MessageCode(
@@ -1564,7 +1575,7 @@ Message _withArgumentsConstEvalError(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalExtension = messageConstEvalExtension;
+const MessageCode codeConstEvalExtension = messageConstEvalExtension;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalExtension = const MessageCode(
@@ -1575,7 +1586,7 @@ const MessageCode messageConstEvalExtension = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalExternalConstructor =
+const MessageCode codeConstEvalExternalConstructor =
     messageConstEvalExternalConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1586,7 +1597,8 @@ const MessageCode messageConstEvalExternalConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalExternalFactory = messageConstEvalExternalFactory;
+const MessageCode codeConstEvalExternalFactory =
+    messageConstEvalExternalFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalExternalFactory = const MessageCode(
@@ -1596,7 +1608,8 @@ const MessageCode messageConstEvalExternalFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalFailedAssertion = messageConstEvalFailedAssertion;
+const MessageCode codeConstEvalFailedAssertion =
+    messageConstEvalFailedAssertion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalFailedAssertion = const MessageCode(
@@ -1630,7 +1643,7 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalFailedAssertionWithNonStringMessage =
+const MessageCode codeConstEvalFailedAssertionWithNonStringMessage =
     messageConstEvalFailedAssertionWithNonStringMessage;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1739,7 +1752,7 @@ Message _withArgumentsConstEvalNonConstantVariableGet(String nameOKEmpty) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalNonNull = messageConstEvalNonNull;
+const MessageCode codeConstEvalNonNull = messageConstEvalNonNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalNonNull = const MessageCode(
@@ -1748,7 +1761,7 @@ const MessageCode messageConstEvalNonNull = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalNotListOrSetInSpread =
+const MessageCode codeConstEvalNotListOrSetInSpread =
     messageConstEvalNotListOrSetInSpread;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1760,7 +1773,7 @@ const MessageCode messageConstEvalNotListOrSetInSpread = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalNotMapInSpread = messageConstEvalNotMapInSpread;
+const MessageCode codeConstEvalNotMapInSpread = messageConstEvalNotMapInSpread;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalNotMapInSpread = const MessageCode(
@@ -1770,7 +1783,7 @@ const MessageCode messageConstEvalNotMapInSpread = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalNullValue = messageConstEvalNullValue;
+const MessageCode codeConstEvalNullValue = messageConstEvalNullValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalNullValue = const MessageCode(
@@ -1780,7 +1793,7 @@ const MessageCode messageConstEvalNullValue = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalStartingPoint = messageConstEvalStartingPoint;
+const MessageCode codeConstEvalStartingPoint = messageConstEvalStartingPoint;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalStartingPoint = const MessageCode(
@@ -1814,7 +1827,7 @@ Message _withArgumentsConstEvalTruncateError(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstEvalUnevaluated = messageConstEvalUnevaluated;
+const MessageCode codeConstEvalUnevaluated = messageConstEvalUnevaluated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstEvalUnevaluated = const MessageCode(
@@ -1870,7 +1883,7 @@ Message _withArgumentsConstEvalZeroDivisor(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstFactory = messageConstFactory;
+const MessageCode codeConstFactory = messageConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstFactory = const MessageCode(
@@ -1883,7 +1896,7 @@ const MessageCode messageConstFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstFactoryRedirectionToNonConst =
+const MessageCode codeConstFactoryRedirectionToNonConst =
     messageConstFactoryRedirectionToNonConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1924,7 +1937,7 @@ Message _withArgumentsConstFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstInstanceField = messageConstInstanceField;
+const MessageCode codeConstInstanceField = messageConstInstanceField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstInstanceField = const MessageCode(
@@ -1936,7 +1949,7 @@ const MessageCode messageConstInstanceField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstMethod = messageConstMethod;
+const MessageCode codeConstMethod = messageConstMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstMethod = const MessageCode(
@@ -1994,7 +2007,7 @@ Message _withArgumentsConstructorConflictsWithMemberCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstructorCyclic = messageConstructorCyclic;
+const MessageCode codeConstructorCyclic = messageConstructorCyclic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorCyclic = const MessageCode(
@@ -2055,7 +2068,7 @@ Message _withArgumentsConstructorNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstructorNotSync = messageConstructorNotSync;
+const MessageCode codeConstructorNotSync = messageConstructorNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorNotSync = const MessageCode(
@@ -2096,7 +2109,7 @@ Message _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstructorTearOffWithTypeArguments =
+const MessageCode codeConstructorTearOffWithTypeArguments =
     messageConstructorTearOffWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2110,7 +2123,8 @@ const MessageCode messageConstructorTearOffWithTypeArguments =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstructorWithReturnType = messageConstructorWithReturnType;
+const MessageCode codeConstructorWithReturnType =
+    messageConstructorWithReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithReturnType = const MessageCode(
@@ -2121,7 +2135,7 @@ const MessageCode messageConstructorWithReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstructorWithTypeArguments =
+const MessageCode codeConstructorWithTypeArguments =
     messageConstructorWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2135,7 +2149,7 @@ const MessageCode messageConstructorWithTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstructorWithTypeParameters =
+const MessageCode codeConstructorWithTypeParameters =
     messageConstructorWithTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2147,7 +2161,8 @@ const MessageCode messageConstructorWithTypeParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeConstructorWithWrongName = messageConstructorWithWrongName;
+const MessageCode codeConstructorWithWrongName =
+    messageConstructorWithWrongName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageConstructorWithWrongName = const MessageCode(
@@ -2181,7 +2196,7 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeContinueLabelInvalid = messageContinueLabelInvalid;
+const MessageCode codeContinueLabelInvalid = messageContinueLabelInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageContinueLabelInvalid = const MessageCode(
@@ -2192,7 +2207,7 @@ const MessageCode messageContinueLabelInvalid = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
+const MessageCode codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageContinueOutsideOfLoop = const MessageCode(
@@ -2228,7 +2243,8 @@ Message _withArgumentsContinueTargetOutsideFunction(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeContinueWithoutLabelInCase = messageContinueWithoutLabelInCase;
+const MessageCode codeContinueWithoutLabelInCase =
+    messageContinueWithoutLabelInCase;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageContinueWithoutLabelInCase = const MessageCode(
@@ -2266,7 +2282,7 @@ Message _withArgumentsCouldNotParseUri(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCovariantAndStatic = messageCovariantAndStatic;
+const MessageCode codeCovariantAndStatic = messageCovariantAndStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantAndStatic = const MessageCode(
@@ -2279,7 +2295,7 @@ const MessageCode messageCovariantAndStatic = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCovariantMember = messageCovariantMember;
+const MessageCode codeCovariantMember = messageCovariantMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCovariantMember = const MessageCode(
@@ -2366,7 +2382,7 @@ Message _withArgumentsCyclicRedirectingFactoryConstructors(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeCyclicRepresentationDependency =
+const MessageCode codeCyclicRepresentationDependency =
     messageCyclicRepresentationDependency;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2399,7 +2415,8 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDartFfiLibraryInDart2Wasm = messageDartFfiLibraryInDart2Wasm;
+const MessageCode codeDartFfiLibraryInDart2Wasm =
+    messageDartFfiLibraryInDart2Wasm;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDartFfiLibraryInDart2Wasm = const MessageCode(
@@ -2480,7 +2497,7 @@ Message _withArgumentsDeclarationConflictsWithSetterCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDeclaredMemberConflictsWithInheritedMember =
+const MessageCode codeDeclaredMemberConflictsWithInheritedMember =
     messageDeclaredMemberConflictsWithInheritedMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2493,7 +2510,7 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDeclaredMemberConflictsWithInheritedMemberCause =
+const MessageCode codeDeclaredMemberConflictsWithInheritedMemberCause =
     messageDeclaredMemberConflictsWithInheritedMemberCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2505,7 +2522,7 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDeclaredMemberConflictsWithInheritedMembersCause =
+const MessageCode codeDeclaredMemberConflictsWithInheritedMembersCause =
     messageDeclaredMemberConflictsWithInheritedMembersCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2517,7 +2534,7 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDeclaredMemberConflictsWithOverriddenMembersCause =
+const MessageCode codeDeclaredMemberConflictsWithOverriddenMembersCause =
     messageDeclaredMemberConflictsWithOverriddenMembersCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2529,7 +2546,8 @@ const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDefaultInSwitchExpression = messageDefaultInSwitchExpression;
+const MessageCode codeDefaultInSwitchExpression =
+    messageDefaultInSwitchExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDefaultInSwitchExpression = const MessageCode(
@@ -2567,7 +2585,7 @@ Message _withArgumentsDefaultValueInRedirectingFactoryConstructor(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDeferredAfterPrefix = messageDeferredAfterPrefix;
+const MessageCode codeDeferredAfterPrefix = messageDeferredAfterPrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDeferredAfterPrefix = const MessageCode(
@@ -2712,7 +2730,8 @@ Message _withArgumentsDirectCycleInTypeParameters(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDirectiveAfterDeclaration = messageDirectiveAfterDeclaration;
+const MessageCode codeDirectiveAfterDeclaration =
+    messageDirectiveAfterDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
@@ -2723,7 +2742,7 @@ const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDotShorthandsConstructorInvocationWithTypeArguments =
+const MessageCode codeDotShorthandsConstructorInvocationWithTypeArguments =
     messageDotShorthandsConstructorInvocationWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2760,7 +2779,7 @@ Message _withArgumentsDotShorthandsInvalidContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDuplicateDeferred = messageDuplicateDeferred;
+const MessageCode codeDuplicateDeferred = messageDuplicateDeferred;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicateDeferred = const MessageCode(
@@ -2827,7 +2846,7 @@ Message _withArgumentsDuplicatePatternAssignmentVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDuplicatePatternAssignmentVariableContext =
+const MessageCode codeDuplicatePatternAssignmentVariableContext =
     messageDuplicatePatternAssignmentVariableContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2839,7 +2858,7 @@ const MessageCode messageDuplicatePatternAssignmentVariableContext =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDuplicatePrefix = messageDuplicatePrefix;
+const MessageCode codeDuplicatePrefix = messageDuplicatePrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageDuplicatePrefix = const MessageCode(
@@ -2877,7 +2896,7 @@ Message _withArgumentsDuplicateRecordPatternField(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDuplicateRecordPatternFieldContext =
+const MessageCode codeDuplicateRecordPatternFieldContext =
     messageDuplicateRecordPatternFieldContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2888,7 +2907,7 @@ const MessageCode messageDuplicateRecordPatternFieldContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDuplicateRestElementInPattern =
+const MessageCode codeDuplicateRestElementInPattern =
     messageDuplicateRestElementInPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2901,7 +2920,7 @@ const MessageCode messageDuplicateRestElementInPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDuplicateRestElementInPatternContext =
+const MessageCode codeDuplicateRestElementInPatternContext =
     messageDuplicateRestElementInPatternContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3256,7 +3275,7 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeDynamicCallsAreNotAllowedInDynamicModule =
+const MessageCode codeDynamicCallsAreNotAllowedInDynamicModule =
     messageDynamicCallsAreNotAllowedInDynamicModule;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3267,7 +3286,7 @@ const MessageCode messageDynamicCallsAreNotAllowedInDynamicModule =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEmptyMapPattern = messageEmptyMapPattern;
+const MessageCode codeEmptyMapPattern = messageEmptyMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEmptyMapPattern = const MessageCode(
@@ -3278,7 +3297,7 @@ const MessageCode messageEmptyMapPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEmptyNamedParameterList = messageEmptyNamedParameterList;
+const MessageCode codeEmptyNamedParameterList = messageEmptyNamedParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEmptyNamedParameterList = const MessageCode(
@@ -3289,7 +3308,8 @@ const MessageCode messageEmptyNamedParameterList = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEmptyOptionalParameterList = messageEmptyOptionalParameterList;
+const MessageCode codeEmptyOptionalParameterList =
+    messageEmptyOptionalParameterList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEmptyOptionalParameterList = const MessageCode(
@@ -3300,7 +3320,7 @@ const MessageCode messageEmptyOptionalParameterList = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEmptyRecordTypeNamedFieldsList =
+const MessageCode codeEmptyRecordTypeNamedFieldsList =
     messageEmptyRecordTypeNamedFieldsList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3313,7 +3333,7 @@ const MessageCode messageEmptyRecordTypeNamedFieldsList = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEncoding = messageEncoding;
+const MessageCode codeEncoding = messageEncoding;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEncoding = const MessageCode(
@@ -3322,7 +3342,7 @@ const MessageCode messageEncoding = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumAbstractMember = messageEnumAbstractMember;
+const MessageCode codeEnumAbstractMember = messageEnumAbstractMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumAbstractMember = const MessageCode(
@@ -3356,7 +3376,7 @@ Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumConstructorSuperInitializer =
+const MessageCode codeEnumConstructorSuperInitializer =
     messageEnumConstructorSuperInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3366,7 +3386,7 @@ const MessageCode messageEnumConstructorSuperInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumConstructorTearoff = messageEnumConstructorTearoff;
+const MessageCode codeEnumConstructorTearoff = messageEnumConstructorTearoff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumConstructorTearoff = const MessageCode(
@@ -3399,7 +3419,7 @@ Message _withArgumentsEnumContainsRestrictedInstanceDeclaration(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumContainsValuesDeclaration =
+const MessageCode codeEnumContainsValuesDeclaration =
     messageEnumContainsValuesDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3409,7 +3429,7 @@ const MessageCode messageEnumContainsValuesDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
+const MessageCode codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumDeclarationEmpty = const MessageCode(
@@ -3419,7 +3439,8 @@ const MessageCode messageEnumDeclarationEmpty = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumDeclaresConstFactory = messageEnumDeclaresConstFactory;
+const MessageCode codeEnumDeclaresConstFactory =
+    messageEnumDeclaresConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumDeclaresConstFactory = const MessageCode(
@@ -3429,7 +3450,7 @@ const MessageCode messageEnumDeclaresConstFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumFactoryRedirectsToConstructor =
+const MessageCode codeEnumFactoryRedirectsToConstructor =
     messageEnumFactoryRedirectsToConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3493,7 +3514,7 @@ Message _withArgumentsEnumImplementerContainsValuesDeclaration(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumInClass = messageEnumInClass;
+const MessageCode codeEnumInClass = messageEnumInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumInClass = const MessageCode(
@@ -3525,7 +3546,7 @@ Message _withArgumentsEnumInheritsRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumInheritsRestrictedMember =
+const MessageCode codeEnumInheritsRestrictedMember =
     messageEnumInheritsRestrictedMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3536,7 +3557,7 @@ const MessageCode messageEnumInheritsRestrictedMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumInstantiation = messageEnumInstantiation;
+const MessageCode codeEnumInstantiation = messageEnumInstantiation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumInstantiation = const MessageCode(
@@ -3546,7 +3567,7 @@ const MessageCode messageEnumInstantiation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumNonConstConstructor = messageEnumNonConstConstructor;
+const MessageCode codeEnumNonConstConstructor = messageEnumNonConstConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumNonConstConstructor = const MessageCode(
@@ -3580,7 +3601,7 @@ Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEnumWithNameValues = messageEnumWithNameValues;
+const MessageCode codeEnumWithNameValues = messageEnumWithNameValues;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEnumWithNameValues = const MessageCode(
@@ -3591,7 +3612,7 @@ const MessageCode messageEnumWithNameValues = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEqualKeysInMapPattern = messageEqualKeysInMapPattern;
+const MessageCode codeEqualKeysInMapPattern = messageEqualKeysInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageEqualKeysInMapPattern = const MessageCode(
@@ -3602,7 +3623,7 @@ const MessageCode messageEqualKeysInMapPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEqualKeysInMapPatternContext =
+const MessageCode codeEqualKeysInMapPatternContext =
     messageEqualKeysInMapPatternContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3613,7 +3634,7 @@ const MessageCode messageEqualKeysInMapPatternContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeEqualityCannotBeEqualityOperand =
+const MessageCode codeEqualityCannotBeEqualityOperand =
     messageEqualityCannotBeEqualityOperand;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3671,7 +3692,7 @@ Message _withArgumentsExpectedAfterButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedAnInitializer = messageExpectedAnInitializer;
+const MessageCode codeExpectedAnInitializer = messageExpectedAnInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedAnInitializer = const MessageCode(
@@ -3681,7 +3702,7 @@ const MessageCode messageExpectedAnInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedBlock = messageExpectedBlock;
+const MessageCode codeExpectedBlock = messageExpectedBlock;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedBlock = const MessageCode(
@@ -3692,7 +3713,7 @@ const MessageCode messageExpectedBlock = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedBlockToSkip = messageExpectedBlockToSkip;
+const MessageCode codeExpectedBlockToSkip = messageExpectedBlockToSkip;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedBlockToSkip = const MessageCode(
@@ -3703,7 +3724,7 @@ const MessageCode messageExpectedBlockToSkip = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedBody = messageExpectedBody;
+const MessageCode codeExpectedBody = messageExpectedBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedBody = const MessageCode(
@@ -3735,7 +3756,7 @@ Message _withArgumentsExpectedButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedCatchClauseBody = messageExpectedCatchClauseBody;
+const MessageCode codeExpectedCatchClauseBody = messageExpectedCatchClauseBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedCatchClauseBody = const MessageCode(
@@ -3746,7 +3767,7 @@ const MessageCode messageExpectedCatchClauseBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedClassBody = messageExpectedClassBody;
+const MessageCode codeExpectedClassBody = messageExpectedClassBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedClassBody = const MessageCode(
@@ -3800,7 +3821,7 @@ Message _withArgumentsExpectedDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedElseOrComma = messageExpectedElseOrComma;
+const MessageCode codeExpectedElseOrComma = messageExpectedElseOrComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedElseOrComma = const MessageCode(
@@ -3835,7 +3856,7 @@ Message _withArgumentsExpectedEnumBody(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedExtensionBody = messageExpectedExtensionBody;
+const MessageCode codeExpectedExtensionBody = messageExpectedExtensionBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedExtensionBody = const MessageCode(
@@ -3847,7 +3868,8 @@ const MessageCode messageExpectedExtensionBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedExtensionTypeBody = messageExpectedExtensionTypeBody;
+const MessageCode codeExpectedExtensionTypeBody =
+    messageExpectedExtensionTypeBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedExtensionTypeBody = const MessageCode(
@@ -3859,7 +3881,8 @@ const MessageCode messageExpectedExtensionTypeBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedFinallyClauseBody = messageExpectedFinallyClauseBody;
+const MessageCode codeExpectedFinallyClauseBody =
+    messageExpectedFinallyClauseBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedFinallyClauseBody = const MessageCode(
@@ -3892,7 +3915,7 @@ Message _withArgumentsExpectedFunctionBody(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedHexDigit = messageExpectedHexDigit;
+const MessageCode codeExpectedHexDigit = messageExpectedHexDigit;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedHexDigit = const MessageCode(
@@ -3975,7 +3998,7 @@ Message _withArgumentsExpectedInstead(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedMixinBody = messageExpectedMixinBody;
+const MessageCode codeExpectedMixinBody = messageExpectedMixinBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedMixinBody = const MessageCode(
@@ -3987,7 +4010,7 @@ const MessageCode messageExpectedMixinBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedNamedArgument = messageExpectedNamedArgument;
+const MessageCode codeExpectedNamedArgument = messageExpectedNamedArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedNamedArgument = const MessageCode(
@@ -3997,7 +4020,7 @@ const MessageCode messageExpectedNamedArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedOneExpression = messageExpectedOneExpression;
+const MessageCode codeExpectedOneExpression = messageExpectedOneExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedOneExpression = const MessageCode(
@@ -4006,7 +4029,7 @@ const MessageCode messageExpectedOneExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedOpenParens = messageExpectedOpenParens;
+const MessageCode codeExpectedOpenParens = messageExpectedOpenParens;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedOpenParens = const MessageCode(
@@ -4015,7 +4038,8 @@ const MessageCode messageExpectedOpenParens = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedRepresentationField = messageExpectedRepresentationField;
+const MessageCode codeExpectedRepresentationField =
+    messageExpectedRepresentationField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedRepresentationField = const MessageCode(
@@ -4025,7 +4049,8 @@ const MessageCode messageExpectedRepresentationField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedRepresentationType = messageExpectedRepresentationType;
+const MessageCode codeExpectedRepresentationType =
+    messageExpectedRepresentationType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedRepresentationType = const MessageCode(
@@ -4035,7 +4060,7 @@ const MessageCode messageExpectedRepresentationType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedStatement = messageExpectedStatement;
+const MessageCode codeExpectedStatement = messageExpectedStatement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedStatement = const MessageCode(
@@ -4066,7 +4091,7 @@ Message _withArgumentsExpectedString(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedSwitchExpressionBody =
+const MessageCode codeExpectedSwitchExpressionBody =
     messageExpectedSwitchExpressionBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4079,7 +4104,8 @@ const MessageCode messageExpectedSwitchExpressionBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedSwitchStatementBody = messageExpectedSwitchStatementBody;
+const MessageCode codeExpectedSwitchStatementBody =
+    messageExpectedSwitchStatementBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedSwitchStatementBody = const MessageCode(
@@ -4112,7 +4138,8 @@ Message _withArgumentsExpectedToken(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedTryStatementBody = messageExpectedTryStatementBody;
+const MessageCode codeExpectedTryStatementBody =
+    messageExpectedTryStatementBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedTryStatementBody = const MessageCode(
@@ -4144,7 +4171,7 @@ Message _withArgumentsExpectedType(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpectedUri = messageExpectedUri;
+const MessageCode codeExpectedUri = messageExpectedUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpectedUri = const MessageCode(
@@ -4392,7 +4419,7 @@ Message _withArgumentsExperimentOptOutImplicit(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExplicitExtensionArgumentMismatch =
+const MessageCode codeExplicitExtensionArgumentMismatch =
     messageExplicitExtensionArgumentMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4403,7 +4430,7 @@ const MessageCode messageExplicitExtensionArgumentMismatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExplicitExtensionAsExpression =
+const MessageCode codeExplicitExtensionAsExpression =
     messageExplicitExtensionAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4414,7 +4441,8 @@ const MessageCode messageExplicitExtensionAsExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExplicitExtensionAsLvalue = messageExplicitExtensionAsLvalue;
+const MessageCode codeExplicitExtensionAsLvalue =
+    messageExplicitExtensionAsLvalue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExplicitExtensionAsLvalue = const MessageCode(
@@ -4450,7 +4478,7 @@ Message _withArgumentsExplicitExtensionTypeArgumentMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExportAfterPart = messageExportAfterPart;
+const MessageCode codeExportAfterPart = messageExportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExportAfterPart = const MessageCode(
@@ -4462,7 +4490,7 @@ const MessageCode messageExportAfterPart = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExportedMain = messageExportedMain;
+const MessageCode codeExportedMain = messageExportedMain;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExportedMain = const MessageCode(
@@ -4472,7 +4500,7 @@ const MessageCode messageExportedMain = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExpressionNotMetadata = messageExpressionNotMetadata;
+const MessageCode codeExpressionNotMetadata = messageExpressionNotMetadata;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExpressionNotMetadata = const MessageCode(
@@ -4530,7 +4558,7 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtendsDeferredClass = messageExtendsDeferredClass;
+const MessageCode codeExtendsDeferredClass = messageExtendsDeferredClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendsDeferredClass = const MessageCode(
@@ -4542,7 +4570,7 @@ const MessageCode messageExtendsDeferredClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtendsFutureOr = messageExtendsFutureOr;
+const MessageCode codeExtendsFutureOr = messageExtendsFutureOr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendsFutureOr = const MessageCode(
@@ -4552,7 +4580,7 @@ const MessageCode messageExtendsFutureOr = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtendsNever = messageExtendsNever;
+const MessageCode codeExtendsNever = messageExtendsNever;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendsNever = const MessageCode(
@@ -4561,7 +4589,7 @@ const MessageCode messageExtendsNever = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtendsVoid = messageExtendsVoid;
+const MessageCode codeExtendsVoid = messageExtendsVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtendsVoid = const MessageCode(
@@ -4570,7 +4598,7 @@ const MessageCode messageExtendsVoid = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionAugmentationHasOnClause =
+const MessageCode codeExtensionAugmentationHasOnClause =
     messageExtensionAugmentationHasOnClause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4582,7 +4610,7 @@ const MessageCode messageExtensionAugmentationHasOnClause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionDeclaresAbstractMember =
+const MessageCode codeExtensionDeclaresAbstractMember =
     messageExtensionDeclaresAbstractMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4594,7 +4622,7 @@ const MessageCode messageExtensionDeclaresAbstractMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionDeclaresConstructor =
+const MessageCode codeExtensionDeclaresConstructor =
     messageExtensionDeclaresConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4606,7 +4634,7 @@ const MessageCode messageExtensionDeclaresConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionDeclaresInstanceField =
+const MessageCode codeExtensionDeclaresInstanceField =
     messageExtensionDeclaresInstanceField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4676,7 +4704,7 @@ Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeConstructorWithSuperFormalParameter =
+const MessageCode codeExtensionTypeConstructorWithSuperFormalParameter =
     messageExtensionTypeConstructorWithSuperFormalParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4691,7 +4719,7 @@ const MessageCode messageExtensionTypeConstructorWithSuperFormalParameter =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeDeclarationCause =
+const MessageCode codeExtensionTypeDeclarationCause =
     messageExtensionTypeDeclarationCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4702,7 +4730,7 @@ const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeDeclaresAbstractMember =
+const MessageCode codeExtensionTypeDeclaresAbstractMember =
     messageExtensionTypeDeclaresAbstractMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4715,7 +4743,7 @@ const MessageCode messageExtensionTypeDeclaresAbstractMember =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeDeclaresInstanceField =
+const MessageCode codeExtensionTypeDeclaresInstanceField =
     messageExtensionTypeDeclaresInstanceField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4728,7 +4756,7 @@ const MessageCode messageExtensionTypeDeclaresInstanceField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeExtends = messageExtensionTypeExtends;
+const MessageCode codeExtensionTypeExtends = messageExtensionTypeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionTypeExtends = const MessageCode(
@@ -4741,7 +4769,7 @@ const MessageCode messageExtensionTypeExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeImplementsDeferred =
+const MessageCode codeExtensionTypeImplementsDeferred =
     messageExtensionTypeImplementsDeferred;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4754,7 +4782,8 @@ const MessageCode messageExtensionTypeImplementsDeferred = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeMemberContext = messageExtensionTypeMemberContext;
+const MessageCode codeExtensionTypeMemberContext =
+    messageExtensionTypeMemberContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionTypeMemberContext = const MessageCode(
@@ -4764,7 +4793,7 @@ const MessageCode messageExtensionTypeMemberContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeMemberOneOfContext =
+const MessageCode codeExtensionTypeMemberOneOfContext =
     messageExtensionTypeMemberOneOfContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4775,7 +4804,8 @@ const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
+const MessageCode
+    codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
     messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4790,7 +4820,7 @@ const MessageCode
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypePrimaryConstructorWithInitializingFormal =
+const MessageCode codeExtensionTypePrimaryConstructorWithInitializingFormal =
     messageExtensionTypePrimaryConstructorWithInitializingFormal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4803,7 +4833,7 @@ const MessageCode messageExtensionTypePrimaryConstructorWithInitializingFormal =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeRepresentationTypeBottom =
+const MessageCode codeExtensionTypeRepresentationTypeBottom =
     messageExtensionTypeRepresentationTypeBottom;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4845,7 +4875,7 @@ Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExtensionTypeWith = messageExtensionTypeWith;
+const MessageCode codeExtensionTypeWith = messageExtensionTypeWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExtensionTypeWith = const MessageCode(
@@ -4858,7 +4888,7 @@ const MessageCode messageExtensionTypeWith = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalClass = messageExternalClass;
+const MessageCode codeExternalClass = messageExternalClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalClass = const MessageCode(
@@ -4869,7 +4899,8 @@ const MessageCode messageExternalClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalConstructorWithBody = messageExternalConstructorWithBody;
+const MessageCode codeExternalConstructorWithBody =
+    messageExternalConstructorWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalConstructorWithBody = const MessageCode(
@@ -4881,7 +4912,7 @@ const MessageCode messageExternalConstructorWithBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalConstructorWithFieldInitializers =
+const MessageCode codeExternalConstructorWithFieldInitializers =
     messageExternalConstructorWithFieldInitializers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4895,7 +4926,7 @@ const MessageCode messageExternalConstructorWithFieldInitializers =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalConstructorWithInitializer =
+const MessageCode codeExternalConstructorWithInitializer =
     messageExternalConstructorWithInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4906,7 +4937,7 @@ const MessageCode messageExternalConstructorWithInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalEnum = messageExternalEnum;
+const MessageCode codeExternalEnum = messageExternalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalEnum = const MessageCode(
@@ -4917,7 +4948,8 @@ const MessageCode messageExternalEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalFactoryRedirection = messageExternalFactoryRedirection;
+const MessageCode codeExternalFactoryRedirection =
+    messageExternalFactoryRedirection;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryRedirection = const MessageCode(
@@ -4928,7 +4960,7 @@ const MessageCode messageExternalFactoryRedirection = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalFactoryWithBody = messageExternalFactoryWithBody;
+const MessageCode codeExternalFactoryWithBody = messageExternalFactoryWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFactoryWithBody = const MessageCode(
@@ -4940,7 +4972,7 @@ const MessageCode messageExternalFactoryWithBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalField = messageExternalField;
+const MessageCode codeExternalField = messageExternalField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalField = const MessageCode(
@@ -4952,7 +4984,7 @@ const MessageCode messageExternalField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalFieldConstructorInitializer =
+const MessageCode codeExternalFieldConstructorInitializer =
     messageExternalFieldConstructorInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4965,7 +4997,8 @@ const MessageCode messageExternalFieldConstructorInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalFieldInitializer = messageExternalFieldInitializer;
+const MessageCode codeExternalFieldInitializer =
+    messageExternalFieldInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalFieldInitializer = const MessageCode(
@@ -4976,7 +5009,7 @@ const MessageCode messageExternalFieldInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalLateField = messageExternalLateField;
+const MessageCode codeExternalLateField = messageExternalLateField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalLateField = const MessageCode(
@@ -4987,7 +5020,7 @@ const MessageCode messageExternalLateField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalMethodWithBody = messageExternalMethodWithBody;
+const MessageCode codeExternalMethodWithBody = messageExternalMethodWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalMethodWithBody = const MessageCode(
@@ -4997,7 +5030,7 @@ const MessageCode messageExternalMethodWithBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeExternalTypedef = messageExternalTypedef;
+const MessageCode codeExternalTypedef = messageExternalTypedef;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalTypedef = const MessageCode(
@@ -5151,7 +5184,7 @@ Message _withArgumentsFactoryConflictsWithMemberCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFactoryNotSync = messageFactoryNotSync;
+const MessageCode codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryNotSync = const MessageCode(
@@ -5162,7 +5195,8 @@ const MessageCode messageFactoryNotSync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFactoryTopLevelDeclaration = messageFactoryTopLevelDeclaration;
+const MessageCode codeFactoryTopLevelDeclaration =
+    messageFactoryTopLevelDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
@@ -5195,7 +5229,7 @@ Message _withArgumentsFastaCLIArgumentRequired(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFastaUsageLong = messageFastaUsageLong;
+const MessageCode codeFastaUsageLong = messageFastaUsageLong;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFastaUsageLong = const MessageCode(
@@ -5288,7 +5322,7 @@ const MessageCode messageFastaUsageLong = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFastaUsageShort = messageFastaUsageShort;
+const MessageCode codeFastaUsageShort = messageFastaUsageShort;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFastaUsageShort = const MessageCode(
@@ -5300,7 +5334,7 @@ const MessageCode messageFastaUsageShort = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiAbiSpecificIntegerInvalid =
+const MessageCode codeFfiAbiSpecificIntegerInvalid =
     messageFfiAbiSpecificIntegerInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5311,7 +5345,7 @@ const MessageCode messageFfiAbiSpecificIntegerInvalid = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiAbiSpecificIntegerMappingInvalid =
+const MessageCode codeFfiAbiSpecificIntegerMappingInvalid =
     messageFfiAbiSpecificIntegerMappingInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5323,7 +5357,8 @@ const MessageCode messageFfiAbiSpecificIntegerMappingInvalid =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiAddressOfMustBeNative = messageFfiAddressOfMustBeNative;
+const MessageCode codeFfiAddressOfMustBeNative =
+    messageFfiAddressOfMustBeNative;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
@@ -5334,7 +5369,7 @@ const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiAddressPosition = messageFfiAddressPosition;
+const MessageCode codeFfiAddressPosition = messageFfiAddressPosition;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiAddressPosition = const MessageCode(
@@ -5344,7 +5379,7 @@ const MessageCode messageFfiAddressPosition = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiAddressReceiver = messageFfiAddressReceiver;
+const MessageCode codeFfiAddressReceiver = messageFfiAddressReceiver;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiAddressReceiver = const MessageCode(
@@ -5384,7 +5419,8 @@ Message _withArgumentsFfiCompoundImplementsFinalizable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiCreateOfStructOrUnion = messageFfiCreateOfStructOrUnion;
+const MessageCode codeFfiCreateOfStructOrUnion =
+    messageFfiCreateOfStructOrUnion;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
@@ -5394,7 +5430,7 @@ const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiDeeplyImmutableClassesMustBeFinalOrSealed =
+const MessageCode codeFfiDeeplyImmutableClassesMustBeFinalOrSealed =
     messageFfiDeeplyImmutableClassesMustBeFinalOrSealed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5406,7 +5442,7 @@ const MessageCode messageFfiDeeplyImmutableClassesMustBeFinalOrSealed =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiDeeplyImmutableFieldsModifiers =
+const MessageCode codeFfiDeeplyImmutableFieldsModifiers =
     messageFfiDeeplyImmutableFieldsModifiers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5419,7 +5455,7 @@ const MessageCode messageFfiDeeplyImmutableFieldsModifiers = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
+const MessageCode codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
     messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5433,7 +5469,7 @@ const MessageCode messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
+const MessageCode codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
     messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5447,7 +5483,7 @@ const MessageCode messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
+const MessageCode codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
     messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5461,7 +5497,8 @@ const MessageCode messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiDefaultAssetDuplicate = messageFfiDefaultAssetDuplicate;
+const MessageCode codeFfiDefaultAssetDuplicate =
+    messageFfiDefaultAssetDuplicate;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiDefaultAssetDuplicate = const MessageCode(
@@ -5498,7 +5535,8 @@ Message _withArgumentsFfiEmptyStruct(String string, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiExceptionalReturnNull = messageFfiExceptionalReturnNull;
+const MessageCode codeFfiExceptionalReturnNull =
+    messageFfiExceptionalReturnNull;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiExceptionalReturnNull = const MessageCode(
@@ -5507,7 +5545,7 @@ const MessageCode messageFfiExceptionalReturnNull = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiExpectedConstant = messageFfiExpectedConstant;
+const MessageCode codeFfiExpectedConstant = messageFfiExpectedConstant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiExpectedConstant = const MessageCode(
@@ -5687,7 +5725,7 @@ Message _withArgumentsFfiFieldNull(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiLeafCallMustNotReturnHandle =
+const MessageCode codeFfiLeafCallMustNotReturnHandle =
     messageFfiLeafCallMustNotReturnHandle;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5697,7 +5735,7 @@ const MessageCode messageFfiLeafCallMustNotReturnHandle = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiLeafCallMustNotTakeHandle =
+const MessageCode codeFfiLeafCallMustNotTakeHandle =
     messageFfiLeafCallMustNotTakeHandle;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5707,7 +5745,7 @@ const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiNativeDuplicateAnnotations =
+const MessageCode codeFfiNativeDuplicateAnnotations =
     messageFfiNativeDuplicateAnnotations;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5719,7 +5757,8 @@ const MessageCode messageFfiNativeDuplicateAnnotations = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiNativeFieldMissingType = messageFfiNativeFieldMissingType;
+const MessageCode codeFfiNativeFieldMissingType =
+    messageFfiNativeFieldMissingType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeFieldMissingType = const MessageCode(
@@ -5730,7 +5769,8 @@ const MessageCode messageFfiNativeFieldMissingType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiNativeFieldMustBeStatic = messageFfiNativeFieldMustBeStatic;
+const MessageCode codeFfiNativeFieldMustBeStatic =
+    messageFfiNativeFieldMustBeStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeFieldMustBeStatic = const MessageCode(
@@ -5740,7 +5780,7 @@ const MessageCode messageFfiNativeFieldMustBeStatic = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiNativeFieldType = messageFfiNativeFieldType;
+const MessageCode codeFfiNativeFieldType = messageFfiNativeFieldType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeFieldType = const MessageCode(
@@ -5751,7 +5791,7 @@ const MessageCode messageFfiNativeFieldType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiNativeFunctionMissingType =
+const MessageCode codeFfiNativeFunctionMissingType =
     messageFfiNativeFunctionMissingType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5763,7 +5803,7 @@ const MessageCode messageFfiNativeFunctionMissingType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
+const MessageCode codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
@@ -5772,7 +5812,7 @@ const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
+const MessageCode codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
     messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5879,7 +5919,7 @@ Message _withArgumentsFfiPackedAnnotation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiPackedAnnotationAlignment =
+const MessageCode codeFfiPackedAnnotationAlignment =
     messageFfiPackedAnnotationAlignment;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5959,7 +5999,7 @@ Message _withArgumentsFfiStructGeneric(String string, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFfiVariableLengthArrayNotLast =
+const MessageCode codeFfiVariableLengthArrayNotLast =
     messageFfiVariableLengthArrayNotLast;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6020,7 +6060,7 @@ Message _withArgumentsFieldAlreadyInitializedAtDeclarationCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFieldInitializedOutsideDeclaringClass =
+const MessageCode codeFieldInitializedOutsideDeclaringClass =
     messageFieldInitializedOutsideDeclaringClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6034,7 +6074,7 @@ const MessageCode messageFieldInitializedOutsideDeclaringClass =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFieldInitializerOutsideConstructor =
+const MessageCode codeFieldInitializerOutsideConstructor =
     messageFieldInitializerOutsideConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6288,7 +6328,7 @@ Message _withArgumentsFieldNotPromotedBecauseNotPrivate(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFinalAndCovariant = messageFinalAndCovariant;
+const MessageCode codeFinalAndCovariant = messageFinalAndCovariant;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndCovariant = const MessageCode(
@@ -6301,7 +6341,7 @@ const MessageCode messageFinalAndCovariant = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFinalAndCovariantLateWithInitializer =
+const MessageCode codeFinalAndCovariantLateWithInitializer =
     messageFinalAndCovariantLateWithInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6316,7 +6356,7 @@ const MessageCode messageFinalAndCovariantLateWithInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFinalAndVar = messageFinalAndVar;
+const MessageCode codeFinalAndVar = messageFinalAndVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalAndVar = const MessageCode(
@@ -6406,7 +6446,7 @@ Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFinalEnum = messageFinalEnum;
+const MessageCode codeFinalEnum = messageFinalEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalEnum = const MessageCode(
@@ -6499,7 +6539,7 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFinalMixin = messageFinalMixin;
+const MessageCode codeFinalMixin = messageFinalMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalMixin = const MessageCode(
@@ -6510,7 +6550,7 @@ const MessageCode messageFinalMixin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFinalMixinClass = messageFinalMixinClass;
+const MessageCode codeFinalMixinClass = messageFinalMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFinalMixinClass = const MessageCode(
@@ -6569,7 +6609,8 @@ Message _withArgumentsFinalPossiblyAssignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeForInLoopExactlyOneVariable = messageForInLoopExactlyOneVariable;
+const MessageCode codeForInLoopExactlyOneVariable =
+    messageForInLoopExactlyOneVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageForInLoopExactlyOneVariable = const MessageCode(
@@ -6578,7 +6619,7 @@ const MessageCode messageForInLoopExactlyOneVariable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeForInLoopNotAssignable = messageForInLoopNotAssignable;
+const MessageCode codeForInLoopNotAssignable = messageForInLoopNotAssignable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageForInLoopNotAssignable = const MessageCode(
@@ -6588,7 +6629,8 @@ const MessageCode messageForInLoopNotAssignable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeForInLoopWithConstVariable = messageForInLoopWithConstVariable;
+const MessageCode codeForInLoopWithConstVariable =
+    messageForInLoopWithConstVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageForInLoopWithConstVariable = const MessageCode(
@@ -6599,7 +6641,8 @@ const MessageCode messageForInLoopWithConstVariable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFunctionTypeDefaultValue = messageFunctionTypeDefaultValue;
+const MessageCode codeFunctionTypeDefaultValue =
+    messageFunctionTypeDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
@@ -6609,7 +6652,8 @@ const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeFunctionTypedParameterVar = messageFunctionTypedParameterVar;
+const MessageCode codeFunctionTypedParameterVar =
+    messageFunctionTypedParameterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFunctionTypedParameterVar = const MessageCode(
@@ -6621,7 +6665,7 @@ const MessageCode messageFunctionTypedParameterVar = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeGeneratorReturnsValue = messageGeneratorReturnsValue;
+const MessageCode codeGeneratorReturnsValue = messageGeneratorReturnsValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGeneratorReturnsValue = const MessageCode(
@@ -6631,7 +6675,8 @@ const MessageCode messageGeneratorReturnsValue = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeGenericFunctionTypeInBound = messageGenericFunctionTypeInBound;
+const MessageCode codeGenericFunctionTypeInBound =
+    messageGenericFunctionTypeInBound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
@@ -6642,7 +6687,7 @@ const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeGenericFunctionTypeUsedAsActualTypeArgument =
+const MessageCode codeGenericFunctionTypeUsedAsActualTypeArgument =
     messageGenericFunctionTypeUsedAsActualTypeArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6656,7 +6701,7 @@ const MessageCode messageGenericFunctionTypeUsedAsActualTypeArgument =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeGetterConstructor = messageGetterConstructor;
+const MessageCode codeGetterConstructor = messageGetterConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGetterConstructor = const MessageCode(
@@ -6689,7 +6734,7 @@ Message _withArgumentsGetterNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeGetterWithFormals = messageGetterWithFormals;
+const MessageCode codeGetterWithFormals = messageGetterWithFormals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageGetterWithFormals = const MessageCode(
@@ -6700,7 +6745,7 @@ const MessageCode messageGetterWithFormals = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeIllegalAssignmentToNonAssignable =
+const MessageCode codeIllegalAssignmentToNonAssignable =
     messageIllegalAssignmentToNonAssignable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6711,7 +6756,7 @@ const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeIllegalAsyncGeneratorReturnType =
+const MessageCode codeIllegalAsyncGeneratorReturnType =
     messageIllegalAsyncGeneratorReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6723,7 +6768,7 @@ const MessageCode messageIllegalAsyncGeneratorReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeIllegalAsyncGeneratorVoidReturnType =
+const MessageCode codeIllegalAsyncGeneratorVoidReturnType =
     messageIllegalAsyncGeneratorVoidReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6735,7 +6780,7 @@ const MessageCode messageIllegalAsyncGeneratorVoidReturnType =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeIllegalAsyncReturnType = messageIllegalAsyncReturnType;
+const MessageCode codeIllegalAsyncReturnType = messageIllegalAsyncReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageIllegalAsyncReturnType = const MessageCode(
@@ -6893,7 +6938,7 @@ Message _withArgumentsIllegalPatternVariableName(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeIllegalSyncGeneratorReturnType =
+const MessageCode codeIllegalSyncGeneratorReturnType =
     messageIllegalSyncGeneratorReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6905,7 +6950,7 @@ const MessageCode messageIllegalSyncGeneratorReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeIllegalSyncGeneratorVoidReturnType =
+const MessageCode codeIllegalSyncGeneratorVoidReturnType =
     messageIllegalSyncGeneratorVoidReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6980,7 +7025,7 @@ Message _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImplementsBeforeExtends = messageImplementsBeforeExtends;
+const MessageCode codeImplementsBeforeExtends = messageImplementsBeforeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsBeforeExtends = const MessageCode(
@@ -6993,7 +7038,7 @@ const MessageCode messageImplementsBeforeExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImplementsBeforeOn = messageImplementsBeforeOn;
+const MessageCode codeImplementsBeforeOn = messageImplementsBeforeOn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsBeforeOn = const MessageCode(
@@ -7005,7 +7050,7 @@ const MessageCode messageImplementsBeforeOn = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImplementsBeforeWith = messageImplementsBeforeWith;
+const MessageCode codeImplementsBeforeWith = messageImplementsBeforeWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsBeforeWith = const MessageCode(
@@ -7017,7 +7062,7 @@ const MessageCode messageImplementsBeforeWith = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImplementsFutureOr = messageImplementsFutureOr;
+const MessageCode codeImplementsFutureOr = messageImplementsFutureOr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsFutureOr = const MessageCode(
@@ -7027,7 +7072,7 @@ const MessageCode messageImplementsFutureOr = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImplementsNever = messageImplementsNever;
+const MessageCode codeImplementsNever = messageImplementsNever;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsNever = const MessageCode(
@@ -7089,7 +7134,7 @@ Message _withArgumentsImplementsSuperClass(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImplementsVoid = messageImplementsVoid;
+const MessageCode codeImplementsVoid = messageImplementsVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImplementsVoid = const MessageCode(
@@ -7130,7 +7175,7 @@ Message _withArgumentsImplicitMixinOverride(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImplicitSuperCallOfNonMethod =
+const MessageCode codeImplicitSuperCallOfNonMethod =
     messageImplicitSuperCallOfNonMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7173,7 +7218,7 @@ Message _withArgumentsImplicitSuperInitializerMissingArguments(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeImportAfterPart = messageImportAfterPart;
+const MessageCode codeImportAfterPart = messageImportAfterPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageImportAfterPart = const MessageCode(
@@ -7254,7 +7299,7 @@ ${string}""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeIncorrectTypeArgumentVariable =
+const MessageCode codeIncorrectTypeArgumentVariable =
     messageIncorrectTypeArgumentVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7312,7 +7357,8 @@ Message _withArgumentsIncrementalCompilerIllegalTypeParameter(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInheritedMembersConflict = messageInheritedMembersConflict;
+const MessageCode codeInheritedMembersConflict =
+    messageInheritedMembersConflict;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInheritedMembersConflict = const MessageCode(
@@ -7322,7 +7368,7 @@ const MessageCode messageInheritedMembersConflict = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInheritedMembersConflictCause1 =
+const MessageCode codeInheritedMembersConflictCause1 =
     messageInheritedMembersConflictCause1;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7333,7 +7379,7 @@ const MessageCode messageInheritedMembersConflictCause1 = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInheritedMembersConflictCause2 =
+const MessageCode codeInheritedMembersConflictCause2 =
     messageInheritedMembersConflictCause2;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7521,7 +7567,7 @@ The Dart team would greatly appreciate it if you would take a moment to report t
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInitializedVariableInForEach =
+const MessageCode codeInitializedVariableInForEach =
     messageInitializedVariableInForEach;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7557,7 +7603,7 @@ Message _withArgumentsInitializerForStaticField(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInitializingFormalTypeMismatchField =
+const MessageCode codeInitializingFormalTypeMismatchField =
     messageInitializingFormalTypeMismatchField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7789,7 +7835,7 @@ Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInterfaceEnum = messageInterfaceEnum;
+const MessageCode codeInterfaceEnum = messageInterfaceEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInterfaceEnum = const MessageCode(
@@ -7800,7 +7846,7 @@ const MessageCode messageInterfaceEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInterfaceMixin = messageInterfaceMixin;
+const MessageCode codeInterfaceMixin = messageInterfaceMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInterfaceMixin = const MessageCode(
@@ -7811,7 +7857,7 @@ const MessageCode messageInterfaceMixin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInterfaceMixinClass = messageInterfaceMixinClass;
+const MessageCode codeInterfaceMixinClass = messageInterfaceMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInterfaceMixinClass = const MessageCode(
@@ -7822,7 +7868,7 @@ const MessageCode messageInterfaceMixinClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemAlreadyInitialized =
+const MessageCode codeInternalProblemAlreadyInitialized =
     messageInternalProblemAlreadyInitialized;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7834,7 +7880,7 @@ const MessageCode messageInternalProblemAlreadyInitialized = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemBodyOnAbstractMethod =
+const MessageCode codeInternalProblemBodyOnAbstractMethod =
     messageInternalProblemBodyOnAbstractMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7922,7 +7968,7 @@ ${string}""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemExtendingUnmodifiableScope =
+const MessageCode codeInternalProblemExtendingUnmodifiableScope =
     messageInternalProblemExtendingUnmodifiableScope;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7934,7 +7980,7 @@ const MessageCode messageInternalProblemExtendingUnmodifiableScope =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemLabelUsageInVariablesDeclaration =
+const MessageCode codeInternalProblemLabelUsageInVariablesDeclaration =
     messageInternalProblemLabelUsageInVariablesDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -7947,7 +7993,7 @@ const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemMissingContext =
+const MessageCode codeInternalProblemMissingContext =
     messageInternalProblemMissingContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8008,7 +8054,7 @@ Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemOmittedTypeNameInConstructorReference =
+const MessageCode codeInternalProblemOmittedTypeNameInConstructorReference =
     messageInternalProblemOmittedTypeNameInConstructorReference;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8021,7 +8067,7 @@ const MessageCode messageInternalProblemOmittedTypeNameInConstructorReference =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemPreviousTokenNotFound =
+const MessageCode codeInternalProblemPreviousTokenNotFound =
     messageInternalProblemPreviousTokenNotFound;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8056,7 +8102,7 @@ Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
+const MessageCode codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
     messageInternalProblemProvidedBothCompileSdkAndSdkSummary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8233,7 +8279,7 @@ ${string}""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInterpolationInUri = messageInterpolationInUri;
+const MessageCode codeInterpolationInUri = messageInterpolationInUri;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInterpolationInUri = const MessageCode(
@@ -8243,7 +8289,7 @@ const MessageCode messageInterpolationInUri = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidAugmentSuper = messageInvalidAugmentSuper;
+const MessageCode codeInvalidAugmentSuper = messageInvalidAugmentSuper;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidAugmentSuper = const MessageCode(
@@ -8253,7 +8299,7 @@ const MessageCode messageInvalidAugmentSuper = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidAwaitFor = messageInvalidAwaitFor;
+const MessageCode codeInvalidAwaitFor = messageInvalidAwaitFor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidAwaitFor = const MessageCode(
@@ -8287,7 +8333,7 @@ Message _withArgumentsInvalidBreakTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidCatchArguments = messageInvalidCatchArguments;
+const MessageCode codeInvalidCatchArguments = messageInvalidCatchArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidCatchArguments = const MessageCode(
@@ -8297,7 +8343,7 @@ const MessageCode messageInvalidCatchArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidCodePoint = messageInvalidCodePoint;
+const MessageCode codeInvalidCodePoint = messageInvalidCodePoint;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidCodePoint = const MessageCode(
@@ -8335,7 +8381,7 @@ Message _withArgumentsInvalidConstantPatternBinary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidConstantPatternConstPrefix =
+const MessageCode codeInvalidConstantPatternConstPrefix =
     messageInvalidConstantPatternConstPrefix;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8349,7 +8395,7 @@ const MessageCode messageInvalidConstantPatternConstPrefix = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidConstantPatternDuplicateConst =
+const MessageCode codeInvalidConstantPatternDuplicateConst =
     messageInvalidConstantPatternDuplicateConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8362,7 +8408,7 @@ const MessageCode messageInvalidConstantPatternDuplicateConst =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidConstantPatternEmptyRecordLiteral =
+const MessageCode codeInvalidConstantPatternEmptyRecordLiteral =
     messageInvalidConstantPatternEmptyRecordLiteral;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8375,7 +8421,7 @@ const MessageCode messageInvalidConstantPatternEmptyRecordLiteral =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidConstantPatternGeneric =
+const MessageCode codeInvalidConstantPatternGeneric =
     messageInvalidConstantPatternGeneric;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8388,7 +8434,7 @@ const MessageCode messageInvalidConstantPatternGeneric = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidConstantPatternNegation =
+const MessageCode codeInvalidConstantPatternNegation =
     messageInvalidConstantPatternNegation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8449,7 +8495,7 @@ Message _withArgumentsInvalidContinueTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidEscapeStarted = messageInvalidEscapeStarted;
+const MessageCode codeInvalidEscapeStarted = messageInvalidEscapeStarted;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidEscapeStarted = const MessageCode(
@@ -8529,7 +8575,7 @@ Message _withArgumentsInvalidGetterSetterTypeSetterContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidHexEscape = messageInvalidHexEscape;
+const MessageCode codeInvalidHexEscape = messageInvalidHexEscape;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidHexEscape = const MessageCode(
@@ -8540,7 +8586,7 @@ const MessageCode messageInvalidHexEscape = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidInitializer = messageInvalidInitializer;
+const MessageCode codeInvalidInitializer = messageInvalidInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInitializer = const MessageCode(
@@ -8552,7 +8598,8 @@ const MessageCode messageInvalidInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidInlineFunctionType = messageInvalidInlineFunctionType;
+const MessageCode codeInvalidInlineFunctionType =
+    messageInvalidInlineFunctionType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInlineFunctionType = const MessageCode(
@@ -8565,7 +8612,8 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidInsideUnaryPattern = messageInvalidInsideUnaryPattern;
+const MessageCode codeInvalidInsideUnaryPattern =
+    messageInvalidInsideUnaryPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidInsideUnaryPattern = const MessageCode(
@@ -8599,7 +8647,7 @@ Message _withArgumentsInvalidMacroApplicationTarget(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
+const MessageCode codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidNnbdDillLibrary = const MessageCode(
@@ -8656,7 +8704,8 @@ Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidSuperInInitializer = messageInvalidSuperInInitializer;
+const MessageCode codeInvalidSuperInInitializer =
+    messageInvalidSuperInInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidSuperInInitializer = const MessageCode(
@@ -8667,7 +8716,7 @@ const MessageCode messageInvalidSuperInInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidSyncModifier = messageInvalidSyncModifier;
+const MessageCode codeInvalidSyncModifier = messageInvalidSyncModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidSyncModifier = const MessageCode(
@@ -8678,7 +8727,8 @@ const MessageCode messageInvalidSyncModifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidThisInInitializer = messageInvalidThisInInitializer;
+const MessageCode codeInvalidThisInInitializer =
+    messageInvalidThisInInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidThisInInitializer = const MessageCode(
@@ -8812,7 +8862,7 @@ Message _withArgumentsInvalidTypeParameterVariancePositionInReturnType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidUnicodeEscapeUBracket =
+const MessageCode codeInvalidUnicodeEscapeUBracket =
     messageInvalidUnicodeEscapeUBracket;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8824,7 +8874,7 @@ const MessageCode messageInvalidUnicodeEscapeUBracket = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidUnicodeEscapeUNoBracket =
+const MessageCode codeInvalidUnicodeEscapeUNoBracket =
     messageInvalidUnicodeEscapeUNoBracket;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8836,7 +8886,7 @@ const MessageCode messageInvalidUnicodeEscapeUNoBracket = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidUnicodeEscapeUStarted =
+const MessageCode codeInvalidUnicodeEscapeUStarted =
     messageInvalidUnicodeEscapeUStarted;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -8848,7 +8898,8 @@ const MessageCode messageInvalidUnicodeEscapeUStarted = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidUseOfNullAwareAccess = messageInvalidUseOfNullAwareAccess;
+const MessageCode codeInvalidUseOfNullAwareAccess =
+    messageInvalidUseOfNullAwareAccess;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidUseOfNullAwareAccess = const MessageCode(
@@ -8859,7 +8910,7 @@ const MessageCode messageInvalidUseOfNullAwareAccess = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeInvalidVoid = messageInvalidVoid;
+const MessageCode codeInvalidVoid = messageInvalidVoid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageInvalidVoid = const MessageCode(
@@ -9000,7 +9051,7 @@ Message _withArgumentsJsInteropDartClassExtendsJSClass(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
+const MessageCode codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
     messageJsInteropDartJsInteropAnnotationForStaticInteropOnly;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9043,7 +9094,7 @@ Message _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropEnclosingClassJSAnnotation =
+const MessageCode codeJsInteropEnclosingClassJSAnnotation =
     messageJsInteropEnclosingClassJSAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9056,7 +9107,7 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotation =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropEnclosingClassJSAnnotationContext =
+const MessageCode codeJsInteropEnclosingClassJSAnnotationContext =
     messageJsInteropEnclosingClassJSAnnotationContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9211,7 +9262,7 @@ Message _withArgumentsJsInteropExportNoExportableMembers(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropExtensionTypeMemberNotInterop =
+const MessageCode codeJsInteropExtensionTypeMemberNotInterop =
     messageJsInteropExtensionTypeMemberNotInterop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9225,7 +9276,7 @@ const MessageCode messageJsInteropExtensionTypeMemberNotInterop =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropExtensionTypeUsedWithWrongJsAnnotation =
+const MessageCode codeJsInteropExtensionTypeUsedWithWrongJsAnnotation =
     messageJsInteropExtensionTypeUsedWithWrongJsAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9239,7 +9290,7 @@ const MessageCode messageJsInteropExtensionTypeUsedWithWrongJsAnnotation =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropExternalExtensionMemberOnTypeInvalid =
+const MessageCode codeJsInteropExternalExtensionMemberOnTypeInvalid =
     messageJsInteropExternalExtensionMemberOnTypeInvalid;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9253,7 +9304,7 @@ const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropExternalExtensionMemberWithStaticDisallowed =
+const MessageCode codeJsInteropExternalExtensionMemberWithStaticDisallowed =
     messageJsInteropExternalExtensionMemberWithStaticDisallowed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9266,7 +9317,7 @@ const MessageCode messageJsInteropExternalExtensionMemberWithStaticDisallowed =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropExternalMemberNotJSAnnotated =
+const MessageCode codeJsInteropExternalMemberNotJSAnnotated =
     messageJsInteropExternalMemberNotJSAnnotated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9279,7 +9330,7 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropFunctionToJSNamedParameters =
+const MessageCode codeJsInteropFunctionToJSNamedParameters =
     messageJsInteropFunctionToJSNamedParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9293,7 +9344,7 @@ const MessageCode messageJsInteropFunctionToJSNamedParameters =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropFunctionToJSTypeParameters =
+const MessageCode codeJsInteropFunctionToJSTypeParameters =
     messageJsInteropFunctionToJSTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9307,7 +9358,7 @@ const MessageCode messageJsInteropFunctionToJSTypeParameters =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropInvalidStaticClassMemberName =
+const MessageCode codeJsInteropInvalidStaticClassMemberName =
     messageJsInteropInvalidStaticClassMemberName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9319,7 +9370,7 @@ const MessageCode messageJsInteropInvalidStaticClassMemberName =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropIsATearoff = messageJsInteropIsATearoff;
+const MessageCode codeJsInteropIsATearoff = messageJsInteropIsATearoff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageJsInteropIsATearoff = const MessageCode(
@@ -9362,7 +9413,8 @@ Message _withArgumentsJsInteropJSClassExtendsDartClass(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropNamedParameters = messageJsInteropNamedParameters;
+const MessageCode codeJsInteropNamedParameters =
+    messageJsInteropNamedParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageJsInteropNamedParameters = const MessageCode(
@@ -9408,7 +9460,7 @@ Message _withArgumentsJsInteropNativeClassInAnnotation(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropNonExternalConstructor =
+const MessageCode codeJsInteropNonExternalConstructor =
     messageJsInteropNonExternalConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9420,7 +9472,8 @@ const MessageCode messageJsInteropNonExternalConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropNonExternalMember = messageJsInteropNonExternalMember;
+const MessageCode codeJsInteropNonExternalMember =
+    messageJsInteropNonExternalMember;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageJsInteropNonExternalMember = const MessageCode(
@@ -9491,7 +9544,7 @@ Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropOperatorCannotBeRenamed =
+const MessageCode codeJsInteropOperatorCannotBeRenamed =
     messageJsInteropOperatorCannotBeRenamed;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9504,7 +9557,7 @@ const MessageCode messageJsInteropOperatorCannotBeRenamed = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropOperatorsNotSupported =
+const MessageCode codeJsInteropOperatorsNotSupported =
     messageJsInteropOperatorsNotSupported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9546,7 +9599,7 @@ Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropStaticInteropGenerativeConstructor =
+const MessageCode codeJsInteropStaticInteropGenerativeConstructor =
     messageJsInteropStaticInteropGenerativeConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9660,7 +9713,7 @@ Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropStaticInteropParameterInitializersAreIgnored =
+const MessageCode codeJsInteropStaticInteropParameterInitializersAreIgnored =
     messageJsInteropStaticInteropParameterInitializersAreIgnored;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9675,7 +9728,7 @@ const MessageCode messageJsInteropStaticInteropParameterInitializersAreIgnored =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeJsInteropStaticInteropSyntheticConstructor =
+const MessageCode codeJsInteropStaticInteropSyntheticConstructor =
     messageJsInteropStaticInteropSyntheticConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9889,7 +9942,7 @@ Message _withArgumentsLabelNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLanguageVersionInvalidInDotPackages =
+const MessageCode codeLanguageVersionInvalidInDotPackages =
     messageLanguageVersionInvalidInDotPackages;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9901,7 +9954,7 @@ const MessageCode messageLanguageVersionInvalidInDotPackages =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLanguageVersionLibraryContext =
+const MessageCode codeLanguageVersionLibraryContext =
     messageLanguageVersionLibraryContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9912,7 +9965,7 @@ const MessageCode messageLanguageVersionLibraryContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLanguageVersionMismatchInPart =
+const MessageCode codeLanguageVersionMismatchInPart =
     messageLanguageVersionMismatchInPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9923,7 +9976,7 @@ const MessageCode messageLanguageVersionMismatchInPart = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLanguageVersionMismatchInPatch =
+const MessageCode codeLanguageVersionMismatchInPatch =
     messageLanguageVersionMismatchInPatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9934,7 +9987,8 @@ const MessageCode messageLanguageVersionMismatchInPatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLanguageVersionPartContext = messageLanguageVersionPartContext;
+const MessageCode codeLanguageVersionPartContext =
+    messageLanguageVersionPartContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLanguageVersionPartContext = const MessageCode(
@@ -9944,7 +9998,8 @@ const MessageCode messageLanguageVersionPartContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLanguageVersionPatchContext = messageLanguageVersionPatchContext;
+const MessageCode codeLanguageVersionPatchContext =
+    messageLanguageVersionPatchContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLanguageVersionPatchContext = const MessageCode(
@@ -10116,7 +10171,7 @@ Message _withArgumentsLateDefinitelyUnassignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLatePatternVariableDeclaration =
+const MessageCode codeLatePatternVariableDeclaration =
     messageLatePatternVariableDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10129,7 +10184,8 @@ const MessageCode messageLatePatternVariableDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLibraryDirectiveNotFirst = messageLibraryDirectiveNotFirst;
+const MessageCode codeLibraryDirectiveNotFirst =
+    messageLibraryDirectiveNotFirst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLibraryDirectiveNotFirst = const MessageCode(
@@ -10142,7 +10198,7 @@ const MessageCode messageLibraryDirectiveNotFirst = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeListLiteralTooManyTypeArguments =
+const MessageCode codeListLiteralTooManyTypeArguments =
     messageListLiteralTooManyTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10153,7 +10209,7 @@ const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeListPatternTooManyTypeArguments =
+const MessageCode codeListPatternTooManyTypeArguments =
     messageListPatternTooManyTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10219,7 +10275,7 @@ Message _withArgumentsLiteralWithClassAndNew(String string, Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLiteralWithNew = messageLiteralWithNew;
+const MessageCode codeLiteralWithNew = messageLiteralWithNew;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLiteralWithNew = const MessageCode(
@@ -10230,7 +10286,8 @@ const MessageCode messageLiteralWithNew = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeLoadLibraryTakesNoArguments = messageLoadLibraryTakesNoArguments;
+const MessageCode codeLoadLibraryTakesNoArguments =
+    messageLoadLibraryTakesNoArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
@@ -10342,7 +10399,8 @@ Message _withArgumentsMacroDefinitionApplicationSameLibraryCycle(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMainNotFunctionDeclaration = messageMainNotFunctionDeclaration;
+const MessageCode codeMainNotFunctionDeclaration =
+    messageMainNotFunctionDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMainNotFunctionDeclaration = const MessageCode(
@@ -10351,7 +10409,7 @@ const MessageCode messageMainNotFunctionDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMainNotFunctionDeclarationExported =
+const MessageCode codeMainNotFunctionDeclarationExported =
     messageMainNotFunctionDeclarationExported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10362,7 +10420,8 @@ const MessageCode messageMainNotFunctionDeclarationExported = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMainRequiredNamedParameters = messageMainRequiredNamedParameters;
+const MessageCode codeMainRequiredNamedParameters =
+    messageMainRequiredNamedParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMainRequiredNamedParameters = const MessageCode(
@@ -10372,7 +10431,7 @@ const MessageCode messageMainRequiredNamedParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMainRequiredNamedParametersExported =
+const MessageCode codeMainRequiredNamedParametersExported =
     messageMainRequiredNamedParametersExported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10384,7 +10443,7 @@ const MessageCode messageMainRequiredNamedParametersExported =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMainTooManyRequiredParameters =
+const MessageCode codeMainTooManyRequiredParameters =
     messageMainTooManyRequiredParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10395,7 +10454,7 @@ const MessageCode messageMainTooManyRequiredParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMainTooManyRequiredParametersExported =
+const MessageCode codeMainTooManyRequiredParametersExported =
     messageMainTooManyRequiredParametersExported;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10407,7 +10466,7 @@ const MessageCode messageMainTooManyRequiredParametersExported =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMapLiteralTypeArgumentMismatch =
+const MessageCode codeMapLiteralTypeArgumentMismatch =
     messageMapLiteralTypeArgumentMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10418,7 +10477,7 @@ const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMapPatternTypeArgumentMismatch =
+const MessageCode codeMapPatternTypeArgumentMismatch =
     messageMapPatternTypeArgumentMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10603,7 +10662,8 @@ Message _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMemberWithSameNameAsClass = messageMemberWithSameNameAsClass;
+const MessageCode codeMemberWithSameNameAsClass =
+    messageMemberWithSameNameAsClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
@@ -10615,7 +10675,7 @@ const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMetadataSpaceBeforeParenthesis =
+const MessageCode codeMetadataSpaceBeforeParenthesis =
     messageMetadataSpaceBeforeParenthesis;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10629,7 +10689,7 @@ const MessageCode messageMetadataSpaceBeforeParenthesis = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMetadataTypeArguments = messageMetadataTypeArguments;
+const MessageCode codeMetadataTypeArguments = messageMetadataTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMetadataTypeArguments = const MessageCode(
@@ -10639,7 +10699,7 @@ const MessageCode messageMetadataTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMetadataTypeArgumentsUninstantiated =
+const MessageCode codeMetadataTypeArgumentsUninstantiated =
     messageMetadataTypeArgumentsUninstantiated;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10674,7 +10734,7 @@ Message _withArgumentsMethodNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingArgumentList = messageMissingArgumentList;
+const MessageCode codeMissingArgumentList = messageMissingArgumentList;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingArgumentList = const MessageCode(
@@ -10683,7 +10743,8 @@ const MessageCode messageMissingArgumentList = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingAssignableSelector = messageMissingAssignableSelector;
+const MessageCode codeMissingAssignableSelector =
+    messageMissingAssignableSelector;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingAssignableSelector = const MessageCode(
@@ -10694,7 +10755,7 @@ const MessageCode messageMissingAssignableSelector = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingAssignmentInInitializer =
+const MessageCode codeMissingAssignmentInInitializer =
     messageMissingAssignmentInInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10707,7 +10768,8 @@ const MessageCode messageMissingAssignmentInInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingConstFinalVarOrType = messageMissingConstFinalVarOrType;
+const MessageCode codeMissingConstFinalVarOrType =
+    messageMissingConstFinalVarOrType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
@@ -10720,7 +10782,7 @@ const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingExplicitConst = messageMissingExplicitConst;
+const MessageCode codeMissingExplicitConst = messageMissingExplicitConst;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingExplicitConst = const MessageCode(
@@ -10731,7 +10793,7 @@ const MessageCode messageMissingExplicitConst = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingExponent = messageMissingExponent;
+const MessageCode codeMissingExponent = messageMissingExponent;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingExponent = const MessageCode(
@@ -10744,7 +10806,8 @@ const MessageCode messageMissingExponent = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingExpressionInThrow = messageMissingExpressionInThrow;
+const MessageCode codeMissingExpressionInThrow =
+    messageMissingExpressionInThrow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingExpressionInThrow = const MessageCode(
@@ -10756,7 +10819,8 @@ const MessageCode messageMissingExpressionInThrow = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingFunctionParameters = messageMissingFunctionParameters;
+const MessageCode codeMissingFunctionParameters =
+    messageMissingFunctionParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingFunctionParameters = const MessageCode(
@@ -10834,7 +10898,7 @@ ${names}""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingInput = messageMissingInput;
+const MessageCode codeMissingInput = messageMissingInput;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingInput = const MessageCode(
@@ -10843,7 +10907,7 @@ const MessageCode messageMissingInput = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingMain = messageMissingMain;
+const MessageCode codeMissingMain = messageMissingMain;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingMain = const MessageCode(
@@ -10853,7 +10917,7 @@ const MessageCode messageMissingMain = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingMethodParameters = messageMissingMethodParameters;
+const MessageCode codeMissingMethodParameters = messageMissingMethodParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingMethodParameters = const MessageCode(
@@ -10866,7 +10930,7 @@ const MessageCode messageMissingMethodParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingNamedSuperConstructorParameter =
+const MessageCode codeMissingNamedSuperConstructorParameter =
     messageMissingNamedSuperConstructorParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10879,7 +10943,7 @@ const MessageCode messageMissingNamedSuperConstructorParameter =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingOperatorKeyword = messageMissingOperatorKeyword;
+const MessageCode codeMissingOperatorKeyword = messageMissingOperatorKeyword;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingOperatorKeyword = const MessageCode(
@@ -10914,7 +10978,7 @@ Message _withArgumentsMissingPartOf(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingPositionalSuperConstructorParameter =
+const MessageCode codeMissingPositionalSuperConstructorParameter =
     messageMissingPositionalSuperConstructorParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10929,7 +10993,7 @@ const MessageCode messageMissingPositionalSuperConstructorParameter =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingPrefixInDeferredImport =
+const MessageCode codeMissingPrefixInDeferredImport =
     messageMissingPrefixInDeferredImport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10942,7 +11006,8 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingPrimaryConstructor = messageMissingPrimaryConstructor;
+const MessageCode codeMissingPrimaryConstructor =
+    messageMissingPrimaryConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingPrimaryConstructor = const MessageCode(
@@ -10955,7 +11020,7 @@ const MessageCode messageMissingPrimaryConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingPrimaryConstructorParameters =
+const MessageCode codeMissingPrimaryConstructorParameters =
     messageMissingPrimaryConstructorParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -10970,7 +11035,8 @@ const MessageCode messageMissingPrimaryConstructorParameters =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMissingTypedefParameters = messageMissingTypedefParameters;
+const MessageCode codeMissingTypedefParameters =
+    messageMissingTypedefParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMissingTypedefParameters = const MessageCode(
@@ -11033,7 +11099,7 @@ Message _withArgumentsMixinApplicationNoConcreteGetter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMixinApplicationNoConcreteMemberContext =
+const MessageCode codeMixinApplicationNoConcreteMemberContext =
     messageMixinApplicationNoConcreteMemberContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11096,7 +11162,8 @@ Message _withArgumentsMixinApplicationNoConcreteSetter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMixinDeclaresConstructor = messageMixinDeclaresConstructor;
+const MessageCode codeMixinDeclaresConstructor =
+    messageMixinDeclaresConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMixinDeclaresConstructor = const MessageCode(
@@ -11106,7 +11173,7 @@ const MessageCode messageMixinDeclaresConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMixinDeferredMixin = messageMixinDeferredMixin;
+const MessageCode codeMixinDeferredMixin = messageMixinDeferredMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMixinDeferredMixin = const MessageCode(
@@ -11201,7 +11268,7 @@ Message _withArgumentsMixinSubtypeOfFinalIsNotBase(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMixinSuperClassConstraintDeferredClass =
+const MessageCode codeMixinSuperClassConstraintDeferredClass =
     messageMixinSuperClassConstraintDeferredClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11215,7 +11282,7 @@ const MessageCode messageMixinSuperClassConstraintDeferredClass =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMixinWithClause = messageMixinWithClause;
+const MessageCode codeMixinWithClause = messageMixinWithClause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMixinWithClause = const MessageCode(
@@ -11253,7 +11320,8 @@ Message _withArgumentsModifierOutOfOrder(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMoreThanOneSuperInitializer = messageMoreThanOneSuperInitializer;
+const MessageCode codeMoreThanOneSuperInitializer =
+    messageMoreThanOneSuperInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMoreThanOneSuperInitializer = const MessageCode(
@@ -11293,7 +11361,7 @@ Message _withArgumentsMultipleClauses(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMultipleExtends = messageMultipleExtends;
+const MessageCode codeMultipleExtends = messageMultipleExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleExtends = const MessageCode(
@@ -11306,7 +11374,7 @@ const MessageCode messageMultipleExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMultipleImplements = messageMultipleImplements;
+const MessageCode codeMultipleImplements = messageMultipleImplements;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleImplements = const MessageCode(
@@ -11319,7 +11387,8 @@ const MessageCode messageMultipleImplements = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMultipleLibraryDirectives = messageMultipleLibraryDirectives;
+const MessageCode codeMultipleLibraryDirectives =
+    messageMultipleLibraryDirectives;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleLibraryDirectives = const MessageCode(
@@ -11330,7 +11399,7 @@ const MessageCode messageMultipleLibraryDirectives = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMultipleOnClauses = messageMultipleOnClauses;
+const MessageCode codeMultipleOnClauses = messageMultipleOnClauses;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleOnClauses = const MessageCode(
@@ -11342,7 +11411,7 @@ const MessageCode messageMultipleOnClauses = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMultipleRepresentationFields =
+const MessageCode codeMultipleRepresentationFields =
     messageMultipleRepresentationFields;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11354,7 +11423,8 @@ const MessageCode messageMultipleRepresentationFields = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMultipleVarianceModifiers = messageMultipleVarianceModifiers;
+const MessageCode codeMultipleVarianceModifiers =
+    messageMultipleVarianceModifiers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleVarianceModifiers = const MessageCode(
@@ -11367,7 +11437,7 @@ const MessageCode messageMultipleVarianceModifiers = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeMultipleWith = messageMultipleWith;
+const MessageCode codeMultipleWith = messageMultipleWith;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageMultipleWith = const MessageCode(
@@ -11402,7 +11472,7 @@ Message _withArgumentsNameNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNamedFieldClashesWithPositionalFieldInRecord =
+const MessageCode codeNamedFieldClashesWithPositionalFieldInRecord =
     messageNamedFieldClashesWithPositionalFieldInRecord;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11415,7 +11485,7 @@ const MessageCode messageNamedFieldClashesWithPositionalFieldInRecord =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNamedFunctionExpression = messageNamedFunctionExpression;
+const MessageCode codeNamedFunctionExpression = messageNamedFunctionExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNamedFunctionExpression = const MessageCode(
@@ -11452,7 +11522,7 @@ Message _withArgumentsNamedMixinOverride(String name, String name2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNamedParametersInExtensionTypeDeclaration =
+const MessageCode codeNamedParametersInExtensionTypeDeclaration =
     messageNamedParametersInExtensionTypeDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11464,7 +11534,7 @@ const MessageCode messageNamedParametersInExtensionTypeDeclaration =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNativeClauseShouldBeAnnotation =
+const MessageCode codeNativeClauseShouldBeAnnotation =
     messageNativeClauseShouldBeAnnotation;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11477,7 +11547,8 @@ const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNegativeVariableDimension = messageNegativeVariableDimension;
+const MessageCode codeNegativeVariableDimension =
+    messageNegativeVariableDimension;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNegativeVariableDimension = const MessageCode(
@@ -11487,7 +11558,7 @@ const MessageCode messageNegativeVariableDimension = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNeverReachableSwitchDefaultError =
+const MessageCode codeNeverReachableSwitchDefaultError =
     messageNeverReachableSwitchDefaultError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11498,7 +11569,7 @@ const MessageCode messageNeverReachableSwitchDefaultError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNeverReachableSwitchExpressionError =
+const MessageCode codeNeverReachableSwitchExpressionError =
     messageNeverReachableSwitchExpressionError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11510,7 +11581,7 @@ const MessageCode messageNeverReachableSwitchExpressionError =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNeverReachableSwitchStatementError =
+const MessageCode codeNeverReachableSwitchStatementError =
     messageNeverReachableSwitchStatementError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11521,7 +11592,7 @@ const MessageCode messageNeverReachableSwitchStatementError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNeverValueError = messageNeverValueError;
+const MessageCode codeNeverValueError = messageNeverValueError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNeverValueError = const MessageCode(
@@ -11531,7 +11602,7 @@ const MessageCode messageNeverValueError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNewAsSelector = messageNewAsSelector;
+const MessageCode codeNewAsSelector = messageNewAsSelector;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNewAsSelector = const MessageCode(
@@ -11540,7 +11611,8 @@ const MessageCode messageNewAsSelector = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNoAugmentSuperInvokeTarget = messageNoAugmentSuperInvokeTarget;
+const MessageCode codeNoAugmentSuperInvokeTarget =
+    messageNoAugmentSuperInvokeTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNoAugmentSuperInvokeTarget = const MessageCode(
@@ -11549,7 +11621,8 @@ const MessageCode messageNoAugmentSuperInvokeTarget = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNoAugmentSuperReadTarget = messageNoAugmentSuperReadTarget;
+const MessageCode codeNoAugmentSuperReadTarget =
+    messageNoAugmentSuperReadTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNoAugmentSuperReadTarget = const MessageCode(
@@ -11558,7 +11631,8 @@ const MessageCode messageNoAugmentSuperReadTarget = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNoAugmentSuperWriteTarget = messageNoAugmentSuperWriteTarget;
+const MessageCode codeNoAugmentSuperWriteTarget =
+    messageNoAugmentSuperWriteTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNoAugmentSuperWriteTarget = const MessageCode(
@@ -11592,7 +11666,8 @@ Message _withArgumentsNoFormals(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNoMacroApplicationTarget = messageNoMacroApplicationTarget;
+const MessageCode codeNoMacroApplicationTarget =
+    messageNoMacroApplicationTarget;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNoMacroApplicationTarget = const MessageCode(
@@ -11623,7 +11698,7 @@ Message _withArgumentsNoSuchNamedParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNoUnnamedConstructorInObject =
+const MessageCode codeNoUnnamedConstructorInObject =
     messageNoUnnamedConstructorInObject;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11715,7 +11790,7 @@ Message _withArgumentsNonAugmentationClassConflict(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonAugmentationClassConflictCause =
+const MessageCode codeNonAugmentationClassConflictCause =
     messageNonAugmentationClassConflictCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11782,7 +11857,7 @@ Message _withArgumentsNonAugmentationConstructorConflict(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonAugmentationConstructorConflictCause =
+const MessageCode codeNonAugmentationConstructorConflictCause =
     messageNonAugmentationConstructorConflictCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11794,7 +11869,7 @@ const MessageCode messageNonAugmentationConstructorConflictCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonAugmentationDeclarationConflictCause =
+const MessageCode codeNonAugmentationDeclarationConflictCause =
     messageNonAugmentationDeclarationConflictCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11860,7 +11935,7 @@ Message _withArgumentsNonAugmentationLibraryMemberConflict(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonAugmentationMemberConflictCause =
+const MessageCode codeNonAugmentationMemberConflictCause =
     messageNonAugmentationMemberConflictCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11871,7 +11946,7 @@ const MessageCode messageNonAugmentationMemberConflictCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonBoolCondition = messageNonBoolCondition;
+const MessageCode codeNonBoolCondition = messageNonBoolCondition;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonBoolCondition = const MessageCode(
@@ -11882,7 +11957,7 @@ const MessageCode messageNonBoolCondition = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonConstConstructor = messageNonConstConstructor;
+const MessageCode codeNonConstConstructor = messageNonConstConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonConstConstructor = const MessageCode(
@@ -11894,7 +11969,7 @@ const MessageCode messageNonConstConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonConstFactory = messageNonConstFactory;
+const MessageCode codeNonConstFactory = messageNonConstFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonConstFactory = const MessageCode(
@@ -11906,7 +11981,7 @@ const MessageCode messageNonConstFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonCovariantTypeParameterInRepresentationType =
+const MessageCode codeNonCovariantTypeParameterInRepresentationType =
     messageNonCovariantTypeParameterInRepresentationType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11920,7 +11995,7 @@ const MessageCode messageNonCovariantTypeParameterInRepresentationType =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonExtensionTypeMemberContext =
+const MessageCode codeNonExtensionTypeMemberContext =
     messageNonExtensionTypeMemberContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11931,7 +12006,7 @@ const MessageCode messageNonExtensionTypeMemberContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonExtensionTypeMemberOneOfContext =
+const MessageCode codeNonExtensionTypeMemberOneOfContext =
     messageNonExtensionTypeMemberOneOfContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -11966,7 +12041,8 @@ Message _withArgumentsNonNullableNotAssignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonPartOfDirectiveInPart = messageNonPartOfDirectiveInPart;
+const MessageCode codeNonPartOfDirectiveInPart =
+    messageNonPartOfDirectiveInPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
@@ -12113,7 +12189,8 @@ Message _withArgumentsNonPatchLibraryMemberConflict(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonPositiveArrayDimensions = messageNonPositiveArrayDimensions;
+const MessageCode codeNonPositiveArrayDimensions =
+    messageNonPositiveArrayDimensions;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonPositiveArrayDimensions = const MessageCode(
@@ -12169,7 +12246,7 @@ Message _withArgumentsNonSimpleBoundViaVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonVoidReturnOperator = messageNonVoidReturnOperator;
+const MessageCode codeNonVoidReturnOperator = messageNonVoidReturnOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonVoidReturnOperator = const MessageCode(
@@ -12180,7 +12257,7 @@ const MessageCode messageNonVoidReturnOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNonVoidReturnSetter = messageNonVoidReturnSetter;
+const MessageCode codeNonVoidReturnSetter = messageNonVoidReturnSetter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNonVoidReturnSetter = const MessageCode(
@@ -12193,7 +12270,7 @@ const MessageCode messageNonVoidReturnSetter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNotAConstantExpression = messageNotAConstantExpression;
+const MessageCode codeNotAConstantExpression = messageNotAConstantExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNotAConstantExpression = const MessageCode(
@@ -12253,7 +12330,7 @@ Message _withArgumentsNotAType(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNotATypeContext = messageNotATypeContext;
+const MessageCode codeNotATypeContext = messageNotATypeContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNotATypeContext = const MessageCode(
@@ -12263,7 +12340,7 @@ const MessageCode messageNotATypeContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNotAnLvalue = messageNotAnLvalue;
+const MessageCode codeNotAnLvalue = messageNotAnLvalue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNotAnLvalue = const MessageCode(
@@ -12314,7 +12391,8 @@ Message _withArgumentsNotConstantExpression(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNullAwareCascadeOutOfOrder = messageNullAwareCascadeOutOfOrder;
+const MessageCode codeNullAwareCascadeOutOfOrder =
+    messageNullAwareCascadeOutOfOrder;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
@@ -12373,7 +12451,7 @@ Message _withArgumentsNullableMixinError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeNullableSpreadError = messageNullableSpreadError;
+const MessageCode codeNullableSpreadError = messageNullableSpreadError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageNullableSpreadError = const MessageCode(
@@ -12429,7 +12507,7 @@ Message _withArgumentsNullableTearoffError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeObjectExtends = messageObjectExtends;
+const MessageCode codeObjectExtends = messageObjectExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageObjectExtends = const MessageCode(
@@ -12438,7 +12516,7 @@ const MessageCode messageObjectExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeObjectImplements = messageObjectImplements;
+const MessageCode codeObjectImplements = messageObjectImplements;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageObjectImplements = const MessageCode(
@@ -12447,7 +12525,7 @@ const MessageCode messageObjectImplements = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeObjectMemberNameUsedForRecordField =
+const MessageCode codeObjectMemberNameUsedForRecordField =
     messageObjectMemberNameUsedForRecordField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12458,7 +12536,7 @@ const MessageCode messageObjectMemberNameUsedForRecordField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeObjectMixesIn = messageObjectMixesIn;
+const MessageCode codeObjectMixesIn = messageObjectMixesIn;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageObjectMixesIn = const MessageCode(
@@ -12467,7 +12545,7 @@ const MessageCode messageObjectMixesIn = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeObsoleteColonForDefaultValue =
+const MessageCode codeObsoleteColonForDefaultValue =
     messageObsoleteColonForDefaultValue;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12479,7 +12557,7 @@ const MessageCode messageObsoleteColonForDefaultValue = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeOnlyTry = messageOnlyTry;
+const MessageCode codeOnlyTry = messageOnlyTry;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOnlyTry = const MessageCode(
@@ -12589,7 +12667,8 @@ Message _withArgumentsOperatorParameterMismatch2(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeOperatorWithOptionalFormals = messageOperatorWithOptionalFormals;
+const MessageCode codeOperatorWithOptionalFormals =
+    messageOperatorWithOptionalFormals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
@@ -12598,7 +12677,8 @@ const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeOperatorWithTypeParameters = messageOperatorWithTypeParameters;
+const MessageCode codeOperatorWithTypeParameters =
+    messageOperatorWithTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageOperatorWithTypeParameters = const MessageCode(
@@ -12610,7 +12690,7 @@ const MessageCode messageOperatorWithTypeParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeOptionalParametersInExtensionTypeDeclaration =
+const MessageCode codeOptionalParametersInExtensionTypeDeclaration =
     messageOptionalParametersInExtensionTypeDeclaration;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12896,7 +12976,7 @@ Message _withArgumentsPackagesFileFormat(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartExport = messagePartExport;
+const MessageCode codePartExport = messagePartExport;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartExport = const MessageCode(
@@ -12907,7 +12987,7 @@ const MessageCode messagePartExport = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartExportContext = messagePartExportContext;
+const MessageCode codePartExportContext = messagePartExportContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartExportContext = const MessageCode(
@@ -12917,7 +12997,7 @@ const MessageCode messagePartExportContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartInPart = messagePartInPart;
+const MessageCode codePartInPart = messagePartInPart;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartInPart = const MessageCode(
@@ -12930,7 +13010,8 @@ const MessageCode messagePartInPart = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartInPartLibraryContext = messagePartInPartLibraryContext;
+const MessageCode codePartInPartLibraryContext =
+    messagePartInPartLibraryContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartInPartLibraryContext = const MessageCode(
@@ -12998,7 +13079,7 @@ Message _withArgumentsPartOfLibraryNameMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartOfSelf = messagePartOfSelf;
+const MessageCode codePartOfSelf = messagePartOfSelf;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfSelf = const MessageCode(
@@ -13008,7 +13089,7 @@ const MessageCode messagePartOfSelf = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartOfTwice = messagePartOfTwice;
+const MessageCode codePartOfTwice = messagePartOfTwice;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfTwice = const MessageCode(
@@ -13019,7 +13100,7 @@ const MessageCode messagePartOfTwice = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartOfTwoLibraries = messagePartOfTwoLibraries;
+const MessageCode codePartOfTwoLibraries = messagePartOfTwoLibraries;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfTwoLibraries = const MessageCode(
@@ -13031,7 +13112,8 @@ const MessageCode messagePartOfTwoLibraries = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartOfTwoLibrariesContext = messagePartOfTwoLibrariesContext;
+const MessageCode codePartOfTwoLibrariesContext =
+    messagePartOfTwoLibrariesContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOfTwoLibrariesContext = const MessageCode(
@@ -13102,7 +13184,7 @@ Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePartOrphan = messagePartOrphan;
+const MessageCode codePartOrphan = messagePartOrphan;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePartOrphan = const MessageCode(
@@ -13133,7 +13215,7 @@ Message _withArgumentsPartTwice(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatchClassOrigin = messagePatchClassOrigin;
+const MessageCode codePatchClassOrigin = messagePatchClassOrigin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchClassOrigin = const MessageCode(
@@ -13143,7 +13225,7 @@ const MessageCode messagePatchClassOrigin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatchClassTypeParametersMismatch =
+const MessageCode codePatchClassTypeParametersMismatch =
     messagePatchClassTypeParametersMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13154,7 +13236,8 @@ const MessageCode messagePatchClassTypeParametersMismatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatchDeclarationMismatch = messagePatchDeclarationMismatch;
+const MessageCode codePatchDeclarationMismatch =
+    messagePatchDeclarationMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchDeclarationMismatch = const MessageCode(
@@ -13163,7 +13246,7 @@ const MessageCode messagePatchDeclarationMismatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
+const MessageCode codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchDeclarationOrigin = const MessageCode(
@@ -13173,7 +13256,7 @@ const MessageCode messagePatchDeclarationOrigin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatchExtensionOrigin = messagePatchExtensionOrigin;
+const MessageCode codePatchExtensionOrigin = messagePatchExtensionOrigin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchExtensionOrigin = const MessageCode(
@@ -13183,7 +13266,7 @@ const MessageCode messagePatchExtensionOrigin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatchExtensionTypeParametersMismatch =
+const MessageCode codePatchExtensionTypeParametersMismatch =
     messagePatchExtensionTypeParametersMismatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13223,7 +13306,7 @@ Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatchNonExternal = messagePatchNonExternal;
+const MessageCode codePatchNonExternal = messagePatchNonExternal;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatchNonExternal = const MessageCode(
@@ -13263,7 +13346,7 @@ Message _withArgumentsPatternAssignmentDeclaresVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatternAssignmentNotLocalVariable =
+const MessageCode codePatternAssignmentNotLocalVariable =
     messagePatternAssignmentNotLocalVariable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13276,7 +13359,7 @@ const MessageCode messagePatternAssignmentNotLocalVariable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatternMatchingError = messagePatternMatchingError;
+const MessageCode codePatternMatchingError = messagePatternMatchingError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePatternMatchingError = const MessageCode(
@@ -13285,7 +13368,7 @@ const MessageCode messagePatternMatchingError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatternVariableAssignmentInsideGuard =
+const MessageCode codePatternVariableAssignmentInsideGuard =
     messagePatternVariableAssignmentInsideGuard;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13299,7 +13382,7 @@ const MessageCode messagePatternVariableAssignmentInsideGuard =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePatternVariableDeclarationOutsideFunctionOrMethod =
+const MessageCode codePatternVariableDeclarationOutsideFunctionOrMethod =
     messagePatternVariableDeclarationOutsideFunctionOrMethod;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13314,7 +13397,7 @@ const MessageCode messagePatternVariableDeclarationOutsideFunctionOrMethod =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePlatformPrivateLibraryAccess =
+const MessageCode codePlatformPrivateLibraryAccess =
     messagePlatformPrivateLibraryAccess;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13325,7 +13408,7 @@ const MessageCode messagePlatformPrivateLibraryAccess = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePositionalAfterNamedArgument =
+const MessageCode codePositionalAfterNamedArgument =
     messagePositionalAfterNamedArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13338,7 +13421,7 @@ const MessageCode messagePositionalAfterNamedArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePositionalParameterWithEquals =
+const MessageCode codePositionalParameterWithEquals =
     messagePositionalParameterWithEquals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13351,7 +13434,7 @@ const MessageCode messagePositionalParameterWithEquals = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePositionalSuperParametersAndArguments =
+const MessageCode codePositionalSuperParametersAndArguments =
     messagePositionalSuperParametersAndArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13363,7 +13446,7 @@ const MessageCode messagePositionalSuperParametersAndArguments =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePrefixAfterCombinator = messagePrefixAfterCombinator;
+const MessageCode codePrefixAfterCombinator = messagePrefixAfterCombinator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePrefixAfterCombinator = const MessageCode(
@@ -13375,7 +13458,7 @@ const MessageCode messagePrefixAfterCombinator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codePrivateNamedParameter = messagePrivateNamedParameter;
+const MessageCode codePrivateNamedParameter = messagePrivateNamedParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messagePrivateNamedParameter = const MessageCode(
@@ -13386,7 +13469,8 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRecordFieldsCantBePrivate = messageRecordFieldsCantBePrivate;
+const MessageCode codeRecordFieldsCantBePrivate =
+    messageRecordFieldsCantBePrivate;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRecordFieldsCantBePrivate = const MessageCode(
@@ -13396,7 +13480,7 @@ const MessageCode messageRecordFieldsCantBePrivate = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRecordLiteralOnePositionalFieldNoTrailingComma =
+const MessageCode codeRecordLiteralOnePositionalFieldNoTrailingComma =
     messageRecordLiteralOnePositionalFieldNoTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13410,7 +13494,7 @@ const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRecordLiteralZeroFieldsWithTrailingComma =
+const MessageCode codeRecordLiteralZeroFieldsWithTrailingComma =
     messageRecordLiteralZeroFieldsWithTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13424,7 +13508,7 @@ const MessageCode messageRecordLiteralZeroFieldsWithTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRecordTypeOnePositionalFieldNoTrailingComma =
+const MessageCode codeRecordTypeOnePositionalFieldNoTrailingComma =
     messageRecordTypeOnePositionalFieldNoTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13438,7 +13522,7 @@ const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRecordTypeZeroFieldsButTrailingComma =
+const MessageCode codeRecordTypeZeroFieldsButTrailingComma =
     messageRecordTypeZeroFieldsButTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13452,7 +13536,8 @@ const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRecordUseCannotBePlacedHere = messageRecordUseCannotBePlacedHere;
+const MessageCode codeRecordUseCannotBePlacedHere =
+    messageRecordUseCannotBePlacedHere;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRecordUseCannotBePlacedHere = const MessageCode(
@@ -13462,7 +13547,7 @@ const MessageCode messageRecordUseCannotBePlacedHere = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRecordUsedAsCallable = messageRecordUsedAsCallable;
+const MessageCode codeRecordUsedAsCallable = messageRecordUsedAsCallable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRecordUsedAsCallable = const MessageCode(
@@ -13472,7 +13557,7 @@ const MessageCode messageRecordUsedAsCallable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRedirectingConstructorWithAnotherInitializer =
+const MessageCode codeRedirectingConstructorWithAnotherInitializer =
     messageRedirectingConstructorWithAnotherInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13485,7 +13570,7 @@ const MessageCode messageRedirectingConstructorWithAnotherInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRedirectingConstructorWithBody =
+const MessageCode codeRedirectingConstructorWithBody =
     messageRedirectingConstructorWithBody;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13498,7 +13583,7 @@ const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRedirectingConstructorWithMultipleRedirectInitializers =
+const MessageCode codeRedirectingConstructorWithMultipleRedirectInitializers =
     messageRedirectingConstructorWithMultipleRedirectInitializers;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13512,7 +13597,7 @@ const MessageCode
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRedirectingConstructorWithSuperInitializer =
+const MessageCode codeRedirectingConstructorWithSuperInitializer =
     messageRedirectingConstructorWithSuperInitializer;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13525,7 +13610,7 @@ const MessageCode messageRedirectingConstructorWithSuperInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRedirectionInNonFactory = messageRedirectionInNonFactory;
+const MessageCode codeRedirectionInNonFactory = messageRedirectionInNonFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRedirectionInNonFactory = const MessageCode(
@@ -13560,7 +13645,7 @@ Message _withArgumentsRedirectionTargetNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRefutablePatternInIrrefutableContext =
+const MessageCode codeRefutablePatternInIrrefutableContext =
     messageRefutablePatternInIrrefutableContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13575,7 +13660,8 @@ const MessageCode messageRefutablePatternInIrrefutableContext =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRepresentationFieldModifier = messageRepresentationFieldModifier;
+const MessageCode codeRepresentationFieldModifier =
+    messageRepresentationFieldModifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRepresentationFieldModifier = const MessageCode(
@@ -13585,7 +13671,7 @@ const MessageCode messageRepresentationFieldModifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRepresentationFieldTrailingComma =
+const MessageCode codeRepresentationFieldTrailingComma =
     messageRepresentationFieldTrailingComma;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13620,7 +13706,7 @@ Message _withArgumentsRequiredNamedParameterHasDefaultValueError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRequiredParameterWithDefault =
+const MessageCode codeRequiredParameterWithDefault =
     messageRequiredParameterWithDefault;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13633,7 +13719,7 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRestPatternInMapPattern = messageRestPatternInMapPattern;
+const MessageCode codeRestPatternInMapPattern = messageRestPatternInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRestPatternInMapPattern = const MessageCode(
@@ -13642,7 +13728,7 @@ const MessageCode messageRestPatternInMapPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeRethrowNotCatch = messageRethrowNotCatch;
+const MessageCode codeRethrowNotCatch = messageRethrowNotCatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageRethrowNotCatch = const MessageCode(
@@ -13652,7 +13738,7 @@ const MessageCode messageRethrowNotCatch = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeReturnFromVoidFunction = messageReturnFromVoidFunction;
+const MessageCode codeReturnFromVoidFunction = messageReturnFromVoidFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageReturnFromVoidFunction = const MessageCode(
@@ -13662,7 +13748,7 @@ const MessageCode messageReturnFromVoidFunction = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeReturnTypeFunctionExpression =
+const MessageCode codeReturnTypeFunctionExpression =
     messageReturnTypeFunctionExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13672,7 +13758,7 @@ const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeReturnWithoutExpressionAsync =
+const MessageCode codeReturnWithoutExpressionAsync =
     messageReturnWithoutExpressionAsync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13683,7 +13769,8 @@ const MessageCode messageReturnWithoutExpressionAsync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeReturnWithoutExpressionSync = messageReturnWithoutExpressionSync;
+const MessageCode codeReturnWithoutExpressionSync =
+    messageReturnWithoutExpressionSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
@@ -13693,7 +13780,7 @@ const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeScriptTagInPartFile = messageScriptTagInPartFile;
+const MessageCode codeScriptTagInPartFile = messageScriptTagInPartFile;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageScriptTagInPartFile = const MessageCode(
@@ -13793,7 +13880,7 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSealedEnum = messageSealedEnum;
+const MessageCode codeSealedEnum = messageSealedEnum;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSealedEnum = const MessageCode(
@@ -13804,7 +13891,7 @@ const MessageCode messageSealedEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSealedMixin = messageSealedMixin;
+const MessageCode codeSealedMixin = messageSealedMixin;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSealedMixin = const MessageCode(
@@ -13815,7 +13902,7 @@ const MessageCode messageSealedMixin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSealedMixinClass = messageSealedMixinClass;
+const MessageCode codeSealedMixinClass = messageSealedMixinClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSealedMixinClass = const MessageCode(
@@ -13826,7 +13913,7 @@ const MessageCode messageSealedMixinClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSetLiteralTooManyTypeArguments =
+const MessageCode codeSetLiteralTooManyTypeArguments =
     messageSetLiteralTooManyTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13836,7 +13923,7 @@ const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSetOrMapLiteralTooManyTypeArguments =
+const MessageCode codeSetOrMapLiteralTooManyTypeArguments =
     messageSetOrMapLiteralTooManyTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13894,7 +13981,7 @@ Message _withArgumentsSetterConflictsWithDeclarationCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSetterConstructor = messageSetterConstructor;
+const MessageCode codeSetterConstructor = messageSetterConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSetterConstructor = const MessageCode(
@@ -13927,7 +14014,7 @@ Message _withArgumentsSetterNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSetterNotSync = messageSetterNotSync;
+const MessageCode codeSetterNotSync = messageSetterNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSetterNotSync = const MessageCode(
@@ -13937,7 +14024,7 @@ const MessageCode messageSetterNotSync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSetterWithWrongNumberOfFormals =
+const MessageCode codeSetterWithWrongNumberOfFormals =
     messageSetterWithWrongNumberOfFormals;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14018,7 +14105,7 @@ ${num3} ms/compilation unit.""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSpreadElement = messageSpreadElement;
+const MessageCode codeSpreadElement = messageSpreadElement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSpreadElement = const MessageCode(
@@ -14028,7 +14115,7 @@ const MessageCode messageSpreadElement = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSpreadMapElement = messageSpreadMapElement;
+const MessageCode codeSpreadMapElement = messageSpreadMapElement;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSpreadMapElement = const MessageCode(
@@ -14038,7 +14125,7 @@ const MessageCode messageSpreadMapElement = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeStackOverflow = messageStackOverflow;
+const MessageCode codeStackOverflow = messageStackOverflow;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStackOverflow = const MessageCode(
@@ -14097,7 +14184,7 @@ Message _withArgumentsStaticConflictsWithInstanceCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeStaticConstructor = messageStaticConstructor;
+const MessageCode codeStaticConstructor = messageStaticConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticConstructor = const MessageCode(
@@ -14108,7 +14195,7 @@ const MessageCode messageStaticConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeStaticOperator = messageStaticOperator;
+const MessageCode codeStaticOperator = messageStaticOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStaticOperator = const MessageCode(
@@ -14119,7 +14206,7 @@ const MessageCode messageStaticOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeStaticTearOffFromInstantiatedClass =
+const MessageCode codeStaticTearOffFromInstantiatedClass =
     messageStaticTearOffFromInstantiatedClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14132,7 +14219,8 @@ const MessageCode messageStaticTearOffFromInstantiatedClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeStrongWithWeakDillLibrary = messageStrongWithWeakDillLibrary;
+const MessageCode codeStrongWithWeakDillLibrary =
+    messageStrongWithWeakDillLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStrongWithWeakDillLibrary = const MessageCode(
@@ -14208,7 +14296,7 @@ Message _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSuperAsExpression = messageSuperAsExpression;
+const MessageCode codeSuperAsExpression = messageSuperAsExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperAsExpression = const MessageCode(
@@ -14220,7 +14308,7 @@ const MessageCode messageSuperAsExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSuperAsIdentifier = messageSuperAsIdentifier;
+const MessageCode codeSuperAsIdentifier = messageSuperAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperAsIdentifier = const MessageCode(
@@ -14277,7 +14365,7 @@ Message _withArgumentsSuperExtensionTypeIsTypeParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSuperInitializerNotLast = messageSuperInitializerNotLast;
+const MessageCode codeSuperInitializerNotLast = messageSuperInitializerNotLast;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperInitializerNotLast = const MessageCode(
@@ -14287,7 +14375,8 @@ const MessageCode messageSuperInitializerNotLast = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSuperInitializerParameter = messageSuperInitializerParameter;
+const MessageCode codeSuperInitializerParameter =
+    messageSuperInitializerParameter;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperInitializerParameter = const MessageCode(
@@ -14297,7 +14386,7 @@ const MessageCode messageSuperInitializerParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSuperNullAware = messageSuperNullAware;
+const MessageCode codeSuperNullAware = messageSuperNullAware;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSuperNullAware = const MessageCode(
@@ -14309,7 +14398,7 @@ const MessageCode messageSuperNullAware = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSuperParameterInitializerOutsideConstructor =
+const MessageCode codeSuperParameterInitializerOutsideConstructor =
     messageSuperParameterInitializerOutsideConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14484,7 +14573,7 @@ Message _withArgumentsSuperclassMethodArgumentMismatch(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSupertypeIsFunction = messageSupertypeIsFunction;
+const MessageCode codeSupertypeIsFunction = messageSupertypeIsFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSupertypeIsFunction = const MessageCode(
@@ -14539,7 +14628,7 @@ Message _withArgumentsSupertypeIsTypeParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSwitchCaseFallThrough = messageSwitchCaseFallThrough;
+const MessageCode codeSwitchCaseFallThrough = messageSwitchCaseFallThrough;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchCaseFallThrough = const MessageCode(
@@ -14549,7 +14638,7 @@ const MessageCode messageSwitchCaseFallThrough = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSwitchExpressionNotAssignableCause =
+const MessageCode codeSwitchExpressionNotAssignableCause =
     messageSwitchExpressionNotAssignableCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14560,7 +14649,8 @@ const MessageCode messageSwitchExpressionNotAssignableCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSwitchHasCaseAfterDefault = messageSwitchHasCaseAfterDefault;
+const MessageCode codeSwitchHasCaseAfterDefault =
+    messageSwitchHasCaseAfterDefault;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchHasCaseAfterDefault = const MessageCode(
@@ -14573,7 +14663,8 @@ const MessageCode messageSwitchHasCaseAfterDefault = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSwitchHasMultipleDefaults = messageSwitchHasMultipleDefaults;
+const MessageCode codeSwitchHasMultipleDefaults =
+    messageSwitchHasMultipleDefaults;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
@@ -14584,7 +14675,7 @@ const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeSyntheticToken = messageSyntheticToken;
+const MessageCode codeSyntheticToken = messageSyntheticToken;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageSyntheticToken = const MessageCode(
@@ -14616,7 +14707,7 @@ Message _withArgumentsThisAccessInFieldInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeThisAsIdentifier = messageThisAsIdentifier;
+const MessageCode codeThisAsIdentifier = messageThisAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageThisAsIdentifier = const MessageCode(
@@ -14719,7 +14810,7 @@ Message _withArgumentsTooManyArguments(int count, int count2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTopLevelOperator = messageTopLevelOperator;
+const MessageCode codeTopLevelOperator = messageTopLevelOperator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTopLevelOperator = const MessageCode(
@@ -14731,7 +14822,7 @@ const MessageCode messageTopLevelOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypeAfterVar = messageTypeAfterVar;
+const MessageCode codeTypeAfterVar = messageTypeAfterVar;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeAfterVar = const MessageCode(
@@ -14789,7 +14880,7 @@ Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypeBeforeFactory = messageTypeBeforeFactory;
+const MessageCode codeTypeBeforeFactory = messageTypeBeforeFactory;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeBeforeFactory = const MessageCode(
@@ -14871,7 +14962,8 @@ Message _withArgumentsTypeOriginWithFileUri(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypeParameterDuplicatedName = messageTypeParameterDuplicatedName;
+const MessageCode codeTypeParameterDuplicatedName =
+    messageTypeParameterDuplicatedName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeParameterDuplicatedName = const MessageCode(
@@ -14904,7 +14996,7 @@ Message _withArgumentsTypeParameterDuplicatedNameCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypeParameterSameNameAsEnclosing =
+const MessageCode codeTypeParameterSameNameAsEnclosing =
     messageTypeParameterSameNameAsEnclosing;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14916,7 +15008,7 @@ const MessageCode messageTypeParameterSameNameAsEnclosing = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypeVariableInConstantContext =
+const MessageCode codeTypeVariableInConstantContext =
     messageTypeVariableInConstantContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14927,7 +15019,8 @@ const MessageCode messageTypeVariableInConstantContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypeVariableInStaticContext = messageTypeVariableInStaticContext;
+const MessageCode codeTypeVariableInStaticContext =
+    messageTypeVariableInStaticContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypeVariableInStaticContext = const MessageCode(
@@ -14937,7 +15030,7 @@ const MessageCode messageTypeVariableInStaticContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefCause = messageTypedefCause;
+const MessageCode codeTypedefCause = messageTypedefCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefCause = const MessageCode(
@@ -14947,7 +15040,7 @@ const MessageCode messageTypedefCause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefInClass = messageTypedefInClass;
+const MessageCode codeTypedefInClass = messageTypedefInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefInClass = const MessageCode(
@@ -14958,7 +15051,7 @@ const MessageCode messageTypedefInClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefNotFunction = messageTypedefNotFunction;
+const MessageCode codeTypedefNotFunction = messageTypedefNotFunction;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefNotFunction = const MessageCode(
@@ -14968,7 +15061,7 @@ const MessageCode messageTypedefNotFunction = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefNotType = messageTypedefNotType;
+const MessageCode codeTypedefNotType = messageTypedefNotType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefNotType = const MessageCode(
@@ -14978,7 +15071,7 @@ const MessageCode messageTypedefNotType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefNullableType = messageTypedefNullableType;
+const MessageCode codeTypedefNullableType = messageTypedefNullableType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefNullableType = const MessageCode(
@@ -14987,7 +15080,7 @@ const MessageCode messageTypedefNullableType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefTypeParameterNotConstructor =
+const MessageCode codeTypedefTypeParameterNotConstructor =
     messageTypedefTypeParameterNotConstructor;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -14998,7 +15091,7 @@ const MessageCode messageTypedefTypeParameterNotConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefTypeParameterNotConstructorCause =
+const MessageCode codeTypedefTypeParameterNotConstructorCause =
     messageTypedefTypeParameterNotConstructorCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15010,7 +15103,8 @@ const MessageCode messageTypedefTypeParameterNotConstructorCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeTypedefUnaliasedTypeCause = messageTypedefUnaliasedTypeCause;
+const MessageCode codeTypedefUnaliasedTypeCause =
+    messageTypedefUnaliasedTypeCause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
@@ -15043,7 +15137,8 @@ Message _withArgumentsUnavailableDartLibrary(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnexpectedDollarInString = messageUnexpectedDollarInString;
+const MessageCode codeUnexpectedDollarInString =
+    messageUnexpectedDollarInString;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnexpectedDollarInString = const MessageCode(
@@ -15078,7 +15173,8 @@ Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnexpectedSeparatorInNumber = messageUnexpectedSeparatorInNumber;
+const MessageCode codeUnexpectedSeparatorInNumber =
+    messageUnexpectedSeparatorInNumber;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnexpectedSeparatorInNumber = const MessageCode(
@@ -15090,7 +15186,7 @@ const MessageCode messageUnexpectedSeparatorInNumber = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnexpectedSuperParametersInGenerativeConstructors =
+const MessageCode codeUnexpectedSuperParametersInGenerativeConstructors =
     messageUnexpectedSuperParametersInGenerativeConstructors;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15124,7 +15220,7 @@ Message _withArgumentsUnexpectedToken(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnexpectedTokens = messageUnexpectedTokens;
+const MessageCode codeUnexpectedTokens = messageUnexpectedTokens;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnexpectedTokens = const MessageCode(
@@ -15455,7 +15551,8 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnnamedObjectPatternField = messageUnnamedObjectPatternField;
+const MessageCode codeUnnamedObjectPatternField =
+    messageUnnamedObjectPatternField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnnamedObjectPatternField = const MessageCode(
@@ -15466,7 +15563,7 @@ const MessageCode messageUnnamedObjectPatternField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnsoundSwitchExpressionError =
+const MessageCode codeUnsoundSwitchExpressionError =
     messageUnsoundSwitchExpressionError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15477,7 +15574,8 @@ const MessageCode messageUnsoundSwitchExpressionError = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnsoundSwitchStatementError = messageUnsoundSwitchStatementError;
+const MessageCode codeUnsoundSwitchStatementError =
+    messageUnsoundSwitchStatementError;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnsoundSwitchStatementError = const MessageCode(
@@ -15507,7 +15605,7 @@ Message _withArgumentsUnspecified(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnspecifiedGetterNameInObjectPattern =
+const MessageCode codeUnspecifiedGetterNameInObjectPattern =
     messageUnspecifiedGetterNameInObjectPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15520,7 +15618,7 @@ const MessageCode messageUnspecifiedGetterNameInObjectPattern =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnsupportedDartExt = messageUnsupportedDartExt;
+const MessageCode codeUnsupportedDartExt = messageUnsupportedDartExt;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnsupportedDartExt = const MessageCode(
@@ -15531,7 +15629,8 @@ const MessageCode messageUnsupportedDartExt = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnsupportedMacroApplication = messageUnsupportedMacroApplication;
+const MessageCode codeUnsupportedMacroApplication =
+    messageUnsupportedMacroApplication;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnsupportedMacroApplication = const MessageCode(
@@ -15561,7 +15660,7 @@ Message _withArgumentsUnsupportedOperator(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
+const MessageCode codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
@@ -15572,7 +15671,7 @@ const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnterminatedComment = messageUnterminatedComment;
+const MessageCode codeUnterminatedComment = messageUnterminatedComment;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnterminatedComment = const MessageCode(
@@ -15608,7 +15707,7 @@ Message _withArgumentsUnterminatedString(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeUnterminatedToken = messageUnterminatedToken;
+const MessageCode codeUnterminatedToken = messageUnterminatedToken;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageUnterminatedToken = const MessageCode(
@@ -15661,7 +15760,7 @@ Message _withArgumentsValueForRequiredParameterNotProvidedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeVarAsTypeName = messageVarAsTypeName;
+const MessageCode codeVarAsTypeName = messageVarAsTypeName;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVarAsTypeName = const MessageCode(
@@ -15671,7 +15770,7 @@ const MessageCode messageVarAsTypeName = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeVarReturnType = messageVarReturnType;
+const MessageCode codeVarReturnType = messageVarReturnType;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVarReturnType = const MessageCode(
@@ -15714,7 +15813,7 @@ Message _withArgumentsVariableCouldBeNullDueToWrite(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeVariablePatternKeywordInDeclarationContext =
+const MessageCode codeVariablePatternKeywordInDeclarationContext =
     messageVariablePatternKeywordInDeclarationContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15728,7 +15827,7 @@ const MessageCode messageVariablePatternKeywordInDeclarationContext =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeVerificationErrorOriginContext =
+const MessageCode codeVerificationErrorOriginContext =
     messageVerificationErrorOriginContext;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15740,7 +15839,7 @@ const MessageCode messageVerificationErrorOriginContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeVoidExpression = messageVoidExpression;
+const MessageCode codeVoidExpression = messageVoidExpression;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVoidExpression = const MessageCode(
@@ -15750,7 +15849,7 @@ const MessageCode messageVoidExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeVoidWithTypeArguments = messageVoidWithTypeArguments;
+const MessageCode codeVoidWithTypeArguments = messageVoidWithTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageVoidWithTypeArguments = const MessageCode(
@@ -15761,7 +15860,7 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWasmImportOrExportInUserCode =
+const MessageCode codeWasmImportOrExportInUserCode =
     messageWasmImportOrExportInUserCode;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15772,7 +15871,7 @@ const MessageCode messageWasmImportOrExportInUserCode = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWeakReferenceMismatchReturnAndArgumentTypes =
+const MessageCode codeWeakReferenceMismatchReturnAndArgumentTypes =
     messageWeakReferenceMismatchReturnAndArgumentTypes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15784,7 +15883,8 @@ const MessageCode messageWeakReferenceMismatchReturnAndArgumentTypes =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWeakReferenceNotOneArgument = messageWeakReferenceNotOneArgument;
+const MessageCode codeWeakReferenceNotOneArgument =
+    messageWeakReferenceNotOneArgument;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageWeakReferenceNotOneArgument = const MessageCode(
@@ -15794,7 +15894,7 @@ const MessageCode messageWeakReferenceNotOneArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWeakReferenceNotStatic = messageWeakReferenceNotStatic;
+const MessageCode codeWeakReferenceNotStatic = messageWeakReferenceNotStatic;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageWeakReferenceNotStatic = const MessageCode(
@@ -15804,7 +15904,7 @@ const MessageCode messageWeakReferenceNotStatic = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWeakReferenceReturnTypeNotNullable =
+const MessageCode codeWeakReferenceReturnTypeNotNullable =
     messageWeakReferenceReturnTypeNotNullable;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15814,7 +15914,7 @@ const MessageCode messageWeakReferenceReturnTypeNotNullable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWeakReferenceTargetHasParameters =
+const MessageCode codeWeakReferenceTargetHasParameters =
     messageWeakReferenceTargetHasParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15825,7 +15925,7 @@ const MessageCode messageWeakReferenceTargetHasParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWeakReferenceTargetNotStaticTearoff =
+const MessageCode codeWeakReferenceTargetNotStaticTearoff =
     messageWeakReferenceTargetNotStaticTearoff;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -15837,7 +15937,8 @@ const MessageCode messageWeakReferenceTargetNotStaticTearoff =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWeakWithStrongDillLibrary = messageWeakWithStrongDillLibrary;
+const MessageCode codeWeakWithStrongDillLibrary =
+    messageWeakWithStrongDillLibrary;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageWeakWithStrongDillLibrary = const MessageCode(
@@ -15877,7 +15978,7 @@ Message _withArgumentsWebLiteralCannotBeRepresentedExactly(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeWithBeforeExtends = messageWithBeforeExtends;
+const MessageCode codeWithBeforeExtends = messageWithBeforeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageWithBeforeExtends = const MessageCode(
@@ -15889,7 +15990,7 @@ const MessageCode messageWithBeforeExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeYieldAsIdentifier = messageYieldAsIdentifier;
+const MessageCode codeYieldAsIdentifier = messageYieldAsIdentifier;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageYieldAsIdentifier = const MessageCode(
@@ -15900,7 +16001,7 @@ const MessageCode messageYieldAsIdentifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code codeYieldNotGenerator = messageYieldNotGenerator;
+const MessageCode codeYieldNotGenerator = messageYieldNotGenerator;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageYieldNotGenerator = const MessageCode(

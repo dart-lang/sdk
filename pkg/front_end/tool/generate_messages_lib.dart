@@ -407,7 +407,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
     return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code code$name = message$name;
+const MessageCode code$name = message$name;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode message$name =
