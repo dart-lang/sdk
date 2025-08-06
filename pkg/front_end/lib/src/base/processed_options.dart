@@ -32,10 +32,10 @@ import '../codes/cfe_codes.dart'
         LocatedMessage,
         Message,
         PlainAndColorizedString,
-        messageCantInferPackagesFromManyInputs,
-        messageCantInferPackagesFromPackageUri,
-        messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
-        messageMissingInput,
+        codeCantInferPackagesFromManyInputs,
+        codeCantInferPackagesFromPackageUri,
+        codeInternalProblemProvidedBothCompileSdkAndSdkSummary,
+        codeMissingInput,
         noLength,
         codeCannotReadSdkSpecification,
         codeCantReadFile,
@@ -363,7 +363,7 @@ class ProcessedOptions {
 
     if (errorOnMissingInput && inputs.isEmpty) {
       // Coverage-ignore-block(suite): Not run.
-      reportWithoutLocation(messageMissingInput, CfeSeverity.error);
+      reportWithoutLocation(codeMissingInput, CfeSeverity.error);
       return false;
     }
 
@@ -387,7 +387,7 @@ class ProcessedOptions {
     if (compileSdk && summary != null) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-          messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
+          codeInternalProblemProvidedBothCompileSdkAndSdkSummary,
           CfeSeverity.internalProblem);
       return false;
     }
@@ -617,7 +617,7 @@ class ProcessedOptions {
       // TODO(sigmund): consider not reporting an error if we would infer
       // the same `package_config.json` file from all of the inputs.
       reportWithoutLocation(
-          messageCantInferPackagesFromManyInputs, CfeSeverity.error);
+          codeCantInferPackagesFromManyInputs, CfeSeverity.error);
       _packageConfigAndUri = _PackageConfigAndUri.empty;
       return _packages!;
     }
@@ -626,8 +626,7 @@ class ProcessedOptions {
 
     if (input.isScheme('package')) {
       reportNoSourceLine(
-          messageCantInferPackagesFromPackageUri.withLocation(
-              input, -1, noLength),
+          codeCantInferPackagesFromPackageUri.withLocation(input, -1, noLength),
           CfeSeverity.error);
       _packageConfigAndUri = _PackageConfigAndUri.empty;
       return _packages!;

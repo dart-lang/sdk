@@ -31,11 +31,11 @@ import 'token.dart' as analyzer show StringToken;
 
 import '../messages/codes.dart'
     show
-        messageExpectedHexDigit,
-        messageMissingExponent,
-        messageUnexpectedDollarInString,
-        messageUnexpectedSeparatorInNumber,
-        messageUnterminatedComment;
+        codeExpectedHexDigit,
+        codeMissingExponent,
+        codeUnexpectedDollarInString,
+        codeUnexpectedSeparatorInNumber,
+        codeUnterminatedComment;
 
 import '../util/link.dart' show Link;
 
@@ -1492,7 +1492,7 @@ abstract class AbstractScanner implements Scanner {
           // Not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1505,7 +1505,7 @@ abstract class AbstractScanner implements Scanner {
             // Not allowed.
             prependErrorToken(
               new UnterminatedToken(
-                messageUnexpectedSeparatorInNumber,
+                codeUnexpectedSeparatorInNumber,
                 start,
                 stringOffset,
               ),
@@ -1527,7 +1527,7 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1567,7 +1567,7 @@ abstract class AbstractScanner implements Scanner {
           // Not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1578,7 +1578,7 @@ abstract class AbstractScanner implements Scanner {
       } else {
         if (!hasDigits) {
           prependErrorToken(
-            new UnterminatedToken(messageExpectedHexDigit, start, stringOffset),
+            new UnterminatedToken(codeExpectedHexDigit, start, stringOffset),
           );
           // Recovery
           appendSyntheticSubstringToken(
@@ -1593,7 +1593,7 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1652,7 +1652,7 @@ abstract class AbstractScanner implements Scanner {
           // Not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1663,7 +1663,7 @@ abstract class AbstractScanner implements Scanner {
         while (next == $_) {
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1685,7 +1685,7 @@ abstract class AbstractScanner implements Scanner {
             if (!hasExponentDigits) {
               prependErrorToken(
                 new UnterminatedToken(
-                  messageUnexpectedSeparatorInNumber,
+                  codeUnexpectedSeparatorInNumber,
                   start,
                   stringOffset,
                 ),
@@ -1705,7 +1705,7 @@ abstract class AbstractScanner implements Scanner {
               );
               prependErrorToken(
                 new UnterminatedToken(
-                  messageMissingExponent,
+                  codeMissingExponent,
                   tokenStart,
                   stringOffset,
                 ),
@@ -1720,7 +1720,7 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1734,7 +1734,7 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1918,7 +1918,7 @@ abstract class AbstractScanner implements Scanner {
         }
         prependErrorToken(
           new UnterminatedToken(
-            messageUnterminatedComment,
+            codeUnterminatedComment,
             tokenStart,
             stringOffset,
           ),
@@ -2231,7 +2231,7 @@ abstract class AbstractScanner implements Scanner {
       );
       prependErrorToken(
         new UnterminatedToken(
-          messageUnexpectedDollarInString,
+          codeUnexpectedDollarInString,
           tokenStart,
           stringOffset,
         ),

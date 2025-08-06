@@ -47,7 +47,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       // Coverage-ignore-block(suite): Not run.
       // Null spread
       return evaluator.createEvaluationErrorConstant(
-          spreadExpression, messageConstEvalNullValue);
+          spreadExpression, codeConstEvalNullValue);
     } else {
       // Fully evaluated spread
       List<Constant> entries;
@@ -72,7 +72,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       } else {
         // Not list or set in spread
         return evaluator.createEvaluationErrorConstant(
-            spreadExpression, messageConstEvalNotListOrSetInSpread);
+            spreadExpression, codeConstEvalNotListOrSetInSpread);
       }
       for (Constant entry in entries) {
         AbortConstant? error = addConstant(entry, spreadExpression);
@@ -267,7 +267,7 @@ class MapConstantBuilder {
       // Coverage-ignore-block(suite): Not run.
       // Null spread
       return evaluator.createEvaluationErrorConstant(
-          spreadExpression, messageConstEvalNullValue);
+          spreadExpression, codeConstEvalNullValue);
     } else {
       // Fully evaluated spread
       if (spread is MapConstant) {
@@ -287,7 +287,7 @@ class MapConstantBuilder {
       } else {
         // Not map in spread
         return evaluator.createEvaluationErrorConstant(
-            spreadExpression, messageConstEvalNotMapInSpread);
+            spreadExpression, codeConstEvalNotMapInSpread);
       }
     }
     return null;

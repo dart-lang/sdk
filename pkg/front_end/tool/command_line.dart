@@ -28,8 +28,8 @@ import 'package:front_end/src/codes/cfe_codes.dart'
     show
         Message,
         PlainAndColorizedString,
-        messageFastaUsageLong,
-        messageFastaUsageShort,
+        codeFastaUsageLong,
+        codeFastaUsageShort,
         codeUnspecified;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
@@ -329,8 +329,8 @@ Message computeUsage(String programName, bool verbose) {
   String basicUsage = "Usage: $programName [options] dartfile\n";
   String? summary;
   String options = (verbose
-          ? messageFastaUsageLong.problemMessage
-          : messageFastaUsageShort.problemMessage)
+          ? codeFastaUsageLong.problemMessage
+          : codeFastaUsageShort.problemMessage)
       .trim();
   switch (programName) {
     case "outline":

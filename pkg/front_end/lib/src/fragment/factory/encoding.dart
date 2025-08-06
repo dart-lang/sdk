@@ -352,7 +352,7 @@ class FactoryEncoding implements InferredTypeListener {
             // cases of handling of type arguments after constructor
             // names.
             libraryBuilder.addProblem(
-                messageConstructorWithTypeArguments,
+                codeConstructorWithTypeArguments,
                 redirectionTargetName.nameOffset,
                 redirectionTargetName.nameLength,
                 _fragment.fileUri);
@@ -400,7 +400,7 @@ class FactoryEncoding implements InferredTypeListener {
           targetNode.enclosingClass.isEnum) {
         _addProblemForRedirectingFactory(
             libraryBuilder: libraryBuilder,
-            message: messageEnumFactoryRedirectsToConstructor,
+            message: codeEnumFactoryRedirectsToConstructor,
             fileOffset: redirectionTarget.charOffset,
             length: noLength,
             fileUri: redirectionTarget.fileUri);
@@ -442,7 +442,7 @@ class FactoryEncoding implements InferredTypeListener {
     // Ensure that constant factories only have constant targets/bodies.
     if (_fragment.modifiers.isConst && !target.isConst) {
       // Coverage-ignore-block(suite): Not run.
-      libraryBuilder.addProblem(messageConstFactoryRedirectionToNonConst,
+      libraryBuilder.addProblem(codeConstFactoryRedirectionToNonConst,
           _fragment.fullNameOffset, noLength, _fragment.fileUri);
     }
 
@@ -851,7 +851,7 @@ class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
     TypeBuilder returnType = new NamedTypeBuilderImpl.forInvalidType(
         fullName,
         const NullabilityBuilder.omitted(),
-        messageExtensionDeclaresConstructor.withLocation(
+        codeExtensionDeclaresConstructor.withLocation(
             fileUri, fullNameOffset, fullNameLength));
     return (typeParameters, returnType);
   }

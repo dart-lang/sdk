@@ -33,7 +33,7 @@ import '../base/local_scope.dart';
 import '../base/problems.dart' show DebugAbort;
 import '../base/scope.dart';
 import '../codes/cfe_codes.dart'
-    show Code, LocatedMessage, Message, messageExpectedBlockToSkip;
+    show Code, LocatedMessage, Message, codeExpectedBlockToSkip;
 import '../fragment/fragment.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/body_builder.dart' show BodyBuilder, FormalParameters;
@@ -724,7 +724,7 @@ class DietListener extends StackListenerImpl {
     debugEvent("NativeFunctionBodySkipped");
     if (!enableNative) {
       super.handleRecoverableError(
-          messageExpectedBlockToSkip, nativeToken, nativeToken);
+          codeExpectedBlockToSkip, nativeToken, nativeToken);
     }
   }
 

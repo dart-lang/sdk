@@ -8,7 +8,7 @@ import '../messages/codes.dart'
     show
         Code,
         Message,
-        messageEncoding,
+        codeEncoding,
         codeAsciiControlCharacter,
         codeNonAsciiIdentifier,
         codeNonAsciiWhitespace,
@@ -112,7 +112,7 @@ class EncodingErrorToken extends ErrorToken {
   String toString() => "EncodingErrorToken()";
 
   @override
-  Message get assertionMessage => messageEncoding;
+  Message get assertionMessage => codeEncoding;
 }
 
 /// Represents a non-ASCII character outside a string or comment.

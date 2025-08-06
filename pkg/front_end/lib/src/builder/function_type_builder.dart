@@ -15,7 +15,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart' show messageSupertypeIsFunction, noLength;
+import '../codes/cfe_codes.dart' show codeSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
@@ -200,8 +200,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
 
   @override
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(
-        messageSupertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem(codeSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 

@@ -356,16 +356,16 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (_supertypeBuilder != null) {
       _supertypeBuilder = null;
       libraryBuilder.addProblem(
-          messageObjectExtends, fileOffset, noLength, fileUri);
+          codeObjectExtends, fileOffset, noLength, fileUri);
     }
     if (_interfaceBuilders != null) {
       libraryBuilder.addProblem(
-          messageObjectImplements, fileOffset, noLength, fileUri);
+          codeObjectImplements, fileOffset, noLength, fileUri);
       _interfaceBuilders = null;
     }
     if (_mixedInTypeBuilder != null) {
       libraryBuilder.addProblem(
-          messageObjectMixesIn, fileOffset, noLength, fileUri);
+          codeObjectMixesIn, fileOffset, noLength, fileUri);
       _mixedInTypeBuilder = null;
     }
   }
@@ -824,7 +824,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         libraryBuilder.addProblem(
             message, nameOffset, nameLength, target.fileUri,
             context: [
-              messageTypedefCause.withLocation(
+              codeTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ]);
       } else {
@@ -843,7 +843,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       // TODO(eernst): Should gather 'restricted supertype' checks in one place,
       // e.g., dynamic/int/String/Null and more are checked elsewhere.
       if (unaliasedSuperDeclaration is NeverTypeDeclarationBuilder) {
-        fail(superClassType, messageExtendsNever, superDeclaration);
+        fail(superClassType, codeExtendsNever, superDeclaration);
       } else if (unaliasedSuperDeclaration is ClassBuilder) {
         superClass = unaliasedSuperDeclaration;
       }
@@ -927,8 +927,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             // Coverage-ignore(suite): Not run.
             interface.cls.enclosingLibrary.importUri.path == "async") {
           // Coverage-ignore-block(suite): Not run.
-          libraryBuilder.addProblem(messageImplementsFutureOr, this.fileOffset,
-              noLength, this.fileUri);
+          libraryBuilder.addProblem(
+              codeImplementsFutureOr, this.fileOffset, noLength, this.fileUri);
         } else if (implemented.contains(interface)) {
           // Aggregate repetitions.
           problems ??= <ClassBuilder, int>{};
@@ -943,7 +943,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (unaliasedDeclaration != superClass) {
         // TODO(eernst): Have all 'restricted supertype' checks in one place.
         if (unaliasedDeclaration is NeverTypeDeclarationBuilder) {
-          fail(type, messageImplementsNever, typeDeclaration);
+          fail(type, codeImplementsNever, typeDeclaration);
         }
       }
     }

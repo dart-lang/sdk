@@ -1235,7 +1235,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           message = codeGenericFunctionTypeInferredAsActualTypeArgument
               .withArguments(argument);
         } else {
-          message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          message = codeGenericFunctionTypeUsedAsActualTypeArgument;
         }
         typeParameter = null;
       } else {
@@ -1312,7 +1312,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
-          messageIncorrectTypeArgumentVariable.withLocation(
+          codeIncorrectTypeArgumentVariable.withLocation(
               typeParameter.location!.file,
               typeParameter.fileOffset,
               noLength));
@@ -1338,7 +1338,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
-          messageIncorrectTypeArgumentVariable.withLocation(
+          codeIncorrectTypeArgumentVariable.withLocation(
               typeParameter.location!.file,
               typeParameter.fileOffset,
               noLength));

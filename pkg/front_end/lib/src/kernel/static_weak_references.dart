@@ -9,12 +9,12 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../codes/cfe_codes.dart'
     show
-        messageWeakReferenceNotStatic,
-        messageWeakReferenceNotOneArgument,
-        messageWeakReferenceReturnTypeNotNullable,
-        messageWeakReferenceMismatchReturnAndArgumentTypes,
-        messageWeakReferenceTargetNotStaticTearoff,
-        messageWeakReferenceTargetHasParameters;
+        codeWeakReferenceNotStatic,
+        codeWeakReferenceNotOneArgument,
+        codeWeakReferenceReturnTypeNotNullable,
+        codeWeakReferenceMismatchReturnAndArgumentTypes,
+        codeWeakReferenceTargetNotStaticTearoff,
+        codeWeakReferenceTargetHasParameters;
 import 'constant_evaluator.dart' show ErrorReporter;
 
 /// Recognizes and validates static weak references.
@@ -55,7 +55,7 @@ class StaticWeakReferences {
       StaticInvocation node, ErrorReporter errorReporter) {
     final Arguments arguments = node.arguments;
     if (arguments.positional.length != 1 || arguments.named.isNotEmpty) {
-      errorReporter.report(messageWeakReferenceNotOneArgument.withLocation(
+      errorReporter.report(codeWeakReferenceNotOneArgument.withLocation(
           node.location!.file, node.fileOffset, 1));
       return;
     }
@@ -69,15 +69,15 @@ class StaticWeakReferences {
           if (function.positionalParameters.isNotEmpty ||
               function.namedParameters.isNotEmpty ||
               function.typeParameters.isNotEmpty) {
-            errorReporter.report(messageWeakReferenceTargetHasParameters
+            errorReporter.report(codeWeakReferenceTargetHasParameters
                 .withLocation(node.location!.file, node.fileOffset, 1));
           }
           return;
         }
       }
     }
-    errorReporter.report(messageWeakReferenceTargetNotStaticTearoff
-        .withLocation(node.location!.file, node.fileOffset, 1));
+    errorReporter.report(codeWeakReferenceTargetNotStaticTearoff.withLocation(
+        node.location!.file, node.fileOffset, 1));
   }
 
   // Coverage-ignore(suite): Not run.
@@ -86,7 +86,7 @@ class StaticWeakReferences {
     if (node is! Procedure ||
         !node.isStatic ||
         node.kind != ProcedureKind.Method) {
-      errorReporter.report(messageWeakReferenceNotStatic.withLocation(
+      errorReporter.report(codeWeakReferenceNotStatic.withLocation(
           node.location!.file, node.fileOffset, 1));
       return;
     }
@@ -94,17 +94,17 @@ class StaticWeakReferences {
     if (function.positionalParameters.length != 1 ||
         function.requiredParameterCount != 1 ||
         function.namedParameters.isNotEmpty) {
-      errorReporter.report(messageWeakReferenceNotOneArgument.withLocation(
+      errorReporter.report(codeWeakReferenceNotOneArgument.withLocation(
           node.location!.file, node.fileOffset, 1));
       return;
     }
     final DartType returnType = function.returnType;
     if (returnType.nullability != Nullability.nullable) {
-      errorReporter.report(messageWeakReferenceReturnTypeNotNullable
-          .withLocation(node.location!.file, node.fileOffset, 1));
+      errorReporter.report(codeWeakReferenceReturnTypeNotNullable.withLocation(
+          node.location!.file, node.fileOffset, 1));
     }
     if (returnType != function.positionalParameters.single.type) {
-      errorReporter.report(messageWeakReferenceMismatchReturnAndArgumentTypes
+      errorReporter.report(codeWeakReferenceMismatchReturnAndArgumentTypes
           .withLocation(node.location!.file, node.fileOffset, 1));
     }
     node.hasWeakTearoffReferencePragma = true;

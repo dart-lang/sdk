@@ -19,11 +19,11 @@ class BlockKind {
 
   static const BlockKind catchClause = const BlockKind._(
     'catch clause',
-    message: codes.messageExpectedCatchClauseBody,
+    message: codes.codeExpectedCatchClauseBody,
   );
   static const BlockKind classDeclaration = const BlockKind._(
     'class declaration',
-    message: codes.messageExpectedClassBody,
+    message: codes.codeExpectedClassBody,
   );
   static const BlockKind enumDeclaration = const BlockKind._(
     'enum declaration',
@@ -31,15 +31,15 @@ class BlockKind {
   );
   static const BlockKind extensionDeclaration = const BlockKind._(
     'extension declaration',
-    message: codes.messageExpectedExtensionBody,
+    message: codes.codeExpectedExtensionBody,
   );
   static const BlockKind extensionTypeDeclaration = const BlockKind._(
     'extension type declaration',
-    message: codes.messageExpectedExtensionTypeBody,
+    message: codes.codeExpectedExtensionTypeBody,
   );
   static const BlockKind finallyClause = const BlockKind._(
     'finally clause',
-    message: codes.messageExpectedFinallyClauseBody,
+    message: codes.codeExpectedFinallyClauseBody,
   );
   static const BlockKind functionBody = const BlockKind._(
     'function body',
@@ -48,19 +48,19 @@ class BlockKind {
   static const BlockKind invalid = const BlockKind._('invalid');
   static const BlockKind mixinDeclaration = const BlockKind._(
     'mixin declaration',
-    message: codes.messageExpectedMixinBody,
+    message: codes.codeExpectedMixinBody,
   );
   static const BlockKind statement = const BlockKind._('statement');
   static const BlockKind switchExpression = const BlockKind._(
     'switch expression',
-    message: codes.messageExpectedSwitchExpressionBody,
+    message: codes.codeExpectedSwitchExpressionBody,
   );
   static const BlockKind switchStatement = const BlockKind._(
     'switch statement',
-    message: codes.messageExpectedSwitchStatementBody,
+    message: codes.codeExpectedSwitchStatementBody,
   );
   static const BlockKind tryStatement = const BlockKind._(
     'try statement',
-    message: codes.messageExpectedTryStatementBody,
+    message: codes.codeExpectedTryStatementBody,
   );
 }

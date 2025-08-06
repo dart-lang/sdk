@@ -24,7 +24,7 @@ class NominalParameterNameSpace {
           existing.parameter.name = '#${existing.name}';
           _typeParametersByName[tv.name] = tv;
         } else {
-          _problemReporting.addProblem(messageTypeParameterDuplicatedName,
+          _problemReporting.addProblem(codeTypeParameterDuplicatedName,
               tv.fileOffset, tv.name.length, tv.fileUri,
               context: [
                 codeTypeParameterDuplicatedNameCause
@@ -40,7 +40,7 @@ class NominalParameterNameSpace {
         // [#29555](https://github.com/dart-lang/sdk/issues/29555) and
         // [#54602](https://github.com/dart-lang/sdk/issues/54602).
         if (tv.name == ownerName && !allowNameConflict) {
-          _problemReporting.addProblem(messageTypeParameterSameNameAsEnclosing,
+          _problemReporting.addProblem(codeTypeParameterSameNameAsEnclosing,
               tv.fileOffset, tv.name.length, tv.fileUri);
         }
       }

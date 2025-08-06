@@ -550,7 +550,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         // Error: not assignable.  Perform error recovery.
         result = helper.wrapInProblem(
           expression,
-          messageVoidExpression,
+          codeVoidExpression,
           expression.fileOffset,
           noLength,
         );
@@ -3917,7 +3917,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.nullableRecordNamed:
         if (isImplicitCall && !target.isNullable) {
           libraryBuilder.addProblem(
-            messageRecordUsedAsCallable,
+            codeRecordUsedAsCallable,
             receiver.fileOffset,
             noLength,
             libraryBuilder.fileUri,
@@ -4694,7 +4694,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       context = extensionAccessCandidates
           .map(
             (ExtensionAccessCandidate c) =>
-                messageAmbiguousExtensionCause.withLocation(
+                codeAmbiguousExtensionCause.withLocation(
               c.memberBuilder.fileUri!,
               c.memberBuilder.fileOffset,
               name == unaryMinusName ? 1 : c.memberBuilder.name.length,

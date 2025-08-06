@@ -376,12 +376,12 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           }
           if (found) {
             libraryBuilder.addProblem(
-                messageTypedefTypeParameterNotConstructor,
+                codeTypedefTypeParameterNotConstructor,
                 usedAsClassCharOffset ?? TreeNode.noOffset,
                 noLength,
                 usedAsClassFileUri,
                 context: [
-                  messageTypedefTypeParameterNotConstructorCause.withLocation(
+                  codeTypedefTypeParameterNotConstructorCause.withLocation(
                       current.fileUri!, current.fileOffset, noLength),
                 ]);
             return this;

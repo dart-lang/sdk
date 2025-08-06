@@ -579,7 +579,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     if (uri == null) {
       // Coverage-ignore-block(suite): Not run.
       _problemReporting.addProblem(
-          messageExpectedUri, uriOffset, noLength, _compilationUnit.fileUri);
+          codeExpectedUri, uriOffset, noLength, _compilationUnit.fileUri);
       return new Uri(scheme: MALFORMED_URI_SCHEME);
     }
     Uri parsedUri;
@@ -656,8 +656,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     _compilationUnitRegistry.registerPartOf(
         name: name, resolvedUri: resolvedUri);
     if (_scriptTokenOffset != null) {
-      _problemReporting.addProblem(messageScriptTagInPartFile,
-          _scriptTokenOffset!, noLength, _compilationUnit.fileUri);
+      _problemReporting.addProblem(codeScriptTagInPartFile, _scriptTokenOffset!,
+          noLength, _compilationUnit.fileUri);
     }
   }
 
@@ -698,8 +698,8 @@ class FragmentFactoryImpl implements FragmentFactory {
     String? nativePath;
     const String nativeExtensionScheme = "dart-ext:";
     if (uri.startsWith(nativeExtensionScheme)) {
-      _problemReporting.addProblem(messageUnsupportedDartExt, charOffset,
-          noLength, _compilationUnit.fileUri);
+      _problemReporting.addProblem(codeUnsupportedDartExt, charOffset, noLength,
+          _compilationUnit.fileUri);
       String strippedUri = uri.substring(nativeExtensionScheme.length);
       if (strippedUri.startsWith("package")) {
         // Coverage-ignore-block(suite): Not run.
@@ -1428,10 +1428,8 @@ class FragmentFactoryImpl implements FragmentFactory {
         return null;
       }
     } else {
-      internalProblem(
-          messageInternalProblemOmittedTypeNameInConstructorReference,
-          charOffset,
-          _compilationUnit.fileUri);
+      internalProblem(codeInternalProblemOmittedTypeNameInConstructorReference,
+          charOffset, _compilationUnit.fileUri);
     }
   }
 
@@ -1496,7 +1494,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       // In either case this is reported elsewhere, and since the name is a
       // legal name for a regular method, we don't remove an error on the name.
     } else {
-      _problemReporting.addProblem(messageConstructorWithWrongName, charOffset,
+      _problemReporting.addProblem(codeConstructorWithWrongName, charOffset,
           prefix.length, _compilationUnit.fileUri,
           context: [
             codeConstructorWithWrongNameContext
@@ -1906,7 +1904,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         if (builder.metadata != null) {
           if (!libraryFeatures.genericMetadata.isEnabled) {
             _problemReporting.addProblem(
-                messageAnnotationOnFunctionTypeTypeParameter,
+                codeAnnotationOnFunctionTypeTypeParameter,
                 builder.fileOffset,
                 builder.name.length,
                 builder.fileUri);
@@ -1930,7 +1928,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       StructuralParameterBuilder? existing = typeParametersByName[tv.name];
       if (existing != null) {
         // Coverage-ignore-block(suite): Not run.
-        _problemReporting.addProblem(messageTypeParameterDuplicatedName,
+        _problemReporting.addProblem(codeTypeParameterDuplicatedName,
             tv.fileOffset, tv.name.length, _compilationUnit.fileUri,
             context: [
               codeTypeParameterDuplicatedNameCause

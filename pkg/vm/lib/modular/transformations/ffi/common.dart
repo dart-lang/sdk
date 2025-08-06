@@ -11,11 +11,11 @@ library vm.transformations.ffi;
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiLeafCallMustNotReturnHandle,
-        messageFfiLeafCallMustNotTakeHandle,
-        messageFfiVariableLengthArrayNotLast,
-        messageNegativeVariableDimension,
-        messageNonPositiveArrayDimensions,
+        codeFfiLeafCallMustNotReturnHandle,
+        codeFfiLeafCallMustNotTakeHandle,
+        codeFfiVariableLengthArrayNotLast,
+        codeNegativeVariableDimension,
+        codeNonPositiveArrayDimensions,
         codeFfiSizeAnnotation,
         codeFfiSizeAnnotationDimensions,
         codeFfiTypeInvalid,
@@ -1486,7 +1486,7 @@ class FfiTransformer extends Transformer {
         if (variableLength) {
           if (!allowVariableLength) {
             diagnosticReporter.report(
-              messageFfiVariableLengthArrayNotLast,
+              codeFfiVariableLengthArrayNotLast,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1499,7 +1499,7 @@ class FfiTransformer extends Transformer {
             // Variable dimension can't be negative.
             if (dimensions[0] < 0) {
               diagnosticReporter.report(
-                messageNegativeVariableDimension,
+                codeNegativeVariableDimension,
                 node.fileOffset,
                 node.name.text.length,
                 node.fileUri,
@@ -1510,7 +1510,7 @@ class FfiTransformer extends Transformer {
 
           if (dimensions[i] <= 0) {
             diagnosticReporter.report(
-              messageNonPositiveArrayDimensions,
+              codeNonPositiveArrayDimensions,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1866,7 +1866,7 @@ class FfiTransformer extends Transformer {
       if (returnType is InterfaceType) {
         if (returnType.classNode == handleClass) {
           diagnosticReporter.report(
-            messageFfiLeafCallMustNotReturnHandle,
+            codeFfiLeafCallMustNotReturnHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,
@@ -1878,7 +1878,7 @@ class FfiTransformer extends Transformer {
       for (DartType param in functionType.positionalParameters) {
         if ((param as InterfaceType).classNode == handleClass) {
           diagnosticReporter.report(
-            messageFfiLeafCallMustNotTakeHandle,
+            codeFfiLeafCallMustNotTakeHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,

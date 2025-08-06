@@ -236,7 +236,7 @@ class SourceExtensionTypeDeclarationBuilder
             errorMessage = codeSuperExtensionTypeIsIllegalAliased.withArguments(
                 typeBuilder.fullNameForErrors, interface);
             errorContext = [
-              messageTypedefCause.withLocation(
+              codeTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           } else {
@@ -279,7 +279,7 @@ class SourceExtensionTypeDeclarationBuilder
             List<LocatedMessage>? errorContext;
             if (aliasBuilder != null) {
               errorContext = [
-                messageTypedefCause.withLocation(
+                codeTypedefCause.withLocation(
                     aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
               ];
             }
@@ -301,7 +301,7 @@ class SourceExtensionTypeDeclarationBuilder
                   .withArguments(typeBuilder.fullNameForErrors, interface);
               if (aliasBuilder != null) {
                 errorContext = [
-                  messageTypedefCause.withLocation(
+                  codeTypedefCause.withLocation(
                       aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
                 ];
               }
@@ -319,7 +319,7 @@ class SourceExtensionTypeDeclarationBuilder
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
             errorContext = [
-              messageTypedefCause.withLocation(
+              codeTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           }
@@ -333,7 +333,7 @@ class SourceExtensionTypeDeclarationBuilder
             errorMessage = codeSuperExtensionTypeIsIllegalAliased.withArguments(
                 typeBuilder.fullNameForErrors, interface);
             errorContext = [
-              messageTypedefCause.withLocation(
+              codeTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           } else {
@@ -366,7 +366,7 @@ class SourceExtensionTypeDeclarationBuilder
                     initialVariance: Variance.covariant);
             if (representationType.accept(checker)) {
               libraryBuilder.addProblem(
-                  messageNonCovariantTypeParameterInRepresentationType,
+                  codeNonCovariantTypeParameterInRepresentationType,
                   typeBuilder.charOffset!,
                   noLength,
                   typeBuilder.fileUri);
@@ -374,7 +374,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
           if (isBottom(representationType)) {
             libraryBuilder.addProblem(
-                messageExtensionTypeRepresentationTypeBottom,
+                codeExtensionTypeRepresentationTypeBottom,
                 _representationFieldFragment!.nameOffset,
                 _representationFieldFragment!.name.length,
                 _representationFieldFragment!.fileUri);
@@ -421,20 +421,20 @@ class SourceExtensionTypeDeclarationBuilder
             for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
                 in seenExtensionTypeDeclarations) {
               if (extensionTypeDeclarationBuilder != this) {
-                context.add(messageExtensionTypeDeclarationCause.withLocation(
+                context.add(codeExtensionTypeDeclarationCause.withLocation(
                     extensionTypeDeclarationBuilder.fileUri,
                     extensionTypeDeclarationBuilder.fileOffset,
                     extensionTypeDeclarationBuilder.name.length));
               }
             }
             for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
-              context.add(messageTypedefCause.withLocation(
+              context.add(codeTypedefCause.withLocation(
                   typeAliasBuilder.fileUri,
                   typeAliasBuilder.fileOffset,
                   typeAliasBuilder.name.length));
             }
             libraryBuilder.addProblem(
-                messageCyclicRepresentationDependency,
+                codeCyclicRepresentationDependency,
                 _representationFieldFragment!.type.charOffset!,
                 noLength,
                 _representationFieldFragment!.type.fileUri,

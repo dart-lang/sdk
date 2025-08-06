@@ -118,7 +118,7 @@ class DeclarationNameSpaceBuilder {
             name.length,
             fileUri,
             context: [
-              messageConflictsWithTypeParameterCause.withLocation(
+              codeConflictsWithTypeParameterCause.withLocation(
                   tv.fileUri!, tv.fileOffset, name.length)
             ]);
       }
@@ -212,13 +212,12 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // better specialize the message.
       if (declarationBuilder.isEnum && name == 'values') {
         problemReporting.addProblem(
-            messageEnumWithNameValues,
+            codeEnumWithNameValues,
             declarationBuilder.fileOffset,
             name.length,
             declarationBuilder.fileUri);
       } else {
-        problemReporting.addProblem2(
-            messageMemberWithSameNameAsClass, uriOffset);
+        problemReporting.addProblem2(codeMemberWithSameNameAsClass, uriOffset);
       }
     }
     if (isConstructor) {

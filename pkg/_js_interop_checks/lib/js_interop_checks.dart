@@ -12,26 +12,26 @@ import 'package:front_end/src/api_prototype/codes.dart'
     show
         Message,
         LocatedMessage,
-        messageDartFfiLibraryInDart2Wasm,
-        messageJsInteropDartJsInteropAnnotationForStaticInteropOnly,
-        messageJsInteropEnclosingClassJSAnnotation,
-        messageJsInteropEnclosingClassJSAnnotationContext,
-        messageJsInteropExtensionTypeMemberNotInterop,
-        messageJsInteropExtensionTypeUsedWithWrongJsAnnotation,
-        messageJsInteropExternalExtensionMemberOnTypeInvalid,
-        messageJsInteropExternalExtensionMemberWithStaticDisallowed,
-        messageJsInteropExternalMemberNotJSAnnotated,
-        messageJsInteropFunctionToJSNamedParameters,
-        messageJsInteropFunctionToJSTypeParameters,
-        messageJsInteropInvalidStaticClassMemberName,
-        messageJsInteropNamedParameters,
-        messageJsInteropNonExternalConstructor,
-        messageJsInteropNonExternalMember,
-        messageJsInteropOperatorCannotBeRenamed,
-        messageJsInteropOperatorsNotSupported,
-        messageJsInteropStaticInteropGenerativeConstructor,
-        messageJsInteropStaticInteropParameterInitializersAreIgnored,
-        messageJsInteropStaticInteropSyntheticConstructor,
+        codeDartFfiLibraryInDart2Wasm,
+        codeJsInteropDartJsInteropAnnotationForStaticInteropOnly,
+        codeJsInteropEnclosingClassJSAnnotation,
+        codeJsInteropEnclosingClassJSAnnotationContext,
+        codeJsInteropExtensionTypeMemberNotInterop,
+        codeJsInteropExtensionTypeUsedWithWrongJsAnnotation,
+        codeJsInteropExternalExtensionMemberOnTypeInvalid,
+        codeJsInteropExternalExtensionMemberWithStaticDisallowed,
+        codeJsInteropExternalMemberNotJSAnnotated,
+        codeJsInteropFunctionToJSNamedParameters,
+        codeJsInteropFunctionToJSTypeParameters,
+        codeJsInteropInvalidStaticClassMemberName,
+        codeJsInteropNamedParameters,
+        codeJsInteropNonExternalConstructor,
+        codeJsInteropNonExternalMember,
+        codeJsInteropOperatorCannotBeRenamed,
+        codeJsInteropOperatorsNotSupported,
+        codeJsInteropStaticInteropGenerativeConstructor,
+        codeJsInteropStaticInteropParameterInitializersAreIgnored,
+        codeJsInteropStaticInteropSyntheticConstructor,
         codeJsInteropDartClassExtendsJSClass,
         codeJsInteropDisallowedInteropLibraryInDart2Wasm,
         codeJsInteropJSClassExtendsDartClass,
@@ -229,7 +229,7 @@ class JsInteropChecks extends RecursiveVisitor {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (hasPackageJSAnnotation(node)) {
       _reporter.report(
-        messageJsInteropExtensionTypeUsedWithWrongJsAnnotation,
+        codeJsInteropExtensionTypeUsedWithWrongJsAnnotation,
         node.fileOffset,
         node.name.length,
         node.fileUri,
@@ -323,7 +323,7 @@ class JsInteropChecks extends RecursiveVisitor {
       // For classes, `dart:js_interop`'s `@JS` can only be used with
       // `@staticInterop`.
       if (hasDartJSInteropAnnotation(node)) {
-        report(messageJsInteropDartJsInteropAnnotationForStaticInteropOnly);
+        report(codeJsInteropDartJsInteropAnnotationForStaticInteropOnly);
       }
       if (superclass != null && hasStaticInteropAnnotation(superclass)) {
         report(
@@ -408,7 +408,7 @@ class JsInteropChecks extends RecursiveVisitor {
         !node.isStatic) {
       // If not one of few exceptions, member is not allowed to exclude
       // `external` inside of a JS interop class.
-      report(messageJsInteropNonExternalMember);
+      report(codeJsInteropNonExternalMember);
     }
 
     if (!_isJSInteropMember(node)) {
@@ -440,7 +440,7 @@ class JsInteropChecks extends RecursiveVisitor {
       if (node.isStatic &&
           node.enclosingClass != null &&
           getJSName(node).contains('.')) {
-        report(messageJsInteropInvalidStaticClassMemberName);
+        report(codeJsInteropInvalidStaticClassMemberName);
       }
 
       if (_classHasStaticInteropAnnotation ||
@@ -459,9 +459,7 @@ class JsInteropChecks extends RecursiveVisitor {
             // We do not support external extension members with the 'static'
             // keyword currently.
             if (extensionIndex.getExtensionDescriptor(node)!.isStatic) {
-              report(
-                messageJsInteropExternalExtensionMemberWithStaticDisallowed,
-              );
+              report(codeJsInteropExternalExtensionMemberWithStaticDisallowed);
             }
           }
         } else {
@@ -535,11 +533,11 @@ class JsInteropChecks extends RecursiveVisitor {
     if (!node.isSynthetic) {
       if (_classHasJSAnnotation && !node.isExternal) {
         // Non-synthetic constructors must be annotated with `external`.
-        report(messageJsInteropNonExternalConstructor);
+        report(codeJsInteropNonExternalConstructor);
       }
       if (_classHasStaticInteropAnnotation) {
         // Can only have factory constructors on @staticInterop classes.
-        report(messageJsInteropStaticInteropGenerativeConstructor);
+        report(codeJsInteropStaticInteropGenerativeConstructor);
       }
     }
 
@@ -561,7 +559,7 @@ class JsInteropChecks extends RecursiveVisitor {
         !_inTearoff &&
         hasStaticInteropAnnotation(constructor.enclosingClass)) {
       _reporter.report(
-        messageJsInteropStaticInteropSyntheticConstructor,
+        codeJsInteropStaticInteropSyntheticConstructor,
         node.fileOffset,
         node.name.text.length,
         node.location?.file,
@@ -641,7 +639,7 @@ class JsInteropChecks extends RecursiveVisitor {
             );
         if (allowedToImport) return;
         final message = dependencyUriString == 'dart:ffi'
-            ? messageDartFfiLibraryInDart2Wasm
+            ? codeDartFfiLibraryInDart2Wasm
             : codeJsInteropDisallowedInteropLibraryInDart2Wasm.withArguments(
                 dependencyUriString,
               );
@@ -742,7 +740,7 @@ class JsInteropChecks extends RecursiveVisitor {
         final annotatable = extensionIndex.getExtensionAnnotatable(member);
         if (annotatable == null) {
           _reporter.report(
-            messageJsInteropExternalExtensionMemberOnTypeInvalid,
+            codeJsInteropExternalExtensionMemberOnTypeInvalid,
             member.fileOffset,
             member.name.text.length,
             member.fileUri,
@@ -752,7 +750,7 @@ class JsInteropChecks extends RecursiveVisitor {
         final extensionType = extensionIndex.getExtensionType(member);
         if (extensionType == null) {
           _reporter.report(
-            messageJsInteropExtensionTypeMemberNotInterop,
+            codeJsInteropExtensionTypeMemberNotInterop,
             member.fileOffset,
             member.name.text.length,
             member.fileUri,
@@ -763,7 +761,7 @@ class JsInteropChecks extends RecursiveVisitor {
         // if inside a non-JS interop class. Should not report an error in this
         // case, since a different error will already be produced.
         _reporter.report(
-          messageJsInteropExternalMemberNotJSAnnotated,
+          codeJsInteropExternalMemberNotJSAnnotated,
           member.fileOffset,
           member.name.text.length,
           member.fileUri,
@@ -842,7 +840,7 @@ class JsInteropChecks extends RecursiveVisitor {
       // Use of a synthetic generative constructor on @staticInterop class is
       // disallowed.
       _reporter.report(
-        messageJsInteropStaticInteropSyntheticConstructor,
+        codeJsInteropStaticInteropSyntheticConstructor,
         context.fileOffset,
         1,
         context.location!.file,
@@ -870,10 +868,10 @@ class JsInteropChecks extends RecursiveVisitor {
       );
     } else {
       if (functionType.typeParameters.isNotEmpty) {
-        report(messageJsInteropFunctionToJSTypeParameters);
+        report(codeJsInteropFunctionToJSTypeParameters);
       }
       if (functionType.namedParameters.isNotEmpty) {
-        report(messageJsInteropFunctionToJSNamedParameters);
+        report(codeJsInteropFunctionToJSNamedParameters);
       }
       _reportFunctionToJSInvocationIfNotAllowedFunctionType(functionType, node);
     }
@@ -890,12 +888,12 @@ class JsInteropChecks extends RecursiveVisitor {
       // If in a class that is not JS interop, this member is not allowed to be
       // JS interop.
       _reporter.report(
-        messageJsInteropEnclosingClassJSAnnotation,
+        codeJsInteropEnclosingClassJSAnnotation,
         member.fileOffset,
         member.name.text.length,
         member.fileUri,
         context: <LocatedMessage>[
-          messageJsInteropEnclosingClassJSAnnotationContext.withLocation(
+          codeJsInteropEnclosingClassJSAnnotationContext.withLocation(
             enclosingClass.fileUri,
             enclosingClass.fileOffset,
             enclosingClass.name.length,
@@ -927,7 +925,7 @@ class JsInteropChecks extends RecursiveVisitor {
     }
     if (isInvalidOperator) {
       _reporter.report(
-        messageJsInteropOperatorsNotSupported,
+        codeJsInteropOperatorsNotSupported,
         node.fileOffset,
         node.name.text.length,
         node.fileUri,
@@ -935,7 +933,7 @@ class JsInteropChecks extends RecursiveVisitor {
     }
     if (operatorHasRenaming) {
       _reporter.report(
-        messageJsInteropOperatorCannotBeRenamed,
+        codeJsInteropOperatorCannotBeRenamed,
         node.fileOffset,
         node.name.text.length,
         node.fileUri,
@@ -968,7 +966,7 @@ class JsInteropChecks extends RecursiveVisitor {
     if (functionNode.namedParameters.isNotEmpty) {
       final firstNamedParam = functionNode.namedParameters[0];
       _reporter.report(
-        messageJsInteropNamedParameters,
+        codeJsInteropNamedParameters,
         firstNamedParam.fileOffset,
         firstNamedParam.name!.length,
         firstNamedParam.location!.file,
@@ -985,7 +983,7 @@ class JsInteropChecks extends RecursiveVisitor {
     ]) {
       if (param.hasDeclaredInitializer) {
         _reporter.report(
-          messageJsInteropStaticInteropParameterInitializersAreIgnored,
+          codeJsInteropStaticInteropParameterInitializersAreIgnored,
           param.fileOffset,
           param.name!.length,
           param.location!.file,

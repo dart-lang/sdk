@@ -7,7 +7,7 @@
 import "dart:io";
 
 import "package:expect/expect.dart";
-import "package:front_end/src/codes/cfe_codes.dart" show messageFastaUsageShort;
+import "package:front_end/src/codes/cfe_codes.dart" show codeFastaUsageShort;
 
 const String toolPath = "pkg/front_end/tool/cfe";
 
@@ -50,7 +50,7 @@ void main() {
   }
   Set<String> testedSubtools = new Set<String>.from(subtools)
       .difference(new Set<String>.from(unsafeTools));
-  String usage = messageFastaUsageShort.problemMessage;
+  String usage = codeFastaUsageShort.problemMessage;
   Map expectations = {
     "abcompile": {
       "exitCode": 1,

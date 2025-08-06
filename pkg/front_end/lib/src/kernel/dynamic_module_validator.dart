@@ -13,7 +13,7 @@ import '../api_prototype/lowering_predicates.dart'
 
 import '../codes/cfe_codes.dart'
     show
-        messageDynamicCallsAreNotAllowedInDynamicModule,
+        codeDynamicCallsAreNotAllowedInDynamicModule,
         noLength,
         codeConstructorShouldBeListedAsCallableInDynamicInterface,
         codeMemberShouldBeListedAsCallableInDynamicInterface,
@@ -601,7 +601,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
       throw 'Unexpected node ${node.runtimeType} $node';
 
   void _dynamicCall(TreeNode node) {
-    loader.addProblem(messageDynamicCallsAreNotAllowedInDynamicModule,
+    loader.addProblem(codeDynamicCallsAreNotAllowedInDynamicModule,
         node.fileOffset, noLength, node.location!.file);
   }
 

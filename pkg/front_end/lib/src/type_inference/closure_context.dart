@@ -174,7 +174,7 @@ class _SyncClosureContext implements ClosureContext {
       } else {
         statement.expression = inferrer.helper.wrapInProblem(
             new NullLiteral()..fileOffset = statement.fileOffset,
-            messageReturnWithoutExpressionSync,
+            codeReturnWithoutExpressionSync,
             statement.fileOffset,
             noLength)
           ..parent = statement;
@@ -195,7 +195,7 @@ class _SyncClosureContext implements ClosureContext {
         // neither void, dynamic, nor Null.
         statement.expression = inferrer.helper.wrapInProblem(
             statement.expression!,
-            messageReturnFromVoidFunction,
+            codeReturnFromVoidFunction,
             statement.expression!.fileOffset,
             noLength)
           ..parent = statement;
@@ -424,7 +424,7 @@ class _AsyncClosureContext implements ClosureContext {
       } else {
         statement.expression = inferrer.helper.wrapInProblem(
             new NullLiteral()..fileOffset = statement.fileOffset,
-            messageReturnWithoutExpressionAsync,
+            codeReturnWithoutExpressionAsync,
             statement.fileOffset,
             noLength)
           ..parent = statement;

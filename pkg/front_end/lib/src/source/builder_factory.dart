@@ -243,10 +243,10 @@ class BuilderFactory {
         int augmentationTypeParameterCount =
             augmentation.typeParameters?.length ?? 0;
         if (introductoryTypeParameterCount != augmentationTypeParameterCount) {
-          _problemReporting.addProblem(messagePatchClassTypeParametersMismatch,
+          _problemReporting.addProblem(codePatchClassTypeParametersMismatch,
               augmentation.nameOffset, name.length, augmentation.fileUri,
               context: [
-                messagePatchClassOrigin.withLocation(
+                codePatchClassOrigin.withLocation(
                     fragment.fileUri, fragment.nameOffset, name.length)
               ]);
 
@@ -623,12 +623,12 @@ class BuilderFactory {
             augmentation.typeParameters?.length ?? 0;
         if (introductoryTypeParameterCount != augmentationTypeParameterCount) {
           _problemReporting.addProblem(
-              messagePatchExtensionTypeParametersMismatch,
+              codePatchExtensionTypeParametersMismatch,
               augmentation.nameOrExtensionOffset,
               nameLength,
               augmentation.fileUri,
               context: [
-                messagePatchExtensionOrigin.withLocation(fragment.fileUri,
+                codePatchExtensionOrigin.withLocation(fragment.fileUri,
                     fragment.nameOrExtensionOffset, nameLength)
               ]);
 
@@ -1131,7 +1131,7 @@ class EnumValuesDeclaration extends _PropertyDeclaration
   void reportDuplicateDeclaration(
       ProblemReporting problemReporting, _Declaration declaration) {
     problemReporting.addProblem2(
-        messageEnumContainsValuesDeclaration, declaration.uriOffset);
+        codeEnumContainsValuesDeclaration, declaration.uriOffset);
   }
 
   @override

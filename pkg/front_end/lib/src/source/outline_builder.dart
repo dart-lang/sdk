@@ -875,7 +875,7 @@ class OutlineBuilder extends StackListenerImpl {
       push(charOffset);
       // Point to dollar sign
       int interpolationOffset = charOffset + beginToken.lexeme.length;
-      addProblem(messageInterpolationInUri, interpolationOffset, 1);
+      addProblem(codeInterpolationInUri, interpolationOffset, 1);
     }
   }
 
@@ -1604,25 +1604,25 @@ class OutlineBuilder extends StackListenerImpl {
               type.hasFunctionFormalParameterSyntax) {
             _compilationUnit.addProblem(
                 // ignore: lines_longer_than_80_chars
-                messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
+                codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
                 formal.fileOffset,
                 formal.name.length,
                 formal.fileUri);
           }
           if (type is ImplicitTypeBuilder) {
-            _compilationUnit.addProblem(messageExpectedRepresentationType,
+            _compilationUnit.addProblem(codeExpectedRepresentationType,
                 formal.fileOffset, formal.name.length, formal.fileUri);
             formal.type =
                 new InvalidTypeBuilderImpl(formal.fileUri, formal.fileOffset);
           }
           if (formal.modifiers.containsSyntacticModifiers(
               ignoreCovariant: true, ignoreRequired: true)) {
-            _compilationUnit.addProblem(messageRepresentationFieldModifier,
+            _compilationUnit.addProblem(codeRepresentationFieldModifier,
                 formal.fileOffset, formal.name.length, formal.fileUri);
           }
           if (formal.isInitializingFormal) {
             _compilationUnit.addProblem(
-                messageExtensionTypePrimaryConstructorWithInitializingFormal,
+                codeExtensionTypePrimaryConstructorWithInitializingFormal,
                 formal.fileOffset,
                 formal.name.length,
                 formal.fileUri);
@@ -1653,22 +1653,22 @@ class OutlineBuilder extends StackListenerImpl {
       if (inExtensionType) {
         if (firstOptionalPositionalParameterOffset != null) {
           _compilationUnit.addProblem(
-              messageOptionalParametersInExtensionTypeDeclaration,
+              codeOptionalParametersInExtensionTypeDeclaration,
               firstOptionalPositionalParameterOffset,
               1,
               uri);
         } else if (firstNamedParameterOffset != null) {
           _compilationUnit.addProblem(
-              messageNamedParametersInExtensionTypeDeclaration,
+              codeNamedParametersInExtensionTypeDeclaration,
               firstNamedParameterOffset,
               1,
               uri);
         } else if (requiredPositionalCount == 0) {
           _compilationUnit.addProblem(
-              messageExpectedRepresentationField, charOffset, 1, uri);
+              codeExpectedRepresentationField, charOffset, 1, uri);
         } else if (formals.length > 1) {
           _compilationUnit.addProblem(
-              messageMultipleRepresentationFields, charOffset, 1, uri);
+              codeMultipleRepresentationFields, charOffset, 1, uri);
         }
       }
     }
@@ -1727,7 +1727,7 @@ class OutlineBuilder extends StackListenerImpl {
         isAbstract = false;
       }
       if (returnType != null && !returnType.isVoidType) {
-        addProblem(messageNonVoidReturnSetter, beginToken.charOffset, noLength);
+        addProblem(codeNonVoidReturnSetter, beginToken.charOffset, noLength);
         // Use implicit void as recovery.
         returnType = null;
       }
@@ -1838,7 +1838,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     if (!enableNative) {
       super.handleRecoverableError(
-          messageExpectedBlockToSkip, nativeToken, nativeToken);
+          codeExpectedBlockToSkip, nativeToken, nativeToken);
     }
     push(MethodBody.Regular);
   }
@@ -2104,7 +2104,7 @@ class OutlineBuilder extends StackListenerImpl {
         if (formals != null) {
           for (FormalParameterBuilder formal in formals) {
             if (!formal.isRequiredPositional) {
-              addProblem(messageOperatorWithOptionalFormals, formal.fileOffset,
+              addProblem(codeOperatorWithOptionalFormals, formal.fileOffset,
                   formal.name.length);
             }
           }
@@ -2112,7 +2112,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (typeParameters != null) {
         TypeParameterFragment typeParameterBuilder = typeParameters.first;
-        addProblem(messageOperatorWithTypeParameters,
+        addProblem(codeOperatorWithTypeParameters,
             typeParameterBuilder.nameOffset, typeParameterBuilder.name.length);
       }
     } else {
@@ -2133,7 +2133,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
       if (returnType != null && !returnType.isVoidType) {
         addProblem(
-            messageNonVoidReturnSetter,
+            codeNonVoidReturnSetter,
             returnType.charOffset ?? // Coverage-ignore(suite): Not run.
                 beginToken.charOffset,
             noLength);
@@ -2145,7 +2145,7 @@ class OutlineBuilder extends StackListenerImpl {
         returnType != null &&
         !returnType.isVoidType) {
       addProblem(
-          messageNonVoidReturnOperator,
+          codeNonVoidReturnOperator,
           returnType.charOffset ?? // Coverage-ignore(suite): Not run.
               beginToken.offset,
           noLength);
@@ -2179,12 +2179,12 @@ class OutlineBuilder extends StackListenerImpl {
       if (isConst &&
           bodyKind != MethodBody.Abstract &&
           !libraryFeatures.constFunctions.isEnabled) {
-        addProblem(messageConstConstructorWithBody, varFinalOrConstOffset, 5);
+        addProblem(codeConstConstructorWithBody, varFinalOrConstOffset, 5);
         modifiers -= Modifiers.Const;
       }
       if (returnType != null) {
         addProblem(
-            messageConstructorWithReturnType,
+            codeConstructorWithReturnType,
             returnType.charOffset ?? // Coverage-ignore(suite): Not run.
                 beginToken.offset,
             noLength);
@@ -2601,7 +2601,7 @@ class OutlineBuilder extends StackListenerImpl {
           tokenBeforeEnd.isA(TokenType.COMMA) &&
           kind == MemberKind.PrimaryConstructor &&
           declarationContext == DeclarationContext.ExtensionType) {
-        _compilationUnit.addProblem(messageRepresentationFieldTrailingComma,
+        _compilationUnit.addProblem(codeRepresentationFieldTrailingComma,
             tokenBeforeEnd.charOffset, 1, uri);
       }
     } else if (count > 1) {
@@ -2682,7 +2682,7 @@ class OutlineBuilder extends StackListenerImpl {
       for (FormalParameterBuilder formal in formals) {
         if (formal.isSuperInitializingFormal) {
           _compilationUnit.addProblem(
-              messageExtensionTypeConstructorWithSuperFormalParameter,
+              codeExtensionTypeConstructorWithSuperFormalParameter,
               formal.fileOffset,
               formal.name.length,
               formal.fileUri);
@@ -2860,7 +2860,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (identifier is Identifier) {
       if (enumConstantInfos == null) {
         if (!leftBrace.isSynthetic) {
-          addProblem(messageEnumDeclarationEmpty, identifier.token.offset,
+          addProblem(codeEnumDeclarationEmpty, identifier.token.offset,
               identifier.token.length);
         }
       }
@@ -3111,12 +3111,11 @@ class OutlineBuilder extends StackListenerImpl {
       if (type is FunctionTypeBuilder &&
           !libraryFeatures.nonfunctionTypeAliases.isEnabled) {
         if (type.nullabilityBuilder.build() == Nullability.nullable) {
-          addProblem(
-              messageTypedefNullableType, equals.charOffset, equals.length);
+          addProblem(codeTypedefNullableType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidBuilder(
                   identifier.name,
-                  messageTypedefNullableType.withLocation(
+                  codeTypedefNullableType.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
               instanceTypeParameterAccess:
@@ -3133,11 +3132,11 @@ class OutlineBuilder extends StackListenerImpl {
         if (type is TypeBuilder) {
           aliasedType = type;
         } else {
-          addProblem(messageTypedefNotType, equals.charOffset, equals.length);
+          addProblem(codeTypedefNotType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidBuilder(
                   "${name}",
-                  messageTypedefNotType.withLocation(
+                  codeTypedefNotType.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
               instanceTypeParameterAccess:
@@ -3147,22 +3146,21 @@ class OutlineBuilder extends StackListenerImpl {
         assert(type is! FunctionTypeBuilder);
         // TODO(ahe): Improve this error message.
         if (type is TypeBuilder) {
-          addProblem(
-              messageTypedefNotFunction, equals.charOffset, equals.length);
+          addProblem(codeTypedefNotFunction, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidBuilder(
                   identifier.name,
-                  messageTypedefNotFunction.withLocation(
+                  codeTypedefNotFunction.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
               instanceTypeParameterAccess:
                   InstanceTypeParameterAccessState.Allowed);
         } else {
-          addProblem(messageTypedefNotType, equals.charOffset, equals.length);
+          addProblem(codeTypedefNotType, equals.charOffset, equals.length);
           aliasedType = new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
               new InvalidBuilder(
                   identifier.name,
-                  messageTypedefNotType.withLocation(
+                  codeTypedefNotType.withLocation(
                       uri, equals.charOffset, equals.length)),
               const NullabilityBuilder.omitted(),
               instanceTypeParameterAccess:
@@ -3265,7 +3263,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (externalToken != null && lateToken != null) {
       // Coverage-ignore-block(suite): Not run.
       handleRecoverableError(
-          messageExternalLateField, externalToken, externalToken);
+          codeExternalLateField, externalToken, externalToken);
       externalToken = null;
     }
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
@@ -3311,18 +3309,18 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("Fields");
     if (staticToken != null && abstractToken != null) {
       handleRecoverableError(
-          messageAbstractStaticField, abstractToken, abstractToken);
+          codeAbstractStaticField, abstractToken, abstractToken);
       abstractToken = null;
     }
     if (abstractToken != null && lateToken != null) {
       handleRecoverableError(
-          messageAbstractLateField, abstractToken, abstractToken);
+          codeAbstractLateField, abstractToken, abstractToken);
       abstractToken = null;
     }
     // Coverage-ignore(suite): Not run.
     else if (externalToken != null && lateToken != null) {
       handleRecoverableError(
-          messageExternalLateField, externalToken, externalToken);
+          codeExternalLateField, externalToken, externalToken);
       externalToken = null;
     }
 
@@ -3339,7 +3337,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (staticToken == null && modifiers.isConst) {
       // It is a compile-time error if an instance variable is declared to be
       // constant.
-      addProblem(messageConstInstanceField, varFinalOrConst!.charOffset,
+      addProblem(codeConstInstanceField, varFinalOrConst!.charOffset,
           varFinalOrConst.length);
       modifiers -= Modifiers.Const;
     }
@@ -3474,8 +3472,8 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     if (inConstructorName) {
-      addProblem(messageConstructorWithTypeParameters,
-          offsetForToken(beginToken), lengthOfSpan(beginToken, endToken));
+      addProblem(codeConstructorWithTypeParameters, offsetForToken(beginToken),
+          lengthOfSpan(beginToken, endToken));
       inConstructorName = false;
     }
   }
@@ -3738,7 +3736,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("ConstFactory");
     if (!libraryFeatures.constFunctions.isEnabled) {
       // Coverage-ignore-block(suite): Not run.
-      handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
+      handleRecoverableError(codeConstFactory, constKeyword, constKeyword);
     }
   }
 

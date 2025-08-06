@@ -293,8 +293,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType inferredType = result.inferredType;
     if (inferredType is VoidType && !isVoidAllowed) {
       if (expression.parent is! ArgumentsImpl) {
-        helper.addProblem(
-            messageVoidExpression, expression.fileOffset, noLength);
+        helper.addProblem(codeVoidExpression, expression.fileOffset, noLength);
       }
     }
     if (coreTypes.isBottom(result.inferredType)) {
@@ -309,7 +308,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         Expression replacement = createLet(
             createVariable(result.expression, result.inferredType),
             createReachabilityError(
-                expression.fileOffset, messageNeverValueError));
+                expression.fileOffset, codeNeverValueError));
         flowAnalysis.forwardExpression(replacement, result.expression);
         result =
             new ExpressionInferenceResult(result.inferredType, replacement);
@@ -835,10 +834,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.condition = condition..parent = node;
     flowAnalysis.assert_afterCondition(node.condition);
     if (node.message != null) {
-      ExpressionInferenceResult messageResult = inferExpression(
+      ExpressionInferenceResult codeResult = inferExpression(
           node.message!, const UnknownType(),
           isVoidAllowed: true);
-      node.message = messageResult.expression..parent = node;
+      node.message = codeResult.expression..parent = node;
     }
     flowAnalysis.assert_end();
     return const StatementInferenceResult();
@@ -892,7 +891,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (_isIncompatibleWithAwait(operandType)) {
       Expression wrapped = operandResult.expression;
       node.operand = helper.wrapInProblem(
-          wrapped, messageAwaitOfExtensionTypeNotFuture, wrapped.fileOffset, 1);
+          wrapped, codeAwaitOfExtensionTypeNotFuture, wrapped.fileOffset, 1);
       wrapped.parent = node.operand;
     } else {
       node.operand = operandResult.expression..parent = node;
@@ -2331,7 +2330,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             !element.isNullAware) {
           Expression receiver = element.expression;
           replacement = helper.buildProblem(
-              messageNullableSpreadError, receiver.fileOffset, 1,
+              codeNullableSpreadError, receiver.fileOffset, 1,
               context: getWhyNotPromotedContext(
                   flowAnalysis.whyNotPromoted(receiver)(),
                   element,
@@ -2358,13 +2357,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           spreadType is! NullType &&
           !element.isNullAware) {
         Expression receiver = element.expression;
-        replacement = helper.buildProblem(
-            messageNullableSpreadError, receiver.fileOffset, 1,
-            context: getWhyNotPromotedContext(
-                flowAnalysis.whyNotPromoted(receiver)(),
-                element,
-                // Coverage-ignore(suite): Not run.
-                (type) => !type.isPotentiallyNullable));
+        replacement =
+            helper.buildProblem(codeNullableSpreadError, receiver.fileOffset, 1,
+                context: getWhyNotPromotedContext(
+                    flowAnalysis.whyNotPromoted(receiver)(),
+                    element,
+                    // Coverage-ignore(suite): Not run.
+                    (type) => !type.isPotentiallyNullable));
         _copyNonPromotionReasonToReplacement(element, replacement);
       }
     }
@@ -4421,7 +4420,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             !entry.isNullAware) {
           Expression receiver = entry.expression;
           Expression problem = helper.buildProblem(
-              messageNullableSpreadError, receiver.fileOffset, 1,
+              codeNullableSpreadError, receiver.fileOffset, 1,
               context: getWhyNotPromotedContext(
                   flowAnalysis.whyNotPromoted(receiver)(),
                   entry,
@@ -4472,13 +4471,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           spreadType is! NullType &&
           !entry.isNullAware) {
         Expression receiver = entry.expression;
-        keyError = helper.buildProblem(
-            messageNullableSpreadError, receiver.fileOffset, 1,
-            context: getWhyNotPromotedContext(
-                flowAnalysis.whyNotPromoted(receiver)(),
-                entry,
-                // Coverage-ignore(suite): Not run.
-                (type) => !type.isPotentiallyNullable));
+        keyError =
+            helper.buildProblem(codeNullableSpreadError, receiver.fileOffset, 1,
+                context: getWhyNotPromotedContext(
+                    flowAnalysis.whyNotPromoted(receiver)(),
+                    entry,
+                    // Coverage-ignore(suite): Not run.
+                    (type) => !type.isPotentiallyNullable));
         _copyNonPromotionReasonToReplacement(entry, keyError);
       }
       if (keyError != null || valueError != null) {
@@ -5372,13 +5371,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       if (canBeSet && canBeMap && node.entries.isNotEmpty) {
         Expression replacement = helper.buildProblem(
-            messageCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
+            codeCantDisambiguateNotEnoughInformation, node.fileOffset, 1);
         return new ExpressionInferenceResult(
             NeverType.fromNullability(Nullability.nonNullable), replacement);
       }
       if (!canBeSet && !canBeMap) {
         Expression replacement = helper.buildProblem(
-            messageCantDisambiguateAmbiguousInformation, node.fileOffset, 1);
+            codeCantDisambiguateAmbiguousInformation, node.fileOffset, 1);
         return new ExpressionInferenceResult(
             NeverType.fromNullability(Nullability.nonNullable), replacement);
       }
@@ -8979,7 +8978,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           [],
           [],
           _createExpressionStatement(createReachabilityError(
-              node.fileOffset, messageNeverReachableSwitchDefaultError)),
+              node.fileOffset, codeNeverReachableSwitchDefaultError)),
           isDefault: true)
         ..fileOffset = node.fileOffset
         ..parent = node);
@@ -12053,7 +12052,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return new ExpressionInferenceResult(
             const DynamicType(),
             helper.buildProblem(
-                messageDotShorthandsConstructorInvocationWithTypeArguments,
+                codeDotShorthandsConstructorInvocationWithTypeArguments,
                 node.nameOffset,
                 node.name.text.length));
       }
@@ -12062,7 +12061,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (!constructor.isConst && node.isConst) {
           return new ExpressionInferenceResult(
               const DynamicType(),
-              helper.buildProblem(messageNonConstConstructor, node.nameOffset,
+              helper.buildProblem(codeNonConstConstructor, node.nameOffset,
                   node.name.text.length));
         }
 
@@ -12101,7 +12100,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore-block(suite): Not run.
           return new ExpressionInferenceResult(
               const DynamicType(),
-              helper.buildProblem(messageNonConstConstructor, node.nameOffset,
+              helper.buildProblem(codeNonConstConstructor, node.nameOffset,
                   node.name.text.length));
         }
 
@@ -12210,7 +12209,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             return new ExpressionInferenceResult(
                 const DynamicType(),
                 helper.buildProblem(
-                    messageDotShorthandsConstructorInvocationWithTypeArguments,
+                    codeDotShorthandsConstructorInvocationWithTypeArguments,
                     node.nameOffset,
                     node.name.text.length));
           }
@@ -12219,7 +12218,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             if (typeDeclaration is Class && typeDeclaration.isAbstract) {
               return new ExpressionInferenceResult(
                   const DynamicType(),
-                  helper.buildProblem(messageAbstractClassConstructorTearOff,
+                  helper.buildProblem(codeAbstractClassConstructorTearOff,
                       node.nameOffset, node.name.text.length));
             }
 

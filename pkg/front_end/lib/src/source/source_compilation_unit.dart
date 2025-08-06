@@ -563,7 +563,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (isPart) {
       // Coverage-ignore-block(suite): Not run.
       // This is a part with no enclosing library.
-      addProblem(messagePartOrphan, 0, 1, fileUri);
+      addProblem(codePartOrphan, 0, 1, fileUri);
       _clearPartsAndReportExporters();
     }
     return libraryBuilder;
@@ -667,15 +667,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     for (Part part in _compilationUnitData.parts) {
       // TODO(johnniwinther): Use [part.offset] in messages.
       if (part.compilationUnit == this) {
-        addProblem(messagePartOfSelf, -1, noLength, fileUri);
+        addProblem(codePartOfSelf, -1, noLength, fileUri);
       } else if (seenParts.add(part.compilationUnit.fileUri)) {
         if (part.compilationUnit.partOfLibrary != null) {
-          addProblem(messagePartOfTwoLibraries, -1, noLength,
+          addProblem(codePartOfTwoLibraries, -1, noLength,
               part.compilationUnit.fileUri,
               context: [
-                messagePartOfTwoLibrariesContext.withLocation(
+                codePartOfTwoLibrariesContext.withLocation(
                     part.compilationUnit.partOfLibrary!.fileUri, -1, noLength),
-                messagePartOfTwoLibrariesContext.withLocation(
+                codePartOfTwoLibrariesContext.withLocation(
                     fileUri, -1, noLength)
               ]);
         } else {
@@ -812,7 +812,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // parts, so that metadata annotations can be associated with it.
       List<LocatedMessage> context = <LocatedMessage>[];
       if (parentCompilationUnit.languageVersion.isExplicit) {
-        context.add(messageLanguageVersionLibraryContext.withLocation(
+        context.add(codeLanguageVersionLibraryContext.withLocation(
             parentCompilationUnit.languageVersion.fileUri!,
             parentCompilationUnit.languageVersion.charOffset,
             parentCompilationUnit.languageVersion.charCount));
@@ -824,23 +824,23 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           // version, then point to this instead of the top of the file.
           partOffset = part.languageVersion.charOffset;
           partUri = part.languageVersion.fileUri!;
-          context.add(messageLanguageVersionPatchContext.withLocation(
-              part.languageVersion.fileUri!,
-              part.languageVersion.charOffset,
-              part.languageVersion.charCount));
-        }
-        parentCompilationUnit.addProblem(messageLanguageVersionMismatchInPatch,
-            partOffset, noLength, partUri,
-            context: context);
-      } else {
-        if (part.languageVersion.isExplicit) {
-          context.add(messageLanguageVersionPartContext.withLocation(
+          context.add(codeLanguageVersionPatchContext.withLocation(
               part.languageVersion.fileUri!,
               part.languageVersion.charOffset,
               part.languageVersion.charCount));
         }
         parentCompilationUnit.addProblem(
-            messageLanguageVersionMismatchInPart, partOffset, noLength, partUri,
+            codeLanguageVersionMismatchInPatch, partOffset, noLength, partUri,
+            context: context);
+      } else {
+        if (part.languageVersion.isExplicit) {
+          context.add(codeLanguageVersionPartContext.withLocation(
+              part.languageVersion.fileUri!,
+              part.languageVersion.charOffset,
+              part.languageVersion.charCount));
+        }
+        parentCompilationUnit.addProblem(
+            codeLanguageVersionMismatchInPart, partOffset, noLength, partUri,
             context: context);
       }
     }
@@ -885,11 +885,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (exporters.isNotEmpty) {
       // Coverage-ignore-block(suite): Not run.
       List<LocatedMessage> context = <LocatedMessage>[
-        messagePartExportContext.withLocation(fileUri, -1, 1),
+        codePartExportContext.withLocation(fileUri, -1, 1),
       ];
       for (Export export in exporters) {
         export.exporter.addProblem(
-            messagePartExport, export.charOffset, "export".length, null,
+            codePartExport, export.charOffset, "export".length, null,
             context: context);
       }
     }
@@ -913,11 +913,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (!allowPartInParts) {
       if (_compilationUnitData.parts.isNotEmpty) {
         List<LocatedMessage> context = <LocatedMessage>[
-          messagePartInPartLibraryContext.withLocation(
+          codePartInPartLibraryContext.withLocation(
               libraryBuilder.fileUri, -1, 1),
         ];
         for (Part part in _compilationUnitData.parts) {
-          addProblem(messagePartInPart, part.fileOffset, noLength, fileUri,
+          addProblem(codePartInPart, part.fileOffset, noLength, fileUri,
               context: context);
           // Mark this part as used so we don't report it as orphaned.
           usedParts.add(part.compilationUnit.importUri);

@@ -986,14 +986,14 @@ class _SanitizedMember {
             _implementedNonExtensionTypeMembers);
         for (ClassMember classMember in extensionTypeMemberDeclarations) {
           context.add((extensionTypeMemberDeclarations.length > 1
-                  ? messageExtensionTypeMemberOneOfContext
-                  : messageExtensionTypeMemberContext)
+                  ? codeExtensionTypeMemberOneOfContext
+                  : codeExtensionTypeMemberContext)
               .withLocation2(classMember.uriOffset));
         }
         for (ClassMember classMember in nonExtensionTypeMemberDeclarations) {
           context.add((nonExtensionTypeMemberDeclarations.length > 1
-                  ? messageNonExtensionTypeMemberOneOfContext
-                  : messageNonExtensionTypeMemberContext)
+                  ? codeNonExtensionTypeMemberOneOfContext
+                  : codeNonExtensionTypeMemberContext)
               .withLocation2(classMember.uriOffset));
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
@@ -1006,7 +1006,7 @@ class _SanitizedMember {
       } else if (extensionTypeMemberDeclarations.length > 1) {
         List<LocatedMessage> context = [];
         for (ClassMember classMember in extensionTypeMemberDeclarations) {
-          context.add(messageExtensionTypeMemberOneOfContext
+          context.add(codeExtensionTypeMemberOneOfContext
               .withLocation2(classMember.uriOffset));
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(

@@ -31,7 +31,7 @@ class CatchParameterIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableError(identifier, codes.messageCatchSyntax);
+    parser.reportRecoverableError(identifier, codes.codeCatchSyntax);
     if (looksLikeStatementStart(identifier) ||
         identifier.isA(TokenType.COMMA) ||
         identifier.isA(TokenType.CLOSE_PAREN) ||
@@ -1156,7 +1156,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(
         identifier,
         this,
-        message: codes.messageMissingOperatorKeyword,
+        message: codes.codeMissingOperatorKeyword,
         messageOnToken: identifier,
       );
     } else if (identifier.isA(TokenType.PERIOD) ||
@@ -1518,7 +1518,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       return next;
     } else if (next.isKeywordOrIdentifier) {
       if (next.isA(Keyword.VOID)) {
-        parser.reportRecoverableError(next, codes.messageInvalidVoid);
+        parser.reportRecoverableError(next, codes.codeInvalidVoid);
       } else if (next.type.isBuiltIn) {
         if (!isBuiltInIdentifierAllowed) {
           parser.reportRecoverableErrorWithToken(
@@ -1527,7 +1527,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
           );
         }
       } else if (next.isA(Keyword.VAR)) {
-        parser.reportRecoverableError(next, codes.messageVarAsTypeName);
+        parser.reportRecoverableError(next, codes.codeVarAsTypeName);
       } else {
         parser.reportRecoverableErrorWithToken(next, codes.codeExpectedType);
       }
@@ -1634,9 +1634,9 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
 void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
   if (!parser.inPlainSync && identifier.type.isPseudo) {
     if (identifier.isA(Keyword.AWAIT)) {
-      parser.reportRecoverableError(identifier, codes.messageAwaitAsIdentifier);
+      parser.reportRecoverableError(identifier, codes.codeAwaitAsIdentifier);
     } else if (identifier.isA(Keyword.YIELD)) {
-      parser.reportRecoverableError(identifier, codes.messageYieldAsIdentifier);
+      parser.reportRecoverableError(identifier, codes.codeYieldAsIdentifier);
     }
   }
 }

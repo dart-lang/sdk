@@ -12,7 +12,7 @@ import '../codes/cfe_codes.dart'
     show
         LocatedMessage,
         Message,
-        messageVerificationErrorOriginContext,
+        codeVerificationErrorOriginContext,
         noLength,
         codeInternalProblemVerificationError;
 import '../base/compiler_context.dart' show CompilerContext;
@@ -55,7 +55,7 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
     List<LocatedMessage>? contextMessages;
     if (origin != null) {
       contextMessages = [
-        messageVerificationErrorOriginContext.withLocation(
+        codeVerificationErrorOriginContext.withLocation(
             origin.location!.file, origin.fileOffset, noLength)
       ];
     }

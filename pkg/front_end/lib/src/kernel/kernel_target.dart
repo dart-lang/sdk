@@ -30,11 +30,11 @@ import '../base/messages.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
-        messageConstConstructorLateFinalFieldCause,
-        messageConstConstructorLateFinalFieldError,
-        messageConstConstructorNonFinalField,
-        messageConstConstructorNonFinalFieldCause,
-        messageConstConstructorRedirectionToNonConst,
+        codeConstConstructorLateFinalFieldCause,
+        codeConstConstructorLateFinalFieldError,
+        codeConstConstructorNonFinalField,
+        codeConstConstructorNonFinalFieldCause,
+        codeConstConstructorRedirectionToNonConst,
         noLength,
         codeFieldNonNullableNotInitializedByConstructorError,
         codeFieldNonNullableWithoutInitializerError,
@@ -1295,7 +1295,7 @@ class KernelTarget {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             classBuilder.libraryBuilder.addProblem(
-                messageConstConstructorRedirectionToNonConst,
+                codeConstConstructorRedirectionToNonConst,
                 initializer.fileOffset,
                 initializer.target.name.text.length,
                 constructor.fileUri);
@@ -1398,12 +1398,12 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
-            messageConstConstructorNonFinalField,
+            codeConstConstructorNonFinalField,
             constructor.fileOffset,
             noLength,
             constructor.fileUri,
             context: nonFinalFields
-                .map((field) => messageConstConstructorNonFinalFieldCause
+                .map((field) => codeConstConstructorNonFinalFieldCause
                     .withLocation(field.fileUri, field.fileOffset, noLength))
                 .toList());
         nonFinalFields.clear();
@@ -1411,9 +1411,9 @@ class KernelTarget {
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
         for (SourcePropertyBuilder field in lateFinalFields) {
           classDeclaration.libraryBuilder.addProblem2(
-              messageConstConstructorLateFinalFieldError, field.fieldUriOffset!,
+              codeConstConstructorLateFinalFieldError, field.fieldUriOffset!,
               context: [
-                messageConstConstructorLateFinalFieldCause.withLocation(
+                codeConstConstructorLateFinalFieldCause.withLocation(
                     constructor.fileUri, constructor.fileOffset, noLength)
               ]);
         }

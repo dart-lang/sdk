@@ -6,9 +6,9 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiAbiSpecificIntegerInvalid,
-        messageFfiAbiSpecificIntegerMappingInvalid,
-        messageFfiPackedAnnotationAlignment,
+        codeFfiAbiSpecificIntegerInvalid,
+        codeFfiAbiSpecificIntegerMappingInvalid,
+        codeFfiPackedAnnotationAlignment,
         codeFfiCompoundImplementsFinalizable,
         codeFfiEmptyStruct,
         codeFfiFieldAnnotation,
@@ -290,7 +290,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (nativeTypeCfe.abiSpecificTypes.isEmpty) {
         // Annotation missing, multiple annotations, or invalid mapping.
         diagnosticReporter.report(
-          messageFfiAbiSpecificIntegerMappingInvalid,
+          codeFfiAbiSpecificIntegerMappingInvalid,
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -303,7 +303,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           !node.constructors.single.isConst) {
         // We want exactly one constructor, no other members and no type arguments.
         diagnosticReporter.report(
-          messageFfiAbiSpecificIntegerInvalid,
+          codeFfiAbiSpecificIntegerInvalid,
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -411,7 +411,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             packing == 8 ||
             packing == 16)) {
           diagnosticReporter.report(
-            messageFfiPackedAnnotationAlignment,
+            codeFfiPackedAnnotationAlignment,
             node.fileOffset,
             node.name.length,
             node.location!.file,

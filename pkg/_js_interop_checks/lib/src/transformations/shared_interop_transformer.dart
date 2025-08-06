@@ -9,7 +9,7 @@ import 'package:_js_interop_checks/js_interop_checks.dart'
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/api_prototype/codes.dart'
     show
-        messageJsInteropIsATearoff,
+        codeJsInteropIsATearoff,
         codeJsInteropExportClassNotMarkedExportable,
         codeJsInteropExportInvalidInteropTypeArgument,
         codeJsInteropExportInvalidTypeArgument,
@@ -205,7 +205,7 @@ class SharedInteropTransformer extends Transformer {
     } else if (target == _isATearoff) {
       // Calling the generated tear-off is still bad, however.
       _diagnosticReporter.report(
-        messageJsInteropIsATearoff,
+        codeJsInteropIsATearoff,
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,

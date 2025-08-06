@@ -821,8 +821,8 @@ class ComputeDefaultTypeContext {
     }
 
     if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
-      _problemReporting.addProblem(messageGenericFunctionTypeInBound,
-          charOffset, typeParameterName.length, fileUri);
+      _problemReporting.addProblem(codeGenericFunctionTypeInBound, charOffset,
+          typeParameterName.length, fileUri);
       return true;
     }
     return false;

@@ -8,8 +8,8 @@ import 'package:kernel/type_algebra.dart';
 import '../../base/messages.dart'
     show
         LocatedMessage,
-        messageDeclaredMemberConflictsWithInheritedMembersCause,
-        messageDeclaredMemberConflictsWithOverriddenMembersCause,
+        codeDeclaredMemberConflictsWithInheritedMembersCause,
+        codeDeclaredMemberConflictsWithOverriddenMembersCause,
         codeCombinedMemberSignatureFailed,
         codeExtensionTypeCombinedMemberSignatureFailed;
 import '../../base/uri_offset.dart';
@@ -563,7 +563,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         int nameLength =
             classBuilder.isAnonymousMixinApplication ? 1 : name.length;
         List<LocatedMessage> context = declarations.map((ClassMember d) {
-          return messageDeclaredMemberConflictsWithOverriddenMembersCause
+          return codeDeclaredMemberConflictsWithOverriddenMembersCause
               .withLocation2(d.uriOffset);
         }).toList();
 
@@ -932,7 +932,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       String name = extensionTypeDeclarationBuilder.fullNameForErrors;
       int nameLength = name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
-        return messageDeclaredMemberConflictsWithInheritedMembersCause
+        return codeDeclaredMemberConflictsWithInheritedMembersCause
             .withLocation2(d.uriOffset);
       }).toList();
 

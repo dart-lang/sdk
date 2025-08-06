@@ -519,7 +519,7 @@ class SourceLoader extends Loader {
             is package_config.InvalidLanguageVersion) {
           // Coverage-ignore-block(suite): Not run.
           packageLanguageVersionProblem =
-              messageLanguageVersionInvalidInDotPackages;
+              codeLanguageVersionInvalidInDotPackages;
           packageLanguageVersion = new InvalidLanguageVersion(
               fileUri, 0, noLength, target.currentSdkVersion, false);
         } else {
@@ -660,7 +660,7 @@ class SourceLoader extends Loader {
         accessor, charOffset, noLength, accessor.fileUri);
     if (!_hasLibraryAccess(imported: uri, importer: accessor.importUri) &&
         !accessor.isAugmenting) {
-      accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+      accessor.addProblem(codePlatformPrivateLibraryAccess, charOffset,
           noLength, accessor.fileUri);
     }
     return libraryBuilder;
@@ -696,10 +696,10 @@ class SourceLoader extends Loader {
     if (!_hasLibraryAccess(imported: uri, importer: firstLibrary?.importUri)) {
       // Coverage-ignore-block(suite): Not run.
       if (firstLibrary != null) {
-        firstLibrary.addProblem(messagePlatformPrivateLibraryAccess, -1,
-            noLength, firstLibrary.importUri);
+        firstLibrary.addProblem(codePlatformPrivateLibraryAccess, -1, noLength,
+            firstLibrary.importUri);
       } else {
-        addProblem(messagePlatformPrivateLibraryAccess, -1, noLength, null);
+        addProblem(codePlatformPrivateLibraryAccess, -1, noLength, null);
       }
     }
     return libraryBuilder;
@@ -973,7 +973,7 @@ severity: $severity
             -1,
             compilationUnit.importUri);
       } else if (fileUri.isScheme(MALFORMED_URI_SCHEME)) {
-        compilationUnit.addProblemAtAccessors(messageExpectedUri);
+        compilationUnit.addProblemAtAccessors(codeExpectedUri);
         bytes = synthesizeSourceForMissingFile(compilationUnit.importUri, null);
       }
       if (bytes != null) {
@@ -1749,7 +1749,7 @@ severity: $severity
               noLength,
               classBuilder.fileUri,
               context: [
-                messageTypedefCause.withLocation(
+                codeTypedefCause.withLocation(
                     aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
               ]);
         } else {
@@ -1782,7 +1782,7 @@ severity: $severity
                 classBuilder.fileUri,
                 context: declaration is TypeAliasBuilder
                     ? [
-                        messageTypedefUnaliasedTypeCause.withLocation(
+                        codeTypedefUnaliasedTypeCause.withLocation(
                             unaliasedDeclaration.fileUri,
                             unaliasedDeclaration.fileOffset,
                             noLength),
@@ -1812,7 +1812,7 @@ severity: $severity
               classBuilder.fileUri,
               context: declaration is TypeAliasBuilder
                   ? [
-                      messageTypedefCause.withLocation(declaration.fileUri,
+                      codeTypedefCause.withLocation(declaration.fileUri,
                           declaration.fileOffset, noLength),
                     ]
                   : null);
@@ -1827,7 +1827,7 @@ severity: $severity
                 classBuilder.fileUri,
                 context: declaration is TypeAliasBuilder
                     ? [
-                        messageTypedefCause.withLocation(declaration.fileUri,
+                        codeTypedefCause.withLocation(declaration.fileUri,
                             declaration.fileOffset, noLength),
                       ]
                     : null);
@@ -2376,7 +2376,7 @@ severity: $severity
                   classBuilder.name.length,
                   classBuilder.fileUri,
                   context: <LocatedMessage>[
-                    messageEnumInheritsRestrictedMember
+                    codeEnumInheritsRestrictedMember
                         .withLocation2(classMember.uriOffset)
                   ]);
             }
@@ -2609,15 +2609,15 @@ severity: $severity
       }
       if (mainBuilder.isProperty) {
         if (mainBuilder.libraryBuilder != libraryBuilder) {
-          libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+          libraryBuilder.addProblem(codeMainNotFunctionDeclarationExported,
               libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
               context: [
-                messageExportedMain.withLocation(mainBuilder.fileUri!,
+                codeExportedMain.withLocation(mainBuilder.fileUri!,
                     mainBuilder.fileOffset, mainBuilder.name.length)
               ]);
         } else {
           libraryBuilder.addProblem(
-              messageMainNotFunctionDeclaration,
+              codeMainNotFunctionDeclaration,
               mainBuilder.fileOffset,
               mainBuilder.name.length,
               mainBuilder.fileUri);
@@ -2626,18 +2626,15 @@ severity: $severity
         Procedure procedure = mainBuilder.invokeTarget as Procedure;
         if (procedure.function.requiredParameterCount > 2) {
           if (mainBuilder.libraryBuilder != libraryBuilder) {
-            libraryBuilder.addProblem(
-                messageMainTooManyRequiredParametersExported,
-                libraryBuilder.fileOffset,
-                noLength,
-                libraryBuilder.fileUri,
+            libraryBuilder.addProblem(codeMainTooManyRequiredParametersExported,
+                libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
                 context: [
-                  messageExportedMain.withLocation(mainBuilder.fileUri!,
+                  codeExportedMain.withLocation(mainBuilder.fileUri!,
                       mainBuilder.fileOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
-                messageMainTooManyRequiredParameters,
+                codeMainTooManyRequiredParameters,
                 mainBuilder.fileOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
@@ -2645,18 +2642,15 @@ severity: $severity
         } else if (procedure.function.namedParameters
             .any((parameter) => parameter.isRequired)) {
           if (mainBuilder.libraryBuilder != libraryBuilder) {
-            libraryBuilder.addProblem(
-                messageMainRequiredNamedParametersExported,
-                libraryBuilder.fileOffset,
-                noLength,
-                libraryBuilder.fileUri,
+            libraryBuilder.addProblem(codeMainRequiredNamedParametersExported,
+                libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
                 context: [
-                  messageExportedMain.withLocation(mainBuilder.fileUri!,
+                  codeExportedMain.withLocation(mainBuilder.fileUri!,
                       mainBuilder.fileOffset, mainBuilder.name.length)
                 ]);
           } else {
             libraryBuilder.addProblem(
-                messageMainRequiredNamedParameters,
+                codeMainRequiredNamedParameters,
                 mainBuilder.fileOffset,
                 mainBuilder.name.length,
                 mainBuilder.fileUri);
@@ -2674,7 +2668,7 @@ severity: $severity
                   noLength,
                   libraryBuilder.fileUri,
                   context: [
-                    messageExportedMain.withLocation(mainBuilder.fileUri!,
+                    codeExportedMain.withLocation(mainBuilder.fileUri!,
                         mainBuilder.fileOffset, mainBuilder.name.length)
                   ]);
             } else {
@@ -2690,14 +2684,14 @@ severity: $severity
       }
     } else if (mainBuilder != null) {
       if (mainBuilder.parent != libraryBuilder) {
-        libraryBuilder.addProblem(messageMainNotFunctionDeclarationExported,
+        libraryBuilder.addProblem(codeMainNotFunctionDeclarationExported,
             libraryBuilder.fileOffset, noLength, libraryBuilder.fileUri,
             context: [
-              messageExportedMain.withLocation(
+              codeExportedMain.withLocation(
                   mainBuilder.fileUri!, mainBuilder.fileOffset, noLength)
             ]);
       } else {
-        libraryBuilder.addProblem(messageMainNotFunctionDeclaration,
+        libraryBuilder.addProblem(codeMainNotFunctionDeclaration,
             mainBuilder.fileOffset, noLength, mainBuilder.fileUri);
       }
     }
@@ -3127,7 +3121,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
       _sourceLibraryBuilder.addProblem(template.withArguments(name.text),
           _typeBuilder.charOffset!, noLength, _typeBuilder.fileUri!,
           context: [
-            messageMixinApplicationNoConcreteMemberContext.withLocation(
+            codeMixinApplicationNoConcreteMemberContext.withLocation(
                 _enclosingMember.fileUri, accessFileOffset, noLength)
           ]);
     }

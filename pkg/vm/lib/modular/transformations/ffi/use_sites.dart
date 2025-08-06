@@ -6,12 +6,12 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiAddressOfMustBeNative,
-        messageFfiAddressPosition,
-        messageFfiAddressReceiver,
-        messageFfiCreateOfStructOrUnion,
-        messageFfiExceptionalReturnNull,
-        messageFfiExpectedConstant,
+        codeFfiAddressOfMustBeNative,
+        codeFfiAddressPosition,
+        codeFfiAddressReceiver,
+        codeFfiCreateOfStructOrUnion,
+        codeFfiExceptionalReturnNull,
+        codeFfiExpectedConstant,
         codeFfiDartTypeMismatch,
         codeFfiNativeCallableListenerReturnVoid,
         codeFfiExpectedConstantArg,
@@ -158,7 +158,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         target.name != Name("#fromTypedDataBase") &&
         target.name != Name("#fromTypedData")) {
       diagnosticReporter.report(
-        messageFfiCreateOfStructOrUnion,
+        codeFfiCreateOfStructOrUnion,
         node.fileOffset,
         1,
         node.location?.file,
@@ -664,7 +664,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // remaining invocations occur are places where `<expr>.address` is
         // disallowed, so issue an error.
         diagnosticReporter.report(
-          messageFfiAddressPosition,
+          codeFfiAddressPosition,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1214,7 +1214,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           !(exceptionalReturn is ConstantExpression &&
               exceptionalReturn.constant is PrimitiveConstant)) {
         diagnosticReporter.report(
-          messageFfiExpectedConstant,
+          codeFfiExpectedConstant,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1227,7 +1227,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           (exceptionalReturn is ConstantExpression &&
               exceptionalReturn.constant is NullConstant)) {
         diagnosticReporter.report(
-          messageFfiExceptionalReturnNull,
+          codeFfiExceptionalReturnNull,
           node.fileOffset,
           1,
           node.location?.file,
@@ -1896,7 +1896,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     if (nativeAnnotation == null) {
       diagnosticReporter.report(
-        messageFfiAddressOfMustBeNative,
+        codeFfiAddressOfMustBeNative,
         arg.fileOffset,
         1,
         node.location?.file,
@@ -2212,7 +2212,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     diagnosticReporter.report(
-      messageFfiAddressReceiver,
+      codeFfiAddressReceiver,
       argument.fileOffset,
       1,
       argument.location?.file,

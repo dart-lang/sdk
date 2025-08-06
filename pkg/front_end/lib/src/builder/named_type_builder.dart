@@ -16,14 +16,14 @@ import '../base/messages.dart'
         ProblemReporting,
         CfeSeverity,
         Template,
-        messageClassImplementsDeferredClass,
-        messageExtendsDeferredClass,
-        messageExtensionTypeImplementsDeferred,
-        messageMixinDeferredMixin,
-        messageMixinSuperClassConstraintDeferredClass,
-        messageNotATypeContext,
-        messageTypeVariableInStaticContext,
-        messageTypedefCause,
+        codeClassImplementsDeferredClass,
+        codeExtendsDeferredClass,
+        codeExtensionTypeImplementsDeferred,
+        codeMixinDeferredMixin,
+        codeMixinSuperClassConstraintDeferredClass,
+        codeNotATypeContext,
+        codeTypeVariableInStaticContext,
+        codeTypedefCause,
         noLength,
         codeExtendingRestricted,
         codeNotAPrefixInTypeAnnotation,
@@ -281,7 +281,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       } else {
         template = codeNotAType;
         context = <LocatedMessage>[
-          messageNotATypeContext.withLocation(
+          codeNotATypeContext.withLocation(
               member.fileUri!, member.fileOffset, nameLength)
         ];
         message = template.withArguments(nameText);
@@ -343,7 +343,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           case InstanceTypeParameterAccessState.Disallowed:
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
-            Message message = messageTypeVariableInStaticContext;
+            Message message = codeTypeVariableInStaticContext;
             problemReporting.addProblem(
                 message, nameOffset, nameLength, fileUri);
             _declaration = buildInvalidTypeDeclarationBuilder(
@@ -352,7 +352,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           case InstanceTypeParameterAccessState.Invalid:
             int nameOffset = typeName.nameOffset;
             int nameLength = typeName.nameLength;
-            Message message = messageTypeVariableInStaticContext;
+            Message message = codeTypeVariableInStaticContext;
             _declaration = buildInvalidTypeDeclarationBuilder(
                 message.withLocation(fileUri!, nameOffset, nameLength));
             return;
@@ -426,7 +426,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           codeSupertypeIsIllegalAliased.withArguments(fullNameForErrors, type);
     }
     library.addProblem(message, charOffset!, noLength, fileUri, context: [
-      messageTypedefCause.withLocation(
+      codeTypedefCause.withLocation(
           aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
     ]);
     return null;
@@ -437,35 +437,35 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       switch (typeUse) {
         case TypeUse.classExtendsType:
           libraryBuilder.addProblem(
-              messageExtendsDeferredClass,
+              codeExtendsDeferredClass,
               typeName.fullNameOffset,
               typeName.fullNameLength,
               fileUri ?? // Coverage-ignore(suite): Not run.
                   libraryBuilder.fileUri);
         case TypeUse.classImplementsType:
           libraryBuilder.addProblem(
-              messageClassImplementsDeferredClass,
+              codeClassImplementsDeferredClass,
               typeName.fullNameOffset,
               typeName.fullNameLength,
               fileUri ?? // Coverage-ignore(suite): Not run.
                   libraryBuilder.fileUri);
         case TypeUse.mixinOnType:
           libraryBuilder.addProblem(
-              messageMixinSuperClassConstraintDeferredClass,
+              codeMixinSuperClassConstraintDeferredClass,
               typeName.fullNameOffset,
               typeName.fullNameLength,
               fileUri ?? // Coverage-ignore(suite): Not run.
                   libraryBuilder.fileUri);
         case TypeUse.extensionTypeImplementsType:
           libraryBuilder.addProblem(
-              messageExtensionTypeImplementsDeferred,
+              codeExtensionTypeImplementsDeferred,
               typeName.fullNameOffset,
               typeName.fullNameLength,
               fileUri ?? // Coverage-ignore(suite): Not run.
                   libraryBuilder.fileUri);
         case TypeUse.classWithType:
           libraryBuilder.addProblem(
-              messageMixinDeferredMixin,
+              codeMixinDeferredMixin,
               typeName.fullNameOffset,
               typeName.fullNameLength,
               fileUri ?? // Coverage-ignore(suite): Not run.

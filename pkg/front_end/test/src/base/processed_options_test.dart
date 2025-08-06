@@ -424,7 +424,7 @@ class ProcessedOptionsTest {
     var options = new ProcessedOptions(options: raw);
     var result = await options.validateOptions();
     expect((errors.single as FormattedMessage).problemMessage,
-        messageMissingInput.problemMessage);
+        codeMissingInput.problemMessage);
     expect(result, isFalse);
   }
 
@@ -564,9 +564,9 @@ class ProcessedOptionsTest {
   /// Returns the longest prefix of the text in a message template that doesn't
   /// mention a template argument.
   String _stringPrefixOf(Template template) {
-    var messageTemplate = template.problemMessageTemplate;
-    var index = messageTemplate.indexOf('#');
-    var prefix = messageTemplate.substring(0, index - 1);
+    var codeTemplate = template.problemMessageTemplate;
+    var index = codeTemplate.indexOf('#');
+    var prefix = codeTemplate.substring(0, index - 1);
 
     // Check that the prefix is not empty and that it contains more than one
     // word.

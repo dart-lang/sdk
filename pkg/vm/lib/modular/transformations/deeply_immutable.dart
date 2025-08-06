@@ -6,11 +6,11 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiDeeplyImmutableClassesMustBeFinalOrSealed,
-        messageFfiDeeplyImmutableFieldsModifiers,
-        messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
-        messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
-        messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
+        codeFfiDeeplyImmutableClassesMustBeFinalOrSealed,
+        codeFfiDeeplyImmutableFieldsModifiers,
+        codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
+        codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
+        codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -92,7 +92,7 @@ class DeeplyImmutableValidator {
       for (final superClass in classes) {
         if (_isDeeplyImmutableClass(superClass)) {
           diagnosticReporter.report(
-            messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
+            codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
             node.fileOffset,
             node.name.length,
             node.location!.file,
@@ -110,7 +110,7 @@ class DeeplyImmutableValidator {
         !_isOrExtendsNativeFieldWrapper1Class(superClass)) {
       if (!_isDeeplyImmutableClass(superClass)) {
         diagnosticReporter.report(
-          messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable,
+          codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable,
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -131,7 +131,7 @@ class DeeplyImmutableValidator {
         superClass != unionClass) {
       if (!(node.isFinal || node.isSealed)) {
         diagnosticReporter.report(
-          messageFfiDeeplyImmutableClassesMustBeFinalOrSealed,
+          codeFfiDeeplyImmutableClassesMustBeFinalOrSealed,
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -147,7 +147,7 @@ class DeeplyImmutableValidator {
       }
       if (!_isDeeplyImmutableDartType(field.type)) {
         diagnosticReporter.report(
-          messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
+          codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
           field.fileOffset,
           field.name.text.length,
           field.location!.file,
@@ -155,7 +155,7 @@ class DeeplyImmutableValidator {
       }
       if (!field.isFinal || field.isLate) {
         diagnosticReporter.report(
-          messageFfiDeeplyImmutableFieldsModifiers,
+          codeFfiDeeplyImmutableFieldsModifiers,
           field.fileOffset,
           field.name.text.length,
           field.location!.file,

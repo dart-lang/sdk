@@ -17,10 +17,10 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../codes/cfe_codes.dart'
     show
-        messageNamedFieldClashesWithPositionalFieldInRecord,
-        messageObjectMemberNameUsedForRecordField,
-        messageRecordFieldsCantBePrivate,
-        messageSupertypeIsFunction,
+        codeNamedFieldClashesWithPositionalFieldInRecord,
+        codeObjectMemberNameUsedForRecordField,
+        codeRecordFieldsCantBePrivate,
+        codeSupertypeIsFunction,
         noLength,
         codeDuplicatedRecordTypeFieldName,
         codeDuplicatedRecordTypeFieldNameContext;
@@ -171,13 +171,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
             continue;
           }
           if (fieldName.startsWith("_")) {
-            library.addProblem(messageRecordFieldsCantBePrivate,
-                field.charOffset, fieldName.length, fileUri);
+            library.addProblem(codeRecordFieldsCantBePrivate, field.charOffset,
+                fieldName.length, fileUri);
             hasErrors = true;
             continue;
           }
           if (forbiddenObjectMemberNames.contains(fieldName)) {
-            library.addProblem(messageObjectMemberNameUsedForRecordField,
+            library.addProblem(codeObjectMemberNameUsedForRecordField,
                 field.charOffset, fieldName.length, fileUri);
             hasErrors = true;
             continue;
@@ -219,13 +219,13 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           continue;
         }
         if (forbiddenObjectMemberNames.contains(name)) {
-          library.addProblem(messageObjectMemberNameUsedForRecordField,
+          library.addProblem(codeObjectMemberNameUsedForRecordField,
               field.charOffset, name.length, fileUri);
           hasErrors = true;
           continue;
         }
         if (name.startsWith("_")) {
-          library.addProblem(messageRecordFieldsCantBePrivate, field.charOffset,
+          library.addProblem(codeRecordFieldsCantBePrivate, field.charOffset,
               name.length, fileUri);
           hasErrors = true;
           continue;
@@ -233,11 +233,8 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         if (tryParseRecordPositionalGetterName(
                 name, positionalFields?.length ?? 0) !=
             null) {
-          library.addProblem(
-              messageNamedFieldClashesWithPositionalFieldInRecord,
-              field.charOffset,
-              name.length,
-              fileUri);
+          library.addProblem(codeNamedFieldClashesWithPositionalFieldInRecord,
+              field.charOffset, name.length, fileUri);
           hasErrors = true;
           continue;
         }
@@ -284,8 +281,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(
-        messageSupertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem(codeSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 

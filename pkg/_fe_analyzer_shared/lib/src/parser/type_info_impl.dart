@@ -430,7 +430,7 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     // Report an error, then parse `void` as if it were a type name.
-    parser.reportRecoverableError(token.next!, codes.messageInvalidVoid);
+    parser.reportRecoverableError(token.next!, codes.codeInvalidVoid);
     return simpleType.parseTypeNotVoid(token, parser);
   }
 
@@ -454,7 +454,7 @@ class VoidType implements TypeInfo {
         hasTypeArguments = true;
         parser.reportRecoverableError(
           token.next!,
-          codes.messageVoidWithTypeArguments,
+          codes.codeVoidWithTypeArguments,
         );
         token = typeParam.parseArguments(token, parser);
       }
@@ -1450,7 +1450,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
           parser.reportRecoverableErrorWithEnd(
             atToken,
             next,
-            codes.messageAnnotationOnTypeArgument,
+            codes.codeAnnotationOnTypeArgument,
           );
           typeInfo = computeType(next, /* required = */ true, inDeclaration);
         }
@@ -1509,7 +1509,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
           // Report an error and skip actual identifier
           parser.reportRecoverableError(
             identifier,
-            codes.messageMultipleVarianceModifiers,
+            codes.codeMultipleVarianceModifiers,
           );
           variance = variance.next!;
           identifier = identifier.next!;

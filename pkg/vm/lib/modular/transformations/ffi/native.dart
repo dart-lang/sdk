@@ -6,14 +6,14 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiDefaultAssetDuplicate,
-        messageFfiNativeDuplicateAnnotations,
-        messageFfiNativeFieldMissingType,
-        messageFfiNativeFieldMustBeStatic,
-        messageFfiNativeFieldType,
-        messageFfiNativeFunctionMissingType,
-        messageFfiNativeMustBeExternal,
-        messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
+        codeFfiDefaultAssetDuplicate,
+        codeFfiNativeDuplicateAnnotations,
+        codeFfiNativeFieldMissingType,
+        codeFfiNativeFieldMustBeStatic,
+        codeFfiNativeFieldType,
+        codeFfiNativeFunctionMissingType,
+        codeFfiNativeMustBeExternal,
+        codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
         codeCantHaveNamedParameters,
         codeCantHaveOptionalParameters,
         codeFfiNativeUnexpectedNumberOfParameters,
@@ -143,7 +143,7 @@ class FfiNativeTransformer extends FfiTransformer {
       if (assetAnnotation != null) {
         // Duplicate @DefaultAsset annotations are forbidden.
         diagnosticReporter.report(
-          messageFfiDefaultAssetDuplicate,
+          codeFfiDefaultAssetDuplicate,
           annotation.fileOffset,
           1,
           annotation.location?.file,
@@ -164,7 +164,7 @@ class FfiNativeTransformer extends FfiTransformer {
       if (nativeAnnotation != null) {
         // Duplicate @Native annotations are forbidden.
         diagnosticReporter.report(
-          messageFfiNativeDuplicateAnnotations,
+          codeFfiNativeDuplicateAnnotations,
           node.fileOffset,
           1,
           node.location?.file,
@@ -458,7 +458,7 @@ class FfiNativeTransformer extends FfiTransformer {
     if (_requiresPointerConversion(dartParameterType, ffiParameterType) &&
         !_extendsNativeFieldWrapperClass1(dartParameterType)) {
       diagnosticReporter.report(
-        messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
+        codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
         annotationOffset,
         1,
         file,
@@ -835,7 +835,7 @@ class FfiNativeTransformer extends FfiTransformer {
         ffiType = inferred;
       } else {
         diagnosticReporter.report(
-          messageFfiNativeFieldMissingType,
+          codeFfiNativeFieldMissingType,
           node.fileOffset,
           1,
           node.location?.file,
@@ -889,7 +889,7 @@ class FfiNativeTransformer extends FfiTransformer {
           type == NativeType.kHandle ||
           isArrayType(ffiType)) {
         diagnosticReporter.report(
-          messageFfiNativeFieldType,
+          codeFfiNativeFieldType,
           node.fileOffset,
           1,
           node.location?.file,
@@ -926,7 +926,7 @@ class FfiNativeTransformer extends FfiTransformer {
         allowStructAndUnion: true,
       )) {
         diagnosticReporter.report(
-          messageFfiNativeFunctionMissingType,
+          codeFfiNativeFunctionMissingType,
           node.fileOffset,
           1,
           node.location?.file,
@@ -949,7 +949,7 @@ class FfiNativeTransformer extends FfiTransformer {
     // only visit fields to verify that no native annotation is present.
     assert(!node.isExternal);
     diagnosticReporter.report(
-      messageFfiNativeMustBeExternal,
+      codeFfiNativeMustBeExternal,
       node.fileOffset,
       1,
       node.location?.file,
@@ -969,7 +969,7 @@ class FfiNativeTransformer extends FfiTransformer {
 
     if (!node.isExternal) {
       diagnosticReporter.report(
-        messageFfiNativeMustBeExternal,
+        codeFfiNativeMustBeExternal,
         node.fileOffset,
         1,
         node.location?.file,
@@ -1043,7 +1043,7 @@ class FfiNativeTransformer extends FfiTransformer {
         node.kind == ProcedureKind.Setter) {
       if (!node.isStatic) {
         diagnosticReporter.report(
-          messageFfiNativeFieldMustBeStatic,
+          codeFfiNativeFieldMustBeStatic,
           node.fileOffset,
           1,
           node.location?.file,
