@@ -351,6 +351,52 @@ PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
   return handle;
 }
 
+static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
+                                                    Object* p_obj,
+                                                    ObjectPtr object_ptr) {
+  *p_obj = object_ptr;
+  if (p_obj->IsSmi() || p_obj->IsNull()) {
+    return;
+  }
+  if (p_obj->IsClosure()) {
+    FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+        zone, Closure::RawCast(p_obj->ptr()));
+    return;
+  }
+  if (!p_obj->IsImmutable()) {
+    const String& error = String::Handle(
+        zone,
+        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                             p_obj->ToCString()));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
+}
+
+void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+    Zone* zone,
+    ClosurePtr closure_ptr) {
+  Closure& closure = Closure::Handle(zone, closure_ptr);
+  if (closure.IsNull()) {
+    return;
+  }
+  Object& obj = Object::Handle(zone);
+  const auto& function = Function::Handle(closure.function());
+  if (function.IsImplicitClosureFunction()) {
+    ValidateTriviallyImmutabilityOfAnObject(
+        zone, &obj, closure.GetImplicitClosureReceiver());
+  } else {
+    const Context& context = Context::Handle(zone, closure.GetContext());
+    if (context.IsNull()) {
+      return;
+    }
+    // Iterate through all elements of the context.
+    for (intptr_t i = 0; i < context.num_variables(); i++) {
+      ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i));
+    }
+  }
+}
+
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
     Isolate* isolate,
     IsolateGroup* isolate_group,
@@ -375,6 +421,12 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
            (isolate == nullptr && isolate_group != nullptr &&
             function.GetFfiCallbackKind() ==
                 FfiCallbackKind::kIsolateGroupBoundClosureCallback));
+
+    if (function.GetFfiCallbackKind() ==
+        FfiCallbackKind::kIsolateGroupBoundClosureCallback) {
+      EnsureOnlyTriviallyImmutableValuesInClosure(zone, closure.ptr());
+    }
+
     handle = CreatePersistentHandle(
         isolate != nullptr ? isolate->group() : isolate_group, closure);
   }

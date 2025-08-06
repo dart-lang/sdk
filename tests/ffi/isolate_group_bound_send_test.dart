@@ -21,10 +21,15 @@ import "package:expect/expect.dart";
 main() async {
   asyncStart();
   ReceivePort rp = ReceivePort();
-  IsolateGroup.runSync(() {
-    rp.sendPort.send("hello");
-  });
-  Expect.equals("hello", await rp.first);
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        rp.sendPort.send("hello");
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains('Only trivially-immutable'),
+  );
   rp.close();
   asyncEnd();
 }

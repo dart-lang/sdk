@@ -346,6 +346,10 @@ class FfiCallbackMetadata {
 #error What architecture?
 #endif
 
+  static void EnsureOnlyTriviallyImmutableValuesInClosure(
+      Zone* zone,
+      ClosurePtr closure_ptr);
+
   // Visible for testing.
   MetadataEntry* MetadataEntryOfTrampoline(Trampoline trampoline) const;
   Trampoline TrampolineOfMetadataEntry(MetadataEntry* metadata) const;

@@ -50,7 +50,30 @@ var list_length = 0;
 @pragma('vm:shared')
 String string_foo = "";
 
-main() {
+@pragma('vm:shared')
+SendPort? sp;
+
+StringMethodTearoffTest() {
+  final stringTearoff = "abc".toString;
+  IsolateGroup.runSync(() {
+    stringTearoff;
+  });
+}
+
+ListMethodTearoffTest(List<String> args) {
+  final listTearoff = args.insert;
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        listTearoff;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+}
+
+main(List<String> args) {
   IsolateGroup.runSync(() {
     final l = <int>[];
     for (int i = 0; i < 100; i++) {
@@ -180,6 +203,21 @@ main() {
       Isolate.spawnUri(Uri.parse("http://127.0.0.1"), [], (_) {});
     });
   }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  StringMethodTearoffTest();
+  ListMethodTearoffTest(args);
+
+  final rp = ReceivePort();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        sp = rp.sendPort;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+  rp.close();
 
   print("All tests completed :)");
 }
