@@ -8,8 +8,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' // ignore: implementation_imports
-    show FunctionDeclarationImpl;
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_imports
     show InvalidTypeImpl;
@@ -47,7 +45,7 @@ extension AstNodeExtension on AstNode {
       EnumDeclaration() => self.augmentKeyword != null,
       ExtensionTypeDeclaration() => self.augmentKeyword != null,
       FieldDeclaration() => self.augmentKeyword != null,
-      FunctionDeclarationImpl() => self.augmentKeyword != null,
+      FunctionDeclaration() => self.augmentKeyword != null,
       FunctionExpression() => self.parent?.isAugmentation ?? false,
       MethodDeclaration() => self.augmentKeyword != null,
       MixinDeclaration() => self.augmentKeyword != null,
@@ -131,7 +129,7 @@ extension AstNodeNullableExtension on AstNode? {
 }
 
 extension BlockExtension on Block {
-  /// Returns the last statement of this block, or `null` if this is empty.
+  /// The last statement of this block, or `null` if this is empty.
   ///
   /// If the last immediate statement of this block is a [Block], recurses into
   /// it to find the last statement.
@@ -148,20 +146,14 @@ extension BlockExtension on Block {
 }
 
 extension ClassElementExtension on ClassElement {
-  bool get hasImmutableAnnotation {
-    var inheritedAndSelfElements = <InterfaceElement>[
-      ...allSupertypes.map((t) => t.element),
-      this,
-    ];
+  /// Whether this [ClassElement], or one of its supertypes, is annotated with
+  /// `@Immutable`.
+  bool get hasImmutableAnnotation => [
+    ...allSupertypes.map((t) => t.element),
+    this,
+  ].any((e) => e.metadata.hasImmutable);
 
-    return inheritedAndSelfElements.any((e) => e.metadata.hasImmutable);
-
-    // TODO(pq): update when implemented or replace w/ a better has{*} call
-    // https://github.com/dart-lang/linter/issues/4939
-    //return inheritedAndSelfElements.any((e) => e.augmented.metadata.any((e) => e.isImmutable));
-  }
-
-  bool get hasSubclassInDefiningCompilationUnit {
+  bool get _hasSubclassInDefiningCompilationUnit {
     for (var cls in library.classes) {
       InterfaceType? classType = cls.thisType;
       do {
@@ -232,7 +224,7 @@ extension ClassElementExtension on ClassElement {
     }
 
     // And no subclasses in the defining library.
-    if (hasSubclassInDefiningCompilationUnit) return null;
+    if (_hasSubclassInDefiningCompilationUnit) return null;
 
     return EnumLikeClassDescription(enumConstants);
   }
@@ -240,14 +232,9 @@ extension ClassElementExtension on ClassElement {
   bool isEnumLikeClass() => asEnumLikeClass() != null;
 }
 
-extension ClassMemberListExtension on List<ClassMember> {
-  MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
-      .firstWhereOrNull((node) => node.name.lexeme == name);
-}
-
 extension ConstructorElementExtension on ConstructorElement {
-  /// Returns whether `this` is the same element as the [className] constructor
-  /// named [constructorName] declared in [uri].
+  /// Whether this [ConstructorElement] is the same constructor as the
+  /// [className] constructor named [constructorName] declared in [uri].
   bool isSameAs({
     required String uri,
     required String className,
@@ -259,43 +246,41 @@ extension ConstructorElementExtension on ConstructorElement {
 }
 
 extension DartTypeExtension on DartType? {
+  /// Whether this [DartType] extends [className], declared in [library].
   bool extendsClass(String? className, String library) {
     var self = this;
-    if (self is InterfaceType) {
-      return _extendsClass(self, <InterfaceElement>{}, className, library);
-    }
-    return false;
+    return self is InterfaceType &&
+        _extendsClass(self, <InterfaceElement>{}, className, library);
   }
 
+  /// Whether this [DartType] implements any of [definitions].
   bool implementsAnyInterface(Iterable<InterfaceTypeDefinition> definitions) {
-    bool isAnyInterface(InterfaceType i) =>
-        definitions.any((d) => i.isSameAs(d.name, d.library));
-
     var typeToCheck = this;
     if (typeToCheck is TypeParameterType) {
       typeToCheck = typeToCheck.typeForInterfaceCheck;
     }
-    if (typeToCheck is InterfaceType) {
-      return isAnyInterface(typeToCheck) ||
-          !typeToCheck.element.isSynthetic &&
-              typeToCheck.element.allSupertypes.any(isAnyInterface);
-    } else {
-      return false;
-    }
+    if (typeToCheck is! InterfaceType) return false;
+
+    bool isAnyInterface(InterfaceType i) =>
+        definitions.any((d) => i.isSameAs(d.name, d.library));
+
+    return isAnyInterface(typeToCheck) ||
+        !typeToCheck.element.isSynthetic &&
+            typeToCheck.element.allSupertypes.any(isAnyInterface);
   }
 
+  /// Whether this [DartType] implements [interface], declared in [library].
   bool implementsInterface(String interface, String library) {
     var self = this;
-    if (self is! InterfaceType) {
-      return false;
-    }
-    bool predicate(InterfaceType i) => i.isSameAs(interface, library);
-    var element = self.element;
-    return predicate(self) ||
-        !element.isSynthetic && element.allSupertypes.any(predicate);
+    if (self is! InterfaceType) return false;
+    if (self.isSameAs(interface, library)) return true;
+    if (self.element.isSynthetic) return false;
+    return self.element.allSupertypes.any(
+      (i) => i.isSameAs(interface, library),
+    );
   }
 
-  /// Returns whether `this` is the same element as [interface], declared in
+  /// Whether this [DartType] is the same element as [interface], declared in
   /// [library].
   bool isSameAs(String? interface, String? library) {
     var self = this;
@@ -535,13 +520,6 @@ extension InstanceElementExtension on InstanceElement {
   bool get isReflectiveTest =>
       this is ClassElement &&
       metadata.annotations.any((a) => a.isReflectiveTest);
-}
-
-extension InterfaceElementExtension on InterfaceElement {
-  /// Whether this element has the exact [name] and defined in the file with
-  /// the given [uri].
-  bool isExactly(String name, Uri uri) =>
-      this.name == name && enclosingElement.uri == uri;
 }
 
 extension InterfaceTypeExtension on InterfaceType {
