@@ -997,8 +997,8 @@ class _SanitizedMember {
               .withLocation2(classMember.uriOffset));
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-            templateImplementNonExtensionTypeAndExtensionTypeMember
-                .withArguments(extensionTypeDeclarationBuilder.name, name.text),
+            codeImplementNonExtensionTypeAndExtensionTypeMember.withArguments(
+                extensionTypeDeclarationBuilder.name, name.text),
             extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,
             extensionTypeDeclarationBuilder.fileUri,
@@ -1010,7 +1010,7 @@ class _SanitizedMember {
               .withLocation2(classMember.uriOffset));
         }
         extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-            templateImplementMultipleExtensionTypeMembers.withArguments(
+            codeImplementMultipleExtensionTypeMembers.withArguments(
                 extensionTypeDeclarationBuilder.name, name.text),
             extensionTypeDeclarationBuilder.fileOffset,
             extensionTypeDeclarationBuilder.name.length,

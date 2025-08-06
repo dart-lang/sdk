@@ -164,20 +164,18 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     if (!evaluator.hasPrimitiveEqual(constant,
         staticTypeContext: evaluator.staticTypeContext)) {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
-        return evaluator.createEvaluationErrorConstant(
-            context,
-            templateConstEvalElementNotPrimitiveEquality
-                .withArguments(constant));
+        return evaluator.createEvaluationErrorConstant(context,
+            codeConstEvalElementNotPrimitiveEquality.withArguments(constant));
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(context,
-            templateConstEvalElementImplementsEqual.withArguments(constant));
+            codeConstEvalElementImplementsEqual.withArguments(constant));
       }
     }
     bool unseen = seen.add(constant);
     if (!unseen) {
       return evaluator.createEvaluationErrorConstant(
-          context, templateConstEvalDuplicateElement.withArguments(constant));
+          context, codeConstEvalDuplicateElement.withArguments(constant));
     }
 
     List<Constant> lastPart;
@@ -310,17 +308,17 @@ class MapConstantBuilder {
         staticTypeContext: evaluator.staticTypeContext)) {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(keyContext,
-            templateConstEvalKeyNotPrimitiveEquality.withArguments(key));
+            codeConstEvalKeyNotPrimitiveEquality.withArguments(key));
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(
-            keyContext, templateConstEvalKeyImplementsEqual.withArguments(key));
+            keyContext, codeConstEvalKeyImplementsEqual.withArguments(key));
       }
     }
     bool unseenKey = seenKeys.add(key);
     if (!unseenKey) {
       return evaluator.createEvaluationErrorConstant(
-          keyContext, templateConstEvalDuplicateKey.withArguments(key));
+          keyContext, codeConstEvalDuplicateKey.withArguments(key));
     }
 
     Constant key2 = evaluator.ensureIsSubtype(key, keyType, keyContext);

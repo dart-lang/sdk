@@ -27,7 +27,7 @@ class NominalParameterNameSpace {
           _problemReporting.addProblem(messageTypeParameterDuplicatedName,
               tv.fileOffset, tv.name.length, tv.fileUri,
               context: [
-                templateTypeParameterDuplicatedNameCause
+                codeTypeParameterDuplicatedNameCause
                     .withArguments(tv.name)
                     .withLocation(existing.fileUri, existing.fileOffset,
                         existing.name.length)

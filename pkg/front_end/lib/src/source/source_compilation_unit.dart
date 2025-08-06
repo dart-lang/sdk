@@ -419,7 +419,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       // If trying to set a language version that is higher than the current sdk
       // version it's an error.
       addPostponedProblem(
-          templateLanguageVersionTooHighExplicit.withArguments(
+          codeLanguageVersionTooHighExplicit.withArguments(
               version.major,
               version.minor,
               loader.target.currentSdkVersion.major,
@@ -433,7 +433,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           fileUri, offset, length, packageLanguageVersion.version, true);
     } else if (version < loader.target.leastSupportedVersion) {
       addPostponedProblem(
-          templateLanguageVersionTooLowExplicit.withArguments(
+          codeLanguageVersionTooLowExplicit.withArguments(
               version.major,
               version.minor,
               loader.target.leastSupportedVersion.major,
@@ -691,11 +691,8 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
               partUri: fileUri);
         }
       } else {
-        addProblem(
-            templatePartTwice.withArguments(part.compilationUnit.fileUri),
-            -1,
-            noLength,
-            fileUri);
+        addProblem(codePartTwice.withArguments(part.compilationUnit.fileUri),
+            -1, noLength, fileUri);
       }
     }
     if (_augmentations != null) {
@@ -731,7 +728,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           if (isNotMalformedUriScheme(part.partOfUri!) &&
               part.partOfUri != parentCompilationUnit.importUri) {
             parentCompilationUnit.addProblem(
-                templatePartOfUriMismatch.withArguments(part.fileUri,
+                codePartOfUriMismatch.withArguments(part.fileUri,
                     parentCompilationUnit.importUri, part.partOfUri!),
                 partOffset,
                 noLength,
@@ -742,7 +739,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           if (parentCompilationUnit.name != null) {
             if (part.partOfName != parentCompilationUnit.name) {
               parentCompilationUnit.addProblem(
-                  templatePartOfLibraryNameMismatch.withArguments(part.fileUri,
+                  codePartOfLibraryNameMismatch.withArguments(part.fileUri,
                       parentCompilationUnit.name!, part.partOfName!),
                   partOffset,
                   noLength,
@@ -751,7 +748,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             }
           } else {
             parentCompilationUnit.addProblem(
-                templatePartOfUseUri.withArguments(part.fileUri,
+                codePartOfUseUri.withArguments(part.fileUri,
                     parentCompilationUnit.fileUri, part.partOfName!),
                 partOffset,
                 noLength,
@@ -762,7 +759,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           assert(!part.isPart);
           if (isNotMalformedUriScheme(part.fileUri)) {
             parentCompilationUnit.addProblem(
-                templateMissingPartOf.withArguments(part.fileUri),
+                codeMissingPartOf.withArguments(part.fileUri),
                 partOffset,
                 noLength,
                 parentCompilationUnit.fileUri);
@@ -785,7 +782,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // "part of" declaration).
         if (isNotMalformedUriScheme(part.fileUri)) {
           parentCompilationUnit.addProblem(
-              templateMissingPartOf.withArguments(part.fileUri),
+              codeMissingPartOf.withArguments(part.fileUri),
               partOffset,
               noLength,
               parentCompilationUnit.fileUri);
@@ -988,7 +985,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (import.importedCompilationUnit?.isPart ?? false) {
         // Coverage-ignore-block(suite): Not run.
         addProblem(
-            templatePartOfInLibrary
+            codePartOfInLibrary
                 .withArguments(import.importedCompilationUnit!.fileUri),
             import.importOffset,
             noLength,
@@ -1149,17 +1146,17 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ? feature.enabledVersion.toText()
           : "the current release";
       if (_languageVersion.isExplicit) {
-        message = templateExperimentOptOutExplicit.withArguments(
+        message = codeExperimentOptOutExplicit.withArguments(
             feature.flag.name, enabledVersionText);
         addProblem(message, charOffset, length, fileUri,
             context: <LocatedMessage>[
-              templateExperimentOptOutComment
+              codeExperimentOptOutComment
                   .withArguments(feature.flag.name)
                   .withLocation(_languageVersion.fileUri!,
                       _languageVersion.charOffset, _languageVersion.charCount)
             ]);
       } else {
-        message = templateExperimentOptOutImplicit.withArguments(
+        message = codeExperimentOptOutImplicit.withArguments(
             feature.flag.name, enabledVersionText);
         addProblem(message, charOffset, length, fileUri);
       }
@@ -1167,16 +1164,15 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       if (feature.flag.isEnabledByDefault) {
         // Coverage-ignore-block(suite): Not run.
         if (_languageVersion.version < feature.enabledVersion) {
-          message =
-              templateExperimentDisabledInvalidLanguageVersion.withArguments(
-                  feature.flag.name, feature.enabledVersion.toText());
+          message = codeExperimentDisabledInvalidLanguageVersion.withArguments(
+              feature.flag.name, feature.enabledVersion.toText());
           addProblem(message, charOffset, length, fileUri);
         } else {
-          message = templateExperimentDisabled.withArguments(feature.flag.name);
+          message = codeExperimentDisabled.withArguments(feature.flag.name);
           addProblem(message, charOffset, length, fileUri);
         }
       } else {
-        message = templateExperimentNotEnabledOffByDefault
+        message = codeExperimentNotEnabledOffByDefault
             .withArguments(feature.flag.name);
         addProblem(message, charOffset, length, fileUri);
       }
@@ -1202,12 +1198,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       }
       if (deferredFileOffset != null) {
         _problemReporting.addProblem(
-            templateDeferredPrefixDuplicated.withArguments(name),
+            codeDeferredPrefixDuplicated.withArguments(name),
             deferredFileOffset,
             noLength,
             fileUri,
             context: [
-              templateDeferredPrefixDuplicatedCause
+              codeDeferredPrefixDuplicatedCause
                   .withArguments(name)
                   .withLocation(fileUri, otherFileOffset!, noLength)
             ]);
@@ -1217,15 +1213,13 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     } else if (existing != null) {
       String fullName = name;
       _problemReporting.addProblem(
-          templateDuplicatedDeclaration.withArguments(fullName),
+          codeDuplicatedDeclaration.withArguments(fullName),
           charOffset,
           fullName.length,
           prefixFragment.fileUri,
           context: <LocatedMessage>[
-            templateDuplicatedDeclarationCause
-                .withArguments(fullName)
-                .withLocation(
-                    existing.fileUri!, existing.fileOffset, fullName.length)
+            codeDuplicatedDeclarationCause.withArguments(fullName).withLocation(
+                existing.fileUri!, existing.fileOffset, fullName.length)
           ]);
     }
     _prefixNameSpace.addLocalMember(name, prefixFragment.createPrefixBuilder(),

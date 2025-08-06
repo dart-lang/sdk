@@ -48,11 +48,11 @@ abstract class ConstantIntFolder {
       Expression node, String op, num left, num right) {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
       return evaluator.createEvaluationErrorConstant(node,
-          templateConstEvalNegativeShift.withArguments(op, '$left', '$right'));
+          codeConstEvalNegativeShift.withArguments(op, '$left', '$right'));
     }
     if ((op == '%' || op == '~/') && right == 0) {
       return evaluator.createEvaluationErrorConstant(
-          node, templateConstEvalZeroDivisor.withArguments(op, '$left'));
+          node, codeConstEvalZeroDivisor.withArguments(op, '$left'));
     }
     return null;
   }
@@ -86,10 +86,8 @@ class VmConstantIntFolder extends ConstantIntFolder {
         return new IntConstant(~operand.value);
       default:
         // Coverage-ignore: Probably unreachable.
-        return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Unary '$op' operation"));
+        return evaluator.createExpressionErrorConstant(node,
+            codeNotConstantExpression.withArguments("Unary '$op' operation"));
     }
   }
 
@@ -137,10 +135,8 @@ class VmConstantIntFolder extends ConstantIntFolder {
         return evaluator.makeBoolConstant(a > b);
       default:
         // Coverage-ignore: Probably unreachable.
-        return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Binary '$op' operation"));
+        return evaluator.createExpressionErrorConstant(node,
+            codeNotConstantExpression.withArguments("Binary '$op' operation"));
     }
   }
 
@@ -149,8 +145,8 @@ class VmConstantIntFolder extends ConstantIntFolder {
     try {
       return new IntConstant(left ~/ right);
     } catch (e) {
-      return evaluator.createEvaluationErrorConstant(node,
-          templateConstEvalTruncateError.withArguments('$left', '$right'));
+      return evaluator.createEvaluationErrorConstant(
+          node, codeConstEvalTruncateError.withArguments('$left', '$right'));
     }
   }
 }
@@ -204,10 +200,8 @@ class JsConstantIntFolder extends ConstantIntFolder {
         return new DoubleConstant(_truncate32(~intValue).toDouble());
       default:
         // Coverage-ignore: Probably unreachable.
-        return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Unary '$op' operation"));
+        return evaluator.createExpressionErrorConstant(node,
+            codeNotConstantExpression.withArguments("Unary '$op' operation"));
     }
   }
 
@@ -261,10 +255,8 @@ class JsConstantIntFolder extends ConstantIntFolder {
         return evaluator.makeBoolConstant(a > b);
       default:
         // Coverage-ignore: Probably unreachable.
-        return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Binary '$op' operation"));
+        return evaluator.createExpressionErrorConstant(node,
+            codeNotConstantExpression.withArguments("Binary '$op' operation"));
     }
   }
 
@@ -272,8 +264,8 @@ class JsConstantIntFolder extends ConstantIntFolder {
   Constant truncatingDivide(Expression node, num left, num right) {
     double division = (left / right);
     if (division.isNaN || division.isInfinite) {
-      return evaluator.createEvaluationErrorConstant(node,
-          templateConstEvalTruncateError.withArguments('$left', '${right}'));
+      return evaluator.createEvaluationErrorConstant(
+          node, codeConstEvalTruncateError.withArguments('$left', '${right}'));
     }
     double result = division.truncateToDouble();
     return new DoubleConstant(result == 0.0 ? 0.0 : result);

@@ -590,7 +590,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
       _problemReporting.addProblem(
-          templateCouldNotParseUri.withArguments(uri, e.message),
+          codeCouldNotParseUri.withArguments(uri, e.message),
           uriOffset +
               1 +
               (e.offset ?? // Coverage-ignore(suite): Not run.
@@ -1499,7 +1499,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       _problemReporting.addProblem(messageConstructorWithWrongName, charOffset,
           prefix.length, _compilationUnit.fileUri,
           context: [
-            templateConstructorWithWrongNameContext
+            codeConstructorWithWrongNameContext
                 .withArguments(enclosingDeclaration.name)
                 .withLocation2(enclosingDeclaration.uriOffset)
           ]);
@@ -1933,7 +1933,7 @@ class FragmentFactoryImpl implements FragmentFactory {
         _problemReporting.addProblem(messageTypeParameterDuplicatedName,
             tv.fileOffset, tv.name.length, _compilationUnit.fileUri,
             context: [
-              templateTypeParameterDuplicatedNameCause
+              codeTypeParameterDuplicatedNameCause
                   .withArguments(tv.name)
                   .withLocation(_compilationUnit.fileUri, existing.fileOffset,
                       existing.name.length)

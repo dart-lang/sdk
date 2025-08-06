@@ -23,7 +23,7 @@ import '../builder/member_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/property_builder.dart';
 import '../codes/cfe_codes.dart'
-    show LocatedMessage, Message, CfeSeverity, noLength, templateUnspecified;
+    show LocatedMessage, Message, CfeSeverity, noLength, codeUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/utils.dart';
 import '../source/name_scheme.dart';
@@ -406,7 +406,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         assert(name == 'Never', "Unexpected export name for 'Never': '$name'");
         declaration = loader.coreLibrary.exportNameSpace.lookup(name)!.getable!;
       } else {
-        Message message = templateUnspecified.withArguments(messageText);
+        Message message = codeUnspecified.withArguments(messageText);
         if (!suppressFinalizationErrors) {
           addProblem(message, -1, noLength, null);
         }
@@ -465,8 +465,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         LibraryBuilder? library = loader.lookupLibraryBuilder(libraryUri);
         if (library == null) {
           internalProblem(
-              templateUnspecified
-                  .withArguments("No builder for '$libraryUri'."),
+              codeUnspecified.withArguments("No builder for '$libraryUri'."),
               -1,
               fileUri);
         }

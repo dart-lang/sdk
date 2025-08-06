@@ -336,7 +336,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         // Cyclic type alias.
         currentAliasBuilder.libraryBuilder.addProblem(
-            templateCyclicTypedef.withArguments(this.name),
+            codeCyclicTypedef.withArguments(this.name),
             fileOffset,
             noLength,
             fileUri);
@@ -439,7 +439,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         // Coverage-ignore-block(suite): Not run.
         if (previousAliasBuilder != null) {
           previousAliasBuilder.libraryBuilder.addProblem(
-              templateTypeArgumentMismatch.withArguments(
+              codeTypeArgumentMismatch.withArguments(
                   currentAliasBuilder.typeParameters?.length ?? 0),
               previousAliasBuilder.fileOffset,
               noLength,

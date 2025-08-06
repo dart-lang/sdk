@@ -25,16 +25,16 @@ import '../base/messages.dart'
         messageTypeVariableInStaticContext,
         messageTypedefCause,
         noLength,
-        templateExtendingRestricted,
-        templateNotAPrefixInTypeAnnotation,
-        templateNotAType,
-        templateSupertypeIsIllegal,
-        templateSupertypeIsIllegalAliased,
-        templateSupertypeIsNullableAliased,
-        templateSupertypeIsTypeParameter,
-        templateTypeArgumentMismatch,
-        templateTypeArgumentsOnTypeVariable,
-        templateTypeNotFound;
+        codeExtendingRestricted,
+        codeNotAPrefixInTypeAnnotation,
+        codeNotAType,
+        codeSupertypeIsIllegal,
+        codeSupertypeIsIllegalAliased,
+        codeSupertypeIsNullableAliased,
+        codeSupertypeIsTypeParameter,
+        codeTypeArgumentMismatch,
+        codeTypeArgumentsOnTypeVariable,
+        codeTypeNotFound;
 import '../base/scope.dart';
 import '../base/uris.dart';
 import '../dill/dill_class_builder.dart';
@@ -241,7 +241,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Attempt to use a member or type parameter as a prefix.
         int nameOffset = typeName.fullNameOffset;
         int nameLength = typeName.fullNameLength;
-        Message message = templateNotAPrefixInTypeAnnotation.withArguments(
+        Message message = codeNotAPrefixInTypeAnnotation.withArguments(
             qualifier, typeName.name);
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         bind(
@@ -269,17 +269,17 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       bind(problemReporting, member);
     } else {
       Template<Message Function(String name)> template =
-          member == null ? templateTypeNotFound : templateNotAType;
+          member == null ? codeTypeNotFound : codeNotAType;
       String nameText = typeName.fullName;
       int nameOffset = typeName.fullNameOffset;
       int nameLength = typeName.fullNameLength;
       Message message;
       List<LocatedMessage>? context;
       if (member == null) {
-        template = templateTypeNotFound;
+        template = codeTypeNotFound;
         message = template.withArguments(nameText);
       } else {
-        template = templateNotAType;
+        template = codeNotAType;
         context = <LocatedMessage>[
           messageNotATypeContext.withLocation(
               member.fileUri!, member.fileOffset, nameLength)
@@ -305,7 +305,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
         Message message =
-            templateTypeArgumentsOnTypeVariable.withArguments(nameText);
+            codeTypeArgumentsOnTypeVariable.withArguments(nameText);
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         // TODO(johnniwinther): Should we retain the declaration to support
         //  additional errors?
@@ -314,7 +314,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       } else if (typeArguments!.length != declaration.typeParametersCount) {
         int nameOffset = typeName.nameOffset;
         int nameLength = typeName.nameLength;
-        Message message = templateTypeArgumentMismatch
+        Message message = codeTypeArgumentMismatch
             .withArguments(declaration.typeParametersCount);
         problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
         _declaration = buildInvalidTypeDeclarationBuilder(
@@ -328,7 +328,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       int nameOffset = typeName.nameOffset;
       int nameLength = typeName.nameLength;
       // TODO(johnniwinther): Create a custom message.
-      Message message = templateNotAType.withArguments(nameText);
+      Message message = codeNotAType.withArguments(nameText);
       problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, nameOffset, nameLength));
@@ -401,8 +401,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
     Template<Message Function(String name)> template =
         declaration.isTypeParameter
-            ? templateSupertypeIsTypeParameter
-            : templateSupertypeIsIllegal;
+            ? codeSupertypeIsTypeParameter
+            : codeSupertypeIsIllegal;
     library.addProblem(template.withArguments(fullNameForErrors), charOffset!,
         noLength, fileUri);
     return null;
@@ -417,14 +417,13 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Message message;
     if (declaration.isTypeParameter) {
       // Coverage-ignore-block(suite): Not run.
-      message =
-          templateSupertypeIsTypeParameter.withArguments(fullNameForErrors);
+      message = codeSupertypeIsTypeParameter.withArguments(fullNameForErrors);
     } else if (type.nullability == Nullability.nullable) {
-      message = templateSupertypeIsNullableAliased.withArguments(
-          fullNameForErrors, type);
+      message =
+          codeSupertypeIsNullableAliased.withArguments(fullNameForErrors, type);
     } else {
-      message = templateSupertypeIsIllegalAliased.withArguments(
-          fullNameForErrors, type);
+      message =
+          codeSupertypeIsIllegalAliased.withArguments(fullNameForErrors, type);
     }
     library.addProblem(message, charOffset!, noLength, fileUri, context: [
       messageTypedefCause.withLocation(
@@ -580,7 +579,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           // Coverage-ignore-block(suite): Not run.
           if (!library.mayImplementRestrictedTypes) {
             library.addProblem(
-                templateExtendingRestricted.withArguments(declaration.name),
+                codeExtendingRestricted.withArguments(declaration.name),
                 charOffset!,
                 noLength,
                 fileUri);

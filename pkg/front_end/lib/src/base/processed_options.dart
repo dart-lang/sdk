@@ -37,18 +37,18 @@ import '../codes/cfe_codes.dart'
         messageInternalProblemProvidedBothCompileSdkAndSdkSummary,
         messageMissingInput,
         noLength,
-        templateCannotReadSdkSpecification,
-        templateCantReadFile,
-        templateDebugTrace,
-        templateExceptionReadingFile,
-        templateExperimentExpiredDisabled,
-        templateExperimentExpiredEnabled,
-        templateInputFileNotFound,
-        templateInternalProblemUnsupported,
-        templatePackagesFileFormat,
-        templateSdkRootNotFound,
-        templateSdkSpecificationNotFound,
-        templateSdkSummaryNotFound;
+        codeCannotReadSdkSpecification,
+        codeCantReadFile,
+        codeDebugTrace,
+        codeExceptionReadingFile,
+        codeExperimentExpiredDisabled,
+        codeExperimentExpiredEnabled,
+        codeInputFileNotFound,
+        codeInternalProblemUnsupported,
+        codePackagesFileFormat,
+        codeSdkRootNotFound,
+        codeSdkSpecificationNotFound,
+        codeSdkSummaryNotFound;
 import 'command_line_reporting.dart' as command_line_reporting;
 import 'compiler_context.dart';
 import 'messages.dart' show getLocation;
@@ -287,7 +287,7 @@ class ProcessedOptions {
         return;
       }
       if (_raw.skipForDebugging < 0) {
-        print(templateDebugTrace
+        print(codeDebugTrace
             .withArguments("$severity", "${StackTrace.current}")
             .problemMessage);
       } else {
@@ -372,7 +372,7 @@ class ProcessedOptions {
         !await fileSystem.entityForUri(sdkRoot!).exists()) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-          templateSdkRootNotFound.withArguments(sdkRoot!), CfeSeverity.error);
+          codeSdkRootNotFound.withArguments(sdkRoot!), CfeSeverity.error);
       return false;
     }
 
@@ -380,7 +380,7 @@ class ProcessedOptions {
     if (summary != null && !await fileSystem.entityForUri(summary).exists()) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-          templateSdkSummaryNotFound.withArguments(summary), CfeSeverity.error);
+          codeSdkSummaryNotFound.withArguments(summary), CfeSeverity.error);
       return false;
     }
 
@@ -398,7 +398,7 @@ class ProcessedOptions {
       // recover from this.
       if (!await fileSystem.entityForUri(source).exists()) {
         reportWithoutLocation(
-            templateInputFileNotFound.withArguments(source), CfeSeverity.error);
+            codeInputFileNotFound.withArguments(source), CfeSeverity.error);
         return false;
       }
     }
@@ -412,12 +412,11 @@ class ProcessedOptions {
         // Coverage-ignore-block(suite): Not run.
         if (value) {
           reportWithoutLocation(
-              templateExperimentExpiredEnabled
-                  .withArguments(experimentalFlag.name),
+              codeExperimentExpiredEnabled.withArguments(experimentalFlag.name),
               CfeSeverity.error);
         } else {
           reportWithoutLocation(
-              templateExperimentExpiredDisabled
+              codeExperimentExpiredDisabled
                   .withArguments(experimentalFlag.name),
               CfeSeverity.error);
         }
@@ -564,7 +563,7 @@ class ProcessedOptions {
       if (compileSdk) {
         // Coverage-ignore-block(suite): Not run.
         reportWithoutLocation(
-            templateSdkSpecificationNotFound
+            codeSdkSpecificationNotFound
                 .withArguments(librariesSpecificationUri!),
             CfeSeverity.error);
       }
@@ -580,7 +579,7 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on LibrariesSpecificationException catch (e) {
       reportWithoutLocation(
-          templateCannotReadSdkSpecification.withArguments('${e.error}'),
+          codeCannotReadSdkSpecification.withArguments('${e.error}'),
           CfeSeverity.error);
       return new TargetLibrariesSpecification(name);
     }
@@ -653,11 +652,11 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (e) {
       reportWithoutLocation(
-          templateCantReadFile.withArguments(uri, osErrorMessage(e.message)),
+          codeCantReadFile.withArguments(uri, osErrorMessage(e.message)),
           CfeSeverity.error);
     } catch (e) {
       // Coverage-ignore-block(suite): Not run.
-      Message message = templateExceptionReadingFile.withArguments(uri, '$e');
+      Message message = codeExceptionReadingFile.withArguments(uri, '$e');
       reportWithoutLocation(message, CfeSeverity.error);
       // We throw a new exception to ensure that the message include the uri
       // that led to the exception. Exceptions in Uri don't include the
@@ -689,13 +688,13 @@ class ProcessedOptions {
           (Object error) {
         if (error is FormatException) {
           reportNoSourceLine(
-              templatePackagesFileFormat
+              codePackagesFileFormat
                   .withArguments(error.message)
                   .withLocation(requestedUri, error.offset ?? -1, noLength),
               CfeSeverity.error);
         } else {
           reportWithoutLocation(
-              templateCantReadFile.withArguments(
+              codeCantReadFile.withArguments(
                   requestedUri, osErrorMessage(error)),
               CfeSeverity.error);
         }
@@ -707,14 +706,14 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FormatException catch (e) {
       reportNoSourceLine(
-          templatePackagesFileFormat
+          codePackagesFileFormat
               .withArguments(e.message)
               .withLocation(requestedUri, e.offset ?? -1, noLength),
           CfeSeverity.error);
     } catch (e) {
       // Coverage-ignore-block(suite): Not run.
       reportWithoutLocation(
-          templateCantReadFile.withArguments(requestedUri, "$e"),
+          codeCantReadFile.withArguments(requestedUri, "$e"),
           CfeSeverity.error);
     }
     // Coverage-ignore(suite): Not run.
@@ -749,7 +748,7 @@ class ProcessedOptions {
     Uri dir = scriptUri.resolve('.');
     if (!dir.isAbsolute) {
       reportWithoutLocation(
-          templateInternalProblemUnsupported
+          codeInternalProblemUnsupported
               .withArguments("Expected input Uri to be absolute: $scriptUri."),
           CfeSeverity.internalProblem);
       return _PackageConfigAndUri.empty;
@@ -763,7 +762,7 @@ class ProcessedOptions {
         return null;
       } catch (e) {
         Message message =
-            templateExceptionReadingFile.withArguments(candidate!, '$e');
+            codeExceptionReadingFile.withArguments(candidate!, '$e');
         reportWithoutLocation(message, CfeSeverity.error);
         // We throw a new exception to ensure that the message include the uri
         // that led to the exception. Exceptions in Uri don't include the
@@ -892,7 +891,7 @@ class ProcessedOptions {
       return await file.readAsBytes();
     } on FileSystemException catch (error) {
       reportWithoutLocation(
-          templateCantReadFile.withArguments(
+          codeCantReadFile.withArguments(
               error.uri, osErrorMessage(error.message)),
           CfeSeverity.error);
       return null;
@@ -906,7 +905,7 @@ class ProcessedOptions {
     // Coverage-ignore(suite): Not run.
     on FileSystemException catch (error) {
       reportWithoutLocation(
-          templateCantReadFile.withArguments(
+          codeCantReadFile.withArguments(
               error.uri, osErrorMessage(error.message)),
           CfeSeverity.error);
       return null;

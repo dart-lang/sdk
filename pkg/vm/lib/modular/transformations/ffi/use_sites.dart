@@ -12,13 +12,13 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         messageFfiCreateOfStructOrUnion,
         messageFfiExceptionalReturnNull,
         messageFfiExpectedConstant,
-        templateFfiDartTypeMismatch,
-        templateFfiNativeCallableListenerReturnVoid,
-        templateFfiExpectedConstantArg,
-        templateFfiExpectedExceptionalReturn,
-        templateFfiExpectedNoExceptionalReturn,
-        templateFfiExtendsOrImplementsSealedClass,
-        templateFfiNotStatic;
+        codeFfiDartTypeMismatch,
+        codeFfiNativeCallableListenerReturnVoid,
+        codeFfiExpectedConstantArg,
+        codeFfiExpectedExceptionalReturn,
+        codeFfiExpectedNoExceptionalReturn,
+        codeFfiExtendsOrImplementsSealedClass,
+        codeFfiNotStatic;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/clone.dart';
@@ -599,7 +599,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         // Check return type.
         if (ffiFuncType.returnType != VoidType()) {
           diagnosticReporter.report(
-            templateFfiNativeCallableListenerReturnVoid.withArguments(
+            codeFfiNativeCallableListenerReturnVoid.withArguments(
               ffiFuncType.returnType,
             ),
             func.fileOffset,
@@ -1138,7 +1138,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isStaticFunction = _isStaticFunction(func);
     if (fromFunction && !isStaticFunction) {
       diagnosticReporter.report(
-        templateFfiNotStatic.withArguments(fromFunctionMethod.name.text),
+        codeFfiNotStatic.withArguments(fromFunctionMethod.name.text),
         func.fileOffset,
         1,
         func.location?.file,
@@ -1185,7 +1185,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         expectedReturnClass.superclass == unionClass) {
       if (hasExceptionalReturn) {
         diagnosticReporter.report(
-          templateFfiExpectedNoExceptionalReturn.withArguments(
+          codeFfiExpectedNoExceptionalReturn.withArguments(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1198,7 +1198,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // The exceptional return value is not optional for other return types.
       if (!hasExceptionalReturn) {
         diagnosticReporter.report(
-          templateFfiExpectedExceptionalReturn.withArguments(
+          codeFfiExpectedExceptionalReturn.withArguments(
             ffiFuncType.returnType,
           ),
           node.fileOffset,
@@ -1241,7 +1241,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
       if (!env.isSubtypeOf(returnType, funcType.returnType)) {
         diagnosticReporter.report(
-          templateFfiDartTypeMismatch.withArguments(
+          codeFfiDartTypeMismatch.withArguments(
             returnType,
             funcType.returnType,
           ),
@@ -1839,7 +1839,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final Class? extended = _extendsOrImplementsSealedClass(klass);
     if (extended != null) {
       diagnosticReporter.report(
-        templateFfiExtendsOrImplementsSealedClass.withArguments(extended.name),
+        codeFfiExtendsOrImplementsSealedClass.withArguments(extended.name),
         klass.fileOffset,
         1,
         klass.location?.file,
@@ -1852,7 +1852,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final isLeaf = getIsLeafBoolean(node);
     if (isLeaf == null) {
       diagnosticReporter.report(
-        templateFfiExpectedConstantArg.withArguments('isLeaf'),
+        codeFfiExpectedConstantArg.withArguments('isLeaf'),
         node.fileOffset,
         1,
         node.location?.file,

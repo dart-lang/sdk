@@ -15,7 +15,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart'
-    show templateCyclicTypedef, templateTypeArgumentMismatch;
+    show codeCyclicTypedef, codeTypeArgumentMismatch;
 import '../fragment/fragment.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -164,8 +164,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               declaration
             }) {
               seenTypeAliasBuilder.libraryBuilder.addProblem(
-                  templateCyclicTypedef
-                      .withArguments(seenTypeAliasBuilder.name),
+                  codeCyclicTypedef.withArguments(seenTypeAliasBuilder.name),
                   seenTypeAliasBuilder.fileOffset,
                   seenTypeAliasBuilder.name.length,
                   seenTypeAliasBuilder.fileUri);
@@ -343,7 +342,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           "the numbers of type parameters and type arguments don't match.",
           expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
-          templateTypeArgumentMismatch
+          codeTypeArgumentMismatch
               .withArguments(typeParametersCount)
               .problemMessage,
           "buildTypeArguments",

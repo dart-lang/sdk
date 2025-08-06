@@ -528,7 +528,7 @@ class SourceLoader extends Loader {
               packageForLanguageVersion.languageVersion!.minor);
           if (version > target.currentSdkVersion) {
             packageLanguageVersionProblem =
-                templateLanguageVersionTooHighPackage.withArguments(
+                codeLanguageVersionTooHighPackage.withArguments(
                     version.major,
                     version.minor,
                     packageForLanguageVersion.name,
@@ -538,7 +538,7 @@ class SourceLoader extends Loader {
                 fileUri, 0, noLength, target.currentSdkVersion, false);
           } else if (version < target.leastSupportedVersion) {
             packageLanguageVersionProblem =
-                templateLanguageVersionTooLowPackage.withArguments(
+                codeLanguageVersionTooLowPackage.withArguments(
                     version.major,
                     version.minor,
                     packageForLanguageVersion.name,
@@ -770,7 +770,7 @@ class SourceLoader extends Loader {
     // where the latest library is saved in a context somewhere.
     await buildBody(null);
     currentUriForCrashReporting = null;
-    logSummary(templateSourceBodySummary);
+    logSummary(codeSourceBodySummary);
   }
 
   void logSummary(Template<SummaryTemplate> template) {
@@ -840,8 +840,7 @@ severity: $severity
     }
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-          templateInternalProblemContextSeverity
-              .withArguments(message.code.name),
+          codeInternalProblemContextSeverity.withArguments(message.code.name),
           charOffset,
           fileUri);
     }
@@ -933,7 +932,7 @@ severity: $severity
   ClassMembersBuilder get membersBuilder => _membersBuilder!;
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
-      templateSourceOutlineSummary;
+      codeSourceOutlineSummary;
 
   /// The [SourceCompilationUnit]s for the `dart:` libraries that are not
   /// available.
@@ -963,14 +962,14 @@ severity: $severity
           _unavailableDartLibraries.add(compilationUnit);
         } else {
           compilationUnit.addProblemAtAccessors(
-              templateUntranslatableUri.withArguments(importUri));
+              codeUntranslatableUri.withArguments(importUri));
         }
         bytes = synthesizeSourceForMissingFile(importUri, null);
       } else if (!fileUri.hasScheme) {
         // Coverage-ignore-block(suite): Not run.
         target.benchmarker?.endSubdivide();
         return internalProblem(
-            templateInternalProblemUriMissingScheme.withArguments(fileUri),
+            codeInternalProblemUriMissingScheme.withArguments(fileUri),
             -1,
             compilationUnit.importUri);
       } else if (fileUri.isScheme(MALFORMED_URI_SCHEME)) {
@@ -989,7 +988,7 @@ severity: $severity
       try {
         rawBytes = await fileSystem.entityForUri(fileUri).readAsBytes();
       } on FileSystemException catch (e) {
-        Message message = templateCantReadFile.withArguments(
+        Message message = codeCantReadFile.withArguments(
             fileUri, target.context.options.osErrorMessage(e.message));
         compilationUnit.addProblemAtAccessors(message);
         rawBytes =
@@ -1110,8 +1109,7 @@ severity: $severity
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         List<LocatedMessage>? context;
         Uri importUri = compilationUnit.importUri;
-        Message message =
-            templateUnavailableDartLibrary.withArguments(importUri);
+        Message message = codeUnavailableDartLibrary.withArguments(importUri);
         if (rootLibrary != null) {
           loadedLibraries ??=
               new LoadedLibrariesImpl([rootLibrary], compilationUnits);
@@ -1124,14 +1122,14 @@ severity: $severity
           if (importChain.isNotEmpty) {
             if (importChain.containsAll(verboseImportChain)) {
               context = [
-                templateImportChainContextSimple
+                codeImportChainContextSimple
                     .withArguments(compilationUnit.importUri,
                         importChain.map((part) => '    $part\n').join())
                     .withoutLocation(),
               ];
             } else {
               context = [
-                templateImportChainContext
+                codeImportChainContext
                     .withArguments(
                         compilationUnit.importUri,
                         importChain.map((part) => '    $part\n').join(),
@@ -1158,8 +1156,7 @@ severity: $severity
       // message.
       for (SourceCompilationUnit compilationUnit in _unavailableDartLibraries) {
         Uri importUri = compilationUnit.importUri;
-        Message message =
-            templateUnavailableDartLibrary.withArguments(importUri);
+        Message message = codeUnavailableDartLibrary.withArguments(importUri);
 
         if (compilationUnit.accessors.length > 1) {
           for (LibraryAccess access in compilationUnit.accessors) {
@@ -1674,7 +1671,7 @@ severity: $severity
         // TODO(johnniwinther): Update the message for when an extension type
         //  depends on a cycle but does not depend on itself.
         extensionTypeBuilder.libraryBuilder.addProblem(
-            templateCyclicClassHierarchy
+            codeCyclicClassHierarchy
                 .withArguments(extensionTypeBuilder.fullNameForErrors),
             extensionTypeBuilder.fileOffset,
             noLength,
@@ -1694,13 +1691,13 @@ severity: $severity
       ConstructorBuilder constructorBuilder = iterator.current;
       if (!constructorBuilder.isSynthetic) {
         classBuilder.libraryBuilder.addProblem(
-            templateIllegalMixinDueToConstructors
+            codeIllegalMixinDueToConstructors
                 .withArguments(mixinClassBuilder.fullNameForErrors),
             classBuilder.fileOffset,
             noLength,
             classBuilder.fileUri,
             context: [
-              templateIllegalMixinDueToConstructorsCause
+              codeIllegalMixinDueToConstructorsCause
                   .withArguments(mixinClassBuilder.fullNameForErrors)
                   .withLocation(constructorBuilder.fileUri!,
                       constructorBuilder.fileOffset, noLength)
@@ -1713,8 +1710,7 @@ severity: $severity
     if (!classBuilder.libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
       // Coverage-ignore-block(suite): Not run.
       classBuilder.libraryBuilder.addProblem(
-          templateEnumSupertypeOfNonAbstractClass
-              .withArguments(classBuilder.name),
+          codeEnumSupertypeOfNonAbstractClass.withArguments(classBuilder.name),
           classBuilder.fileOffset,
           noLength,
           classBuilder.fileUri);
@@ -1736,7 +1732,7 @@ severity: $severity
       if (supertype is SourceEnumBuilder) {
         // Coverage-ignore-block(suite): Not run.
         classBuilder.libraryBuilder.addProblem(
-            templateExtendingEnum.withArguments(supertype.name),
+            codeExtendingEnum.withArguments(supertype.name),
             classBuilder.fileOffset,
             noLength,
             classBuilder.fileUri);
@@ -1747,7 +1743,7 @@ severity: $severity
         TypeAliasBuilder? aliasBuilder = directSupertypeMap[supertype];
         if (aliasBuilder != null) {
           classBuilder.libraryBuilder.addProblem(
-              templateExtendingRestricted
+              codeExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
               classBuilder.fileOffset,
               noLength,
@@ -1758,7 +1754,7 @@ severity: $severity
               ]);
         } else {
           classBuilder.libraryBuilder.addProblem(
-              templateExtendingRestricted
+              codeExtendingRestricted
                   .withArguments(supertype!.fullNameForErrors),
               classBuilder.fileOffset,
               noLength,
@@ -1779,7 +1775,7 @@ severity: $severity
           if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
               denyListedClasses.contains(unaliasedDeclaration)) {
             classBuilder.libraryBuilder.addProblem(
-                templateExtendingRestricted
+                codeExtendingRestricted
                     .withArguments(mixedInTypeBuilder.fullNameForErrors),
                 classBuilder.fileOffset,
                 noLength,
@@ -1809,7 +1805,7 @@ severity: $severity
           // TODO(ahe): Either we need to check this for superclass and
           // interfaces, or this shouldn't be necessary (or handled elsewhere).
           classBuilder.libraryBuilder.addProblem(
-              templateIllegalMixin
+              codeIllegalMixin
                   .withArguments(mixedInTypeBuilder.fullNameForErrors),
               classBuilder.fileOffset,
               noLength,
@@ -1824,7 +1820,7 @@ severity: $severity
           if (!unaliasedDeclaration.errorHasBeenReported) {
             // Coverage-ignore-block(suite): Not run.
             classBuilder.libraryBuilder.addProblem(
-                templateIllegalMixin
+                codeIllegalMixin
                     .withArguments(mixedInTypeBuilder.fullNameForErrors),
                 classBuilder.fileOffset,
                 noLength,
@@ -1971,12 +1967,12 @@ severity: $severity
         // different library which is marked base.
         /*if (baseOrFinalSuperClass.isBase) {
           cls.addProblem(
-              templateBaseClassImplementedOutsideOfLibrary
+              codeBaseClassImplementedOutsideOfLibrary
                   .withArguments(baseOrFinalSuperClass.fullNameForErrors),
               implementsBuilder.charOffset ?? TreeNode.noOffset,
               noLength,
               context: [
-                templateBaseClassImplementedOutsideOfLibraryCause
+                codeBaseClassImplementedOutsideOfLibraryCause
                     .withArguments(superclass.fullNameForErrors,
                         baseOrFinalSuperClass.fullNameForErrors)
                     .withLocation(baseOrFinalSuperClass.fileUri,
@@ -2024,8 +2020,8 @@ severity: $severity
           }
           final Template<Message Function(String, String)> template =
               cls.isMixinDeclaration
-                  ? templateMixinSubtypeOfFinalIsNotBase
-                  : templateSubtypeOfFinalIsNotBaseFinalOrSealed;
+                  ? codeMixinSubtypeOfFinalIsNotBase
+                  : codeSubtypeOfFinalIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
@@ -2035,8 +2031,8 @@ severity: $severity
         } else if (baseOrFinalSuperClass.isBase) {
           final Template<Message Function(String, String)> template =
               cls.isMixinDeclaration
-                  ? templateMixinSubtypeOfBaseIsNotBase
-                  : templateSubtypeOfBaseIsNotBaseFinalOrSealed;
+                  ? codeMixinSubtypeOfBaseIsNotBase
+                  : codeSubtypeOfBaseIsNotBaseFinalOrSealed;
           cls.libraryBuilder.addProblem(
               template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
@@ -2059,7 +2055,7 @@ severity: $severity
               !mayIgnoreClassModifiers(supertypeDeclaration)) {
             if (supertypeDeclaration.isInterface && !cls.isMixinDeclaration) {
               cls.libraryBuilder.addProblem(
-                  templateInterfaceClassExtendedOutsideOfLibrary
+                  codeInterfaceClassExtendedOutsideOfLibrary
                       .withArguments(supertypeDeclaration.fullNameForErrors),
                   supertypeBuilder.charOffset ?? TreeNode.noOffset,
                   noLength,
@@ -2069,7 +2065,7 @@ severity: $severity
             } else if (supertypeDeclaration.isFinal) {
               if (cls.isMixinDeclaration) {
                 cls.libraryBuilder.addProblem(
-                    templateFinalClassUsedAsMixinConstraintOutsideOfLibrary
+                    codeFinalClassUsedAsMixinConstraintOutsideOfLibrary
                         .withArguments(supertypeDeclaration.fullNameForErrors),
                     supertypeBuilder.charOffset ?? TreeNode.noOffset,
                     noLength,
@@ -2078,7 +2074,7 @@ severity: $severity
                         cls.fileUri);
               } else {
                 cls.libraryBuilder.addProblem(
-                    templateFinalClassExtendedOutsideOfLibrary
+                    codeFinalClassExtendedOutsideOfLibrary
                         .withArguments(supertypeDeclaration.fullNameForErrors),
                     supertypeBuilder.charOffset ?? TreeNode.noOffset,
                     noLength,
@@ -2095,7 +2091,7 @@ severity: $severity
             supertypeDeclaration.isSealed &&
             cls.libraryBuilder != supertypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-              templateSealedClassSubtypeOutsideOfLibrary
+              codeSealedClassSubtypeOutsideOfLibrary
                   .withArguments(supertypeDeclaration.fullNameForErrors),
               supertypeBuilder.charOffset ?? TreeNode.noOffset,
               noLength,
@@ -2120,7 +2116,7 @@ severity: $severity
               !mixedInTypeDeclaration.isMixinClass &&
               !mayIgnoreClassModifiers(mixedInTypeDeclaration)) {
             cls.libraryBuilder.addProblem(
-                templateCantUseClassAsMixin
+                codeCantUseClassAsMixin
                     .withArguments(mixedInTypeDeclaration.fullNameForErrors),
                 mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
                 noLength,
@@ -2135,7 +2131,7 @@ severity: $severity
             mixedInTypeDeclaration.isSealed &&
             cls.libraryBuilder != mixedInTypeDeclaration.libraryBuilder) {
           cls.libraryBuilder.addProblem(
-              templateSealedClassSubtypeOutsideOfLibrary
+              codeSealedClassSubtypeOutsideOfLibrary
                   .withArguments(mixedInTypeDeclaration.fullNameForErrors),
               mixedInTypeBuilder.charOffset ?? TreeNode.noOffset,
               noLength,
@@ -2160,7 +2156,7 @@ severity: $severity
                 !mayIgnoreClassModifiers(checkedClass)) {
               final List<LocatedMessage> context = [
                 if (checkedClass != interfaceDeclaration)
-                  templateBaseOrFinalClassImplementedOutsideOfLibraryCause
+                  codeBaseOrFinalClassImplementedOutsideOfLibraryCause
                       .withArguments(interfaceDeclaration.fullNameForErrors,
                           checkedClass.fullNameForErrors)
                       .withLocation(checkedClass.fileUri,
@@ -2172,8 +2168,8 @@ severity: $severity
                 // of its library.
                 final Template<Message Function(String)> template =
                     checkedClass.isMixinDeclaration
-                        ? templateBaseMixinImplementedOutsideOfLibrary
-                        : templateBaseClassImplementedOutsideOfLibrary;
+                        ? codeBaseMixinImplementedOutsideOfLibrary
+                        : codeBaseClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
                     template.withArguments(checkedClass.fullNameForErrors),
                     interfaceBuilder.charOffset ?? TreeNode.noOffset,
@@ -2187,11 +2183,11 @@ severity: $severity
               } else if (checkedClass.isFinal) {
                 // Report an error for a class implementing a final class
                 // outside of its library.
-                final Template<Message Function(String)> template = cls
-                            .cls.isAnonymousMixin &&
-                        checkedClass == interfaceDeclaration
-                    ? templateFinalClassUsedAsMixinConstraintOutsideOfLibrary
-                    : templateFinalClassImplementedOutsideOfLibrary;
+                final Template<Message Function(String)> template =
+                    cls.cls.isAnonymousMixin &&
+                            checkedClass == interfaceDeclaration
+                        ? codeFinalClassUsedAsMixinConstraintOutsideOfLibrary
+                        : codeFinalClassImplementedOutsideOfLibrary;
                 cls.libraryBuilder.addProblem(
                     template.withArguments(checkedClass.fullNameForErrors),
                     interfaceBuilder.charOffset ?? TreeNode.noOffset,
@@ -2213,7 +2209,7 @@ severity: $severity
               interfaceDeclaration.isSealed &&
               cls.libraryBuilder != interfaceDeclaration.libraryBuilder) {
             cls.libraryBuilder.addProblem(
-                templateSealedClassSubtypeOutsideOfLibrary
+                codeSealedClassSubtypeOutsideOfLibrary
                     .withArguments(interfaceDeclaration.fullNameForErrors),
                 interfaceBuilder.charOffset ?? TreeNode.noOffset,
                 noLength,
@@ -2375,7 +2371,7 @@ severity: $severity
                 member.enclosingClass != classBuilder.cls &&
                 member.isAbstract == false) {
               classBuilder.libraryBuilder.addProblem(
-                  templateEnumInheritsRestricted.withArguments(name.text),
+                  codeEnumInheritsRestricted.withArguments(name.text),
                   classBuilder.fileOffset,
                   classBuilder.name.length,
                   classBuilder.fileUri,
@@ -2672,7 +2668,7 @@ severity: $severity
           if (!typeEnvironment.isSubtypeOf(listOfString, parameterType)) {
             if (mainBuilder.libraryBuilder != libraryBuilder) {
               libraryBuilder.addProblem(
-                  templateMainWrongParameterTypeExported.withArguments(
+                  codeMainWrongParameterTypeExported.withArguments(
                       parameterType, listOfString),
                   libraryBuilder.fileOffset,
                   noLength,
@@ -2683,7 +2679,7 @@ severity: $severity
                   ]);
             } else {
               libraryBuilder.addProblem(
-                  templateMainWrongParameterType.withArguments(
+                  codeMainWrongParameterType.withArguments(
                       parameterType, listOfString),
                   mainBuilder.fileOffset,
                   mainBuilder.name.length,
@@ -3142,7 +3138,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     super.visitSuperMethodInvocation(node);
     _checkMember(node.interfaceTarget.name,
         isSetter: false,
-        template: templateMixinApplicationNoConcreteMethod,
+        template: codeMixinApplicationNoConcreteMethod,
         accessFileOffset: node.fileOffset);
   }
 
@@ -3151,7 +3147,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     super.visitSuperPropertyGet(node);
     _checkMember(node.interfaceTarget.name,
         isSetter: false,
-        template: templateMixinApplicationNoConcreteGetter,
+        template: codeMixinApplicationNoConcreteGetter,
         accessFileOffset: node.fileOffset);
   }
 
@@ -3160,7 +3156,7 @@ class _CheckSuperAccess extends RecursiveVisitor {
     super.visitSuperPropertySet(node);
     _checkMember(node.interfaceTarget.name,
         isSetter: true,
-        template: templateMixinApplicationNoConcreteSetter,
+        template: codeMixinApplicationNoConcreteSetter,
         accessFileOffset: node.fileOffset);
   }
 }

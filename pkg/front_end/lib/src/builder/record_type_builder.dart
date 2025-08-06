@@ -22,8 +22,8 @@ import '../codes/cfe_codes.dart'
         messageRecordFieldsCantBePrivate,
         messageSupertypeIsFunction,
         noLength,
-        templateDuplicatedRecordTypeFieldName,
-        templateDuplicatedRecordTypeFieldNameContext;
+        codeDuplicatedRecordTypeFieldName,
+        codeDuplicatedRecordTypeFieldNameContext;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
@@ -185,12 +185,12 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
-                templateDuplicatedRecordTypeFieldName.withArguments(fieldName),
+                codeDuplicatedRecordTypeFieldName.withArguments(fieldName),
                 field.charOffset,
                 fieldName.length,
                 fileUri,
                 context: [
-                  templateDuplicatedRecordTypeFieldNameContext
+                  codeDuplicatedRecordTypeFieldNameContext
                       .withArguments(fieldName)
                       .withLocation(
                           fileUri, existingField.charOffset, fieldName.length)
@@ -244,12 +244,12 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder? existingField = fieldsMap[name];
         if (existingField != null) {
           library.addProblem(
-              templateDuplicatedRecordTypeFieldName.withArguments(name),
+              codeDuplicatedRecordTypeFieldName.withArguments(name),
               field.charOffset,
               name.length,
               fileUri,
               context: [
-                templateDuplicatedRecordTypeFieldNameContext
+                codeDuplicatedRecordTypeFieldNameContext
                     .withArguments(name)
                     .withLocation(
                         fileUri, existingField.charOffset, name.length)

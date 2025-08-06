@@ -1305,7 +1305,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype != null) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-              templateNullableSuperclassError
+              codeNullableSuperclassError
                   .withArguments(supertype.fullNameForErrors),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -1316,8 +1316,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder mixin in mixins) {
           if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-                templateNullableMixinError
-                    .withArguments(mixin.fullNameForErrors),
+                codeNullableMixinError.withArguments(mixin.fullNameForErrors),
                 identifier.nameOffset,
                 classNameForErrors.length,
                 uri);
@@ -1328,7 +1327,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-                templateNullableInterfaceError
+                codeNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 identifier.nameOffset,
                 classNameForErrors.length,
@@ -1402,7 +1401,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder supertype in supertypeConstraints) {
           if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-                templateNullableSuperclassError
+                codeNullableSuperclassError
                     .withArguments(supertype.fullNameForErrors),
                 identifier.nameOffset,
                 classNameForErrors.length,
@@ -1414,7 +1413,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-                templateNullableInterfaceError
+                codeNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 identifier.nameOffset,
                 classNameForErrors.length,
@@ -2080,19 +2079,19 @@ class OutlineBuilder extends StackListenerImpl {
         Template<Message Function(String name)> template;
         switch (requiredArgumentCount) {
           case 0:
-            template = templateOperatorParameterMismatch0;
+            template = codeOperatorParameterMismatch0;
             break;
 
           case 1:
             if (Operator.subtract == operator) {
-              template = templateOperatorMinusParameterMismatch;
+              template = codeOperatorMinusParameterMismatch;
             } else {
-              template = templateOperatorParameterMismatch1;
+              template = codeOperatorParameterMismatch1;
             }
             break;
 
           case 2:
-            template = templateOperatorParameterMismatch2;
+            template = codeOperatorParameterMismatch2;
             break;
 
           // Coverage-ignore(suite): Not run.
@@ -2321,7 +2320,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (supertype is TypeBuilder) {
         if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-              templateNullableSuperclassError
+              codeNullableSuperclassError
                   .withArguments(supertype.fullNameForErrors),
               identifier.nameOffset,
               classNameForErrors.length,
@@ -2331,7 +2330,7 @@ class OutlineBuilder extends StackListenerImpl {
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
           _compilationUnit.addProblem(
-              templateNullableMixinError.withArguments(mixin.fullNameForErrors),
+              codeNullableMixinError.withArguments(mixin.fullNameForErrors),
               identifier.nameOffset,
               classNameForErrors.length,
               uri);
@@ -2341,7 +2340,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-                templateNullableInterfaceError
+                codeNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 identifier.nameOffset,
                 classNameForErrors.length,
@@ -2633,12 +2632,10 @@ class OutlineBuilder extends StackListenerImpl {
         if (formals[0].name != FormalParameterBuilder.noNameSentinel &&
             formals[0].name == formals[1].name &&
             !formals[0].isWildcard) {
-          addProblem(
-              templateDuplicatedParameterName.withArguments(formals[1].name),
-              formals[1].fileOffset,
-              formals[1].name.length,
+          addProblem(codeDuplicatedParameterName.withArguments(formals[1].name),
+              formals[1].fileOffset, formals[1].name.length,
               context: [
-                templateDuplicatedParameterNameCause
+                codeDuplicatedParameterNameCause
                     .withArguments(formals[1].name)
                     .withLocation(
                         uri, formals[0].fileOffset, formals[0].name.length)
@@ -2654,12 +2651,10 @@ class OutlineBuilder extends StackListenerImpl {
           if (formal.name == FormalParameterBuilder.noNameSentinel) continue;
           if (seenNames.containsKey(formal.name)) {
             // Coverage-ignore-block(suite): Not run.
-            addProblem(
-                templateDuplicatedParameterName.withArguments(formal.name),
-                formal.fileOffset,
-                formal.name.length,
+            addProblem(codeDuplicatedParameterName.withArguments(formal.name),
+                formal.fileOffset, formal.name.length,
                 context: [
-                  templateDuplicatedParameterNameCause
+                  codeDuplicatedParameterNameCause
                       .withArguments(formal.name)
                       .withLocation(uri, seenNames[formal.name]!.fileOffset,
                           seenNames[formal.name]!.name.length)
@@ -2873,7 +2868,7 @@ class OutlineBuilder extends StackListenerImpl {
         for (TypeBuilder interface in interfaces) {
           if (interface.nullabilityBuilder.build() == Nullability.nullable) {
             _compilationUnit.addProblem(
-                templateNullableInterfaceError
+                codeNullableInterfaceError
                     .withArguments(interface.fullNameForErrors),
                 interface.charOffset ?? startOffset,
                 identifier.name.length,
@@ -2931,7 +2926,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (!libraryFeatures.records.isEnabled) {
       addProblem(
-          templateExperimentNotEnabledOffByDefault
+          codeExperimentNotEnabledOffByDefault
               .withArguments(ExperimentalFlag.records.name),
           leftBracket.offset,
           noLength);

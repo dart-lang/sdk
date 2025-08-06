@@ -135,7 +135,7 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
       location = new Location(Uri.base.resolve(uri.path.substring(1)),
           location.line, location.column);
     }
-    LocatedMessage locatedMessage = templateUnspecified
+    LocatedMessage locatedMessage = codeUnspecified
         .withArguments(message)
         .withLocation(uri, node.fileOffset, noLength);
     FormattedMessage diagnosticMessage = locatedMessage.withFormatting(

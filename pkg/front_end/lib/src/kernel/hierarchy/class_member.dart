@@ -10,8 +10,8 @@ import '../../base/messages.dart'
         LocatedMessage,
         messageDeclaredMemberConflictsWithInheritedMembersCause,
         messageDeclaredMemberConflictsWithOverriddenMembersCause,
-        templateCombinedMemberSignatureFailed,
-        templateExtensionTypeCombinedMemberSignatureFailed;
+        codeCombinedMemberSignatureFailed,
+        codeExtensionTypeCombinedMemberSignatureFailed;
 import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
@@ -568,7 +568,7 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         }).toList();
 
         classBuilder.libraryBuilder.addProblem(
-            templateCombinedMemberSignatureFailed.withArguments(
+            codeCombinedMemberSignatureFailed.withArguments(
                 name, declarations.first.fullNameForErrors),
             classBuilder.fileOffset,
             nameLength,
@@ -937,7 +937,7 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       }).toList();
 
       extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          templateExtensionTypeCombinedMemberSignatureFailed.withArguments(
+          codeExtensionTypeCombinedMemberSignatureFailed.withArguments(
               name, declarations.first.fullNameForErrors),
           extensionTypeDeclarationBuilder.fileOffset,
           nameLength,

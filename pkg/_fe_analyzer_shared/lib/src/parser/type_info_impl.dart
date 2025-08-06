@@ -115,10 +115,7 @@ class NoType implements TypeInfo {
 
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
-    parser.reportRecoverableErrorWithToken(
-      token.next!,
-      codes.templateExpectedType,
-    );
+    parser.reportRecoverableErrorWithToken(token.next!, codes.codeExpectedType);
     parser.rewriter.insertSyntheticIdentifier(token);
     return simpleType.parseType(token, parser);
   }
@@ -1605,7 +1602,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
     Token next = token.next!;
     parser.reportRecoverableError(
       next,
-      codes.templateExpectedButGot.withArguments(','),
+      codes.codeExpectedButGot.withArguments(','),
     );
     return parser.rewriter.insertToken(
       token,
@@ -1622,7 +1619,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          codes.templateExpectedAfterButGot.withArguments('>'),
+          codes.codeExpectedAfterButGot.withArguments('>'),
         );
         errorReported = true;
       }
@@ -1644,7 +1641,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         if (!errorReported) {
           parser.reportRecoverableError(
             token,
-            codes.templateExpectedAfterButGot.withArguments('>'),
+            codes.codeExpectedAfterButGot.withArguments('>'),
           );
           errorReported = true;
         }
@@ -1671,7 +1668,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       if (!errorReported) {
         parser.reportRecoverableError(
           token,
-          codes.templateExpectedAfterButGot.withArguments('>'),
+          codes.codeExpectedAfterButGot.withArguments('>'),
         );
         errorReported = true;
       }
@@ -1697,7 +1694,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Only report an error if one has not already been reported.
         parser.reportRecoverableError(
           token,
-          codes.templateExpectedAfterButGot.withArguments('>'),
+          codes.codeExpectedAfterButGot.withArguments('>'),
         );
         errorReported = true;
       }
@@ -1713,7 +1710,7 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
       // Only report an error if one has not already been reported.
       parser.reportRecoverableError(
         token,
-        codes.templateExpectedAfterButGot.withArguments('>'),
+        codes.codeExpectedAfterButGot.withArguments('>'),
       );
     }
     if (parseCloser(next)) {

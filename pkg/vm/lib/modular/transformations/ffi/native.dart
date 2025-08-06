@@ -14,11 +14,11 @@ import 'package:front_end/src/codes/cfe_codes.dart'
         messageFfiNativeFunctionMissingType,
         messageFfiNativeMustBeExternal,
         messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
-        templateCantHaveNamedParameters,
-        templateCantHaveOptionalParameters,
-        templateFfiNativeUnexpectedNumberOfParameters,
-        templateFfiNativeUnexpectedNumberOfParametersWithReceiver,
-        templateFfiTypeInvalid;
+        codeCantHaveNamedParameters,
+        codeCantHaveOptionalParameters,
+        codeFfiNativeUnexpectedNumberOfParameters,
+        codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
+        codeFfiTypeInvalid;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -478,7 +478,7 @@ class FfiNativeTransformer extends FfiTransformer {
   ) {
     if (ffiFunctionType.namedParameters.isNotEmpty) {
       diagnosticReporter.report(
-        templateCantHaveNamedParameters.withArguments('FfiNative'),
+        codeCantHaveNamedParameters.withArguments('FfiNative'),
         annotationOffset,
         0,
         node.location?.file,
@@ -489,7 +489,7 @@ class FfiNativeTransformer extends FfiTransformer {
     if (ffiFunctionType.positionalParameters.length >
         ffiFunctionType.requiredParameterCount) {
       diagnosticReporter.report(
-        templateCantHaveOptionalParameters.withArguments('FfiNative'),
+        codeCantHaveOptionalParameters.withArguments('FfiNative'),
         annotationOffset,
         0,
         node.location?.file,
@@ -501,8 +501,8 @@ class FfiNativeTransformer extends FfiTransformer {
         ffiFunctionType.positionalParameters.length) {
       final template =
           (node.isStatic
-              ? templateFfiNativeUnexpectedNumberOfParameters
-              : templateFfiNativeUnexpectedNumberOfParametersWithReceiver);
+              ? codeFfiNativeUnexpectedNumberOfParameters
+              : codeFfiNativeUnexpectedNumberOfParametersWithReceiver);
       diagnosticReporter.report(
         template.withArguments(
           dartFunctionType.positionalParameters.length,
@@ -1118,7 +1118,7 @@ class FfiNativeTransformer extends FfiTransformer {
       // This function is not annotated with a native function type, which is
       // invalid.
       diagnosticReporter.report(
-        templateFfiTypeInvalid.withArguments(nativeType),
+        codeFfiTypeInvalid.withArguments(nativeType),
         node.fileOffset,
         1,
         node.location?.file,

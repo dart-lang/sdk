@@ -9,7 +9,7 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../../base/messages.dart'
-    show Message, templateMixinInferenceNoMatchingClass;
+    show Message, codeMixinInferenceNoMatchingClass;
 import '../../base/problems.dart' show unexpected, unsupported;
 import '../../source/source_class_builder.dart';
 import '../../type_inference/type_schema.dart';
@@ -104,7 +104,7 @@ class BuilderMixinInferrer {
       if (supertype == null) {
         // Coverage-ignore-block(suite): Not run.
         reportProblem(
-            templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
+            codeMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
                 baseType.classNode.name, mixinSupertype.asInterfaceType),
             mixinClass);
         return;
@@ -136,7 +136,7 @@ class BuilderMixinInferrer {
     if (_mixinInferenceSolution.isUnsolvable) {
       // Coverage-ignore-block(suite): Not run.
       reportProblem(
-          templateMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
+          codeMixinInferenceNoMatchingClass.withArguments(mixinClass.name,
               baseType.classNode.name, mixinSupertype.asInterfaceType),
           mixinClass);
     }

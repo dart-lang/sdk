@@ -44,7 +44,7 @@ class SharedTypeAnalyzerErrors
       required SharedTypeView caseExpressionType,
       required SharedTypeView scrutineeType}) {
     return helper.buildProblem(
-        templateSwitchExpressionNotSubtype.withArguments(
+        codeSwitchExpressionNotSubtype.withArguments(
             caseExpressionType.unwrapTypeView(),
             scrutineeType.unwrapTypeView()),
         caseExpression.fileOffset,
@@ -62,8 +62,7 @@ class SharedTypeAnalyzerErrors
     required Pattern duplicate,
   }) {
     return helper.buildProblem(
-        templateDuplicatePatternAssignmentVariable
-            .withArguments(variable.name!),
+        codeDuplicatePatternAssignmentVariable.withArguments(variable.name!),
         duplicate.fileOffset,
         noLength,
         context: [
@@ -80,7 +79,7 @@ class SharedTypeAnalyzerErrors
     required RecordPatternField<TreeNode, Pattern> duplicate,
   }) {
     return helper.buildProblem(
-        templateDuplicateRecordPatternField.withArguments(name),
+        codeDuplicateRecordPatternField.withArguments(name),
         duplicate.pattern.fileOffset,
         noLength,
         context: [
@@ -154,7 +153,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView expressionType,
   }) {
     return helper.buildProblem(
-        templateForInLoopTypeNotIterable.withArguments(
+        codeForInLoopTypeNotIterable.withArguments(
             expressionType.unwrapTypeView(),
             coreTypes.iterableNonNullableRawType),
         expression.fileOffset,
@@ -168,7 +167,7 @@ class SharedTypeAnalyzerErrors
       required SharedTypeView matchedType,
       required SharedTypeView requiredType}) {
     return helper.buildProblem(
-        templatePatternTypeMismatchInIrrefutableContext.withArguments(
+        codePatternTypeMismatchInIrrefutableContext.withArguments(
             matchedType.unwrapTypeView(), requiredType.unwrapTypeView()),
         pattern.fileOffset,
         noLength);
@@ -188,7 +187,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView parameterType,
   }) {
     return helper.buildProblem(
-        templateArgumentTypeNotAssignable.withArguments(
+        codeArgumentTypeNotAssignable.withArguments(
             operandType.unwrapTypeView(), parameterType.unwrapTypeView()),
         pattern.expression.fileOffset,
         noLength);
@@ -200,7 +199,7 @@ class SharedTypeAnalyzerErrors
     required SharedTypeView returnType,
   }) {
     return helper.buildProblem(
-        templateInvalidAssignmentError.withArguments(
+        codeInvalidAssignmentError.withArguments(
             returnType.unwrapTypeView(), coreTypes.boolNonNullableRawType),
         pattern.fileOffset,
         noLength);

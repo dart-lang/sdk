@@ -119,22 +119,22 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
       if (!isValid) {
         if (getterIsDeclared && setterIsDeclared) {
           libraryBuilder.addProblem(
-              templateInvalidGetterSetterType.withArguments(
+              codeInvalidGetterSetterType.withArguments(
                   getterType, getterFullName, setterType, setterFullName),
               getterOffset,
               name.text.length,
               getterUri,
               context: [
-                templateInvalidGetterSetterTypeSetterContext
+                codeInvalidGetterSetterTypeSetterContext
                     .withArguments(setterFullName)
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);
         } else if (getterIsDeclared) {
           // Coverage-ignore-block(suite): Not run.
           Template<Message Function(DartType, String, DartType, String)>
-              template = templateInvalidGetterSetterTypeSetterInheritedGetter;
+              template = codeInvalidGetterSetterTypeSetterInheritedGetter;
           if (getterIsField) {
-            template = templateInvalidGetterSetterTypeSetterInheritedField;
+            template = codeInvalidGetterSetterTypeSetterInheritedField;
           }
           libraryBuilder.addProblem(
               template.withArguments(
@@ -143,18 +143,18 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
               name.text.length,
               getterUri,
               context: [
-                templateInvalidGetterSetterTypeSetterContext
+                codeInvalidGetterSetterTypeSetterContext
                     .withArguments(setterFullName)
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);
         } else if (setterIsDeclared) {
           Template<Message Function(DartType, String, DartType, String)>
-              template = templateInvalidGetterSetterTypeGetterInherited;
+              template = codeInvalidGetterSetterTypeGetterInherited;
           Template<Message Function(String)> context =
-              templateInvalidGetterSetterTypeGetterContext;
+              codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = templateInvalidGetterSetterTypeFieldInherited;
-            context = templateInvalidGetterSetterTypeFieldContext;
+            template = codeInvalidGetterSetterTypeFieldInherited;
+            context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
               template.withArguments(
@@ -170,12 +170,12 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
         } else {
           // Coverage-ignore-block(suite): Not run.
           Template<Message Function(DartType, String, DartType, String)>
-              template = templateInvalidGetterSetterTypeBothInheritedGetter;
+              template = codeInvalidGetterSetterTypeBothInheritedGetter;
           Template<Message Function(String)> context =
-              templateInvalidGetterSetterTypeGetterContext;
+              codeInvalidGetterSetterTypeGetterContext;
           if (getterIsField) {
-            template = templateInvalidGetterSetterTypeBothInheritedField;
-            context = templateInvalidGetterSetterTypeFieldContext;
+            template = codeInvalidGetterSetterTypeBothInheritedField;
+            context = codeInvalidGetterSetterTypeFieldContext;
           }
           libraryBuilder.addProblem(
               template.withArguments(
@@ -187,7 +187,7 @@ abstract class DelayedGetterSetterCheck implements DelayedCheck {
                 context
                     .withArguments(getterFullName)
                     .withLocation(getterUri, getterOffset, name.text.length),
-                templateInvalidGetterSetterTypeSetterContext
+                codeInvalidGetterSetterTypeSetterContext
                     .withArguments(setterFullName)
                     .withLocation(setterUri, setterOffset, name.text.length)
               ]);

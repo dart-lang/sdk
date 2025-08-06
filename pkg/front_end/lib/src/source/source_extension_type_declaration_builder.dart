@@ -233,14 +233,14 @@ class SourceExtensionTypeDeclarationBuilder
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
             // Coverage-ignore-block(suite): Not run.
-            errorMessage = templateSuperExtensionTypeIsIllegalAliased
-                .withArguments(typeBuilder.fullNameForErrors, interface);
+            errorMessage = codeSuperExtensionTypeIsIllegalAliased.withArguments(
+                typeBuilder.fullNameForErrors, interface);
             errorContext = [
               messageTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           } else {
-            errorMessage = templateSuperExtensionTypeIsIllegal
+            errorMessage = codeSuperExtensionTypeIsIllegal
                 .withArguments(typeBuilder.fullNameForErrors);
           }
           libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
@@ -258,15 +258,13 @@ class SourceExtensionTypeDeclarationBuilder
             if (!variance.greaterThanOrEqual(variable.variance)) {
               Message? errorMessage;
               if (variable.parameter.isLegacyCovariant) {
-                errorMessage =
-                    templateWrongTypeParameterVarianceInSuperinterface
-                        .withArguments(variable.name, interface);
+                errorMessage = codeWrongTypeParameterVarianceInSuperinterface
+                    .withArguments(variable.name, interface);
               } else {
                 // Coverage-ignore-block(suite): Not run.
-                errorMessage =
-                    templateInvalidTypeParameterInSupertypeWithVariance
-                        .withArguments(variable.variance.keyword, variable.name,
-                            variance.keyword, typeBuilder.typeName!.name);
+                errorMessage = codeInvalidTypeParameterInSupertypeWithVariance
+                    .withArguments(variable.variance.keyword, variable.name,
+                        variance.keyword, typeBuilder.typeName!.name);
               }
               libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
                   noLength, typeBuilder.fileUri);
@@ -276,7 +274,7 @@ class SourceExtensionTypeDeclarationBuilder
 
         if (interface is ExtensionType) {
           if (interface.nullability == Nullability.nullable) {
-            Message? errorMessage = templateSuperExtensionTypeIsNullableAliased
+            Message? errorMessage = codeSuperExtensionTypeIsNullableAliased
                 .withArguments(typeBuilder.fullNameForErrors, interface);
             List<LocatedMessage>? errorContext;
             if (aliasBuilder != null) {
@@ -296,10 +294,10 @@ class SourceExtensionTypeDeclarationBuilder
             Message? errorMessage;
             List<LocatedMessage>? errorContext;
             if (typeBuilder.nullabilityBuilder.isNullable) {
-              errorMessage = templateNullableInterfaceError
+              errorMessage = codeNullableInterfaceError
                   .withArguments(typeBuilder.fullNameForErrors);
             } else {
-              errorMessage = templateSuperExtensionTypeIsNullableAliased
+              errorMessage = codeSuperExtensionTypeIsNullableAliased
                   .withArguments(typeBuilder.fullNameForErrors, interface);
               if (aliasBuilder != null) {
                 errorContext = [
@@ -315,7 +313,7 @@ class SourceExtensionTypeDeclarationBuilder
             extensionTypeDeclaration.implements.add(interface);
           }
         } else if (interface is TypeParameterType) {
-          Message? errorMessage = templateSuperExtensionTypeIsTypeParameter
+          Message? errorMessage = codeSuperExtensionTypeIsTypeParameter
               .withArguments(typeBuilder.fullNameForErrors);
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
@@ -332,14 +330,14 @@ class SourceExtensionTypeDeclarationBuilder
           Message? errorMessage;
           List<LocatedMessage>? errorContext;
           if (aliasBuilder != null) {
-            errorMessage = templateSuperExtensionTypeIsIllegalAliased
-                .withArguments(typeBuilder.fullNameForErrors, interface);
+            errorMessage = codeSuperExtensionTypeIsIllegalAliased.withArguments(
+                typeBuilder.fullNameForErrors, interface);
             errorContext = [
               messageTypedefCause.withLocation(
                   aliasBuilder.fileUri, aliasBuilder.fileOffset, noLength),
             ];
           } else {
-            errorMessage = templateSuperExtensionTypeIsIllegal
+            errorMessage = codeSuperExtensionTypeIsIllegal
                 .withArguments(typeBuilder.fullNameForErrors);
           }
           libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
@@ -578,7 +576,7 @@ class SourceExtensionTypeDeclarationBuilder
           if (!hierarchyBuilder.types
               .isSubtypeOf(declaredRepresentationType, interface)) {
             libraryBuilder.addProblem(
-                templateInvalidExtensionTypeSuperInterface.withArguments(
+                codeInvalidExtensionTypeSuperInterface.withArguments(
                     interface, declaredRepresentationType, name),
                 typeBuilder.charOffset!,
                 noLength,
@@ -594,7 +592,7 @@ class SourceExtensionTypeDeclarationBuilder
             if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
                 instantiatedImplementedRepresentationType)) {
               libraryBuilder.addProblem(
-                  templateInvalidExtensionTypeSuperExtensionType.withArguments(
+                  codeInvalidExtensionTypeSuperExtensionType.withArguments(
                       declaredRepresentationType,
                       name,
                       instantiatedImplementedRepresentationType,
@@ -630,8 +628,7 @@ class SourceExtensionTypeDeclarationBuilder
         for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
             in duplicationProblems.entries) {
           libraryBuilder.addProblem(
-              templateImplementsRepeated.withArguments(
-                  typeDeclaration.name, count),
+              codeImplementsRepeated.withArguments(typeDeclaration.name, count),
               offset,
               noLength,
               fileUri);

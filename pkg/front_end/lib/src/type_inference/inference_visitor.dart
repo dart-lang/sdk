@@ -754,7 +754,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             inferred: false);
         if (operandType.isPotentiallyNullable) {
           result = helper.buildProblem(
-              templateInstantiationNullableGenericFunctionType
+              codeInstantiationNullableGenericFunctionType
                   .withArguments(operandType),
               node.fileOffset,
               noLength);
@@ -765,21 +765,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         if (operandType.typeParameters.isEmpty) {
           result = helper.buildProblem(
-              templateInstantiationNonGenericFunctionType
+              codeInstantiationNonGenericFunctionType
                   .withArguments(operandType),
               node.fileOffset,
               noLength);
         } else if (operandType.typeParameters.length >
             node.typeArguments.length) {
           result = helper.buildProblem(
-              templateInstantiationTooFewArguments.withArguments(
+              codeInstantiationTooFewArguments.withArguments(
                   operandType.typeParameters.length, node.typeArguments.length),
               node.fileOffset,
               noLength);
         } else if (operandType.typeParameters.length <
             node.typeArguments.length) {
           result = helper.buildProblem(
-              templateInstantiationTooManyArguments.withArguments(
+              codeInstantiationTooManyArguments.withArguments(
                   operandType.typeParameters.length, node.typeArguments.length),
               node.fileOffset,
               noLength);
@@ -787,8 +787,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
     } else if (operandType is! InvalidType) {
       result = helper.buildProblem(
-          templateInstantiationNonGenericFunctionType
-              .withArguments(operandType),
+          codeInstantiationNonGenericFunctionType.withArguments(operandType),
           node.fileOffset,
           noLength);
     }
@@ -1619,7 +1618,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         variable.type, inferredType, variableGet,
         isVoidAllowed: true,
         fileOffset: parent.fileOffset,
-        errorTemplate: templateForInLoopElementTypeNotAssignable);
+        errorTemplate: codeForInLoopElementTypeNotAssignable);
     Statement? expressionEffect;
     if (!identical(implicitDowncast, variableGet)) {
       variable.initializer = implicitDowncast..parent = variable;
@@ -1659,7 +1658,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         wrapType(const DynamicType(), iterableClass, Nullability.nonNullable),
         inferredExpressionType,
         iterable,
-        errorTemplate: templateForInLoopTypeNotIterable);
+        errorTemplate: codeForInLoopTypeNotIterable);
     DartType inferredType = const DynamicType();
     if (inferredExpressionType is TypeDeclarationType) {
       // TODO(johnniwinther): Should we use the type of
@@ -1791,7 +1790,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             Nullability.nonNullable),
         result.expressionType.unwrapTypeView(),
         iterable,
-        errorTemplate: templateForInLoopTypeNotIterable);
+        errorTemplate: codeForInLoopTypeNotIterable);
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
     flowAnalysis.forEach_bodyBegin(node);
@@ -2218,7 +2217,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? intValue = node.asInt64();
     if (intValue == null) {
       Expression replacement = helper.buildProblem(
-          templateIntegerLiteralIsOutOfRange.withArguments(node.literal),
+          codeIntegerLiteralIsOutOfRange.withArguments(node.literal),
           node.fileOffset,
           node.literal.length);
       return new ExpressionInferenceResult(const DynamicType(), replacement);
@@ -2322,7 +2321,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (spreadElementType == null) {
       if (coreTypes.isNull(spreadTypeBound) && !element.isNullAware) {
         replacement = helper.buildProblem(
-            templateNonNullAwareSpreadIsNull.withArguments(spreadType),
+            codeNonNullAwareSpreadIsNull.withArguments(spreadType),
             element.expression.fileOffset,
             1);
       } else {
@@ -2341,7 +2340,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         }
 
         replacement = helper.buildProblem(
-            templateSpreadTypeMismatch.withArguments(spreadType),
+            codeSpreadTypeMismatch.withArguments(spreadType),
             element.expression.fileOffset,
             1);
         _copyNonPromotionReasonToReplacement(element, replacement);
@@ -2349,7 +2348,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (spreadTypeBound is InterfaceType) {
       if (!isAssignable(inferredTypeArgument, spreadElementType)) {
         replacement = helper.buildProblem(
-            templateSpreadElementTypeMismatch.withArguments(
+            codeSpreadElementTypeMismatch.withArguments(
                 spreadElementType, inferredTypeArgument),
             element.expression.fileOffset,
             1);
@@ -4410,7 +4409,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (coreTypes.isNull(spreadTypeBound) && !entry.isNullAware) {
         replacement = new MapLiteralEntry(
             helper.buildProblem(
-                templateNonNullAwareSpreadIsNull.withArguments(spreadType),
+                codeNonNullAwareSpreadIsNull.withArguments(spreadType),
                 entry.expression.fileOffset,
                 1),
             new NullLiteral())
@@ -4439,7 +4438,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         Expression receiver = entry.expression;
         Expression problem = helper.buildProblem(
-            templateSpreadMapEntryTypeMismatch.withArguments(spreadType),
+            codeSpreadMapEntryTypeMismatch.withArguments(spreadType),
             receiver.fileOffset,
             1,
             context: getWhyNotPromotedContext(
@@ -4456,14 +4455,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression? valueError;
       if (!isAssignable(inferredKeyType, actualKeyType)) {
         keyError = helper.buildProblem(
-            templateSpreadMapEntryElementKeyTypeMismatch.withArguments(
+            codeSpreadMapEntryElementKeyTypeMismatch.withArguments(
                 actualKeyType, inferredKeyType),
             entry.expression.fileOffset,
             1);
       }
       if (!isAssignable(inferredValueType, actualValueType)) {
         valueError = helper.buildProblem(
-            templateSpreadMapEntryElementValueTypeMismatch.withArguments(
+            codeSpreadMapEntryElementValueTypeMismatch.withArguments(
                 actualValueType, inferredValueType),
             entry.expression.fileOffset,
             1);
@@ -5119,7 +5118,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (offsets.iterableSpreadOffset != null) {
       replacement = new MapLiteralEntry(
           helper.buildProblem(
-              templateSpreadMapEntryTypeMismatch
+              codeSpreadMapEntryTypeMismatch
                   .withArguments(offsets.iterableSpreadType!),
               offsets.iterableSpreadOffset!,
               1),
@@ -6698,7 +6697,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType contextType =
         rightType.withDeclaredNullability(Nullability.nullable);
     rightResult = ensureAssignableResult(contextType, rightResult,
-        errorTemplate: templateArgumentTypeNotAssignable);
+        errorTemplate: codeArgumentTypeNotAssignable);
     right = rightResult.expression;
 
     FunctionType functionType =
@@ -6891,7 +6890,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           binaryType,
           helper.wrapInProblem(
               binary,
-              templateNullableOperatorCallError.withArguments(
+              codeNullableOperatorCallError.withArguments(
                   binaryName.text, leftType),
               binary.fileOffset,
               binaryName.text.length,
@@ -7015,7 +7014,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           unaryType,
           helper.wrapInProblem(
               unary,
-              templateNullableOperatorCallError.withArguments(
+              codeNullableOperatorCallError.withArguments(
                   unaryName.text, expressionType),
               unary.fileOffset,
               unaryName == unaryMinusName
@@ -7161,7 +7160,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readType,
           helper.wrapInProblem(
               read,
-              templateNullableOperatorCallError.withArguments(
+              codeNullableOperatorCallError.withArguments(
                   indexGetName.text, receiverType),
               read.fileOffset,
               noLength));
@@ -7275,7 +7274,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (writeTarget.isNullable) {
       return helper.wrapInProblem(
           write,
-          templateNullableOperatorCallError.withArguments(
+          codeNullableOperatorCallError.withArguments(
               indexSetName.text, receiverType),
           write.fileOffset,
           noLength);
@@ -7453,7 +7452,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (writeTarget.isNullable) {
       result = helper.wrapInProblem(
           write,
-          templateNullablePropertyAccessError.withArguments(
+          codeNullablePropertyAccessError.withArguments(
               propertyName.text, receiverType),
           write.fileOffset,
           propertyName.text.length);
@@ -8345,7 +8344,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         return wrapExpressionInferenceResultInProblem(
             new ExpressionInferenceResult(const InvalidType(), node),
-            templateIndexOutOfBoundInRecordIndexGet.withArguments(
+            codeIndexOutOfBoundInRecordIndexGet.withArguments(
                 node.index, receiverType.positional.length, receiverType),
             node.fileOffset,
             noLength);
@@ -8353,7 +8352,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
           new ExpressionInferenceResult(const InvalidType(), node),
-          templateInternalProblemUnsupported.withArguments("RecordIndexGet"),
+          codeInternalProblemUnsupported.withArguments("RecordIndexGet"),
           node.fileOffset,
           noLength);
     }
@@ -8385,7 +8384,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       } else {
         return wrapExpressionInferenceResultInProblem(
             new ExpressionInferenceResult(const InvalidType(), node),
-            templateNameNotFoundInRecordNameGet.withArguments(
+            codeNameNotFoundInRecordNameGet.withArguments(
                 node.name, receiverType),
             node.fileOffset,
             noLength);
@@ -8393,7 +8392,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       return wrapExpressionInferenceResultInProblem(
           new ExpressionInferenceResult(const InvalidType(), node),
-          templateInternalProblemUnsupported.withArguments("RecordIndexGet"),
+          codeInternalProblemUnsupported.withArguments("RecordIndexGet"),
           node.fileOffset,
           noLength);
     }
@@ -9084,7 +9083,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 inferredType != null &&
                 jointVariable.type != inferredType) {
               jointVariable.initializer = helper.buildProblem(
-                  templateJointPatternVariablesMismatch
+                  codeJointPatternVariablesMismatch
                       .withArguments(jointVariable.name!),
                   switchCase.jointVariableFirstUseOffsets?[i] ??
                       // Coverage-ignore(suite): Not run.
@@ -9127,7 +9126,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new ExpressionInferenceResult(
           const DynamicType(),
           helper.buildProblem(
-              templateThrowingNotAssignableToObjectError
+              codeThrowingNotAssignableToObjectError
                   .withArguments(expressionResult.inferredType),
               node.expression.fileOffset,
               noLength));
@@ -9260,7 +9259,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               resultType,
               helper.wrapInProblem(
                   resultExpression,
-                  templateLateDefinitelyAssignedError
+                  codeLateDefinitelyAssignedError
                       .withArguments(node.variable.name!),
                   node.fileOffset,
                   node.variable.name!.length));
@@ -9271,7 +9270,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               resultType,
               helper.wrapInProblem(
                   resultExpression,
-                  templateFinalPossiblyAssignedError
+                  codeFinalPossiblyAssignedError
                       .withArguments(node.variable.name!),
                   node.fileOffset,
                   node.variable.name!.length));
@@ -9592,7 +9591,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               resultType,
               helper.wrapInProblem(
                   resultExpression,
-                  templateLateDefinitelyUnassignedError.withArguments(name),
+                  codeLateDefinitelyUnassignedError.withArguments(name),
                   node.fileOffset,
                   name.length));
         }
@@ -9604,7 +9603,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 resultType,
                 helper.wrapInProblem(
                     resultExpression,
-                    templateFinalNotAssignedError
+                    codeFinalNotAssignedError
                         .withArguments(node.variable.name!),
                     node.fileOffset,
                     node.variable.name!.length));
@@ -9613,7 +9612,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 resultType,
                 helper.wrapInProblem(
                     resultExpression,
-                    templateNonNullableNotAssignedError
+                    codeNonNullableNotAssignedError
                         .withArguments(node.variable.name!),
                     node.fileOffset,
                     node.variable.name!.length));
@@ -9774,8 +9773,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           int? intValue = receiver.asInt64(negated: true);
           if (intValue == null) {
             Expression error = helper.buildProblem(
-                templateIntegerLiteralIsOutOfRange
-                    .withArguments(receiver.literal),
+                codeIntegerLiteralIsOutOfRange.withArguments(receiver.literal),
                 receiver.fileOffset,
                 receiver.literal.length);
             return new ExpressionInferenceResult(const DynamicType(), error);
@@ -9996,7 +9994,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // TODO(johnniwinther): Remove this when backends can handle record
       // literals and types without crashing.
       type = const InvalidType();
-      result = new InvalidExpression(templateExperimentNotEnabledOffByDefault
+      result = new InvalidExpression(codeExperimentNotEnabledOffByDefault
           .withArguments(ExperimentalFlag.records.name)
           .withoutLocation()
           .problemMessage);
@@ -10758,7 +10756,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (leftVariable.type != rightVariable.type ||
             leftVariable.isFinal != rightVariable.isFinal) {
           helper.addProblem(
-              templateJointPatternVariablesMismatch
+              codeJointPatternVariablesMismatch
                   .withArguments(rightVariableName),
               leftVariable.fileOffset,
               rightVariableName.length);
@@ -11617,7 +11615,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (isDefinitelyAssigned) {
         replacement = new InvalidPattern(
             helper.buildProblem(
-                templateLateDefinitelyAssignedError
+                codeLateDefinitelyAssignedError
                     .withArguments(node.variable.name!),
                 node.fileOffset,
                 node.variable.name!.length),
@@ -11628,7 +11626,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (!isDefinitelyUnassigned) {
         replacement = new InvalidPattern(
             helper.buildProblem(
-                templateFinalPossiblyAssignedError
+                codeFinalPossiblyAssignedError
                     .withArguments(node.variable.name!),
                 node.fileOffset,
                 node.variable.name!.length),
@@ -11638,7 +11636,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (variable.isFinal && variable.hasDeclaredInitializer) {
       replacement = new InvalidPattern(
           helper.buildProblem(
-              templateCannotAssignToFinalVariable
+              codeCannotAssignToFinalVariable
                   .withArguments(node.variable.name!),
               node.fileOffset,
               node.variable.name!.length),
@@ -12073,7 +12071,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return new ExpressionInferenceResult(
               const DynamicType(),
               helper.buildProblem(
-                  templateAbstractClassInstantiation
+                  codeAbstractClassInstantiation
                       .withArguments(typeDeclaration.name),
                   node.nameOffset,
                   node.name.text.length));
@@ -12149,7 +12147,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Error when we can't find the static member or constructor named
       // [node.name] in the declaration of [cachedContext].
       replacement = helper.buildProblem(
-          templateDotShorthandsUndefinedInvocation.withArguments(
+          codeDotShorthandsUndefinedInvocation.withArguments(
               node.name.text, cachedContext),
           node.nameOffset,
           node.name.text.length);
@@ -12159,7 +12157,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //
       // e.g. `var x = .one;`
       replacement = helper.buildProblem(
-          templateDotShorthandsInvalidContext.withArguments(node.name.text),
+          codeDotShorthandsInvalidContext.withArguments(node.name.text),
           node.nameOffset,
           node.name.text.length);
     }
@@ -12245,7 +12243,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expressionInferenceResult = new ExpressionInferenceResult(
               const DynamicType(),
               helper.buildProblem(
-                  templateDotShorthandsUndefinedGetter.withArguments(
+                  codeDotShorthandsUndefinedGetter.withArguments(
                       node.name.text, cachedContext),
                   node.nameOffset,
                   node.name.text.length));
@@ -12257,8 +12255,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           expressionInferenceResult = new ExpressionInferenceResult(
               const DynamicType(),
               helper.buildProblem(
-                  templateDotShorthandsInvalidContext
-                      .withArguments(node.name.text),
+                  codeDotShorthandsInvalidContext.withArguments(node.name.text),
                   node.nameOffset,
                   node.name.text.length));
         }

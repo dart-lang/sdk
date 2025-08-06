@@ -17,7 +17,7 @@ import 'package:front_end/src/builder/declaration_builders.dart';
 import 'package:front_end/src/builder/prefix_builder.dart';
 import 'package:front_end/src/builder/type_builder.dart';
 import 'package:front_end/src/codes/cfe_codes.dart'
-    show Message, templateUnspecified;
+    show Message, codeUnspecified;
 import 'package:front_end/src/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/dill/dill_type_parameter_builder.dart';
 import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
@@ -134,7 +134,7 @@ Future<void> main() async {
     Procedure setter = new Procedure(
         new Name("mySetter"), ProcedureKind.Setter, new FunctionNode(null),
         fileUri: uri);
-    Message message = templateUnspecified.withArguments("My Message.");
+    Message message = codeUnspecified.withArguments("My Message.");
     Name binaryOperator = new Name("+");
     Name name = new Name("bar");
     PrefixBuilder prefixBuilder = new PrefixBuilder(

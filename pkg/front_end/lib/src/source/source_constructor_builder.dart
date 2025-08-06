@@ -19,7 +19,7 @@ import '../base/messages.dart'
         messageRedirectingConstructorWithSuperInitializer,
         messageSuperInitializerNotLast,
         noLength,
-        templateCantInferTypeDueToCircularity;
+        codeCantInferTypeDueToCircularity;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -68,7 +68,7 @@ class InferableConstructor implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-        templateCantInferTypeDueToCircularity.withArguments(name),
+        codeCantInferTypeDueToCircularity.withArguments(name),
         _builder.fileOffset,
         name.length,
         _builder.fileUri);

@@ -15,9 +15,9 @@ import '../base/messages.dart'
         LocatedMessage,
         Message,
         ProblemReporting,
-        templateInternalProblemConstructorNotFound,
-        templateInternalProblemNotFoundIn,
-        templateInternalProblemPrivateConstructorAccess;
+        codeInternalProblemConstructorNotFound,
+        codeInternalProblemNotFoundIn,
+        codeInternalProblemPrivateConstructorAccess;
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../source/name_scheme.dart';
@@ -172,7 +172,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
-          templateInternalProblemPrivateConstructorAccess
+          codeInternalProblemPrivateConstructorAccess
               .withArguments(constructorName),
           -1,
           null);
@@ -210,7 +210,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     }
     // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
-        templateInternalProblemConstructorNotFound.withArguments(
+        codeInternalProblemConstructorNotFound.withArguments(
             "$className.$constructorName", importUri),
         -1,
         null);
@@ -226,8 +226,7 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
     if (builder == null) {
       internalProblem(
-          templateInternalProblemNotFoundIn.withArguments(
-              name, fullNameForErrors),
+          codeInternalProblemNotFoundIn.withArguments(name, fullNameForErrors),
           -1,
           null);
     }

@@ -26,11 +26,11 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageNativeClauseShouldBeAnnotation,
         messageOperatorWithTypeParameters,
         messagePositionalAfterNamedArgument,
-        templateDuplicateLabelInSwitchStatement,
-        templateExpectedIdentifier,
-        templateExperimentNotEnabled,
-        templateExtraneousModifier,
-        templateInternalProblemUnhandled;
+        codeDuplicateLabelInSwitchStatement,
+        codeExpectedIdentifier,
+        codeExperimentNotEnabled,
+        codeExtraneousModifier,
+        codeInternalProblemUnhandled;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -900,9 +900,9 @@ class AstBuilder extends StackListener {
       // This same error is reported in BodyBuilder.doDotOrCascadeExpression
       Token token = identifierOrInvoke.beginToken;
       // TODO(danrubel): Consider specializing the error message based
-      // upon the type of expression. e.g. "x.this" -> templateThisAsIdentifier
+      // upon the type of expression. e.g. "x.this" -> codeThisAsIdentifier
       handleRecoverableError(
-        templateExpectedIdentifier.withArguments(token),
+        codeExpectedIdentifier.withArguments(token),
         token,
         token,
       );
@@ -1408,7 +1408,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -2083,7 +2083,7 @@ class AstBuilder extends StackListener {
         );
         if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
           handleRecoverableError(
-            templateExtraneousModifier.withArguments(keyword),
+            codeExtraneousModifier.withArguments(keyword),
             keyword,
             keyword,
           );
@@ -2436,7 +2436,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${node.runtimeType}",
           "identifier",
         ),
@@ -2586,7 +2586,7 @@ class AstBuilder extends StackListener {
           elements.add(part);
         } else {
           internalProblem(
-            templateInternalProblemUnhandled.withArguments(
+            codeInternalProblemUnhandled.withArguments(
               "${part.runtimeType}",
               "string interpolation",
             ),
@@ -3330,9 +3330,7 @@ class AstBuilder extends StackListener {
       for (var label in member.labels) {
         if (!labels.add(label.label.name)) {
           handleRecoverableError(
-            templateDuplicateLabelInSwitchStatement.withArguments(
-              label.label.name,
-            ),
+            codeDuplicateLabelInSwitchStatement.withArguments(label.label.name),
             label.beginToken,
             label.beginToken,
           );
@@ -3715,7 +3713,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       var type = pop() as TypeAnnotationImpl;
-      var templateParameters = pop() as TypeParameterListImpl?;
+      var codeParameters = pop() as TypeParameterListImpl?;
       var name = pop() as SimpleIdentifierImpl;
       var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, typedefKeyword);
@@ -3732,7 +3730,7 @@ class AstBuilder extends StackListener {
           augmentKeyword: augmentToken,
           typedefKeyword: typedefKeyword,
           name: name.token,
-          typeParameters: templateParameters,
+          typeParameters: codeParameters,
           equals: equals,
           type: type,
           semicolon: semicolon,
@@ -6093,7 +6091,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6187,7 +6185,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6370,7 +6368,7 @@ class AstBuilder extends StackListener {
     var requiredVersion =
         feature.releaseVersion ?? ExperimentStatus.currentVersion;
     handleRecoverableError(
-      templateExperimentNotEnabled.withArguments(
+      codeExperimentNotEnabled.withArguments(
         feature.enableString,
         _versionAsString(requiredVersion),
       ),

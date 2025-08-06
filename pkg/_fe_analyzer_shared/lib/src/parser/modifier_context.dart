@@ -361,7 +361,7 @@ class ModifierContext {
       } else if (_afterFactory && identical('factory', value)) {
         parser.reportRecoverableErrorWithToken(
           next,
-          codes.templateDuplicatedModifier,
+          codes.codeDuplicatedModifier,
         );
         token = next;
       } else {
@@ -387,10 +387,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-      next,
-      codes.templateDuplicatedModifier,
-    );
+    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
     return next;
   }
 
@@ -421,10 +418,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-      next,
-      codes.templateDuplicatedModifier,
-    );
+    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
     return next;
   }
 
@@ -446,7 +440,7 @@ class ModifierContext {
     if (constToken != null) {
       parser.reportRecoverableErrorWithToken(
         next,
-        codes.templateDuplicatedModifier,
+        codes.codeDuplicatedModifier,
       );
     } else if (covariantToken != null) {
       reportConflictingModifiers(next, covariantToken!);
@@ -483,7 +477,7 @@ class ModifierContext {
     if (covariantToken != null) {
       parser.reportRecoverableErrorWithToken(
         next,
-        codes.templateDuplicatedModifier,
+        codes.codeDuplicatedModifier,
       );
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
@@ -522,10 +516,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-      next,
-      codes.templateDuplicatedModifier,
-    );
+    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
     return next;
   }
 
@@ -541,7 +532,7 @@ class ModifierContext {
     if (finalToken != null) {
       parser.reportRecoverableErrorWithToken(
         next,
-        codes.templateDuplicatedModifier,
+        codes.codeDuplicatedModifier,
       );
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
@@ -574,10 +565,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-      next,
-      codes.templateDuplicatedModifier,
-    );
+    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
     return next;
   }
 
@@ -600,10 +588,7 @@ class ModifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableErrorWithToken(
-      next,
-      codes.templateDuplicatedModifier,
-    );
+    parser.reportRecoverableErrorWithToken(next, codes.codeDuplicatedModifier);
     return next;
   }
 
@@ -631,7 +616,7 @@ class ModifierContext {
     } else if (staticToken != null) {
       parser.reportRecoverableErrorWithToken(
         next,
-        codes.templateDuplicatedModifier,
+        codes.codeDuplicatedModifier,
       );
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
@@ -653,7 +638,7 @@ class ModifierContext {
     if (varToken != null) {
       parser.reportRecoverableErrorWithToken(
         next,
-        codes.templateDuplicatedModifier,
+        codes.codeDuplicatedModifier,
       );
     } else if (_afterFactory) {
       reportExtraneousModifier(next);
@@ -670,7 +655,7 @@ class ModifierContext {
   void reportConflictingModifiers(Token modifier, Token earlierModifier) {
     parser.reportRecoverableError(
       modifier,
-      codes.templateConflictingModifiers.withArguments(
+      codes.codeConflictingModifiers.withArguments(
         modifier.lexeme,
         earlierModifier.lexeme,
       ),
@@ -681,7 +666,7 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
         modifier,
-        codes.templateExtraneousModifier,
+        codes.codeExtraneousModifier,
       );
     }
   }
@@ -702,13 +687,13 @@ class ModifierContext {
         } else {
           parser.reportRecoverableErrorWithToken(
             modifier,
-            codes.templateExtraneousModifier,
+            codes.codeExtraneousModifier,
           );
         }
       } else {
         parser.reportRecoverableErrorWithToken(
           modifier,
-          codes.templateExtraneousModifier,
+          codes.codeExtraneousModifier,
         );
       }
     }
@@ -718,7 +703,7 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
         modifier,
-        codes.templateExtraneousModifierInExtension,
+        codes.codeExtraneousModifierInExtension,
       );
     }
   }
@@ -727,7 +712,7 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
         modifier,
-        codes.templateExtraneousModifierInExtensionType,
+        codes.codeExtraneousModifierInExtensionType,
       );
     }
   }
@@ -736,7 +721,7 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
         modifier,
-        codes.templateExtraneousModifierInPrimaryConstructor,
+        codes.codeExtraneousModifierInPrimaryConstructor,
       );
     }
   }
@@ -744,7 +729,7 @@ class ModifierContext {
   void reportModifierOutOfOrder(Token modifier, String beforeModifier) {
     parser.reportRecoverableError(
       modifier,
-      codes.templateModifierOutOfOrder.withArguments(
+      codes.codeModifierOutOfOrder.withArguments(
         modifier.lexeme,
         beforeModifier,
       ),

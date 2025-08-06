@@ -27,7 +27,7 @@ class BlockKind {
   );
   static const BlockKind enumDeclaration = const BlockKind._(
     'enum declaration',
-    template: codes.templateExpectedEnumBody,
+    template: codes.codeExpectedEnumBody,
   );
   static const BlockKind extensionDeclaration = const BlockKind._(
     'extension declaration',
@@ -43,7 +43,7 @@ class BlockKind {
   );
   static const BlockKind functionBody = const BlockKind._(
     'function body',
-    template: codes.templateExpectedFunctionBody,
+    template: codes.codeExpectedFunctionBody,
   );
   static const BlockKind invalid = const BlockKind._('invalid');
   static const BlockKind mixinDeclaration = const BlockKind._(
