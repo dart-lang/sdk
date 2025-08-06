@@ -342,13 +342,20 @@ class UnlinkedNamespaceDirectiveConfiguration {
 }
 
 class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
-  UnlinkedPartDirective({required super.configurations, required super.uri});
+  final int partKeywordOffset;
+
+  UnlinkedPartDirective({
+    required super.configurations,
+    required this.partKeywordOffset,
+    required super.uri,
+  });
 
   factory UnlinkedPartDirective.read(SummaryDataReader reader) {
     return UnlinkedPartDirective(
       configurations: reader.readTypedList(
         () => UnlinkedNamespaceDirectiveConfiguration.read(reader),
       ),
+      partKeywordOffset: reader.readUInt30(),
       uri: reader.readOptionalStringUtf8(),
     );
   }
@@ -359,6 +366,7 @@ class UnlinkedPartDirective extends UnlinkedConfigurableUriDirective {
     ) {
       x.write(sink);
     });
+    sink.writeUInt30(partKeywordOffset);
     sink.writeOptionalStringUtf8(uri);
   }
 }

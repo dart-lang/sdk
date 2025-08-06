@@ -55,6 +55,7 @@ library
       parts
         part_0
           uri: package:test/foo.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
@@ -120,6 +121,7 @@ library
       parts
         part_0
           uri: package:test/foo_io.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
@@ -185,6 +187,7 @@ library
       parts
         part_0
           uri: package:test/foo_io.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class B (nameOffset:122) (firstTokenOffset:116) (offset:122)
@@ -250,6 +253,7 @@ library
       parts
         part_0
           uri: package:test/foo_html.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
@@ -315,6 +319,7 @@ library
       parts
         part_0
           uri: package:test/foo_html.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class B (nameOffset:122) (firstTokenOffset:116) (offset:122)
@@ -355,9 +360,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 31
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -422,9 +429,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 15
           unit: #F2
       classes
         #F3 class Z (nameOffset:36) (firstTokenOffset:30) (offset:36)
@@ -437,9 +446,11 @@ library
       parts
         part_2
           uri: package:test/a11.dart
+          partKeywordOffset: 21
           unit: #F4
         part_3
           uri: package:test/a12.dart
+          partKeywordOffset: 38
           unit: #F5
       classes
         #F6 class A (nameOffset:61) (firstTokenOffset:55) (offset:61)
@@ -468,9 +479,11 @@ library
       parts
         part_4
           uri: package:test/b11.dart
+          partKeywordOffset: 21
           unit: #F9
         part_5
           uri: package:test/b12.dart
+          partKeywordOffset: 38
           unit: #F10
     #F9 package:test/b11.dart
       element: <testLibrary>
@@ -522,6 +535,7 @@ library
       parts
         part_0
           uri: noRelativeUriString
+          partKeywordOffset: 0
 ''');
   }
 
@@ -546,6 +560,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
       classes
         #F2 class A (nameOffset:37) (firstTokenOffset:31) (offset:37)
@@ -602,6 +617,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
         #F2 class A (nameOffset:21) (firstTokenOffset:15) (offset:21)
@@ -652,6 +668,7 @@ library
       parts
         part_0
           uri: relativeUri 'foo:bar'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -668,6 +685,7 @@ library
       parts
         part_0
           uri: source 'package:test/test.dart'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -685,6 +703,7 @@ library
       parts
         part_0
           uri: source 'package:test/a.dart'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -701,6 +720,7 @@ library
       parts
         part_0
           uri: source 'package:test/a.dart'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -717,6 +737,7 @@ library
       parts
         part_0
           uri: relativeUriString ':'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -744,9 +765,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 15
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -811,9 +834,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 15
           unit: #F2
       classes
         #F3 class Z (nameOffset:36) (firstTokenOffset:30) (offset:36)
@@ -826,9 +851,11 @@ library
       parts
         part_2
           uri: package:test/a11.dart
+          partKeywordOffset: 21
           unit: #F4
         part_3
           uri: package:test/a12.dart
+          partKeywordOffset: 38
           unit: #F5
       classes
         #F6 class A (nameOffset:61) (firstTokenOffset:55) (offset:61)
@@ -857,9 +884,11 @@ library
       parts
         part_4
           uri: package:test/b11.dart
+          partKeywordOffset: 21
           unit: #F9
         part_5
           uri: package:test/b12.dart
+          partKeywordOffset: 38
           unit: #F10
     #F9 package:test/b11.dart
       element: <testLibrary>

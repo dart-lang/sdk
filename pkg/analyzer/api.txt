@@ -4034,6 +4034,7 @@ package:analyzer/dart/element/element.dart:
   PartInclude (class extends Object implements ElementDirective):
     new (constructor: PartInclude Function())
     includedFragment (getter: LibraryFragment?)
+    partKeywordOffset (getter: int)
   PatternVariableElement (class extends Object implements LocalVariableElement):
     new (constructor: PatternVariableElement Function())
     firstFragment (getter: PatternVariableFragment)

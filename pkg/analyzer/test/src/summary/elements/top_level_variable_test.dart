@@ -1372,6 +1372,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
       topLevelVariables
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
@@ -1436,6 +1437,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
       topLevelVariables
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
@@ -1499,9 +1501,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 31
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -2171,6 +2175,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 13
           unit: #F1
       topLevelVariables
         #F2 hasInitializer b (nameOffset:34) (firstTokenOffset:34) (offset:34)
@@ -2296,9 +2301,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 31
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>

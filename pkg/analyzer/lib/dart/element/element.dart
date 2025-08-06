@@ -3422,6 +3422,9 @@ sealed class NamespaceCombinator {
 abstract class PartInclude implements ElementDirective {
   /// The [LibraryFragment], if [uri] is a [DirectiveUriWithUnit].
   LibraryFragment? get includedFragment;
+
+  /// The offset of the `part` keyword.
+  int get partKeywordOffset;
 }
 
 /// A pattern variable.

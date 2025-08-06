@@ -70,6 +70,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 13
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5836,6 +5837,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 11
           unit: #F1
       topLevelVariables
         #F2 c (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -6055,6 +6057,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 11
           unit: #F1
       classes
         #F2 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
@@ -6278,9 +6281,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 11
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 26
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -6506,6 +6511,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 11
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>

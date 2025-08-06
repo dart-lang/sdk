@@ -8391,7 +8391,10 @@ abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
 }
 
 class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
-  PartIncludeImpl({required super.uri});
+  @override
+  int partKeywordOffset;
+
+  PartIncludeImpl({required super.uri, required this.partKeywordOffset});
 
   @override
   LibraryFragmentImpl? get includedFragment {

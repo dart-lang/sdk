@@ -72,6 +72,7 @@ class InformativeDataApplier {
     unitElement.withoutLoadingResolution(() {
       _applyToImports(unitElement.libraryImports, unitInfo);
       _applyToExports(unitElement.libraryExports, unitInfo);
+      _applyToPartIncludes(unitElement.parts, unitInfo);
     });
 
     unitElement.deferConstantOffsets(unitInfo.libraryConstantOffsets, (
@@ -560,6 +561,12 @@ class InformativeDataApplier {
     element.deferConstantOffsets(info.constantOffsets, (applier) {
       applier.applyToMetadata(element.metadata);
       applier.applyToTypeParameters(element.typeParameters);
+    });
+  }
+
+  void _applyToPartIncludes(List<PartIncludeImpl> imports, _InfoUnit info) {
+    forCorrespondingPairs(imports, info.parts, (element, info) {
+      element.partKeywordOffset = info.nameOffset;
     });
   }
 

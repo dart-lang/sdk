@@ -1423,6 +1423,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.write('uri: ');
         _writeDirectiveUri(e.uri);
       });
+      _sink.writelnWithIndent('partKeywordOffset: ${e.partKeywordOffset}');
 
       _writeMetadata(e.metadata);
 

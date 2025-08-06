@@ -4,6 +4,7 @@
 * Add `documentationComment` to `Element` and `Fragment`.
 * Add `metadata` to `Element` and `Fragment`.
 * Add `metadata` to `ElementDirective`.
+* Add `partKeywordOffset` to `PartInclude`.
 * Fix draining analysis events when used by `package:build`.
 * Deprecate `LibraryElementResult.element2`, use `element` instead.
 * Deprecate `ResolvedLibraryResult.element2`, use `element` instead.

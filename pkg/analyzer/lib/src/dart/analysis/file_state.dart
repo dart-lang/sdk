@@ -1161,6 +1161,7 @@ class FileState {
   static UnlinkedPartDirective _serializePart(PartDirective node) {
     return UnlinkedPartDirective(
       configurations: _serializeConfigurations(node.configurations),
+      partKeywordOffset: node.partKeyword.offset,
       uri: node.uri.stringValue,
     );
   }

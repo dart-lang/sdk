@@ -712,7 +712,10 @@ class LibraryBuilder {
         }
     }
 
-    return PartIncludeImpl(uri: directiveUri);
+    return PartIncludeImpl(
+      partKeywordOffset: state.unlinked.partKeywordOffset,
+      uri: directiveUri,
+    );
   }
 
   /// We want to have stable references for `loadLibrary` function. But we
