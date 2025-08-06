@@ -12,11 +12,7 @@
 part of _fe_analyzer_shared.messages.codes;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractClassConstructorTearOff =
-    messageAbstractClassConstructorTearOff;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractClassConstructorTearOff = const MessageCode(
+const MessageCode codeAbstractClassConstructorTearOff = const MessageCode(
   "AbstractClassConstructorTearOff",
   problemMessage: r"""Constructors on abstract classes can't be torn off.""",
 );
@@ -46,10 +42,7 @@ Message _withArgumentsAbstractClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractClassMember = messageAbstractClassMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractClassMember = const MessageCode(
+const MessageCode codeAbstractClassMember = const MessageCode(
   "AbstractClassMember",
   index: 51,
   problemMessage: r"""Members of classes can't be declared to be 'abstract'.""",
@@ -58,10 +51,7 @@ const MessageCode messageAbstractClassMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractExtensionField = messageAbstractExtensionField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractExtensionField = const MessageCode(
+const MessageCode codeAbstractExtensionField = const MessageCode(
   "AbstractExtensionField",
   analyzerCodes: <String>["ABSTRACT_EXTENSION_FIELD"],
   problemMessage: r"""Extension fields can't be declared 'abstract'.""",
@@ -69,10 +59,7 @@ const MessageCode messageAbstractExtensionField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractExternalField = messageAbstractExternalField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractExternalField = const MessageCode(
+const MessageCode codeAbstractExternalField = const MessageCode(
   "AbstractExternalField",
   index: 110,
   problemMessage:
@@ -81,12 +68,7 @@ const MessageCode messageAbstractExternalField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFieldConstructorInitializer =
-    messageAbstractFieldConstructorInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractFieldConstructorInitializer =
-    const MessageCode(
+const MessageCode codeAbstractFieldConstructorInitializer = const MessageCode(
   "AbstractFieldConstructorInitializer",
   problemMessage: r"""Abstract fields cannot have initializers.""",
   correctionMessage:
@@ -94,11 +76,7 @@ const MessageCode messageAbstractFieldConstructorInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFieldInitializer =
-    messageAbstractFieldInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractFieldInitializer = const MessageCode(
+const MessageCode codeAbstractFieldInitializer = const MessageCode(
   "AbstractFieldInitializer",
   problemMessage: r"""Abstract fields cannot have initializers.""",
   correctionMessage:
@@ -106,10 +84,7 @@ const MessageCode messageAbstractFieldInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFinalBaseClass = messageAbstractFinalBaseClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractFinalBaseClass = const MessageCode(
+const MessageCode codeAbstractFinalBaseClass = const MessageCode(
   "AbstractFinalBaseClass",
   index: 176,
   problemMessage:
@@ -118,11 +93,7 @@ const MessageCode messageAbstractFinalBaseClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractFinalInterfaceClass =
-    messageAbstractFinalInterfaceClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractFinalInterfaceClass = const MessageCode(
+const MessageCode codeAbstractFinalInterfaceClass = const MessageCode(
   "AbstractFinalInterfaceClass",
   index: 177,
   problemMessage:
@@ -132,10 +103,7 @@ const MessageCode messageAbstractFinalInterfaceClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractLateField = messageAbstractLateField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractLateField = const MessageCode(
+const MessageCode codeAbstractLateField = const MessageCode(
   "AbstractLateField",
   index: 108,
   problemMessage: r"""Abstract fields cannot be late.""",
@@ -143,10 +111,7 @@ const MessageCode messageAbstractLateField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractNotSync = messageAbstractNotSync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractNotSync = const MessageCode(
+const MessageCode codeAbstractNotSync = const MessageCode(
   "AbstractNotSync",
   analyzerCodes: <String>["NON_SYNC_ABSTRACT_METHOD"],
   problemMessage:
@@ -179,10 +144,7 @@ Message _withArgumentsAbstractRedirectedClassInstantiation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractSealedClass = messageAbstractSealedClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractSealedClass = const MessageCode(
+const MessageCode codeAbstractSealedClass = const MessageCode(
   "AbstractSealedClass",
   index: 132,
   problemMessage:
@@ -191,10 +153,7 @@ const MessageCode messageAbstractSealedClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAbstractStaticField = messageAbstractStaticField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAbstractStaticField = const MessageCode(
+const MessageCode codeAbstractStaticField = const MessageCode(
   "AbstractStaticField",
   index: 107,
   problemMessage: r"""Static fields can't be declared 'abstract'.""",
@@ -223,33 +182,21 @@ Message _withArgumentsAccessError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAmbiguousExtensionCause = messageAmbiguousExtensionCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAmbiguousExtensionCause = const MessageCode(
+const MessageCode codeAmbiguousExtensionCause = const MessageCode(
   "AmbiguousExtensionCause",
   severity: CfeSeverity.context,
   problemMessage: r"""This is one of the extension members.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAnnotationOnFunctionTypeTypeParameter =
-    messageAnnotationOnFunctionTypeTypeParameter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAnnotationOnFunctionTypeTypeParameter =
-    const MessageCode(
+const MessageCode codeAnnotationOnFunctionTypeTypeParameter = const MessageCode(
   "AnnotationOnFunctionTypeTypeParameter",
   problemMessage:
       r"""A type variable on a function type can't have annotations.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAnnotationOnTypeArgument =
-    messageAnnotationOnTypeArgument;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAnnotationOnTypeArgument = const MessageCode(
+const MessageCode codeAnnotationOnTypeArgument = const MessageCode(
   "AnnotationOnTypeArgument",
   index: 111,
   problemMessage:
@@ -257,12 +204,7 @@ const MessageCode messageAnnotationOnTypeArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAnonymousBreakTargetOutsideFunction =
-    messageAnonymousBreakTargetOutsideFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAnonymousBreakTargetOutsideFunction =
-    const MessageCode(
+const MessageCode codeAnonymousBreakTargetOutsideFunction = const MessageCode(
   "AnonymousBreakTargetOutsideFunction",
   analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
   problemMessage: r"""Can't break to a target in a different function.""",
@@ -270,10 +212,6 @@ const MessageCode messageAnonymousBreakTargetOutsideFunction =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAnonymousContinueTargetOutsideFunction =
-    messageAnonymousContinueTargetOutsideFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAnonymousContinueTargetOutsideFunction =
     const MessageCode(
   "AnonymousContinueTargetOutsideFunction",
   analyzerCodes: <String>["LABEL_IN_OUTER_SCOPE"],
@@ -305,29 +243,19 @@ Message _withArgumentsAsciiControlCharacter(int codePoint) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAssertAsExpression = messageAssertAsExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAssertAsExpression = const MessageCode(
+const MessageCode codeAssertAsExpression = const MessageCode(
   "AssertAsExpression",
   problemMessage: r"""`assert` can't be used as an expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAssertExtraneousArgument =
-    messageAssertExtraneousArgument;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAssertExtraneousArgument = const MessageCode(
+const MessageCode codeAssertExtraneousArgument = const MessageCode(
   "AssertExtraneousArgument",
   problemMessage: r"""`assert` can't have more than two arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitAsIdentifier = messageAwaitAsIdentifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAwaitAsIdentifier = const MessageCode(
+const MessageCode codeAwaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
   analyzerCodes: <String>["ASYNC_KEYWORD_USED_AS_IDENTIFIER"],
   problemMessage:
@@ -335,10 +263,7 @@ const MessageCode messageAwaitAsIdentifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitForNotAsync = messageAwaitForNotAsync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAwaitForNotAsync = const MessageCode(
+const MessageCode codeAwaitForNotAsync = const MessageCode(
   "AwaitForNotAsync",
   analyzerCodes: <String>["ASYNC_FOR_IN_WRONG_CONTEXT"],
   problemMessage:
@@ -348,21 +273,14 @@ const MessageCode messageAwaitForNotAsync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitInLateLocalInitializer =
-    messageAwaitInLateLocalInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAwaitInLateLocalInitializer = const MessageCode(
+const MessageCode codeAwaitInLateLocalInitializer = const MessageCode(
   "AwaitInLateLocalInitializer",
   problemMessage:
       r"""`await` expressions are not supported in late local initializers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitNotAsync = messageAwaitNotAsync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAwaitNotAsync = const MessageCode(
+const MessageCode codeAwaitNotAsync = const MessageCode(
   "AwaitNotAsync",
   analyzerCodes: <String>["AWAIT_IN_WRONG_CONTEXT"],
   problemMessage:
@@ -370,11 +288,7 @@ const MessageCode messageAwaitNotAsync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeAwaitOfExtensionTypeNotFuture =
-    messageAwaitOfExtensionTypeNotFuture;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageAwaitOfExtensionTypeNotFuture = const MessageCode(
+const MessageCode codeAwaitOfExtensionTypeNotFuture = const MessageCode(
   "AwaitOfExtensionTypeNotFuture",
   analyzerCodes: <String>["AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE"],
   problemMessage:
@@ -407,10 +321,7 @@ Message _withArgumentsBaseClassImplementedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeBaseEnum = messageBaseEnum;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageBaseEnum = const MessageCode(
+const MessageCode codeBaseEnum = const MessageCode(
   "BaseEnum",
   index: 155,
   problemMessage: r"""Enums can't be declared to be 'base'.""",
@@ -589,10 +500,7 @@ Message _withArgumentsBoundIssueViaRawTypeWithNonSimpleBounds(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeBreakOutsideOfLoop = messageBreakOutsideOfLoop;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageBreakOutsideOfLoop = const MessageCode(
+const MessageCode codeBreakOutsideOfLoop = const MessageCode(
   "BreakOutsideOfLoop",
   index: 52,
   problemMessage:
@@ -669,10 +577,7 @@ Message _withArgumentsBuiltInIdentifierInDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCandidateFound = messageCandidateFound;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCandidateFound = const MessageCode(
+const MessageCode codeCandidateFound = const MessageCode(
   "CandidateFound",
   severity: CfeSeverity.context,
   problemMessage: r"""Found this candidate, but the arguments don't match.""",
@@ -725,11 +630,7 @@ Message _withArgumentsCannotAssignToConstVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToExtensionThis =
-    messageCannotAssignToExtensionThis;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCannotAssignToExtensionThis = const MessageCode(
+const MessageCode codeCannotAssignToExtensionThis = const MessageCode(
   "CannotAssignToExtensionThis",
   problemMessage: r"""Can't assign to 'this'.""",
 );
@@ -756,33 +657,21 @@ Message _withArgumentsCannotAssignToFinalVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToParenthesizedExpression =
-    messageCannotAssignToParenthesizedExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCannotAssignToParenthesizedExpression =
-    const MessageCode(
+const MessageCode codeCannotAssignToParenthesizedExpression = const MessageCode(
   "CannotAssignToParenthesizedExpression",
   analyzerCodes: <String>["ASSIGNMENT_TO_PARENTHESIZED_EXPRESSION"],
   problemMessage: r"""Can't assign to a parenthesized expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToSuper = messageCannotAssignToSuper;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCannotAssignToSuper = const MessageCode(
+const MessageCode codeCannotAssignToSuper = const MessageCode(
   "CannotAssignToSuper",
   analyzerCodes: <String>["NOT_AN_LVALUE"],
   problemMessage: r"""Can't assign to super.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCannotAssignToTypeLiteral =
-    messageCannotAssignToTypeLiteral;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCannotAssignToTypeLiteral = const MessageCode(
+const MessageCode codeCannotAssignToTypeLiteral = const MessageCode(
   "CannotAssignToTypeLiteral",
   problemMessage: r"""Can't assign to a type literal.""",
 );
@@ -811,24 +700,14 @@ Message _withArgumentsCannotReadSdkSpecification(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantDisambiguateAmbiguousInformation =
-    messageCantDisambiguateAmbiguousInformation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantDisambiguateAmbiguousInformation =
-    const MessageCode(
+const MessageCode codeCantDisambiguateAmbiguousInformation = const MessageCode(
   "CantDisambiguateAmbiguousInformation",
   problemMessage:
       r"""Both Iterable and Map spread elements encountered in ambiguous literal.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantDisambiguateNotEnoughInformation =
-    messageCantDisambiguateNotEnoughInformation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantDisambiguateNotEnoughInformation =
-    const MessageCode(
+const MessageCode codeCantDisambiguateNotEnoughInformation = const MessageCode(
   "CantDisambiguateNotEnoughInformation",
   problemMessage:
       r"""Not enough type information to disambiguate between literal set and literal map.""",
@@ -881,11 +760,7 @@ Message _withArgumentsCantHaveOptionalParameters(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantInferPackagesFromManyInputs =
-    messageCantInferPackagesFromManyInputs;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantInferPackagesFromManyInputs = const MessageCode(
+const MessageCode codeCantInferPackagesFromManyInputs = const MessageCode(
   "CantInferPackagesFromManyInputs",
   problemMessage:
       r"""Can't infer a packages file when compiling multiple inputs.""",
@@ -894,11 +769,7 @@ const MessageCode messageCantInferPackagesFromManyInputs = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantInferPackagesFromPackageUri =
-    messageCantInferPackagesFromPackageUri;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
+const MessageCode codeCantInferPackagesFromPackageUri = const MessageCode(
   "CantInferPackagesFromPackageUri",
   problemMessage:
       r"""Can't infer a packages file from an input 'package:*' URI.""",
@@ -1114,22 +985,14 @@ Message _withArgumentsCantUseDeferredPrefixAsConstant(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantUsePrefixAsExpression =
-    messageCantUsePrefixAsExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantUsePrefixAsExpression = const MessageCode(
+const MessageCode codeCantUsePrefixAsExpression = const MessageCode(
   "CantUsePrefixAsExpression",
   analyzerCodes: <String>["PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT"],
   problemMessage: r"""A prefix can't be used as an expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCantUsePrefixWithNullAware =
-    messageCantUsePrefixWithNullAware;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
+const MessageCode codeCantUsePrefixWithNullAware = const MessageCode(
   "CantUsePrefixWithNullAware",
   analyzerCodes: <String>["PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT"],
   problemMessage: r"""A prefix can't be used with null-aware operators.""",
@@ -1137,10 +1000,7 @@ const MessageCode messageCantUsePrefixWithNullAware = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCatchSyntax = messageCatchSyntax;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCatchSyntax = const MessageCode(
+const MessageCode codeCatchSyntax = const MessageCode(
   "CatchSyntax",
   index: 84,
   problemMessage:
@@ -1150,11 +1010,7 @@ const MessageCode messageCatchSyntax = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCatchSyntaxExtraParameters =
-    messageCatchSyntaxExtraParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
+const MessageCode codeCatchSyntaxExtraParameters = const MessageCode(
   "CatchSyntaxExtraParameters",
   index: 83,
   problemMessage:
@@ -1164,11 +1020,7 @@ const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeClassImplementsDeferredClass =
-    messageClassImplementsDeferredClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageClassImplementsDeferredClass = const MessageCode(
+const MessageCode codeClassImplementsDeferredClass = const MessageCode(
   "ClassImplementsDeferredClass",
   analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
   problemMessage: r"""Classes and mixins can't implement deferred classes.""",
@@ -1177,10 +1029,7 @@ const MessageCode messageClassImplementsDeferredClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeClassInClass = messageClassInClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageClassInClass = const MessageCode(
+const MessageCode codeClassInClass = const MessageCode(
   "ClassInClass",
   index: 53,
   problemMessage: r"""Classes can't be declared inside other classes.""",
@@ -1245,10 +1094,7 @@ Message _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeColonInPlaceOfIn = messageColonInPlaceOfIn;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageColonInPlaceOfIn = const MessageCode(
+const MessageCode codeColonInPlaceOfIn = const MessageCode(
   "ColonInPlaceOfIn",
   index: 54,
   problemMessage: r"""For-in loops use 'in' rather than a colon.""",
@@ -1385,21 +1231,14 @@ Message _withArgumentsConflictsWithTypeParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConflictsWithTypeParameterCause =
-    messageConflictsWithTypeParameterCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConflictsWithTypeParameterCause = const MessageCode(
+const MessageCode codeConflictsWithTypeParameterCause = const MessageCode(
   "ConflictsWithTypeParameterCause",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the type variable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstAndFinal = messageConstAndFinal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstAndFinal = const MessageCode(
+const MessageCode codeConstAndFinal = const MessageCode(
   "ConstAndFinal",
   index: 58,
   problemMessage:
@@ -1408,10 +1247,7 @@ const MessageCode messageConstAndFinal = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstClass = messageConstClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstClass = const MessageCode(
+const MessageCode codeConstClass = const MessageCode(
   "ConstClass",
   index: 60,
   problemMessage: r"""Classes can't be declared to be 'const'.""",
@@ -1420,35 +1256,21 @@ const MessageCode messageConstClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorLateFinalFieldCause =
-    messageConstConstructorLateFinalFieldCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorLateFinalFieldCause =
-    const MessageCode(
+const MessageCode codeConstConstructorLateFinalFieldCause = const MessageCode(
   "ConstConstructorLateFinalFieldCause",
   severity: CfeSeverity.context,
   problemMessage: r"""This constructor is const.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorLateFinalFieldError =
-    messageConstConstructorLateFinalFieldError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorLateFinalFieldError =
-    const MessageCode(
+const MessageCode codeConstConstructorLateFinalFieldError = const MessageCode(
   "ConstConstructorLateFinalFieldError",
   problemMessage:
       r"""Can't have a late final field in a class with a const constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorNonFinalField =
-    messageConstConstructorNonFinalField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorNonFinalField = const MessageCode(
+const MessageCode codeConstConstructorNonFinalField = const MessageCode(
   "ConstConstructorNonFinalField",
   analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD"],
   problemMessage:
@@ -1456,34 +1278,21 @@ const MessageCode messageConstConstructorNonFinalField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorNonFinalFieldCause =
-    messageConstConstructorNonFinalFieldCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorNonFinalFieldCause = const MessageCode(
+const MessageCode codeConstConstructorNonFinalFieldCause = const MessageCode(
   "ConstConstructorNonFinalFieldCause",
   severity: CfeSeverity.context,
   problemMessage: r"""Field isn't final, but constructor is 'const'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorRedirectionToNonConst =
-    messageConstConstructorRedirectionToNonConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorRedirectionToNonConst =
-    const MessageCode(
+const MessageCode codeConstConstructorRedirectionToNonConst = const MessageCode(
   "ConstConstructorRedirectionToNonConst",
   problemMessage:
       r"""A constant constructor can't call a non-constant constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorWithBody =
-    messageConstConstructorWithBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorWithBody = const MessageCode(
+const MessageCode codeConstConstructorWithBody = const MessageCode(
   "ConstConstructorWithBody",
   analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_BODY"],
   problemMessage: r"""A const constructor can't have a body.""",
@@ -1492,11 +1301,7 @@ const MessageCode messageConstConstructorWithBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstConstructorWithNonConstSuper =
-    messageConstConstructorWithNonConstSuper;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
+const MessageCode codeConstConstructorWithNonConstSuper = const MessageCode(
   "ConstConstructorWithNonConstSuper",
   analyzerCodes: <String>["CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER"],
   problemMessage:
@@ -1504,20 +1309,14 @@ const MessageCode messageConstConstructorWithNonConstSuper = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalCircularity = messageConstEvalCircularity;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalCircularity = const MessageCode(
+const MessageCode codeConstEvalCircularity = const MessageCode(
   "ConstEvalCircularity",
   analyzerCodes: <String>["RECURSIVE_COMPILE_TIME_CONSTANT"],
   problemMessage: r"""Constant expression depends on itself.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalContext = messageConstEvalContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalContext = const MessageCode(
+const MessageCode codeConstEvalContext = const MessageCode(
   "ConstEvalContext",
   problemMessage: r"""While analyzing:""",
 );
@@ -1575,10 +1374,7 @@ Message _withArgumentsConstEvalError(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalExtension = messageConstEvalExtension;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalExtension = const MessageCode(
+const MessageCode codeConstEvalExtension = const MessageCode(
   "ConstEvalExtension",
   analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage:
@@ -1586,33 +1382,21 @@ const MessageCode messageConstEvalExtension = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalExternalConstructor =
-    messageConstEvalExternalConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalExternalConstructor = const MessageCode(
+const MessageCode codeConstEvalExternalConstructor = const MessageCode(
   "ConstEvalExternalConstructor",
   problemMessage:
       r"""External constructors can't be evaluated in constant expressions.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalExternalFactory =
-    messageConstEvalExternalFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalExternalFactory = const MessageCode(
+const MessageCode codeConstEvalExternalFactory = const MessageCode(
   "ConstEvalExternalFactory",
   problemMessage:
       r"""External factory constructors can't be evaluated in constant expressions.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalFailedAssertion =
-    messageConstEvalFailedAssertion;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalFailedAssertion = const MessageCode(
+const MessageCode codeConstEvalFailedAssertion = const MessageCode(
   "ConstEvalFailedAssertion",
   analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
   problemMessage: r"""This assertion failed.""",
@@ -1644,10 +1428,6 @@ Message _withArgumentsConstEvalFailedAssertionWithMessage(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeConstEvalFailedAssertionWithNonStringMessage =
-    messageConstEvalFailedAssertionWithNonStringMessage;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalFailedAssertionWithNonStringMessage =
     const MessageCode(
   "ConstEvalFailedAssertionWithNonStringMessage",
   analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
@@ -1752,20 +1532,13 @@ Message _withArgumentsConstEvalNonConstantVariableGet(String nameOKEmpty) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNonNull = messageConstEvalNonNull;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalNonNull = const MessageCode(
+const MessageCode codeConstEvalNonNull = const MessageCode(
   "ConstEvalNonNull",
   problemMessage: r"""Constant expression must be non-null.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNotListOrSetInSpread =
-    messageConstEvalNotListOrSetInSpread;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalNotListOrSetInSpread = const MessageCode(
+const MessageCode codeConstEvalNotListOrSetInSpread = const MessageCode(
   "ConstEvalNotListOrSetInSpread",
   analyzerCodes: <String>["CONST_SPREAD_EXPECTED_LIST_OR_SET"],
   problemMessage:
@@ -1773,30 +1546,21 @@ const MessageCode messageConstEvalNotListOrSetInSpread = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNotMapInSpread = messageConstEvalNotMapInSpread;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalNotMapInSpread = const MessageCode(
+const MessageCode codeConstEvalNotMapInSpread = const MessageCode(
   "ConstEvalNotMapInSpread",
   analyzerCodes: <String>["CONST_SPREAD_EXPECTED_MAP"],
   problemMessage: r"""Only maps can be used in spreads in constant maps.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalNullValue = messageConstEvalNullValue;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalNullValue = const MessageCode(
+const MessageCode codeConstEvalNullValue = const MessageCode(
   "ConstEvalNullValue",
   analyzerCodes: <String>["CONST_EVAL_THROWS_EXCEPTION"],
   problemMessage: r"""Null value during constant evaluation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalStartingPoint = messageConstEvalStartingPoint;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalStartingPoint = const MessageCode(
+const MessageCode codeConstEvalStartingPoint = const MessageCode(
   "ConstEvalStartingPoint",
   problemMessage: r"""Constant evaluation error:""",
 );
@@ -1827,10 +1591,7 @@ Message _withArgumentsConstEvalTruncateError(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstEvalUnevaluated = messageConstEvalUnevaluated;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstEvalUnevaluated = const MessageCode(
+const MessageCode codeConstEvalUnevaluated = const MessageCode(
   "ConstEvalUnevaluated",
   problemMessage: r"""Couldn't evaluate constant expression.""",
 );
@@ -1883,10 +1644,7 @@ Message _withArgumentsConstEvalZeroDivisor(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstFactory = messageConstFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstFactory = const MessageCode(
+const MessageCode codeConstFactory = const MessageCode(
   "ConstFactory",
   index: 62,
   problemMessage:
@@ -1896,11 +1654,7 @@ const MessageCode messageConstFactory = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstFactoryRedirectionToNonConst =
-    messageConstFactoryRedirectionToNonConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstFactoryRedirectionToNonConst = const MessageCode(
+const MessageCode codeConstFactoryRedirectionToNonConst = const MessageCode(
   "ConstFactoryRedirectionToNonConst",
   analyzerCodes: <String>["REDIRECT_TO_NON_CONST_CONSTRUCTOR"],
   problemMessage:
@@ -1937,10 +1691,7 @@ Message _withArgumentsConstFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstInstanceField = messageConstInstanceField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstInstanceField = const MessageCode(
+const MessageCode codeConstInstanceField = const MessageCode(
   "ConstInstanceField",
   analyzerCodes: <String>["CONST_INSTANCE_FIELD"],
   problemMessage: r"""Only static fields can be declared as const.""",
@@ -1949,10 +1700,7 @@ const MessageCode messageConstInstanceField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstMethod = messageConstMethod;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstMethod = const MessageCode(
+const MessageCode codeConstMethod = const MessageCode(
   "ConstMethod",
   index: 63,
   problemMessage:
@@ -2007,10 +1755,7 @@ Message _withArgumentsConstructorConflictsWithMemberCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorCyclic = messageConstructorCyclic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstructorCyclic = const MessageCode(
+const MessageCode codeConstructorCyclic = const MessageCode(
   "ConstructorCyclic",
   analyzerCodes: <String>["RECURSIVE_CONSTRUCTOR_REDIRECT"],
   problemMessage: r"""Redirecting constructors can't be cyclic.""",
@@ -2068,10 +1813,7 @@ Message _withArgumentsConstructorNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorNotSync = messageConstructorNotSync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstructorNotSync = const MessageCode(
+const MessageCode codeConstructorNotSync = const MessageCode(
   "ConstructorNotSync",
   analyzerCodes: <String>["NON_SYNC_CONSTRUCTOR"],
   problemMessage:
@@ -2109,12 +1851,7 @@ Message _withArgumentsConstructorShouldBeListedAsCallableInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorTearOffWithTypeArguments =
-    messageConstructorTearOffWithTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstructorTearOffWithTypeArguments =
-    const MessageCode(
+const MessageCode codeConstructorTearOffWithTypeArguments = const MessageCode(
   "ConstructorTearOffWithTypeArguments",
   problemMessage:
       r"""A constructor tear-off can't have type arguments after the constructor name.""",
@@ -2123,11 +1860,7 @@ const MessageCode messageConstructorTearOffWithTypeArguments =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithReturnType =
-    messageConstructorWithReturnType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstructorWithReturnType = const MessageCode(
+const MessageCode codeConstructorWithReturnType = const MessageCode(
   "ConstructorWithReturnType",
   index: 55,
   problemMessage: r"""Constructors can't have a return type.""",
@@ -2135,11 +1868,7 @@ const MessageCode messageConstructorWithReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithTypeArguments =
-    messageConstructorWithTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstructorWithTypeArguments = const MessageCode(
+const MessageCode codeConstructorWithTypeArguments = const MessageCode(
   "ConstructorWithTypeArguments",
   index: 118,
   problemMessage:
@@ -2149,11 +1878,7 @@ const MessageCode messageConstructorWithTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithTypeParameters =
-    messageConstructorWithTypeParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstructorWithTypeParameters = const MessageCode(
+const MessageCode codeConstructorWithTypeParameters = const MessageCode(
   "ConstructorWithTypeParameters",
   index: 99,
   problemMessage: r"""Constructors can't have type parameters.""",
@@ -2161,11 +1886,7 @@ const MessageCode messageConstructorWithTypeParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeConstructorWithWrongName =
-    messageConstructorWithWrongName;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageConstructorWithWrongName = const MessageCode(
+const MessageCode codeConstructorWithWrongName = const MessageCode(
   "ConstructorWithWrongName",
   index: 102,
   problemMessage:
@@ -2196,10 +1917,7 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeContinueLabelInvalid = messageContinueLabelInvalid;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageContinueLabelInvalid = const MessageCode(
+const MessageCode codeContinueLabelInvalid = const MessageCode(
   "ContinueLabelInvalid",
   analyzerCodes: <String>["CONTINUE_LABEL_INVALID"],
   problemMessage:
@@ -2207,10 +1925,7 @@ const MessageCode messageContinueLabelInvalid = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageContinueOutsideOfLoop = const MessageCode(
+const MessageCode codeContinueOutsideOfLoop = const MessageCode(
   "ContinueOutsideOfLoop",
   index: 2,
   problemMessage:
@@ -2243,11 +1958,7 @@ Message _withArgumentsContinueTargetOutsideFunction(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeContinueWithoutLabelInCase =
-    messageContinueWithoutLabelInCase;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageContinueWithoutLabelInCase = const MessageCode(
+const MessageCode codeContinueWithoutLabelInCase = const MessageCode(
   "ContinueWithoutLabelInCase",
   index: 64,
   problemMessage:
@@ -2282,10 +1993,7 @@ Message _withArgumentsCouldNotParseUri(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCovariantAndStatic = messageCovariantAndStatic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCovariantAndStatic = const MessageCode(
+const MessageCode codeCovariantAndStatic = const MessageCode(
   "CovariantAndStatic",
   index: 66,
   problemMessage:
@@ -2295,10 +2003,7 @@ const MessageCode messageCovariantAndStatic = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCovariantMember = messageCovariantMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCovariantMember = const MessageCode(
+const MessageCode codeCovariantMember = const MessageCode(
   "CovariantMember",
   index: 67,
   problemMessage:
@@ -2382,11 +2087,7 @@ Message _withArgumentsCyclicRedirectingFactoryConstructors(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeCyclicRepresentationDependency =
-    messageCyclicRepresentationDependency;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageCyclicRepresentationDependency = const MessageCode(
+const MessageCode codeCyclicRepresentationDependency = const MessageCode(
   "CyclicRepresentationDependency",
   problemMessage:
       r"""An extension type can't depend on itself through its representation type.""",
@@ -2415,11 +2116,7 @@ Message _withArgumentsCyclicTypedef(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDartFfiLibraryInDart2Wasm =
-    messageDartFfiLibraryInDart2Wasm;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDartFfiLibraryInDart2Wasm = const MessageCode(
+const MessageCode codeDartFfiLibraryInDart2Wasm = const MessageCode(
   "DartFfiLibraryInDart2Wasm",
   problemMessage: r"""'dart:ffi' can't be imported when compiling to Wasm.""",
 );
@@ -2498,10 +2195,6 @@ Message _withArgumentsDeclarationConflictsWithSetterCause(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithInheritedMember =
-    messageDeclaredMemberConflictsWithInheritedMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
     const MessageCode(
   "DeclaredMemberConflictsWithInheritedMember",
   analyzerCodes: <String>["DECLARED_MEMBER_CONFLICTS_WITH_INHERITED"],
@@ -2511,10 +2204,6 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMember =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithInheritedMemberCause =
-    messageDeclaredMemberConflictsWithInheritedMemberCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
     const MessageCode(
   "DeclaredMemberConflictsWithInheritedMemberCause",
   severity: CfeSeverity.context,
@@ -2523,10 +2212,6 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithInheritedMembersCause =
-    messageDeclaredMemberConflictsWithInheritedMembersCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
     const MessageCode(
   "DeclaredMemberConflictsWithInheritedMembersCause",
   severity: CfeSeverity.context,
@@ -2535,10 +2220,6 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMembersCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDeclaredMemberConflictsWithOverriddenMembersCause =
-    messageDeclaredMemberConflictsWithOverriddenMembersCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
     const MessageCode(
   "DeclaredMemberConflictsWithOverriddenMembersCause",
   severity: CfeSeverity.context,
@@ -2546,11 +2227,7 @@ const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDefaultInSwitchExpression =
-    messageDefaultInSwitchExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDefaultInSwitchExpression = const MessageCode(
+const MessageCode codeDefaultInSwitchExpression = const MessageCode(
   "DefaultInSwitchExpression",
   index: 153,
   problemMessage: r"""A switch expression may not use the `default` keyword.""",
@@ -2585,10 +2262,7 @@ Message _withArgumentsDefaultValueInRedirectingFactoryConstructor(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDeferredAfterPrefix = messageDeferredAfterPrefix;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDeferredAfterPrefix = const MessageCode(
+const MessageCode codeDeferredAfterPrefix = const MessageCode(
   "DeferredAfterPrefix",
   index: 68,
   problemMessage:
@@ -2730,11 +2404,7 @@ Message _withArgumentsDirectCycleInTypeParameters(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDirectiveAfterDeclaration =
-    messageDirectiveAfterDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
+const MessageCode codeDirectiveAfterDeclaration = const MessageCode(
   "DirectiveAfterDeclaration",
   index: 69,
   problemMessage: r"""Directives must appear before any declarations.""",
@@ -2743,10 +2413,6 @@ const MessageCode messageDirectiveAfterDeclaration = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDotShorthandsConstructorInvocationWithTypeArguments =
-    messageDotShorthandsConstructorInvocationWithTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDotShorthandsConstructorInvocationWithTypeArguments =
     const MessageCode(
   "DotShorthandsConstructorInvocationWithTypeArguments",
   problemMessage:
@@ -2779,10 +2445,7 @@ Message _withArgumentsDotShorthandsInvalidContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateDeferred = messageDuplicateDeferred;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDuplicateDeferred = const MessageCode(
+const MessageCode codeDuplicateDeferred = const MessageCode(
   "DuplicateDeferred",
   index: 71,
   problemMessage:
@@ -2847,10 +2510,6 @@ Message _withArgumentsDuplicatePatternAssignmentVariable(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDuplicatePatternAssignmentVariableContext =
-    messageDuplicatePatternAssignmentVariableContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDuplicatePatternAssignmentVariableContext =
     const MessageCode(
   "DuplicatePatternAssignmentVariableContext",
   severity: CfeSeverity.context,
@@ -2858,10 +2517,7 @@ const MessageCode messageDuplicatePatternAssignmentVariableContext =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicatePrefix = messageDuplicatePrefix;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDuplicatePrefix = const MessageCode(
+const MessageCode codeDuplicatePrefix = const MessageCode(
   "DuplicatePrefix",
   index: 73,
   problemMessage:
@@ -2896,22 +2552,14 @@ Message _withArgumentsDuplicateRecordPatternField(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateRecordPatternFieldContext =
-    messageDuplicateRecordPatternFieldContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDuplicateRecordPatternFieldContext = const MessageCode(
+const MessageCode codeDuplicateRecordPatternFieldContext = const MessageCode(
   "DuplicateRecordPatternFieldContext",
   severity: CfeSeverity.context,
   problemMessage: r"""The first field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateRestElementInPattern =
-    messageDuplicateRestElementInPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDuplicateRestElementInPattern = const MessageCode(
+const MessageCode codeDuplicateRestElementInPattern = const MessageCode(
   "DuplicateRestElementInPattern",
   analyzerCodes: <String>["DUPLICATE_REST_ELEMENT_IN_PATTERN"],
   problemMessage:
@@ -2920,12 +2568,7 @@ const MessageCode messageDuplicateRestElementInPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeDuplicateRestElementInPatternContext =
-    messageDuplicateRestElementInPatternContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDuplicateRestElementInPatternContext =
-    const MessageCode(
+const MessageCode codeDuplicateRestElementInPatternContext = const MessageCode(
   "DuplicateRestElementInPatternContext",
   severity: CfeSeverity.context,
   problemMessage: r"""The first rest element.""",
@@ -3276,20 +2919,13 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeDynamicCallsAreNotAllowedInDynamicModule =
-    messageDynamicCallsAreNotAllowedInDynamicModule;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDynamicCallsAreNotAllowedInDynamicModule =
     const MessageCode(
   "DynamicCallsAreNotAllowedInDynamicModule",
   problemMessage: r"""Dynamic calls are not allowed in a dynamic module.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyMapPattern = messageEmptyMapPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEmptyMapPattern = const MessageCode(
+const MessageCode codeEmptyMapPattern = const MessageCode(
   "EmptyMapPattern",
   analyzerCodes: <String>["EMPTY_MAP_PATTERN"],
   problemMessage: r"""A map pattern must have at least one entry.""",
@@ -3297,10 +2933,7 @@ const MessageCode messageEmptyMapPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyNamedParameterList = messageEmptyNamedParameterList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEmptyNamedParameterList = const MessageCode(
+const MessageCode codeEmptyNamedParameterList = const MessageCode(
   "EmptyNamedParameterList",
   analyzerCodes: <String>["MISSING_IDENTIFIER"],
   problemMessage: r"""Named parameter lists cannot be empty.""",
@@ -3308,11 +2941,7 @@ const MessageCode messageEmptyNamedParameterList = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyOptionalParameterList =
-    messageEmptyOptionalParameterList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEmptyOptionalParameterList = const MessageCode(
+const MessageCode codeEmptyOptionalParameterList = const MessageCode(
   "EmptyOptionalParameterList",
   analyzerCodes: <String>["MISSING_IDENTIFIER"],
   problemMessage: r"""Optional parameter lists cannot be empty.""",
@@ -3320,11 +2949,7 @@ const MessageCode messageEmptyOptionalParameterList = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEmptyRecordTypeNamedFieldsList =
-    messageEmptyRecordTypeNamedFieldsList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEmptyRecordTypeNamedFieldsList = const MessageCode(
+const MessageCode codeEmptyRecordTypeNamedFieldsList = const MessageCode(
   "EmptyRecordTypeNamedFieldsList",
   index: 129,
   problemMessage:
@@ -3333,19 +2958,13 @@ const MessageCode messageEmptyRecordTypeNamedFieldsList = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEncoding = messageEncoding;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEncoding = const MessageCode(
+const MessageCode codeEncoding = const MessageCode(
   "Encoding",
   problemMessage: r"""Unable to decode bytes as UTF-8.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumAbstractMember = messageEnumAbstractMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumAbstractMember = const MessageCode(
+const MessageCode codeEnumAbstractMember = const MessageCode(
   "EnumAbstractMember",
   problemMessage: r"""Enums can't declare abstract members.""",
 );
@@ -3376,20 +2995,13 @@ Message _withArgumentsEnumConstantSameNameAsEnclosing(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumConstructorSuperInitializer =
-    messageEnumConstructorSuperInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumConstructorSuperInitializer = const MessageCode(
+const MessageCode codeEnumConstructorSuperInitializer = const MessageCode(
   "EnumConstructorSuperInitializer",
   problemMessage: r"""Enum constructors can't contain super-initializers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumConstructorTearoff = messageEnumConstructorTearoff;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumConstructorTearoff = const MessageCode(
+const MessageCode codeEnumConstructorTearoff = const MessageCode(
   "EnumConstructorTearoff",
   problemMessage: r"""Enum constructors can't be torn off.""",
 );
@@ -3419,42 +3031,27 @@ Message _withArgumentsEnumContainsRestrictedInstanceDeclaration(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumContainsValuesDeclaration =
-    messageEnumContainsValuesDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumContainsValuesDeclaration = const MessageCode(
+const MessageCode codeEnumContainsValuesDeclaration = const MessageCode(
   "EnumContainsValuesDeclaration",
   problemMessage: r"""An enum can't declare a member named 'values'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumDeclarationEmpty = messageEnumDeclarationEmpty;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumDeclarationEmpty = const MessageCode(
+const MessageCode codeEnumDeclarationEmpty = const MessageCode(
   "EnumDeclarationEmpty",
   analyzerCodes: <String>["EMPTY_ENUM_BODY"],
   problemMessage: r"""An enum declaration can't be empty.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumDeclaresConstFactory =
-    messageEnumDeclaresConstFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumDeclaresConstFactory = const MessageCode(
+const MessageCode codeEnumDeclaresConstFactory = const MessageCode(
   "EnumDeclaresConstFactory",
   problemMessage: r"""Enums can't declare const factory constructors.""",
   correctionMessage: r"""Try removing the factory constructor declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumFactoryRedirectsToConstructor =
-    messageEnumFactoryRedirectsToConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumFactoryRedirectsToConstructor = const MessageCode(
+const MessageCode codeEnumFactoryRedirectsToConstructor = const MessageCode(
   "EnumFactoryRedirectsToConstructor",
   problemMessage:
       r"""Enum factory constructors can't redirect to generative constructors.""",
@@ -3514,10 +3111,7 @@ Message _withArgumentsEnumImplementerContainsValuesDeclaration(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumInClass = messageEnumInClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumInClass = const MessageCode(
+const MessageCode codeEnumInClass = const MessageCode(
   "EnumInClass",
   index: 74,
   problemMessage: r"""Enums can't be declared inside classes.""",
@@ -3546,31 +3140,21 @@ Message _withArgumentsEnumInheritsRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumInheritsRestrictedMember =
-    messageEnumInheritsRestrictedMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumInheritsRestrictedMember = const MessageCode(
+const MessageCode codeEnumInheritsRestrictedMember = const MessageCode(
   "EnumInheritsRestrictedMember",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the inherited member""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumInstantiation = messageEnumInstantiation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumInstantiation = const MessageCode(
+const MessageCode codeEnumInstantiation = const MessageCode(
   "EnumInstantiation",
   analyzerCodes: <String>["INSTANTIATE_ENUM"],
   problemMessage: r"""Enums can't be instantiated.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumNonConstConstructor = messageEnumNonConstConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumNonConstConstructor = const MessageCode(
+const MessageCode codeEnumNonConstConstructor = const MessageCode(
   "EnumNonConstConstructor",
   problemMessage:
       r"""Generative enum constructors must be marked as 'const'.""",
@@ -3601,10 +3185,7 @@ Message _withArgumentsEnumSupertypeOfNonAbstractClass(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEnumWithNameValues = messageEnumWithNameValues;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEnumWithNameValues = const MessageCode(
+const MessageCode codeEnumWithNameValues = const MessageCode(
   "EnumWithNameValues",
   analyzerCodes: <String>["ENUM_WITH_NAME_VALUES"],
   problemMessage:
@@ -3612,10 +3193,7 @@ const MessageCode messageEnumWithNameValues = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEqualKeysInMapPattern = messageEqualKeysInMapPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEqualKeysInMapPattern = const MessageCode(
+const MessageCode codeEqualKeysInMapPattern = const MessageCode(
   "EqualKeysInMapPattern",
   analyzerCodes: <String>["EQUAL_KEYS_IN_MAP_PATTERN"],
   problemMessage: r"""Two keys in a map pattern can't be equal.""",
@@ -3623,22 +3201,14 @@ const MessageCode messageEqualKeysInMapPattern = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEqualKeysInMapPatternContext =
-    messageEqualKeysInMapPatternContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEqualKeysInMapPatternContext = const MessageCode(
+const MessageCode codeEqualKeysInMapPatternContext = const MessageCode(
   "EqualKeysInMapPatternContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the previous use of the same key.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeEqualityCannotBeEqualityOperand =
-    messageEqualityCannotBeEqualityOperand;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
+const MessageCode codeEqualityCannotBeEqualityOperand = const MessageCode(
   "EqualityCannotBeEqualityOperand",
   index: 1,
   problemMessage:
@@ -3692,20 +3262,14 @@ Message _withArgumentsExpectedAfterButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedAnInitializer = messageExpectedAnInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedAnInitializer = const MessageCode(
+const MessageCode codeExpectedAnInitializer = const MessageCode(
   "ExpectedAnInitializer",
   index: 36,
   problemMessage: r"""Expected an initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedBlock = messageExpectedBlock;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedBlock = const MessageCode(
+const MessageCode codeExpectedBlock = const MessageCode(
   "ExpectedBlock",
   analyzerCodes: <String>["EXPECTED_TOKEN"],
   problemMessage: r"""Expected a block.""",
@@ -3713,10 +3277,7 @@ const MessageCode messageExpectedBlock = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedBlockToSkip = messageExpectedBlockToSkip;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedBlockToSkip = const MessageCode(
+const MessageCode codeExpectedBlockToSkip = const MessageCode(
   "ExpectedBlockToSkip",
   analyzerCodes: <String>["MISSING_FUNCTION_BODY"],
   problemMessage: r"""Expected a function body or '=>'.""",
@@ -3724,10 +3285,7 @@ const MessageCode messageExpectedBlockToSkip = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedBody = messageExpectedBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedBody = const MessageCode(
+const MessageCode codeExpectedBody = const MessageCode(
   "ExpectedBody",
   analyzerCodes: <String>["MISSING_FUNCTION_BODY"],
   problemMessage: r"""Expected a function body or '=>'.""",
@@ -3756,10 +3314,7 @@ Message _withArgumentsExpectedButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedCatchClauseBody = messageExpectedCatchClauseBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedCatchClauseBody = const MessageCode(
+const MessageCode codeExpectedCatchClauseBody = const MessageCode(
   "ExpectedCatchClauseBody",
   index: 169,
   problemMessage: r"""A catch clause must have a body, even if it is empty.""",
@@ -3767,10 +3322,7 @@ const MessageCode messageExpectedCatchClauseBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedClassBody = messageExpectedClassBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedClassBody = const MessageCode(
+const MessageCode codeExpectedClassBody = const MessageCode(
   "ExpectedClassBody",
   index: 8,
   problemMessage:
@@ -3821,10 +3373,7 @@ Message _withArgumentsExpectedDeclaration(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedElseOrComma = messageExpectedElseOrComma;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedElseOrComma = const MessageCode(
+const MessageCode codeExpectedElseOrComma = const MessageCode(
   "ExpectedElseOrComma",
   index: 46,
   problemMessage: r"""Expected 'else' or comma.""",
@@ -3856,10 +3405,7 @@ Message _withArgumentsExpectedEnumBody(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedExtensionBody = messageExpectedExtensionBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedExtensionBody = const MessageCode(
+const MessageCode codeExpectedExtensionBody = const MessageCode(
   "ExpectedExtensionBody",
   index: 173,
   problemMessage:
@@ -3868,11 +3414,7 @@ const MessageCode messageExpectedExtensionBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedExtensionTypeBody =
-    messageExpectedExtensionTypeBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedExtensionTypeBody = const MessageCode(
+const MessageCode codeExpectedExtensionTypeBody = const MessageCode(
   "ExpectedExtensionTypeBody",
   index: 167,
   problemMessage:
@@ -3881,11 +3423,7 @@ const MessageCode messageExpectedExtensionTypeBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedFinallyClauseBody =
-    messageExpectedFinallyClauseBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedFinallyClauseBody = const MessageCode(
+const MessageCode codeExpectedFinallyClauseBody = const MessageCode(
   "ExpectedFinallyClauseBody",
   index: 170,
   problemMessage:
@@ -3915,10 +3453,7 @@ Message _withArgumentsExpectedFunctionBody(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedHexDigit = messageExpectedHexDigit;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedHexDigit = const MessageCode(
+const MessageCode codeExpectedHexDigit = const MessageCode(
   "ExpectedHexDigit",
   analyzerCodes: <String>["MISSING_HEX_DIGIT"],
   problemMessage: r"""A hex digit (0-9 or A-F) must follow '0x'.""",
@@ -3998,10 +3533,7 @@ Message _withArgumentsExpectedInstead(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedMixinBody = messageExpectedMixinBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedMixinBody = const MessageCode(
+const MessageCode codeExpectedMixinBody = const MessageCode(
   "ExpectedMixinBody",
   index: 166,
   problemMessage:
@@ -4010,60 +3542,40 @@ const MessageCode messageExpectedMixinBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedNamedArgument = messageExpectedNamedArgument;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedNamedArgument = const MessageCode(
+const MessageCode codeExpectedNamedArgument = const MessageCode(
   "ExpectedNamedArgument",
   analyzerCodes: <String>["EXTRA_POSITIONAL_ARGUMENTS"],
   problemMessage: r"""Expected named argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedOneExpression = messageExpectedOneExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedOneExpression = const MessageCode(
+const MessageCode codeExpectedOneExpression = const MessageCode(
   "ExpectedOneExpression",
   problemMessage: r"""Expected one expression, but found additional input.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedOpenParens = messageExpectedOpenParens;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedOpenParens = const MessageCode(
+const MessageCode codeExpectedOpenParens = const MessageCode(
   "ExpectedOpenParens",
   problemMessage: r"""Expected '('.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedRepresentationField =
-    messageExpectedRepresentationField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedRepresentationField = const MessageCode(
+const MessageCode codeExpectedRepresentationField = const MessageCode(
   "ExpectedRepresentationField",
   analyzerCodes: <String>["EXPECTED_REPRESENTATION_FIELD"],
   problemMessage: r"""Expected a representation field.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedRepresentationType =
-    messageExpectedRepresentationType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedRepresentationType = const MessageCode(
+const MessageCode codeExpectedRepresentationType = const MessageCode(
   "ExpectedRepresentationType",
   analyzerCodes: <String>["EXPECTED_REPRESENTATION_TYPE"],
   problemMessage: r"""Expected a representation type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedStatement = messageExpectedStatement;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedStatement = const MessageCode(
+const MessageCode codeExpectedStatement = const MessageCode(
   "ExpectedStatement",
   index: 29,
   problemMessage: r"""Expected a statement.""",
@@ -4091,11 +3603,7 @@ Message _withArgumentsExpectedString(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedSwitchExpressionBody =
-    messageExpectedSwitchExpressionBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedSwitchExpressionBody = const MessageCode(
+const MessageCode codeExpectedSwitchExpressionBody = const MessageCode(
   "ExpectedSwitchExpressionBody",
   index: 171,
   problemMessage:
@@ -4104,11 +3612,7 @@ const MessageCode messageExpectedSwitchExpressionBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedSwitchStatementBody =
-    messageExpectedSwitchStatementBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedSwitchStatementBody = const MessageCode(
+const MessageCode codeExpectedSwitchStatementBody = const MessageCode(
   "ExpectedSwitchStatementBody",
   index: 172,
   problemMessage:
@@ -4138,11 +3642,7 @@ Message _withArgumentsExpectedToken(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedTryStatementBody =
-    messageExpectedTryStatementBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedTryStatementBody = const MessageCode(
+const MessageCode codeExpectedTryStatementBody = const MessageCode(
   "ExpectedTryStatementBody",
   index: 168,
   problemMessage: r"""A try statement must have a body, even if it is empty.""",
@@ -4171,10 +3671,7 @@ Message _withArgumentsExpectedType(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpectedUri = messageExpectedUri;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpectedUri = const MessageCode(
+const MessageCode codeExpectedUri = const MessageCode(
   "ExpectedUri",
   problemMessage: r"""Expected a URI.""",
 );
@@ -4419,33 +3916,21 @@ Message _withArgumentsExperimentOptOutImplicit(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExplicitExtensionArgumentMismatch =
-    messageExplicitExtensionArgumentMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExplicitExtensionArgumentMismatch = const MessageCode(
+const MessageCode codeExplicitExtensionArgumentMismatch = const MessageCode(
   "ExplicitExtensionArgumentMismatch",
   problemMessage:
       r"""Explicit extension application requires exactly 1 positional argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExplicitExtensionAsExpression =
-    messageExplicitExtensionAsExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExplicitExtensionAsExpression = const MessageCode(
+const MessageCode codeExplicitExtensionAsExpression = const MessageCode(
   "ExplicitExtensionAsExpression",
   problemMessage:
       r"""Explicit extension application cannot be used as an expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExplicitExtensionAsLvalue =
-    messageExplicitExtensionAsLvalue;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExplicitExtensionAsLvalue = const MessageCode(
+const MessageCode codeExplicitExtensionAsLvalue = const MessageCode(
   "ExplicitExtensionAsLvalue",
   problemMessage:
       r"""Explicit extension application cannot be a target for assignment.""",
@@ -4478,10 +3963,7 @@ Message _withArgumentsExplicitExtensionTypeArgumentMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExportAfterPart = messageExportAfterPart;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExportAfterPart = const MessageCode(
+const MessageCode codeExportAfterPart = const MessageCode(
   "ExportAfterPart",
   index: 75,
   problemMessage: r"""Export directives must precede part directives.""",
@@ -4490,20 +3972,14 @@ const MessageCode messageExportAfterPart = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExportedMain = messageExportedMain;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExportedMain = const MessageCode(
+const MessageCode codeExportedMain = const MessageCode(
   "ExportedMain",
   severity: CfeSeverity.context,
   problemMessage: r"""This is exported 'main' declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExpressionNotMetadata = messageExpressionNotMetadata;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExpressionNotMetadata = const MessageCode(
+const MessageCode codeExpressionNotMetadata = const MessageCode(
   "ExpressionNotMetadata",
   problemMessage:
       r"""This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.""",
@@ -4558,10 +4034,7 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsDeferredClass = messageExtendsDeferredClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtendsDeferredClass = const MessageCode(
+const MessageCode codeExtendsDeferredClass = const MessageCode(
   "ExtendsDeferredClass",
   analyzerCodes: <String>["EXTENDS_DEFERRED_CLASS"],
   problemMessage: r"""Classes can't extend deferred classes.""",
@@ -4570,39 +4043,26 @@ const MessageCode messageExtendsDeferredClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsFutureOr = messageExtendsFutureOr;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtendsFutureOr = const MessageCode(
+const MessageCode codeExtendsFutureOr = const MessageCode(
   "ExtendsFutureOr",
   problemMessage:
       r"""The type 'FutureOr' can't be used in an 'extends' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsNever = messageExtendsNever;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtendsNever = const MessageCode(
+const MessageCode codeExtendsNever = const MessageCode(
   "ExtendsNever",
   problemMessage: r"""The type 'Never' can't be used in an 'extends' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtendsVoid = messageExtendsVoid;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtendsVoid = const MessageCode(
+const MessageCode codeExtendsVoid = const MessageCode(
   "ExtendsVoid",
   problemMessage: r"""The type 'void' can't be used in an 'extends' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionAugmentationHasOnClause =
-    messageExtensionAugmentationHasOnClause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionAugmentationHasOnClause = const MessageCode(
+const MessageCode codeExtensionAugmentationHasOnClause = const MessageCode(
   "ExtensionAugmentationHasOnClause",
   index: 93,
   problemMessage: r"""Extension augmentations can't have 'on' clauses.""",
@@ -4610,11 +4070,7 @@ const MessageCode messageExtensionAugmentationHasOnClause = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionDeclaresAbstractMember =
-    messageExtensionDeclaresAbstractMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionDeclaresAbstractMember = const MessageCode(
+const MessageCode codeExtensionDeclaresAbstractMember = const MessageCode(
   "ExtensionDeclaresAbstractMember",
   index: 94,
   problemMessage: r"""Extensions can't declare abstract members.""",
@@ -4622,11 +4078,7 @@ const MessageCode messageExtensionDeclaresAbstractMember = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionDeclaresConstructor =
-    messageExtensionDeclaresConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionDeclaresConstructor = const MessageCode(
+const MessageCode codeExtensionDeclaresConstructor = const MessageCode(
   "ExtensionDeclaresConstructor",
   index: 92,
   problemMessage: r"""Extensions can't declare constructors.""",
@@ -4634,11 +4086,7 @@ const MessageCode messageExtensionDeclaresConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionDeclaresInstanceField =
-    messageExtensionDeclaresInstanceField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
+const MessageCode codeExtensionDeclaresInstanceField = const MessageCode(
   "ExtensionDeclaresInstanceField",
   analyzerCodes: <String>["EXTENSION_DECLARES_INSTANCE_FIELD"],
   problemMessage: r"""Extensions can't declare instance fields""",
@@ -4705,10 +4153,6 @@ Message _withArgumentsExtensionTypeCombinedMemberSignatureFailed(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypeConstructorWithSuperFormalParameter =
-    messageExtensionTypeConstructorWithSuperFormalParameter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeConstructorWithSuperFormalParameter =
     const MessageCode(
   "ExtensionTypeConstructorWithSuperFormalParameter",
   analyzerCodes: <String>[
@@ -4719,23 +4163,14 @@ const MessageCode messageExtensionTypeConstructorWithSuperFormalParameter =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeDeclarationCause =
-    messageExtensionTypeDeclarationCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
+const MessageCode codeExtensionTypeDeclarationCause = const MessageCode(
   "ExtensionTypeDeclarationCause",
   severity: CfeSeverity.context,
   problemMessage: r"""The issue arises via this extension type declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeDeclaresAbstractMember =
-    messageExtensionTypeDeclaresAbstractMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeDeclaresAbstractMember =
-    const MessageCode(
+const MessageCode codeExtensionTypeDeclaresAbstractMember = const MessageCode(
   "ExtensionTypeDeclaresAbstractMember",
   analyzerCodes: <String>["EXTENSION_TYPE_WITH_ABSTRACT_MEMBER"],
   problemMessage: r"""Extension types can't declare abstract members.""",
@@ -4743,11 +4178,7 @@ const MessageCode messageExtensionTypeDeclaresAbstractMember =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeDeclaresInstanceField =
-    messageExtensionTypeDeclaresInstanceField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeDeclaresInstanceField = const MessageCode(
+const MessageCode codeExtensionTypeDeclaresInstanceField = const MessageCode(
   "ExtensionTypeDeclaresInstanceField",
   analyzerCodes: <String>["EXTENSION_TYPE_DECLARES_INSTANCE_FIELD"],
   problemMessage: r"""Extension types can't declare instance fields""",
@@ -4756,10 +4187,7 @@ const MessageCode messageExtensionTypeDeclaresInstanceField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeExtends = messageExtensionTypeExtends;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeExtends = const MessageCode(
+const MessageCode codeExtensionTypeExtends = const MessageCode(
   "ExtensionTypeExtends",
   index: 164,
   problemMessage:
@@ -4769,11 +4197,7 @@ const MessageCode messageExtensionTypeExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeImplementsDeferred =
-    messageExtensionTypeImplementsDeferred;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeImplementsDeferred = const MessageCode(
+const MessageCode codeExtensionTypeImplementsDeferred = const MessageCode(
   "ExtensionTypeImplementsDeferred",
   analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
   problemMessage: r"""Extension types can't implement deferred types.""",
@@ -4782,22 +4206,14 @@ const MessageCode messageExtensionTypeImplementsDeferred = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeMemberContext =
-    messageExtensionTypeMemberContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeMemberContext = const MessageCode(
+const MessageCode codeExtensionTypeMemberContext = const MessageCode(
   "ExtensionTypeMemberContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the inherited extension type member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeMemberOneOfContext =
-    messageExtensionTypeMemberOneOfContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
+const MessageCode codeExtensionTypeMemberOneOfContext = const MessageCode(
   "ExtensionTypeMemberOneOfContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is one of the inherited extension type members.""",
@@ -4806,11 +4222,6 @@ const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
     codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
-    messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-    messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
     const MessageCode(
   "ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax",
   problemMessage:
@@ -4821,10 +4232,6 @@ const MessageCode
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExtensionTypePrimaryConstructorWithInitializingFormal =
-    messageExtensionTypePrimaryConstructorWithInitializingFormal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypePrimaryConstructorWithInitializingFormal =
     const MessageCode(
   "ExtensionTypePrimaryConstructorWithInitializingFormal",
   problemMessage:
@@ -4833,12 +4240,7 @@ const MessageCode messageExtensionTypePrimaryConstructorWithInitializingFormal =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeRepresentationTypeBottom =
-    messageExtensionTypeRepresentationTypeBottom;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeRepresentationTypeBottom =
-    const MessageCode(
+const MessageCode codeExtensionTypeRepresentationTypeBottom = const MessageCode(
   "ExtensionTypeRepresentationTypeBottom",
   analyzerCodes: <String>["EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM"],
   problemMessage: r"""The representation type can't be a bottom type.""",
@@ -4875,10 +4277,7 @@ Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExtensionTypeWith = messageExtensionTypeWith;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExtensionTypeWith = const MessageCode(
+const MessageCode codeExtensionTypeWith = const MessageCode(
   "ExtensionTypeWith",
   index: 165,
   problemMessage:
@@ -4888,10 +4287,7 @@ const MessageCode messageExtensionTypeWith = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalClass = messageExternalClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalClass = const MessageCode(
+const MessageCode codeExternalClass = const MessageCode(
   "ExternalClass",
   index: 3,
   problemMessage: r"""Classes can't be declared to be 'external'.""",
@@ -4899,11 +4295,7 @@ const MessageCode messageExternalClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalConstructorWithBody =
-    messageExternalConstructorWithBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalConstructorWithBody = const MessageCode(
+const MessageCode codeExternalConstructorWithBody = const MessageCode(
   "ExternalConstructorWithBody",
   index: 87,
   problemMessage: r"""External constructors can't have a body.""",
@@ -4913,10 +4305,6 @@ const MessageCode messageExternalConstructorWithBody = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeExternalConstructorWithFieldInitializers =
-    messageExternalConstructorWithFieldInitializers;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalConstructorWithFieldInitializers =
     const MessageCode(
   "ExternalConstructorWithFieldInitializers",
   index: 178,
@@ -4926,21 +4314,14 @@ const MessageCode messageExternalConstructorWithFieldInitializers =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalConstructorWithInitializer =
-    messageExternalConstructorWithInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalConstructorWithInitializer = const MessageCode(
+const MessageCode codeExternalConstructorWithInitializer = const MessageCode(
   "ExternalConstructorWithInitializer",
   index: 106,
   problemMessage: r"""An external constructor can't have any initializers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalEnum = messageExternalEnum;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalEnum = const MessageCode(
+const MessageCode codeExternalEnum = const MessageCode(
   "ExternalEnum",
   index: 5,
   problemMessage: r"""Enums can't be declared to be 'external'.""",
@@ -4948,11 +4329,7 @@ const MessageCode messageExternalEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFactoryRedirection =
-    messageExternalFactoryRedirection;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalFactoryRedirection = const MessageCode(
+const MessageCode codeExternalFactoryRedirection = const MessageCode(
   "ExternalFactoryRedirection",
   index: 85,
   problemMessage: r"""A redirecting factory can't be external.""",
@@ -4960,10 +4337,7 @@ const MessageCode messageExternalFactoryRedirection = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFactoryWithBody = messageExternalFactoryWithBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalFactoryWithBody = const MessageCode(
+const MessageCode codeExternalFactoryWithBody = const MessageCode(
   "ExternalFactoryWithBody",
   index: 86,
   problemMessage: r"""External factories can't have a body.""",
@@ -4972,10 +4346,7 @@ const MessageCode messageExternalFactoryWithBody = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalField = messageExternalField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalField = const MessageCode(
+const MessageCode codeExternalField = const MessageCode(
   "ExternalField",
   index: 50,
   problemMessage: r"""Fields can't be declared to be 'external'.""",
@@ -4984,12 +4355,7 @@ const MessageCode messageExternalField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFieldConstructorInitializer =
-    messageExternalFieldConstructorInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalFieldConstructorInitializer =
-    const MessageCode(
+const MessageCode codeExternalFieldConstructorInitializer = const MessageCode(
   "ExternalFieldConstructorInitializer",
   problemMessage: r"""External fields cannot have initializers.""",
   correctionMessage:
@@ -4997,11 +4363,7 @@ const MessageCode messageExternalFieldConstructorInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalFieldInitializer =
-    messageExternalFieldInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalFieldInitializer = const MessageCode(
+const MessageCode codeExternalFieldInitializer = const MessageCode(
   "ExternalFieldInitializer",
   problemMessage: r"""External fields cannot have initializers.""",
   correctionMessage:
@@ -5009,10 +4371,7 @@ const MessageCode messageExternalFieldInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalLateField = messageExternalLateField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalLateField = const MessageCode(
+const MessageCode codeExternalLateField = const MessageCode(
   "ExternalLateField",
   index: 109,
   problemMessage: r"""External fields cannot be late.""",
@@ -5020,20 +4379,14 @@ const MessageCode messageExternalLateField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalMethodWithBody = messageExternalMethodWithBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalMethodWithBody = const MessageCode(
+const MessageCode codeExternalMethodWithBody = const MessageCode(
   "ExternalMethodWithBody",
   index: 49,
   problemMessage: r"""An external or native method can't have a body.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeExternalTypedef = messageExternalTypedef;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageExternalTypedef = const MessageCode(
+const MessageCode codeExternalTypedef = const MessageCode(
   "ExternalTypedef",
   index: 76,
   problemMessage: r"""Typedefs can't be declared to be 'external'.""",
@@ -5184,10 +4537,7 @@ Message _withArgumentsFactoryConflictsWithMemberCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFactoryNotSync = messageFactoryNotSync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFactoryNotSync = const MessageCode(
+const MessageCode codeFactoryNotSync = const MessageCode(
   "FactoryNotSync",
   analyzerCodes: <String>["NON_SYNC_FACTORY"],
   problemMessage:
@@ -5195,11 +4545,7 @@ const MessageCode messageFactoryNotSync = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFactoryTopLevelDeclaration =
-    messageFactoryTopLevelDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
+const MessageCode codeFactoryTopLevelDeclaration = const MessageCode(
   "FactoryTopLevelDeclaration",
   index: 78,
   problemMessage:
@@ -5229,10 +4575,7 @@ Message _withArgumentsFastaCLIArgumentRequired(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFastaUsageLong = messageFastaUsageLong;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFastaUsageLong = const MessageCode(
+const MessageCode codeFastaUsageLong = const MessageCode(
   "FastaUsageLong",
   problemMessage: r"""Supported options:
 
@@ -5322,10 +4665,7 @@ const MessageCode messageFastaUsageLong = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFastaUsageShort = messageFastaUsageShort;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFastaUsageShort = const MessageCode(
+const MessageCode codeFastaUsageShort = const MessageCode(
   "FastaUsageShort",
   problemMessage: r"""Frequently used options:
 
@@ -5334,34 +4674,21 @@ const MessageCode messageFastaUsageShort = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAbiSpecificIntegerInvalid =
-    messageFfiAbiSpecificIntegerInvalid;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiAbiSpecificIntegerInvalid = const MessageCode(
+const MessageCode codeFfiAbiSpecificIntegerInvalid = const MessageCode(
   "FfiAbiSpecificIntegerInvalid",
   problemMessage:
       r"""Classes extending 'AbiSpecificInteger' must have exactly one const constructor, no other members, and no type arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAbiSpecificIntegerMappingInvalid =
-    messageFfiAbiSpecificIntegerMappingInvalid;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiAbiSpecificIntegerMappingInvalid =
-    const MessageCode(
+const MessageCode codeFfiAbiSpecificIntegerMappingInvalid = const MessageCode(
   "FfiAbiSpecificIntegerMappingInvalid",
   problemMessage:
       r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAddressOfMustBeNative =
-    messageFfiAddressOfMustBeNative;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
+const MessageCode codeFfiAddressOfMustBeNative = const MessageCode(
   "FfiAddressOfMustBeNative",
   analyzerCodes: <String>["ARGUMENT_MUST_BE_NATIVE"],
   problemMessage:
@@ -5369,20 +4696,14 @@ const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAddressPosition = messageFfiAddressPosition;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiAddressPosition = const MessageCode(
+const MessageCode codeFfiAddressPosition = const MessageCode(
   "FfiAddressPosition",
   problemMessage:
       r"""The '.address' expression can only be used as argument to a leaf native external call.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiAddressReceiver = messageFfiAddressReceiver;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiAddressReceiver = const MessageCode(
+const MessageCode codeFfiAddressReceiver = const MessageCode(
   "FfiAddressReceiver",
   problemMessage:
       r"""The receiver of '.address' must be a concrete 'TypedData', a concrete 'TypedData' '[]', an 'Array', an 'Array' '[]', a Struct field, or a Union field.""",
@@ -5419,11 +4740,7 @@ Message _withArgumentsFfiCompoundImplementsFinalizable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiCreateOfStructOrUnion =
-    messageFfiCreateOfStructOrUnion;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
+const MessageCode codeFfiCreateOfStructOrUnion = const MessageCode(
   "FfiCreateOfStructOrUnion",
   problemMessage:
       r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""",
@@ -5431,10 +4748,6 @@ const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDeeplyImmutableClassesMustBeFinalOrSealed =
-    messageFfiDeeplyImmutableClassesMustBeFinalOrSealed;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiDeeplyImmutableClassesMustBeFinalOrSealed =
     const MessageCode(
   "FfiDeeplyImmutableClassesMustBeFinalOrSealed",
   problemMessage: r"""Deeply immutable classes must be final or sealed.""",
@@ -5442,11 +4755,7 @@ const MessageCode messageFfiDeeplyImmutableClassesMustBeFinalOrSealed =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiDeeplyImmutableFieldsModifiers =
-    messageFfiDeeplyImmutableFieldsModifiers;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiDeeplyImmutableFieldsModifiers = const MessageCode(
+const MessageCode codeFfiDeeplyImmutableFieldsModifiers = const MessageCode(
   "FfiDeeplyImmutableFieldsModifiers",
   problemMessage:
       r"""Deeply immutable classes must only have final non-late instance fields.""",
@@ -5456,10 +4765,6 @@ const MessageCode messageFfiDeeplyImmutableFieldsModifiers = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
-    messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
     const MessageCode(
   "FfiDeeplyImmutableFieldsMustBeDeeplyImmutable",
   problemMessage:
@@ -5470,10 +4775,6 @@ const MessageCode messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
-    messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
     const MessageCode(
   "FfiDeeplyImmutableSubtypesMustBeDeeplyImmutable",
   problemMessage:
@@ -5484,10 +4785,6 @@ const MessageCode messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
-    messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
     const MessageCode(
   "FfiDeeplyImmutableSupertypeMustBeDeeplyImmutable",
   problemMessage:
@@ -5497,11 +4794,7 @@ const MessageCode messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiDefaultAssetDuplicate =
-    messageFfiDefaultAssetDuplicate;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiDefaultAssetDuplicate = const MessageCode(
+const MessageCode codeFfiDefaultAssetDuplicate = const MessageCode(
   "FfiDefaultAssetDuplicate",
   analyzerCodes: <String>["FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET"],
   problemMessage:
@@ -5535,20 +4828,13 @@ Message _withArgumentsFfiEmptyStruct(String string, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiExceptionalReturnNull =
-    messageFfiExceptionalReturnNull;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiExceptionalReturnNull = const MessageCode(
+const MessageCode codeFfiExceptionalReturnNull = const MessageCode(
   "FfiExceptionalReturnNull",
   problemMessage: r"""Exceptional return value must not be null.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiExpectedConstant = messageFfiExpectedConstant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiExpectedConstant = const MessageCode(
+const MessageCode codeFfiExpectedConstant = const MessageCode(
   "FfiExpectedConstant",
   problemMessage: r"""Exceptional return value must be a constant.""",
 );
@@ -5725,31 +5011,19 @@ Message _withArgumentsFfiFieldNull(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiLeafCallMustNotReturnHandle =
-    messageFfiLeafCallMustNotReturnHandle;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiLeafCallMustNotReturnHandle = const MessageCode(
+const MessageCode codeFfiLeafCallMustNotReturnHandle = const MessageCode(
   "FfiLeafCallMustNotReturnHandle",
   problemMessage: r"""FFI leaf call must not have Handle return type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiLeafCallMustNotTakeHandle =
-    messageFfiLeafCallMustNotTakeHandle;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
+const MessageCode codeFfiLeafCallMustNotTakeHandle = const MessageCode(
   "FfiLeafCallMustNotTakeHandle",
   problemMessage: r"""FFI leaf call must not have Handle argument types.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeDuplicateAnnotations =
-    messageFfiNativeDuplicateAnnotations;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeDuplicateAnnotations = const MessageCode(
+const MessageCode codeFfiNativeDuplicateAnnotations = const MessageCode(
   "FfiNativeDuplicateAnnotations",
   analyzerCodes: <String>["FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS"],
   problemMessage:
@@ -5757,11 +5031,7 @@ const MessageCode messageFfiNativeDuplicateAnnotations = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFieldMissingType =
-    messageFfiNativeFieldMissingType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeFieldMissingType = const MessageCode(
+const MessageCode codeFfiNativeFieldMissingType = const MessageCode(
   "FfiNativeFieldMissingType",
   analyzerCodes: <String>["NATIVE_FIELD_MISSING_TYPE"],
   problemMessage:
@@ -5769,21 +5039,14 @@ const MessageCode messageFfiNativeFieldMissingType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFieldMustBeStatic =
-    messageFfiNativeFieldMustBeStatic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeFieldMustBeStatic = const MessageCode(
+const MessageCode codeFfiNativeFieldMustBeStatic = const MessageCode(
   "FfiNativeFieldMustBeStatic",
   analyzerCodes: <String>["NATIVE_FIELD_NOT_STATIC"],
   problemMessage: r"""Native fields must be static.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFieldType = messageFfiNativeFieldType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeFieldType = const MessageCode(
+const MessageCode codeFfiNativeFieldType = const MessageCode(
   "FfiNativeFieldType",
   analyzerCodes: <String>["NATIVE_FIELD_INVALID_TYPE"],
   problemMessage:
@@ -5791,11 +5054,7 @@ const MessageCode messageFfiNativeFieldType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeFunctionMissingType =
-    messageFfiNativeFunctionMissingType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeFunctionMissingType = const MessageCode(
+const MessageCode codeFfiNativeFunctionMissingType = const MessageCode(
   "FfiNativeFunctionMissingType",
   analyzerCodes: <String>["NATIVE_FUNCTION_MISSING_TYPE"],
   problemMessage:
@@ -5803,20 +5062,13 @@ const MessageCode messageFfiNativeFunctionMissingType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
+const MessageCode codeFfiNativeMustBeExternal = const MessageCode(
   "FfiNativeMustBeExternal",
   problemMessage: r"""Native functions and fields must be marked external.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
-    messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
     const MessageCode(
   "FfiNativeOnlyNativeFieldWrapperClassCanBePointer",
   problemMessage:
@@ -5919,11 +5171,7 @@ Message _withArgumentsFfiPackedAnnotation(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiPackedAnnotationAlignment =
-    messageFfiPackedAnnotationAlignment;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiPackedAnnotationAlignment = const MessageCode(
+const MessageCode codeFfiPackedAnnotationAlignment = const MessageCode(
   "FfiPackedAnnotationAlignment",
   problemMessage: r"""Only packing to 1, 2, 4, 8, and 16 bytes is supported.""",
 );
@@ -5999,11 +5247,7 @@ Message _withArgumentsFfiStructGeneric(String string, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFfiVariableLengthArrayNotLast =
-    messageFfiVariableLengthArrayNotLast;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFfiVariableLengthArrayNotLast = const MessageCode(
+const MessageCode codeFfiVariableLengthArrayNotLast = const MessageCode(
   "FfiVariableLengthArrayNotLast",
   problemMessage:
       r"""Variable length 'Array's must only occur as the last field of Structs.""",
@@ -6060,12 +5304,7 @@ Message _withArgumentsFieldAlreadyInitializedAtDeclarationCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFieldInitializedOutsideDeclaringClass =
-    messageFieldInitializedOutsideDeclaringClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFieldInitializedOutsideDeclaringClass =
-    const MessageCode(
+const MessageCode codeFieldInitializedOutsideDeclaringClass = const MessageCode(
   "FieldInitializedOutsideDeclaringClass",
   index: 88,
   problemMessage: r"""A field can only be initialized in its declaring class""",
@@ -6074,11 +5313,7 @@ const MessageCode messageFieldInitializedOutsideDeclaringClass =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFieldInitializerOutsideConstructor =
-    messageFieldInitializerOutsideConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
+const MessageCode codeFieldInitializerOutsideConstructor = const MessageCode(
   "FieldInitializerOutsideConstructor",
   index: 79,
   problemMessage:
@@ -6328,10 +5563,7 @@ Message _withArgumentsFieldNotPromotedBecauseNotPrivate(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalAndCovariant = messageFinalAndCovariant;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalAndCovariant = const MessageCode(
+const MessageCode codeFinalAndCovariant = const MessageCode(
   "FinalAndCovariant",
   index: 80,
   problemMessage:
@@ -6341,12 +5573,7 @@ const MessageCode messageFinalAndCovariant = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalAndCovariantLateWithInitializer =
-    messageFinalAndCovariantLateWithInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalAndCovariantLateWithInitializer =
-    const MessageCode(
+const MessageCode codeFinalAndCovariantLateWithInitializer = const MessageCode(
   "FinalAndCovariantLateWithInitializer",
   index: 101,
   problemMessage:
@@ -6356,10 +5583,7 @@ const MessageCode messageFinalAndCovariantLateWithInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalAndVar = messageFinalAndVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalAndVar = const MessageCode(
+const MessageCode codeFinalAndVar = const MessageCode(
   "FinalAndVar",
   index: 81,
   problemMessage:
@@ -6446,10 +5670,7 @@ Message _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalEnum = messageFinalEnum;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalEnum = const MessageCode(
+const MessageCode codeFinalEnum = const MessageCode(
   "FinalEnum",
   index: 156,
   problemMessage: r"""Enums can't be declared to be 'final'.""",
@@ -6539,10 +5760,7 @@ Message _withArgumentsFinalFieldWithoutInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalMixin = messageFinalMixin;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalMixin = const MessageCode(
+const MessageCode codeFinalMixin = const MessageCode(
   "FinalMixin",
   index: 146,
   problemMessage: r"""A mixin can't be declared 'final'.""",
@@ -6550,10 +5768,7 @@ const MessageCode messageFinalMixin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFinalMixinClass = messageFinalMixinClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFinalMixinClass = const MessageCode(
+const MessageCode codeFinalMixinClass = const MessageCode(
   "FinalMixinClass",
   index: 142,
   problemMessage: r"""A mixin class can't be declared 'final'.""",
@@ -6609,31 +5824,20 @@ Message _withArgumentsFinalPossiblyAssignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeForInLoopExactlyOneVariable =
-    messageForInLoopExactlyOneVariable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageForInLoopExactlyOneVariable = const MessageCode(
+const MessageCode codeForInLoopExactlyOneVariable = const MessageCode(
   "ForInLoopExactlyOneVariable",
   problemMessage: r"""A for-in loop can't have more than one loop variable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeForInLoopNotAssignable = messageForInLoopNotAssignable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageForInLoopNotAssignable = const MessageCode(
+const MessageCode codeForInLoopNotAssignable = const MessageCode(
   "ForInLoopNotAssignable",
   problemMessage:
       r"""Can't assign to this, so it can't be used in a for-in loop.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeForInLoopWithConstVariable =
-    messageForInLoopWithConstVariable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageForInLoopWithConstVariable = const MessageCode(
+const MessageCode codeForInLoopWithConstVariable = const MessageCode(
   "ForInLoopWithConstVariable",
   analyzerCodes: <String>["FOR_IN_WITH_CONST_VARIABLE"],
   problemMessage: r"""A for-in loop-variable can't be 'const'.""",
@@ -6641,22 +5845,14 @@ const MessageCode messageForInLoopWithConstVariable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFunctionTypeDefaultValue =
-    messageFunctionTypeDefaultValue;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFunctionTypeDefaultValue = const MessageCode(
+const MessageCode codeFunctionTypeDefaultValue = const MessageCode(
   "FunctionTypeDefaultValue",
   analyzerCodes: <String>["DEFAULT_VALUE_IN_FUNCTION_TYPE"],
   problemMessage: r"""Can't have a default value in a function type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeFunctionTypedParameterVar =
-    messageFunctionTypedParameterVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageFunctionTypedParameterVar = const MessageCode(
+const MessageCode codeFunctionTypedParameterVar = const MessageCode(
   "FunctionTypedParameterVar",
   index: 119,
   problemMessage:
@@ -6665,21 +5861,14 @@ const MessageCode messageFunctionTypedParameterVar = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGeneratorReturnsValue = messageGeneratorReturnsValue;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageGeneratorReturnsValue = const MessageCode(
+const MessageCode codeGeneratorReturnsValue = const MessageCode(
   "GeneratorReturnsValue",
   analyzerCodes: <String>["RETURN_IN_GENERATOR"],
   problemMessage: r"""'sync*' and 'async*' can't return a value.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGenericFunctionTypeInBound =
-    messageGenericFunctionTypeInBound;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
+const MessageCode codeGenericFunctionTypeInBound = const MessageCode(
   "GenericFunctionTypeInBound",
   analyzerCodes: <String>["GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND"],
   problemMessage:
@@ -6688,10 +5877,6 @@ const MessageCode messageGenericFunctionTypeInBound = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeGenericFunctionTypeUsedAsActualTypeArgument =
-    messageGenericFunctionTypeUsedAsActualTypeArgument;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageGenericFunctionTypeUsedAsActualTypeArgument =
     const MessageCode(
   "GenericFunctionTypeUsedAsActualTypeArgument",
   analyzerCodes: <String>["GENERIC_FUNCTION_CANNOT_BE_TYPE_ARGUMENT"],
@@ -6701,10 +5886,7 @@ const MessageCode messageGenericFunctionTypeUsedAsActualTypeArgument =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGetterConstructor = messageGetterConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageGetterConstructor = const MessageCode(
+const MessageCode codeGetterConstructor = const MessageCode(
   "GetterConstructor",
   index: 103,
   problemMessage: r"""Constructors can't be a getter.""",
@@ -6734,10 +5916,7 @@ Message _withArgumentsGetterNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeGetterWithFormals = messageGetterWithFormals;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageGetterWithFormals = const MessageCode(
+const MessageCode codeGetterWithFormals = const MessageCode(
   "GetterWithFormals",
   analyzerCodes: <String>["GETTER_WITH_PARAMETERS"],
   problemMessage: r"""A getter can't have formal parameters.""",
@@ -6745,22 +5924,14 @@ const MessageCode messageGetterWithFormals = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAssignmentToNonAssignable =
-    messageIllegalAssignmentToNonAssignable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageIllegalAssignmentToNonAssignable = const MessageCode(
+const MessageCode codeIllegalAssignmentToNonAssignable = const MessageCode(
   "IllegalAssignmentToNonAssignable",
   index: 45,
   problemMessage: r"""Illegal assignment to non-assignable expression.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAsyncGeneratorReturnType =
-    messageIllegalAsyncGeneratorReturnType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageIllegalAsyncGeneratorReturnType = const MessageCode(
+const MessageCode codeIllegalAsyncGeneratorReturnType = const MessageCode(
   "IllegalAsyncGeneratorReturnType",
   analyzerCodes: <String>["ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE"],
   problemMessage:
@@ -6768,22 +5939,14 @@ const MessageCode messageIllegalAsyncGeneratorReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAsyncGeneratorVoidReturnType =
-    messageIllegalAsyncGeneratorVoidReturnType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageIllegalAsyncGeneratorVoidReturnType =
-    const MessageCode(
+const MessageCode codeIllegalAsyncGeneratorVoidReturnType = const MessageCode(
   "IllegalAsyncGeneratorVoidReturnType",
   problemMessage:
       r"""Functions marked 'async*' can't have return type 'void'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalAsyncReturnType = messageIllegalAsyncReturnType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageIllegalAsyncReturnType = const MessageCode(
+const MessageCode codeIllegalAsyncReturnType = const MessageCode(
   "IllegalAsyncReturnType",
   analyzerCodes: <String>["ILLEGAL_ASYNC_RETURN_TYPE"],
   problemMessage:
@@ -6938,11 +6101,7 @@ Message _withArgumentsIllegalPatternVariableName(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalSyncGeneratorReturnType =
-    messageIllegalSyncGeneratorReturnType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageIllegalSyncGeneratorReturnType = const MessageCode(
+const MessageCode codeIllegalSyncGeneratorReturnType = const MessageCode(
   "IllegalSyncGeneratorReturnType",
   analyzerCodes: <String>["ILLEGAL_SYNC_GENERATOR_RETURN_TYPE"],
   problemMessage:
@@ -6950,11 +6109,7 @@ const MessageCode messageIllegalSyncGeneratorReturnType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIllegalSyncGeneratorVoidReturnType =
-    messageIllegalSyncGeneratorVoidReturnType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageIllegalSyncGeneratorVoidReturnType = const MessageCode(
+const MessageCode codeIllegalSyncGeneratorVoidReturnType = const MessageCode(
   "IllegalSyncGeneratorVoidReturnType",
   problemMessage:
       r"""Functions marked 'sync*' can't have return type 'void'.""",
@@ -7025,10 +6180,7 @@ Message _withArgumentsImplementNonExtensionTypeAndExtensionTypeMember(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsBeforeExtends = messageImplementsBeforeExtends;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplementsBeforeExtends = const MessageCode(
+const MessageCode codeImplementsBeforeExtends = const MessageCode(
   "ImplementsBeforeExtends",
   index: 44,
   problemMessage:
@@ -7038,10 +6190,7 @@ const MessageCode messageImplementsBeforeExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsBeforeOn = messageImplementsBeforeOn;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplementsBeforeOn = const MessageCode(
+const MessageCode codeImplementsBeforeOn = const MessageCode(
   "ImplementsBeforeOn",
   index: 43,
   problemMessage: r"""The on clause must be before the implements clause.""",
@@ -7050,10 +6199,7 @@ const MessageCode messageImplementsBeforeOn = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsBeforeWith = messageImplementsBeforeWith;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplementsBeforeWith = const MessageCode(
+const MessageCode codeImplementsBeforeWith = const MessageCode(
   "ImplementsBeforeWith",
   index: 42,
   problemMessage: r"""The with clause must be before the implements clause.""",
@@ -7062,20 +6208,14 @@ const MessageCode messageImplementsBeforeWith = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsFutureOr = messageImplementsFutureOr;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplementsFutureOr = const MessageCode(
+const MessageCode codeImplementsFutureOr = const MessageCode(
   "ImplementsFutureOr",
   problemMessage:
       r"""The type 'FutureOr' can't be used in an 'implements' clause.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsNever = messageImplementsNever;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplementsNever = const MessageCode(
+const MessageCode codeImplementsNever = const MessageCode(
   "ImplementsNever",
   problemMessage:
       r"""The type 'Never' can't be used in an 'implements' clause.""",
@@ -7134,10 +6274,7 @@ Message _withArgumentsImplementsSuperClass(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplementsVoid = messageImplementsVoid;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplementsVoid = const MessageCode(
+const MessageCode codeImplementsVoid = const MessageCode(
   "ImplementsVoid",
   problemMessage:
       r"""The type 'void' can't be used in an 'implements' clause.""",
@@ -7175,11 +6312,7 @@ Message _withArgumentsImplicitMixinOverride(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImplicitSuperCallOfNonMethod =
-    messageImplicitSuperCallOfNonMethod;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImplicitSuperCallOfNonMethod = const MessageCode(
+const MessageCode codeImplicitSuperCallOfNonMethod = const MessageCode(
   "ImplicitSuperCallOfNonMethod",
   analyzerCodes: <String>["IMPLICIT_CALL_OF_NON_METHOD"],
   problemMessage:
@@ -7218,10 +6351,7 @@ Message _withArgumentsImplicitSuperInitializerMissingArguments(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeImportAfterPart = messageImportAfterPart;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageImportAfterPart = const MessageCode(
+const MessageCode codeImportAfterPart = const MessageCode(
   "ImportAfterPart",
   index: 10,
   problemMessage: r"""Import directives must precede part directives.""",
@@ -7299,11 +6429,7 @@ ${string}""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeIncorrectTypeArgumentVariable =
-    messageIncorrectTypeArgumentVariable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageIncorrectTypeArgumentVariable = const MessageCode(
+const MessageCode codeIncorrectTypeArgumentVariable = const MessageCode(
   "IncorrectTypeArgumentVariable",
   severity: CfeSeverity.context,
   problemMessage:
@@ -7357,33 +6483,21 @@ Message _withArgumentsIncrementalCompilerIllegalTypeParameter(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInheritedMembersConflict =
-    messageInheritedMembersConflict;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInheritedMembersConflict = const MessageCode(
+const MessageCode codeInheritedMembersConflict = const MessageCode(
   "InheritedMembersConflict",
   analyzerCodes: <String>["CONFLICTS_WITH_INHERITED_MEMBER"],
   problemMessage: r"""Can't inherit members that conflict with each other.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInheritedMembersConflictCause1 =
-    messageInheritedMembersConflictCause1;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInheritedMembersConflictCause1 = const MessageCode(
+const MessageCode codeInheritedMembersConflictCause1 = const MessageCode(
   "InheritedMembersConflictCause1",
   severity: CfeSeverity.context,
   problemMessage: r"""This is one inherited member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInheritedMembersConflictCause2 =
-    messageInheritedMembersConflictCause2;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
+const MessageCode codeInheritedMembersConflictCause2 = const MessageCode(
   "InheritedMembersConflictCause2",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the other inherited member.""",
@@ -7567,11 +6681,7 @@ The Dart team would greatly appreciate it if you would take a moment to report t
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInitializedVariableInForEach =
-    messageInitializedVariableInForEach;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInitializedVariableInForEach = const MessageCode(
+const MessageCode codeInitializedVariableInForEach = const MessageCode(
   "InitializedVariableInForEach",
   index: 82,
   problemMessage:
@@ -7603,12 +6713,7 @@ Message _withArgumentsInitializerForStaticField(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInitializingFormalTypeMismatchField =
-    messageInitializingFormalTypeMismatchField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInitializingFormalTypeMismatchField =
-    const MessageCode(
+const MessageCode codeInitializingFormalTypeMismatchField = const MessageCode(
   "InitializingFormalTypeMismatchField",
   severity: CfeSeverity.context,
   problemMessage: r"""The field that corresponds to the parameter.""",
@@ -7835,10 +6940,7 @@ Message _withArgumentsInterfaceClassExtendedOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterfaceEnum = messageInterfaceEnum;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInterfaceEnum = const MessageCode(
+const MessageCode codeInterfaceEnum = const MessageCode(
   "InterfaceEnum",
   index: 157,
   problemMessage: r"""Enums can't be declared to be 'interface'.""",
@@ -7846,10 +6948,7 @@ const MessageCode messageInterfaceEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterfaceMixin = messageInterfaceMixin;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInterfaceMixin = const MessageCode(
+const MessageCode codeInterfaceMixin = const MessageCode(
   "InterfaceMixin",
   index: 147,
   problemMessage: r"""A mixin can't be declared 'interface'.""",
@@ -7857,10 +6956,7 @@ const MessageCode messageInterfaceMixin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterfaceMixinClass = messageInterfaceMixinClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInterfaceMixinClass = const MessageCode(
+const MessageCode codeInterfaceMixinClass = const MessageCode(
   "InterfaceMixinClass",
   index: 143,
   problemMessage: r"""A mixin class can't be declared 'interface'.""",
@@ -7868,11 +6964,7 @@ const MessageCode messageInterfaceMixinClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemAlreadyInitialized =
-    messageInternalProblemAlreadyInitialized;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemAlreadyInitialized = const MessageCode(
+const MessageCode codeInternalProblemAlreadyInitialized = const MessageCode(
   "InternalProblemAlreadyInitialized",
   severity: CfeSeverity.internalProblem,
   problemMessage:
@@ -7880,12 +6972,7 @@ const MessageCode messageInternalProblemAlreadyInitialized = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemBodyOnAbstractMethod =
-    messageInternalProblemBodyOnAbstractMethod;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemBodyOnAbstractMethod =
-    const MessageCode(
+const MessageCode codeInternalProblemBodyOnAbstractMethod = const MessageCode(
   "InternalProblemBodyOnAbstractMethod",
   severity: CfeSeverity.internalProblem,
   problemMessage: r"""Attempting to set body on abstract method.""",
@@ -7969,10 +7056,6 @@ ${string}""",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemExtendingUnmodifiableScope =
-    messageInternalProblemExtendingUnmodifiableScope;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemExtendingUnmodifiableScope =
     const MessageCode(
   "InternalProblemExtendingUnmodifiableScope",
   severity: CfeSeverity.internalProblem,
@@ -7981,10 +7064,6 @@ const MessageCode messageInternalProblemExtendingUnmodifiableScope =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemLabelUsageInVariablesDeclaration =
-    messageInternalProblemLabelUsageInVariablesDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
     const MessageCode(
   "InternalProblemLabelUsageInVariablesDeclaration",
   severity: CfeSeverity.internalProblem,
@@ -7993,11 +7072,7 @@ const MessageCode messageInternalProblemLabelUsageInVariablesDeclaration =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemMissingContext =
-    messageInternalProblemMissingContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemMissingContext = const MessageCode(
+const MessageCode codeInternalProblemMissingContext = const MessageCode(
   "InternalProblemMissingContext",
   severity: CfeSeverity.internalProblem,
   problemMessage: r"""Compiler cannot run without a compiler context.""",
@@ -8055,10 +7130,6 @@ Message _withArgumentsInternalProblemNotFoundIn(String name, String name2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemOmittedTypeNameInConstructorReference =
-    messageInternalProblemOmittedTypeNameInConstructorReference;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemOmittedTypeNameInConstructorReference =
     const MessageCode(
   "InternalProblemOmittedTypeNameInConstructorReference",
   severity: CfeSeverity.internalProblem,
@@ -8067,12 +7138,7 @@ const MessageCode messageInternalProblemOmittedTypeNameInConstructorReference =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInternalProblemPreviousTokenNotFound =
-    messageInternalProblemPreviousTokenNotFound;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemPreviousTokenNotFound =
-    const MessageCode(
+const MessageCode codeInternalProblemPreviousTokenNotFound = const MessageCode(
   "InternalProblemPreviousTokenNotFound",
   severity: CfeSeverity.internalProblem,
   problemMessage: r"""Couldn't find previous token.""",
@@ -8103,10 +7169,6 @@ Message _withArgumentsInternalProblemPrivateConstructorAccess(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInternalProblemProvidedBothCompileSdkAndSdkSummary =
-    messageInternalProblemProvidedBothCompileSdkAndSdkSummary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInternalProblemProvidedBothCompileSdkAndSdkSummary =
     const MessageCode(
   "InternalProblemProvidedBothCompileSdkAndSdkSummary",
   severity: CfeSeverity.internalProblem,
@@ -8279,30 +7341,21 @@ ${string}""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInterpolationInUri = messageInterpolationInUri;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInterpolationInUri = const MessageCode(
+const MessageCode codeInterpolationInUri = const MessageCode(
   "InterpolationInUri",
   analyzerCodes: <String>["INVALID_LITERAL_IN_CONFIGURATION"],
   problemMessage: r"""Can't use string interpolation in a URI.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidAugmentSuper = messageInvalidAugmentSuper;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidAugmentSuper = const MessageCode(
+const MessageCode codeInvalidAugmentSuper = const MessageCode(
   "InvalidAugmentSuper",
   problemMessage:
       r"""'augment super' is only allowed in member augmentations.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidAwaitFor = messageInvalidAwaitFor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidAwaitFor = const MessageCode(
+const MessageCode codeInvalidAwaitFor = const MessageCode(
   "InvalidAwaitFor",
   index: 9,
   problemMessage:
@@ -8333,20 +7386,14 @@ Message _withArgumentsInvalidBreakTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidCatchArguments = messageInvalidCatchArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidCatchArguments = const MessageCode(
+const MessageCode codeInvalidCatchArguments = const MessageCode(
   "InvalidCatchArguments",
   analyzerCodes: <String>["INVALID_CATCH_ARGUMENTS"],
   problemMessage: r"""Invalid catch arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidCodePoint = messageInvalidCodePoint;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidCodePoint = const MessageCode(
+const MessageCode codeInvalidCodePoint = const MessageCode(
   "InvalidCodePoint",
   analyzerCodes: <String>["INVALID_CODE_POINT"],
   problemMessage:
@@ -8381,11 +7428,7 @@ Message _withArgumentsInvalidConstantPatternBinary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternConstPrefix =
-    messageInvalidConstantPatternConstPrefix;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidConstantPatternConstPrefix = const MessageCode(
+const MessageCode codeInvalidConstantPatternConstPrefix = const MessageCode(
   "InvalidConstantPatternConstPrefix",
   index: 140,
   problemMessage:
@@ -8395,12 +7438,7 @@ const MessageCode messageInvalidConstantPatternConstPrefix = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternDuplicateConst =
-    messageInvalidConstantPatternDuplicateConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidConstantPatternDuplicateConst =
-    const MessageCode(
+const MessageCode codeInvalidConstantPatternDuplicateConst = const MessageCode(
   "InvalidConstantPatternDuplicateConst",
   index: 137,
   problemMessage: r"""Duplicate 'const' keyword in constant expression.""",
@@ -8409,10 +7447,6 @@ const MessageCode messageInvalidConstantPatternDuplicateConst =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeInvalidConstantPatternEmptyRecordLiteral =
-    messageInvalidConstantPatternEmptyRecordLiteral;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidConstantPatternEmptyRecordLiteral =
     const MessageCode(
   "InvalidConstantPatternEmptyRecordLiteral",
   index: 138,
@@ -8421,11 +7455,7 @@ const MessageCode messageInvalidConstantPatternEmptyRecordLiteral =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternGeneric =
-    messageInvalidConstantPatternGeneric;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidConstantPatternGeneric = const MessageCode(
+const MessageCode codeInvalidConstantPatternGeneric = const MessageCode(
   "InvalidConstantPatternGeneric",
   index: 139,
   problemMessage:
@@ -8434,11 +7464,7 @@ const MessageCode messageInvalidConstantPatternGeneric = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidConstantPatternNegation =
-    messageInvalidConstantPatternNegation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidConstantPatternNegation = const MessageCode(
+const MessageCode codeInvalidConstantPatternNegation = const MessageCode(
   "InvalidConstantPatternNegation",
   index: 135,
   problemMessage:
@@ -8495,10 +7521,7 @@ Message _withArgumentsInvalidContinueTarget(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidEscapeStarted = messageInvalidEscapeStarted;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidEscapeStarted = const MessageCode(
+const MessageCode codeInvalidEscapeStarted = const MessageCode(
   "InvalidEscapeStarted",
   index: 126,
   problemMessage: r"""The string '\' can't stand alone.""",
@@ -8575,10 +7598,7 @@ Message _withArgumentsInvalidGetterSetterTypeSetterContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidHexEscape = messageInvalidHexEscape;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidHexEscape = const MessageCode(
+const MessageCode codeInvalidHexEscape = const MessageCode(
   "InvalidHexEscape",
   index: 40,
   problemMessage:
@@ -8586,10 +7606,7 @@ const MessageCode messageInvalidHexEscape = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidInitializer = messageInvalidInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidInitializer = const MessageCode(
+const MessageCode codeInvalidInitializer = const MessageCode(
   "InvalidInitializer",
   index: 90,
   problemMessage: r"""Not a valid initializer.""",
@@ -8598,11 +7615,7 @@ const MessageCode messageInvalidInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidInlineFunctionType =
-    messageInvalidInlineFunctionType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidInlineFunctionType = const MessageCode(
+const MessageCode codeInvalidInlineFunctionType = const MessageCode(
   "InvalidInlineFunctionType",
   analyzerCodes: <String>["INVALID_INLINE_FUNCTION_TYPE"],
   problemMessage:
@@ -8612,11 +7625,7 @@ const MessageCode messageInvalidInlineFunctionType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidInsideUnaryPattern =
-    messageInvalidInsideUnaryPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidInsideUnaryPattern = const MessageCode(
+const MessageCode codeInvalidInsideUnaryPattern = const MessageCode(
   "InvalidInsideUnaryPattern",
   index: 150,
   problemMessage:
@@ -8647,10 +7656,7 @@ Message _withArgumentsInvalidMacroApplicationTarget(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidNnbdDillLibrary = messageInvalidNnbdDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidNnbdDillLibrary = const MessageCode(
+const MessageCode codeInvalidNnbdDillLibrary = const MessageCode(
   "InvalidNnbdDillLibrary",
   problemMessage: r"""Trying to use library with invalid null safety.""",
 );
@@ -8704,11 +7710,7 @@ Message _withArgumentsInvalidPackageUri(Uri uri_, String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidSuperInInitializer =
-    messageInvalidSuperInInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidSuperInInitializer = const MessageCode(
+const MessageCode codeInvalidSuperInInitializer = const MessageCode(
   "InvalidSuperInInitializer",
   index: 47,
   problemMessage:
@@ -8716,10 +7718,7 @@ const MessageCode messageInvalidSuperInInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidSyncModifier = messageInvalidSyncModifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidSyncModifier = const MessageCode(
+const MessageCode codeInvalidSyncModifier = const MessageCode(
   "InvalidSyncModifier",
   analyzerCodes: <String>["MISSING_STAR_AFTER_SYNC"],
   problemMessage: r"""Invalid modifier 'sync'.""",
@@ -8727,11 +7726,7 @@ const MessageCode messageInvalidSyncModifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidThisInInitializer =
-    messageInvalidThisInInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidThisInInitializer = const MessageCode(
+const MessageCode codeInvalidThisInInitializer = const MessageCode(
   "InvalidThisInInitializer",
   index: 65,
   problemMessage:
@@ -8862,11 +7857,7 @@ Message _withArgumentsInvalidTypeParameterVariancePositionInReturnType(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUnicodeEscapeUBracket =
-    messageInvalidUnicodeEscapeUBracket;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidUnicodeEscapeUBracket = const MessageCode(
+const MessageCode codeInvalidUnicodeEscapeUBracket = const MessageCode(
   "InvalidUnicodeEscapeUBracket",
   index: 125,
   problemMessage:
@@ -8874,11 +7865,7 @@ const MessageCode messageInvalidUnicodeEscapeUBracket = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUnicodeEscapeUNoBracket =
-    messageInvalidUnicodeEscapeUNoBracket;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidUnicodeEscapeUNoBracket = const MessageCode(
+const MessageCode codeInvalidUnicodeEscapeUNoBracket = const MessageCode(
   "InvalidUnicodeEscapeUNoBracket",
   index: 124,
   problemMessage:
@@ -8886,11 +7873,7 @@ const MessageCode messageInvalidUnicodeEscapeUNoBracket = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUnicodeEscapeUStarted =
-    messageInvalidUnicodeEscapeUStarted;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidUnicodeEscapeUStarted = const MessageCode(
+const MessageCode codeInvalidUnicodeEscapeUStarted = const MessageCode(
   "InvalidUnicodeEscapeUStarted",
   index: 38,
   problemMessage:
@@ -8898,11 +7881,7 @@ const MessageCode messageInvalidUnicodeEscapeUStarted = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidUseOfNullAwareAccess =
-    messageInvalidUseOfNullAwareAccess;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidUseOfNullAwareAccess = const MessageCode(
+const MessageCode codeInvalidUseOfNullAwareAccess = const MessageCode(
   "InvalidUseOfNullAwareAccess",
   analyzerCodes: <String>["INVALID_USE_OF_NULL_AWARE_ACCESS"],
   problemMessage: r"""Cannot use '?.' here.""",
@@ -8910,10 +7889,7 @@ const MessageCode messageInvalidUseOfNullAwareAccess = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeInvalidVoid = messageInvalidVoid;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageInvalidVoid = const MessageCode(
+const MessageCode codeInvalidVoid = const MessageCode(
   "InvalidVoid",
   analyzerCodes: <String>["EXPECTED_TYPE_NAME"],
   problemMessage: r"""Type 'void' can't be used here.""",
@@ -9052,10 +8028,6 @@ Message _withArgumentsJsInteropDartClassExtendsJSClass(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
-    messageJsInteropDartJsInteropAnnotationForStaticInteropOnly;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
     const MessageCode(
   "JsInteropDartJsInteropAnnotationForStaticInteropOnly",
   problemMessage:
@@ -9094,12 +8066,7 @@ Message _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropEnclosingClassJSAnnotation =
-    messageJsInteropEnclosingClassJSAnnotation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropEnclosingClassJSAnnotation =
-    const MessageCode(
+const MessageCode codeJsInteropEnclosingClassJSAnnotation = const MessageCode(
   "JsInteropEnclosingClassJSAnnotation",
   problemMessage:
       r"""Member has a JS interop annotation but the enclosing class does not.""",
@@ -9108,10 +8075,6 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotation =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropEnclosingClassJSAnnotationContext =
-    messageJsInteropEnclosingClassJSAnnotationContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
     const MessageCode(
   "JsInteropEnclosingClassJSAnnotationContext",
   severity: CfeSeverity.context,
@@ -9263,10 +8226,6 @@ Message _withArgumentsJsInteropExportNoExportableMembers(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropExtensionTypeMemberNotInterop =
-    messageJsInteropExtensionTypeMemberNotInterop;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropExtensionTypeMemberNotInterop =
     const MessageCode(
   "JsInteropExtensionTypeMemberNotInterop",
   problemMessage:
@@ -9277,10 +8236,6 @@ const MessageCode messageJsInteropExtensionTypeMemberNotInterop =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropExtensionTypeUsedWithWrongJsAnnotation =
-    messageJsInteropExtensionTypeUsedWithWrongJsAnnotation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropExtensionTypeUsedWithWrongJsAnnotation =
     const MessageCode(
   "JsInteropExtensionTypeUsedWithWrongJsAnnotation",
   problemMessage:
@@ -9291,10 +8246,6 @@ const MessageCode messageJsInteropExtensionTypeUsedWithWrongJsAnnotation =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropExternalExtensionMemberOnTypeInvalid =
-    messageJsInteropExternalExtensionMemberOnTypeInvalid;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
     const MessageCode(
   "JsInteropExternalExtensionMemberOnTypeInvalid",
   problemMessage:
@@ -9305,10 +8256,6 @@ const MessageCode messageJsInteropExternalExtensionMemberOnTypeInvalid =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropExternalExtensionMemberWithStaticDisallowed =
-    messageJsInteropExternalExtensionMemberWithStaticDisallowed;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropExternalExtensionMemberWithStaticDisallowed =
     const MessageCode(
   "JsInteropExternalExtensionMemberWithStaticDisallowed",
   problemMessage:
@@ -9317,12 +8264,7 @@ const MessageCode messageJsInteropExternalExtensionMemberWithStaticDisallowed =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropExternalMemberNotJSAnnotated =
-    messageJsInteropExternalMemberNotJSAnnotated;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropExternalMemberNotJSAnnotated =
-    const MessageCode(
+const MessageCode codeJsInteropExternalMemberNotJSAnnotated = const MessageCode(
   "JsInteropExternalMemberNotJSAnnotated",
   problemMessage: r"""Only JS interop members may be 'external'.""",
   correctionMessage:
@@ -9330,12 +8272,7 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropFunctionToJSNamedParameters =
-    messageJsInteropFunctionToJSNamedParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropFunctionToJSNamedParameters =
-    const MessageCode(
+const MessageCode codeJsInteropFunctionToJSNamedParameters = const MessageCode(
   "JsInteropFunctionToJSNamedParameters",
   problemMessage:
       r"""Functions converted via `toJS` cannot declare named parameters.""",
@@ -9344,12 +8281,7 @@ const MessageCode messageJsInteropFunctionToJSNamedParameters =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropFunctionToJSTypeParameters =
-    messageJsInteropFunctionToJSTypeParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropFunctionToJSTypeParameters =
-    const MessageCode(
+const MessageCode codeJsInteropFunctionToJSTypeParameters = const MessageCode(
   "JsInteropFunctionToJSTypeParameters",
   problemMessage:
       r"""Functions converted via `toJS` cannot declare type parameters.""",
@@ -9358,22 +8290,14 @@ const MessageCode messageJsInteropFunctionToJSTypeParameters =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropInvalidStaticClassMemberName =
-    messageJsInteropInvalidStaticClassMemberName;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropInvalidStaticClassMemberName =
-    const MessageCode(
+const MessageCode codeJsInteropInvalidStaticClassMemberName = const MessageCode(
   "JsInteropInvalidStaticClassMemberName",
   problemMessage:
       r"""JS interop static class members cannot have '.' in their JS name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropIsATearoff = messageJsInteropIsATearoff;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropIsATearoff = const MessageCode(
+const MessageCode codeJsInteropIsATearoff = const MessageCode(
   "JsInteropIsATearoff",
   problemMessage: r"""'isA' can't be torn off.""",
   correctionMessage:
@@ -9413,11 +8337,7 @@ Message _withArgumentsJsInteropJSClassExtendsDartClass(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropNamedParameters =
-    messageJsInteropNamedParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropNamedParameters = const MessageCode(
+const MessageCode codeJsInteropNamedParameters = const MessageCode(
   "JsInteropNamedParameters",
   problemMessage:
       r"""Named parameters for JS interop functions are only allowed in object literal constructors or @anonymous factories.""",
@@ -9460,11 +8380,7 @@ Message _withArgumentsJsInteropNativeClassInAnnotation(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropNonExternalConstructor =
-    messageJsInteropNonExternalConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropNonExternalConstructor = const MessageCode(
+const MessageCode codeJsInteropNonExternalConstructor = const MessageCode(
   "JsInteropNonExternalConstructor",
   problemMessage:
       r"""JS interop classes do not support non-external constructors.""",
@@ -9472,11 +8388,7 @@ const MessageCode messageJsInteropNonExternalConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropNonExternalMember =
-    messageJsInteropNonExternalMember;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropNonExternalMember = const MessageCode(
+const MessageCode codeJsInteropNonExternalMember = const MessageCode(
   "JsInteropNonExternalMember",
   problemMessage:
       r"""This JS interop member must be annotated with `external`. Only factories and static methods can be non-external.""",
@@ -9544,11 +8456,7 @@ Message _withArgumentsJsInteropObjectLiteralConstructorPositionalParameters(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropOperatorCannotBeRenamed =
-    messageJsInteropOperatorCannotBeRenamed;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropOperatorCannotBeRenamed = const MessageCode(
+const MessageCode codeJsInteropOperatorCannotBeRenamed = const MessageCode(
   "JsInteropOperatorCannotBeRenamed",
   problemMessage:
       r"""JS interop operator methods cannot be renamed using the '@JS' annotation.""",
@@ -9557,11 +8465,7 @@ const MessageCode messageJsInteropOperatorCannotBeRenamed = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeJsInteropOperatorsNotSupported =
-    messageJsInteropOperatorsNotSupported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
+const MessageCode codeJsInteropOperatorsNotSupported = const MessageCode(
   "JsInteropOperatorsNotSupported",
   problemMessage:
       r"""JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
@@ -9600,10 +8504,6 @@ Message _withArgumentsJsInteropStaticInteropExternalFunctionTypeViolation(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropStaticInteropGenerativeConstructor =
-    messageJsInteropStaticInteropGenerativeConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropStaticInteropGenerativeConstructor =
     const MessageCode(
   "JsInteropStaticInteropGenerativeConstructor",
   problemMessage:
@@ -9714,10 +8614,6 @@ Message _withArgumentsJsInteropStaticInteropNoJSAnnotation(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropStaticInteropParameterInitializersAreIgnored =
-    messageJsInteropStaticInteropParameterInitializersAreIgnored;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropStaticInteropParameterInitializersAreIgnored =
     const MessageCode(
   "JsInteropStaticInteropParameterInitializersAreIgnored",
   severity: CfeSeverity.warning,
@@ -9729,10 +8625,6 @@ const MessageCode messageJsInteropStaticInteropParameterInitializersAreIgnored =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeJsInteropStaticInteropSyntheticConstructor =
-    messageJsInteropStaticInteropSyntheticConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropStaticInteropSyntheticConstructor =
     const MessageCode(
   "JsInteropStaticInteropSyntheticConstructor",
   problemMessage:
@@ -9942,67 +8834,42 @@ Message _withArgumentsLabelNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionInvalidInDotPackages =
-    messageLanguageVersionInvalidInDotPackages;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLanguageVersionInvalidInDotPackages =
-    const MessageCode(
+const MessageCode codeLanguageVersionInvalidInDotPackages = const MessageCode(
   "LanguageVersionInvalidInDotPackages",
   problemMessage:
       r"""The language version is not specified correctly in the packages file.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionLibraryContext =
-    messageLanguageVersionLibraryContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLanguageVersionLibraryContext = const MessageCode(
+const MessageCode codeLanguageVersionLibraryContext = const MessageCode(
   "LanguageVersionLibraryContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is language version annotation in the library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionMismatchInPart =
-    messageLanguageVersionMismatchInPart;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLanguageVersionMismatchInPart = const MessageCode(
+const MessageCode codeLanguageVersionMismatchInPart = const MessageCode(
   "LanguageVersionMismatchInPart",
   problemMessage:
       r"""The language version override has to be the same in the library and its part(s).""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionMismatchInPatch =
-    messageLanguageVersionMismatchInPatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLanguageVersionMismatchInPatch = const MessageCode(
+const MessageCode codeLanguageVersionMismatchInPatch = const MessageCode(
   "LanguageVersionMismatchInPatch",
   problemMessage:
       r"""The language version override has to be the same in the library and its patch(es).""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionPartContext =
-    messageLanguageVersionPartContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLanguageVersionPartContext = const MessageCode(
+const MessageCode codeLanguageVersionPartContext = const MessageCode(
   "LanguageVersionPartContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is language version annotation in the part.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLanguageVersionPatchContext =
-    messageLanguageVersionPatchContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLanguageVersionPatchContext = const MessageCode(
+const MessageCode codeLanguageVersionPatchContext = const MessageCode(
   "LanguageVersionPatchContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is language version annotation in the patch.""",
@@ -10171,11 +9038,7 @@ Message _withArgumentsLateDefinitelyUnassignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLatePatternVariableDeclaration =
-    messageLatePatternVariableDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLatePatternVariableDeclaration = const MessageCode(
+const MessageCode codeLatePatternVariableDeclaration = const MessageCode(
   "LatePatternVariableDeclaration",
   index: 151,
   problemMessage:
@@ -10184,11 +9047,7 @@ const MessageCode messageLatePatternVariableDeclaration = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLibraryDirectiveNotFirst =
-    messageLibraryDirectiveNotFirst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLibraryDirectiveNotFirst = const MessageCode(
+const MessageCode codeLibraryDirectiveNotFirst = const MessageCode(
   "LibraryDirectiveNotFirst",
   index: 37,
   problemMessage:
@@ -10198,22 +9057,14 @@ const MessageCode messageLibraryDirectiveNotFirst = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeListLiteralTooManyTypeArguments =
-    messageListLiteralTooManyTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageListLiteralTooManyTypeArguments = const MessageCode(
+const MessageCode codeListLiteralTooManyTypeArguments = const MessageCode(
   "ListLiteralTooManyTypeArguments",
   analyzerCodes: <String>["EXPECTED_ONE_LIST_TYPE_ARGUMENTS"],
   problemMessage: r"""List literal requires exactly one type argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeListPatternTooManyTypeArguments =
-    messageListPatternTooManyTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageListPatternTooManyTypeArguments = const MessageCode(
+const MessageCode codeListPatternTooManyTypeArguments = const MessageCode(
   "ListPatternTooManyTypeArguments",
   analyzerCodes: <String>["EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS"],
   problemMessage: r"""A list pattern requires exactly one type argument.""",
@@ -10275,10 +9126,7 @@ Message _withArgumentsLiteralWithClassAndNew(String string, Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLiteralWithNew = messageLiteralWithNew;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLiteralWithNew = const MessageCode(
+const MessageCode codeLiteralWithNew = const MessageCode(
   "LiteralWithNew",
   index: 117,
   problemMessage: r"""A literal can't be prefixed by 'new'.""",
@@ -10286,11 +9134,7 @@ const MessageCode messageLiteralWithNew = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeLoadLibraryTakesNoArguments =
-    messageLoadLibraryTakesNoArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageLoadLibraryTakesNoArguments = const MessageCode(
+const MessageCode codeLoadLibraryTakesNoArguments = const MessageCode(
   "LoadLibraryTakesNoArguments",
   analyzerCodes: <String>["LOAD_LIBRARY_TAKES_NO_ARGUMENTS"],
   problemMessage: r"""'loadLibrary' takes no arguments.""",
@@ -10399,89 +9243,55 @@ Message _withArgumentsMacroDefinitionApplicationSameLibraryCycle(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainNotFunctionDeclaration =
-    messageMainNotFunctionDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMainNotFunctionDeclaration = const MessageCode(
+const MessageCode codeMainNotFunctionDeclaration = const MessageCode(
   "MainNotFunctionDeclaration",
   problemMessage: r"""The 'main' declaration must be a function declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainNotFunctionDeclarationExported =
-    messageMainNotFunctionDeclarationExported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMainNotFunctionDeclarationExported = const MessageCode(
+const MessageCode codeMainNotFunctionDeclarationExported = const MessageCode(
   "MainNotFunctionDeclarationExported",
   problemMessage:
       r"""The exported 'main' declaration must be a function declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainRequiredNamedParameters =
-    messageMainRequiredNamedParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMainRequiredNamedParameters = const MessageCode(
+const MessageCode codeMainRequiredNamedParameters = const MessageCode(
   "MainRequiredNamedParameters",
   problemMessage:
       r"""The 'main' method cannot have required named parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainRequiredNamedParametersExported =
-    messageMainRequiredNamedParametersExported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMainRequiredNamedParametersExported =
-    const MessageCode(
+const MessageCode codeMainRequiredNamedParametersExported = const MessageCode(
   "MainRequiredNamedParametersExported",
   problemMessage:
       r"""The exported 'main' method cannot have required named parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainTooManyRequiredParameters =
-    messageMainTooManyRequiredParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMainTooManyRequiredParameters = const MessageCode(
+const MessageCode codeMainTooManyRequiredParameters = const MessageCode(
   "MainTooManyRequiredParameters",
   problemMessage:
       r"""The 'main' method must have at most 2 required parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMainTooManyRequiredParametersExported =
-    messageMainTooManyRequiredParametersExported;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMainTooManyRequiredParametersExported =
-    const MessageCode(
+const MessageCode codeMainTooManyRequiredParametersExported = const MessageCode(
   "MainTooManyRequiredParametersExported",
   problemMessage:
       r"""The exported 'main' method must have at most 2 required parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMapLiteralTypeArgumentMismatch =
-    messageMapLiteralTypeArgumentMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMapLiteralTypeArgumentMismatch = const MessageCode(
+const MessageCode codeMapLiteralTypeArgumentMismatch = const MessageCode(
   "MapLiteralTypeArgumentMismatch",
   analyzerCodes: <String>["EXPECTED_TWO_MAP_TYPE_ARGUMENTS"],
   problemMessage: r"""A map literal requires exactly two type arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMapPatternTypeArgumentMismatch =
-    messageMapPatternTypeArgumentMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMapPatternTypeArgumentMismatch = const MessageCode(
+const MessageCode codeMapPatternTypeArgumentMismatch = const MessageCode(
   "MapPatternTypeArgumentMismatch",
   analyzerCodes: <String>["EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS"],
   problemMessage: r"""A map pattern requires exactly two type arguments.""",
@@ -10662,11 +9472,7 @@ Message _withArgumentsMemberShouldBeListedAsCanBeOverriddenInDynamicInterface(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMemberWithSameNameAsClass =
-    messageMemberWithSameNameAsClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
+const MessageCode codeMemberWithSameNameAsClass = const MessageCode(
   "MemberWithSameNameAsClass",
   index: 105,
   problemMessage:
@@ -10675,11 +9481,7 @@ const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMetadataSpaceBeforeParenthesis =
-    messageMetadataSpaceBeforeParenthesis;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMetadataSpaceBeforeParenthesis = const MessageCode(
+const MessageCode codeMetadataSpaceBeforeParenthesis = const MessageCode(
   "MetadataSpaceBeforeParenthesis",
   index: 134,
   problemMessage:
@@ -10689,22 +9491,14 @@ const MessageCode messageMetadataSpaceBeforeParenthesis = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMetadataTypeArguments = messageMetadataTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMetadataTypeArguments = const MessageCode(
+const MessageCode codeMetadataTypeArguments = const MessageCode(
   "MetadataTypeArguments",
   index: 91,
   problemMessage: r"""An annotation can't use type arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMetadataTypeArgumentsUninstantiated =
-    messageMetadataTypeArgumentsUninstantiated;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMetadataTypeArgumentsUninstantiated =
-    const MessageCode(
+const MessageCode codeMetadataTypeArgumentsUninstantiated = const MessageCode(
   "MetadataTypeArgumentsUninstantiated",
   index: 114,
   problemMessage:
@@ -10734,20 +9528,13 @@ Message _withArgumentsMethodNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingArgumentList = messageMissingArgumentList;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingArgumentList = const MessageCode(
+const MessageCode codeMissingArgumentList = const MessageCode(
   "MissingArgumentList",
   problemMessage: r"""Constructor invocations must have an argument list.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingAssignableSelector =
-    messageMissingAssignableSelector;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingAssignableSelector = const MessageCode(
+const MessageCode codeMissingAssignableSelector = const MessageCode(
   "MissingAssignableSelector",
   index: 35,
   problemMessage: r"""Missing selector such as '.identifier' or '[0]'.""",
@@ -10755,11 +9542,7 @@ const MessageCode messageMissingAssignableSelector = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingAssignmentInInitializer =
-    messageMissingAssignmentInInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingAssignmentInInitializer = const MessageCode(
+const MessageCode codeMissingAssignmentInInitializer = const MessageCode(
   "MissingAssignmentInInitializer",
   index: 34,
   problemMessage: r"""Expected an assignment after the field name.""",
@@ -10768,11 +9551,7 @@ const MessageCode messageMissingAssignmentInInitializer = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingConstFinalVarOrType =
-    messageMissingConstFinalVarOrType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
+const MessageCode codeMissingConstFinalVarOrType = const MessageCode(
   "MissingConstFinalVarOrType",
   index: 33,
   problemMessage:
@@ -10782,10 +9561,7 @@ const MessageCode messageMissingConstFinalVarOrType = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingExplicitConst = messageMissingExplicitConst;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingExplicitConst = const MessageCode(
+const MessageCode codeMissingExplicitConst = const MessageCode(
   "MissingExplicitConst",
   analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage: r"""Constant expression expected.""",
@@ -10793,10 +9569,7 @@ const MessageCode messageMissingExplicitConst = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingExponent = messageMissingExponent;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingExponent = const MessageCode(
+const MessageCode codeMissingExponent = const MessageCode(
   "MissingExponent",
   analyzerCodes: <String>["MISSING_DIGIT"],
   problemMessage:
@@ -10806,11 +9579,7 @@ const MessageCode messageMissingExponent = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingExpressionInThrow =
-    messageMissingExpressionInThrow;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingExpressionInThrow = const MessageCode(
+const MessageCode codeMissingExpressionInThrow = const MessageCode(
   "MissingExpressionInThrow",
   index: 32,
   problemMessage: r"""Missing expression after 'throw'.""",
@@ -10819,11 +9588,7 @@ const MessageCode messageMissingExpressionInThrow = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingFunctionParameters =
-    messageMissingFunctionParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingFunctionParameters = const MessageCode(
+const MessageCode codeMissingFunctionParameters = const MessageCode(
   "MissingFunctionParameters",
   analyzerCodes: <String>["MISSING_FUNCTION_PARAMETERS"],
   problemMessage:
@@ -10898,29 +9663,20 @@ ${names}""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingInput = messageMissingInput;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingInput = const MessageCode(
+const MessageCode codeMissingInput = const MessageCode(
   "MissingInput",
   problemMessage: r"""No input file provided to the compiler.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingMain = messageMissingMain;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingMain = const MessageCode(
+const MessageCode codeMissingMain = const MessageCode(
   "MissingMain",
   problemMessage: r"""No 'main' method found.""",
   correctionMessage: r"""Try adding a method named 'main' to your program.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingMethodParameters = messageMissingMethodParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingMethodParameters = const MessageCode(
+const MessageCode codeMissingMethodParameters = const MessageCode(
   "MissingMethodParameters",
   analyzerCodes: <String>["MISSING_METHOD_PARAMETERS"],
   problemMessage:
@@ -10930,12 +9686,7 @@ const MessageCode messageMissingMethodParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingNamedSuperConstructorParameter =
-    messageMissingNamedSuperConstructorParameter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingNamedSuperConstructorParameter =
-    const MessageCode(
+const MessageCode codeMissingNamedSuperConstructorParameter = const MessageCode(
   "MissingNamedSuperConstructorParameter",
   analyzerCodes: <String>["SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED"],
   problemMessage:
@@ -10943,10 +9694,7 @@ const MessageCode messageMissingNamedSuperConstructorParameter =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingOperatorKeyword = messageMissingOperatorKeyword;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingOperatorKeyword = const MessageCode(
+const MessageCode codeMissingOperatorKeyword = const MessageCode(
   "MissingOperatorKeyword",
   index: 31,
   problemMessage:
@@ -10979,10 +9727,6 @@ Message _withArgumentsMissingPartOf(Uri uri_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMissingPositionalSuperConstructorParameter =
-    messageMissingPositionalSuperConstructorParameter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingPositionalSuperConstructorParameter =
     const MessageCode(
   "MissingPositionalSuperConstructorParameter",
   analyzerCodes: <String>[
@@ -10993,11 +9737,7 @@ const MessageCode messageMissingPositionalSuperConstructorParameter =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingPrefixInDeferredImport =
-    messageMissingPrefixInDeferredImport;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
+const MessageCode codeMissingPrefixInDeferredImport = const MessageCode(
   "MissingPrefixInDeferredImport",
   index: 30,
   problemMessage: r"""Deferred imports should have a prefix.""",
@@ -11006,11 +9746,7 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingPrimaryConstructor =
-    messageMissingPrimaryConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingPrimaryConstructor = const MessageCode(
+const MessageCode codeMissingPrimaryConstructor = const MessageCode(
   "MissingPrimaryConstructor",
   index: 162,
   problemMessage:
@@ -11020,12 +9756,7 @@ const MessageCode messageMissingPrimaryConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingPrimaryConstructorParameters =
-    messageMissingPrimaryConstructorParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingPrimaryConstructorParameters =
-    const MessageCode(
+const MessageCode codeMissingPrimaryConstructorParameters = const MessageCode(
   "MissingPrimaryConstructorParameters",
   index: 163,
   problemMessage:
@@ -11035,11 +9766,7 @@ const MessageCode messageMissingPrimaryConstructorParameters =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMissingTypedefParameters =
-    messageMissingTypedefParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMissingTypedefParameters = const MessageCode(
+const MessageCode codeMissingTypedefParameters = const MessageCode(
   "MissingTypedefParameters",
   analyzerCodes: <String>["MISSING_TYPEDEF_PARAMETERS"],
   problemMessage: r"""A typedef needs an explicit list of parameters.""",
@@ -11100,10 +9827,6 @@ Message _withArgumentsMixinApplicationNoConcreteGetter(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMixinApplicationNoConcreteMemberContext =
-    messageMixinApplicationNoConcreteMemberContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMixinApplicationNoConcreteMemberContext =
     const MessageCode(
   "MixinApplicationNoConcreteMemberContext",
   severity: CfeSeverity.context,
@@ -11162,21 +9885,14 @@ Message _withArgumentsMixinApplicationNoConcreteSetter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMixinDeclaresConstructor =
-    messageMixinDeclaresConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMixinDeclaresConstructor = const MessageCode(
+const MessageCode codeMixinDeclaresConstructor = const MessageCode(
   "MixinDeclaresConstructor",
   index: 95,
   problemMessage: r"""Mixins can't declare constructors.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMixinDeferredMixin = messageMixinDeferredMixin;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMixinDeferredMixin = const MessageCode(
+const MessageCode codeMixinDeferredMixin = const MessageCode(
   "MixinDeferredMixin",
   analyzerCodes: <String>["MIXIN_DEFERRED_CLASS"],
   problemMessage: r"""Classes can't mix in deferred mixins.""",
@@ -11269,10 +9985,6 @@ Message _withArgumentsMixinSubtypeOfFinalIsNotBase(String name, String name2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeMixinSuperClassConstraintDeferredClass =
-    messageMixinSuperClassConstraintDeferredClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMixinSuperClassConstraintDeferredClass =
     const MessageCode(
   "MixinSuperClassConstraintDeferredClass",
   analyzerCodes: <String>["MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS"],
@@ -11282,10 +9994,7 @@ const MessageCode messageMixinSuperClassConstraintDeferredClass =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMixinWithClause = messageMixinWithClause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMixinWithClause = const MessageCode(
+const MessageCode codeMixinWithClause = const MessageCode(
   "MixinWithClause",
   index: 154,
   problemMessage: r"""A mixin can't have a with clause.""",
@@ -11320,11 +10029,7 @@ Message _withArgumentsModifierOutOfOrder(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMoreThanOneSuperInitializer =
-    messageMoreThanOneSuperInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMoreThanOneSuperInitializer = const MessageCode(
+const MessageCode codeMoreThanOneSuperInitializer = const MessageCode(
   "MoreThanOneSuperInitializer",
   analyzerCodes: <String>["MULTIPLE_SUPER_INITIALIZERS"],
   problemMessage: r"""Can't have more than one 'super' initializer.""",
@@ -11361,10 +10066,7 @@ Message _withArgumentsMultipleClauses(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleExtends = messageMultipleExtends;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMultipleExtends = const MessageCode(
+const MessageCode codeMultipleExtends = const MessageCode(
   "MultipleExtends",
   index: 28,
   problemMessage:
@@ -11374,10 +10076,7 @@ const MessageCode messageMultipleExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleImplements = messageMultipleImplements;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMultipleImplements = const MessageCode(
+const MessageCode codeMultipleImplements = const MessageCode(
   "MultipleImplements",
   analyzerCodes: <String>["MULTIPLE_IMPLEMENTS_CLAUSES"],
   problemMessage:
@@ -11387,11 +10086,7 @@ const MessageCode messageMultipleImplements = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleLibraryDirectives =
-    messageMultipleLibraryDirectives;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMultipleLibraryDirectives = const MessageCode(
+const MessageCode codeMultipleLibraryDirectives = const MessageCode(
   "MultipleLibraryDirectives",
   index: 27,
   problemMessage: r"""Only one library directive may be declared in a file.""",
@@ -11399,10 +10094,7 @@ const MessageCode messageMultipleLibraryDirectives = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleOnClauses = messageMultipleOnClauses;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMultipleOnClauses = const MessageCode(
+const MessageCode codeMultipleOnClauses = const MessageCode(
   "MultipleOnClauses",
   index: 26,
   problemMessage: r"""Each mixin definition can have at most one on clause.""",
@@ -11411,11 +10103,7 @@ const MessageCode messageMultipleOnClauses = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleRepresentationFields =
-    messageMultipleRepresentationFields;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMultipleRepresentationFields = const MessageCode(
+const MessageCode codeMultipleRepresentationFields = const MessageCode(
   "MultipleRepresentationFields",
   analyzerCodes: <String>["MULTIPLE_REPRESENTATION_FIELDS"],
   problemMessage:
@@ -11423,11 +10111,7 @@ const MessageCode messageMultipleRepresentationFields = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleVarianceModifiers =
-    messageMultipleVarianceModifiers;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMultipleVarianceModifiers = const MessageCode(
+const MessageCode codeMultipleVarianceModifiers = const MessageCode(
   "MultipleVarianceModifiers",
   index: 97,
   problemMessage:
@@ -11437,10 +10121,7 @@ const MessageCode messageMultipleVarianceModifiers = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeMultipleWith = messageMultipleWith;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageMultipleWith = const MessageCode(
+const MessageCode codeMultipleWith = const MessageCode(
   "MultipleWith",
   index: 24,
   problemMessage:
@@ -11473,10 +10154,6 @@ Message _withArgumentsNameNotFound(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNamedFieldClashesWithPositionalFieldInRecord =
-    messageNamedFieldClashesWithPositionalFieldInRecord;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNamedFieldClashesWithPositionalFieldInRecord =
     const MessageCode(
   "NamedFieldClashesWithPositionalFieldInRecord",
   analyzerCodes: <String>["INVALID_FIELD_NAME"],
@@ -11485,10 +10162,7 @@ const MessageCode messageNamedFieldClashesWithPositionalFieldInRecord =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNamedFunctionExpression = messageNamedFunctionExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNamedFunctionExpression = const MessageCode(
+const MessageCode codeNamedFunctionExpression = const MessageCode(
   "NamedFunctionExpression",
   analyzerCodes: <String>["NAMED_FUNCTION_EXPRESSION"],
   problemMessage: r"""A function expression can't have a name.""",
@@ -11523,10 +10197,6 @@ Message _withArgumentsNamedMixinOverride(String name, String name2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNamedParametersInExtensionTypeDeclaration =
-    messageNamedParametersInExtensionTypeDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNamedParametersInExtensionTypeDeclaration =
     const MessageCode(
   "NamedParametersInExtensionTypeDeclaration",
   problemMessage:
@@ -11534,11 +10204,7 @@ const MessageCode messageNamedParametersInExtensionTypeDeclaration =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNativeClauseShouldBeAnnotation =
-    messageNativeClauseShouldBeAnnotation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
+const MessageCode codeNativeClauseShouldBeAnnotation = const MessageCode(
   "NativeClauseShouldBeAnnotation",
   index: 23,
   problemMessage: r"""Native clause in this form is deprecated.""",
@@ -11547,95 +10213,60 @@ const MessageCode messageNativeClauseShouldBeAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNegativeVariableDimension =
-    messageNegativeVariableDimension;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNegativeVariableDimension = const MessageCode(
+const MessageCode codeNegativeVariableDimension = const MessageCode(
   "NegativeVariableDimension",
   problemMessage:
       r"""The variable dimension of a variable-length array must be non-negative.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverReachableSwitchDefaultError =
-    messageNeverReachableSwitchDefaultError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverReachableSwitchDefaultError = const MessageCode(
+const MessageCode codeNeverReachableSwitchDefaultError = const MessageCode(
   "NeverReachableSwitchDefaultError",
   problemMessage:
       r"""`null` encountered as case in a switch expression with a non-nullable enum type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverReachableSwitchExpressionError =
-    messageNeverReachableSwitchExpressionError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverReachableSwitchExpressionError =
-    const MessageCode(
+const MessageCode codeNeverReachableSwitchExpressionError = const MessageCode(
   "NeverReachableSwitchExpressionError",
   problemMessage:
       r"""`null` encountered as case in a switch expression with a non-nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverReachableSwitchStatementError =
-    messageNeverReachableSwitchStatementError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverReachableSwitchStatementError = const MessageCode(
+const MessageCode codeNeverReachableSwitchStatementError = const MessageCode(
   "NeverReachableSwitchStatementError",
   problemMessage:
       r"""`null` encountered as case in a switch statement with a non-nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNeverValueError = messageNeverValueError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNeverValueError = const MessageCode(
+const MessageCode codeNeverValueError = const MessageCode(
   "NeverValueError",
   problemMessage:
       r"""`null` encountered as the result from expression with type `Never`.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNewAsSelector = messageNewAsSelector;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNewAsSelector = const MessageCode(
+const MessageCode codeNewAsSelector = const MessageCode(
   "NewAsSelector",
   problemMessage: r"""'new' can only be used as a constructor reference.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoAugmentSuperInvokeTarget =
-    messageNoAugmentSuperInvokeTarget;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNoAugmentSuperInvokeTarget = const MessageCode(
+const MessageCode codeNoAugmentSuperInvokeTarget = const MessageCode(
   "NoAugmentSuperInvokeTarget",
   problemMessage: r"""Cannot call 'augment super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoAugmentSuperReadTarget =
-    messageNoAugmentSuperReadTarget;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNoAugmentSuperReadTarget = const MessageCode(
+const MessageCode codeNoAugmentSuperReadTarget = const MessageCode(
   "NoAugmentSuperReadTarget",
   problemMessage: r"""Cannot read from 'augment super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoAugmentSuperWriteTarget =
-    messageNoAugmentSuperWriteTarget;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNoAugmentSuperWriteTarget = const MessageCode(
+const MessageCode codeNoAugmentSuperWriteTarget = const MessageCode(
   "NoAugmentSuperWriteTarget",
   problemMessage: r"""Cannot write to 'augment super'.""",
 );
@@ -11666,11 +10297,7 @@ Message _withArgumentsNoFormals(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoMacroApplicationTarget =
-    messageNoMacroApplicationTarget;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNoMacroApplicationTarget = const MessageCode(
+const MessageCode codeNoMacroApplicationTarget = const MessageCode(
   "NoMacroApplicationTarget",
   problemMessage: r"""The macro can not be applied to this declaration.""",
 );
@@ -11698,11 +10325,7 @@ Message _withArgumentsNoSuchNamedParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNoUnnamedConstructorInObject =
-    messageNoUnnamedConstructorInObject;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNoUnnamedConstructorInObject = const MessageCode(
+const MessageCode codeNoUnnamedConstructorInObject = const MessageCode(
   "NoUnnamedConstructorInObject",
   problemMessage: r"""'Object' has no unnamed constructor.""",
 );
@@ -11790,11 +10413,7 @@ Message _withArgumentsNonAugmentationClassConflict(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonAugmentationClassConflictCause =
-    messageNonAugmentationClassConflictCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAugmentationClassConflictCause = const MessageCode(
+const MessageCode codeNonAugmentationClassConflictCause = const MessageCode(
   "NonAugmentationClassConflictCause",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the existing class.""",
@@ -11858,10 +10477,6 @@ Message _withArgumentsNonAugmentationConstructorConflict(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonAugmentationConstructorConflictCause =
-    messageNonAugmentationConstructorConflictCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAugmentationConstructorConflictCause =
     const MessageCode(
   "NonAugmentationConstructorConflictCause",
   severity: CfeSeverity.context,
@@ -11870,10 +10485,6 @@ const MessageCode messageNonAugmentationConstructorConflictCause =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonAugmentationDeclarationConflictCause =
-    messageNonAugmentationDeclarationConflictCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAugmentationDeclarationConflictCause =
     const MessageCode(
   "NonAugmentationDeclarationConflictCause",
   severity: CfeSeverity.context,
@@ -11935,21 +10546,14 @@ Message _withArgumentsNonAugmentationLibraryMemberConflict(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonAugmentationMemberConflictCause =
-    messageNonAugmentationMemberConflictCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonAugmentationMemberConflictCause = const MessageCode(
+const MessageCode codeNonAugmentationMemberConflictCause = const MessageCode(
   "NonAugmentationMemberConflictCause",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the existing member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonBoolCondition = messageNonBoolCondition;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonBoolCondition = const MessageCode(
+const MessageCode codeNonBoolCondition = const MessageCode(
   "NonBoolCondition",
   analyzerCodes: <String>["NON_BOOL_CONDITION"],
   problemMessage: r"""Conditions must have a static type of 'bool'.""",
@@ -11957,10 +10561,7 @@ const MessageCode messageNonBoolCondition = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonConstConstructor = messageNonConstConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonConstConstructor = const MessageCode(
+const MessageCode codeNonConstConstructor = const MessageCode(
   "NonConstConstructor",
   analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage:
@@ -11969,10 +10570,7 @@ const MessageCode messageNonConstConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonConstFactory = messageNonConstFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonConstFactory = const MessageCode(
+const MessageCode codeNonConstFactory = const MessageCode(
   "NonConstFactory",
   analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage:
@@ -11982,10 +10580,6 @@ const MessageCode messageNonConstFactory = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNonCovariantTypeParameterInRepresentationType =
-    messageNonCovariantTypeParameterInRepresentationType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonCovariantTypeParameterInRepresentationType =
     const MessageCode(
   "NonCovariantTypeParameterInRepresentationType",
   problemMessage:
@@ -11995,22 +10589,14 @@ const MessageCode messageNonCovariantTypeParameterInRepresentationType =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonExtensionTypeMemberContext =
-    messageNonExtensionTypeMemberContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonExtensionTypeMemberContext = const MessageCode(
+const MessageCode codeNonExtensionTypeMemberContext = const MessageCode(
   "NonExtensionTypeMemberContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the inherited non-extension type member.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonExtensionTypeMemberOneOfContext =
-    messageNonExtensionTypeMemberOneOfContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonExtensionTypeMemberOneOfContext = const MessageCode(
+const MessageCode codeNonExtensionTypeMemberOneOfContext = const MessageCode(
   "NonExtensionTypeMemberOneOfContext",
   severity: CfeSeverity.context,
   problemMessage:
@@ -12041,11 +10627,7 @@ Message _withArgumentsNonNullableNotAssignedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonPartOfDirectiveInPart =
-    messageNonPartOfDirectiveInPart;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
+const MessageCode codeNonPartOfDirectiveInPart = const MessageCode(
   "NonPartOfDirectiveInPart",
   analyzerCodes: <String>["NON_PART_OF_DIRECTIVE_IN_PART"],
   problemMessage:
@@ -12189,11 +10771,7 @@ Message _withArgumentsNonPatchLibraryMemberConflict(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonPositiveArrayDimensions =
-    messageNonPositiveArrayDimensions;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonPositiveArrayDimensions = const MessageCode(
+const MessageCode codeNonPositiveArrayDimensions = const MessageCode(
   "NonPositiveArrayDimensions",
   problemMessage: r"""Array dimensions must be positive numbers.""",
 );
@@ -12246,10 +10824,7 @@ Message _withArgumentsNonSimpleBoundViaVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonVoidReturnOperator = messageNonVoidReturnOperator;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonVoidReturnOperator = const MessageCode(
+const MessageCode codeNonVoidReturnOperator = const MessageCode(
   "NonVoidReturnOperator",
   analyzerCodes: <String>["NON_VOID_RETURN_FOR_OPERATOR"],
   problemMessage: r"""The return type of the operator []= must be 'void'.""",
@@ -12257,10 +10832,7 @@ const MessageCode messageNonVoidReturnOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNonVoidReturnSetter = messageNonVoidReturnSetter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNonVoidReturnSetter = const MessageCode(
+const MessageCode codeNonVoidReturnSetter = const MessageCode(
   "NonVoidReturnSetter",
   analyzerCodes: <String>["NON_VOID_RETURN_FOR_SETTER"],
   problemMessage:
@@ -12270,10 +10842,7 @@ const MessageCode messageNonVoidReturnSetter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNotAConstantExpression = messageNotAConstantExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNotAConstantExpression = const MessageCode(
+const MessageCode codeNotAConstantExpression = const MessageCode(
   "NotAConstantExpression",
   analyzerCodes: <String>["NOT_CONSTANT_EXPRESSION"],
   problemMessage: r"""Not a constant expression.""",
@@ -12330,20 +10899,14 @@ Message _withArgumentsNotAType(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNotATypeContext = messageNotATypeContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNotATypeContext = const MessageCode(
+const MessageCode codeNotATypeContext = const MessageCode(
   "NotATypeContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This isn't a type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNotAnLvalue = messageNotAnLvalue;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNotAnLvalue = const MessageCode(
+const MessageCode codeNotAnLvalue = const MessageCode(
   "NotAnLvalue",
   analyzerCodes: <String>["NOT_AN_LVALUE"],
   problemMessage: r"""Can't assign to this.""",
@@ -12391,11 +10954,7 @@ Message _withArgumentsNotConstantExpression(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNullAwareCascadeOutOfOrder =
-    messageNullAwareCascadeOutOfOrder;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
+const MessageCode codeNullAwareCascadeOutOfOrder = const MessageCode(
   "NullAwareCascadeOutOfOrder",
   index: 96,
   problemMessage:
@@ -12451,10 +11010,7 @@ Message _withArgumentsNullableMixinError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeNullableSpreadError = messageNullableSpreadError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageNullableSpreadError = const MessageCode(
+const MessageCode codeNullableSpreadError = const MessageCode(
   "NullableSpreadError",
   problemMessage:
       r"""An expression whose value can be 'null' must be null-checked before it can be dereferenced.""",
@@ -12507,49 +11063,32 @@ Message _withArgumentsNullableTearoffError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectExtends = messageObjectExtends;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageObjectExtends = const MessageCode(
+const MessageCode codeObjectExtends = const MessageCode(
   "ObjectExtends",
   problemMessage: r"""The class 'Object' can't have a superclass.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectImplements = messageObjectImplements;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageObjectImplements = const MessageCode(
+const MessageCode codeObjectImplements = const MessageCode(
   "ObjectImplements",
   problemMessage: r"""The class 'Object' can't implement anything.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectMemberNameUsedForRecordField =
-    messageObjectMemberNameUsedForRecordField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageObjectMemberNameUsedForRecordField = const MessageCode(
+const MessageCode codeObjectMemberNameUsedForRecordField = const MessageCode(
   "ObjectMemberNameUsedForRecordField",
   problemMessage:
       r"""Record field names can't be the same as a member from 'Object'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObjectMixesIn = messageObjectMixesIn;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageObjectMixesIn = const MessageCode(
+const MessageCode codeObjectMixesIn = const MessageCode(
   "ObjectMixesIn",
   problemMessage: r"""The class 'Object' can't use mixins.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeObsoleteColonForDefaultValue =
-    messageObsoleteColonForDefaultValue;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageObsoleteColonForDefaultValue = const MessageCode(
+const MessageCode codeObsoleteColonForDefaultValue = const MessageCode(
   "ObsoleteColonForDefaultValue",
   problemMessage:
       r"""Using a colon as a separator before a default value is no longer supported.""",
@@ -12557,10 +11096,7 @@ const MessageCode messageObsoleteColonForDefaultValue = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeOnlyTry = messageOnlyTry;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageOnlyTry = const MessageCode(
+const MessageCode codeOnlyTry = const MessageCode(
   "OnlyTry",
   index: 20,
   problemMessage:
@@ -12667,21 +11203,13 @@ Message _withArgumentsOperatorParameterMismatch2(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeOperatorWithOptionalFormals =
-    messageOperatorWithOptionalFormals;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
+const MessageCode codeOperatorWithOptionalFormals = const MessageCode(
   "OperatorWithOptionalFormals",
   problemMessage: r"""An operator can't have optional parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeOperatorWithTypeParameters =
-    messageOperatorWithTypeParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageOperatorWithTypeParameters = const MessageCode(
+const MessageCode codeOperatorWithTypeParameters = const MessageCode(
   "OperatorWithTypeParameters",
   index: 120,
   problemMessage:
@@ -12691,10 +11219,6 @@ const MessageCode messageOperatorWithTypeParameters = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeOptionalParametersInExtensionTypeDeclaration =
-    messageOptionalParametersInExtensionTypeDeclaration;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageOptionalParametersInExtensionTypeDeclaration =
     const MessageCode(
   "OptionalParametersInExtensionTypeDeclaration",
   problemMessage:
@@ -12976,10 +11500,7 @@ Message _withArgumentsPackagesFileFormat(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartExport = messagePartExport;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartExport = const MessageCode(
+const MessageCode codePartExport = const MessageCode(
   "PartExport",
   analyzerCodes: <String>["EXPORT_OF_NON_LIBRARY"],
   problemMessage:
@@ -12987,20 +11508,14 @@ const MessageCode messagePartExport = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartExportContext = messagePartExportContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartExportContext = const MessageCode(
+const MessageCode codePartExportContext = const MessageCode(
   "PartExportContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the file that can't be exported.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartInPart = messagePartInPart;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartInPart = const MessageCode(
+const MessageCode codePartInPart = const MessageCode(
   "PartInPart",
   analyzerCodes: <String>["NON_PART_OF_DIRECTIVE_IN_PART"],
   problemMessage:
@@ -13010,11 +11525,7 @@ const MessageCode messagePartInPart = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartInPartLibraryContext =
-    messagePartInPartLibraryContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartInPartLibraryContext = const MessageCode(
+const MessageCode codePartInPartLibraryContext = const MessageCode(
   "PartInPartLibraryContext",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the containing library.""",
@@ -13079,20 +11590,14 @@ Message _withArgumentsPartOfLibraryNameMismatch(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfSelf = messagePartOfSelf;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartOfSelf = const MessageCode(
+const MessageCode codePartOfSelf = const MessageCode(
   "PartOfSelf",
   analyzerCodes: <String>["PART_OF_NON_PART"],
   problemMessage: r"""A file can't be a part of itself.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfTwice = messagePartOfTwice;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartOfTwice = const MessageCode(
+const MessageCode codePartOfTwice = const MessageCode(
   "PartOfTwice",
   index: 25,
   problemMessage: r"""Only one part-of directive may be declared in a file.""",
@@ -13100,10 +11605,7 @@ const MessageCode messagePartOfTwice = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfTwoLibraries = messagePartOfTwoLibraries;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartOfTwoLibraries = const MessageCode(
+const MessageCode codePartOfTwoLibraries = const MessageCode(
   "PartOfTwoLibraries",
   analyzerCodes: <String>["PART_OF_DIFFERENT_LIBRARY"],
   problemMessage: r"""A file can't be part of more than one library.""",
@@ -13112,11 +11614,7 @@ const MessageCode messagePartOfTwoLibraries = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOfTwoLibrariesContext =
-    messagePartOfTwoLibrariesContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartOfTwoLibrariesContext = const MessageCode(
+const MessageCode codePartOfTwoLibrariesContext = const MessageCode(
   "PartOfTwoLibrariesContext",
   severity: CfeSeverity.context,
   problemMessage: r"""Used as a part in this library.""",
@@ -13184,10 +11682,7 @@ Message _withArgumentsPartOfUseUri(Uri uri_, Uri uri2_, String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePartOrphan = messagePartOrphan;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePartOrphan = const MessageCode(
+const MessageCode codePartOrphan = const MessageCode(
   "PartOrphan",
   problemMessage: r"""This part doesn't have a containing library.""",
   correctionMessage: r"""Try removing the 'part of' declaration.""",
@@ -13215,63 +11710,41 @@ Message _withArgumentsPartTwice(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchClassOrigin = messagePatchClassOrigin;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchClassOrigin = const MessageCode(
+const MessageCode codePatchClassOrigin = const MessageCode(
   "PatchClassOrigin",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the origin class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchClassTypeParametersMismatch =
-    messagePatchClassTypeParametersMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchClassTypeParametersMismatch = const MessageCode(
+const MessageCode codePatchClassTypeParametersMismatch = const MessageCode(
   "PatchClassTypeParametersMismatch",
   problemMessage:
       r"""A patch class must have the same number of type variables as its origin class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchDeclarationMismatch =
-    messagePatchDeclarationMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchDeclarationMismatch = const MessageCode(
+const MessageCode codePatchDeclarationMismatch = const MessageCode(
   "PatchDeclarationMismatch",
   problemMessage: r"""This patch doesn't match origin declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchDeclarationOrigin = messagePatchDeclarationOrigin;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchDeclarationOrigin = const MessageCode(
+const MessageCode codePatchDeclarationOrigin = const MessageCode(
   "PatchDeclarationOrigin",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the origin declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchExtensionOrigin = messagePatchExtensionOrigin;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchExtensionOrigin = const MessageCode(
+const MessageCode codePatchExtensionOrigin = const MessageCode(
   "PatchExtensionOrigin",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the origin extension.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchExtensionTypeParametersMismatch =
-    messagePatchExtensionTypeParametersMismatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchExtensionTypeParametersMismatch =
-    const MessageCode(
+const MessageCode codePatchExtensionTypeParametersMismatch = const MessageCode(
   "PatchExtensionTypeParametersMismatch",
   problemMessage:
       r"""A patch extension must have the same number of type variables as its origin extension.""",
@@ -13306,10 +11779,7 @@ Message _withArgumentsPatchInjectionFailed(String name, Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatchNonExternal = messagePatchNonExternal;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatchNonExternal = const MessageCode(
+const MessageCode codePatchNonExternal = const MessageCode(
   "PatchNonExternal",
   problemMessage:
       r"""Can't apply this patch as its origin declaration isn't external.""",
@@ -13346,11 +11816,7 @@ Message _withArgumentsPatternAssignmentDeclaresVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatternAssignmentNotLocalVariable =
-    messagePatternAssignmentNotLocalVariable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatternAssignmentNotLocalVariable = const MessageCode(
+const MessageCode codePatternAssignmentNotLocalVariable = const MessageCode(
   "PatternAssignmentNotLocalVariable",
   analyzerCodes: <String>["PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE"],
   problemMessage:
@@ -13359,21 +11825,13 @@ const MessageCode messagePatternAssignmentNotLocalVariable = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatternMatchingError = messagePatternMatchingError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatternMatchingError = const MessageCode(
+const MessageCode codePatternMatchingError = const MessageCode(
   "PatternMatchingError",
   problemMessage: r"""Pattern matching error""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePatternVariableAssignmentInsideGuard =
-    messagePatternVariableAssignmentInsideGuard;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatternVariableAssignmentInsideGuard =
-    const MessageCode(
+const MessageCode codePatternVariableAssignmentInsideGuard = const MessageCode(
   "PatternVariableAssignmentInsideGuard",
   analyzerCodes: <String>["PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD"],
   problemMessage:
@@ -13383,10 +11841,6 @@ const MessageCode messagePatternVariableAssignmentInsideGuard =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codePatternVariableDeclarationOutsideFunctionOrMethod =
-    messagePatternVariableDeclarationOutsideFunctionOrMethod;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePatternVariableDeclarationOutsideFunctionOrMethod =
     const MessageCode(
   "PatternVariableDeclarationOutsideFunctionOrMethod",
   index: 152,
@@ -13397,22 +11851,14 @@ const MessageCode messagePatternVariableDeclarationOutsideFunctionOrMethod =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePlatformPrivateLibraryAccess =
-    messagePlatformPrivateLibraryAccess;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePlatformPrivateLibraryAccess = const MessageCode(
+const MessageCode codePlatformPrivateLibraryAccess = const MessageCode(
   "PlatformPrivateLibraryAccess",
   analyzerCodes: <String>["IMPORT_INTERNAL_LIBRARY"],
   problemMessage: r"""Can't access platform private library.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePositionalAfterNamedArgument =
-    messagePositionalAfterNamedArgument;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePositionalAfterNamedArgument = const MessageCode(
+const MessageCode codePositionalAfterNamedArgument = const MessageCode(
   "PositionalAfterNamedArgument",
   analyzerCodes: <String>["POSITIONAL_AFTER_NAMED_ARGUMENT"],
   problemMessage: r"""Place positional arguments before named arguments.""",
@@ -13421,11 +11867,7 @@ const MessageCode messagePositionalAfterNamedArgument = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePositionalParameterWithEquals =
-    messagePositionalParameterWithEquals;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePositionalParameterWithEquals = const MessageCode(
+const MessageCode codePositionalParameterWithEquals = const MessageCode(
   "PositionalParameterWithEquals",
   analyzerCodes: <String>["WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER"],
   problemMessage:
@@ -13434,22 +11876,14 @@ const MessageCode messagePositionalParameterWithEquals = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePositionalSuperParametersAndArguments =
-    messagePositionalSuperParametersAndArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePositionalSuperParametersAndArguments =
-    const MessageCode(
+const MessageCode codePositionalSuperParametersAndArguments = const MessageCode(
   "PositionalSuperParametersAndArguments",
   problemMessage:
       r"""Positional super-initializer parameters cannot be used when the super initializer has positional arguments.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePrefixAfterCombinator = messagePrefixAfterCombinator;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePrefixAfterCombinator = const MessageCode(
+const MessageCode codePrefixAfterCombinator = const MessageCode(
   "PrefixAfterCombinator",
   index: 6,
   problemMessage:
@@ -13458,10 +11892,7 @@ const MessageCode messagePrefixAfterCombinator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codePrivateNamedParameter = messagePrivateNamedParameter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messagePrivateNamedParameter = const MessageCode(
+const MessageCode codePrivateNamedParameter = const MessageCode(
   "PrivateNamedParameter",
   analyzerCodes: <String>["PRIVATE_OPTIONAL_PARAMETER"],
   problemMessage:
@@ -13469,11 +11900,7 @@ const MessageCode messagePrivateNamedParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordFieldsCantBePrivate =
-    messageRecordFieldsCantBePrivate;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordFieldsCantBePrivate = const MessageCode(
+const MessageCode codeRecordFieldsCantBePrivate = const MessageCode(
   "RecordFieldsCantBePrivate",
   analyzerCodes: <String>["INVALID_FIELD_NAME"],
   problemMessage: r"""Record field names can't be private.""",
@@ -13481,10 +11908,6 @@ const MessageCode messageRecordFieldsCantBePrivate = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordLiteralOnePositionalFieldNoTrailingComma =
-    messageRecordLiteralOnePositionalFieldNoTrailingComma;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
     const MessageCode(
   "RecordLiteralOnePositionalFieldNoTrailingComma",
   index: 127,
@@ -13495,10 +11918,6 @@ const MessageCode messageRecordLiteralOnePositionalFieldNoTrailingComma =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordLiteralZeroFieldsWithTrailingComma =
-    messageRecordLiteralZeroFieldsWithTrailingComma;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordLiteralZeroFieldsWithTrailingComma =
     const MessageCode(
   "RecordLiteralZeroFieldsWithTrailingComma",
   index: 128,
@@ -13509,10 +11928,6 @@ const MessageCode messageRecordLiteralZeroFieldsWithTrailingComma =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRecordTypeOnePositionalFieldNoTrailingComma =
-    messageRecordTypeOnePositionalFieldNoTrailingComma;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
     const MessageCode(
   "RecordTypeOnePositionalFieldNoTrailingComma",
   index: 131,
@@ -13522,12 +11937,7 @@ const MessageCode messageRecordTypeOnePositionalFieldNoTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordTypeZeroFieldsButTrailingComma =
-    messageRecordTypeZeroFieldsButTrailingComma;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
-    const MessageCode(
+const MessageCode codeRecordTypeZeroFieldsButTrailingComma = const MessageCode(
   "RecordTypeZeroFieldsButTrailingComma",
   index: 130,
   problemMessage:
@@ -13536,21 +11946,14 @@ const MessageCode messageRecordTypeZeroFieldsButTrailingComma =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordUseCannotBePlacedHere =
-    messageRecordUseCannotBePlacedHere;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordUseCannotBePlacedHere = const MessageCode(
+const MessageCode codeRecordUseCannotBePlacedHere = const MessageCode(
   "RecordUseCannotBePlacedHere",
   problemMessage:
       r"""`RecordUse` annotation cannot be placed on this element.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRecordUsedAsCallable = messageRecordUsedAsCallable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRecordUsedAsCallable = const MessageCode(
+const MessageCode codeRecordUsedAsCallable = const MessageCode(
   "RecordUsedAsCallable",
   problemMessage:
       r"""The 'call' property on the record type isn't directly callable but could be invoked by `.call(...)`""",
@@ -13558,10 +11961,6 @@ const MessageCode messageRecordUsedAsCallable = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRedirectingConstructorWithAnotherInitializer =
-    messageRedirectingConstructorWithAnotherInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRedirectingConstructorWithAnotherInitializer =
     const MessageCode(
   "RedirectingConstructorWithAnotherInitializer",
   analyzerCodes: <String>["FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR"],
@@ -13570,11 +11969,7 @@ const MessageCode messageRedirectingConstructorWithAnotherInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRedirectingConstructorWithBody =
-    messageRedirectingConstructorWithBody;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
+const MessageCode codeRedirectingConstructorWithBody = const MessageCode(
   "RedirectingConstructorWithBody",
   index: 22,
   problemMessage: r"""Redirecting constructors can't have a body.""",
@@ -13584,11 +11979,6 @@ const MessageCode messageRedirectingConstructorWithBody = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRedirectingConstructorWithMultipleRedirectInitializers =
-    messageRedirectingConstructorWithMultipleRedirectInitializers;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-    messageRedirectingConstructorWithMultipleRedirectInitializers =
     const MessageCode(
   "RedirectingConstructorWithMultipleRedirectInitializers",
   analyzerCodes: <String>["MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS"],
@@ -13598,10 +11988,6 @@ const MessageCode
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeRedirectingConstructorWithSuperInitializer =
-    messageRedirectingConstructorWithSuperInitializer;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRedirectingConstructorWithSuperInitializer =
     const MessageCode(
   "RedirectingConstructorWithSuperInitializer",
   analyzerCodes: <String>["SUPER_IN_REDIRECTING_CONSTRUCTOR"],
@@ -13610,10 +11996,7 @@ const MessageCode messageRedirectingConstructorWithSuperInitializer =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRedirectionInNonFactory = messageRedirectionInNonFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRedirectionInNonFactory = const MessageCode(
+const MessageCode codeRedirectionInNonFactory = const MessageCode(
   "RedirectionInNonFactory",
   index: 21,
   problemMessage: r"""Only factory constructor can specify '=' redirection.""",
@@ -13645,12 +12028,7 @@ Message _withArgumentsRedirectionTargetNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRefutablePatternInIrrefutableContext =
-    messageRefutablePatternInIrrefutableContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRefutablePatternInIrrefutableContext =
-    const MessageCode(
+const MessageCode codeRefutablePatternInIrrefutableContext = const MessageCode(
   "RefutablePatternInIrrefutableContext",
   analyzerCodes: <String>["REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT"],
   problemMessage:
@@ -13660,22 +12038,14 @@ const MessageCode messageRefutablePatternInIrrefutableContext =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRepresentationFieldModifier =
-    messageRepresentationFieldModifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRepresentationFieldModifier = const MessageCode(
+const MessageCode codeRepresentationFieldModifier = const MessageCode(
   "RepresentationFieldModifier",
   analyzerCodes: <String>["REPRESENTATION_FIELD_MODIFIER"],
   problemMessage: r"""Representation fields can't have modifiers.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRepresentationFieldTrailingComma =
-    messageRepresentationFieldTrailingComma;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRepresentationFieldTrailingComma = const MessageCode(
+const MessageCode codeRepresentationFieldTrailingComma = const MessageCode(
   "RepresentationFieldTrailingComma",
   analyzerCodes: <String>["REPRESENTATION_FIELD_TRAILING_COMMA"],
   problemMessage: r"""The representation field can't have a trailing comma.""",
@@ -13706,11 +12076,7 @@ Message _withArgumentsRequiredNamedParameterHasDefaultValueError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRequiredParameterWithDefault =
-    messageRequiredParameterWithDefault;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRequiredParameterWithDefault = const MessageCode(
+const MessageCode codeRequiredParameterWithDefault = const MessageCode(
   "RequiredParameterWithDefault",
   analyzerCodes: <String>["NAMED_PARAMETER_OUTSIDE_GROUP"],
   problemMessage: r"""Non-optional parameters can't have a default value.""",
@@ -13719,71 +12085,47 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRestPatternInMapPattern = messageRestPatternInMapPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRestPatternInMapPattern = const MessageCode(
+const MessageCode codeRestPatternInMapPattern = const MessageCode(
   "RestPatternInMapPattern",
   problemMessage: r"""The '...' pattern can't appear in map patterns.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeRethrowNotCatch = messageRethrowNotCatch;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageRethrowNotCatch = const MessageCode(
+const MessageCode codeRethrowNotCatch = const MessageCode(
   "RethrowNotCatch",
   analyzerCodes: <String>["RETHROW_OUTSIDE_CATCH"],
   problemMessage: r"""'rethrow' can only be used in catch clauses.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnFromVoidFunction = messageReturnFromVoidFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageReturnFromVoidFunction = const MessageCode(
+const MessageCode codeReturnFromVoidFunction = const MessageCode(
   "ReturnFromVoidFunction",
   analyzerCodes: <String>["RETURN_OF_INVALID_TYPE"],
   problemMessage: r"""Can't return a value from a void function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnTypeFunctionExpression =
-    messageReturnTypeFunctionExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageReturnTypeFunctionExpression = const MessageCode(
+const MessageCode codeReturnTypeFunctionExpression = const MessageCode(
   "ReturnTypeFunctionExpression",
   problemMessage: r"""A function expression can't have a return type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnWithoutExpressionAsync =
-    messageReturnWithoutExpressionAsync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageReturnWithoutExpressionAsync = const MessageCode(
+const MessageCode codeReturnWithoutExpressionAsync = const MessageCode(
   "ReturnWithoutExpressionAsync",
   problemMessage:
       r"""A value must be explicitly returned from a non-void async function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeReturnWithoutExpressionSync =
-    messageReturnWithoutExpressionSync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
+const MessageCode codeReturnWithoutExpressionSync = const MessageCode(
   "ReturnWithoutExpressionSync",
   problemMessage:
       r"""A value must be explicitly returned from a non-void function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeScriptTagInPartFile = messageScriptTagInPartFile;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageScriptTagInPartFile = const MessageCode(
+const MessageCode codeScriptTagInPartFile = const MessageCode(
   "ScriptTagInPartFile",
   problemMessage: r"""A part file cannot have script tag.""",
   correctionMessage:
@@ -13880,10 +12222,7 @@ Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSealedEnum = messageSealedEnum;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSealedEnum = const MessageCode(
+const MessageCode codeSealedEnum = const MessageCode(
   "SealedEnum",
   index: 158,
   problemMessage: r"""Enums can't be declared to be 'sealed'.""",
@@ -13891,10 +12230,7 @@ const MessageCode messageSealedEnum = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSealedMixin = messageSealedMixin;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSealedMixin = const MessageCode(
+const MessageCode codeSealedMixin = const MessageCode(
   "SealedMixin",
   index: 148,
   problemMessage: r"""A mixin can't be declared 'sealed'.""",
@@ -13902,10 +12238,7 @@ const MessageCode messageSealedMixin = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSealedMixinClass = messageSealedMixinClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSealedMixinClass = const MessageCode(
+const MessageCode codeSealedMixinClass = const MessageCode(
   "SealedMixinClass",
   index: 144,
   problemMessage: r"""A mixin class can't be declared 'sealed'.""",
@@ -13913,22 +12246,13 @@ const MessageCode messageSealedMixinClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetLiteralTooManyTypeArguments =
-    messageSetLiteralTooManyTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSetLiteralTooManyTypeArguments = const MessageCode(
+const MessageCode codeSetLiteralTooManyTypeArguments = const MessageCode(
   "SetLiteralTooManyTypeArguments",
   problemMessage: r"""A set literal requires exactly one type argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetOrMapLiteralTooManyTypeArguments =
-    messageSetOrMapLiteralTooManyTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSetOrMapLiteralTooManyTypeArguments =
-    const MessageCode(
+const MessageCode codeSetOrMapLiteralTooManyTypeArguments = const MessageCode(
   "SetOrMapLiteralTooManyTypeArguments",
   problemMessage:
       r"""A set or map literal requires exactly one or two type arguments, respectively.""",
@@ -13981,10 +12305,7 @@ Message _withArgumentsSetterConflictsWithDeclarationCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetterConstructor = messageSetterConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSetterConstructor = const MessageCode(
+const MessageCode codeSetterConstructor = const MessageCode(
   "SetterConstructor",
   index: 104,
   problemMessage: r"""Constructors can't be a setter.""",
@@ -14014,21 +12335,14 @@ Message _withArgumentsSetterNotFound(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetterNotSync = messageSetterNotSync;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSetterNotSync = const MessageCode(
+const MessageCode codeSetterNotSync = const MessageCode(
   "SetterNotSync",
   analyzerCodes: <String>["INVALID_MODIFIER_ON_SETTER"],
   problemMessage: r"""Setters can't use 'async', 'async*', or 'sync*'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSetterWithWrongNumberOfFormals =
-    messageSetterWithWrongNumberOfFormals;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSetterWithWrongNumberOfFormals = const MessageCode(
+const MessageCode codeSetterWithWrongNumberOfFormals = const MessageCode(
   "SetterWithWrongNumberOfFormals",
   analyzerCodes: <String>["WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER"],
   problemMessage: r"""A setter should have exactly one formal parameter.""",
@@ -14105,30 +12419,21 @@ ${num3} ms/compilation unit.""",
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSpreadElement = messageSpreadElement;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSpreadElement = const MessageCode(
+const MessageCode codeSpreadElement = const MessageCode(
   "SpreadElement",
   severity: CfeSeverity.context,
   problemMessage: r"""Iterable spread.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSpreadMapElement = messageSpreadMapElement;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSpreadMapElement = const MessageCode(
+const MessageCode codeSpreadMapElement = const MessageCode(
   "SpreadMapElement",
   severity: CfeSeverity.context,
   problemMessage: r"""Map spread.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStackOverflow = messageStackOverflow;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStackOverflow = const MessageCode(
+const MessageCode codeStackOverflow = const MessageCode(
   "StackOverflow",
   index: 19,
   problemMessage:
@@ -14184,10 +12489,7 @@ Message _withArgumentsStaticConflictsWithInstanceCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStaticConstructor = messageStaticConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticConstructor = const MessageCode(
+const MessageCode codeStaticConstructor = const MessageCode(
   "StaticConstructor",
   index: 4,
   problemMessage: r"""Constructors can't be static.""",
@@ -14195,10 +12497,7 @@ const MessageCode messageStaticConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStaticOperator = messageStaticOperator;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticOperator = const MessageCode(
+const MessageCode codeStaticOperator = const MessageCode(
   "StaticOperator",
   index: 17,
   problemMessage: r"""Operators can't be static.""",
@@ -14206,11 +12505,7 @@ const MessageCode messageStaticOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStaticTearOffFromInstantiatedClass =
-    messageStaticTearOffFromInstantiatedClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStaticTearOffFromInstantiatedClass = const MessageCode(
+const MessageCode codeStaticTearOffFromInstantiatedClass = const MessageCode(
   "StaticTearOffFromInstantiatedClass",
   problemMessage:
       r"""Cannot access static member on an instantiated generic class.""",
@@ -14219,11 +12514,7 @@ const MessageCode messageStaticTearOffFromInstantiatedClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeStrongWithWeakDillLibrary =
-    messageStrongWithWeakDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageStrongWithWeakDillLibrary = const MessageCode(
+const MessageCode codeStrongWithWeakDillLibrary = const MessageCode(
   "StrongWithWeakDillLibrary",
   problemMessage:
       r"""Loaded library is compiled with unsound null safety and cannot be used in compilation for sound null safety.""",
@@ -14296,10 +12587,7 @@ Message _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperAsExpression = messageSuperAsExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSuperAsExpression = const MessageCode(
+const MessageCode codeSuperAsExpression = const MessageCode(
   "SuperAsExpression",
   analyzerCodes: <String>["SUPER_AS_EXPRESSION"],
   problemMessage: r"""Can't use 'super' as an expression.""",
@@ -14308,10 +12596,7 @@ const MessageCode messageSuperAsExpression = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperAsIdentifier = messageSuperAsIdentifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSuperAsIdentifier = const MessageCode(
+const MessageCode codeSuperAsIdentifier = const MessageCode(
   "SuperAsIdentifier",
   analyzerCodes: <String>["SUPER_AS_EXPRESSION"],
   problemMessage: r"""Expected identifier, but got 'super'.""",
@@ -14365,31 +12650,21 @@ Message _withArgumentsSuperExtensionTypeIsTypeParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperInitializerNotLast = messageSuperInitializerNotLast;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSuperInitializerNotLast = const MessageCode(
+const MessageCode codeSuperInitializerNotLast = const MessageCode(
   "SuperInitializerNotLast",
   analyzerCodes: <String>["SUPER_INVOCATION_NOT_LAST"],
   problemMessage: r"""Can't have initializers after 'super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperInitializerParameter =
-    messageSuperInitializerParameter;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSuperInitializerParameter = const MessageCode(
+const MessageCode codeSuperInitializerParameter = const MessageCode(
   "SuperInitializerParameter",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the super-initializer parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSuperNullAware = messageSuperNullAware;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSuperNullAware = const MessageCode(
+const MessageCode codeSuperNullAware = const MessageCode(
   "SuperNullAware",
   index: 18,
   problemMessage:
@@ -14399,10 +12674,6 @@ const MessageCode messageSuperNullAware = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeSuperParameterInitializerOutsideConstructor =
-    messageSuperParameterInitializerOutsideConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSuperParameterInitializerOutsideConstructor =
     const MessageCode(
   "SuperParameterInitializerOutsideConstructor",
   problemMessage:
@@ -14573,10 +12844,7 @@ Message _withArgumentsSuperclassMethodArgumentMismatch(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSupertypeIsFunction = messageSupertypeIsFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSupertypeIsFunction = const MessageCode(
+const MessageCode codeSupertypeIsFunction = const MessageCode(
   "SupertypeIsFunction",
   problemMessage: r"""Can't use a function type as supertype.""",
 );
@@ -14628,32 +12896,21 @@ Message _withArgumentsSupertypeIsTypeParameter(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchCaseFallThrough = messageSwitchCaseFallThrough;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSwitchCaseFallThrough = const MessageCode(
+const MessageCode codeSwitchCaseFallThrough = const MessageCode(
   "SwitchCaseFallThrough",
   analyzerCodes: <String>["CASE_BLOCK_NOT_TERMINATED"],
   problemMessage: r"""Switch case may fall through to the next case.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchExpressionNotAssignableCause =
-    messageSwitchExpressionNotAssignableCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSwitchExpressionNotAssignableCause = const MessageCode(
+const MessageCode codeSwitchExpressionNotAssignableCause = const MessageCode(
   "SwitchExpressionNotAssignableCause",
   severity: CfeSeverity.context,
   problemMessage: r"""The switch expression is here.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchHasCaseAfterDefault =
-    messageSwitchHasCaseAfterDefault;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSwitchHasCaseAfterDefault = const MessageCode(
+const MessageCode codeSwitchHasCaseAfterDefault = const MessageCode(
   "SwitchHasCaseAfterDefault",
   index: 16,
   problemMessage:
@@ -14663,11 +12920,7 @@ const MessageCode messageSwitchHasCaseAfterDefault = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSwitchHasMultipleDefaults =
-    messageSwitchHasMultipleDefaults;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
+const MessageCode codeSwitchHasMultipleDefaults = const MessageCode(
   "SwitchHasMultipleDefaults",
   index: 15,
   problemMessage: r"""The 'default' case can only be declared once.""",
@@ -14675,10 +12928,7 @@ const MessageCode messageSwitchHasMultipleDefaults = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeSyntheticToken = messageSyntheticToken;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageSyntheticToken = const MessageCode(
+const MessageCode codeSyntheticToken = const MessageCode(
   "SyntheticToken",
   problemMessage: r"""This couldn't be parsed.""",
 );
@@ -14707,10 +12957,7 @@ Message _withArgumentsThisAccessInFieldInitializer(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeThisAsIdentifier = messageThisAsIdentifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageThisAsIdentifier = const MessageCode(
+const MessageCode codeThisAsIdentifier = const MessageCode(
   "ThisAsIdentifier",
   analyzerCodes: <String>["INVALID_REFERENCE_TO_THIS"],
   problemMessage: r"""Expected identifier, but got 'this'.""",
@@ -14810,10 +13057,7 @@ Message _withArgumentsTooManyArguments(int count, int count2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTopLevelOperator = messageTopLevelOperator;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTopLevelOperator = const MessageCode(
+const MessageCode codeTopLevelOperator = const MessageCode(
   "TopLevelOperator",
   index: 14,
   problemMessage: r"""Operators must be declared within a class.""",
@@ -14822,10 +13066,7 @@ const MessageCode messageTopLevelOperator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeAfterVar = messageTypeAfterVar;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeAfterVar = const MessageCode(
+const MessageCode codeTypeAfterVar = const MessageCode(
   "TypeAfterVar",
   index: 89,
   problemMessage:
@@ -14880,10 +13121,7 @@ Message _withArgumentsTypeArgumentsOnTypeVariable(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeBeforeFactory = messageTypeBeforeFactory;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeBeforeFactory = const MessageCode(
+const MessageCode codeTypeBeforeFactory = const MessageCode(
   "TypeBeforeFactory",
   index: 57,
   problemMessage: r"""Factory constructors cannot have a return type.""",
@@ -14962,11 +13200,7 @@ Message _withArgumentsTypeOriginWithFileUri(String name, Uri uri_, Uri uri2_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeParameterDuplicatedName =
-    messageTypeParameterDuplicatedName;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeParameterDuplicatedName = const MessageCode(
+const MessageCode codeTypeParameterDuplicatedName = const MessageCode(
   "TypeParameterDuplicatedName",
   analyzerCodes: <String>["DUPLICATE_DEFINITION"],
   problemMessage: r"""A type variable can't have the same name as another.""",
@@ -14996,11 +13230,7 @@ Message _withArgumentsTypeParameterDuplicatedNameCause(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeParameterSameNameAsEnclosing =
-    messageTypeParameterSameNameAsEnclosing;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeParameterSameNameAsEnclosing = const MessageCode(
+const MessageCode codeTypeParameterSameNameAsEnclosing = const MessageCode(
   "TypeParameterSameNameAsEnclosing",
   analyzerCodes: <String>["CONFLICTING_TYPE_VARIABLE_AND_CLASS"],
   problemMessage:
@@ -15008,42 +13238,28 @@ const MessageCode messageTypeParameterSameNameAsEnclosing = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeVariableInConstantContext =
-    messageTypeVariableInConstantContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeVariableInConstantContext = const MessageCode(
+const MessageCode codeTypeVariableInConstantContext = const MessageCode(
   "TypeVariableInConstantContext",
   analyzerCodes: <String>["TYPE_PARAMETER_IN_CONST_EXPRESSION"],
   problemMessage: r"""Type variables can't be used as constants.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypeVariableInStaticContext =
-    messageTypeVariableInStaticContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypeVariableInStaticContext = const MessageCode(
+const MessageCode codeTypeVariableInStaticContext = const MessageCode(
   "TypeVariableInStaticContext",
   analyzerCodes: <String>["TYPE_PARAMETER_REFERENCED_BY_STATIC"],
   problemMessage: r"""Type variables can't be used in static members.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefCause = messageTypedefCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefCause = const MessageCode(
+const MessageCode codeTypedefCause = const MessageCode(
   "TypedefCause",
   severity: CfeSeverity.context,
   problemMessage: r"""The issue arises via this type alias.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefInClass = messageTypedefInClass;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefInClass = const MessageCode(
+const MessageCode codeTypedefInClass = const MessageCode(
   "TypedefInClass",
   index: 7,
   problemMessage: r"""Typedefs can't be declared inside classes.""",
@@ -15051,40 +13267,27 @@ const MessageCode messageTypedefInClass = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefNotFunction = messageTypedefNotFunction;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefNotFunction = const MessageCode(
+const MessageCode codeTypedefNotFunction = const MessageCode(
   "TypedefNotFunction",
   analyzerCodes: <String>["INVALID_GENERIC_FUNCTION_TYPE"],
   problemMessage: r"""Can't create typedef from non-function type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefNotType = messageTypedefNotType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefNotType = const MessageCode(
+const MessageCode codeTypedefNotType = const MessageCode(
   "TypedefNotType",
   analyzerCodes: <String>["INVALID_TYPE_IN_TYPEDEF"],
   problemMessage: r"""Can't create typedef from non-type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefNullableType = messageTypedefNullableType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefNullableType = const MessageCode(
+const MessageCode codeTypedefNullableType = const MessageCode(
   "TypedefNullableType",
   problemMessage: r"""Can't create typedef from nullable type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefTypeParameterNotConstructor =
-    messageTypedefTypeParameterNotConstructor;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefTypeParameterNotConstructor = const MessageCode(
+const MessageCode codeTypedefTypeParameterNotConstructor = const MessageCode(
   "TypedefTypeParameterNotConstructor",
   problemMessage:
       r"""Can't use a typedef denoting a type variable as a constructor, nor for a static member access.""",
@@ -15092,10 +13295,6 @@ const MessageCode messageTypedefTypeParameterNotConstructor = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeTypedefTypeParameterNotConstructorCause =
-    messageTypedefTypeParameterNotConstructorCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefTypeParameterNotConstructorCause =
     const MessageCode(
   "TypedefTypeParameterNotConstructorCause",
   severity: CfeSeverity.context,
@@ -15103,11 +13302,7 @@ const MessageCode messageTypedefTypeParameterNotConstructorCause =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeTypedefUnaliasedTypeCause =
-    messageTypedefUnaliasedTypeCause;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
+const MessageCode codeTypedefUnaliasedTypeCause = const MessageCode(
   "TypedefUnaliasedTypeCause",
   severity: CfeSeverity.context,
   problemMessage: r"""This is the type denoted by the type alias.""",
@@ -15137,11 +13332,7 @@ Message _withArgumentsUnavailableDartLibrary(Uri uri_) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnexpectedDollarInString =
-    messageUnexpectedDollarInString;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnexpectedDollarInString = const MessageCode(
+const MessageCode codeUnexpectedDollarInString = const MessageCode(
   "UnexpectedDollarInString",
   analyzerCodes: <String>["UNEXPECTED_DOLLAR_IN_STRING"],
   problemMessage:
@@ -15173,11 +13364,7 @@ Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnexpectedSeparatorInNumber =
-    messageUnexpectedSeparatorInNumber;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnexpectedSeparatorInNumber = const MessageCode(
+const MessageCode codeUnexpectedSeparatorInNumber = const MessageCode(
   "UnexpectedSeparatorInNumber",
   analyzerCodes: <String>["UNEXPECTED_SEPARATOR_IN_NUMBER"],
   problemMessage:
@@ -15187,10 +13374,6 @@ const MessageCode messageUnexpectedSeparatorInNumber = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeUnexpectedSuperParametersInGenerativeConstructors =
-    messageUnexpectedSuperParametersInGenerativeConstructors;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnexpectedSuperParametersInGenerativeConstructors =
     const MessageCode(
   "UnexpectedSuperParametersInGenerativeConstructors",
   analyzerCodes: <String>["INVALID_SUPER_FORMAL_PARAMETER_LOCATION"],
@@ -15220,10 +13403,7 @@ Message _withArgumentsUnexpectedToken(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnexpectedTokens = messageUnexpectedTokens;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnexpectedTokens = const MessageCode(
+const MessageCode codeUnexpectedTokens = const MessageCode(
   "UnexpectedTokens",
   index: 123,
   problemMessage: r"""Unexpected tokens.""",
@@ -15551,11 +13731,7 @@ Message _withArgumentsUnmatchedToken(String string, Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnnamedObjectPatternField =
-    messageUnnamedObjectPatternField;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnnamedObjectPatternField = const MessageCode(
+const MessageCode codeUnnamedObjectPatternField = const MessageCode(
   "UnnamedObjectPatternField",
   problemMessage: r"""A pattern field in an object pattern must be named.""",
   correctionMessage:
@@ -15563,22 +13739,14 @@ const MessageCode messageUnnamedObjectPatternField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsoundSwitchExpressionError =
-    messageUnsoundSwitchExpressionError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnsoundSwitchExpressionError = const MessageCode(
+const MessageCode codeUnsoundSwitchExpressionError = const MessageCode(
   "UnsoundSwitchExpressionError",
   problemMessage:
       r"""None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsoundSwitchStatementError =
-    messageUnsoundSwitchStatementError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnsoundSwitchStatementError = const MessageCode(
+const MessageCode codeUnsoundSwitchStatementError = const MessageCode(
   "UnsoundSwitchStatementError",
   problemMessage:
       r"""None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""",
@@ -15605,12 +13773,7 @@ Message _withArgumentsUnspecified(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnspecifiedGetterNameInObjectPattern =
-    messageUnspecifiedGetterNameInObjectPattern;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnspecifiedGetterNameInObjectPattern =
-    const MessageCode(
+const MessageCode codeUnspecifiedGetterNameInObjectPattern = const MessageCode(
   "UnspecifiedGetterNameInObjectPattern",
   analyzerCodes: <String>["MISSING_OBJECT_PATTERN_GETTER_NAME"],
   problemMessage:
@@ -15618,10 +13781,7 @@ const MessageCode messageUnspecifiedGetterNameInObjectPattern =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsupportedDartExt = messageUnsupportedDartExt;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnsupportedDartExt = const MessageCode(
+const MessageCode codeUnsupportedDartExt = const MessageCode(
   "UnsupportedDartExt",
   problemMessage: r"""Dart native extensions are no longer supported.""",
   correctionMessage:
@@ -15629,11 +13789,7 @@ const MessageCode messageUnsupportedDartExt = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsupportedMacroApplication =
-    messageUnsupportedMacroApplication;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnsupportedMacroApplication = const MessageCode(
+const MessageCode codeUnsupportedMacroApplication = const MessageCode(
   "UnsupportedMacroApplication",
   problemMessage: r"""This macro application didn't apply correctly.""",
 );
@@ -15660,10 +13816,7 @@ Message _withArgumentsUnsupportedOperator(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnsupportedPrefixPlus = messageUnsupportedPrefixPlus;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
+const MessageCode codeUnsupportedPrefixPlus = const MessageCode(
   "UnsupportedPrefixPlus",
   analyzerCodes: <String>["MISSING_IDENTIFIER"],
   problemMessage: r"""'+' is not a prefix operator.""",
@@ -15671,10 +13824,7 @@ const MessageCode messageUnsupportedPrefixPlus = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnterminatedComment = messageUnterminatedComment;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnterminatedComment = const MessageCode(
+const MessageCode codeUnterminatedComment = const MessageCode(
   "UnterminatedComment",
   analyzerCodes: <String>["UNTERMINATED_MULTI_LINE_COMMENT"],
   problemMessage: r"""Comment starting with '/*' must end with '*/'.""",
@@ -15707,10 +13857,7 @@ Message _withArgumentsUnterminatedString(String string, String string2) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeUnterminatedToken = messageUnterminatedToken;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageUnterminatedToken = const MessageCode(
+const MessageCode codeUnterminatedToken = const MessageCode(
   "UnterminatedToken",
   problemMessage: r"""Incomplete token.""",
 );
@@ -15760,20 +13907,14 @@ Message _withArgumentsValueForRequiredParameterNotProvidedError(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVarAsTypeName = messageVarAsTypeName;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVarAsTypeName = const MessageCode(
+const MessageCode codeVarAsTypeName = const MessageCode(
   "VarAsTypeName",
   index: 61,
   problemMessage: r"""The keyword 'var' can't be used as a type name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVarReturnType = messageVarReturnType;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVarReturnType = const MessageCode(
+const MessageCode codeVarReturnType = const MessageCode(
   "VarReturnType",
   index: 12,
   problemMessage: r"""The return type can't be 'var'.""",
@@ -15814,10 +13955,6 @@ Message _withArgumentsVariableCouldBeNullDueToWrite(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeVariablePatternKeywordInDeclarationContext =
-    messageVariablePatternKeywordInDeclarationContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVariablePatternKeywordInDeclarationContext =
     const MessageCode(
   "VariablePatternKeywordInDeclarationContext",
   index: 149,
@@ -15827,11 +13964,7 @@ const MessageCode messageVariablePatternKeywordInDeclarationContext =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVerificationErrorOriginContext =
-    messageVerificationErrorOriginContext;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVerificationErrorOriginContext = const MessageCode(
+const MessageCode codeVerificationErrorOriginContext = const MessageCode(
   "VerificationErrorOriginContext",
   severity: CfeSeverity.context,
   problemMessage:
@@ -15839,20 +13972,14 @@ const MessageCode messageVerificationErrorOriginContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVoidExpression = messageVoidExpression;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVoidExpression = const MessageCode(
+const MessageCode codeVoidExpression = const MessageCode(
   "VoidExpression",
   analyzerCodes: <String>["USE_OF_VOID_RESULT"],
   problemMessage: r"""This expression has type 'void' and can't be used.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeVoidWithTypeArguments = messageVoidWithTypeArguments;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageVoidWithTypeArguments = const MessageCode(
+const MessageCode codeVoidWithTypeArguments = const MessageCode(
   "VoidWithTypeArguments",
   index: 100,
   problemMessage: r"""Type 'void' can't have type arguments.""",
@@ -15860,11 +13987,7 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWasmImportOrExportInUserCode =
-    messageWasmImportOrExportInUserCode;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWasmImportOrExportInUserCode = const MessageCode(
+const MessageCode codeWasmImportOrExportInUserCode = const MessageCode(
   "WasmImportOrExportInUserCode",
   problemMessage:
       r"""Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
@@ -15872,10 +13995,6 @@ const MessageCode messageWasmImportOrExportInUserCode = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeWeakReferenceMismatchReturnAndArgumentTypes =
-    messageWeakReferenceMismatchReturnAndArgumentTypes;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWeakReferenceMismatchReturnAndArgumentTypes =
     const MessageCode(
   "WeakReferenceMismatchReturnAndArgumentTypes",
   problemMessage:
@@ -15883,65 +14002,41 @@ const MessageCode messageWeakReferenceMismatchReturnAndArgumentTypes =
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceNotOneArgument =
-    messageWeakReferenceNotOneArgument;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWeakReferenceNotOneArgument = const MessageCode(
+const MessageCode codeWeakReferenceNotOneArgument = const MessageCode(
   "WeakReferenceNotOneArgument",
   problemMessage:
       r"""Weak reference should take one required positional argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceNotStatic = messageWeakReferenceNotStatic;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWeakReferenceNotStatic = const MessageCode(
+const MessageCode codeWeakReferenceNotStatic = const MessageCode(
   "WeakReferenceNotStatic",
   problemMessage:
       r"""Weak reference pragma can be used on a static method only.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceReturnTypeNotNullable =
-    messageWeakReferenceReturnTypeNotNullable;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWeakReferenceReturnTypeNotNullable = const MessageCode(
+const MessageCode codeWeakReferenceReturnTypeNotNullable = const MessageCode(
   "WeakReferenceReturnTypeNotNullable",
   problemMessage: r"""Return type of a weak reference should be nullable.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceTargetHasParameters =
-    messageWeakReferenceTargetHasParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWeakReferenceTargetHasParameters = const MessageCode(
+const MessageCode codeWeakReferenceTargetHasParameters = const MessageCode(
   "WeakReferenceTargetHasParameters",
   problemMessage:
       r"""The target of weak reference should not take parameters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakReferenceTargetNotStaticTearoff =
-    messageWeakReferenceTargetNotStaticTearoff;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWeakReferenceTargetNotStaticTearoff =
-    const MessageCode(
+const MessageCode codeWeakReferenceTargetNotStaticTearoff = const MessageCode(
   "WeakReferenceTargetNotStaticTearoff",
   problemMessage:
       r"""The target of weak reference should be a tearoff of a static method.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWeakWithStrongDillLibrary =
-    messageWeakWithStrongDillLibrary;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWeakWithStrongDillLibrary = const MessageCode(
+const MessageCode codeWeakWithStrongDillLibrary = const MessageCode(
   "WeakWithStrongDillLibrary",
   problemMessage:
       r"""Loaded library is compiled with sound null safety and cannot be used in compilation for unsound null safety.""",
@@ -15978,10 +14073,7 @@ Message _withArgumentsWebLiteralCannotBeRepresentedExactly(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeWithBeforeExtends = messageWithBeforeExtends;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageWithBeforeExtends = const MessageCode(
+const MessageCode codeWithBeforeExtends = const MessageCode(
   "WithBeforeExtends",
   index: 11,
   problemMessage: r"""The extends clause must be before the with clause.""",
@@ -15990,10 +14082,7 @@ const MessageCode messageWithBeforeExtends = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeYieldAsIdentifier = messageYieldAsIdentifier;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageYieldAsIdentifier = const MessageCode(
+const MessageCode codeYieldAsIdentifier = const MessageCode(
   "YieldAsIdentifier",
   analyzerCodes: <String>["ASYNC_KEYWORD_USED_AS_IDENTIFIER"],
   problemMessage:
@@ -16001,10 +14090,7 @@ const MessageCode messageYieldAsIdentifier = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode codeYieldNotGenerator = messageYieldNotGenerator;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageYieldNotGenerator = const MessageCode(
+const MessageCode codeYieldNotGenerator = const MessageCode(
   "YieldNotGenerator",
   analyzerCodes: <String>["YIELD_IN_NON_GENERATOR"],
   problemMessage:
