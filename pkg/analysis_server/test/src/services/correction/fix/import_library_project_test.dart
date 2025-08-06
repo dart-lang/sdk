@@ -972,6 +972,66 @@ void f() { new Foo(); }
     );
   }
 
+  Future<void> test_unchecked_methodInvocation() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on Object? {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+void f(Object? o) {
+  o.m();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(Object? o) {
+  o.m();
+}
+''');
+  }
+
+  Future<void> test_unchecked_operatorInvocation() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on Object? {
+  int operator +(int other) => 0;
+}
+''');
+    await resolveTestCode('''
+void f(Object? o) {
+  o + 1;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(Object? o) {
+  o + 1;
+}
+''');
+  }
+
+  Future<void> test_unchecked_propertyAccess() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on Object? {
+  int get getter => 0;
+}
+''');
+    await resolveTestCode('''
+void f(Object? o) {
+  o.getter;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(Object? o) {
+  o.getter;
+}
+''');
+  }
+
   Future<void> test_withClass_annotation() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class Test {
