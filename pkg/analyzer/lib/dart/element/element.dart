@@ -1047,6 +1047,16 @@ abstract class ElementDirective
   /// The library fragment that contains this object.
   LibraryFragment get libraryFragment;
 
+  /// The metadata associated with the element or fragment.
+  ///
+  /// If the receiver is an element that has fragments, the list will include
+  /// all of the metadata from all of the fragments.
+  ///
+  /// The list will be empty if the receiver does not have any metadata or if
+  /// the library containing this element has not yet been fully resolved.
+  @override
+  Metadata get metadata;
+
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
 }
