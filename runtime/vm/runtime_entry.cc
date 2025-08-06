@@ -1060,10 +1060,6 @@ DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
     if (target.IsGenerativeConstructor()) {
       // Type arguments are not passed to a generative constructor.
       type_args_len = 0;
-    } else {
-      // No need to adjust arguments descriptor.
-      arguments.SetReturn(descriptor);
-      return;
     }
   }
 
