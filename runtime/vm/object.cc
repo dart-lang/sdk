@@ -27392,7 +27392,7 @@ void RegExp::set_num_bracket_expressions(intptr_t value) const {
 }
 
 void RegExp::set_capture_name_map(const Array& array) const {
-  untag()->set_capture_name_map(array.ptr());
+  untag()->set_capture_name_map<std::memory_order_release>(array.ptr());
 }
 
 RegExpPtr RegExp::New(Zone* zone, Heap::Space space) {
@@ -28511,8 +28511,7 @@ RecordShape RecordShape::Register(Thread* thread,
   IsolateGroup* isolate_group = thread->isolate_group();
   ObjectStore* object_store = isolate_group->object_store();
 
-  if (object_store->record_field_names<std::memory_order_acquire>() ==
-      Array::null()) {
+  if (object_store->record_field_names() == Array::null()) {
     // First-time initialization.
     SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
     if (object_store->record_field_names() == Array::null()) {
@@ -28525,7 +28524,7 @@ RecordShape RecordShape::Register(Thread* thread,
       object_store->set_record_field_names_map(map.Release());
       const auto& table = Array::Handle(zone, Array::New(16));
       table.SetAt(0, Object::empty_array());
-      object_store->set_record_field_names<std::memory_order_release>(table);
+      object_store->set_record_field_names(table);
     }
   }
 

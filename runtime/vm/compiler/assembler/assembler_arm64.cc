@@ -287,6 +287,7 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
 }
 
 void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
+  Comment("TsanLoadAcquire");
   RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
                         kAllFpuRegistersList);
 
@@ -326,6 +327,7 @@ void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
 void Assembler::TsanStoreRelease(Register src,
                                  Register addr,
                                  OperandSize size) {
+  Comment("TsanStoreRelease");
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
 
   if (src == R0) {
@@ -348,6 +350,56 @@ void Assembler::TsanStoreRelease(Register src,
     default:
       UNIMPLEMENTED();
       break;
+  }
+}
+
+void Assembler::TsanRead(Register addr, intptr_t size) {
+  Comment("TsanRead");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanRead1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanRead2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanRead4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanRead8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanRead16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::TsanWrite(Register addr, intptr_t size) {
+  Comment("TsanWrite");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanWrite1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanWrite2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanWrite4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanWrite8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanWrite16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

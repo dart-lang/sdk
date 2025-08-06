@@ -4682,8 +4682,18 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() >= 0);  // Field is finalized.
   // For fields on Dart objects, the offset must point after the header.
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
-
   auto const rep = slot().representation();
+
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV64) ||              \
+    defined(TARGET_ARCH_X64)
+  if (FLAG_target_thread_sanitizer && !slot().is_no_sanitize_thread() &&
+      memory_order_ == compiler::Assembler::kRelaxedNonAtomic) {
+    intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+    __ AddImmediate(TMP, instance_reg, slot().offset_in_bytes() - tag);
+    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
+  }
+#endif
+
   if (calls_initializer()) {
     __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
     EmitNativeCodeForInitializerCall(compiler);
@@ -7809,8 +7819,18 @@ void StoreFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(OffsetInBytes() >= 0);  // Field is finalized.
   // For fields on Dart objects, the offset must point after the header.
   ASSERT(OffsetInBytes() != 0 || slot().has_untagged_instance());
-
   const Representation rep = slot().representation();
+
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV64) ||              \
+    defined(TARGET_ARCH_X64)
+  if (FLAG_target_thread_sanitizer && !slot().is_no_sanitize_thread() &&
+      memory_order_ == compiler::Assembler::kRelaxedNonAtomic) {
+    intptr_t tag = slot().has_untagged_instance() ? 0 : kHeapObjectTag;
+    __ AddImmediate(TMP, instance_reg, slot().offset_in_bytes() - tag);
+    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
+  }
+#endif
+
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)
   if (locs()->in(kValuePos).IsConstant() &&

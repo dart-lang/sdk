@@ -4884,6 +4884,36 @@ extern "C" void __tsan_atomic64_store(uint64_t* addr,
                                       int order) {
   UNREACHABLE();
 }
+extern "C" void __tsan_read1(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read2(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read4(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read8(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read16(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write1(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write2(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write4(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write8(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write16(void* addr) {
+  UNREACHABLE();
+}
 #endif
 
 // These runtime entries are defined even when not using MSAN / TSAN to keep
@@ -4895,5 +4925,15 @@ DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Load, 2, __tsan_atomic32_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, __tsan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, __tsan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, __tsan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, __tsan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, __tsan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, __tsan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, __tsan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, __tsan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, __tsan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, __tsan_write16);
 
 }  // namespace dart

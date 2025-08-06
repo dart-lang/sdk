@@ -1032,6 +1032,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_is_extension_member(is_extension_member);
     field.set_is_extension_type_member(is_extension_type_member);
     field.set_is_shared(SharedPragma::decode(pragma_bits));
+    field.set_is_no_sanitize_thread(
+        NoSanitizeThreadPragma::decode(pragma_bits));
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1459,6 +1461,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_extension_member(is_extension_member);
       field.set_is_extension_type_member(is_extension_type_member);
       field.set_is_shared(SharedPragma::decode(pragma_bits));
+      field.set_is_no_sanitize_thread(
+          NoSanitizeThreadPragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       // Static fields with initializers are implicitly late.
@@ -1768,6 +1772,10 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
             }
           }
           *pragma_bits = SharedPragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "vm:no-sanitize-thread")) {
+          *pragma_bits = NoSanitizeThreadPragma::update(true, *pragma_bits);
         }
         if (constant_reader.IsStringConstant(name_index,
                                              "dyn-module:extendable")) {

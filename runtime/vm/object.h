@@ -4537,6 +4537,13 @@ class Field : public Object {
   }
   bool is_shared() const { return untag()->kind_bits_.Read<SharedBit>(); }
 
+  void set_is_no_sanitize_thread(bool value) const {
+    untag()->kind_bits_.UpdateBool<NoSanitizeThreadBit>(value);
+  }
+  bool is_no_sanitize_thread() const {
+    return untag()->kind_bits_.Read<NoSanitizeThreadBit>();
+  }
+
 #if defined(DART_DYNAMIC_MODULES)
   bool is_declared_in_bytecode() const;
 #else
@@ -4948,6 +4955,8 @@ class Field : public Object {
   using SharedBit = BitField<decltype(UntaggedField::kind_bits_),
                              bool,
                              HasInitializerBit::kNextBit>;
+  using NoSanitizeThreadBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -12966,7 +12975,9 @@ class RegExp : public Instance {
   intptr_t num_bracket_expressions() const {
     return untag()->num_bracket_expressions_;
   }
-  ArrayPtr capture_name_map() const { return untag()->capture_name_map(); }
+  ArrayPtr capture_name_map() const {
+    return untag()->capture_name_map<std::memory_order_acquire>();
+  }
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {

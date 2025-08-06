@@ -1009,6 +1009,8 @@ class Assembler : public MicroAssembler {
 
   void TsanLoadAcquire(Register dst, const Address& address, OperandSize size);
   void TsanStoreRelease(Register src, const Address& address, OperandSize size);
+  void TsanRead(Register addr, intptr_t size);
+  void TsanWrite(Register addr, intptr_t size);
 
   void LoadAcquire(Register dst,
                    const Address& address,

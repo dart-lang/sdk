@@ -3089,6 +3089,7 @@ void Assembler::TsanLoadAcquire(Register dst,
   ASSERT(addr.base() != FP);
   ASSERT(dst != SP);
   ASSERT(dst != FP);
+  Comment("TsanLoadAcquire");
 
   RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
                         kAbiVolatileFpuRegs);
@@ -3144,6 +3145,7 @@ void Assembler::TsanStoreRelease(Register src,
   ASSERT(addr.base() != FP);
   ASSERT(src != SP);
   ASSERT(src != FP);
+  Comment("TsanStoreRelease");
 
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
 
@@ -3167,6 +3169,56 @@ void Assembler::TsanStoreRelease(Register src,
     default:
       UNIMPLEMENTED();
       break;
+  }
+}
+
+void Assembler::TsanRead(Register addr, intptr_t size) {
+  Comment("TsanRead");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(A0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanRead1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanRead2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanRead4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanRead8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanRead16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::TsanWrite(Register addr, intptr_t size) {
+  Comment("TsanWrite");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(A0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanWrite1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanWrite2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanWrite4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanWrite8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanWrite16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -4848,7 +4900,7 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
 void LeafRuntimeScope::Call(const RuntimeEntry& entry,
                             intptr_t argument_count) {
   ASSERT(argument_count == entry.argument_count());
-  __ lx(TMP2, compiler::Address(THR, entry.OffsetFromThread()));
+  __ Load(TMP2, compiler::Address(THR, entry.OffsetFromThread()));
   __ sx(TMP2, compiler::Address(THR, target::Thread::vm_tag_offset()));
   __ jalr(TMP2);
   __ LoadImmediate(TMP2, VMTag::kDartTagId);
