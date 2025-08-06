@@ -82,6 +82,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       DartType? parameterType;
       var fieldTypeNode = climbPropertyAccess(node);
       parameterType = inferUndefinedExpressionType(fieldTypeNode);
+      if (parameterType is InvalidType) {
+        return;
+      }
+
       var target = getQualifiedPropertyTarget(node);
 
       if (parameterType == null) {

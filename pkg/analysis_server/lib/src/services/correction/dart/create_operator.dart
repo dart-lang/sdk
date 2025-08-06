@@ -94,6 +94,9 @@ class CreateOperator extends ResolvedCorrectionProducer {
       // Try to find the return type.
       returnType = inferUndefinedExpressionType(node) ?? VoidTypeImpl.instance;
     }
+    if (returnType is InvalidType) {
+      return;
+    }
 
     var targetClassElement = getTargetInterfaceElement(target);
     if (targetClassElement == null) {

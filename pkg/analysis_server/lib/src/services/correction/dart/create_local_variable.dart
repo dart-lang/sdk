@@ -68,7 +68,8 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
     if (!(type == null ||
         type is InterfaceType ||
         type is FunctionType ||
-        type is RecordType)) {
+        type is RecordType ||
+        type is InvalidType)) {
       return;
     }
     // build variable declaration source

@@ -187,6 +187,9 @@ class CreateField extends CreateFieldOrGetter {
       return;
     }
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     await _addDeclaration(
       builder: builder,
