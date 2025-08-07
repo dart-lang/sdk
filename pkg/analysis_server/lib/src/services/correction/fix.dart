@@ -910,61 +910,91 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 5,
     "Use imported library '{0}' with prefix '{1}'",
   );
+
+  /// {@template dart.fix.import.libraryProject1}
+  /// Import defining library.
+  /// {@endtemplate}
   static const IMPORT_LIBRARY_PROJECT1 = FixKind(
     'dart.fix.import.libraryProject1',
     DartFixKindPriority.standard + 3,
     "Import library '{0}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject1}
   static const IMPORT_LIBRARY_PROJECT1_PREFIXED = FixKind(
     'dart.fix.import.libraryProject1Prefixed',
     DartFixKindPriority.standard + 3,
     "Import library '{0}' with prefix '{1}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject1}
   static const IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW = FixKind(
     'dart.fix.import.libraryProject1PrefixedShow',
     DartFixKindPriority.standard + 3,
     "Import library '{0}' with prefix '{1}' and 'show'",
   );
+
+  /// {@macro dart.fix.import.libraryProject1}
   static const IMPORT_LIBRARY_PROJECT1_SHOW = FixKind(
     'dart.fix.import.libraryProject1Show',
     DartFixKindPriority.standard + 3,
     "Import library '{0}' with 'show'",
   );
+
+  /// {@template dart.fix.import.libraryProject2}
+  /// Import export library.
+  /// {@endtemplate}
   static const IMPORT_LIBRARY_PROJECT2 = FixKind(
     'dart.fix.import.libraryProject2',
     DartFixKindPriority.standard + 2,
     "Import library '{0}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject2}
   static const IMPORT_LIBRARY_PROJECT2_PREFIXED = FixKind(
     'dart.fix.import.libraryProject2Prefixed',
     DartFixKindPriority.standard + 2,
     "Import library '{0}' with prefix '{1}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject2}
   static const IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW = FixKind(
     'dart.fix.import.libraryProject2PrefixedShow',
     DartFixKindPriority.standard + 2,
     "Import library '{0}' with prefix '{1}' and 'show'",
   );
+
+  /// {@macro dart.fix.import.libraryProject2}
   static const IMPORT_LIBRARY_PROJECT2_SHOW = FixKind(
     'dart.fix.import.libraryProject2Show',
     DartFixKindPriority.standard + 2,
     "Import library '{0}' with 'show'",
   );
+
+  /// {@template dart.fix.import.libraryProject3}
+  /// Import non-API.
+  /// {@endtemplate}
   static const IMPORT_LIBRARY_PROJECT3 = FixKind(
     'dart.fix.import.libraryProject3',
     DartFixKindPriority.standard + 1,
     "Import library '{0}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject3}
   static const IMPORT_LIBRARY_PROJECT3_PREFIXED = FixKind(
     'dart.fix.import.libraryProject3Prefixed',
     DartFixKindPriority.standard + 1,
     "Import library '{0}' with prefix '{1}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject3}
   static const IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW = FixKind(
     'dart.fix.import.libraryProject3PrefixedShow',
     DartFixKindPriority.standard + 1,
     "Import library '{0}' with prefix '{1}' and 'show'",
   );
+
+  /// {@macro dart.fix.import.libraryProject3}
   static const IMPORT_LIBRARY_PROJECT3_SHOW = FixKind(
     'dart.fix.import.libraryProject3Show',
     DartFixKindPriority.standard + 1,

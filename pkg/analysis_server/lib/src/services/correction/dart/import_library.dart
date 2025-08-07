@@ -227,6 +227,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     String name,
     List<ElementKind> kinds, {
     String? prefix,
+    bool canBePrefixed = true,
   }) async {
     // Ignore the element if the name is private.
     if (name.startsWith('_')) {
@@ -252,7 +253,6 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (!kinds.contains(element.kind)) {
         continue;
       }
-      var importPrefix = import.prefix?.element;
       // Maybe update a "show"/"hide" directive.
       var (
         combinatorProducer,
@@ -265,7 +265,8 @@ class ImportLibrary extends MultiCorrectionProducer {
         prefix: prefix,
       );
       // Maybe apply a prefix.
-      if (importPrefix != null) {
+      var importPrefix = import.prefix?.element;
+      if (canBePrefixed && importPrefix != null) {
         producers.add(
           _ImportLibraryPrefix(
             libraryElement,
@@ -397,73 +398,51 @@ class ImportLibrary extends MultiCorrectionProducer {
     // additional analysis.
     var foundImport = false;
     var names = <_PrefixedName>[];
+    var extensionsInLibrary =
+        <LibraryImport?, List<InstantiatedExtensionWithMember>>{};
     for (var import in unitResult.libraryFragment.libraryImports) {
-      // prepare element
       var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
         continue;
       }
       foundImport = true;
-      var instantiatedExtensions = importedLibrary.exportedExtensions
+      extensionsInLibrary[import] = importedLibrary.exportedExtensions
           .havingMemberWithBaseName(memberName)
           .applicableTo(
             targetLibrary: libraryElement2,
             targetType: targetType as TypeImpl,
           );
-      for (var instantiatedExtension in instantiatedExtensions) {
-        // If the import has a combinator that needs to be updated, then offer
-        // to update it.
-        var libraryElement = import.importedLibrary;
-        if (libraryElement == null) {
-          continue;
-        }
-        names.add(
-          _PrefixedName(
-            name: instantiatedExtension.extension.name!,
-            ignorePrefix: true,
-            producerGenerators: (prefix, name) async {
-              var producers = <ResolvedCorrectionProducer>[];
-              var (
-                importLibraryCombinator,
-                importLibraryCombinatorMultiple,
-              ) = await _importEditCombinators(
-                import,
-                libraryElement,
-                libraryToImport.uri.toString(),
-                name,
-              );
-              if (importLibraryCombinator != null) {
-                producers.add(importLibraryCombinator);
-                if (importLibraryCombinatorMultiple != null) {
-                  producers.add(importLibraryCombinatorMultiple);
-                }
-              }
-              return producers;
-            },
-          ),
-        );
-      }
     }
 
     // If the library at the URI is not already imported, we return a correction
     // producer that will either add an import or not based on the result of
     // analyzing the library.
     if (!foundImport) {
-      names.add(
-        _PrefixedName(
-          name: memberName.name,
-          producerGenerators: (prefix, name) async {
-            return [
-              _ImportLibraryContainingExtension(
-                libraryToImport,
-                targetType,
-                memberName,
-                context: context,
-              ),
-            ];
-          },
-        ),
-      );
+      extensionsInLibrary[null] = libraryToImport.exportedExtensions
+          .havingMemberWithBaseName(memberName)
+          .applicableTo(
+            targetLibrary: libraryElement2,
+            targetType: targetType as TypeImpl,
+          );
+    }
+    for (var entry in extensionsInLibrary.entries) {
+      var extensionsInLibrary = entry.value;
+      for (var instantiatedExtension in extensionsInLibrary) {
+        names.add(
+          _PrefixedName(
+            name: instantiatedExtension.extension.name!,
+            ignorePrefix: true,
+            producerGenerators: (prefix, name) async {
+              return await _importLibraryForElement(
+                name,
+                prefix: prefix,
+                canBePrefixed: false,
+                [ElementKind.EXTENSION],
+              );
+            },
+          ),
+        );
+      }
     }
     return names;
   }
@@ -914,8 +893,7 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
       if (names.isNotEmpty) {
         newCombinatorCode = ' ${keyword.lexeme} ${names.join(', ')}';
       }
-      var libraryPath =
-          unitResult.libraryElement.firstFragment.source.fullName;
+      var libraryPath = unitResult.libraryElement.firstFragment.source.fullName;
       await builder.addDartFileEdit(libraryPath, (builder) {
         builder.addSimpleReplacement(
           SourceRange(offset - 1, length + 1),
@@ -935,55 +913,6 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
           }
           builder.addDeletion(range.node(prefix));
         }
-      });
-    }
-  }
-}
-
-/// A correction processor that can add an import of a library containing an
-/// extension, but which does so only if the extension applies to a given type.
-class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
-  /// The library defining the extension.
-  LibraryElement library;
-
-  /// The type of the target that the extension must apply to.
-  DartType targetType;
-
-  /// The name of the member that the extension must declare.
-  Name memberName;
-
-  /// The URI that is being proposed for the import directive.
-  String _uriText = '';
-
-  _ImportLibraryContainingExtension(
-    this.library,
-    this.targetType,
-    this.memberName, {
-    required super.context,
-  });
-
-  @override
-  CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
-
-  @override
-  List<String> get fixArguments => [_uriText];
-
-  @override
-  FixKind get fixKind => DartFixKind.IMPORT_LIBRARY_PROJECT1;
-
-  @override
-  Future<void> compute(ChangeBuilder builder) async {
-    var instantiatedExtensions = library.exportedExtensions
-        .havingMemberWithBaseName(memberName)
-        .applicableTo(
-          targetLibrary: libraryElement2,
-          targetType: targetType as TypeImpl,
-        );
-    if (instantiatedExtensions.isNotEmpty) {
-      await builder.addDartFileEdit(file, (builder) {
-        _uriText = builder.importLibrary(library.uri);
       });
     }
   }
