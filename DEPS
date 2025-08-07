@@ -133,24 +133,24 @@ vars = {
   # EOL comment after a dependency to instead pin at the current revision.
   "ai_rev": "72a9283b421e5ee85c089822ddf6735aade849da",
   "core_rev": "b59ecf4ceebe6153e1c0166b7c9a7fdd9458a89d",
-  "dartdoc_rev": "82b48b53128a474221269a05a947bae28e2d7ac6",
-  "ecosystem_rev": "4543c38a67919958539dec8366d8c9414179741f",
+  "dartdoc_rev": "414953ed17ea534078f26a8526909ab014c1ad09",
+  "ecosystem_rev": "2fe3618849cbcfcb798e4e001f042423b602e549",
   "flute_rev": "d5adc4d6439572db5da71a9261b9bf0c7c96daa4",
   "http_rev": "afda3102b7ed5467f435b9ad4a29a1032f195156",
-  "i18n_rev": "25cdb1b44b18544e0c988cc1734adc4810a65099",
+  "i18n_rev": "c45e050426bdeaaa120e5ce856abb486863d0476",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "16ae2d8619e23fc2bd83fbff087a26ac032a1145", # rolled manually while native assets are experimental
   "protobuf_rev": "0b73b0d64c15e34d35f6e5f9036aac52e4a64033",
   "pub_rev": "c3e50919d11896f014cb971e1776d00a0e2d18b3", # rolled manually
-  "shelf_rev": "2a46b4ffe1f095909c3b14bdf62da40cbdbd82e9",
+  "shelf_rev": "082d3ac2d13a98700d8148e8fad8f3e12a6fd0e1",
   "sync_http_rev": "c07f96f89a7eec7e3daac641fa6c587224fcfbaa",
   "tar_rev": "5a1ea943e70cdf3fa5e1102cdbb9418bd9b4b81a",
-  "test_rev": "9354f239b0eb42a459200b432893d7d026056391",
-  "tools_rev": "1b52e89e0b4ef70e004383c1cf781ad4182f380b",
+  "test_rev": "5aef9719ad9b598260c062b2a90a50d2f50a78f3",
+  "tools_rev": "5e977d6f0698a220279a50538c89a440d56b0c44",
   "vector_math_rev": "3939545edc38ed657381381d33acde02c49ff827",
-  "web_rev": "f3c960f57cd88afad6e20d80ed453d722d3610b7",
-  "webdev_rev": "94c172cc862d0c39c72158c6537f1e20b4432e0e",
+  "web_rev": "1d5771b74a97f8d59375daa3029617ce2cd1bae8",
+  "webdev_rev": "7ff2d0795727402c7658ea8ee026884b023099d8",
   "webdriver_rev": "595649d890f69b9d05a596426ca93681b1921132",
   "webkit_inspection_protocol_rev": "effa75205516757795683d527c3dea9546eb0c32",
 
