@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -105,7 +106,10 @@ class FunctionExpressionResolver {
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
         // is derived from `K` as follows.
-        inferredType = _typeSystem.greatestClosureOfSchema(inferredType);
+        inferredType =
+            _resolver.operations
+                .greatestClosureOfSchema(SharedTypeSchemaView(inferredType))
+                .unwrapTypeView<TypeImpl>();
 
         // If the greatest closure of `K` is `S` and `S` is a subtype of
         // `Null`, then `T` is `Object?`. Otherwise, `T` is `S`.
@@ -114,7 +118,6 @@ class FunctionExpressionResolver {
         }
         if (inferredType is! DynamicType) {
           p.type = inferredType;
-          p.firstFragment.type = inferredType;
         }
       }
     }
@@ -185,13 +188,11 @@ class FunctionExpressionResolver {
     );
   }
 
-  void _resolve2(FunctionExpressionImpl node, DartType? imposedType) {
+  void _resolve2(FunctionExpressionImpl node, TypeImpl? imposedType) {
     var functionElement = node.declaredFragment!.element;
 
     if (_shouldUpdateReturnType(node)) {
-      var firstFragment =
-          functionElement.firstFragment as ExecutableFragmentImpl;
-      firstFragment.returnType = imposedType ?? DynamicTypeImpl.instance;
+      functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
     node.recordStaticType(functionElement.type, resolver: _resolver);

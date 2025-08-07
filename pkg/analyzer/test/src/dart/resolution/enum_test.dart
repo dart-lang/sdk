@@ -58,13 +58,15 @@ GenericFunctionType
         element2: dart:core::@class::double
         type: double
       declaredElement: <testLibraryFragment> null@null
-        type: double
+        element: isPrivate
+          type: double
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters
       <empty>
         kind: required positional
-        type: double
+        element:
+          type: double
     returnType: void
     type: void Function(double)
   type: void Function(double)
@@ -372,7 +374,8 @@ MethodDeclaration
       staticType: Never
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@25
-    type: T Function()
+    element: <testLibrary>::@enum::E::@getter::foo
+      type: T Function()
 ''');
   }
 
@@ -454,7 +457,8 @@ MethodDeclaration
         type: T
       name: t
       declaredElement: <testLibraryFragment> t@32
-        type: T
+        element: isPublic
+          type: T
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
@@ -462,7 +466,8 @@ MethodDeclaration
         type: U
       name: u
       declaredElement: <testLibraryFragment> u@37
-        type: U
+        element: isPublic
+          type: U
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -471,7 +476,8 @@ MethodDeclaration
       staticType: int
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@23
-    type: int Function<U>(T, U)
+    element: <testLibrary>::@enum::E::@method::foo
+      type: int Function<U>(T, U)
 ''');
   }
 
@@ -500,7 +506,8 @@ MethodDeclaration
       literal: 'E'
     semicolon: ;
   declaredElement: <testLibraryFragment> toString@23
-    type: String Function()
+    element: <testLibrary>::@enum::E::@method::toString
+      type: String Function()
 ''');
   }
 
@@ -579,14 +586,16 @@ MethodDeclaration
         type: T
       name: a
       declaredElement: <testLibraryFragment> a@29
-        type: T
+        element: isPublic
+          type: T
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@23
-    type: void Function(T)
+    element: <testLibrary>::@enum::E::@setter::foo
+      type: void Function(T)
 ''');
   }
 

@@ -51,12 +51,11 @@ A stdio based Model Context Protocol (MCP) server to aid in Dart and Flutter dev
     }
     try {
       VmInteropHandler.run(
-        sdk.dartAotRuntime,
+        sdk.dartMCPServerAotSnapshot,
         [
-          sdk.dartMCPServerAotSnapshot,
           ...forwardedArgs,
         ],
-        useExecProcess: true,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {

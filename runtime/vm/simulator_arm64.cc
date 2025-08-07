@@ -2407,8 +2407,18 @@ void Simulator::DecodeLoadStoreRegPair(Instr* instr) {
       }
       // Write to register.
       if (instr->Bit(31) == 1) {
-        set_register(instr, rt, val1, R31IsZR);
-        set_register(instr, rt2, val2, R31IsZR);
+        if (rt == FP && rt2 == LR) {
+          // Special case `ldp fp, lr` for LeaveDartFrame so that the profiler
+          // does not get confused by observing the update to fp before lr when
+          // our caller is the entry stub, i.e., failing to identify the entry
+          // frame. On real hardware, the profiler's signal handler cannot
+          // observe a partially executed load-pair instruction.
+          set_register(instr, rt2, val2, R31IsZR);
+          set_register(instr, rt, val1, R31IsZR);
+        } else {
+          set_register(instr, rt, val1, R31IsZR);
+          set_register(instr, rt2, val2, R31IsZR);
+        }
       } else {
         set_wregister(rt, static_cast<int32_t>(val1), R31IsZR);
         set_wregister(rt2, static_cast<int32_t>(val2), R31IsZR);

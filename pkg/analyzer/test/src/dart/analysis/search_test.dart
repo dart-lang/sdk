@@ -16,6 +16,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
@@ -82,10 +83,10 @@ class SearchTest extends PubPackageResolutionTest {
   ) {
     var actual = _getDeclarationsText(symbols, inFiles);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   Future<void> assertElementReferencesText(
@@ -475,7 +476,7 @@ testFile
     parameters: (int it)
   FIELD it
     offset: 21 1:22
-    codeOffset: 17 + 6
+    codeOffset: 16 + 8
     className: E
   GETTER g
     offset: 37 2:11
@@ -811,7 +812,7 @@ class A {}
     );
     libraryElementResult as LibraryElementResult;
 
-    var A = libraryElementResult.element2.getClass('A')!;
+    var A = libraryElementResult.element.getClass('A')!;
 
     var searchedFiles = SearchedFiles();
     searchedFiles.ownAnalyzed(myDriver.search);
@@ -1762,7 +1763,7 @@ library lib;
 part 'unitA.dart';
 part 'unitB.dart';
 ''');
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     await assertElementReferencesText(element, r'''
 #F0
   8 1:9 |lib| REFERENCE
@@ -1779,7 +1780,7 @@ library lib;
 part 'unitA.dart';
 part 'unitB.dart';
 ''');
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     await assertElementReferencesText(element, r'''
 #F0
   8 1:9 |lib| REFERENCE
@@ -1802,7 +1803,7 @@ part 'unitA.dart';
 part 'unitB.dart';
 ''');
 
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     await assertElementReferencesText(element, r'''
 #F0
   8 1:9 |'test.dart'| REFERENCE
@@ -3176,7 +3177,7 @@ class A {
 
     var aLibraryResult =
         await driver.getLibraryByUri(aUri) as LibraryElementResult;
-    var aClass = aLibraryResult.element2.getClass('A')!;
+    var aClass = aLibraryResult.element.getClass('A')!;
 
     // Search by 'type'.
     List<SubtypeResult> subtypes = await driver.search.subtypes(
@@ -3228,7 +3229,7 @@ class C implements List {}
 
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
-    var listElement = coreLibResult.element2.getClass('List')!;
+    var listElement = coreLibResult.element.getClass('List')!;
 
     var searchedFiles = SearchedFiles();
     var results = await driver.search.subTypes(listElement, searchedFiles);
@@ -3279,6 +3280,15 @@ class A {}
 
     expect(b.id, endsWith('b.dart;B'));
     expect(c.id, endsWith('c.dart;C'));
+  }
+
+  test_subtypes_class_missingName() async {
+    await resolveTestCode('''
+class {}
+''');
+    var a = findElement2.libraryElement.classes.single;
+    var subtypes = await driver.search.subtypes(SearchedFiles(), type: a);
+    expect(subtypes, isEmpty);
   }
 
   test_subtypes_enum() async {

@@ -80,15 +80,10 @@ class ConstantEvaluationEngine {
 
   /// Compute the constant value associated with the given [constant].
   void computeConstantValue(ConstantEvaluationTarget constant) {
-    if (constant is FragmentImpl) {
-      var element = constant as FragmentImpl;
-      constant = element.declaration as ConstantEvaluationTarget;
-    }
-
     var libraryFragment = constant.libraryFragment!;
     var library = libraryFragment.element;
     if (constant is FormalParameterElementImpl) {
-      var defaultValue = constant.constantInitializer?.expression;
+      var defaultValue = constant.constantInitializer;
       if (defaultValue != null) {
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
@@ -106,7 +101,7 @@ class ConstantEvaluationEngine {
         constant.evaluationResult = _nullObject(library);
       }
     } else if (constant is VariableElementImpl) {
-      var constantInitializer = constant.constantInitializer?.expression;
+      var constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         var diagnosticReporter = DiagnosticReporter(
           RecordingDiagnosticListener(),
@@ -173,12 +168,12 @@ class ConstantEvaluationEngine {
       }
     } else if (constant is ElementAnnotationImpl) {
       var constNode = constant.annotationAst;
-      var element = constant.element2;
+      var element = constant.element;
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable.
         // Just copy the evaluation result.
         var variableElement =
-            element.variable?.baseElement as VariableElementImpl?;
+            element.variable.baseElement as VariableElementImpl?;
         var evaluationResult = variableElement?.evaluationResult;
         if (evaluationResult != null) {
           constant.evaluationResult = evaluationResult;
@@ -188,7 +183,7 @@ class ConstantEvaluationEngine {
           // ignore it here.
           constant.evaluationResult = null;
         }
-      } else if (element is ConstructorElementMixin2 &&
+      } else if (element is InternalConstructorElement &&
           element.isConst &&
           constNode.arguments != null) {
         var diagnosticListener = RecordingDiagnosticListener();
@@ -254,13 +249,13 @@ class ConstantEvaluationEngine {
     }
 
     ReferenceFinder referenceFinder = ReferenceFinder(callback);
-    if (constant case ConstructorElementMixin2 constructor) {
+    if (constant case InternalConstructorElement constructor) {
       constant = constructor.baseElement;
     }
 
     if (constant is VariableElementImpl) {
       var declaration = constant;
-      var initializer = declaration.constantInitializer?.expression;
+      var initializer = declaration.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
       }
@@ -318,14 +313,12 @@ class ConstantEvaluationEngine {
       }
     } else if (constant is ElementAnnotationImpl) {
       Annotation constNode = constant.annotationAst;
-      var element = constant.element2;
+      var element = constant.element;
       if (element is PropertyAccessorElement) {
         // The annotation is a reference to a compile-time constant variable,
         // so it depends on the variable.
-        if (element.variable case var variable?) {
-          var baseElement = variable.baseElement as VariableElementImpl;
-          callback(baseElement);
-        }
+        var baseElement = element.variable.baseElement as VariableElementImpl;
+        callback(baseElement);
       } else if (element is ConstructorElement) {
         // The annotation is a constructor invocation, so it depends on the
         // constructor.
@@ -360,9 +353,9 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocation? invocation,
+    ConstructorInvocationImpl? invocation,
   }) {
     var result = _InstanceCreationEvaluator.evaluate(
       this,
@@ -409,9 +402,9 @@ class ConstantEvaluationEngine {
     AstNode node,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocation? invocation,
+    ConstructorInvocationImpl? invocation,
   }) {
     return _InstanceCreationEvaluator.evaluate(
       this,
@@ -469,8 +462,8 @@ class ConstantEvaluationEngine {
 
   /// If [constructor] redirects to another const constructor, return the
   /// const constructor it redirects to.  Otherwise return `null`.
-  static ConstructorElementMixin2? getConstRedirectedConstructor(
-    ConstructorElementMixin2 constructor,
+  static InternalConstructorElement? getConstRedirectedConstructor(
+    InternalConstructorElement constructor,
   ) {
     if (!constructor.isFactory) {
       return null;
@@ -888,7 +881,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.genericError(node: node);
     }
     var constructor = node.constructorName.element;
-    if (constructor is ConstructorElementMixin2) {
+    if (constructor is InternalConstructorElement) {
       return _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
         _library,
         node,
@@ -2143,8 +2136,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     FunctionReferenceImpl node,
     DartObjectImpl value,
   ) {
-    var functionElement = value.toFunctionValue2();
-    if (functionElement is! ExecutableElement2OrMember) {
+    var functionElement = value.toFunctionValue();
+    if (functionElement is! InternalExecutableElement) {
       return value;
     }
     var valueType = functionElement.type;
@@ -2178,8 +2171,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   ) {
     // TODO(srawlins): When all code uses [FunctionReference]s generated via
     // generic function instantiation, remove this method and all call sites.
-    var functionElement = value.toFunctionValue2();
-    if (functionElement is! ExecutableElement2OrMember) {
+    var functionElement = value.toFunctionValue();
+    if (functionElement is! InternalExecutableElement) {
       return value;
     }
     var valueType = functionElement.type;
@@ -2844,11 +2837,11 @@ class _InstanceCreationEvaluator {
   /// The node used for most error reporting.
   final AstNode _errorNode;
 
-  final ConstructorElementMixin2 _constructor;
+  final InternalConstructorElement _constructor;
 
   final List<TypeImpl>? _typeArguments;
 
-  final ConstructorInvocation _invocation;
+  final ConstructorInvocationImpl _invocation;
 
   final Map<String, NamedExpression> _namedNodes;
 
@@ -2877,7 +2870,7 @@ class _InstanceCreationEvaluator {
     required Map<String, NamedExpression> namedNodes,
     required Map<String, DartObjectImpl> namedValues,
     required List<DartObjectImpl> argumentValues,
-    required ConstructorInvocation invocation,
+    required ConstructorInvocationImpl invocation,
   }) : _namedNodes = namedNodes,
        _namedValues = namedValues,
        _argumentValues = argumentValues,
@@ -3015,7 +3008,7 @@ class _InstanceCreationEvaluator {
                 token: StringToken(
                   TokenType.STRING,
                   parameter.name ?? '',
-                  parameter.firstFragment.nameOffset2 ?? -1,
+                  parameter.firstFragment.nameOffset ?? -1,
                 ),
               )
               ..element = parameter
@@ -3030,7 +3023,7 @@ class _InstanceCreationEvaluator {
                   token: StringToken(
                     TokenType.STRING,
                     parameter.name ?? '',
-                    parameter.firstFragment.nameOffset2 ?? -1,
+                    parameter.firstFragment.nameOffset ?? -1,
                   ),
                 )..element = parameter,
                 colon: StringToken(TokenType.COLON, ':', -1),
@@ -3063,7 +3056,7 @@ class _InstanceCreationEvaluator {
         var fieldType = substitution.substituteType(field.type);
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           var isRuntimeException = hasTypeParameterReference(field.type);
-          var errorNode = field.constantInitializer?.expression ?? _errorNode;
+          var errorNode = field.constantInitializer ?? _errorNode;
           return InvalidConstant.forEntity(
             entity: errorNode,
             diagnosticCode:
@@ -3154,16 +3147,6 @@ class _InstanceCreationEvaluator {
             var getter = definingType.getGetter(fieldName);
             if (getter != null) {
               var field = getter.variable;
-              if (field == null) {
-                return _InitializersEvaluationResult(
-                  InvalidConstant.forElement(
-                    element: getter,
-                    diagnosticCode:
-                        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-                  ),
-                  evaluationIsComplete: true,
-                );
-              }
               if (!typeSystem.runtimeTypeMatch(evaluationResult, field.type)) {
                 // Mark the type mismatch error as a runtime exception if the
                 // initializer is statically assignable to the field.
@@ -3238,7 +3221,10 @@ class _InstanceCreationEvaluator {
         var baseElement = initializer.element;
         if (baseElement != null && baseElement.isConst) {
           // Instantiate the constructor with the in-scope type arguments.
-          var constructor = ConstructorMember.from2(baseElement, definingType);
+          var constructor = SubstitutedConstructorElementImpl.from2(
+            baseElement,
+            definingType,
+          );
           var result = _evaluationEngine.evaluateConstructorCall(
             _library,
             _errorNode,
@@ -3552,8 +3538,8 @@ class _InstanceCreationEvaluator {
   /// Returns a context message that mimics a stack trace where [superConstructor] is
   /// called by [constructor]
   DiagnosticMessageImpl _stackTraceContextMessage(
-    ConstructorElementMixin2 superConstructor,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement superConstructor,
+    InternalConstructorElement constructor,
   ) {
     return DiagnosticMessageImpl(
       filePath: constructor.firstFragment.libraryFragment.source.fullName,
@@ -3573,11 +3559,11 @@ class _InstanceCreationEvaluator {
     DeclaredVariables declaredVariables,
     LibraryElementImpl library,
     AstNode node,
-    ConstructorElementMixin2 constructor,
+    InternalConstructorElement constructor,
     List<TypeImpl>? typeArguments,
     List<Expression> arguments,
     ConstantVisitor constantVisitor, {
-    ConstructorInvocation? invocation,
+    ConstructorInvocationImpl? invocation,
   }) {
     if (!constructor.isConst) {
       Token? keyword;
@@ -3604,7 +3590,7 @@ class _InstanceCreationEvaluator {
       );
     }
 
-    var argumentValues = <DartObjectImpl>[];
+    var positionalValues = <DartObjectImpl>[];
     var namedNodes = <String, NamedExpression>{};
     var namedValues = <String, DartObjectImpl>{};
     for (var i = 0; i < arguments.length; i++) {
@@ -3639,13 +3625,13 @@ class _InstanceCreationEvaluator {
           return argumentConstant;
         }
 
-        argumentValues.add(argumentConstant);
+        positionalValues.add(argumentConstant);
       }
     }
 
-    invocation ??= ConstructorInvocation(
+    invocation ??= ConstructorInvocationImpl(
       constructor,
-      argumentValues,
+      positionalValues,
       namedValues,
     );
 
@@ -3659,7 +3645,7 @@ class _InstanceCreationEvaluator {
       typeArguments,
       namedNodes: namedNodes,
       namedValues: namedValues,
-      argumentValues: argumentValues,
+      argumentValues: positionalValues,
       invocation: invocation,
     );
 
@@ -3679,10 +3665,10 @@ class _InstanceCreationEvaluator {
   /// chain terminates. If there is a problem (e.g. a redirection can't be
   /// found, or a cycle is encountered), the chain will be followed as far as
   /// possible and then a const factory constructor will be returned.
-  static ConstructorElementMixin2 _followConstantRedirectionChain(
-    ConstructorElementMixin2 constructor,
+  static InternalConstructorElement _followConstantRedirectionChain(
+    InternalConstructorElement constructor,
   ) {
-    var constructorsVisited = <ConstructorElementMixin2>{};
+    var constructorsVisited = <InternalConstructorElement>{};
     while (true) {
       var redirectedConstructor =
           ConstantEvaluationEngine.getConstRedirectedConstructor(constructor);

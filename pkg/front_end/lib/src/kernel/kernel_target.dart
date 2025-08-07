@@ -4,7 +4,8 @@
 
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -42,7 +43,6 @@ import '../base/messages.dart'
         templateMissingImplementationCause,
         templateSuperclassHasNoDefaultConstructor;
 import '../base/processed_options.dart' show ProcessedOptions;
-import '../base/scope.dart' show AmbiguousBuilder;
 import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
 import '../base/uri_translator.dart' show UriTranslator;
@@ -221,7 +221,7 @@ class KernelTarget {
       int length,
       Uri? fileUri,
       List<LocatedMessage>? messageContext,
-      Severity severity,
+      CfeSeverity severity,
       {List<Uri>? involvedFiles}) {
     ProcessedOptions processedOptions = context.options;
     return processedOptions.format(
@@ -626,7 +626,8 @@ class KernelTarget {
       sortedSourceClassBuilders = null;
 
       return new BuildResult(component: component);
-    }, () => loader.currentUriForCrashReporting);
+    }, // Coverage-ignore(suite): Not run.
+        () => loader.currentUriForCrashReporting);
   }
 
   /// Build the kernel representation of the component loaded by this
@@ -767,13 +768,7 @@ class KernelTarget {
     LibraryBuilder? firstRoot = loader.rootLibrary;
     if (firstRoot != null) {
       // TODO(sigmund): do only for full program
-      Builder? declaration =
-          firstRoot.exportNameSpace.lookupLocalMember("main")?.getable;
-      if (declaration is AmbiguousBuilder) {
-        // Coverage-ignore-block(suite): Not run.
-        AmbiguousBuilder problem = declaration;
-        declaration = problem.getFirstDeclaration();
-      }
+      Builder? declaration = firstRoot.exportNameSpace.lookup("main")?.getable;
       if (declaration is MethodBuilder) {
         mainReference = declaration.invokeTargetReference;
       }
@@ -922,7 +917,7 @@ class KernelTarget {
       case StructuralParameterBuilder():
       case ExtensionBuilder():
       case ExtensionTypeDeclarationBuilder():
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
       case BuiltinTypeDeclarationBuilder():
       case null:
         builder.addSyntheticConstructor(_makeDefaultConstructor(

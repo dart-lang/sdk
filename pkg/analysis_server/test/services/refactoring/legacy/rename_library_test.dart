@@ -39,7 +39,6 @@ library my.app;
   }
 
   Future<void> test_createChange() async {
-    useLineEndingsForPlatform = false;
     newFile('$testPackageLibPath/part.dart', '''
 // @dart = 3.4
 part of my.app;
@@ -67,7 +66,6 @@ part of the.new.name;
   }
 
   Future<void> test_createChange_hasWhitespaces() async {
-    useLineEndingsForPlatform = false;
     newFile('$testPackageLibPath/part.dart', '''
 // @dart = 3.4
 part of my .  app;

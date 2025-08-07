@@ -26,6 +26,7 @@ import '../vm_interop_handler.dart';
 
 const int genericErrorExitCode = 255;
 const int compileErrorExitCode = 254;
+const int crossCompileErrorExitCode = 128;
 
 class Option {
   final String flag;
@@ -93,24 +94,17 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+    if (!checkArtifactExists(sdk.librariesJson, warnIfBuildRoot: true)) {
       return genericErrorExitCode;
     }
     final args = argResults!;
     var snapshot = sdk.dart2jsAotSnapshot;
-    var script = sdk.dartAotRuntime;
-    var useExecProcess = true;
-    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      script = sdk.dart2jsSnapshot;
-      if (!Sdk.checkArtifactExists(script)) {
-        return genericErrorExitCode;
-      }
-      useExecProcess = false;
+    if (!checkArtifactExists(snapshot, logError: false)) {
+      log.stderr('Error: JS compilation failed');
+      log.stderr('Unable to find $snapshot');
+      return compileErrorExitCode;
     }
     final dart2jsCommand = [
-      if (useExecProcess) snapshot,
       '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
@@ -119,10 +113,10 @@ class CompileJSCommand extends CompileSubcommandCommand {
     ];
     try {
       VmInteropHandler.run(
-        script,
+        snapshot,
         dart2jsCommand,
         packageConfigOverride: null,
-        useExecProcess: useExecProcess,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {
@@ -158,33 +152,26 @@ class CompileDDCCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+    if (!checkArtifactExists(sdk.librariesJson, warnIfBuildRoot: true)) {
       return genericErrorExitCode;
     }
     final args = argResults!;
     var snapshot = sdk.ddcAotSnapshot;
-    var script = sdk.dartAotRuntime;
-    var useExecProcess = true;
-    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      script = sdk.ddcSnapshot;
-      if (!Sdk.checkArtifactExists(script)) {
-        return genericErrorExitCode;
-      }
-      useExecProcess = false;
+    if (!checkArtifactExists(snapshot, logError: false)) {
+      log.stderr('Error: JS compilation failed');
+      log.stderr('Unable to find $snapshot');
+      return compileErrorExitCode;
     }
     final ddcCommand = <String>[
-      if (useExecProcess) snapshot,
       // Add the remaining arguments.
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
     try {
       VmInteropHandler.run(
-        script,
+        snapshot,
         ddcCommand,
         packageConfigOverride: null,
-        useExecProcess: useExecProcess,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {
@@ -459,7 +446,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     log.stdout('Compiling $sourcePath to jit-snapshot file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
-    return await runProcess([sdk.dart, ...buildArgs]);
+    return await runProcess([sdk.dartvm, ...buildArgs]);
   }
 }
 
@@ -566,7 +553,10 @@ Remove debugging information from the output and save it separately to the speci
           "'dart compile $commandName' is not supported on x86 architectures.\n");
       return 64;
     }
-    if (!Sdk.checkArtifactExists(genKernel)) {
+    // Kernel is always generated using the host's dartaotruntime and
+    // gen_kernel_aot.dart.snapshot, even during cross compilation.
+    if (!checkArtifactExists(sdk.genKernelSnapshot) ||
+        !checkArtifactExists(sdk.dartAotRuntime)) {
       return 255;
     }
     final args = argResults!;
@@ -587,8 +577,8 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
-    var genSnapshotBinary = genSnapshotHost;
-    var dartAotRuntimeBinary = hostDartAotRuntime;
+    var genSnapshotBinary = sdk.genSnapshot;
+    var dartAotRuntimeBinary = sdk.dartAotRuntime;
 
     final target = crossCompilationTarget(args);
 
@@ -597,7 +587,7 @@ Remove debugging information from the output and save it separately to the speci
         stderr.writeln('Unsupported target platform $target.');
         stderr.writeln('Supported target platforms: '
             '${supportedTargetPlatforms.join(', ')}');
-        return 128;
+        return crossCompileErrorExitCode;
       }
 
       var cacheDir = getDartStorageDirectory();
@@ -909,10 +899,10 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final args = argResults!;
     final verbose = this.verbose || args.flag('verbose');
 
-    if (!Sdk.checkArtifactExists(sdk.wasmPlatformDill) ||
-        !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
-        !Sdk.checkArtifactExists(sdk.dart2wasmSnapshot) ||
-        !Sdk.checkArtifactExists(sdk.wasmOpt)) {
+    if (!checkArtifactExists(sdk.wasmPlatformDill, warnIfBuildRoot: true) ||
+        !checkArtifactExists(sdk.dartAotRuntime) ||
+        !checkArtifactExists(sdk.dart2wasmSnapshot) ||
+        !checkArtifactExists(sdk.wasmOpt)) {
       return 255;
     }
 

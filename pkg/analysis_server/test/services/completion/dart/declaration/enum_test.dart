@@ -399,7 +399,7 @@ replacement
   left: 2
 suggestions
   p0
-    kind: library
+    kind: prefix
 ''');
   }
 

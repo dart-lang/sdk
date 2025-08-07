@@ -374,8 +374,17 @@ class AnnotationsListener extends StackListener {
   }
 
   @override
-  void handleEndingBinaryExpression(Token token, Token endToken) {
-    endBinaryExpression(token, endToken);
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    assert(
+      checkState(token, [
+        /* right */ _ValueKinds._Proto,
+        /* left */ _ValueKinds._Proto,
+      ]),
+    );
+    Proto right = pop() as Proto;
+    Proto left = pop() as Proto;
+    IdentifierProto identifierProto = right as IdentifierProto;
+    push(left.apply(identifierProto, isNullAware: isNullAware));
   }
 
   @override
@@ -389,12 +398,6 @@ class AnnotationsListener extends StackListener {
     Proto right = pop() as Proto;
     Proto left = pop() as Proto;
     switch (token.lexeme) {
-      case '.':
-        IdentifierProto identifierProto = right as IdentifierProto;
-        push(left.apply(identifierProto));
-      case '?.':
-        IdentifierProto identifierProto = right as IdentifierProto;
-        push(left.apply(identifierProto, isNullAware: true));
       case '??':
         push(
           new ExpressionProto(

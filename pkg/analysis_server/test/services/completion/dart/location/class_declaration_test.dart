@@ -49,6 +49,8 @@ replacement
 suggestions
   implements
     kind: keyword
+  with
+    kind: keyword
 ''');
   }
 
@@ -61,6 +63,8 @@ replacement
   left: 1
 suggestions
   implements
+    kind: keyword
+  with
     kind: keyword
 ''');
   }
@@ -163,6 +167,8 @@ replacement
 suggestions
   extends
     kind: keyword
+  implements
+    kind: keyword
 ''');
   }
 
@@ -176,6 +182,8 @@ replacement
 suggestions
   extends
     kind: keyword
+  implements
+    kind: keyword
 ''');
   }
 
@@ -188,6 +196,8 @@ replacement
   left: 1
 suggestions
   extends
+    kind: keyword
+  implements
     kind: keyword
 ''');
   }

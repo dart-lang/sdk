@@ -59,7 +59,8 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: <testLibraryFragment> z@100
-                type: Object?
+                element: hasImplicitType isPublic
+                  type: Object?
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
@@ -76,7 +77,8 @@ VariableDeclaration
               element: <null>
               staticType: InvalidType
           declaredElement: <testLibraryFragment> null@null
-            type: InvalidType Function(Object?)
+            element: null@null
+              type: InvalidType Function(Object?)
           correspondingParameter: ParameterMember
             baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}
@@ -124,7 +126,8 @@ VariableDeclaration
             parameter: SimpleFormalParameter
               name: z
               declaredElement: <testLibraryFragment> z@108
-                type: String
+                element: hasImplicitType isPublic
+                  type: String
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
@@ -141,7 +144,8 @@ VariableDeclaration
               element: dart:core::@class::String::@getter::length
               staticType: int
           declaredElement: <testLibraryFragment> null@null
-            type: int Function(String)
+            element: null@null
+              type: int Function(String)
           correspondingParameter: ParameterMember
             baseElement: <testLibrary>::@function::f::@formalParameter::b
             substitution: {T: String}

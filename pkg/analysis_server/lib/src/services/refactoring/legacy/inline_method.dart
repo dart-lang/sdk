@@ -214,7 +214,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final ResolvedUnitResult resolveResult;
   final int offset;
   final AnalysisSessionHelper sessionHelper;
-  late CorrectionUtils utils;
+  final CorrectionUtils utils;
   late SourceChange change;
 
   @override
@@ -238,9 +238,8 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     this.searchEngine,
     this.resolveResult,
     this.offset,
-  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
-    utils = CorrectionUtils(resolveResult);
-  }
+  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session),
+      utils = CorrectionUtils(resolveResult);
 
   @override
   String? get className {
@@ -303,6 +302,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       return result;
     }
     var methodElement = _methodElement!;
+
+    // Disallow inlining SDK code.
+    if (methodElement.library.isInSdk) {
+      result = RefactoringStatus.fatal("Can't inline SDK code.");
+      return result;
+    }
 
     // Disallow inlining an augmented method.
     var methodFragment = methodElement.firstFragment;

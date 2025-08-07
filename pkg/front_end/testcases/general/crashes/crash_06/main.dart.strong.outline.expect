@@ -18,10 +18,6 @@ library;
 // class B extends C with D, A {}
 //                        ^
 //
-// pkg/front_end/testcases/general/crashes/crash_06/main.dart:6:7: Error: The type 'D' can't be mixed in.
-// class B extends C with D, A {}
-//       ^
-//
 // pkg/front_end/testcases/general/crashes/crash_06/main.dart:6:7: Error: '_B&C&D' doesn't implement '_A&C&D' so it can't be used with 'A'.
 //  - 'C with D' is from 'pkg/front_end/testcases/general/crashes/crash_06/main.dart'.
 //  - 'C with D' is from 'pkg/front_end/testcases/general/crashes/crash_06/main.dart'.

@@ -31,10 +31,7 @@ mixin StackChecker {
         // If offset is available report and internal problem to show the
         // parsed code in the output.
         throw internalProblem(
-          new Message(
-            const Code<String>('Internal error'),
-            problemMessage: message,
-          ),
+          new Message(const Code('Internal error'), problemMessage: message),
           fileOffset,
           uri,
         );
@@ -253,10 +250,7 @@ mixin StackChecker {
       // If offset is available report and internal problem to show the
       // parsed code in the output.
       throw internalProblem(
-        new Message(
-          const Code<String>('Internal error'),
-          problemMessage: message,
-        ),
+        new Message(const Code('Internal error'), problemMessage: message),
         fileOffset,
         uri,
       );

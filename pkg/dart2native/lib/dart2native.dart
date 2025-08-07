@@ -8,35 +8,10 @@ import 'dart:typed_data';
 import 'package:code_assets/code_assets.dart' show OS;
 import 'package:collection/collection.dart';
 import 'package:kernel/binary/tag.dart' show Tag;
-import 'package:path/path.dart' as path;
 
 import 'dart2native_macho.dart' show writeAppendedMachOExecutable;
 import 'dart2native_pe.dart' show writeAppendedPortableExecutable;
-
-final binDir = File(Platform.resolvedExecutable).parent;
-final executableSuffix = Platform.isWindows ? '.exe' : '';
-final genKernel = path.join(
-  binDir.path,
-  'snapshots',
-  'gen_kernel_aot.dart.snapshot',
-);
-final genSnapshotHost = path.join(
-  binDir.path,
-  'utils',
-  'gen_snapshot$executableSuffix',
-);
-final platformDill = path.join(
-  binDir.parent.path,
-  'lib',
-  '_internal',
-  'vm_platform.dill',
-);
-final productPlatformDill = path.join(
-  binDir.parent.path,
-  'lib',
-  '_internal',
-  'vm_platform_product.dill',
-);
+import 'sdk.dart';
 
 // Maximum page size across all supported architectures (arm64 macOS has 16K
 // pages, some arm64 Linux distributions have 64K pages).
@@ -104,12 +79,11 @@ Future<ProcessResult> markExecutable(String outputFile) {
   return Process.run('chmod', ['+x', outputFile]);
 }
 
-/// Generates kernel by running the provided [genKernel] path.
+/// Generates kernel using the host machine's kernel generator.
 ///
 /// Also takes a path to the [recordedUsagesFile] JSON file, where the method
 /// calls to static functions annotated with `@RecordUse` will be collected.
 Future<ProcessResult> generateKernelHelper({
-  required String hostDartAotRuntime,
   String? sourceFile,
   required String kernelFile,
   String? packages,
@@ -128,8 +102,8 @@ Future<ProcessResult> generateKernelHelper({
   bool product = true,
 }) {
   final args = [
-    genKernel,
-    '--platform=${product ? productPlatformDill : platformDill}',
+    sdk.genKernelSnapshot,
+    '--platform=${product ? sdk.vmPlatformProductDill : sdk.vmPlatformDill}',
     if (product) '-Ddart.vm.product=true',
     if (enableExperiment.isNotEmpty) '--enable-experiment=$enableExperiment',
     if (targetOS != null) '--target-os=$targetOS',
@@ -148,7 +122,7 @@ Future<ProcessResult> generateKernelHelper({
     ...extraGenKernelOptions,
     if (sourceFile != null) sourceFile,
   ];
-  return Process.run(hostDartAotRuntime, args);
+  return Process.run(sdk.dartAotRuntime, args);
 }
 
 Future<ProcessResult> generateAotSnapshotHelper(

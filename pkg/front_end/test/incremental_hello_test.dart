@@ -5,7 +5,7 @@
 import 'package:expect/async_helper.dart' show asyncTest;
 import 'package:expect/expect.dart' show Expect;
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
@@ -19,7 +19,7 @@ import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/modular/target/vm.dart' show VmTarget;
 
-void diagnosticMessageHandler(DiagnosticMessage message) {
+void diagnosticMessageHandler(CfeDiagnosticMessage message) {
   throw "Unexpected message: ${message.plainTextFormatted.join('\n')}";
 }
 

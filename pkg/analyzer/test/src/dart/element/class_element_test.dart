@@ -1299,6 +1299,6 @@ extension on ClassElement {
   }
 
   MethodElement? _lookUpInheritedMethod(String name) {
-    return lookUpInheritedMethod2(methodName: name, library: library);
+    return lookUpInheritedMethod(methodName: name, library: library);
   }
 }

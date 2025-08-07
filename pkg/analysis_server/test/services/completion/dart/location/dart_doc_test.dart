@@ -26,6 +26,8 @@ replacement
 suggestions
   MyClass1
     kind: class
+  MyClass1.new
+    kind: constructor
 ''');
   }
 
@@ -135,6 +137,8 @@ replacement
 suggestions
   MyExtensionType
     kind: extensionType
+  MyExtensionType.new
+    kind: constructor
 ''');
   }
 
@@ -255,7 +259,7 @@ replacement
   left: 3
 suggestions
   async
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -273,6 +277,8 @@ replacement
 suggestions
   MyClass1
     kind: class
+  MyClass1.new
+    kind: constructor
 ''');
   }
 

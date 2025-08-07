@@ -28,9 +28,9 @@ main() {
       initializedCompilerState,
       false,
       fe.StandardFileSystem.instance,
-      (fe.DiagnosticMessage message) {
+      (fe.CfeDiagnosticMessage message) {
         message.plainTextFormatted.forEach(print);
-        Expect.notEquals(fe.Severity.error, message.severity);
+        Expect.notEquals(fe.CfeSeverity.error, message.severity);
       },
       [Uri.base.resolve('pkg/compiler/test/end_to_end/data/hello_world.dart')],
     ))!;

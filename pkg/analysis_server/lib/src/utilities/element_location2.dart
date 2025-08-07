@@ -47,7 +47,7 @@ class ElementLocation {
     var result = await session.getLibraryByUri(_libraryUri);
     if (result is! LibraryElementResult) return null;
 
-    return result.element2.children.firstWhereOrNull(
+    return result.element.children.firstWhereOrNull(
       (child) => child.lookupName == _topLevelName,
     );
   }

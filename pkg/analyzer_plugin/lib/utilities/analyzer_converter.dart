@@ -135,8 +135,7 @@ class AnalyzerConverter {
       name,
       Element.makeFlags(
         isPrivate: element.isPrivate,
-        isDeprecated: (element is analyzer.Annotatable) &&
-            (element as analyzer.Annotatable).metadata.hasDeprecated,
+        isDeprecated: element.metadata.hasDeprecated,
         isAbstract: _isAbstract(element),
         isConst: _isConst(element),
         isFinal: _isFinal(element),
@@ -203,7 +202,7 @@ class AnalyzerConverter {
       return null;
     }
     var fragment = element.firstFragment;
-    var offset = fragment.nameOffset2 ?? -1;
+    var offset = fragment.nameOffset ?? -1;
     var length = fragment.name?.length ?? 0;
     var range = analyzer.SourceRange(offset, length);
     return _locationForArgs(fragment, range);

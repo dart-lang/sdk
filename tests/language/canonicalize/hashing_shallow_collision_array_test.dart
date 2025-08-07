@@ -20018,6 +20018,9 @@ const list1 = [
 
 // dart format on
 
+@pragma("vm:never-inline")
+@pragma("vm:entry-point")
+@pragma("dart2js:noInline")
 confuse(x) {
   try {
     throw x;

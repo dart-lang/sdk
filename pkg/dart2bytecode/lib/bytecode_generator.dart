@@ -266,6 +266,21 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (cls.isEnum) {
       flags |= ClassDeclaration.isEnumFlag;
     }
+    if (cls.isSealed) {
+      flags |= ClassDeclaration.isSealedFlag;
+    }
+    if (cls.isMixinClass) {
+      flags |= ClassDeclaration.isMixinClassFlag;
+    }
+    if (cls.isBase) {
+      flags |= ClassDeclaration.isBaseClassFlag;
+    }
+    if (cls.isInterface) {
+      flags |= ClassDeclaration.isInterfaceFlag;
+    }
+    if (cls.isFinal) {
+      flags |= ClassDeclaration.isFinalFlag;
+    }
     int numTypeArguments = 0;
     TypeParametersDeclaration? typeParameters;
     if (hasInstantiatorTypeArguments(cls)) {
@@ -282,6 +297,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (cls.isEliminatedMixin) {
       flags |= ClassDeclaration.isTransformedMixinApplicationFlag;
     }
+    if (cls.hasConstConstructor) {
+      flags |= ClassDeclaration.hasConstConstructorFlag;
+    }
+
     int position = TreeNode.noOffset;
     int endPosition = TreeNode.noOffset;
     if (options.emitSourcePositions && cls.fileOffset != TreeNode.noOffset) {
@@ -938,8 +957,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       libraryIndex.getProcedure('dart:_internal', 'LateError',
           '_throwLocalAssignedDuringInitialization');
 
-  late Procedure throwNewAssertionError =
-      libraryIndex.getProcedure('dart:core', '_AssertionError', '_throwNew');
+  late Procedure throwNewSourceAssertionError = libraryIndex.getProcedure(
+      'dart:core', '_AssertionError', '_throwNewSource');
 
   late Procedure throwNewNoSuchMethodError =
       libraryIndex.getProcedure('dart:core', 'NoSuchMethodError', '_throwNew');
@@ -949,6 +968,12 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Procedure unsafeCast =
       libraryIndex.getTopLevelProcedure('dart:_internal', 'unsafeCast');
+
+  late Procedure reachabilityFence =
+      libraryIndex.getTopLevelProcedure('dart:_internal', 'reachabilityFence');
+
+  late Procedure nativeEffect =
+      libraryIndex.getTopLevelProcedure('dart:_internal', '_nativeEffect');
 
   late Procedure iterableIterator =
       libraryIndex.getProcedure('dart:core', 'Iterable', 'get:iterator');
@@ -3372,8 +3397,14 @@ class BytecodeGenerator extends RecursiveVisitor {
   }
 
   bool _hasNonTrivialInitializer(Field field) {
-    if (field.initializer == null) return false;
-    return !_isTrivialInitializer(field.initializer);
+    final initializer = field.initializer;
+    if (initializer == null) return false;
+    if (options.emitInstanceFieldInitializers && !field.isStatic) {
+      // Hot reload needs initializers for all instance fields
+      // except fields initialized with null.
+      return !_isNullInitializer(initializer);
+    }
+    return !_isTrivialInitializer(initializer);
   }
 
   bool _isTrivialInitializer(Expression? initializer) {
@@ -3391,6 +3422,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     return false;
   }
+
+  bool _isNullInitializer(Expression? initializer) =>
+      initializer is NullLiteral ||
+      (initializer is ConstantExpression &&
+          initializer.constant is NullConstant);
 
   @override
   void visitStaticGet(StaticGet node) {
@@ -3424,11 +3460,15 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     Arguments args = node.arguments;
     final target = node.target;
-    if (target == unsafeCast) {
-      // The result of the unsafeCast() intrinsic method is its sole argument,
-      // without any additional checks or type casts.
+    // Handle built-in methods with special semantics.
+    if (target == unsafeCast || target == reachabilityFence) {
+      // Just evaluate argument.
       assert(args.named.isEmpty);
       _generateNode(args.positional.single);
+      return;
+    } else if (target == nativeEffect) {
+      // Skip over AST of the argument, return null.
+      asm.emitPushNull();
       return;
     }
     if (target.isFactory) {
@@ -3687,10 +3727,15 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _genConditionAndJumpIf(node.condition, true, done);
 
-    _genPushInt(
-        options.omitAssertSourcePositions ? 0 : node.conditionStartOffset);
-    _genPushInt(
-        options.omitAssertSourcePositions ? 0 : node.conditionEndOffset);
+    final fileUri = node.location!.file;
+    final source = node.enclosingComponent!.uriToSource[fileUri]!;
+    final conditionSource = source.text
+        .substring(node.conditionStartOffset, node.conditionEndOffset);
+    final location = source.getLocation(fileUri, node.conditionStartOffset);
+    asm.emitPushConstant(cp.addString(conditionSource));
+    asm.emitPushConstant(cp.addString(fileUri.toString()));
+    _genPushInt(options.omitAssertSourcePositions ? 0 : location.line);
+    _genPushInt(options.omitAssertSourcePositions ? 0 : location.column);
 
     if (node.message != null) {
       _generateNode(node.message);
@@ -3698,7 +3743,8 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitPushNull();
     }
 
-    _genDirectCall(throwNewAssertionError, objectTable.getArgDescHandle(3), 3);
+    _genDirectCall(
+        throwNewSourceAssertionError, objectTable.getArgDescHandle(5), 5);
     asm.emitDrop1();
 
     asm.bind(done);

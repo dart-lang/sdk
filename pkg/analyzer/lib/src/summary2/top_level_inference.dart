@@ -58,7 +58,7 @@ class ConstantInitializersResolver {
       return;
     }
 
-    var constantInitializer = element.constantInitializer;
+    var constantInitializer = element.constantInitializer2;
     if (constantInitializer == null) {
       return;
     }
@@ -100,9 +100,7 @@ class TopLevelInference {
   void _performOverrideInference() {
     var inferrer = InstanceMemberInferrer(linker.inheritance);
     for (var builder in linker.builders.values) {
-      for (var unit in builder.element.units) {
-        inferrer.inferCompilationUnit(unit);
-      }
+      inferrer.inferLibrary(builder.element);
     }
   }
 }
@@ -206,7 +204,6 @@ class _PropertyInducingElementTypeInference
     }
 
     if (initializerFragment == null || variableDeclaration == null) {
-      _element.constantInitializer;
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
     }

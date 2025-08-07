@@ -72,13 +72,14 @@ class ImportsHandler
       if (node is NamedType) {
         prefixName = node.importPrefix?.name.lexeme;
       } else if (node.thisOrAncestorOfType<PrefixedIdentifier>()
-          case PrefixedIdentifier(:var prefix) when prefix != node) {
+          case PrefixedIdentifier(:var prefix)
+          when prefix != node && prefix.element is PrefixElement) {
         prefixName = prefix.name;
       } else if (node is SimpleIdentifier) {
         if (node.parent case MethodInvocation(
           target: SimpleIdentifier target?,
-        )) {
-          prefixName = target.toString();
+        ) when target.element is PrefixElement) {
+          prefixName = target.name;
         }
       }
 
@@ -149,7 +150,7 @@ class ImportsHandler
 
       var isMatch =
           element is MultiplyDefinedElement
-              ? element.conflictingElements2.contains(importedElement)
+              ? element.conflictingElements.contains(importedElement)
               : element == importedElement;
 
       if (isMatch) {

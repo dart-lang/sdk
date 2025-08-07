@@ -6,7 +6,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -25,14 +26,15 @@ export 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show LocatedMessage;
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         DiagnosticMessageHandler,
         getMessageCharOffset,
         getMessageHeaderText,
         getMessageLength,
         getMessageRelatedInformation,
         getMessageUri;
-export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+export 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 export 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
     show AsyncModifier;
 export 'package:_fe_analyzer_shared/src/scanner/characters.dart'
@@ -165,7 +167,7 @@ Future<Component?> compile(
       context.options.report(
           context,
           messageMissingMain.withLocation(inputs.single, -1, 0),
-          Severity.error);
+          CfeSeverity.error);
       return null;
     }
     return compilerResult;

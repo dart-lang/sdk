@@ -2074,11 +2074,15 @@ class Listener implements UnescapeErrorListener {
     logEvent("BinaryPattern");
   }
 
-  /// Called for `.`, `?.` and `..`.
-  void handleEndingBinaryExpression(Token token, Token endToken) {
-    // TODO(jensj): push implementation into subclasses
-    endBinaryExpression(token, endToken);
-  }
+  /// Called for property access through `.` and `?.`.
+  ///
+  /// [isNullAware] is `true` if the access uses `?.`.
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {}
+
+  /// Called for cascade access through `..` and `?..`.
+  ///
+  /// [isNullAware] is `true` if the access uses `?..`.
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {}
 
   /// Called when the parser encounters a `?` operator and begins parsing a
   /// conditional expression.

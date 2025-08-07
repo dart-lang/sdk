@@ -241,7 +241,7 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitNamedType(NamedType node) {
     if (importedElements.contains(node.element)) {
-      var prefixFragment = import.prefix2;
+      var prefixFragment = import.prefix;
       var importPrefix = node.importPrefix;
       if (prefixFragment == null) {
         if (importPrefix == null) {
@@ -266,8 +266,8 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor<void> {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (import.prefix2 != null) {
-      if (node.element == import.prefix2?.element) {
+    if (import.prefix != null) {
+      if (node.element == import.prefix?.element) {
         var parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
           var element = parent.writeOrReadElement?.baseElement;
@@ -359,7 +359,7 @@ class Search {
       if (searchedFiles.add(file.path, this)) {
         var libraryResult = await _driver.getLibraryByUri(file.uriStr);
         if (libraryResult is LibraryElementResultImpl) {
-          var element = libraryResult.element2;
+          var element = libraryResult.element;
           element.classes.forEach(addElements);
           element.enums.forEach(addElements);
           element.extensionTypes.forEach(addElements);
@@ -509,14 +509,17 @@ class Search {
     InterfaceElement? type,
     SubtypeResult? subtype,
   }) async {
-    var type1 = type;
     String name;
     String id;
-    if (type1 != null) {
-      name = type1.name!;
-      var librarySource = type1.library.firstFragment.source;
-      var source = type1.firstFragment.libraryFragment.source;
-      id = '${librarySource.uri};${source.uri};$name';
+    if (type != null) {
+      if (type.name case var elementName?) {
+        name = elementName;
+        var librarySource = type.library.firstFragment.source;
+        var source = type.firstFragment.libraryFragment.source;
+        id = '${librarySource.uri};${source.uri};$name';
+      } else {
+        return [];
+      }
     } else {
       name = subtype!.name;
       id = subtype.id;
@@ -558,7 +561,7 @@ class Search {
     for (FileState file in knownFiles) {
       var libraryResult = await _driver.getLibraryByUri(file.uriStr);
       if (libraryResult is LibraryElementResult) {
-        var element = libraryResult.element2;
+        var element = libraryResult.element;
         element.getters.forEach(addElement);
         element.classes.forEach(addElement);
         element.enums.forEach(addElement);
@@ -907,7 +910,7 @@ class Search {
     }
     var unit = unitResult.unit;
 
-    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset2!);
+    var node = unit.nodeCovering(offset: element.firstFragment.nameOffset!);
     if (node == null) {
       return const <SearchResult>[];
     }
@@ -1207,7 +1210,7 @@ class _FindDeclarations {
         ) async {
           var result = await analysisDriver.getLibraryByUri('$uri');
           if (result is LibraryElementResultImpl) {
-            return result.element2;
+            return result.element;
           }
           return null;
         });
@@ -1347,7 +1350,7 @@ class _FindLibraryDeclarations {
 
     var filePath = libraryFragment.source.fullName;
 
-    var locationOffset = firstFragment.nameOffset2;
+    var locationOffset = firstFragment.nameOffset;
     if (locationOffset == null) {
       if (firstFragment is ConstructorFragment) {
         locationOffset = firstFragment.typeNameOffset;

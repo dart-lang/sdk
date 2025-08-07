@@ -18,39 +18,38 @@
 #include "vm/timeline.h"
 
 #if defined(PRODUCT)
-#define PRODUCT_DEF "defined(PRODUCT)"
+#define PRODUCT_DEF "true"
 #else
-#define PRODUCT_DEF "!defined(PRODUCT)"
+#define PRODUCT_DEF "false"
 #endif
 
 #if defined(TARGET_ARCH_ARM)
-#define ARCH_DEF_CPU "defined(TARGET_ARCH_ARM)"
+#define ARCH_DEF_CPU "arm"
 #elif defined(TARGET_ARCH_X64)
-#define ARCH_DEF_CPU "defined(TARGET_ARCH_X64)"
+#define ARCH_DEF_CPU "x64"
 #elif defined(TARGET_ARCH_IA32)
-#define ARCH_DEF_CPU "defined(TARGET_ARCH_IA32)"
+#define ARCH_DEF_CPU "ia32"
 #elif defined(TARGET_ARCH_ARM64)
-#define ARCH_DEF_CPU "defined(TARGET_ARCH_ARM64)"
+#define ARCH_DEF_CPU "arm64"
 #elif defined(TARGET_ARCH_RISCV32)
-#define ARCH_DEF_CPU "defined(TARGET_ARCH_RISCV32)"
+#define ARCH_DEF_CPU "riscv32"
 #elif defined(TARGET_ARCH_RISCV64)
-#define ARCH_DEF_CPU "defined(TARGET_ARCH_RISCV64)"
+#define ARCH_DEF_CPU "riscv64"
 #else
 #error Unknown architecture
 #endif
 
 #if defined(DART_COMPRESSED_POINTERS)
-#define COMPRESSED_DEF "defined(DART_COMPRESSED_POINTERS)"
+#define COMPRESSED_DEF "true"
 #else
-#define COMPRESSED_DEF "!defined(DART_COMPRESSED_POINTERS)"
+#define COMPRESSED_DEF "false"
 #endif
 
-#define PREPROCESSOR_CONDITION                                                 \
-  "#if " PRODUCT_DEF " && " ARCH_DEF_CPU " && " COMPRESSED_DEF
-
-#define PREPROCESSOR_CONDITION_END                                             \
-  "#endif  // " PRODUCT_DEF " && \n        // " ARCH_DEF_CPU                   \
-  " && \n        // " COMPRESSED_DEF
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define AOT_DEF "true"
+#else
+#define AOT_DEF "false"
+#endif
 
 namespace dart {
 
@@ -73,100 +72,57 @@ class OffsetsExtractor : public AllStatic {
 #define PRINT_ARRAY_SIZEOF(Class, Name, ElementOffset)
 #define PRINT_PAYLOAD_SIZEOF(Class, Name, HeaderSize)
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
-  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_" #Name " = 0x"                                               \
-            << Class::Name() << ";\n";
+  std::cout << "{\"kind\": \"value\","                                         \
+               " \"class\": \"" #Class "\", \"name\": \"" #Name                \
+               "\", \"value\": \""                                             \
+            << Class::Name() << "\"},\n";
 
 #define PRINT_ARRAY_LAYOUT(Class, Name)                                        \
-  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_elements_start_offset = 0x"                                   \
-            << Class::ArrayTraits::elements_start_offset() << ";\n";           \
-  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_element_size = 0x"                                            \
-            << Class::ArrayTraits::kElementSize << ";\n";
+  std::cout << "{\"kind\": \"array\","                                         \
+               " \"class\": \"" #Class "\", \"startOffset\": \""               \
+            << Class::ArrayTraits::elements_start_offset()                     \
+            << "\", \"elemSize\": \"" << Class::ArrayTraits::kElementSize      \
+            << "\"},\n";
 
 #define PRINT_SIZEOF(Class, Name, What)                                        \
-  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_" #Name " = 0x"                                               \
-            << sizeof(What) << ";\n";
+  std::cout << "{\"kind\": \"value\","                                         \
+               " \"class\": \"" #Class "\", \"name\": \"" #Name                \
+               "\", \"value\": \""                                             \
+            << sizeof(What) << "\"},\n";
 
 #define PRINT_RANGE(Class, Name, Type, First, Last, Filter)                    \
   {                                                                            \
     auto filter = Filter;                                                      \
     bool comma = false;                                                        \
-    std::cout << "static constexpr dart::compiler::target::word AOT_" #Class   \
-                 "_" #Name "[] = {";                                           \
+    std::cout << "{\"kind\": \"range\","                                       \
+                 " \"class\": \"" #Class "\", \"name\": \"" #Name              \
+                 "\", \"values\": [";                                          \
     for (intptr_t i = static_cast<intptr_t>(First);                            \
          i <= static_cast<intptr_t>(Last); i++) {                              \
       auto v = static_cast<Type>(i);                                           \
       std::cout << (comma ? ", " : "");                                        \
       if (filter(v)) {                                                         \
-        std::cout << "0x" << Class::Name(v);                                   \
+        std::cout << "\"" << Class::Name(v) << "\"";                           \
       } else {                                                                 \
-        std::cout << "-1";                                                     \
+        std::cout << "\"-1\"";                                                 \
       }                                                                        \
       comma = true;                                                            \
     }                                                                          \
-    std::cout << "};\n";                                                       \
+    std::cout << "]},\n";                                                      \
   }
 
 #define PRINT_CONSTANT(Class, Name)                                            \
-  std::cout << "static constexpr dart::compiler::target::word AOT_" #Class     \
-               "_" #Name " = 0x"                                               \
-            << Class::Name << ";\n";
+  std::cout << "{\"kind\": \"value\","                                         \
+               " \"class\": \"" #Class "\", \"name\": \"" #Name                \
+               "\", \"value\": \""                                             \
+            << Class::Name << "\"},\n";
 
+#if defined(DART_PRECOMPILED_RUNTIME)
     AOT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
                      PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
                      PRINT_CONSTANT)
-
 #else  // defined(DART_PRECOMPILED_RUNTIME)
-
-#define PRINT_FIELD_OFFSET(Class, Name)                                        \
-  std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_" #Name " = 0x"                                               \
-            << Class::Name() << ";\n";
-
-#define PRINT_ARRAY_LAYOUT(Class, Name)                                        \
-  std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_elements_start_offset = 0x"                                   \
-            << Class::ArrayTraits::elements_start_offset() << ";\n";           \
-  std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_element_size = 0x"                                            \
-            << Class::ArrayTraits::kElementSize << ";\n";
-
-#define PRINT_SIZEOF(Class, Name, What)                                        \
-  std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_" #Name " = 0x"                                               \
-            << sizeof(What) << ";\n";
-
-#define PRINT_RANGE(Class, Name, Type, First, Last, Filter)                    \
-  {                                                                            \
-    auto filter = Filter;                                                      \
-    bool comma = false;                                                        \
-    std::cout << "static constexpr dart::compiler::target::word " #Class       \
-                 "_" #Name "[] = {";                                           \
-    for (intptr_t i = static_cast<intptr_t>(First);                            \
-         i <= static_cast<intptr_t>(Last); i++) {                              \
-      auto v = static_cast<Type>(i);                                           \
-      std::cout << (comma ? ", " : "");                                        \
-      if (filter(v)) {                                                         \
-        std::cout << "0x" << Class::Name(v);                                   \
-      } else {                                                                 \
-        std::cout << "-1";                                                     \
-      }                                                                        \
-      comma = true;                                                            \
-    }                                                                          \
-    std::cout << "};\n";                                                       \
-  }
-
-#define PRINT_CONSTANT(Class, Name)                                            \
-  std::cout << "static constexpr dart::compiler::target::word " #Class         \
-               "_" #Name " = 0x"                                               \
-            << Class::Name << ";\n";
-
     JIT_OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT, PRINT_SIZEOF,
                      PRINT_ARRAY_SIZEOF, PRINT_PAYLOAD_SIZEOF, PRINT_RANGE,
                      PRINT_CONSTANT)
@@ -190,10 +146,17 @@ class OffsetsExtractor : public AllStatic {
 }  // namespace dart
 
 int main(int argc, char* argv[]) {
-  std::cout << std::hex << PREPROCESSOR_CONDITION << std::endl;
+  std::cout << "{\n";
+  std::cout << "\"product\": " PRODUCT_DEF ",\n";
+  std::cout << "\"arch\": \"" ARCH_DEF_CPU "\",\n";
+  std::cout << "\"compressed\": " COMPRESSED_DEF ",\n";
+  std::cout << "\"aot\": " AOT_DEF ",\n";
+  std::cout << "\"offsets\": [\n";
 #if !defined(TARGET_ARCH_IA32) || !defined(DART_PRECOMPILED_RUNTIME)
   dart::OffsetsExtractor::DumpOffsets();
 #endif
-  std::cout << PREPROCESSOR_CONDITION_END << std::endl;
+  std::cout << "{\"kind\": \"\"}\n";  // Terminate the list after comma.
+  std::cout << "]\n";
+  std::cout << "}\n";
   return 0;
 }

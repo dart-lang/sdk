@@ -153,6 +153,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'MetadataResolutionTest',
+      methodName: '_assertElementAnnotationValueText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
       className: 'ParserDiagnosticsTest',
       methodName: 'assertParsedNodeText',
       argument: _ArgumentIndex(1),

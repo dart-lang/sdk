@@ -22,12 +22,12 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -297,6 +297,7 @@ error.errorCode: ${diagnostic.diagnosticCode}
         diagnostic,
         content,
         node,
+        defaultEol: server.defaultEol,
       );
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {

@@ -213,6 +213,9 @@ const box2_97 = Box(box2_96, box2_96);
 const box2_98 = Box(box2_97, box2_97);
 const box2_99 = Box(box2_98, box2_98);
 
+@pragma("vm:never-inline")
+@pragma("vm:entry-point")
+@pragma("dart2js:noInline")
 confuse(x) {
   try {
     throw x;

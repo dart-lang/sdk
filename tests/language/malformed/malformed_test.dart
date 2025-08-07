@@ -147,5 +147,5 @@ void main() {
   } on undeclared_prefix.Unresolved<int> catch (e) {}
   //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-  // [cfe] 'undeclared_prefix.Unresolved' can't be used as a type because 'undeclared_prefix' isn't defined.
+  // [cfe] 'undeclared_prefix.Unresolved' can't be used as a type because 'undeclared_prefix' doesn't refer to an import prefix.
 }

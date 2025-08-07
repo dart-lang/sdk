@@ -180,7 +180,9 @@ import 'definitely_unassigned_late_local_variable_test.dart'
 import 'deprecated_colon_for_default_value_test.dart'
     as deprecated_colon_for_default_value;
 import 'deprecated_export_use_test.dart' as deprecated_export_use;
+import 'deprecated_extend_test.dart' as deprecated_extend;
 import 'deprecated_extends_function_test.dart' as deprecated_extends_function;
+import 'deprecated_implement_test.dart' as deprecated_implement;
 import 'deprecated_implements_function_test.dart'
     as deprecated_implements_function;
 import 'deprecated_member_use_test.dart' as deprecated_member_use;
@@ -434,6 +436,10 @@ import 'invalid_await_not_required_annotation_test.dart'
     as await_not_required_annotation;
 import 'invalid_constant_test.dart' as invalid_constant;
 import 'invalid_constructor_name_test.dart' as invalid_constructor_name;
+import 'invalid_deprecated_extend_annotation_test.dart'
+    as invalid_deprecated_extend_annotation;
+import 'invalid_deprecated_implement_annotation_test.dart'
+    as invalid_deprecated_implement_annotation;
 import 'invalid_do_not_submit_test.dart' as invalid_do_not_submit;
 import 'invalid_exception_value_test.dart' as invalid_exception_value;
 import 'invalid_export_of_internal_element_test.dart'
@@ -690,7 +696,8 @@ import 'nullable_type_in_implements_clause_test.dart'
     as nullable_type_in_implements_clause;
 import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
-import 'number_literals_with_separators_test.dart' as number_literals_with_separators;
+import 'number_literals_with_separators_test.dart'
+    as number_literals_with_separators;
 import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
 import 'obsolete_colon_for_default_value_test.dart'
@@ -926,8 +933,6 @@ import 'variable_type_mismatch_test.dart' as variable_type_mismatch;
 import 'void_with_type_arguments_test.dart' as void_with_type_arguments_test;
 import 'wrong_number_of_parameters_for_operator_test.dart'
     as wrong_number_of_parameters_for_operator;
-import 'wrong_number_of_parameters_for_setter_test.dart'
-    as wrong_number_of_parameters_for_setter;
 import 'wrong_number_of_type_arguments_enum_test.dart'
     as wrong_number_of_type_arguments_enum;
 import 'wrong_number_of_type_arguments_extension_test.dart'
@@ -1058,7 +1063,9 @@ main() {
     definitely_unassigned_late_local_variable.main();
     deprecated_colon_for_default_value.main();
     deprecated_export_use.main();
+    deprecated_extend.main();
     deprecated_extends_function.main();
+    deprecated_implement.main();
     deprecated_implements_function.main();
     deprecated_member_use.main();
     deprecated_mixin_function.main();
@@ -1216,6 +1223,8 @@ main() {
     await_not_required_annotation.main();
     invalid_constant.main();
     invalid_constructor_name.main();
+    invalid_deprecated_extend_annotation.main();
+    invalid_deprecated_implement_annotation.main();
     invalid_do_not_submit.main();
     invalid_exception_value.main();
     invalid_export_of_internal_element.main();
@@ -1546,7 +1555,6 @@ main() {
     variable_type_mismatch.main();
     void_with_type_arguments_test.main();
     wrong_number_of_parameters_for_operator.main();
-    wrong_number_of_parameters_for_setter.main();
     wrong_number_of_type_arguments_enum.main();
     wrong_number_of_type_arguments_extension.main();
     wrong_number_of_type_arguments.main();

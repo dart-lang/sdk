@@ -67,8 +67,6 @@ class Program {
   static std::unique_ptr<Program> ReadFrom(Reader* reader,
                                            const char** error = nullptr);
 
-  static std::unique_ptr<Program> ReadFromFile(const char* script_uri,
-                                               const char** error = nullptr);
   static std::unique_ptr<Program> ReadFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length,
                                                  const char** error = nullptr);

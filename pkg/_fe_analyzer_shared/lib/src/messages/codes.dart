@@ -6,11 +6,11 @@ library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
 
-import 'diagnostic_message.dart' show DiagnosticMessage;
+import 'diagnostic_message.dart' show CfeDiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
 
@@ -18,7 +18,7 @@ part 'codes_generated.dart';
 
 const int noLength = 1;
 
-class Code<T> {
+class Code {
   final String name;
 
   /// The unique positive integer associated with this code,
@@ -28,13 +28,13 @@ class Code<T> {
 
   final List<String>? analyzerCodes;
 
-  final Severity severity;
+  final CfeSeverity severity;
 
   const Code(
     this.name, {
     this.index = -1,
     this.analyzerCodes,
-    this.severity = Severity.error,
+    this.severity = CfeSeverity.error,
   });
 
   @override
@@ -42,7 +42,7 @@ class Code<T> {
 }
 
 class Message {
-  final Code<dynamic> code;
+  final Code code;
 
   final String problemMessage;
 
@@ -71,7 +71,7 @@ class Message {
   }
 }
 
-class MessageCode extends Code<Null> implements Message {
+class MessageCode extends Code implements Message {
   @override
   final String problemMessage;
 
@@ -91,7 +91,7 @@ class MessageCode extends Code<Null> implements Message {
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 
   @override
-  Code<dynamic> get code => this;
+  Code get code => this;
 
   @override
   LocatedMessage withLocation(Uri uri, int charOffset, int length) {
@@ -104,8 +104,8 @@ class MessageCode extends Code<Null> implements Message {
   }
 }
 
-class Template<T> {
-  final String messageCode;
+class Template<T> extends Code {
+  String get messageCode => name;
 
   final String problemMessageTemplate;
 
@@ -114,10 +114,13 @@ class Template<T> {
   final T withArguments;
 
   const Template(
-    this.messageCode, {
+    super.name, {
     this.correctionMessageTemplate,
     required this.problemMessageTemplate,
     required this.withArguments,
+    super.index = -1,
+    super.analyzerCodes,
+    super.severity = CfeSeverity.error,
   });
 
   @override
@@ -140,7 +143,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     this.messageObject,
   );
 
-  Code<dynamic> get code => messageObject.code;
+  Code get code => messageObject.code;
 
   String get problemMessage => messageObject.problemMessage;
 
@@ -161,7 +164,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     PlainAndColorizedString formatted,
     int line,
     int column,
-    Severity severity,
+    CfeSeverity severity,
     List<FormattedMessage>? relatedInformation, {
     List<Uri>? involvedFiles,
   }) {
@@ -215,7 +218,7 @@ class PlainAndColorizedString {
   const PlainAndColorizedString.plainOnly(this.plain) : this.colorized = plain;
 }
 
-class FormattedMessage implements DiagnosticMessage {
+class FormattedMessage implements CfeDiagnosticMessage {
   final LocatedMessage locatedMessage;
 
   final String formattedPlain;
@@ -227,7 +230,7 @@ class FormattedMessage implements DiagnosticMessage {
   final int column;
 
   @override
-  final Severity severity;
+  final CfeSeverity severity;
 
   final List<FormattedMessage>? relatedInformation;
 
@@ -245,7 +248,7 @@ class FormattedMessage implements DiagnosticMessage {
     this.involvedFiles,
   });
 
-  Code<dynamic> get code => locatedMessage.code;
+  Code get code => locatedMessage.code;
 
   @override
   String get codeName => code.name;
@@ -300,7 +303,7 @@ class FormattedMessage implements DiagnosticMessage {
   }
 }
 
-class DiagnosticMessageFromJson implements DiagnosticMessage {
+class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
   @override
   final Iterable<String> ansiFormatted;
 
@@ -308,7 +311,7 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
   final Iterable<String> plainTextFormatted;
 
   @override
-  final Severity severity;
+  final CfeSeverity severity;
 
   final Uri? uri;
 
@@ -335,7 +338,7 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
     List<String> plainTextFormatted = _asListOfString(
       decoded["plainTextFormatted"],
     );
-    Severity severity = Severity.values[decoded["severity"] as int];
+    CfeSeverity severity = CfeSeverity.values[decoded["severity"] as int];
     Uri? uri =
         decoded["uri"] == null ? null : Uri.parse(decoded["uri"] as String);
     List<Uri>? involvedFiles =

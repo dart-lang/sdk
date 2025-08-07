@@ -9,7 +9,7 @@ import 'dart:io'
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/kernel_generator.dart';
 import 'package:front_end/src/base/command_line_options.dart';
@@ -208,9 +208,9 @@ class BatchCompiler {
 
   IncrementalCompiler? _incrementalCompiler;
 
-  List<DiagnosticMessage> _errors = [];
+  List<CfeDiagnosticMessage> _errors = [];
 
-  void Function(DiagnosticMessage)? _originalOnDiagnostic;
+  void Function(CfeDiagnosticMessage)? _originalOnDiagnostic;
 
   BatchCompiler(this.lines);
 
@@ -252,7 +252,7 @@ class BatchCompiler {
         batchCompileImpl);
   }
 
-  void _onDiagnostic(DiagnosticMessage message) {
+  void _onDiagnostic(CfeDiagnosticMessage message) {
     _errors.add(message);
     if (_originalOnDiagnostic != null) {
       _originalOnDiagnostic!(message);
@@ -309,7 +309,7 @@ class BatchCompiler {
         await _incrementalCompiler!.computeDelta(fullComponent: true);
     await _emitComponent(options, compilerResult.component,
         message: "Wrote component to ");
-    for (DiagnosticMessage error in _errors) {
+    for (CfeDiagnosticMessage error in _errors) {
       if (error.codeName == codeInternalProblemVerificationError.name) {
         hadVerifyError = true;
       }

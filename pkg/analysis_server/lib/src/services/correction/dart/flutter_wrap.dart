@@ -289,21 +289,21 @@ abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
         var indentNew1 = indentOld + utils.oneIndent;
         var indentNew2 = indentOld + utils.twoIndents;
 
-        builder.write(eol);
+        builder.writeln();
         builder.write(indentNew1);
         builder.write('children: [');
-        builder.write(eol);
+        builder.writeln();
 
         var newSrc = utils.replaceSourceIndent(src, indentOld, indentNew2);
         builder.write(indentNew2);
         builder.write(newSrc);
 
         builder.write(',');
-        builder.write(eol);
+        builder.writeln();
 
         builder.write(indentNew1);
         builder.write('],');
-        builder.write(eol);
+        builder.writeln();
 
         builder.write(indentOld);
         builder.write(')');
@@ -349,6 +349,7 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addReplacement(range.node(widgetExpr), (builder) {
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('WIDGET', 'widget');
@@ -368,12 +369,12 @@ abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
           var indentNew = '$indentOld${utils.oneIndent}';
 
           for (var leadingLine in leadingLines) {
-            builder.write(eol);
+            builder.writeln();
             builder.write(indentNew);
             builder.write(leadingLine);
           }
 
-          builder.write(eol);
+          builder.writeln();
           builder.write(indentNew);
           widgetSrc = utils.replaceSourceIndent(
             widgetSrc,

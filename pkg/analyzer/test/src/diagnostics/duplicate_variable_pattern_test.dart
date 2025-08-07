@@ -50,7 +50,6 @@ IfStatement
           keyword: var
           name: a
           declaredFragment: isPublic a@33
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -59,7 +58,6 @@ IfStatement
           keyword: var
           name: a
           declaredFragment: isPublic a@42
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -107,7 +105,6 @@ SwitchPatternCase
         keyword: var
         name: a
         declaredFragment: isPublic a@44
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -116,7 +113,6 @@ SwitchPatternCase
         keyword: var
         name: a
         declaredFragment: isPublic a@53
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -164,14 +160,12 @@ Block
             DeclaredVariablePattern
               name: a
               declaredFragment: isPublic a@18
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
             DeclaredVariablePattern
               name: a
               declaredFragment: isPublic a@21
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int

@@ -41,68 +41,66 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B @17
+        #F3 class B (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C @28
+        #F5 class C (nameOffset:28) (firstTokenOffset:22) (offset:28)
           element: <testLibrary>::@class::C
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F7 class D @39
+        #F7 class D (nameOffset:39) (firstTokenOffset:33) (offset:39)
           element: <testLibrary>::@class::D
           constructors
-            #F8 synthetic new
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       mixins
-        #F9 mixin M @51
+        #F9 mixin M (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F10 T @53
+            #F10 T (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: #E0 T
-            #F11 U @68
+            #F11 U (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: #E1 U
           fields
-            #F12 f @101
+            #F12 f (nameOffset:101) (firstTokenOffset:101) (offset:101)
               element: <testLibrary>::@mixin::M::@field::f
-            #F13 synthetic g
+            #F13 synthetic g (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::M::@field::g
-            #F14 synthetic s
+            #F14 synthetic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::M::@field::s
           getters
-            #F15 synthetic f
+            #F15 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
               element: <testLibrary>::@mixin::M::@getter::f
-              returnType: T
-            #F16 g @112
+            #F16 g (nameOffset:112) (firstTokenOffset:106) (offset:112)
               element: <testLibrary>::@mixin::M::@getter::g
-              returnType: U
           setters
-            #F17 synthetic f
+            #F17 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
               element: <testLibrary>::@mixin::M::@setter::f
               formalParameters
-                #F18 _f
-                  element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::_f
-            #F19 s @126
+                #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+                  element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::value
+            #F19 s (nameOffset:126) (firstTokenOffset:122) (offset:126)
               element: <testLibrary>::@mixin::M::@setter::s
               formalParameters
-                #F20 v @132
+                #F20 v (nameOffset:132) (firstTokenOffset:128) (offset:132)
                   element: <testLibrary>::@mixin::M::@setter::s::@formalParameter::v
           methods
-            #F21 m @144
+            #F21 m (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@mixin::M::@method::m
               formalParameters
-                #F22 v @153
+                #F22 v (nameOffset:153) (firstTokenOffset:146) (offset:153)
                   element: <testLibrary>::@mixin::M::@method::m::@formalParameter::v
   classes
     class A
@@ -187,10 +185,11 @@ library
           firstFragment: #F17
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E2 requiredPositional _f
+            #E2 requiredPositional value
               firstFragment: #F18
               type: T
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::f
         s
           reference: <testLibrary>::@mixin::M::@setter::s
           firstFragment: #F19
@@ -199,6 +198,7 @@ library
               firstFragment: #F20
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::s
       methods
         m
           reference: <testLibrary>::@mixin::M::@method::m
@@ -222,7 +222,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @11
+        #F1 mixin M (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@mixin::M
   mixins
     base mixin M
@@ -245,15 +245,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 hasInitializer x @18
+            #F2 hasInitializer x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@mixin::M::@field::x
           getters
-            #F3 synthetic x
+            #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@mixin::M::@getter::x
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -302,15 +301,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 foo @25
+            #F3 foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -347,15 +345,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 foo @25
+            #F3 foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -392,15 +389,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 foo @25
+            #F3 foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
-              returnType: int
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -433,7 +429,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
   mixins
     mixin M
@@ -457,26 +453,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @42
+        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M @20
+        #F6 mixin M (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 U @22
+            #F7 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 U
   classes
     class A
@@ -531,28 +527,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @20
+        #F4 class B (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@class::B
           typeParameters
-            #F5 T @22
+            #F5 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 T
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F7 class C @51
+        #F7 class C (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::C
           constructors
-            #F8 synthetic new
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -629,43 +625,43 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A1 @6
+        #F1 class A1 (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A1
           typeParameters
-            #F2 T @9
+            #F2 T (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A1::@constructor::new
               typeName: A1
-        #F4 class A2 @21
+        #F4 class A2 (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::A2
           typeParameters
-            #F5 T @24
+            #F5 T (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: #E1 T
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::A2::@constructor::new
               typeName: A2
-        #F7 class B @36
+        #F7 class B (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::B
           typeParameters
-            #F8 T @38
+            #F8 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E2 T
           constructors
-            #F9 synthetic const new
+            #F9 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F10 class Base @75
+        #F10 class Base (nameOffset:75) (firstTokenOffset:69) (offset:75)
           element: <testLibrary>::@class::Base
           constructors
-            #F11 synthetic new
+            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@class::Base::@constructor::new
               typeName: Base
-        #F12 class C @108
+        #F12 class C (nameOffset:108) (firstTokenOffset:102) (offset:108)
           element: <testLibrary>::@class::C
           constructors
-            #F13 synthetic new
+            #F13 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
@@ -753,28 +749,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class C @57
+        #F4 class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
           element: <testLibrary>::@class::C
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F6 mixin M @20
+        #F6 mixin M (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 T @22
+            #F7 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 T
-            #F8 U @25
+            #F8 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E2 U
   classes
     class A
@@ -827,26 +823,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @15
+        #F1 class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @17
+            #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class C @57
+        #F4 class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
           element: <testLibrary>::@class::C
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       mixins
-        #F6 mixin M @29
+        #F6 mixin M (nameOffset:29) (firstTokenOffset:23) (offset:29)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 T @31
+            #F7 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E1 T
   classes
     abstract class A
@@ -899,31 +895,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class I @6
+        #F1 class I (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::I
           typeParameters
-            #F2 X @8
+            #F2 X (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 X
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
-        #F4 class A @66
+        #F4 class A (nameOffset:66) (firstTokenOffset:60) (offset:66)
           element: <testLibrary>::@class::A
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        #F6 mixin M1 @20
+        #F6 mixin M1 (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@mixin::M1
           typeParameters
-            #F7 T @23
+            #F7 T (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: #E1 T
-        #F8 mixin M2 @43
+        #F8 mixin M2 (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@mixin::M2
           typeParameters
-            #F9 T @46
+            #F9 T (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: #E2 T
   classes
     class I
@@ -994,34 +990,34 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class S @62
+        #F1 class S (nameOffset:62) (firstTokenOffset:56) (offset:62)
           element: <testLibrary>::@class::S
           typeParameters
-            #F2 T3 @64
+            #F2 T3 (nameOffset:64) (firstTokenOffset:64) (offset:64)
               element: #E0 T3
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
-        #F4 class X @78
+        #F4 class X (nameOffset:78) (firstTokenOffset:72) (offset:78)
           element: <testLibrary>::@class::X
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
       mixins
-        #F6 mixin M @6
+        #F6 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 T @8
+            #F7 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E1 T
-            #F8 U @11
+            #F8 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E2 U
       typeAliases
-        #F9 M2 @34
+        #F9 M2 (nameOffset:34) (firstTokenOffset:26) (offset:34)
           element: <testLibrary>::@typeAlias::M2
           typeParameters
-            #F10 T2 @37
+            #F10 T2 (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: #E3 T2
   classes
     class S
@@ -1091,39 +1087,39 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class S @88
+        #F1 class S (nameOffset:88) (firstTokenOffset:82) (offset:88)
           element: <testLibrary>::@class::S
           typeParameters
-            #F2 T4 @90
+            #F2 T4 (nameOffset:90) (firstTokenOffset:90) (offset:90)
               element: #E0 T4
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:88)
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
-        #F4 class X @104
+        #F4 class X (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::X
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
       mixins
-        #F6 mixin M @6
+        #F6 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F7 T @8
+            #F7 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E1 T
-            #F8 U @11
+            #F8 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E2 U
       typeAliases
-        #F9 M2 @34
+        #F9 M2 (nameOffset:34) (firstTokenOffset:26) (offset:34)
           element: <testLibrary>::@typeAlias::M2
           typeParameters
-            #F10 T2 @37
+            #F10 T2 (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: #E3 T2
-        #F11 M3 @64
+        #F11 M3 (nameOffset:64) (firstTokenOffset:56) (offset:64)
           element: <testLibrary>::@typeAlias::M3
           typeParameters
-            #F12 T3 @67
+            #F12 T3 (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: #E4 T3
   classes
     class S
@@ -1199,22 +1195,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C @45
+        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
           element: <testLibrary>::@class::C
       extensionTypes
-        #F3 extension type B @26
+        #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 it @32
+            #F4 it (nameOffset:32) (firstTokenOffset:27) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F5 synthetic it
+            #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
       mixins
-        #F6 mixin M @56
+        #F6 mixin M (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M
   classes
     class A
@@ -1237,7 +1232,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F5
           returnType: int
@@ -1269,10 +1264,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           methods
-            #F2 foo @22 invokesSuperSelf
+            #F2 foo (nameOffset:22) (firstTokenOffset:17) (offset:22) invokesSuperSelf
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
@@ -1302,17 +1297,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       mixins
-        #F3 mixin B @17
+        #F3 mixin B (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@mixin::B
           methods
-            #F4 A @33
+            #F4 A (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@mixin::B::@method::A
   classes
     class A
@@ -1350,13 +1345,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 foo @20
+            #F3 foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
     mixin M
@@ -1389,16 +1384,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 foo @20
+            #F3 foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
               formalParameters
-                #F4 _ @26
+                #F4 _ (nameOffset:26) (firstTokenOffset:24) (offset:26)
                   element: <testLibrary>::@mixin::M::@method::foo::@formalParameter::_
   mixins
     mixin M
@@ -1433,7 +1428,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin <null-name> (offset=0)
+        #F1 mixin <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@mixin::0
   mixins
     mixin <null-name>
@@ -1459,16 +1454,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
-            #F3 foo @21
+            #F3 foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                #F4 _ @29
+                #F4 _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_
   mixins
     mixin M
@@ -1491,6 +1486,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -1509,16 +1505,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
-            #F3 foo @21
+            #F3 foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                #F4 _ @29
+                #F4 _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_
   mixins
     mixin M
@@ -1541,6 +1537,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@mixin::M::@field::foo
 ''');
   }
 
@@ -1559,22 +1556,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
-        #F2 class C @45
+        #F2 class C (nameOffset:45) (firstTokenOffset:39) (offset:45)
           element: <testLibrary>::@class::C
       extensionTypes
-        #F3 extension type B @26
+        #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 it @32
+            #F4 it (nameOffset:32) (firstTokenOffset:27) (offset:32)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F5 synthetic it
+            #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@extensionType::B::@getter::it
-              returnType: int
       mixins
-        #F6 mixin M @56
+        #F6 mixin M (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M
   classes
     class A
@@ -1597,7 +1593,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::B::@getter::it
       getters
-        synthetic it
+        synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::B::@getter::it
           firstFragment: #F5
           returnType: int
@@ -1621,10 +1617,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F2 T @11
+            #F2 T (nameOffset:11) (firstTokenOffset:8) (offset:11)
               element: #E0 T
   mixins
     mixin M
@@ -1647,10 +1643,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:8) (offset:12)
               element: #E0 T
   mixins
     mixin M
@@ -1673,10 +1669,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F2 T @14
+            #F2 T (nameOffset:14) (firstTokenOffset:8) (offset:14)
               element: #E0 T
   mixins
     mixin M
@@ -1699,14 +1695,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M @6
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           typeParameters
-            #F2 T @14
+            #F2 T (nameOffset:14) (firstTokenOffset:8) (offset:14)
               element: #E0 T
-            #F3 U @20
+            #F3 U (nameOffset:20) (firstTokenOffset:17) (offset:20)
               element: #E1 U
-            #F4 V @27
+            #F4 V (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: #E2 V
   mixins
     mixin M
@@ -2516,7 +2512,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2676,7 +2671,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2874,7 +2868,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3072,7 +3065,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3268,7 +3260,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3422,7 +3413,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3547,7 +3537,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3741,7 +3730,6 @@ mixin A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3953,7 +3941,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4094,7 +4081,6 @@ mixin A<T1> {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4253,7 +4239,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4413,7 +4398,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4604,7 +4588,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4764,7 +4747,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5964,7 +5946,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6123,7 +6104,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6282,7 +6262,6 @@ mixin A {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7744,7 +7723,6 @@ mixin A implements I {}
 class I {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7819,7 +7797,6 @@ mixin A on B {}
 class B {}
 ''');
 
-    configuration.withAugmentedWithoutAugmentation = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

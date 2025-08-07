@@ -533,8 +533,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   NamedTypeBuilder withTypeArguments(List<TypeBuilder> arguments);
 
-  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
-      LocatedMessage message,
+  InvalidBuilder buildInvalidTypeDeclarationBuilder(LocatedMessage message,
       {List<LocatedMessage>? context});
 }
 

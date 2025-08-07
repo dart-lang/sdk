@@ -9,7 +9,8 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show messageMissingMain, noLength;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart' show Component;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -74,7 +75,7 @@ Future<CompilerResult?> kernelForProgramInternal(
       context.options.report(
           context,
           messageMissingMain.withLocation(source, -1, noLength),
-          Severity.error);
+          CfeSeverity.error);
       return null;
     }
     return result;

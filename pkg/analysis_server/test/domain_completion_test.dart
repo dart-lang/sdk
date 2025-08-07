@@ -2025,16 +2025,16 @@ void f() {
 replacement
   left: 4
 suggestions
-  foo02
-    kind: topLevelVariable
-    isNotImported: null
-    libraryUri: null
-    relevance: 558
   foo01
     kind: topLevelVariable
     isNotImported: null
     libraryUri: null
     relevance: 510
+  foo02
+    kind: topLevelVariable
+    isNotImported: null
+    libraryUri: null
+    relevance: 558
 ''');
   }
 

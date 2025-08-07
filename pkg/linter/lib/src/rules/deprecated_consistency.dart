@@ -67,7 +67,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
       var fieldFragment = field.firstFragment;
-      var nameOffset = fieldFragment.nameOffset2;
+      var nameOffset = fieldFragment.nameOffset;
       if (nameOffset == null) return;
       var nameLength = fieldFragment.name?.length;
       if (nameLength == null) return;
@@ -80,6 +80,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 }
 
-extension on Annotatable {
+extension on Element {
   bool get hasDeprecated => metadata.hasDeprecated;
 }

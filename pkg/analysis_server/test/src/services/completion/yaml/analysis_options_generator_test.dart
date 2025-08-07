@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';

@@ -115,7 +115,7 @@ extension SomeResolvedLibraryResultExtension on SomeResolvedLibraryResult? {
   Version get effectiveLanguageVersion {
     var self = this;
     if (self is ResolvedLibraryResult) {
-      return self.element2.languageVersion.effective;
+      return self.element.languageVersion.effective;
     }
     return DartFormatter.latestLanguageVersion;
   }

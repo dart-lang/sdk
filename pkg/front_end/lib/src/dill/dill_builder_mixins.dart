@@ -6,11 +6,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/uri_offset.dart';
-import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/method_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
@@ -60,12 +60,10 @@ mixin DillConstructorBuilderMixin
   Reference? get writeTargetReference => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -89,10 +87,10 @@ mixin DillFieldBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   Reference? get invokeTargetReference => null;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => hasSetter ? this : null;
+  MemberBuilder? get setable => hasSetter ? this : null;
 
   List<ClassMember>? _localMembers;
   List<ClassMember>? _localSetters;
@@ -131,10 +129,10 @@ mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   Reference? get writeTargetReference => null;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -177,10 +175,10 @@ mixin DillSetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   Reference? get invokeTargetReference => null;
 
   @override
-  NamedBuilder? get getable => null;
+  MemberBuilder? get getable => null;
 
   @override
-  NamedBuilder get setable => this;
+  MemberBuilder get setable => this;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -206,10 +204,10 @@ mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
   bool get isOperator => false;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -241,10 +239,10 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
   bool get isOperator => true;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   Member? get readTarget => null;
@@ -281,12 +279,10 @@ mixin DillFactoryBuilderMixin implements DillMemberBuilder, FactoryBuilder {
   bool get isProperty => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.

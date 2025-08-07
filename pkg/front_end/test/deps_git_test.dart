@@ -203,8 +203,8 @@ CompilerOptions getOptions() {
     ..target = new VmTarget(new TargetFlags())
     ..librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
-    ..onDiagnostic = (DiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error) {
         Expect.fail(
             "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }

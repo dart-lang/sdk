@@ -58,6 +58,7 @@ abstract class ITypeDeclarationBuilder
 }
 
 abstract class TypeDeclarationBuilderImpl extends NamedBuilderImpl
+    with LookupResultMixin
     implements ITypeDeclarationBuilder {
   @override
   // Coverage-ignore(suite): Not run.

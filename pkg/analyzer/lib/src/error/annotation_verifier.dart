@@ -45,6 +45,8 @@ class AnnotationVerifier {
     var parent = node.parent;
     if (element.isAwaitNotRequired) {
       _checkAwaitNotRequired(node);
+    } else if (element.isDeprecated) {
+      _checkDeprecated(node);
     } else if (element.isFactory) {
       _checkFactory(node);
     } else if (element.isInternal) {
@@ -111,6 +113,88 @@ class AnnotationVerifier {
     } else {
       // Warning reported by `_checkKinds`.
     }
+  }
+
+  void _checkDeprecated(Annotation node) {
+    var element = node.elementAnnotation;
+    var value = element?.computeConstantValue();
+    if (value == null) return;
+
+    // The vast majority of deprecated annotations use the default constructor.
+    // Check this case first.
+    if (value.getField('_isUse')?.toBoolValue() ?? true) return;
+
+    var isExtend = value.getField('_isExtend')?.toBoolValue() ?? false;
+    if (isExtend) {
+      _checkDeprecatedExtend(node, node.parent);
+      return;
+    }
+
+    var isImplement = value.getField('_isImplement')?.toBoolValue() ?? false;
+    if (isImplement) {
+      _checkDeprecatedImplement(node, node.parent);
+      return;
+    }
+  }
+
+  void _checkDeprecatedExtend(Annotation node, AstNode parent) {
+    if (parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      var classElement = declaredFragment?.element;
+      if (classElement == null) return;
+      var hasGenerativeConstructor = classElement.constructors.any(
+        (c) => c.isPublic && c.isGenerative,
+      );
+      if (classElement.isExtendableOutside && hasGenerativeConstructor) return;
+    }
+
+    if (parent is GenericTypeAlias) {
+      var classElement = parent.type.type?.element;
+      if (classElement is ClassElement) {
+        var hasGenerativeConstructor = classElement.constructors.any(
+          (c) => c.isPublic && c.isGenerative,
+        );
+        if (classElement.isExtendableOutside && hasGenerativeConstructor) {
+          return;
+        }
+      }
+    }
+
+    _diagnosticReporter.atNode(
+      node.name,
+      WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION,
+    );
+  }
+
+  void _checkDeprecatedImplement(Annotation node, AstNode parent) {
+    if (parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      var classElement = declaredFragment?.element;
+      if (classElement == null) return;
+      if (classElement.isImplementableOutside) return;
+    }
+
+    if (parent is MixinDeclaration) {
+      var mixinElement = parent.declaredFragment?.element;
+      if (mixinElement == null) return;
+      if (mixinElement.isImplementableOutside) return;
+    }
+
+    if (parent is GenericTypeAlias) {
+      var element = parent.type.type?.element;
+      if (element is ClassElement && element.isImplementableOutside) {
+        return;
+      } else if (element is MixinElement && element.isImplementableOutside) {
+        return;
+      }
+    }
+
+    _diagnosticReporter.atNode(
+      node.name,
+      WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION,
+    );
   }
 
   /// Reports a warning at [node] if its parent is not a valid target for a
@@ -213,7 +297,7 @@ class AnnotationVerifier {
     var kinds = element.targetKinds;
     if (kinds.isNotEmpty) {
       if (!_isValidTarget(parent, kinds)) {
-        var invokedElement = element.element2!;
+        var invokedElement = element.element!;
         var name = invokedElement.name;
         if (invokedElement is ConstructorElement) {
           var className = invokedElement.enclosingElement.name;

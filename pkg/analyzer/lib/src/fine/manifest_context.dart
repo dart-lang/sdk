@@ -361,6 +361,12 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     switch (topLevelElement) {
       case ClassElement():
         topLevelItem = manifest.declaredClasses[topLevelName];
+      case EnumElement():
+        topLevelItem = manifest.declaredEnums[topLevelName];
+      case ExtensionElement():
+        topLevelItem = manifest.declaredExtensions[topLevelName];
+      case ExtensionTypeElement():
+        topLevelItem = manifest.declaredExtensionTypes[topLevelName];
       case MixinElement():
         topLevelItem = manifest.declaredMixins[topLevelName];
       case GetterElement():
@@ -369,11 +375,17 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
         return manifest.declaredSetters[topLevelName]?.id;
       case TopLevelFunctionElement():
         return manifest.declaredFunctions[topLevelName]?.id;
+      case TopLevelVariableElement():
+        return manifest.declaredVariables[topLevelName]?.id;
+      case TypeAliasElement():
+        return manifest.declaredTypeAliases[topLevelName]?.id;
     }
 
-    // TODO(scheglov): remove it after supporting all elements
     if (topLevelItem == null) {
-      return null;
+      throw StateError(
+        'Missing element manifest: (${topLevelElement.runtimeType}) '
+        '$topLevelElement in $libraryUri',
+      );
     }
 
     if (memberElement == null) {

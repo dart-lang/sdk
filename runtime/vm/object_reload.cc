@@ -4,6 +4,7 @@
 
 #include "vm/object.h"
 
+#include "lib/invocation_mirror.h"
 #include "platform/unaligned.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_entry.h"
@@ -41,12 +42,15 @@ void CallSiteResetter::ZeroEdgeCounters(const Function& function) {
 }
 
 CallSiteResetter::CallSiteResetter(Zone* zone)
-    : zone_(zone),
+    : thread_(Thread::Current()),
+      zone_(zone),
       instrs_(Instructions::Handle(zone)),
       pool_(ObjectPool::Handle(zone)),
       object_(Object::Handle(zone)),
       name_(String::Handle(zone)),
+      old_cls_(Class::Handle(zone)),
       new_cls_(Class::Handle(zone)),
+      old_lib_(Library::Handle(zone)),
       new_lib_(Library::Handle(zone)),
       new_function_(Function::Handle(zone)),
       new_field_(Field::Handle(zone)),
@@ -838,6 +842,156 @@ void CallSiteResetter::Reset(const ICData& ic) {
   } else {
     FATAL("Unexpected rebind rule.");
   }
+}
+
+#if defined(DART_DYNAMIC_MODULES)
+static ArrayPtr PrepareNoSuchMethodErrorArguments(const Function& target,
+                                                  bool incompatible_arguments) {
+  InvocationMirror::Kind kind = InvocationMirror::Kind::kMethod;
+  if (target.IsImplicitGetterFunction() || target.IsGetterFunction()) {
+    kind = InvocationMirror::kGetter;
+  } else if (target.IsImplicitSetterFunction() || target.IsSetterFunction()) {
+    kind = InvocationMirror::kSetter;
+  }
+  const Class& owner = Class::Handle(target.Owner());
+  auto& receiver = Instance::Handle();
+  InvocationMirror::Level level;
+  if (owner.IsTopLevel()) {
+    if (incompatible_arguments) {
+      receiver = target.UserVisibleSignature();
+    }
+    level = InvocationMirror::Level::kTopLevel;
+  } else {
+    receiver = owner.RareType();
+    if (target.IsConstructor()) {
+      level = InvocationMirror::Level::kConstructor;
+    } else {
+      level = InvocationMirror::Level::kStatic;
+    }
+  }
+  const auto& member_name = String::Handle(target.name());
+  const auto& invocation_type =
+      Smi::Handle(Smi::New(InvocationMirror::EncodeType(level, kind)));
+
+  // NoSuchMethodError._throwNew takes the following arguments:
+  //   Object receiver,
+  //   String memberName,
+  //   int invocationType,
+  //   int typeArgumentsLength,
+  //   Object? typeArguments,
+  //   List? arguments,
+  //   List? argumentNames
+  const Array& args = Array::Handle(Array::New(7));
+  args.SetAt(0, receiver);
+  args.SetAt(1, member_name);
+  args.SetAt(2, invocation_type);
+  args.SetAt(3, Object::smi_zero());
+  args.SetAt(4, Object::null_type_arguments());
+  args.SetAt(5, Object::null_object());
+  args.SetAt(6, Object::null_object());
+  return args.ptr();
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
+
+void CallSiteResetter::RebindBytecode(const Bytecode& bytecode) {
+#if defined(DART_DYNAMIC_MODULES)
+  pool_ = bytecode.object_pool();
+  ASSERT(!pool_.IsNull());
+
+  // Iterate over bytecode instructions and update
+  // references to static methods and fields.
+  const KBCInstr* instr =
+      reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+  const KBCInstr* end = reinterpret_cast<const KBCInstr*>(
+      bytecode.PayloadStart() + bytecode.Size());
+  while (instr < end) {
+    switch (KernelBytecode::DecodeOpcode(instr)) {
+      case KernelBytecode::kDirectCall:
+      case KernelBytecode::kDirectCall_Wide:
+      case KernelBytecode::kUncheckedDirectCall:
+      case KernelBytecode::kUncheckedDirectCall_Wide: {
+        const intptr_t idx = KernelBytecode::DecodeD(instr);
+        object_ = pool_.ObjectAt(idx);
+        if (object_.IsArray()) {
+          break;
+        }
+        old_target_ ^= object_.ptr();
+        args_desc_array_ ^= pool_.ObjectAt(idx + 1);
+        ArgumentsDescriptor args_desc(args_desc_array_);
+        // Re-resolve class in case it was deleted.
+        old_cls_ = old_target_.Owner();
+        old_lib_ = old_cls_.library();
+        name_ = old_lib_.url();
+        new_lib_ = Library::LookupLibrary(thread_, name_);
+        if (!new_lib_.IsNull()) {
+          if (old_cls_.IsTopLevel()) {
+            new_cls_ = new_lib_.toplevel_class();
+          } else {
+            name_ = old_cls_.Name();
+            new_cls_ = new_lib_.LookupClassAllowPrivate(name_);
+          }
+        } else {
+          new_cls_ = Class::null();
+        }
+        if (!new_cls_.IsNull()) {
+          name_ = old_target_.name();
+          new_target_ = Resolver::ResolveFunction(zone_, new_cls_, name_);
+          if (new_target_.IsNull() && Field::IsGetterName(name_)) {
+            name_ = Field::NameFromGetter(name_);
+            new_target_ = Resolver::ResolveFunction(zone_, new_cls_, name_);
+            if (!new_target_.IsNull()) {
+              name_ = old_target_.name();
+              new_target_ = new_target_.GetMethodExtractor(name_);
+            }
+          }
+        } else {
+          new_target_ = Function::null();
+        }
+        if (new_target_.ptr() != old_target_.ptr()) {
+          if (new_target_.IsNull() ||
+              (new_target_.is_static() != old_target_.is_static())) {
+            VTIR_Print("Cannot rebind function %s\n",
+                       old_target_.ToFullyQualifiedCString());
+            object_ = PrepareNoSuchMethodErrorArguments(
+                old_target_, /*incompatible_arguments=*/false);
+          } else if (!new_target_.AreValidArguments(args_desc, nullptr)) {
+            VTIR_Print("Cannot rebind function %s - arguments mismatch\n",
+                       old_target_.ToFullyQualifiedCString());
+            object_ = PrepareNoSuchMethodErrorArguments(
+                old_target_, /*incompatible_arguments=*/true);
+          } else {
+            object_ = new_target_.ptr();
+          }
+          pool_.SetObjectAt(idx, object_);
+        }
+        break;
+      }
+      case KernelBytecode::kLoadStatic:
+      case KernelBytecode::kLoadStatic_Wide:
+      case KernelBytecode::kStoreStaticTOS:
+      case KernelBytecode::kStoreStaticTOS_Wide: {
+        const intptr_t idx = KernelBytecode::DecodeD(instr);
+        object_ = pool_.ObjectAt(idx);
+        const Field& old_field = Field::Cast(object_);
+        name_ = old_field.name();
+        new_cls_ = old_field.Owner();
+        new_field_ = new_cls_.LookupField(name_);
+        if (!new_field_.IsNull() &&
+            (new_field_.is_static() == old_field.is_static())) {
+          pool_.SetObjectAt(idx, new_field_);
+        } else {
+          VTIR_Print("Cannot rebind field %s\n", old_field.ToCString());
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    instr = KernelBytecode::Next(instr);
+  }
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
 }
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)

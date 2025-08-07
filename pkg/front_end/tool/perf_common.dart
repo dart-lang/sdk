@@ -8,8 +8,9 @@ library front_end.tool.perf_common;
 import 'dart:io' show exitCode, stderr;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler, getMessageCodeObject;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+    show CfeDiagnosticMessage, DiagnosticMessageHandler, getMessageCodeObject;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:front_end/src/api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
 import 'package:front_end/src/codes/cfe_codes.dart' as cfeCodes;
@@ -44,9 +45,9 @@ final allowlistMessageCode = new Set<cfeCodes.Code>.from(<cfeCodes.Code>[
 
 DiagnosticMessageHandler onDiagnosticMessageHandler() {
   bool messageReported = false;
-  return (DiagnosticMessage m) {
-    if (m.severity == Severity.internalProblem ||
-        m.severity == Severity.error) {
+  return (CfeDiagnosticMessage m) {
+    if (m.severity == CfeSeverity.internalProblem ||
+        m.severity == CfeSeverity.error) {
       if (!allowlistMessageCode.contains(getMessageCodeObject(m))) {
         printDiagnosticMessage(m, stderr.writeln);
         exitCode = 1;

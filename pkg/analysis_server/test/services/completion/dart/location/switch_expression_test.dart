@@ -94,12 +94,12 @@ int f01() => 0;
 ''');
     assertResponse(r'''
 suggestions
-  c01
-    kind: topLevelVariable
   A1
     kind: class
   A1.named
     kind: constructor
+  c01
+    kind: topLevelVariable
   const
     kind: keyword
   false
@@ -140,16 +140,22 @@ int B04() => 0;
 replacement
   left: 1
 suggestions
-  A02
-    kind: topLevelVariable
   A01
     kind: class
   A01
     kind: constructorInvocation
+  A02
+    kind: topLevelVariable
   A03
     kind: topLevelVariable
   A04
     kind: functionInvocation
+  false
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -178,16 +184,22 @@ int B04() => 0;
 replacement
   left: 1
 suggestions
-  A02
-    kind: topLevelVariable
   A01
     kind: class
   A01
     kind: constructorInvocation
+  A02
+    kind: topLevelVariable
   A03
     kind: topLevelVariable
   A04
     kind: functionInvocation
+  false
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 

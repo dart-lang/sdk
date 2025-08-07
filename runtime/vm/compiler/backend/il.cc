@@ -2917,7 +2917,13 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
       }
       break;
     case Slot::Kind::kTypeArguments:
+    case Slot::Kind::kArray_type_arguments:
       ASSERT(!calls_initializer());
+      if (orig_instance->Type()->is_exact_type()) {
+        return flow_graph->GetConstant(TypeArguments::Handle(
+            Type::Cast(*orig_instance->Type()->ToAbstractType())
+                .GetInstanceTypeArguments(flow_graph->thread())));
+      }
       if (StaticCallInstr* call = orig_instance->AsStaticCall()) {
         if (call->is_known_list_constructor()) {
           return call->ArgumentAt(0);
@@ -4541,8 +4547,21 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           : compiler::target::Thread::field_table_values_offset();
   const intptr_t field_offset = compiler::target::FieldTable::OffsetOf(field());
 
-  __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
-  __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
+  if (field().is_shared()) {
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+    const auto field_table_offset_reg = TMP;
+#else
+    const auto field_table_offset_reg = result;
+#endif
+    __ LoadMemoryValue(field_table_offset_reg, THR,
+                       static_cast<int32_t>(field_table_offset));
+    __ LoadAcquire(result,
+                   compiler::Address(field_table_offset_reg,
+                                     static_cast<int32_t>(field_offset)));
+  } else {
+    __ LoadMemoryValue(result, THR, static_cast<int32_t>(field_table_offset));
+    __ LoadMemoryValue(result, result, static_cast<int32_t>(field_offset));
+  }
 
   if (does_throw_access_error_or_call_initializer()) {
     if (calls_initializer() && throw_exception_on_initialization()) {
@@ -4666,10 +4685,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   auto const rep = slot().representation();
   if (calls_initializer()) {
-    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot());
+    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
     EmitNativeCodeForInitializerCall(compiler);
   } else if (rep == kTagged || rep == kUntagged) {
-    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot());
+    __ LoadFromSlot(locs()->out(0).reg(), instance_reg, slot(), memory_order_);
   } else if (RepresentationUtils::IsUnboxedInteger(rep)) {
     const size_t value_size = RepresentationUtils::ValueSize(rep);
     if (value_size <= compiler::target::kWordSize) {

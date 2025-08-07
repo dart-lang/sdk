@@ -136,7 +136,7 @@ class ConstructorReferenceResolver {
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
-        var constructorElement = ConstructorMember.from2(
+        var constructorElement = SubstitutedConstructorElementImpl.from2(
           rawElement,
           inferredReturnType,
         );

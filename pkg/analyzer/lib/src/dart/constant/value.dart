@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:meta/meta.dart';
 
 /// The state of an object representing a boolean value.
@@ -140,36 +141,25 @@ class BoolState extends InstanceState {
 /// [InvalidConstant] represents an invalid result with error information.
 sealed class Constant {}
 
-/// Information about a const constructor invocation.
-class ConstructorInvocation {
-  /// The constructor that was called.
-  final ConstructorElement constructor2;
+class ConstructorInvocationImpl implements ConstructorInvocation {
+  @override
+  final ConstructorElement constructor;
 
-  /// Values of specified arguments, actual values for positional, and `null`
-  /// for named (which are provided as [namedArguments]).
-  final List<DartObjectImpl?> _argumentValues;
+  @override
+  final List<DartObjectImpl> positionalArguments;
 
-  /// The named arguments passed to the constructor.
+  @override
   final Map<String, DartObjectImpl> namedArguments;
 
-  ConstructorInvocation(
-    this.constructor2,
-    this._argumentValues,
+  ConstructorInvocationImpl(
+    this.constructor,
+    this.positionalArguments,
     this.namedArguments,
   );
 
-  /// The positional arguments passed to the constructor.
-  List<DartObjectImpl> get positionalArguments {
-    var result = <DartObjectImpl>[];
-    for (var argument in _argumentValues) {
-      if (argument != null) {
-        result.add(argument);
-      } else {
-        break;
-      }
-    }
-    return result;
-  }
+  @Deprecated('Use constructor instead')
+  @override
+  ConstructorElement get constructor2 => constructor;
 }
 
 /// A representation of an instance of a Dart class.
@@ -183,7 +173,7 @@ class DartObjectImpl implements DartObject, Constant {
   final InstanceState state;
 
   @override
-  final VariableElementImpl? variable2;
+  final VariableElementImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].
   factory DartObjectImpl(
@@ -193,7 +183,7 @@ class DartObjectImpl implements DartObject, Constant {
     VariableElementImpl? variable,
   }) {
     type = type.extensionTypeErasure;
-    return DartObjectImpl._(typeSystem, type, state, variable2: variable);
+    return DartObjectImpl._(typeSystem, type, state, variable: variable);
   }
 
   /// Creates a duplicate instance of [other], tied to [variable].
@@ -248,10 +238,15 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   /// Initialize a newly created object to have the given [type] and [state].
-  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable2}) {
+  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable}) {
     if (state case GenericState state) {
       state._object = this;
     }
+  }
+
+  @override
+  ConstructorInvocationImpl? get constructorInvocation {
+    return state.ifTypeOrNull<GenericState>()?.invocation;
   }
 
   Map<String, DartObjectImpl>? get fields => state.fields;
@@ -288,6 +283,10 @@ class DartObjectImpl implements DartObject, Constant {
 
   @visibleForTesting
   List<DartType>? get typeArguments => (state as FunctionState).typeArguments;
+
+  @override
+  @Deprecated('Use variable instead')
+  VariableElement? get variable2 => variable;
 
   @override
   bool operator ==(Object other) {
@@ -559,12 +558,9 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Gets the constructor that was called to create this value, if this is a
   /// const constructor invocation. Otherwise returns null.
-  ConstructorInvocation? getInvocation() {
-    var state = this.state;
-    if (state is GenericState) {
-      return state.invocation;
-    }
-    return null;
+  @Deprecated('Use constructorInvocation instead')
+  ConstructorInvocationImpl? getInvocation() {
+    return constructorInvocation;
   }
 
   /// Return the result of invoking the '&gt;' operator on this object with the
@@ -948,9 +944,15 @@ class DartObjectImpl implements DartObject, Constant {
   }
 
   @override
-  ExecutableElement2OrMember? toFunctionValue2() {
+  InternalExecutableElement? toFunctionValue() {
     var state = this.state;
     return state is FunctionState ? state.element : null;
+  }
+
+  @override
+  @Deprecated('Use toFunctionValue instead')
+  ExecutableElement? toFunctionValue2() {
+    return toFunctionValue();
   }
 
   @override
@@ -1505,7 +1507,7 @@ class GenericState extends InstanceState {
   final Map<String, DartObjectImpl> _fieldMap;
 
   /// Information about the constructor invoked to generate this instance.
-  final ConstructorInvocation? invocation;
+  final ConstructorInvocationImpl? invocation;
 
   @override
   final bool isUnknown;
@@ -2513,7 +2515,7 @@ class InvalidConstant implements Constant {
     bool isRuntimeException = false,
   }) : this._(
          length: element.name!.length,
-         offset: element.firstFragment.nameOffset2 ?? -1,
+         offset: element.firstFragment.nameOffset ?? -1,
          diagnosticCode: diagnosticCode,
          arguments: arguments,
          contextMessages: contextMessages,

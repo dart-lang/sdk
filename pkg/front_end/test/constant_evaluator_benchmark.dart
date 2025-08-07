@@ -9,7 +9,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/incremental_compiler.dart'
     show IncrementalCompiler;
@@ -208,7 +208,7 @@ CompilerContext setupCompilerContext(String targetString,
   options.sdkRoot = null;
   options.sdkSummary = platformUri;
   options.omitPlatform = false;
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     // don't care.
   };
 

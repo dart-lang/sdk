@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // SharedOptions=--enable-experiment=dot-shorthands
-// @dart = 3.9
+// @dart = 3.10
 
 import 'dart:developer';
 

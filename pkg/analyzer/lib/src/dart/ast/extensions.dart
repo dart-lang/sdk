@@ -197,6 +197,16 @@ extension FormalParameterExtension on FormalParameter {
   }
 }
 
+extension FormalParameterImplExtension on FormalParameterImpl {
+  FormalParameterImpl get notDefault {
+    var self = this;
+    if (self is DefaultFormalParameterImpl) {
+      return self.parameter;
+    }
+    return self;
+  }
+}
+
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 extension IdentifierExtension on Identifier {
   Element? get readElement {

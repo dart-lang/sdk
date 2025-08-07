@@ -212,9 +212,9 @@ class _BaseUnitMemberValidator {
     // check imports
     // TODO(enhanced-parts): This needs to look at the set of imports for the
     //  library fragment in which the reference occurs.
-    for (var libraryImport in atLibrary.firstFragment.libraryImports2) {
+    for (var libraryImport in atLibrary.firstFragment.libraryImports) {
       // ignore if imported with prefix
-      if (libraryImport.prefix2 != null) {
+      if (libraryImport.prefix != null) {
         continue;
       }
       // check imported elements
@@ -231,10 +231,9 @@ class _BaseUnitMemberValidator {
   void _validateWillConflict() {
     for (var element in library.children) {
       if (hasDisplayName(element, name)) {
-        var message = format(
+        var message = formatList(
           "Library already declares {0} with name '{1}'.",
-          getElementKindName(element),
-          name,
+          [getElementKindName(element), name],
         );
         result.addError(message, newLocation_fromElement(element));
       }
@@ -264,13 +263,15 @@ class _BaseUnitMemberValidator {
           continue;
         }
         // OK, reference will be shadowed be the element being renamed
-        var message = format(
+        var message = formatList(
           element != null
               ? "Renamed {0} will shadow {1} '{2}'."
               : "Created {0} will shadow {1} '{2}'.",
-          elementKind.displayName,
-          getElementKindName(member),
-          getElementQualifiedName(member),
+          [
+            elementKind.displayName,
+            getElementKindName(member),
+            getElementQualifiedName(member),
+          ],
         );
         result.addError(message, newLocation_fromMatch(memberReference));
       }
@@ -323,11 +324,10 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
       var refElement = reference.element;
       var refLibrary = refElement.library!;
       if (refLibrary != library) {
-        var message = format(
-          "Renamed {0} will be invisible in '{1}'.",
+        var message = formatList("Renamed {0} will be invisible in '{1}'.", [
           getElementKindName(element),
           getElementQualifiedName(refLibrary),
-        );
+        ]);
         result.addError(message, newLocation_fromMatch(reference));
       }
     }
@@ -341,11 +341,13 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
       if (refClass != null) {
         visitChildren(refClass, (shadow) {
           if (hasDisplayName(shadow, name)) {
-            var message = format(
+            var message = formatList(
               "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-              getElementKindName(element),
-              getElementKindName(shadow),
-              getElementQualifiedName(shadow),
+              [
+                getElementKindName(element),
+                getElementKindName(shadow),
+                getElementQualifiedName(shadow),
+              ],
             );
             result.addError(message, newLocation_fromElement(shadow));
           }

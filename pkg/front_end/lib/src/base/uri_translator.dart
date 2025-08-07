@@ -73,7 +73,7 @@ class UriTranslator {
       if (reportMessage) {
         options.reportWithoutLocation(
             templateInvalidPackageUri.withArguments(uri, "${e.message}"),
-            Severity.error);
+            CfeSeverity.error);
       }
       return null;
     }
@@ -82,7 +82,7 @@ class UriTranslator {
   Uri? _packageUriNotFound(Uri uri) {
     String name = uri.pathSegments.first;
     options.reportWithoutLocation(
-        templatePackageNotFound.withArguments(name, uri), Severity.error);
+        templatePackageNotFound.withArguments(name, uri), CfeSeverity.error);
     // TODO(sigmund, ahe): ensure we only report an error once,
     // this null result will likely cause another error further down in the
     // compiler.

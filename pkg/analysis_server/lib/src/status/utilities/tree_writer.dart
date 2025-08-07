@@ -66,7 +66,7 @@ mixin TreeWriter {
         return 'Source (uri="${value.uri}", path="${value.fullName}")';
       } else if (value is ElementAnnotationImpl) {
         var buffer = StringBuffer();
-        buffer.write(_toString(value.element2));
+        buffer.write(_toString(value.element));
         var result = value.evaluationResult;
         switch (result) {
           case null:

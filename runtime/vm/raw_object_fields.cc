@@ -256,6 +256,7 @@ namespace dart {
   F(Code, deopt_info_array_)                                                   \
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
+  F(Field, exact_type_)                                                        \
   F(Function, positional_parameter_names_)                                     \
   F(Function, unoptimized_code_)
 

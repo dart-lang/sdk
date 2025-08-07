@@ -50,7 +50,6 @@ abstract sealed class SealedAndAbstractClass2 {}
 sealed sealed class SealedDuplicateClass {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'sealed' isn't a type.
 //     ^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -69,7 +68,6 @@ sealed extension StringExtension on String {}
 // [error column 1, length 6]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] 'sealed' isn't a type.
 // [cfe] Expected ';' after this.
 //     ^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER

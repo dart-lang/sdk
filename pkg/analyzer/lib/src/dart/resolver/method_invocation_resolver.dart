@@ -601,7 +601,7 @@ class MethodInvocationResolver with ScopeHelpers {
 
     nameNode.element = member;
 
-    if (member is PropertyAccessorElement2OrMember) {
+    if (member is InternalPropertyAccessorElement) {
       return _rewriteAsFunctionExpressionInvocation(
         node,
         node.target,
@@ -752,13 +752,13 @@ class MethodInvocationResolver with ScopeHelpers {
       nameToken: nameNode.token,
     );
 
-    var element = scopeLookupResult.getter2;
+    var element = scopeLookupResult.getter;
     if (element != null) {
       nameNode.element = element;
       if (element is MultiplyDefinedElement) {
-        element = element.conflictingElements2[0];
+        element = element.conflictingElements[0];
       }
-      if (element is PropertyAccessorElement2OrMember) {
+      if (element is InternalPropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(
           node,
           node.target,
@@ -770,7 +770,7 @@ class MethodInvocationResolver with ScopeHelpers {
           isCascaded: node.isCascaded,
         );
       }
-      if (element is ExecutableElement2OrMember) {
+      if (element is InternalExecutableElement) {
         _setResolution(
           node,
           element.type,
@@ -828,7 +828,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return null;
     }
 
-    element = scopeLookupResult.setter2;
+    element = scopeLookupResult.setter;
     if (element != null) {
       // If the scope lookup reveals a setter, but no getter, then we may still
       // find the getter by looking up the inheritance chain (via
@@ -893,7 +893,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (name == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
       var imports = prefix.imports;
       if (imports.length == 1) {
-        var firstPrefix = imports[0].prefix2;
+        var firstPrefix = imports[0].prefix;
         if (firstPrefix != null && firstPrefix.isDeferred) {
           var importedLibrary = imports[0].importedLibrary;
           var element = importedLibrary?.loadLibraryFunction;
@@ -917,14 +917,14 @@ class MethodInvocationResolver with ScopeHelpers {
       nameToken: nameNode.token,
     );
 
-    var element = scopeLookupResult.getter2;
+    var element = scopeLookupResult.getter;
     nameNode.element = element;
 
     if (element is MultiplyDefinedElement) {
-      element = element.conflictingElements2[0];
+      element = element.conflictingElements[0];
     }
 
-    if (element is PropertyAccessorElement2OrMember) {
+    if (element is InternalPropertyAccessorElement) {
       return _rewriteAsFunctionExpressionInvocation(
         node,
         node.target,
@@ -937,7 +937,7 @@ class MethodInvocationResolver with ScopeHelpers {
       );
     }
 
-    if (element is ExecutableElement2OrMember) {
+    if (element is InternalExecutableElement) {
       _setResolution(
         node,
         element.type,
@@ -990,7 +990,7 @@ class MethodInvocationResolver with ScopeHelpers {
     // If there is that concrete dispatch target, then we are done.
     if (target != null) {
       nameNode.element = target;
-      if (target is PropertyAccessorElement2OrMember) {
+      if (target is InternalPropertyAccessorElement) {
         return _rewriteAsFunctionExpressionInvocation(
           node,
           node.target,
@@ -1191,9 +1191,9 @@ class MethodInvocationResolver with ScopeHelpers {
 
     var element = _resolveElement(receiver, nameNode);
     if (element != null) {
-      if (element is ExecutableElement2OrMember) {
+      if (element is InternalExecutableElement) {
         nameNode.element = element;
-        if (element is PropertyAccessorElement2OrMember) {
+        if (element is InternalPropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
             node,
             node.target,
@@ -1248,9 +1248,9 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     var element = _resolveElement(receiver, node.memberName);
     if (element != null) {
-      if (element is ExecutableElement2OrMember) {
+      if (element is InternalExecutableElement) {
         node.memberName.element = element;
-        if (element is PropertyAccessorElement2OrMember) {
+        if (element is InternalPropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
             node,
             null,

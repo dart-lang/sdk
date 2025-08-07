@@ -23,7 +23,7 @@ import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
 final _missingMustBeOverridden = Expando<List<ExecutableElement>>();
-final _missingOverrides = Expando<List<ExecutableElement2OrMember>>();
+final _missingOverrides = Expando<List<InternalExecutableElement>>();
 
 class InheritanceOverrideVerifier {
   final TypeSystemImpl _typeSystem;
@@ -299,7 +299,7 @@ class _ClassVerifier {
 
     if (firstFragment is ClassFragmentImpl && !firstFragment.isAbstract ||
         firstFragment is EnumFragmentImpl) {
-      List<ExecutableElement2OrMember>? inheritedAbstract;
+      List<InternalExecutableElement>? inheritedAbstract;
 
       for (var name in interface.map.keys) {
         if (!name.isAccessibleFor(libraryUri)) {
@@ -355,7 +355,7 @@ class _ClassVerifier {
           diagnosticReporter: reporter,
           errorNode: classNameToken,
           diagnosticCode:
-              concreteElement is SetterElement2OrMember
+              concreteElement is InternalSetterElement
                   ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
                   : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
@@ -373,7 +373,7 @@ class _ClassVerifier {
   void _checkDeclaredMember(
     SyntacticEntity node,
     Uri libraryUri,
-    ExecutableElement2OrMember? member, {
+    InternalExecutableElement? member, {
     List<FormalParameter>? methodParameterNodes,
     int mixinIndex = -1,
   }) {
@@ -644,7 +644,7 @@ class _ClassVerifier {
     if (implementsDartCoreEnum) {
       var classElement = this.classElement;
       if (classElement is ClassFragmentImpl &&
-              !classElement.isDartCoreEnumImpl ||
+              !classElement.element.isDartCoreEnumImpl ||
           classElement is EnumFragmentImpl ||
           classElement is MixinFragmentImpl) {
         if (const {'index', 'hashCode', '=='}.contains(name.lexeme)) {
@@ -864,7 +864,7 @@ class _ClassVerifier {
   }
 
   void _reportInheritedAbstractMembers(
-    List<ExecutableElement2OrMember>? elements,
+    List<InternalExecutableElement>? elements,
   ) {
     if (elements == null) {
       return;
@@ -937,7 +937,7 @@ class _ClassVerifier {
   bool _reportNoCombinedSuperSignature(MethodDeclarationImpl node) {
     var fragment = node.declaredFragment;
     if (fragment is MethodFragmentImpl) {
-      var inferenceError = fragment.typeInferenceError;
+      var inferenceError = fragment.element.typeInferenceError;
       if (inferenceError?.kind ==
           TopLevelInferenceErrorKind.overrideNoCombinedSuperSignature) {
         reporter.atToken(
@@ -998,7 +998,7 @@ class _ClassVerifier {
           continue;
         }
         if (getter.metadata.hasMustBeOverridden ||
-            (getter.variable?.metadata.hasMustBeOverridden ?? false)) {
+            (getter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getGetter(getter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(getter);
@@ -1013,7 +1013,7 @@ class _ClassVerifier {
           continue;
         }
         if (setter.metadata.hasMustBeOverridden ||
-            (setter.variable?.metadata.hasMustBeOverridden ?? false)) {
+            (setter.variable.metadata.hasMustBeOverridden)) {
           var declaration = classElement.getSetter(setter.name!);
           if (declaration == null || declaration.isAbstract) {
             notOverridden.add(setter);

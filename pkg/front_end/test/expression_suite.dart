@@ -7,7 +7,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/expression_compilation_tools.dart'
     show createDefinitionsWithTypes, createTypeParametersWithBounds;
@@ -56,7 +56,7 @@ import 'testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
-  final List<DiagnosticMessage> errors;
+  final List<CfeDiagnosticMessage> errors;
 
   @override
   final List<Step> steps;
@@ -86,8 +86,9 @@ class Context extends ChainContext {
     errors.clear();
   }
 
-  List<DiagnosticMessage> takeErrors() {
-    List<DiagnosticMessage> result = new List<DiagnosticMessage>.from(errors);
+  List<CfeDiagnosticMessage> takeErrors() {
+    List<CfeDiagnosticMessage> result =
+        new List<CfeDiagnosticMessage>.from(errors);
     errors.clear();
     return result;
   }
@@ -95,14 +96,14 @@ class Context extends ChainContext {
 
 class CompilationResult {
   Procedure? compiledProcedure;
-  List<DiagnosticMessage> errors;
+  List<CfeDiagnosticMessage> errors;
 
   CompilationResult(this.compiledProcedure, this.errors);
 
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
     buffer.write("Errors: {\n");
-    for (DiagnosticMessage error in errors) {
+    for (CfeDiagnosticMessage error in errors) {
       for (String message in error.plainTextFormatted) {
         for (String line in splitLines(message)) {
           buffer.write("  ");
@@ -445,7 +446,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       scriptUri: test.scriptUri,
       offset: test.offset ?? TreeNode.noOffset,
     );
-    List<DiagnosticMessage> errors = context.takeErrors();
+    List<CfeDiagnosticMessage> errors = context.takeErrors();
     test.results.add(new CompilationResult(compiledProcedure, errors));
     if (compiledProcedure != null) {
       // Confirm we can serialize generated procedure.
@@ -581,7 +582,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       IncrementalCompilerResult sourceCompilerResult =
           await sourceCompiler.computeDelta(entryPoints: [test.entryPoint]);
       Component component = sourceCompilerResult.component;
-      List<DiagnosticMessage> errors = context.takeErrors();
+      List<CfeDiagnosticMessage> errors = context.takeErrors();
       if (!errors.isEmpty) {
         return fail(
             tests,
@@ -642,7 +643,7 @@ Future<Context> createContext(
       .entityForUri(sdkSummary)
       .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
 
-  final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
+  final List<CfeDiagnosticMessage> errors = <CfeDiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..target = new VmTarget(new TargetFlags())
@@ -650,7 +651,7 @@ Future<Context> createContext(
     ..omitPlatform = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       errors.add(message);
     }

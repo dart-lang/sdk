@@ -115,6 +115,12 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_NotifyAll,
 DEFINE_FFI_NATIVE_ENTRY(IsolateGroup_runSync,
                         Dart_Handle,
                         (Dart_Handle closure)) {
+  if (!FLAG_experimental_shared_data) {
+    FATAL(
+        "Encountered shared data api when functionality is disabled. "
+        "Pass --experimental-shared-data");
+  }
+
   Thread* current_thread = Thread::Current();
   ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
   Isolate* saved_isolate = current_thread->isolate();

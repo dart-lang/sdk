@@ -130,6 +130,7 @@ class StackFrame : public ValueObject {
   TokenPosition GetTokenPos() const;
 
   static void DumpCurrentTrace();
+  static void DumpCurrentTrace(uword sp, uword fp, uword pc);
 
   uword GetCallerSp() const {
     return fp() +

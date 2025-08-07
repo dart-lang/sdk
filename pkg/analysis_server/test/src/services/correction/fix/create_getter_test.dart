@@ -20,6 +20,28 @@ class CreateGetterMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_GETTER;
 
+  Future<void> test_dotShorthand() async {
+    await resolveTestCode('''
+mixin M {
+}
+
+void f() {
+  M v = .test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+mixin M {
+  static M get test => null;
+}
+
+void f() {
+  M v = .test;
+  print(v);
+}
+''');
+  }
+
   Future<void> test_inExtensionGetter() async {
     await resolveTestCode('''
 mixin M {
@@ -178,6 +200,46 @@ mixin M {
 class CreateGetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_GETTER;
+
+  Future<void> test_dotShorthand_class() async {
+    await resolveTestCode('''
+class A {
+}
+void f() {
+  A v = .getter;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A get getter => null;
+}
+void f() {
+  A v = .getter;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    await resolveTestCode('''
+extension type A(int i) {
+}
+void f() {
+  A v = .getter;
+  print(v);
+}
+''');
+    await assertHasFix('''
+extension type A(int i) {
+  static A get getter => null;
+}
+void f() {
+  A v = .getter;
+  print(v);
+}
+''');
+  }
 
   Future<void> test_extension_type() async {
     await resolveTestCode('''

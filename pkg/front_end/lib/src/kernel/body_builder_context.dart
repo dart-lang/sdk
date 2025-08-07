@@ -10,6 +10,7 @@ import 'package:kernel/transformations/flags.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/identifiers.dart' show Identifier;
 import '../base/local_scope.dart';
+import '../base/lookup_result.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -102,16 +103,15 @@ abstract class BodyBuilderContext {
 
   /// Looks up the constructor by the given [name] in the superclass of the
   /// enclosing class.
-  Constructor? lookupSuperConstructor(Name name) {
-    return declarationContext.lookupSuperConstructor(name);
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary) {
+    return declarationContext.lookupSuperConstructor(name, accessingLibrary);
   }
 
   /// Looks up the member by the given [name] declared in the enclosing
   /// declaration or library.
-  ///
-  /// If [required] is `true`, an error is thrown if the member is not found.
-  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
-    return declarationContext.lookupLocalMember(name, required: required);
+  LookupResult? lookupLocalMember(String name) {
+    return declarationContext.lookupLocalMember(name);
   }
 
   /// Returns `true` if the enclosing entity is an extension type.
@@ -421,11 +421,12 @@ abstract class BodyBuilderDeclarationContext {
     throw new UnsupportedError('${runtimeType}.buildRedirectingInitializer');
   }
 
-  Constructor? lookupSuperConstructor(Name name) {
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary) {
     throw new UnsupportedError('${runtimeType}.lookupSuperConstructor');
   }
 
-  NamedBuilder? lookupLocalMember(String name, {bool required = false});
+  LookupResult? lookupLocalMember(String name);
 
   bool get isExtensionTypeDeclaration => false;
 
@@ -462,8 +463,8 @@ mixin _DeclarationBodyBuilderDeclarationContextMixin
   DeclarationBuilder get _declarationBuilder;
 
   @override
-  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
-    return _declarationBuilder.lookupLocalMember(name, required: required);
+  LookupResult? lookupLocalMember(String name) {
+    return _declarationBuilder.lookupLocalMember(name, required: false);
   }
 
   @override
@@ -522,8 +523,9 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  Constructor? lookupSuperConstructor(Name name) {
-    return _sourceClassBuilder.lookupSuperConstructor(name);
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary) {
+    return _sourceClassBuilder.lookupSuperConstructor(name, accessingLibrary);
   }
 
   @override
@@ -543,8 +545,7 @@ class _SourceClassBodyBuilderDeclarationContext
 
   @override
   String get superClassName {
-    if (_sourceClassBuilder.supertypeBuilder?.declaration
-        is InvalidTypeDeclarationBuilder) {
+    if (_sourceClassBuilder.supertypeBuilder?.declaration is InvalidBuilder) {
       // Coverage-ignore-block(suite): Not run.
       // TODO(johnniwinther): Avoid reporting errors on missing constructors
       // on invalid super types.
@@ -641,8 +642,8 @@ class _TopLevelBodyBuilderDeclarationContext
 
   @override
   // Coverage-ignore(suite): Not run.
-  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
-    return _libraryBuilder.lookupLocalMember(name, required: required);
+  LookupResult? lookupLocalMember(String name) {
+    return _libraryBuilder.lookupLocalMember(name);
   }
 }
 

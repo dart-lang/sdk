@@ -384,7 +384,7 @@ class ProcessedOptionsTest {
   }
 
   Future<void> test_getUriTranslator_noPackages() async {
-    var errors = <DiagnosticMessage>[];
+    var errors = <CfeDiagnosticMessage>[];
     // .dart_tool/package_config.json file should be ignored when specifying
     // empty Uri.
     fileSystem
@@ -401,7 +401,7 @@ class ProcessedOptionsTest {
   }
 
   Future<void> test_getUriTranslator_missingPackages() async {
-    var errors = <DiagnosticMessage>[];
+    var errors = <CfeDiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..packagesFileUri = new Uri(path: '/')
@@ -417,7 +417,7 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
-    var errors = <DiagnosticMessage>[];
+    var errors = <CfeDiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..fileSystem = fileSystem
       ..onDiagnostic = errors.add;
@@ -472,7 +472,7 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
     var sdkRoot = Uri.parse('org-dartlang-test:///sdk/root');
-    var errors = <DiagnosticMessage>[];
+    var errors = <CfeDiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = fileSystem
@@ -508,7 +508,7 @@ class ProcessedOptionsTest {
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
     var sdkSummary = Uri.parse('org-dartlang-test:///sdk/root/outline.dill');
-    var errors = <DiagnosticMessage>[];
+    var errors = <CfeDiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem
@@ -549,7 +549,7 @@ class ProcessedOptionsTest {
     fileSystem
         .entityForUri(Uri.parse('org-dartlang-test:///foo.dart'))
         .writeAsStringSync('main(){}\n');
-    var errors = <DiagnosticMessage>[];
+    var errors = <CfeDiagnosticMessage>[];
     var raw = new CompilerOptions()
       ..sdkSummary = sdkSummary
       ..fileSystem = fileSystem

@@ -33,7 +33,7 @@ class Helper extends core::Object {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::Class c = new self::Class::•();
-  [@vm.direct-call.metadata=#lib::Class.procedure] [@vm.inferred-type.metadata=!? (skip check)] c.{self::Class::procedure}(){() → void};
+  [@vm.direct-call.metadata=#lib::Class.procedure] [@vm.inferred-type.metadata=? (skip check)] c.{self::Class::procedure}(){() → void};
 }
 library regress_flutter160137.lib.dart;
 import self as self;

@@ -14,10 +14,6 @@ library;
 // class C = Object with Missing;
 //                       ^^^^^^^
 //
-// pkg/front_end/testcases/rasta/class_hierarchy.dart:9:7: Error: The type 'Missing' can't be mixed in.
-// class C = Object with Missing;
-//       ^
-//
 // pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Couldn't find constructor 'Missing'.
 //   factory D() = Missing;
 //                 ^

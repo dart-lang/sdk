@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show Severity, severityTexts;
+    show CfeSeverity, severityTexts;
 import 'package:kernel/ast.dart' show FileUriNode, TreeNode;
 
 import 'command_line_reporting.dart' as command_line_reporting;
@@ -22,7 +22,7 @@ import 'messages.dart'
 class DebugAbort {
   final LocatedMessage message;
 
-  DebugAbort(Uri? uri, int charOffset, Severity severity, StackTrace trace)
+  DebugAbort(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
       : message = uri != null
             ? templateInternalProblemDebugAbort
                 .withArguments(severityTexts[severity]!, "$trace")
@@ -49,11 +49,12 @@ Never internalProblem(Message message, int charOffset, Uri? uri) {
   if (uri != null) {
     throw command_line_reporting
         .formatNoSourceLine(message.withLocation(uri, charOffset, noLength),
-            Severity.internalProblem)
+            CfeSeverity.internalProblem)
         .plain;
   } else {
     throw command_line_reporting
-        .formatNoSourceLine(message.withoutLocation(), Severity.internalProblem)
+        .formatNoSourceLine(
+            message.withoutLocation(), CfeSeverity.internalProblem)
         .plain;
   }
 }

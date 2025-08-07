@@ -1070,7 +1070,7 @@ void f/*[0*/() {
   }
 
   Future<void> _computeRegions(String sourceContent) async {
-    code = TestCode.parse(normalizeSource(sourceContent));
+    code = TestCode.parseNormalized(sourceContent);
     var file = newFile(sourcePath, code.code);
     var result = await getResolvedUnit(file);
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);

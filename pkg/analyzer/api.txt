@@ -155,7 +155,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addDeclaredVariablePattern (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addDefaultFormalParameter (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addDoStatement (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
-    addDotShorthandConstructorInvocation (method: void Function(AnalysisRule, AstVisitor<dynamic>))
+    addDotShorthandConstructorInvocation (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addDotShorthandInvocation (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addDotShorthandPropertyAccess (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addDottedName (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
@@ -227,6 +227,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addNativeClause (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addNativeFunctionBody (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addNullAssertPattern (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
+    addNullAwareElement (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addNullCheckPattern (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addNullLiteral (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addObjectPattern (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
@@ -238,7 +239,7 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addPatternField (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addPatternFieldName (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addPatternVariableDeclaration (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
-    addPatternVariableDeclarationStatement (method: void Function(AnalysisRule, AstVisitor<dynamic>))
+    addPatternVariableDeclarationStatement (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addPostfixExpression (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addPrefixExpression (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addPrefixedIdentifier (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
@@ -246,7 +247,10 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addRecordLiteral (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addRecordPattern (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addRecordTypeAnnotation (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
-    addRedirectingConstructorInvocation (method: void Function(AnalysisRule, AstVisitor<dynamic>))
+    addRecordTypeAnnotationNamedField (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
+    addRecordTypeAnnotationNamedFields (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
+    addRecordTypeAnnotationPositionalField (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
+    addRedirectingConstructorInvocation (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addRelationalPattern (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addRepresentationConstructorName (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
     addRepresentationDeclaration (method: void Function(AbstractAnalysisRule, AstVisitor<dynamic>))
@@ -349,6 +353,7 @@ package:analyzer/dart/analysis/code_style_options.dart:
     preferConstDeclarations (getter: bool)
     preferIntLiterals (getter: bool)
     preferredQuoteForStrings (getter: String)
+    requiredNamedParametersFirst (getter: bool)
     sortCombinators (getter: bool)
     sortConstructorsFirst (getter: bool)
     specifyReturnTypes (getter: bool)
@@ -480,7 +485,8 @@ package:analyzer/dart/analysis/results.dart:
     new (constructor: InvalidResult Function())
   LibraryElementResult (class extends Object implements SomeLibraryElementResult):
     new (constructor: LibraryElementResult Function())
-    element2 (getter: LibraryElement, experimental)
+    element (getter: LibraryElement, experimental)
+    element2 (getter: LibraryElement, deprecated, experimental)
   NotElementOfThisSessionResult (class extends Object implements InvalidResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: NotElementOfThisSessionResult Function())
   NotLibraryButPartResult (class extends Object implements InvalidResult, SomeLibraryElementResult, SomeParsedLibraryResult, SomeResolvedLibraryResult):
@@ -503,14 +509,16 @@ package:analyzer/dart/analysis/results.dart:
     unit (getter: CompilationUnit)
   ResolvedLibraryResult (class extends Object implements ParsedLibraryResult, SomeResolvedLibraryResult):
     new (constructor: ResolvedLibraryResult Function())
-    element2 (getter: LibraryElement, experimental)
+    element (getter: LibraryElement, experimental)
+    element2 (getter: LibraryElement, deprecated, experimental)
     typeProvider (getter: TypeProvider)
     units (getter: List<ResolvedUnitResult>)
     unitWithPath (method: ResolvedUnitResult? Function(String))
   ResolvedUnitResult (class extends Object implements ParsedUnitResult, SomeResolvedUnitResult):
     new (constructor: ResolvedUnitResult Function())
     exists (getter: bool)
-    libraryElement2 (getter: LibraryElement, experimental)
+    libraryElement (getter: LibraryElement, experimental)
+    libraryElement2 (getter: LibraryElement, deprecated, experimental)
     libraryFragment (getter: LibraryFragment, experimental)
     typeProvider (getter: TypeProvider)
     typeSystem (getter: TypeSystem)
@@ -549,10 +557,12 @@ package:analyzer/dart/analysis/session.dart:
     getFile (method: SomeFileResult Function(String))
     getLibraryByUri (method: Future<SomeLibraryElementResult> Function(String))
     getParsedLibrary (method: SomeParsedLibraryResult Function(String))
-    getParsedLibraryByElement2 (method: SomeParsedLibraryResult Function(LibraryElement), experimental)
+    getParsedLibraryByElement (method: SomeParsedLibraryResult Function(LibraryElement), experimental)
+    getParsedLibraryByElement2 (method: SomeParsedLibraryResult Function(LibraryElement), deprecated, experimental)
     getParsedUnit (method: SomeParsedUnitResult Function(String))
     getResolvedLibrary (method: Future<SomeResolvedLibraryResult> Function(String))
-    getResolvedLibraryByElement2 (method: Future<SomeResolvedLibraryResult> Function(LibraryElement), experimental)
+    getResolvedLibraryByElement (method: Future<SomeResolvedLibraryResult> Function(LibraryElement), experimental)
+    getResolvedLibraryByElement2 (method: Future<SomeResolvedLibraryResult> Function(LibraryElement), deprecated, experimental)
     getResolvedLibraryContaining (method: Future<SomeResolvedLibraryResult> Function(String))
     getResolvedUnit (method: Future<SomeResolvedUnitResult> Function(String))
     getUnitElement (method: Future<SomeUnitElementResult> Function(String))
@@ -566,7 +576,8 @@ package:analyzer/dart/analysis/uri_converter.dart:
 package:analyzer/dart/analysis/utilities.dart:
   parseFile (function: ParseStringResult Function({required FeatureSet featureSet, required String path, ResourceProvider? resourceProvider, bool throwIfDiagnostics}))
   parseString (function: ParseStringResult Function({required String content, FeatureSet? featureSet, String? path, bool throwIfDiagnostics}))
-  resolveFile2 (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}))
+  resolveFile (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}))
+  resolveFile2 (function: Future<SomeResolvedUnitResult> Function({required String path, ResourceProvider? resourceProvider}), deprecated)
 package:analyzer/dart/ast/ast.dart:
   AdjacentStrings (class extends Object implements StringLiteral):
     strings (getter: NodeList<StringLiteral>)
@@ -2185,6 +2196,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitCollectionElement (method: R? Function(CollectionElement))
     visitCombinator (method: R? Function(Combinator))
     visitComment (method: R? Function(Comment))
+    visitCommentReferableExpression (method: R? Function(CommentReferableExpression))
     visitCommentReference (method: R? Function(CommentReference))
     visitCompilationUnit (method: R? Function(CompilationUnit))
     visitCompilationUnitMember (method: R? Function(CompilationUnitMember))
@@ -2231,6 +2243,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitForEachPartsWithIdentifier (method: R? Function(ForEachPartsWithIdentifier))
     visitForEachPartsWithPattern (method: R? Function(ForEachPartsWithPattern))
     visitForElement (method: R? Function(ForElement))
+    visitForLoopParts (method: R? Function(ForLoopParts))
     visitForParts (method: R? Function(ForParts))
     visitForPartsWithDeclarations (method: R? Function(ForPartsWithDeclarations))
     visitForPartsWithExpression (method: R? Function(ForPartsWithExpression))
@@ -2358,6 +2371,7 @@ package:analyzer/dart/ast/visitor.dart:
     visitVariableDeclaration (method: R? Function(VariableDeclaration))
     visitVariableDeclarationList (method: R? Function(VariableDeclarationList))
     visitVariableDeclarationStatement (method: R? Function(VariableDeclarationStatement))
+    visitVariablePattern (method: R? Function(VariablePattern))
     visitWhenClause (method: R? Function(WhenClause))
     visitWhileStatement (method: R? Function(WhileStatement))
     visitWildcardPattern (method: R? Function(WildcardPattern))
@@ -3241,16 +3255,25 @@ package:analyzer/dart/ast/visitor.dart:
     visitWithClause (method: R? Function(WithClause))
     visitYieldStatement (method: R? Function(YieldStatement))
 package:analyzer/dart/constant/value.dart:
+  ConstructorInvocation (class extends Object):
+    new (constructor: ConstructorInvocation Function())
+    constructor (getter: ConstructorElement)
+    constructor2 (getter: ConstructorElement, deprecated)
+    namedArguments (getter: Map<String, DartObject>)
+    positionalArguments (getter: List<DartObject>)
   DartObject (class extends Object):
     new (constructor: DartObject Function())
+    constructorInvocation (getter: ConstructorInvocation?)
     hasKnownValue (getter: bool)
     isNull (getter: bool)
     type (getter: DartType?)
-    variable2 (getter: VariableElement?)
+    variable (getter: VariableElement?)
+    variable2 (getter: VariableElement?, deprecated)
     getField (method: DartObject? Function(String))
     toBoolValue (method: bool? Function())
     toDoubleValue (method: double? Function())
-    toFunctionValue2 (method: ExecutableElement? Function(), experimental)
+    toFunctionValue (method: ExecutableElement? Function(), experimental)
+    toFunctionValue2 (method: ExecutableElement? Function(), deprecated, experimental)
     toIntValue (method: int? Function())
     toListValue (method: List<DartObject>? Function())
     toMapValue (method: Map<DartObject?, DartObject?>? Function())
@@ -3260,7 +3283,7 @@ package:analyzer/dart/constant/value.dart:
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
 package:analyzer/dart/element/element.dart:
-  Annotatable (class extends Object):
+  Annotatable (class extends Object, deprecated):
     new (constructor: Annotatable Function())
     documentationComment (getter: String?)
     metadata (getter: Metadata)
@@ -3285,29 +3308,27 @@ package:analyzer/dart/element/element.dart:
     isDartCoreEnum (getter: bool)
     isDartCoreObject (getter: bool)
     isExhaustive (getter: bool)
+    isExtendableOutside (getter: bool)
     isFinal (getter: bool)
+    isImplementableOutside (getter: bool)
     isInterface (getter: bool)
+    isMixableOutside (getter: bool)
     isMixinApplication (getter: bool)
     isMixinClass (getter: bool)
     isSealed (getter: bool)
     isValidMixin (getter: bool)
-    isExtendableIn (method: bool Function(LibraryElement))
+    isExtendableIn (method: bool Function(LibraryElement), deprecated)
     isExtendableIn2 (method: bool Function(LibraryElement), deprecated)
-    isImplementableIn (method: bool Function(LibraryElement))
+    isImplementableIn (method: bool Function(LibraryElement), deprecated)
     isImplementableIn2 (method: bool Function(LibraryElement), deprecated)
-    isMixableIn (method: bool Function(LibraryElement))
+    isMixableIn (method: bool Function(LibraryElement), deprecated)
     isMixableIn2 (method: bool Function(LibraryElement), deprecated)
   ClassFragment (class extends Object implements InterfaceFragment):
     new (constructor: ClassFragment Function())
     element (getter: ClassElement)
     nextFragment (getter: ClassFragment?)
     previousFragment (getter: ClassFragment?)
-  ConstantInitializer (class extends Object):
-    new (constructor: ConstantInitializer Function())
-    expression (getter: Expression)
-    fragment (getter: VariableFragment)
-    evaluate (method: DartObject? Function())
-  ConstructorElement (class extends Object implements ExecutableElement, HasSinceSdkVersion):
+  ConstructorElement (class extends Object implements ExecutableElement):
     new (constructor: ConstructorElement Function())
     baseElement (getter: ConstructorElement)
     enclosingElement (getter: InterfaceElement)
@@ -3341,7 +3362,8 @@ package:analyzer/dart/element/element.dart:
     new (constructor: DirectiveUri Function())
   DirectiveUriWithLibrary (class extends DirectiveUriWithSource):
     new (constructor: DirectiveUriWithLibrary Function())
-    library2 (getter: LibraryElement)
+    library (getter: LibraryElement)
+    library2 (getter: LibraryElement, deprecated)
   DirectiveUriWithRelativeUri (class extends DirectiveUriWithRelativeUriString):
     new (constructor: DirectiveUriWithRelativeUri Function())
     relativeUri (getter: Uri)
@@ -3360,6 +3382,7 @@ package:analyzer/dart/element/element.dart:
     children (getter: List<Element>)
     children2 (getter: List<Element>, deprecated)
     displayName (getter: String)
+    documentationComment (getter: String?)
     enclosingElement (getter: Element?)
     enclosingElement2 (getter: Element?, deprecated)
     firstFragment (getter: Fragment)
@@ -3372,11 +3395,13 @@ package:analyzer/dart/element/element.dart:
     library (getter: LibraryElement?)
     library2 (getter: LibraryElement?, deprecated)
     lookupName (getter: String?)
+    metadata (getter: Metadata)
     name (getter: String?)
     name3 (getter: String?, deprecated)
     nonSynthetic (getter: Element)
     nonSynthetic2 (getter: Element, deprecated)
     session (getter: AnalysisSession?)
+    sinceSdkVersion (getter: Version?)
     accept (method: T? Function<T>(ElementVisitor2<T>))
     accept2 (method: T? Function<T>(ElementVisitor2<T>), deprecated)
     displayString (method: String Function({bool multiline, bool preferTypeAlias}))
@@ -3394,7 +3419,8 @@ package:analyzer/dart/element/element.dart:
   ElementAnnotation (class extends Object):
     new (constructor: ElementAnnotation Function())
     constantEvaluationErrors (getter: List<Diagnostic>?)
-    element2 (getter: Element?)
+    element (getter: Element?)
+    element2 (getter: Element?, deprecated)
     isAlwaysThrows (getter: bool)
     isAwaitNotRequired (getter: bool)
     isDeprecated (getter: bool)
@@ -3510,7 +3536,8 @@ package:analyzer/dart/element/element.dart:
     fragments (getter: List<EnumFragment>)
   EnumFragment (class extends Object implements InterfaceFragment):
     new (constructor: EnumFragment Function())
-    constants2 (getter: List<FieldElement>)
+    constants (getter: List<FieldElement>)
+    constants2 (getter: List<FieldElement>, deprecated)
     element (getter: EnumElement)
     nextFragment (getter: EnumFragment?)
     previousFragment (getter: EnumFragment?)
@@ -3593,7 +3620,7 @@ package:analyzer/dart/element/element.dart:
     nextFragment (getter: FieldFragment?)
     offset (getter: int)
     previousFragment (getter: FieldFragment?)
-  FormalParameterElement (class extends Object implements VariableElement, Annotatable, HasSinceSdkVersion, LocalElement):
+  FormalParameterElement (class extends Object implements VariableElement, Annotatable, LocalElement):
     new (constructor: FormalParameterElement Function())
     baseElement (getter: FormalParameterElement)
     defaultValueCode (getter: String?)
@@ -3626,12 +3653,15 @@ package:analyzer/dart/element/element.dart:
     new (constructor: Fragment Function())
     children (getter: List<Fragment>)
     children3 (getter: List<Fragment>, deprecated)
+    documentationComment (getter: String?)
     element (getter: Element)
     enclosingFragment (getter: Fragment?)
     libraryFragment (getter: LibraryFragment?)
+    metadata (getter: Metadata)
     name (getter: String?)
     name2 (getter: String?, deprecated)
-    nameOffset2 (getter: int?)
+    nameOffset (getter: int?)
+    nameOffset2 (getter: int?, deprecated)
     nextFragment (getter: Fragment?)
     offset (getter: int)
     previousFragment (getter: Fragment?)
@@ -3671,13 +3701,10 @@ package:analyzer/dart/element/element.dart:
     nextFragment (getter: GetterFragment?)
     offset (getter: int)
     previousFragment (getter: GetterFragment?)
-  HasSinceSdkVersion (class extends Object):
-    new (constructor: HasSinceSdkVersion Function())
-    sinceSdkVersion (getter: Version?)
   HideElementCombinator (class extends Object implements NamespaceCombinator):
     new (constructor: HideElementCombinator Function())
     hiddenNames (getter: List<String>)
-  InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement, HasSinceSdkVersion):
+  InstanceElement (class extends Object implements TypeDefiningElement, TypeParameterizedElement):
     new (constructor: InstanceElement Function())
     baseElement (getter: InstanceElement)
     enclosingElement (getter: LibraryElement)
@@ -3745,7 +3772,8 @@ package:analyzer/dart/element/element.dart:
     getOverridden (method: List<ExecutableElement>? Function(Name))
     instantiate (method: InterfaceType Function({required NullabilitySuffix nullabilitySuffix, required List<DartType> typeArguments}))
     lookUpConcreteMethod (method: MethodElement? Function(String, LibraryElement))
-    lookUpInheritedMethod2 (method: MethodElement? Function({required LibraryElement library, required String methodName}))
+    lookUpInheritedMethod (method: MethodElement? Function({required LibraryElement library, required String methodName}))
+    lookUpInheritedMethod2 (method: MethodElement? Function({required LibraryElement library, required String methodName}), deprecated)
   InterfaceFragment (class extends Object implements InstanceFragment):
     new (constructor: InterfaceFragment Function())
     constructors (getter: List<ConstructorFragment>)
@@ -3766,11 +3794,9 @@ package:analyzer/dart/element/element.dart:
   JoinPatternVariableFragment (class extends Object implements PatternVariableFragment):
     new (constructor: JoinPatternVariableFragment Function())
     element (getter: JoinPatternVariableElement)
-    isConsistent (getter: bool)
     nextFragment (getter: JoinPatternVariableFragment?)
     offset (getter: int)
     previousFragment (getter: JoinPatternVariableFragment?)
-    variables2 (getter: List<PatternVariableFragment>)
   LabelElement (class extends Object implements Element):
     new (constructor: LabelElement Function())
     enclosingElement (getter: ExecutableElement?)
@@ -3784,7 +3810,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: LabelElement)
     nextFragment (getter: LabelFragment?)
     previousFragment (getter: LabelFragment?)
-  LibraryElement (class extends Object implements Element, Annotatable, HasSinceSdkVersion):
+  LibraryElement (class extends Object implements Element, Annotatable):
     new (constructor: LibraryElement Function())
     classes (getter: List<ClassElement>)
     entryPoint (getter: TopLevelFunctionElement?)
@@ -3841,20 +3867,28 @@ package:analyzer/dart/element/element.dart:
     new (constructor: LibraryFragment Function())
     accessibleExtensions (getter: List<ExtensionElement>)
     accessibleExtensions2 (getter: List<ExtensionElement>, deprecated)
-    classes2 (getter: List<ClassFragment>)
+    classes (getter: List<ClassFragment>)
+    classes2 (getter: List<ClassFragment>, deprecated)
     element (getter: LibraryElement)
     enclosingFragment (getter: LibraryFragment?)
-    enums2 (getter: List<EnumFragment>)
-    extensionTypes2 (getter: List<ExtensionTypeFragment>)
-    extensions2 (getter: List<ExtensionFragment>)
-    functions2 (getter: List<TopLevelFunctionFragment>)
+    enums (getter: List<EnumFragment>)
+    enums2 (getter: List<EnumFragment>, deprecated)
+    extensionTypes (getter: List<ExtensionTypeFragment>)
+    extensionTypes2 (getter: List<ExtensionTypeFragment>, deprecated)
+    extensions (getter: List<ExtensionFragment>)
+    extensions2 (getter: List<ExtensionFragment>, deprecated)
+    functions (getter: List<TopLevelFunctionFragment>)
+    functions2 (getter: List<TopLevelFunctionFragment>, deprecated)
     getters (getter: List<GetterFragment>)
     importedLibraries (getter: List<LibraryElement>)
     importedLibraries2 (getter: List<LibraryElement>, deprecated)
-    libraryExports2 (getter: List<LibraryExport>)
-    libraryImports2 (getter: List<LibraryImport>)
+    libraryExports (getter: List<LibraryExport>)
+    libraryExports2 (getter: List<LibraryExport>, deprecated)
+    libraryImports (getter: List<LibraryImport>)
+    libraryImports2 (getter: List<LibraryImport>, deprecated)
     lineInfo (getter: LineInfo)
-    mixins2 (getter: List<MixinFragment>)
+    mixins (getter: List<MixinFragment>)
+    mixins2 (getter: List<MixinFragment>, deprecated)
     nextFragment (getter: LibraryFragment?)
     offset (getter: int)
     partIncludes (getter: List<PartInclude>)
@@ -3863,8 +3897,10 @@ package:analyzer/dart/element/element.dart:
     scope (getter: Scope)
     setters (getter: List<SetterFragment>)
     source (getter: Source)
-    topLevelVariables2 (getter: List<TopLevelVariableFragment>)
-    typeAliases2 (getter: List<TypeAliasFragment>)
+    topLevelVariables (getter: List<TopLevelVariableFragment>)
+    topLevelVariables2 (getter: List<TopLevelVariableFragment>, deprecated)
+    typeAliases (getter: List<TypeAliasFragment>)
+    typeAliases2 (getter: List<TypeAliasFragment>, deprecated)
   LibraryImport (class extends Object implements ElementDirective):
     new (constructor: LibraryImport Function())
     combinators (getter: List<NamespaceCombinator>)
@@ -3873,7 +3909,8 @@ package:analyzer/dart/element/element.dart:
     importedLibrary2 (getter: LibraryElement?, deprecated)
     isSynthetic (getter: bool)
     namespace (getter: Namespace)
-    prefix2 (getter: PrefixFragment?)
+    prefix (getter: PrefixFragment?)
+    prefix2 (getter: PrefixFragment?, deprecated)
   LibraryLanguageVersion (class extends Object):
     new (constructor: LibraryLanguageVersion Function({required Version? override, required Version package}))
     effective (getter: Version)
@@ -3901,7 +3938,6 @@ package:analyzer/dart/element/element.dart:
   LocalVariableFragment (class extends Object implements VariableFragment, LocalFragment):
     new (constructor: LocalVariableFragment Function())
     element (getter: LocalVariableElement)
-    nameOffset (getter: int)
     nextFragment (getter: LocalVariableFragment?)
     previousFragment (getter: LocalVariableFragment?)
   Metadata (class extends Object):
@@ -3937,7 +3973,7 @@ package:analyzer/dart/element/element.dart:
     hasVisibleForTesting (getter: bool)
     hasVisibleOutsideTemplate (getter: bool)
     hasWidgetFactory (getter: bool)
-  MethodElement (class extends Object implements ExecutableElement, HasSinceSdkVersion):
+  MethodElement (class extends Object implements ExecutableElement):
     CALL_METHOD_NAME (static getter: String)
     NO_SUCH_METHOD_METHOD_NAME (static getter: String)
     new (constructor: MethodElement Function())
@@ -3956,8 +3992,9 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: MixinFragment)
     fragments (getter: List<MixinFragment>)
     isBase (getter: bool)
+    isImplementableOutside (getter: bool)
     superclassConstraints (getter: List<InterfaceType>)
-    isImplementableIn (method: bool Function(LibraryElement))
+    isImplementableIn (method: bool Function(LibraryElement), deprecated)
     isImplementableIn2 (method: bool Function(LibraryElement), deprecated)
   MixinFragment (class extends Object implements InterfaceFragment):
     new (constructor: MixinFragment Function())
@@ -3967,7 +4004,8 @@ package:analyzer/dart/element/element.dart:
     superclassConstraints (getter: List<InterfaceType>)
   MultiplyDefinedElement (class extends Object implements Element):
     new (constructor: MultiplyDefinedElement Function())
-    conflictingElements2 (getter: List<Element>)
+    conflictingElements (getter: List<Element>)
+    conflictingElements2 (getter: List<Element>, deprecated)
     firstFragment (getter: MultiplyDefinedFragment)
     fragments (getter: List<MultiplyDefinedFragment>)
   MultiplyDefinedFragment (class extends Object implements Fragment):
@@ -4004,7 +4042,8 @@ package:analyzer/dart/element/element.dart:
   PatternVariableFragment (class extends Object implements LocalVariableFragment):
     new (constructor: PatternVariableFragment Function())
     element (getter: PatternVariableElement)
-    join2 (getter: JoinPatternVariableFragment?)
+    join (getter: JoinPatternVariableFragment?)
+    join2 (getter: JoinPatternVariableFragment?, deprecated)
     nextFragment (getter: PatternVariableFragment?)
     previousFragment (getter: PatternVariableFragment?)
   PrefixElement (class extends Object implements Element):
@@ -4031,14 +4070,14 @@ package:analyzer/dart/element/element.dart:
     enclosingElement2 (getter: Element, deprecated)
     firstFragment (getter: PropertyAccessorFragment)
     fragments (getter: List<PropertyAccessorFragment>)
-    variable (getter: PropertyInducingElement?)
+    variable (getter: PropertyInducingElement)
     variable3 (getter: PropertyInducingElement?, deprecated)
   PropertyAccessorFragment (class extends Object implements ExecutableFragment):
     new (constructor: PropertyAccessorFragment Function())
     element (getter: PropertyAccessorElement)
     nextFragment (getter: PropertyAccessorFragment?)
     previousFragment (getter: PropertyAccessorFragment?)
-  PropertyInducingElement (class extends Object implements VariableElement, Annotatable, HasSinceSdkVersion):
+  PropertyInducingElement (class extends Object implements VariableElement, Annotatable):
     new (constructor: PropertyInducingElement Function())
     firstFragment (getter: PropertyInducingFragment)
     fragments (getter: List<PropertyInducingFragment>)
@@ -4085,7 +4124,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: SuperFormalParameterElement)
     nextFragment (getter: SuperFormalParameterFragment?)
     previousFragment (getter: SuperFormalParameterFragment?)
-  TopLevelFunctionElement (class extends Object implements ExecutableElement, HasSinceSdkVersion):
+  TopLevelFunctionElement (class extends Object implements ExecutableElement):
     LOAD_LIBRARY_NAME (static getter: String)
     MAIN_FUNCTION_NAME (static getter: String)
     new (constructor: TopLevelFunctionElement Function())
@@ -4110,7 +4149,7 @@ package:analyzer/dart/element/element.dart:
     element (getter: TopLevelVariableElement)
     nextFragment (getter: TopLevelVariableFragment?)
     previousFragment (getter: TopLevelVariableFragment?)
-  TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement, HasSinceSdkVersion):
+  TypeAliasElement (class extends Object implements TypeParameterizedElement, TypeDefiningElement):
     new (constructor: TypeAliasElement Function())
     aliasedElement (getter: Element?)
     aliasedElement2 (getter: Element?, deprecated)
@@ -4162,11 +4201,11 @@ package:analyzer/dart/element/element.dart:
     element (getter: TypeParameterizedElement)
     nextFragment (getter: TypeParameterizedFragment?)
     previousFragment (getter: TypeParameterizedFragment?)
-    typeParameters2 (getter: List<TypeParameterFragment>)
+    typeParameters (getter: List<TypeParameterFragment>)
+    typeParameters2 (getter: List<TypeParameterFragment>, deprecated)
   VariableElement (class extends Object implements Element):
     new (constructor: VariableElement Function())
-    constantInitializer (getter: ConstantInitializer?)
-    constantInitializer2 (getter: ConstantInitializer?, deprecated)
+    constantInitializer (getter: Expression?)
     firstFragment (getter: VariableFragment)
     fragments (getter: List<VariableFragment>)
     hasImplicitType (getter: bool)
@@ -4179,7 +4218,6 @@ package:analyzer/dart/element/element.dart:
   VariableFragment (class extends Object implements Fragment):
     new (constructor: VariableFragment Function())
     element (getter: VariableElement)
-    initializer (getter: Expression?)
     nextFragment (getter: VariableFragment?)
     previousFragment (getter: VariableFragment?)
   BindPatternVariableElement2 (type alias for BindPatternVariableElement, deprecated)
@@ -4221,7 +4259,6 @@ package:analyzer/dart/element/element2.dart:
   BindPatternVariableFragment (see above)
   ClassElement (see above)
   ClassFragment (see above)
-  ConstantInitializer (see above)
   ConstructorElement (see above)
   ConstructorFragment (see above)
   DirectiveUri (see above)
@@ -4256,7 +4293,6 @@ package:analyzer/dart/element/element2.dart:
   GenericFunctionTypeFragment (see above)
   GetterElement (see above)
   GetterFragment (see above)
-  HasSinceSdkVersion (see above)
   HideElementCombinator (see above)
   InstanceElement (see above)
   InstanceFragment (see above)
@@ -4359,8 +4395,10 @@ package:analyzer/dart/element/scope.dart:
     lookup (method: ScopeLookupResult Function(String))
   ScopeLookupResult (class extends Object):
     new (constructor: ScopeLookupResult Function())
-    getter2 (getter: Element?)
-    setter2 (getter: Element?)
+    getter (getter: Element?)
+    getter2 (getter: Element?, deprecated)
+    setter (getter: Element?)
+    setter2 (getter: Element?, deprecated)
 package:analyzer/dart/element/type.dart:
   DartType (class extends Object):
     new (constructor: DartType Function())
@@ -5177,6 +5215,11 @@ package:analyzer/source/source_range.dart:
     intersects (method: bool Function(SourceRange?))
     startsIn (method: bool Function(SourceRange))
     toString (method: String Function())
+package:analyzer/source/timestamped_data.dart:
+  TimestampedData (class<E> extends Object):
+    new (constructor: TimestampedData<E> Function(int, E))
+    data (getter: E)
+    modificationTime (getter: int)
 package:analyzer/src/dart/analysis/experiments_impl.dart:
   ExperimentalFeature (class extends Object implements Feature):
     new (constructor: ExperimentalFeature Function({List<String> channels, required String documentation, required String enableString, required Version? experimentalReleaseVersion, required int index, required bool isEnabledByDefault, required bool isExpired, required Version? releaseVersion}))
@@ -5205,11 +5248,6 @@ package:analyzer/src/dart/resolver/scope.dart:
     definedNames2 (getter: Map<String, Element>)
     get2 (method: Element? Function(String))
     getPrefixed2 (method: Element? Function(String, String))
-package:analyzer/src/generated/timestamped_data.dart:
-  TimestampedData (class<E> extends Object):
-    new (constructor: TimestampedData<E> Function(int, E))
-    data (getter: E)
-    modificationTime (getter: int)
 package:analyzer/src/lint/config.dart:
   RuleConfig (non-public)
 package:analyzer/src/workspace/workspace.dart:

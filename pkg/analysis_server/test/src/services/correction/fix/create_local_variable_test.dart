@@ -222,8 +222,6 @@ void f() {
   }
 
   Future<void> test_withImport() async {
-    useLineEndingsForPlatform = false;
-
     newFile('$workspaceRootPath/pkg/lib/a/a.dart', '''
 class A {}
 ''');
@@ -261,8 +259,8 @@ import 'package:pkg/c/c.dart';
 
 void f() {
   A? a;
-  B b;
-  new C(a, b);
+  /*0*/B /*1*/b;
+  new C(a, /*2*/b);
 }
 ''');
     var groups = change.linkedEditGroups;
@@ -270,12 +268,12 @@ void f() {
     var typeGroup = groups[0];
     var typePositions = typeGroup.positions;
     expect(typePositions, hasLength(1));
-    expect(typePositions[0].offset, 115);
+    expect(typePositions[0].offset, parsedExpectedCode.positions[0].offset);
     var nameGroup = groups[1];
     var groupPositions = nameGroup.positions;
     expect(groupPositions, hasLength(2));
-    expect(groupPositions[0].offset, 117);
-    expect(groupPositions[1].offset, 131);
+    expect(groupPositions[0].offset, parsedExpectedCode.positions[1].offset);
+    expect(groupPositions[1].offset, parsedExpectedCode.positions[2].offset);
   }
 
   Future<void> test_write_assignment() async {

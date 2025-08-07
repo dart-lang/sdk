@@ -556,9 +556,9 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
   options.librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json");
   options.environmentDefines = const {};
   options.packagesFileUri = computePackageConfig(repoDir);
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
-    if (message.severity == Severity.error) {
+    if (message.severity == CfeSeverity.error) {
       errorsFound = true;
     }
   };

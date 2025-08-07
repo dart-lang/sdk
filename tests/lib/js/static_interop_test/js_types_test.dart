@@ -246,6 +246,9 @@ void syncTests() {
   arrN = JSArray.from<JSNumber>(arrN);
   Expect.equals(1, arrN.length);
   Expect.equals(1, arrN[0].toDartInt);
+  arrN.add(0.toJS);
+  Expect.equals(2, arrN.length);
+  Expect.equals(0, arrN[1].toDartInt);
   final typedArray = JSArray.from<JSNumber>(JSUint8Array.withLength(4));
   Expect.equals(4, typedArray.length);
   Expect.equals(0, typedArray[0].toDartInt);

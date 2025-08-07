@@ -2030,7 +2030,15 @@ SwitchDispatch:
       const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      *++SP = LOAD_CONSTANT(kidx);
+      ObjectPtr target = LOAD_CONSTANT(kidx);
+      *++SP = target;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+      if (target->IsArray()) {
+        // Hot reload failed to find a suitable target for this call.
+        goto ThrowNoSuchMethodError;
+      }
+#endif
+      ASSERT(target->IsFunction());
       ObjectPtr* call_base = SP - argc;
       ObjectPtr* call_top = SP;
       argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
@@ -2051,7 +2059,15 @@ SwitchDispatch:
       const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      *++SP = LOAD_CONSTANT(kidx);
+      ObjectPtr target = LOAD_CONSTANT(kidx);
+      *++SP = target;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+      if (target->IsArray()) {
+        // Hot reload failed to find a suitable target for this call.
+        goto ThrowNoSuchMethodError;
+      }
+#endif
+      ASSERT(target->IsFunction());
       ObjectPtr* call_base = SP - argc;
       ObjectPtr* call_top = SP;
       argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
@@ -3617,9 +3633,50 @@ SwitchDispatch:
     ASSERT(Function::KindOf(target) !=
            UntaggedFunction::kDynamicInvocationForwarder);
 
-    // TODO(alexmarkov): add parameter type checks.
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
 
     SP[1] = target;
+    SP[2] = argdesc_;
+
+    // Allocate array of arguments.
+    {
+      SP[3] = null_value;      // Reserve space for result.
+      SP[4] = Smi::New(argc);  // length
+      SP[5] = null_value;      // type
+      Exit(thread, FP, SP + 6, pc);
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                         NativeArguments(thread, 2, SP + 4, SP + 3))) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    // Copy arguments into the newly allocated array.
+    ObjectPtr* argv = FrameArguments(FP, argc);
+    ArrayPtr array = Array::RawCast(SP[3]);
+    for (intptr_t i = 0; i < argc; i++) {
+      array->untag()->set_element(i, argv[i], thread);
+    }
+
+    // Check types of arguments.
+    {
+      SP[4] = null_value;  // Reserve space for result.
+      Exit(thread, FP, SP + 5, pc);
+      if (!InvokeRuntime(thread, this, DRT_CheckFunctionArgumentTypes,
+                         NativeArguments(thread, 3, SP + 1, SP + 4))) {
+        HANDLE_EXCEPTION;
+      }
+
+      argdesc_ = Array::RawCast(SP[2]);
+
+      if (SP[4] != true_value) {
+        goto NoSuchMethodFromPrologue;
+      }
+    }
+
     goto TailCallSP1;
   }
 
@@ -3973,6 +4030,18 @@ SwitchDispatch:
     INVOKE_RUNTIME(DRT_ArgumentError, NativeArguments(thread, 1, SP, SP + 1));
     UNREACHABLE();
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+  {
+  ThrowNoSuchMethodError:
+    // SP[0] contains arguments.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    INVOKE_RUNTIME(DRT_NoSuchMethodError,
+                   NativeArguments(thread, 1, SP, SP + 1));
+    UNREACHABLE();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
 
   // Exception handling helper. Gets handler FP and PC from the Interpreter
   // where they were stored by Interpreter::Longjmp and proceeds to execute the

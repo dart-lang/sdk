@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.9.0-0
+  sdk: ^3.10.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:
@@ -34,6 +34,7 @@ workspace:
   - pkg/dart2native
   - pkg/dart2wasm
   - pkg/dartdev
+  - pkg/dart_data_home
   - pkg/dart_internal
   - pkg/dart_service_protocol_shared
   - pkg/dds
@@ -77,6 +78,7 @@ workspace:
   - pkg/vm_snapshot_analysis
   - pkg/wasm_builder
   - runtime/tests/vm/dart
+  - runtime/tools
   - runtime/tools/profiling
   - samples/ffi/http
   - samples/ffi/httpIG
@@ -92,22 +94,6 @@ workspace:
 
 # All third_party packages are retrieved via the DEPS-file and overridden here.
 dependency_overrides:
-  _experiment_sound:
-    path: third_party/pkg/webdev/fixtures/_experimentSound
-  _test_circular1_sound:
-    path: third_party/pkg/webdev/fixtures/_testCircular1Sound
-  _test_circular2_sound:
-    path: third_party/pkg/webdev/fixtures/_testCircular2Sound
-  _test_hot_restart1:
-    path: third_party/pkg/webdev/fixtures/_testHotRestart1Sound
-  _test_hot_restart2:
-    path: third_party/pkg/webdev/fixtures/_testHotRestart2Sound
-  _test_package_sound:
-    path: third_party/pkg/webdev/fixtures/_testPackageSound
-  _test_sound:
-    path: third_party/pkg/webdev/fixtures/_testSound
-  _webdev_sound_smoke:
-    path: third_party/pkg/webdev/fixtures/_webdevSoundSmoke
   analysis_config:
     path: third_party/pkg/webdev/_analysis_config
   args:

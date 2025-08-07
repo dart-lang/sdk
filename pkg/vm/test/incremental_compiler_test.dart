@@ -10,7 +10,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         ExperimentalFlag,
         IncrementalCompilerResult,
         computePlatformBinariesLocation;
@@ -39,7 +39,7 @@ main() {
       ..sdkRoot = sdkRoot
       ..target = new VmTarget(new TargetFlags())
       ..additionalDills = <Uri>[platformKernel]
-      ..onDiagnostic = (DiagnosticMessage message) {
+      ..onDiagnostic = (CfeDiagnosticMessage message) {
         fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
       }
       ..environmentDefines = const {};
@@ -122,7 +122,7 @@ main() {
       var errorsReported = 0;
       CompilerOptions optionsAcceptErrors =
           getFreshOptions()
-            ..onDiagnostic = (DiagnosticMessage message) {
+            ..onDiagnostic = (CfeDiagnosticMessage message) {
               errorsReported++;
               message.plainTextFormatted.forEach(print);
             };
@@ -1381,7 +1381,7 @@ main() {
 
         CompilerOptions optionsModified =
             getFreshOptions()
-              ..onDiagnostic = (DiagnosticMessage message) {
+              ..onDiagnostic = (CfeDiagnosticMessage message) {
                 // sometimes expected on this one.
                 print(message.ansiFormatted);
               };

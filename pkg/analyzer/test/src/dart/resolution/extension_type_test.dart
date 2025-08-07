@@ -83,12 +83,14 @@ ExtensionTypeDeclaration
           period: .
           name: it
           declaredElement: <testLibraryFragment> it@42
-            type: int
+            element: hasImplicitType isFinal isPublic
+              type: int
         rightParenthesis: )
       body: EmptyFunctionBody
         semicolon: ;
       declaredElement: <testLibraryFragment> named@31
-        type: A Function(int)
+        element: <testLibrary>::@extensionType::A::@constructor::named
+          type: A Function(int)
   rightBracket: }
   declaredElement: <testLibraryFragment> A@15
 ''');
@@ -136,7 +138,8 @@ ExtensionTypeDeclaration
             type: int
           name: a
           declaredElement: <testLibraryFragment> a@47
-            type: int
+            element: isPublic
+              type: int
         rightParenthesis: )
       separator: :
       initializers
@@ -153,7 +156,8 @@ ExtensionTypeDeclaration
       body: EmptyFunctionBody
         semicolon: ;
       declaredElement: <testLibraryFragment> named@37
-        type: A Function(int)
+        element: <testLibrary>::@extensionType::A::@constructor::named
+          type: A Function(int)
   rightBracket: }
   declaredElement: <testLibraryFragment> A@15
 ''');
@@ -255,7 +259,8 @@ MethodDeclaration
         type: T
       name: t
       declaredElement: <testLibraryFragment> t@46
-        type: T
+        element: isPublic
+          type: T
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
@@ -263,7 +268,8 @@ MethodDeclaration
         type: U
       name: u
       declaredElement: <testLibraryFragment> u@51
-        type: U
+        element: isPublic
+          type: U
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
@@ -283,7 +289,8 @@ MethodDeclaration
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@37
-    type: void Function<U>(T, U)
+    element: <testLibrary>::@extensionType::A::@method::foo
+      type: void Function<U>(T, U)
 ''');
   }
 

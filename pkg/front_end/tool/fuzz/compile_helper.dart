@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
@@ -59,7 +59,7 @@ class Helper {
     options!.sdkRoot = null;
     options!.sdkSummary = sdkSummary;
     options!.omitPlatform = true;
-    options!.onDiagnostic = (DiagnosticMessage message) {
+    options!.onDiagnostic = (CfeDiagnosticMessage message) {
       diagnostics[message.severity.toString()] =
           (diagnostics[message.severity.toString()] ?? 0) + 1;
     };

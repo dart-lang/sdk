@@ -15,6 +15,7 @@ import 'package:kernel/type_environment.dart';
 import '../api_prototype/lowering_predicates.dart';
 import '../base/constant_context.dart';
 import '../base/local_scope.dart';
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart';

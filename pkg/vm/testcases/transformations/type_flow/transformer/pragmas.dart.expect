@@ -35,13 +35,13 @@ class Foo extends core::Object {
   method bar() → void {
     @#C16
     function bazz() → void {}
-    [@vm.inferred-type.metadata=!? (receiver not int)] bazz(){() → void};
+    [@vm.inferred-type.metadata=? (receiver not int)] bazz(){() → void};
   }
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → dynamic {
-  [@vm.direct-call.metadata=#lib::Foo.bar] [@vm.inferred-type.metadata=!? (skip check)] new self::Foo::•().{self::Foo::bar}(){() → void};
+  [@vm.direct-call.metadata=#lib::Foo.bar] [@vm.inferred-type.metadata=? (skip check)] new self::Foo::•().{self::Foo::bar}(){() → void};
 }
 constants  {
   #C1 = "test1"

@@ -157,8 +157,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
       if (fragment != null) {
         var element = fragment.element;
         constantsToCompute.add(element);
-        // TODO(scheglov): remove cast
-        constantsToCompute.addAll(element.baseElement.formalParameters.cast());
+        constantsToCompute.addAll(element.baseElement.formalParameters);
       }
     }
   }
@@ -182,7 +181,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     constantsToCompute.add(element);
 
     configuration.addErrorNode(
-      fromElement: element.constantInitializer?.expression,
+      fromElement: element.constantInitializer,
       fromAst: node,
     );
   }
@@ -202,7 +201,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
       // Fill error nodes.
       if (element.constantInitializer case var constantInitializer?) {
         configuration.addErrorNode(
-          fromElement: constantInitializer.expression,
+          fromElement: constantInitializer,
           fromAst: node.initializer,
         );
       }

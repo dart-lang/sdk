@@ -181,10 +181,6 @@ abstract interface class TypeAnalyzerOperations<
     covariant SharedType type2,
   );
 
-  /// Returns the greatest closure of [schema] with respect to the unknown type
-  /// (`_`).
-  SharedTypeView greatestClosure(SharedTypeSchemaView schema);
-
   /// Computes the greatest closure of a type.
   ///
   /// Computing the greatest closure of a type is described here:
@@ -753,6 +749,64 @@ abstract interface class TypeAnalyzerOperations<
   ///   * `List<_>`,
   ///   * `_ Function(_)`.
   bool isKnownType(SharedTypeSchemaView typeSchema);
+
+  /// Computes the greatest closure of a type schema.
+  ///
+  /// The greatest closure of a type schema is defined in
+  /// https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
+  ///
+  /// The [topType] parameter is needed to account for the known discrepancy in
+  /// the implementations between the CFE and the Analyzer. For details, see
+  /// https://github.com/dart-lang/language/issues/4466.
+  //TODO(cstefantsova): Remove [topType] when the discrepancy is resolved.
+  SharedTypeView greatestClosureOfSchema(
+    SharedTypeSchemaView schema, {
+    SharedTypeView? topType,
+  });
+
+  /// Computes the least closure of a type schema.
+  ///
+  /// The least closure of a type schema is defined in
+  /// https://github.com/dart-lang/language/blob/main/accepted/future-releases/0323-null-aware-elements/feature-specification.md
+  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema);
+
+  /// Computes the constraint solution for a type parameter based on a given
+  /// set of constraints.
+  ///
+  /// For example given:
+  ///
+  ///     bool Function(T) makeComparer<T>(T x) => (T y) => x == y;
+  ///
+  ///     main() {
+  ///       bool Function(num) t = makeComparer/* infer <num> */(42);
+  ///       print(t(42.0)); /// false, no error.
+  ///     }
+  ///
+  /// The constraints we collect are:
+  ///
+  /// * `num <: T`
+  /// * `int <: T`
+  ///
+  /// ... and no upper bound. Therefore the lower bound is the best choice.
+  ///
+  /// If [grounded] is `true`, then the returned type is guaranteed to be a
+  /// known type (i.e. it will not contain any instances of `?`) if it is
+  /// constrained at all.  The returned type for unconstrained variables is
+  /// `?`.
+  ///
+  /// If [isContravariant] is `true`, then we are solving for a contravariant
+  /// type parameter which means we choose the upper bound rather than the
+  /// lower bound for normally covariant type parameters.
+  ///
+  /// The algorithm for computing the constraint solution for a type variable
+  /// is described in
+  /// https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#constraint-solution-for-a-type-variable.
+  SharedType chooseTypeFromConstraint(
+    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    constraint, {
+    required bool grounded,
+    required bool isContravariant,
+  });
 }
 
 mixin TypeAnalyzerOperationsMixin<
@@ -1066,6 +1120,63 @@ mixin TypeAnalyzerOperationsMixin<
   @override
   SharedTypeSchemaView typeToSchema(SharedTypeView type) {
     return new SharedTypeSchemaView(type.unwrapTypeView());
+  }
+
+  @override
+  SharedType chooseTypeFromConstraint(
+    MergedTypeConstraint<Variable, TypeDeclarationType, TypeDeclaration>
+    constraint, {
+    required bool grounded,
+    required bool isContravariant,
+  }) {
+    if (!isContravariant) {
+      // Prefer the known bound, if any.
+      if (isKnownType(constraint.lower)) {
+        return constraint.lower.unwrapTypeSchemaView();
+      }
+      if (isKnownType(constraint.upper)) {
+        return constraint.upper.unwrapTypeSchemaView();
+      }
+
+      // Otherwise take whatever bound has partial information,
+      // e.g. `Iterable<?>`
+      if (constraint.lower is! SharedUnknownTypeSchemaView) {
+        return grounded
+            ? leastClosureOfSchema(constraint.lower).unwrapTypeView()
+            : constraint.lower.unwrapTypeSchemaView();
+      } else if (constraint.upper is! SharedUnknownTypeSchemaView) {
+        return grounded
+            ? greatestClosureOfSchema(constraint.upper).unwrapTypeView()
+            : constraint.upper.unwrapTypeSchemaView();
+      } else {
+        assert(constraint.lower is SharedUnknownTypeSchemaView);
+        return constraint.lower.unwrapTypeSchemaView();
+      }
+    } else {
+      // Prefer the known bound, if any.
+      if (isKnownType(constraint.upper)) {
+        return constraint.upper.unwrapTypeSchemaView();
+      }
+      if (isKnownType(constraint.lower)) {
+        return constraint.lower.unwrapTypeSchemaView();
+      }
+
+      // Otherwise take whatever bound has partial information,
+      // e.g. `Iterable<?>`
+      if (constraint.upper is! SharedUnknownTypeSchemaView) {
+        // Coverage-ignore-block(suite): Not run.
+        return grounded
+            ? greatestClosureOfSchema(constraint.upper).unwrapTypeView()
+            : constraint.upper.unwrapTypeSchemaView();
+      } else if (constraint.lower is! SharedUnknownTypeSchemaView) {
+        return grounded
+            ? leastClosureOfSchema(constraint.lower).unwrapTypeView()
+            : constraint.lower.unwrapTypeSchemaView();
+      } else {
+        assert(constraint.upper is SharedUnknownTypeSchemaView);
+        return constraint.upper.unwrapTypeSchemaView();
+      }
+    }
   }
 }
 

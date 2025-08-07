@@ -151,25 +151,25 @@ class DuplicateDefinitionVerifier {
           definedSetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.classes2) {
+      for (var fragment in libraryFragment.classes) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.enums2) {
+      for (var fragment in libraryFragment.enums) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.extensions2) {
+      for (var fragment in libraryFragment.extensions) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.extensionTypes2) {
+      for (var fragment in libraryFragment.extensionTypes) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
@@ -181,7 +181,7 @@ class DuplicateDefinitionVerifier {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.mixins2) {
+      for (var fragment in libraryFragment.mixins) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
@@ -670,12 +670,12 @@ class MemberDuplicateDefinitionVerifier {
       if (accessor.isStatic) {
         continue;
       }
-      if (accessor.source != _currentUnit.source) {
+      if (accessor.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = accessor.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is MethodElement2OrMember) {
+      if (inherited is InternalMethodElement) {
         _diagnosticReporter.atElement2(
           accessor.asElement2,
           CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
@@ -692,12 +692,12 @@ class MemberDuplicateDefinitionVerifier {
       if (method.isStatic) {
         continue;
       }
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = method.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is PropertyAccessorElement2OrMember) {
+      if (inherited is InternalPropertyAccessorElement) {
         _diagnosticReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
@@ -720,7 +720,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     for (var accessor in fragment.accessors) {
-      if (accessor.source != _currentUnit.source) {
+      if (accessor.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = accessor.displayName;
@@ -737,7 +737,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     for (var method in fragment.methods) {
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = method.displayName;
@@ -881,7 +881,7 @@ class MemberDuplicateDefinitionVerifier {
         _InstanceElementContext();
   }
 
-  ExecutableElement2OrMember? _getInheritedMember(
+  InternalExecutableElement? _getInheritedMember(
     InterfaceElementImpl element,
     String baseName,
   ) {
@@ -897,7 +897,7 @@ class MemberDuplicateDefinitionVerifier {
     return _inheritanceManager.getInherited(element, setterName);
   }
 
-  ExecutableElement2OrMember? _getInterfaceMember(
+  InternalExecutableElement? _getInterfaceMember(
     InterfaceElementImpl element,
     String baseName,
   ) {

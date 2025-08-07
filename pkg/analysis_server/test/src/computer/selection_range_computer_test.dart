@@ -627,7 +627,7 @@ void f() {
   }
 
   Future<List<SelectionRange>?> _computeSelectionRanges(String content) async {
-    code = TestCode.parse(normalizeSource(content));
+    code = TestCode.parseNormalized(content);
     var file = newFile(sourcePath, code.code);
     var result = await getResolvedUnit(file);
     var computer = DartSelectionRangeComputer(

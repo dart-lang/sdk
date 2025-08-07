@@ -163,7 +163,7 @@ ClassBuilder? lookupClassBuilder(
       compilerResult, cls.enclosingLibrary,
       required: required)!;
   ClassBuilder? clsBuilder = libraryBuilder.libraryNameSpace
-      .lookupLocalMember(cls.name)
+      .lookup(cls.name)
       ?.getable as ClassBuilder?;
   if (clsBuilder == null && required) {
     throw new ArgumentError("ClassBuilder for $cls not found.");
@@ -199,7 +199,7 @@ ExtensionTypeDeclarationBuilder? lookupExtensionTypeDeclarationBuilder(
       required: required)!;
   ExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder;
   Builder? builder = libraryBuilder.libraryNameSpace
-      .lookupLocalMember(extensionTypeDeclaration.name)
+      .lookup(extensionTypeDeclaration.name)
       ?.getable;
   if (builder is ExtensionTypeDeclarationBuilder &&
       builder.extensionTypeDeclaration == extensionTypeDeclaration) {
@@ -223,11 +223,11 @@ MemberBuilder? lookupClassMemberBuilder(InternalCompilerResult compilerResult,
   MemberBuilder? memberBuilder;
   if (classBuilder != null) {
     if (member is Constructor || member is Procedure && member.isFactory) {
-      memberBuilder = classBuilder.nameSpace.lookupConstructor(memberName);
+      memberBuilder =
+          classBuilder.nameSpace.lookupConstructor(memberName)?.getable;
     } else {
       bool isSetter = member is Procedure && member.isSetter;
-      LookupResult? result =
-          classBuilder.nameSpace.lookupLocalMember(memberName);
+      LookupResult? result = classBuilder.nameSpace.lookup(memberName);
       memberBuilder =
           (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
     }
@@ -290,7 +290,7 @@ MemberBuilder? lookupMemberBuilder(
         required: required)!;
     bool isSetter = member is Procedure && member.isSetter;
     LookupResult? result =
-        libraryBuilder.libraryNameSpace.lookupLocalMember(member.name.text);
+        libraryBuilder.libraryNameSpace.lookup(member.name.text);
     memberBuilder =
         (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
   }
@@ -314,8 +314,7 @@ MemberBuilder? lookupExtensionMemberBuilder(
   MemberBuilder? memberBuilder;
   if (extensionBuilder != null) {
     bool isSetter = member is Procedure && member.isSetter;
-    LookupResult? result =
-        extensionBuilder.nameSpace.lookupLocalMember(memberName);
+    LookupResult? result = extensionBuilder.nameSpace.lookup(memberName);
     memberBuilder =
         (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
   }
@@ -342,11 +341,10 @@ MemberBuilder? lookupExtensionTypeMemberBuilder(
   if (extensionTypeBuilder != null) {
     if (isConstructor) {
       memberBuilder =
-          extensionTypeBuilder.nameSpace.lookupConstructor(memberName);
+          extensionTypeBuilder.nameSpace.lookupConstructor(memberName)?.getable;
     } else {
       bool isSetter = member is Procedure && member.isSetter;
-      LookupResult? result =
-          extensionTypeBuilder.nameSpace.lookupLocalMember(memberName);
+      LookupResult? result = extensionTypeBuilder.nameSpace.lookup(memberName);
       memberBuilder =
           (isSetter ? result?.setable : result?.getable) as MemberBuilder?;
     }

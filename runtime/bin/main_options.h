@@ -7,6 +7,7 @@
 
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
+#include "bin/options.h"
 #include "platform/globals.h"
 #include "platform/growable_array.h"
 #include "platform/hashmap.h"
@@ -27,6 +28,8 @@ namespace bin {
   V(root_certs_cache, root_certs_cache)                                        \
   V(namespace, namespc)                                                        \
   V(write_service_info, vm_write_service_info_filename)                        \
+  V(executable_name, executable_name)                                          \
+  V(resolved_executable_name, resolved_executable_name)                        \
   /* The purpose of these flags is documented in */                            \
   /* pkg/dartdev/lib/src/commands/compilation_server.dart. */                  \
   V(resident_server_info_file, resident_server_info_file_path)                 \
@@ -44,11 +47,8 @@ namespace bin {
   V(short_socket_read, short_socket_read)                                      \
   V(short_socket_write, short_socket_write)                                    \
   V(disable_exit, exit_disabled)                                               \
-  V(preview_dart_2, nop_option)                                                \
   V(suppress_core_dump, suppress_core_dump)                                    \
   V(enable_service_port_fallback, enable_service_port_fallback)                \
-  V(disable_dart_dev, disable_dart_dev)                                        \
-  V(no_dds, disable_dds)                                                       \
   V(long_ssl_cert_evaluation, long_ssl_cert_evaluation)                        \
   V(bypass_trusting_system_roots, bypass_trusting_system_roots)                \
   V(delayed_filewatch_callback, delayed_filewatch_callback)                    \
@@ -85,8 +85,7 @@ namespace bin {
   V(ProcessEnvironmentOption)                                                  \
   V(ProcessEnableVmServiceOption)                                              \
   V(ProcessObserveOption)                                                      \
-  V(ProcessProfileMicrotasksOption)                                            \
-  V(ProcessVMDebuggingOptions)
+  V(ProcessDdsOption)
 
 // This enum must match the strings in kSnapshotKindNames in main_options.cc.
 enum SnapshotKind {
@@ -95,7 +94,6 @@ enum SnapshotKind {
   kAppJIT,
 };
 
-// This enum must match the strings in kVerbosityLevelNames in main_options.cc.
 enum VerbosityLevel {
   kError,
   kWarning,
@@ -103,9 +101,9 @@ enum VerbosityLevel {
   kAll,
 };
 
-static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
-static constexpr int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
-static constexpr int INVALID_VM_SERVICE_SERVER_PORT = -1;
+static const char* const kVerbosityLevelNames[] = {
+    "error", "warning", "info", "all", nullptr,
+};
 
 class Options {
  public:
@@ -117,8 +115,7 @@ class Options {
                              CommandLineOptions* vm_options,
                              char** script_name,
                              CommandLineOptions* dart_options,
-                             bool* print_flags_seen,
-                             bool* verbose_debug_seen);
+                             bool* print_flags_seen);
 
 #define STRING_OPTION_GETTER(flag, variable)                                   \
   static const char* variable() { return variable##_; }
@@ -149,21 +146,14 @@ class Options {
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
-  static bool preview_dart_2() { return true; }
-
   static dart::SimpleHashMap* environment() { return environment_; }
 
   static bool enable_vm_service() { return enable_vm_service_; }
+#if !defined(PRODUCT)
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
-
-  // TODO(bkonyi): remove once DartDev moves to AOT and this flag can be
-  // provided directly to the process spawned by `dart run` and `dart test`.
-  //
-  // See https://github.com/dart-lang/sdk/issues/53576
-  static void set_mark_main_isolate_as_system_isolate(bool state) {
-    mark_main_isolate_as_system_isolate_ = state;
-  }
+#endif  // !defined(PRODUCT)
+  static bool enable_dds() { return enable_dds_; }
 
   static Dart_KernelCompilationVerbosityLevel verbosity_level() {
     return VerbosityLevelToDartAPI(verbosity_);
@@ -238,9 +228,13 @@ class Options {
   }
 
   // VM Service argument processing.
-  static const char* vm_service_server_ip_;
   static bool enable_vm_service_;
+#if !defined(PRODUCT)
+  static const char* vm_service_server_ip_;
   static int vm_service_server_port_;
+#endif  // !defined(PRODUCT)
+  static bool enable_dds_;
+
   static bool ExtractPortAndAddress(const char* option_value,
                                     int* out_port,
                                     const char** out_ip,

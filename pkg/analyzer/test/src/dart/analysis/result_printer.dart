@@ -422,7 +422,7 @@ class DriverEventsPrinter {
       case LibraryElementResultImpl():
         writeLibrary(
           sink: sink,
-          library: result.element2,
+          library: result.element,
           configuration: configuration.elementTextConfiguration,
         );
       default:
@@ -483,8 +483,8 @@ class DriverEventsPrinter {
         sink.writeProperties({
           'fragmentUri': failure.fragmentUri,
           'exportedUri': failure.exportedUri,
+          'expected': failure.expectedCount,
           'actual': failure.actualCount,
-          'required': failure.requiredCount,
         });
       case ExportIdMismatch():
         sink.writelnWithIndent('exportIdMismatch');
@@ -1276,39 +1276,43 @@ class LibraryManifestPrinter {
     if (node != null) {
       sink.writelnWithIndent(name);
       sink.withIndent(() {
-        sink.writelnWithIndent('tokenBuffer: ${node.tokenBuffer}');
-        sink.writelnWithIndent('tokenLengthList: ${node.tokenLengthList}');
+        if (node.isValid) {
+          sink.writelnWithIndent('tokenBuffer: ${node.tokenBuffer}');
+          sink.writelnWithIndent('tokenLengthList: ${node.tokenLengthList}');
 
-        if (node.elements.isNotEmpty) {
-          sink.writelnWithIndent('elements');
-          sink.withIndent(() {
-            for (var (index, element) in node.elements.indexed) {
-              sink.writeWithIndent('[$index] ');
-              _writelnElement(element);
-            }
-          });
-        }
+          if (node.elements.isNotEmpty) {
+            sink.writelnWithIndent('elements');
+            sink.withIndent(() {
+              for (var (index, element) in node.elements.indexed) {
+                sink.writeWithIndent('[$index] ');
+                _writelnElement(element);
+              }
+            });
+          }
 
-        if (node.elementIndexList.isNotEmpty) {
-          sink.writeElements('elementIndexList', node.elementIndexList, (
-            index,
-          ) {
-            var (kind, rawIndex) = ManifestAstElementKind.decode(index);
-            switch (kind) {
-              case ManifestAstElementKind.null_:
-                sink.writelnWithIndent('$index = null');
-              case ManifestAstElementKind.dynamic_:
-                sink.writelnWithIndent('$index = dynamic');
-              case ManifestAstElementKind.formalParameter:
-                sink.writelnWithIndent('$index = formalParameter $rawIndex');
-              case ManifestAstElementKind.importPrefix:
-                sink.writelnWithIndent('$index = importPrefix');
-              case ManifestAstElementKind.typeParameter:
-                sink.writelnWithIndent('$index = typeParameter $rawIndex');
-              case ManifestAstElementKind.regular:
-                sink.writelnWithIndent('$index = element $rawIndex');
-            }
-          });
+          if (node.elementIndexList.isNotEmpty) {
+            sink.writeElements('elementIndexList', node.elementIndexList, (
+              index,
+            ) {
+              var (kind, rawIndex) = ManifestAstElementKind.decode(index);
+              switch (kind) {
+                case ManifestAstElementKind.null_:
+                  sink.writelnWithIndent('$index = null');
+                case ManifestAstElementKind.dynamic_:
+                  sink.writelnWithIndent('$index = dynamic');
+                case ManifestAstElementKind.formalParameter:
+                  sink.writelnWithIndent('$index = formalParameter $rawIndex');
+                case ManifestAstElementKind.importPrefix:
+                  sink.writelnWithIndent('$index = importPrefix');
+                case ManifestAstElementKind.typeParameter:
+                  sink.writelnWithIndent('$index = typeParameter $rawIndex');
+                case ManifestAstElementKind.regular:
+                  sink.writelnWithIndent('$index = element $rawIndex');
+              }
+            });
+          }
+        } else {
+          sink.writelnWithIndent('isValid: ${node.isValid}');
         }
       });
     }
@@ -1481,13 +1485,13 @@ class ResolvedLibraryResultPrinter {
       return;
     }
 
-    _libraryElement = result.element2;
+    _libraryElement = result.element;
 
     var id = idProvider[result];
     sink.writelnWithIndent('ResolvedLibraryResult $id');
 
     sink.withIndent(() {
-      elementPrinter.writeNamedElement2('element', result.element2);
+      elementPrinter.writeNamedElement2('element', result.element);
       sink.writeElements('units', result.units, _writeResolvedUnitResult);
     });
   }
@@ -1552,7 +1556,7 @@ class ResolvedUnitResultPrinter {
 
       // Don't write, just check.
       if (libraryElement != null) {
-        expect(result.libraryElement2, same(libraryElement));
+        expect(result.libraryElement, same(libraryElement));
       }
 
       sink.writeFlags({

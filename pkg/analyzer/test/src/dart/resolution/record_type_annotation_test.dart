@@ -89,7 +89,8 @@ FormalParameterList
       type: InvalidType
     name: x
     declaredElement: <testLibraryFragment> x@45
-      type: InvalidType
+      element: isPublic
+        type: InvalidType
   rightParenthesis: )
 ''');
   }
@@ -114,7 +115,8 @@ FormalParameterList
       type: InvalidType
     name: x
     declaredElement: <testLibraryFragment> x@37
-      type: InvalidType
+      element: isPublic
+        type: InvalidType
   rightParenthesis: )
 ''');
   }

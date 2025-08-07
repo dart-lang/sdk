@@ -104,8 +104,6 @@ void f() {
   }
 
   Future<void> test_createChange_inOtherFile() async {
-    useLineEndingsForPlatform = false;
-
     var b = convertPath('$testPackageLibPath/b.dart');
 
     addTestSource(r'''
@@ -204,6 +202,12 @@ class A {
 class B extends A {
   B({required super.test});
 }
+class C extends B {
+  C({required super.test});
+}
+class D extends C {
+  D({required super.test});
+}
 ''');
     // configure refactoring
     createRenameRefactoringAtString('test}); // 0');
@@ -218,12 +222,16 @@ class A {
 class B extends A {
   B({required super.newName});
 }
+class C extends B {
+  C({required super.newName});
+}
+class D extends C {
+  D({required super.newName});
+}
 ''');
   }
 
   Future<void> test_createChange_updateHierarchy() async {
-    useLineEndingsForPlatform = false;
-
     await indexUnit('$testPackageLibPath/test2.dart', '''
 library test2;
 class A {

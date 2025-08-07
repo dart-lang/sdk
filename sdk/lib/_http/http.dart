@@ -1266,7 +1266,7 @@ abstract interface class HttpClient {
     if (enabled != _enableTimelineLogging) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         postEvent('HttpTimelineLoggingStateChange', {
-          'isolateId': Service.getIsolateID(Isolate.current),
+          'isolateId': Service.getIsolateId(Isolate.current),
           'enabled': enabled,
         });
       }

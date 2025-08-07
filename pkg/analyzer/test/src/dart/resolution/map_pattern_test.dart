@@ -44,7 +44,6 @@ MapPattern
           type: String
         name: a
         declaredFragment: isPublic a@47
-          type: String
           element: isPublic
             type: String
         matchedValueType: dynamic
@@ -80,7 +79,6 @@ MapPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@44
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -128,7 +126,6 @@ MapPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@57
-          type: null
           element: hasImplicitType isPublic
             type: String
         matchedValueType: String
@@ -287,7 +284,6 @@ MapPattern
         keyword: var
         name: rest
         declaredFragment: isPublic rest@57
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -320,7 +316,6 @@ MapPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@50
-          type: null
           element: hasImplicitType isPublic
             type: String
         matchedValueType: String
@@ -365,7 +360,6 @@ MapPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@62
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -447,7 +441,6 @@ MapPattern
           type: int
         name: a
         declaredFragment: isPublic a@43
-          type: int
           element: isPublic
             type: int
         matchedValueType: Object?
@@ -480,7 +473,6 @@ MapPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@43
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -564,7 +556,6 @@ MapPattern
         keyword: var
         name: a
         declaredFragment: isPublic a@54
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -636,7 +627,6 @@ PatternVariableDeclaration
         value: DeclaredVariablePattern
           name: a
           declaredFragment: isPublic a@40
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -690,7 +680,6 @@ PatternVariableDeclaration
         value: DeclaredVariablePattern
           name: a
           declaredFragment: isPublic a@35
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -744,7 +733,6 @@ PatternVariableDeclaration
             type: int
           name: a
           declaredFragment: isPublic a@28
-            type: int
             element: isPublic
               type: int
           matchedValueType: int

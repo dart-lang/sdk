@@ -22,36 +22,48 @@ CodePtr CodeBreakpoint::OrigStubAddress() const {
 
 void CodeBreakpoint::PatchCode() {
   ASSERT(!IsEnabled());
-  Code& stub_target = Code::Handle();
+  const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
-    case UntaggedPcDescriptors::kIcCall:
-      stub_target = StubCode::ICCallBreakpoint().ptr();
+    case UntaggedPcDescriptors::kIcCall: {
+      Object& data = Object::Handle();
+      saved_value_ = CodePatcher::GetInstanceCallAt(pc_, code, &data);
+      CodePatcher::PatchInstanceCallAt(pc_, code, data,
+                                       StubCode::ICCallBreakpoint());
       break;
+    }
     case UntaggedPcDescriptors::kUnoptStaticCall:
-      stub_target = StubCode::UnoptStaticCallBreakpoint().ptr();
+      saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     StubCode::UnoptStaticCallBreakpoint());
       break;
     case UntaggedPcDescriptors::kRuntimeCall:
-      stub_target = StubCode::RuntimeCallBreakpoint().ptr();
+      saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
+      CodePatcher::PatchPoolPointerCallAt(pc_, code,
+                                          StubCode::RuntimeCallBreakpoint());
       break;
     default:
       UNREACHABLE();
   }
-  const Code& code = Code::Handle(code_);
-  saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-  CodePatcher::PatchPoolPointerCallAt(pc_, code, stub_target);
 }
 
 void CodeBreakpoint::RestoreCode() {
   ASSERT(IsEnabled());
   const Code& code = Code::Handle(code_);
   switch (breakpoint_kind_) {
-    case UntaggedPcDescriptors::kIcCall:
+    case UntaggedPcDescriptors::kIcCall: {
+      Object& data = Object::Handle();
+      CodePatcher::GetInstanceCallAt(pc_, code, &data);
+      CodePatcher::PatchInstanceCallAt(pc_, code, data,
+                                       Code::Handle(saved_value_));
+      break;
+    }
     case UntaggedPcDescriptors::kUnoptStaticCall:
-    case UntaggedPcDescriptors::kRuntimeCall: {
+      CodePatcher::PatchStaticCallAt(pc_, code, Code::Handle(saved_value_));
+      break;
+    case UntaggedPcDescriptors::kRuntimeCall:
       CodePatcher::PatchPoolPointerCallAt(pc_, code,
                                           Code::Handle(saved_value_));
       break;
-    }
     default:
       UNREACHABLE();
   }

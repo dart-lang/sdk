@@ -40,7 +40,6 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: <empty> <synthetic>
         declaredFragment: isFinal isPublic @null
-          type: null
           element: hasImplicitType isFinal isPrivate
             type: Object
       rightParenthesis: )
@@ -77,14 +76,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: x
         declaredFragment: isFinal isPublic x@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: y
         declaredFragment: isFinal isPublic y@30
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -121,14 +118,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: x
         declaredFragment: isFinal isPublic x@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@31
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -165,14 +160,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: x
         declaredFragment: isFinal isPublic x@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@31
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -206,14 +199,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: e
         declaredFragment: isFinal isPublic e@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@30
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -252,14 +243,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: e
         declaredFragment: isFinal isPublic e@34
-          type: int
           element: isFinal isPublic
             type: int
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@37
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )

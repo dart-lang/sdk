@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:collection/collection.dart';
@@ -60,10 +61,10 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
     return SearchEngineImpl(allDrivers);
   }
 
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
+  Future<TestCode> resolveParsedCode(String content) async {
+    var code = TestCode.parseNormalized(content);
+    await resolveTestCode(code.code);
+    return code;
   }
 
   Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
@@ -305,22 +306,22 @@ mixin E implements C {}
   }
 
   Future<void> test_searchMemberDeclarations() async {
-    var codeA = '''
+    var codeA = TestCode.parseNormalized('''
 class A {
-  int test; // 1
+  int ^test;
   int testTwo;
 }
-''';
-    var codeB = '''
+''');
+    var codeB = TestCode.parseNormalized('''
 class B {
-  void test() {} // 2
+  void ^test() {}
   void testTwo() {}
 }
 int test;
-''';
+''');
 
-    newFile('$testPackageLibPath/a.dart', codeA);
-    newFile('$testPackageLibPath/b.dart', codeB);
+    newFile('$testPackageLibPath/a.dart', codeA.code);
+    newFile('$testPackageLibPath/b.dart', codeB.code);
 
     var matches = await searchEngine.searchMemberDeclarations('test');
     expect(matches, hasLength(2));
@@ -333,14 +334,14 @@ int test;
             (SearchMatch m) =>
                 m.kind == MatchKind.DECLARATION &&
                 m.element.name == name &&
-                m.element.firstFragment.nameOffset2 == nameOffset,
+                m.element.firstFragment.nameOffset == nameOffset,
           ),
         ),
       );
     }
 
-    assertHasElement('test', codeA.indexOf('test; // 1'));
-    assertHasElement('test', codeB.indexOf('test() {} // 2'));
+    assertHasElement('test', codeA.position.offset);
+    assertHasElement('test', codeB.position.offset);
   }
 
   Future<void> test_searchMemberReferences() async {
@@ -426,9 +427,7 @@ int t;
         await driverFor(testFile).getLibraryByUri('dart:core')
             as LibraryElementResult;
     var intElement =
-        coreLibResult.element2.classes.firstWhereOrNull(
-          (e) => e.name == 'int',
-        )!;
+        coreLibResult.element.classes.firstWhereOrNull((e) => e.name == 'int')!;
 
     var matches = await searchEngine.searchReferences(intElement);
 
@@ -448,13 +447,12 @@ int t;
   }
 
   Future<void> test_searchReferences_enum_constructor_named() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 enum E {
-  v.named(); // 1
+  v^.named();
   const E.named();
 }
-''';
-    await resolveTestCode(code);
+''');
 
     var element = findElement2.constructor('named');
     var matches = await searchEngine.searchReferences(element);
@@ -464,7 +462,7 @@ enum E {
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
               identical(m.element, findElement2.field('v')) &&
-              m.sourceRange.offset == code.indexOf('.named(); // 1') &&
+              m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '.named'.length;
         }),
       ]),
@@ -472,14 +470,13 @@ enum E {
   }
 
   Future<void> test_searchReferences_enum_constructor_unnamed() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 enum E {
-  v1, // 1
-  v2(), // 2
-  v3.new(), // 3
+  v1/*0*/,
+  v2/*1*/(),
+  v3/*2*/.new(),
 }
-''';
-    await resolveTestCode(code);
+''');
 
     var element = findElement2.unnamedConstructor('E');
     var matches = await searchEngine.searchReferences(element);
@@ -490,19 +487,19 @@ enum E {
           return m.kind ==
                   MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS &&
               identical(m.element, findElement2.field('v1')) &&
-              m.sourceRange.offset == code.indexOf(', // 1') &&
+              m.sourceRange.offset == code.positions[0].offset &&
               m.sourceRange.length == 0;
         }),
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
               identical(m.element, findElement2.field('v2')) &&
-              m.sourceRange.offset == code.indexOf('(), // 2') &&
+              m.sourceRange.offset == code.positions[1].offset &&
               m.sourceRange.length == 0;
         }),
         predicate((SearchMatch m) {
           return m.kind == MatchKind.INVOCATION &&
               identical(m.element, findElement2.field('v3')) &&
-              m.sourceRange.offset == code.indexOf('.new(), // 3') &&
+              m.sourceRange.offset == code.positions[2].offset &&
               m.sourceRange.length == '.new'.length;
         }),
       ]),
@@ -510,12 +507,11 @@ enum E {
   }
 
   Future<void> test_searchReferences_extensionType() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 extension type A(int it) {}
 
-void f(A a) {}
-''';
-    await resolveTestCode(code);
+void f(^A a) {}
+''');
 
     var element = findElement2.extensionType('A');
     var matches = await searchEngine.searchReferences(element);
@@ -525,7 +521,7 @@ void f(A a) {}
         predicate((SearchMatch m) {
           return m.kind == MatchKind.REFERENCE &&
               identical(m.element, findElement2.parameter('a')) &&
-              m.sourceRange.offset == code.indexOf('A a) {}') &&
+              m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == 'A'.length;
         }),
       ]),
@@ -534,15 +530,14 @@ void f(A a) {}
 
   Future<void>
   test_searchReferences_parameter_ofConstructor_super_named() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 class A {
   A({required int a});
 }
 class B extends A {
-  B({required super.a}); // ref
+  B({required super.^a});
 }
-''';
-    await resolveTestCode(code);
+''');
 
     var element = findElement2.unnamedConstructor('A').parameter('a');
     var matches = await searchEngine.searchReferences(element);
@@ -555,7 +550,7 @@ class B extends A {
                 m.element,
                 findElement2.unnamedConstructor('B').superFormalParameter('a'),
               ) &&
-              m.sourceRange.offset == code.indexOf('a}); // ref') &&
+              m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == 1;
         }),
       ]),
@@ -563,11 +558,10 @@ class B extends A {
   }
 
   Future<void> test_searchReferences_parameter_topLevelShadow_wildcard() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 int _ = 0;
-int f(int _) => _;
-''';
-    await resolveTestCode(code);
+int f(int _) => ^_;
+''');
 
     var parameter = findElement2.parameter('_');
     var parameterMatches = await searchEngine.searchReferences(parameter);
@@ -583,7 +577,7 @@ int f(int _) => _;
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
               identical(m.element, findElement2.topFunction('f')) &&
-              m.sourceRange.offset == code.indexOf('_;') &&
+              m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '_'.length;
         }),
       ]),
@@ -605,14 +599,13 @@ f(int _) {}
 
   Future<void>
   test_searchReferences_topFunction_parameter_optionalNamed_anywhere() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 void foo(int a, int b, {int? test}) {}
 
 void g() {
-  foo(1, test: 0, 2);
+  foo(1, ^test: 0, 2);
 }
-''';
-    await resolveTestCode(code);
+''');
 
     var element = findElement2.parameter('test');
     var matches = await searchEngine.searchReferences(element);
@@ -622,7 +615,7 @@ void g() {
         predicate((SearchMatch m) {
           return m.kind == MatchKind.REFERENCE &&
               identical(m.element, findElement2.topFunction('g')) &&
-              m.sourceRange.offset == code.indexOf('test: 0') &&
+              m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == 'test'.length;
         }),
       ]),
@@ -630,13 +623,12 @@ void g() {
   }
 
   Future<void> test_searchReferences_underscoreField() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 class A {
   final _ = 1;
-  int a() => _;
+  int a() => ^_;
 }
-''';
-    await resolveTestCode(code);
+''');
 
     var element = findElement2.field('_');
     var matches = await searchEngine.searchReferences(element);
@@ -647,7 +639,7 @@ class A {
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
               identical(m.element, findElement2.method('a')) &&
-              m.sourceRange.offset == code.indexOf('_;') &&
+              m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '_'.length;
         }),
       ]),
@@ -655,11 +647,10 @@ class A {
   }
 
   Future<void> test_searchReferences_underscoreTopLevelVariable() async {
-    var code = '''
+    var code = await resolveParsedCode('''
 final _ = 1;
-int f() => _;
-''';
-    await resolveTestCode(code);
+int f() => ^_;
+''');
 
     var element = findElement2.topVar('_');
     var matches = await searchEngine.searchReferences(element);
@@ -670,7 +661,7 @@ int f() => _;
         predicate((SearchMatch m) {
           return m.kind == MatchKind.READ &&
               identical(m.element, findElement2.topFunction('f')) &&
-              m.sourceRange.offset == code.indexOf('_;') &&
+              m.sourceRange.offset == code.position.offset &&
               m.sourceRange.length == '_'.length;
         }),
       ]),
@@ -781,12 +772,6 @@ class B extends A {}
 @reflectiveTest
 class SearchEngineImplWithNonFunctionTypeAliasesTest
     extends SearchEngineImplTest {
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
-  }
-
   Future<void> test_searchReferences_typeAlias_interfaceType() async {
     await resolveTestCode('''
 typedef A<T> = Map<T, String>;

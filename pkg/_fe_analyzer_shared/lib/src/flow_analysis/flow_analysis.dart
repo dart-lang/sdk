@@ -2772,7 +2772,7 @@ class FlowModel<Type extends Object> {
       // We can just use the "write captured" state from the `finally` block,
       // because any write captures in the `try` block are conservatively
       // considered to take effect in the `finally` block too.
-      List<Type>? newPromotedTypes;
+      List<Type> newPromotedTypes;
       SsaNode<Type>? newSsaNode;
       if (beforeFinallyModel == null ||
           beforeFinallyModel.ssaNode == afterFinallyModel.ssaNode) {
@@ -2795,14 +2795,14 @@ class FlowModel<Type extends Object> {
         newPromotedTypes =
             helper.typeAnalyzerOptions.soundFlowAnalysisEnabled
                 ? PromotionModel.rebasePromotedTypes(
-                  helper,
-                  afterFinallyModel.promotedTypes,
-                  thisModel.promotedTypes,
+                  basePromotions: thisModel.promotedTypes,
+                  newPromotions: afterFinallyModel.promotedTypes,
+                  helper: helper,
                 )
                 : PromotionModel.rebasePromotedTypes(
-                  helper,
-                  thisModel.promotedTypes,
-                  afterFinallyModel.promotedTypes,
+                  basePromotions: afterFinallyModel.promotedTypes,
+                  newPromotions: thisModel.promotedTypes,
+                  helper: helper,
                 );
         // And we can safely restore the SSA node from the end of the try block.
         newSsaNode = thisModel.ssaNode;
@@ -3067,10 +3067,10 @@ class FlowModel<Type extends Object> {
       // it's captured now.
       bool newWriteCaptured =
           thisModel.writeCaptured || baseModel.writeCaptured;
-      List<Type>? newPromotedTypes;
+      List<Type> newPromotedTypes;
       if (newWriteCaptured) {
         // Write captured variables can't be promoted.
-        newPromotedTypes = null;
+        newPromotedTypes = const [];
       } else if (baseModel.ssaNode != thisModel.ssaNode) {
         // The variable may have been written to since `thisModel`, so we can't
         // use any of the promotions from `thisModel`.
@@ -3081,9 +3081,9 @@ class FlowModel<Type extends Object> {
         // usual "promotion chain" invariant (each promoted type is a subtype of
         // the previous).
         newPromotedTypes = PromotionModel.rebasePromotedTypes(
-          helper,
-          thisModel.promotedTypes,
-          baseModel.promotedTypes,
+          basePromotions: baseModel.promotedTypes,
+          newPromotions: thisModel.promotedTypes,
+          helper: helper,
         );
       }
       // Tests are kept regardless of whether they are in `this` model or the
@@ -3389,7 +3389,7 @@ class FlowModel<Type extends Object> {
       newTested = PromotionModel._addTypeToUniqueList(info.tested, testedType);
     }
 
-    List<Type>? newPromotedTypes = info.promotedTypes;
+    List<Type> newPromotedTypes = info.promotedTypes;
     if (promotedType != null) {
       newPromotedTypes = PromotionModel._addToPromotedTypes(
         info.promotedTypes,
@@ -3760,7 +3760,7 @@ class PromotionModel<Type extends Object> {
   /// Sequence of types that the variable or property has been promoted to,
   /// where each element of the sequence is a subtype of the previous.  Null if
   /// the variable or property hasn't been promoted.
-  final List<Type>? promotedTypes;
+  final List<Type> promotedTypes;
 
   /// List of types that the variable has been tested against in all code paths
   /// leading to the given point in the source code. Not relevant for
@@ -3801,9 +3801,8 @@ class PromotionModel<Type extends Object> {
       !(assigned && unassigned),
       "Can't be both definitely assigned and unassigned",
     );
-    assert(promotedTypes == null || promotedTypes!.isNotEmpty);
     assert(
-      !writeCaptured || promotedTypes == null,
+      !writeCaptured || promotedTypes.isEmpty,
       "Write-captured variables can't be promoted",
     );
     assert(
@@ -3817,7 +3816,7 @@ class PromotionModel<Type extends Object> {
   /// Creates a [PromotionModel] representing a variable or property that's
   /// never been seen before.
   PromotionModel.fresh({this.assigned = false, required this.ssaNode})
-    : promotedTypes = null,
+    : promotedTypes = const [],
       tested = const [],
       unassigned = !assigned,
       nonPromotionHistory = null;
@@ -3833,7 +3832,7 @@ class PromotionModel<Type extends Object> {
   /// the top of loops whose bodies write to them.
   PromotionModel<Type> discardPromotionsAndMarkNotUnassigned() {
     return new PromotionModel<Type>(
-      promotedTypes: null,
+      promotedTypes: const [],
       tested: tested,
       assigned: assigned,
       unassigned: false,
@@ -3844,7 +3843,7 @@ class PromotionModel<Type extends Object> {
   @override
   String toString() {
     List<String> parts = [ssaNode.toString()];
-    if (promotedTypes != null) {
+    if (promotedTypes.isNotEmpty) {
       parts.add('promotedTypes: $promotedTypes');
     }
     if (tested.isNotEmpty) {
@@ -3895,7 +3894,7 @@ class PromotionModel<Type extends Object> {
       helper.typeOperations,
       nonPromotionReason,
     );
-    List<Type>? newPromotedTypes = demotionResult.promotedTypes;
+    List<Type> newPromotedTypes = demotionResult.promotedTypes;
 
     if (promoteToTypeOfInterest) {
       newPromotedTypes = _tryPromoteToTypeOfInterest(
@@ -3918,8 +3917,8 @@ class PromotionModel<Type extends Object> {
     }
 
     List<Type> newTested;
-    if (newPromotedTypes == null &&
-        promotedTypes != null &&
+    if (newPromotedTypes.isEmpty &&
+        promotedTypes.isNotEmpty &&
         !helper.typeAnalyzerOptions.soundFlowAnalysisEnabled) {
       // A full demotion used to clear types of interest. This behavior was
       // removed as part of the sound-flow-analysis update (see
@@ -3943,7 +3942,7 @@ class PromotionModel<Type extends Object> {
   /// been write-captured.
   PromotionModel<Type> writeCapture() {
     return new PromotionModel<Type>(
-      promotedTypes: null,
+      promotedTypes: const [],
       tested: const [],
       assigned: assigned,
       unassigned: false,
@@ -3962,14 +3961,14 @@ class PromotionModel<Type extends Object> {
     FlowAnalysisTypeOperations<Type> typeOperations,
     NonPromotionReason? nonPromotionReason,
   ) {
-    List<Type>? promotedTypes = this.promotedTypes;
-    if (promotedTypes == null) {
-      return new _DemotionResult<Type>(null, nonPromotionHistory);
+    List<Type> promotedTypes = this.promotedTypes;
+    if (promotedTypes.isEmpty) {
+      return new _DemotionResult<Type>(const [], nonPromotionHistory);
     }
 
     int numElementsToKeep = promotedTypes.length;
     NonPromotionHistory<Type>? newNonPromotionHistory = nonPromotionHistory;
-    List<Type>? newPromotedTypes;
+    List<Type> newPromotedTypes = const [];
     for (; ; numElementsToKeep--) {
       if (numElementsToKeep == 0) {
         break;
@@ -4017,10 +4016,10 @@ class PromotionModel<Type extends Object> {
   ///
   /// Note that since promotion chains are considered immutable, if promotion
   /// is required, a new promotion chain will be created and returned.
-  List<Type>? _tryPromoteToTypeOfInterest(
+  List<Type> _tryPromoteToTypeOfInterest(
     FlowModelHelper<Type> helper,
     Type declaredType,
-    List<Type>? promotedTypes,
+    List<Type> promotedTypes,
     Type writtenType,
   ) {
     assert(!writeCaptured);
@@ -4028,12 +4027,18 @@ class PromotionModel<Type extends Object> {
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
-    Type currentlyPromotedType = promotedTypes?.last ?? declaredType;
+    Type currentlyPromotedType =
+        promotedTypes.isNotEmpty ? promotedTypes.last : declaredType;
 
-    List<Type>? result;
+    List<Type>? result = null;
     List<Type>? candidates = null;
 
     void handleTypeOfInterest(Type type) {
+      // If the written type is invalid, we assume no promotion.
+      if (helper.typeOperations.isInvalidType(writtenType)) {
+        return;
+      }
+
       // The written type must be a subtype of the type.
       if (!helper.typeOperations.isSubtypeOf(writtenType, type)) {
         return;
@@ -4171,7 +4176,7 @@ class PromotionModel<Type extends Object> {
     _PropertySsaNode<Type>? propertySsaNode,
   }) {
     FlowAnalysisTypeOperations<Type> typeOperations = helper.typeOperations;
-    List<Type>? newPromotedTypes = joinPromotedTypes(
+    List<Type> newPromotedTypes = joinPromotedTypes(
       first.promotedTypes,
       second.promotedTypes,
       typeOperations,
@@ -4208,13 +4213,13 @@ class PromotionModel<Type extends Object> {
   /// chains.  Briefly, we intersect given chains.  The chains are totally
   /// ordered subsets of a global partial order.  Their intersection is a
   /// subset of each, and as such is also totally ordered.
-  static List<Type>? joinPromotedTypes<Type extends Object>(
-    List<Type>? chain1,
-    List<Type>? chain2,
+  static List<Type> joinPromotedTypes<Type extends Object>(
+    List<Type> chain1,
+    List<Type> chain2,
     FlowAnalysisTypeOperations<Type> typeOperations,
   ) {
-    if (chain1 == null) return chain1;
-    if (chain2 == null) return chain2;
+    if (chain1.isEmpty) return chain1;
+    if (chain2.isEmpty) return chain2;
 
     int index1 = 0;
     int index2 = 0;
@@ -4244,7 +4249,7 @@ class PromotionModel<Type extends Object> {
 
     if (index1 == chain1.length && !skipped1) return chain1;
     if (index2 == chain2.length && !skipped2) return chain2;
-    return result;
+    return result ?? const [];
   }
 
   /// Performs the portion of the "join" algorithm that applies to promotion
@@ -4286,54 +4291,59 @@ class PromotionModel<Type extends Object> {
     return types2;
   }
 
-  /// Forms a promotion chain by starting with [basePromotedTypes] and applying
-  /// promotions from [thisPromotedTypes] to it, to the extent possible without
+  /// Forms a promotion chain by starting with [basePromotions] and applying
+  /// promotions from [newPromotions] to it, to the extent possible without
   /// violating the usual ordering invariant (each promoted type must be a
   /// subtype of the previous).
   ///
   /// In degenerate cases, the returned chain will be identical to
-  /// [thisPromotedTypes] or [basePromotedTypes] (to make it easier for the
+  /// [newPromotions] or [basePromotions] (to make it easier for the
   /// caller to detect when data structures may be re-used).
-  static List<Type>? rebasePromotedTypes<Type extends Object>(
-    FlowModelHelper<Type> helper,
-    List<Type>? thisPromotedTypes,
-    List<Type>? basePromotedTypes,
-  ) {
-    if (basePromotedTypes == null) {
+  static List<Type> rebasePromotedTypes<Type extends Object>({
+    required List<Type> basePromotions,
+    required List<Type> newPromotions,
+    required FlowModelHelper<Type> helper,
+  }) {
+    if (basePromotions.isEmpty) {
       // The base promotion chain contributes nothing so we just use this
       // promotion chain directly.
-      return thisPromotedTypes;
-    } else if (thisPromotedTypes == null) {
+      return newPromotions;
+    } else if (newPromotions.isEmpty) {
       // This promotion chain contributes nothing so we just use the base
-      // promotion chain directly.
-      return basePromotedTypes;
+      // promotion chain directly. Note: this is a performance optimization of
+      // the `else` block below; it is not required by the spec.
+      return basePromotions;
     } else {
       // Start with basePromotedTypes and apply each of the promotions in
       // thisPromotedTypes (discarding any that don't follow the ordering
       // invariant)
-      List<Type> newPromotedTypes = basePromotedTypes;
-      Type otherPromotedType = basePromotedTypes.last;
-      for (int i = 0; i < thisPromotedTypes.length; i++) {
-        Type nextType = thisPromotedTypes[i];
-        if (helper.typeOperations.isSubtypeOf(nextType, otherPromotedType) &&
+      Type basePromotedType = basePromotions.last;
+      for (int i = 0; i < newPromotions.length; i++) {
+        Type nextType = newPromotions[i];
+        // Determine if `nextType` is safe to attach to `basePromotedTypes`.
+        if (helper.typeOperations.isSubtypeOf(nextType, basePromotedType) &&
             helper.isValidPromotionStep(
-              previousType: otherPromotedType,
+              previousType: basePromotedType,
               newType: nextType,
             )) {
-          newPromotedTypes =
-              basePromotedTypes.toList()..addAll(thisPromotedTypes.skip(i));
-          break;
+          // Since `newPromotions` is a valid promotion chain, it follows that
+          // all the types that follow `nextType` are also safe to attach to the
+          // base promotion chain, so simply concatenate `basePromotions` with
+          // the remainder of `newPromotions`.
+          return basePromotions.toList()..addAll(newPromotions.skip(i));
         }
       }
-      return newPromotedTypes;
+      // No types from `newPromotions` were safe to attach to
+      // `basePromotedTypes`, so return `basePromotions` unchanged.
+      return basePromotions;
     }
   }
 
   static List<Type> _addToPromotedTypes<Type extends Object>(
-    List<Type>? promotedTypes,
+    List<Type> promotedTypes,
     Type promoted,
   ) =>
-      promotedTypes == null
+      promotedTypes.isEmpty
           ? [promoted]
           : (promotedTypes.toList()..add(promoted));
 
@@ -4350,7 +4360,7 @@ class PromotionModel<Type extends Object> {
   static PromotionModel<Type> _identicalOrNew<Type extends Object>(
     PromotionModel<Type> first,
     PromotionModel<Type> second,
-    List<Type>? newPromotedTypes,
+    List<Type> newPromotedTypes,
     List<Type> newTested,
     bool newAssigned,
     bool newUnassigned,
@@ -4735,7 +4745,7 @@ class SsaNode<Type extends Object> {
         newFlowModel,
       );
       if (afterFinallyModel == null) continue;
-      List<Type>? afterFinallyPromotedTypes = afterFinallyModel.promotedTypes;
+      List<Type> afterFinallyPromotedTypes = afterFinallyModel.promotedTypes;
       // The property was accessed in a promotion-relevant way in the `try`
       // block, so we need to apply the promotions from the `finally` block to
       // the flow model from the `try` block, and see what sticks.
@@ -4751,11 +4761,11 @@ class SsaNode<Type extends Object> {
           newModel,
         );
       }
-      List<Type>? newPromotedTypes = newModel.promotedTypes;
-      List<Type>? rebasedPromotedTypes = PromotionModel.rebasePromotedTypes(
-        helper,
-        afterFinallyPromotedTypes,
-        newPromotedTypes,
+      List<Type> newPromotedTypes = newModel.promotedTypes;
+      List<Type> rebasedPromotedTypes = PromotionModel.rebasePromotedTypes(
+        basePromotions: newPromotedTypes,
+        newPromotions: afterFinallyPromotedTypes,
+        helper: helper,
       );
       if (!identical(newPromotedTypes, rebasedPromotedTypes)) {
         newFlowModel = newFlowModel.updatePromotionInfo(
@@ -5085,7 +5095,7 @@ class _ConditionalContext<Type extends Object> extends _BranchContext<Type> {
 /// to another.
 class _DemotionResult<Type extends Object> {
   /// The new set of promoted types.
-  final List<Type>? promotedTypes;
+  final List<Type> promotedTypes;
 
   /// The new non-promotion history (including the types that the variable is
   /// no longer promoted to).
@@ -6180,7 +6190,7 @@ class _FlowAnalysisImpl<
         this,
         promotionKey,
         new PromotionModel(
-          promotedTypes: nonNullType == targetType ? null : [nonNullType],
+          promotedTypes: nonNullType == targetType ? const [] : [nonNullType],
           tested: const [],
           assigned: true,
           unassigned: false,
@@ -6372,7 +6382,7 @@ class _FlowAnalysisImpl<
     return _current.promotionInfo
         ?.get(this, promotionKeyStore.keyForVariable(variable))
         ?.promotedTypes
-        ?.last;
+        .lastOrNull;
   }
 
   @override
@@ -6539,7 +6549,7 @@ class _FlowAnalysisImpl<
     );
     if (promotionInfo == null) return const [];
     assert(promotionInfo.ssaNode == propertySsaNode);
-    return promotionInfo.promotedTypes ?? const [];
+    return promotionInfo.promotedTypes;
   }
 
   @override
@@ -6876,7 +6886,7 @@ class _FlowAnalysisImpl<
     ).addPreviousInfo(promotionModel.ssaNode?.expressionInfo, this, _current);
     _storeExpressionReference(expression, expressionInfo);
     _storeExpressionInfo(expression, expressionInfo);
-    return promotionModel.promotedTypes?.last;
+    return promotionModel.promotedTypes.lastOrNull;
   }
 
   @override
@@ -7104,7 +7114,7 @@ class _FlowAnalysisImpl<
     return _current.promotionInfo
             ?.get(this, context._matchedValueInfo.promotionKey)
             ?.promotedTypes
-            ?.last ??
+            .lastOrNull ??
         context._matchedValueInfo._type;
   }
 
@@ -7128,8 +7138,8 @@ class _FlowAnalysisImpl<
             ssaNode.promotionKey,
             ssaNode: ssaNode,
           );
-          List<Type>? promotedTypes = previousPromotionInfo.promotedTypes;
-          if (promotedTypes != null) {
+          List<Type> promotedTypes = previousPromotionInfo.promotedTypes;
+          if (promotedTypes.isNotEmpty) {
             (allPreviouslyPromotedTypes ??= []).add(promotedTypes);
           }
           ssaNode = ssaNode.previousSsaNode;
@@ -7166,8 +7176,8 @@ class _FlowAnalysisImpl<
         reference.promotionKey,
       );
       if (variable == null) {
-        List<Type>? promotedTypes = currentPromotionInfo.promotedTypes;
-        if (promotedTypes != null) {
+        List<Type> promotedTypes = currentPromotionInfo.promotedTypes;
+        if (promotedTypes.isNotEmpty) {
           return () {
             Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
             for (Type type in promotedTypes) {
@@ -7180,7 +7190,7 @@ class _FlowAnalysisImpl<
         return () {
           Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
           Type currentType =
-              currentPromotionInfo.promotedTypes?.last ??
+              currentPromotionInfo.promotedTypes.lastOrNull ??
               operations.variableType(variable);
           NonPromotionHistory<Type>? nonPromotionHistory =
               currentPromotionInfo.nonPromotionHistory;
@@ -7327,7 +7337,7 @@ class _FlowAnalysisImpl<
       if (promotionInfo != null) {
         assert(promotionInfo.ssaNode == propertySsaNode);
       }
-      promotedType = promotionInfo?.promotedTypes?.last;
+      promotedType = promotionInfo?.promotedTypes.lastOrNull;
       if (promotedType != null &&
           !operations.isSubtypeOf(promotedType, unpromotedType)) {
         promotedType = null;
@@ -7444,7 +7454,7 @@ class _FlowAnalysisImpl<
       this,
       promotionKey,
       new PromotionModel(
-        promotedTypes: null,
+        promotedTypes: const [],
         tested: const [],
         assigned: true,
         unassigned: false,
@@ -7620,7 +7630,7 @@ class _FlowAnalysisImpl<
     return new TrivialVariableReference<Type>(
       promotionKey: variableKey,
       model: _current,
-      type: info.promotedTypes?.last ?? unpromotedType,
+      type: info.promotedTypes.lastOrNull ?? unpromotedType,
       isThisOrSuper: false,
       ssaNode: info.ssaNode ?? new SsaNode<Type>(null),
     );

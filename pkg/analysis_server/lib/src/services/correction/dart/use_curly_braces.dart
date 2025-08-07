@@ -174,6 +174,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   ) {
     _replaceLeftParenthesis(builder, left, right, indent);
 
+    var eol = builder.eol;
     builder.addSimpleInsertion(_endAfterComments(right), '$eol$prefix}');
   }
 
@@ -187,6 +188,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     if (right is AstNode) {
       right = right.beginToken.precedingComments ?? right;
     }
+    var eol = builder.eol;
     builder.addSimpleReplacement(range.endStart(left, right), ' {$eol$indent');
   }
 
@@ -200,6 +202,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   ) {
     _replaceLeftParenthesis(builder, left, node, indent);
 
+    var eol = builder.eol;
     var end = _endAfterComments(node);
     builder.addSimpleReplacement(
       SourceRange(end, right.offset - end),

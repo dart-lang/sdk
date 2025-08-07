@@ -23,7 +23,8 @@ class BytecodeLoader {
   BytecodeLoader(Thread* thread, const TypedDataBase& binary);
   ~BytecodeLoader();
 
-  FunctionPtr LoadBytecode();
+  FunctionPtr LoadBytecode(bool load_code = true);
+  void LoadPendingCode();
 
   TypedDataBasePtr binary() const { return binary_.ptr(); }
   ArrayPtr bytecode_component_array() const {
@@ -31,12 +32,19 @@ class BytecodeLoader {
   }
 
   void SetOffset(const Object& obj, intptr_t offset);
-  intptr_t GetOffset(const Object& obj);
+  intptr_t GetOffset(const Object& obj) const;
+  bool HasOffset(const Object& obj) const;
+
+  void FindModifiedLibraries(BitVector* modified_libs,
+                             intptr_t* p_num_libraries,
+                             intptr_t* p_num_classes,
+                             intptr_t* p_num_procedures);
 
  private:
   Thread* thread_;
   const TypedDataBase& binary_;
   Array& bytecode_component_array_;
+  const GrowableObjectArray& pending_classes_;
   Array& bytecode_offsets_map_;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeLoader);
@@ -203,7 +211,11 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadClassDeclaration(const Class& cls);
   void ReadLibraryDeclaration(const Library& library,
                               const GrowableObjectArray& pending_classes);
-  void ReadLibraryDeclarations(intptr_t num_libraries);
+  void ReadLibraryDeclarations(intptr_t num_libraries,
+                               const GrowableObjectArray& pending_classes,
+                               bool load_code);
+  void ReadPendingCode(const GrowableObjectArray& pending_classes);
+  void FindModifiedLibraries(BitVector* modified_libs, intptr_t num_libraries);
 
   LibraryPtr ReadMain();
 

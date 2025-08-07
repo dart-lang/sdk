@@ -9,6 +9,7 @@ import 'package:kernel/src/printer.dart';
 
 /// Metadata for annotating nodes with an inferred type information.
 class InferredType {
+  final InterfaceType? exactType;
   final Reference? _concreteClassReference;
   final Constant? _constantValue;
   final Reference? _closureMemberReference;
@@ -29,27 +30,21 @@ class InferredType {
   // Contains inferred closure value.
   static const int flagClosure = 1 << 5;
 
-  // Entire list may be null if no type arguments were inferred.
-  // Will always be null if `concreteClass` is null.
-  //
-  // Each component may be null if that particular type argument was not
-  // inferred.
-  //
-  // Otherwise, a non-null type argument indicates that that particular type
-  // argument (in the runtime type) is always exactly a particular `DartType`.
-  final List<DartType?>? exactTypeArguments;
+  // Contains exact type.
+  static const int flagExactType = 1 << 6;
 
   InferredType(
+    InterfaceType? exactType,
     Class? concreteClass,
     bool nullable,
     bool isInt,
     Constant? constantValue,
     Member? closureMember,
     int closureId, {
-    List<DartType?>? exactTypeArguments,
     bool skipCheck = false,
     bool receiverNotInt = false,
   }) : this._byReference(
+         exactType,
          concreteClass?.reference,
          constantValue,
          closureMember?.reference,
@@ -59,19 +54,25 @@ class InferredType {
              (skipCheck ? flagSkipCheck : 0) |
              (constantValue != null ? flagConstant : 0) |
              (receiverNotInt ? flagReceiverNotInt : 0) |
-             (closureMember != null ? flagClosure : 0),
-         exactTypeArguments,
+             (closureMember != null ? flagClosure : 0) |
+             (exactType != null ? flagExactType : 0),
        );
 
   InferredType._byReference(
+    this.exactType,
     this._concreteClassReference,
     this._constantValue,
     this._closureMemberReference,
     this._closureId,
     this._flags,
-    this.exactTypeArguments,
   ) {
-    assert(exactTypeArguments == null || _concreteClassReference != null);
+    assert(
+      exactType == null || _concreteClassReference == exactType!.classReference,
+    );
+    assert(
+      exactType == null ||
+          (nullable == (exactType!.nullability == Nullability.nullable)),
+    );
     assert(_constantValue == null || _concreteClassReference != null);
     assert(_closureMemberReference == null || _concreteClassReference != null);
     assert(_closureId >= 0);
@@ -94,26 +95,24 @@ class InferredType {
   @override
   String toString() {
     final StringBuffer buf = new StringBuffer();
-    if (concreteClass != null) {
-      buf.write(concreteClass!.toText(astTextStrategyForTesting));
+    final exactType = this.exactType;
+    final concreteClass = this.concreteClass;
+    if (exactType != null) {
+      buf.write(exactType.toText(astTextStrategyForTesting));
+    } else if (concreteClass != null) {
+      buf.write(concreteClass.toText(astTextStrategyForTesting));
+      if (nullable) {
+        buf.write('?');
+      }
     } else if (isInt) {
       buf.write('int');
+      if (nullable) {
+        buf.write('?');
+      }
+    } else if (nullable) {
+      buf.write('?');
     } else {
       buf.write('!');
-    }
-    if (nullable) {
-      buf.write('?');
-    }
-    if (exactTypeArguments != null) {
-      buf.write('<');
-      buf.write(
-        exactTypeArguments!
-            .map(
-              (t) => t != null ? "${t.toText(astTextStrategyForTesting)}" : "?",
-            )
-            .join(", "),
-      );
-      buf.write('>');
     }
     if (skipCheck) {
       buf.write(' (skip check)');
@@ -147,13 +146,15 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
 
   @override
   void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
-    // TODO(sjindel/tfa): Implement serialization of type arguments when can use
-    // them for optimizations.
-    sink.writeNullAllowedCanonicalNameReference(
-      metadata.concreteClass?.reference,
-    );
     final flags = metadata._flags;
-    sink.writeByte(metadata._flags);
+    sink.writeUInt30(metadata._flags);
+    if ((flags & InferredType.flagExactType) != 0) {
+      sink.writeDartType(metadata.exactType!);
+    } else {
+      sink.writeNullAllowedCanonicalNameReference(
+        metadata.concreteClass?.reference,
+      );
+    }
     if ((flags & InferredType.flagConstant) != 0) {
       sink.writeConstantReference(metadata.constantValue!);
     }
@@ -167,11 +168,16 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
 
   @override
   InferredType readFromBinary(Node node, BinarySource source) {
-    // TODO(sjindel/tfa): Implement serialization of type arguments when can use
-    // them for optimizations.
-    final concreteClassReference =
-        source.readNullableCanonicalNameReference()?.reference;
-    final flags = source.readByte();
+    final flags = source.readUInt30();
+    InterfaceType? exactType;
+    Reference? concreteClassReference;
+    if ((flags & InferredType.flagExactType) != 0) {
+      exactType = source.readDartType() as InterfaceType;
+      concreteClassReference = exactType.classReference;
+    } else {
+      concreteClassReference =
+          source.readNullableCanonicalNameReference()?.reference;
+    }
     final constantValue =
         (flags & InferredType.flagConstant) != 0
             ? source.readConstantReference()
@@ -183,12 +189,12 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
     final closureId =
         (flags & InferredType.flagClosure) != 0 ? source.readUInt30() : 0;
     return new InferredType._byReference(
+      exactType,
       concreteClassReference,
       constantValue,
       closureMemberReference,
       closureId,
       flags,
-      null,
     );
   }
 }

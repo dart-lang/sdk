@@ -297,7 +297,7 @@ namespace dart {
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_createNativeCallableListener, 2)                                       \
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
-  V(Ffi_createNativeCallableIsolateGroupShared, 2)                             \
+  V(Ffi_createNativeCallableIsolateGroupBound, 2)                              \
   V(Ffi_deleteNativeCallable, 1)                                               \
   V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \

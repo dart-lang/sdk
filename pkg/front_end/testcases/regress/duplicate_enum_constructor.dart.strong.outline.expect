@@ -13,8 +13,12 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::Foo a = const self::Foo::•(0, "a");
-  enum-element static const field self::Foo b = const self::Foo::•(1, "b");
+  enum-element static const field self::Foo a = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:6:3: Error: Can't use 'Foo' because it is declared more than once.
+  a, b;
+  ^";
+  enum-element static const field self::Foo b = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:6:6: Error: Can't use 'Foo' because it is declared more than once.
+  a, b;
+     ^";
   static const field core::List<self::Foo> values = const <self::Foo>[self::Foo::a, self::Foo::b];
   const constructor •(core::int #index, core::String #name) → self::Foo
     : super core::_Enum::•(#index, #name)
@@ -22,10 +26,3 @@ class Foo extends core::_Enum /*isEnum*/  {
   method core::_enumToString() → core::String
     return "Foo.${this.{core::_Enum::_name}{core::String}}";
 }
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicate_enum_constructor.dart:6:3 -> InstanceConstant(const Foo{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///duplicate_enum_constructor.dart:6:6 -> InstanceConstant(const Foo{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///duplicate_enum_constructor.dart:5:6 -> ListConstant(const <Foo>[const Foo{_Enum.index: 0, _Enum._name: "a"}, const Foo{_Enum.index: 1, _Enum._name: "b"}])
-Extra constant evaluation: evaluated: 8, effectively constant: 3

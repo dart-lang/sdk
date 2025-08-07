@@ -286,6 +286,9 @@ final _builtInLintGenerators = <LintCode, List<ProducerGenerator>>{
   LinterLintCode.annotate_overrides: [AddOverride.new],
   LinterLintCode.annotate_redeclares: [AddRedeclare.new],
   LinterLintCode.avoid_annotating_with_dynamic: [RemoveTypeAnnotation.other],
+  LinterLintCode.avoid_bool_literals_in_conditional_expressions: [
+    ConvertToBooleanExpression.new,
+  ],
   LinterLintCode.avoid_empty_else: [RemoveEmptyElse.new],
   LinterLintCode.avoid_escaping_inner_quotes: [ConvertQuotes.new],
   LinterLintCode.avoid_function_literals_in_foreach_calls: [
@@ -626,6 +629,16 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveDefaultValue.new,
     RemoveRequired.new,
   ],
+  CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER: [
+    ChangeTo.getterOrSetter,
+    CreateGetter.new,
+    CreateField.new,
+  ],
+  CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION: [
+    ChangeTo.method,
+    CreateConstructor.new,
+    CreateMethod.method,
+  ],
   CompileTimeErrorCode.EMPTY_MAP_PATTERN: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,
@@ -682,12 +695,15 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
     AddFieldFormalParameters.new,
+    AddFieldFormalParameters.requiredNamed,
   ],
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2: [
     AddFieldFormalParameters.new,
+    AddFieldFormalParameters.requiredNamed,
   ],
   CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS: [
     AddFieldFormalParameters.new,
+    AddFieldFormalParameters.requiredNamed,
   ],
   CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE: [AddAwait.forIn],
   CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE: [
@@ -1181,6 +1197,8 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     //  a place where it can be reached (when possible).
     RemoveDeadCode.new,
   ],
+  WarningCode.DEPRECATED_EXTEND: [RemoveExtendsClause.new],
+  WarningCode.DEPRECATED_IMPLEMENT: [RemoveNameFromDeclarationClause.new],
   WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
     RemoveNameFromDeclarationClause.new,
   ],

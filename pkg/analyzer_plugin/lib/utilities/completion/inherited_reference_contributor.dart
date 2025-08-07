@@ -44,7 +44,7 @@ class InheritedReferenceContributor
     if (classDecl == null || classDecl.declaredFragment == null) {
       return;
     }
-    containingLibrary = request.result.libraryElement2;
+    containingLibrary = request.result.libraryElement;
     _computeSuggestionsForClass(
         collector, target, classDecl.declaredFragment!.element, optype);
   }
@@ -72,7 +72,7 @@ class InheritedReferenceContributor
       }
       classElement = classDecl.declaredFragment!.element;
     }
-    containingLibrary = request.result.libraryElement2;
+    containingLibrary = request.result.libraryElement;
     _computeSuggestionsForClass(collector, target, classElement, optype,
         skipChildClass: skipChildClass);
   }

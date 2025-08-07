@@ -26,3 +26,4 @@ front_end/lib/src/debug_helpers/Exports: Fail
 front_end/lib/src/testing/id_testing_helper/Exports: Fail
 kernel/lib/ast/Exports: Fail
 kernel/lib/kernel/Exports: Fail
+kernel/lib/src/debug_helpers/Exports: Fail

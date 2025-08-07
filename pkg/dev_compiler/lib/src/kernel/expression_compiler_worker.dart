@@ -842,21 +842,21 @@ class InputDill {
   InputDill(this.path, this.summaryPath, this.moduleName);
 }
 
-void Function(DiagnosticMessage) _onDiagnosticHandler(
+void Function(CfeDiagnosticMessage) _onDiagnosticHandler(
   List<String> errors,
   List<String> warnings,
   List<String> infos,
-) => (DiagnosticMessage message) {
+) => (CfeDiagnosticMessage message) {
   switch (message.severity) {
-    case Severity.error:
-    case Severity.internalProblem:
+    case CfeSeverity.error:
+    case CfeSeverity.internalProblem:
       errors.add(message.plainTextFormatted.join('\n'));
-    case Severity.warning:
+    case CfeSeverity.warning:
       warnings.add(message.plainTextFormatted.join('\n'));
-    case Severity.info:
+    case CfeSeverity.info:
       infos.add(message.plainTextFormatted.join('\n'));
-    case Severity.context:
-    case Severity.ignored:
+    case CfeSeverity.context:
+    case CfeSeverity.ignored:
       throw 'Unexpected severity: ${message.severity}';
   }
 };

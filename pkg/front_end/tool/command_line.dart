@@ -4,7 +4,8 @@
 
 import 'dart:io' show exit;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:_fe_analyzer_shared/src/util/resolve_input_uri.dart'
     show resolveInputUri;
@@ -309,7 +310,7 @@ Future<T> withGlobalOptions<T>(
     if (problem != null) {
       print(computeUsage(programName, options.verbose).problemMessage);
       PlainAndColorizedString formatted =
-          c.format(problem.message.withoutLocation(), Severity.error);
+          c.format(problem.message.withoutLocation(), CfeSeverity.error);
       String formattedText;
       if (enableColors) {
         formattedText = formatted.colorized;

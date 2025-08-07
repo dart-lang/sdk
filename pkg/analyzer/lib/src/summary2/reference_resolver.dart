@@ -48,16 +48,16 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
       var identifier = node.name;
       if (identifier is PrefixedIdentifierImpl) {
         var prefixNode = identifier.prefix;
-        var prefixElement = scope.lookup(prefixNode.name).getter2;
+        var prefixElement = scope.lookup(prefixNode.name).getter;
         prefixNode.element = prefixElement;
 
         if (prefixElement is PrefixElement) {
           var name = identifier.identifier.name;
-          var element = prefixElement.scope.lookup(name).getter2;
+          var element = prefixElement.scope.lookup(name).getter;
           identifier.identifier.element = element;
         }
       } else if (identifier is SimpleIdentifierImpl) {
-        var element = scope.lookup(identifier.name).getter2;
+        var element = scope.lookup(identifier.name).getter;
         identifier.element = element;
         return;
       }
@@ -449,12 +449,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
-      var prefixElement = scope.lookup(prefixName).getter2;
+      var prefixElement = scope.lookup(prefixName).getter;
       importPrefix.element = prefixElement;
 
       if (prefixElement is PrefixElement) {
         var name = node.name.lexeme;
-        element = prefixElement.scope.lookup(name).getter2;
+        element = prefixElement.scope.lookup(name).getter;
       }
     } else {
       var name = node.name.lexeme;
@@ -464,7 +464,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
         return;
       }
 
-      element = scope.lookup(name).getter2;
+      element = scope.lookup(name).getter;
     }
     node.element = element;
 

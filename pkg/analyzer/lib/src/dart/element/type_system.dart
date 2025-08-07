@@ -1789,7 +1789,7 @@ class TypeSystemImpl implements TypeSystem {
       if (isSubtypeOf(to, from.bound)) {
         var declaration = from.element.baseElement;
         return TypeParameterTypeImpl(
-          element: declaration as TypeParameterElementImpl,
+          element: declaration,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
             from.nullabilitySuffix,
             to.nullabilitySuffix,

@@ -581,7 +581,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     await addLibraryImports(
       _resolveResult.session,
       change,
-      _resolveResult.libraryElement2,
+      _resolveResult.libraryElement,
       _librariesToImport,
     );
     return change;
@@ -609,17 +609,16 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       for (var other in _parameters) {
         if (!identical(parameter, other) && other.name == parameter.name) {
           result.addError(
-            format("Parameter '{0}' already exists", parameter.name),
+            formatList("Parameter '{0}' already exists", [parameter.name]),
           );
           return result;
         }
       }
       if (_isParameterNameConflictWithBody(parameter)) {
         result.addError(
-          format(
-            "'{0}' is already used as a name in the selected code",
+          formatList("'{0}' is already used as a name in the selected code", [
             parameter.name,
-          ),
+          ]),
         );
         return result;
       }
@@ -907,7 +906,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   String _getTypeCode(DartType type) =>
-      _resolveResult.libraryElement2.getTypeSource(type, _librariesToImport)!;
+      _resolveResult.libraryElement.getTypeSource(type, _librariesToImport)!;
 
   void _initializeHasAwait() {
     var visitor = _HasAwaitVisitor();
@@ -998,10 +997,10 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
         sb.write('\n');
       }
       result.addFatalError(
-        format(
+        formatList(
           'Ambiguous return value: Selected block contains more than one '
           'assignment to local variables. Affected variables are:\n\n{0}',
-          sb.toString().trim(),
+          [sb.toString().trim()],
         ),
       );
     }
@@ -1045,7 +1044,7 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
 
   /// Checks if the given [element] is declared in [_selectionRange].
   bool _isDeclaredInSelection(Element element) {
-    return _selectionRange.contains(element.firstFragment.nameOffset2!);
+    return _selectionRange.contains(element.firstFragment.nameOffset!);
   }
 
   /// Checks if it is OK to extract the node with the given [SourceRange].
@@ -1641,7 +1640,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
         if (parameter == null) {
           var parameterType = node.writeOrReadType!;
           var parametersBuffer = StringBuffer();
-          var parameterTypeCode = ref._resolveResult.libraryElement2
+          var parameterTypeCode = ref._resolveResult.libraryElement
               .getTypeSource(
                 parameterType,
                 ref._librariesToImport,
@@ -1861,7 +1860,7 @@ extension on LibraryElement {
   ///
   /// Returns `null` if was not imported, i.e. declared in the same library.
   LibraryImport? _getImportElement(Element element) {
-    for (var imp in firstFragment.libraryImports2) {
+    for (var imp in firstFragment.libraryImports) {
       var definedNames = imp.namespace.definedNames2;
       if (definedNames.containsValue(element)) {
         return imp;
@@ -1888,7 +1887,7 @@ extension on LibraryElement {
       // Ensure import.
       var importElement = _getImportElement(element);
       if (importElement != null) {
-        var prefix = importElement.prefix2?.element;
+        var prefix = importElement.prefix?.element;
         if (prefix != null) {
           sb.write(prefix.displayName);
           sb.write('.');

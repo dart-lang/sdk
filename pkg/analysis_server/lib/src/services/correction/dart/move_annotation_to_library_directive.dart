@@ -90,28 +90,30 @@ class MoveAnnotationToLibraryDirective extends ResolvedCorrectionProducer {
     if (token == annotation.beginToken) {
       // Do not "move" the annotation. Just slip a library directive below it.
       await builder.addDartFileEdit(file, (builder) {
+        var eol = builder.eol;
         builder.addSimpleInsertion(annotationRange.end, 'library;$eol$eol');
       });
       return;
     }
 
-    int insertionOffset;
-    String prefix;
-    Token? commentOnFirstToken = token.precedingComments;
-    if (commentOnFirstToken != null) {
-      while (commentOnFirstToken!.next != null) {
-        commentOnFirstToken = commentOnFirstToken.next!;
-      }
-      // `token` is now the last of the leading comments (perhaps a Copyright
-      // notice, a Dart language version, etc.)
-      insertionOffset = commentOnFirstToken.end;
-      prefix = '$eol$eol';
-    } else {
-      insertionOffset = 0;
-      prefix = '';
-    }
-
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
+      int insertionOffset;
+      String prefix;
+      Token? commentOnFirstToken = token.precedingComments;
+      if (commentOnFirstToken != null) {
+        while (commentOnFirstToken!.next != null) {
+          commentOnFirstToken = commentOnFirstToken.next!;
+        }
+        // `token` is now the last of the leading comments (perhaps a Copyright
+        // notice, a Dart language version, etc.)
+        insertionOffset = commentOnFirstToken.end;
+        prefix = '$eol$eol';
+      } else {
+        insertionOffset = 0;
+        prefix = '';
+      }
+
       builder.addDeletion(annotationRange);
       var annotationText = utils.getRangeText(annotationRange);
       builder.addSimpleInsertion(

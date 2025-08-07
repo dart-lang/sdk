@@ -57,7 +57,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
           if (before != null) {
             builder.write(before);
           }
-          builder.write(eol);
+          builder.writeln();
           builder.write(utils.getLinePrefix(range.offset));
           if (after != null) {
             builder.write(after);
@@ -83,10 +83,10 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
       DartType? returnType;
       List<FormalParameterElement?>? parameterList;
       if (type case NamedType(
-        element: TypeAliasElement(:GenericFunctionTypeElement aliasedElement),
+        element: TypeAliasElement(:FunctionType aliasedType),
       )) {
-        returnType = aliasedElement.returnType;
-        parameterList = aliasedElement.formalParameters;
+        returnType = aliasedType.returnType;
+        parameterList = aliasedType.formalParameters;
       } else if (type is GenericFunctionType) {
         returnType = type.returnType?.type;
         parameterList =

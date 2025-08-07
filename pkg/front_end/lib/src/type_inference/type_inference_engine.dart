@@ -566,13 +566,6 @@ class OperationsCfe
   }
 
   @override
-  SharedTypeView greatestClosure(SharedTypeSchemaView schema) {
-    return new SharedTypeView(type_schema_elimination.greatestClosure(
-        schema.unwrapTypeSchemaView(),
-        topType: const DynamicType()));
-  }
-
-  @override
   bool isAlwaysExhaustiveType(SharedTypeView type) {
     return computeIsAlwaysExhaustiveType(
         type.unwrapTypeView(), typeEnvironment.coreTypes);
@@ -596,6 +589,11 @@ class OperationsCfe
   @override
   bool isBottomType(SharedTypeView type) {
     return typeEnvironment.coreTypes.isBottom(type.unwrapTypeView());
+  }
+
+  @override
+  bool isInvalidType(SharedTypeView type) {
+    return type.unwrapTypeView<DartType>() is InvalidType;
   }
 
   @override
@@ -1040,6 +1038,22 @@ class OperationsCfe
   @override
   bool isKnownType(SharedTypeSchemaView typeSchema) {
     return isKnown(typeSchema.unwrapTypeSchemaView());
+  }
+
+  @override
+  SharedTypeView greatestClosureOfSchema(SharedTypeSchemaView schema,
+      {SharedTypeView? topType}) {
+    return new SharedTypeView(type_schema_elimination.greatestClosure(
+        schema.unwrapTypeSchemaView(),
+        topType: topType?.unwrapTypeView() ??
+            typeEnvironment.coreTypes.objectNullableRawType));
+  }
+
+  @override
+  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema) {
+    return new SharedTypeView(type_schema_elimination.leastClosure(
+        schema.unwrapTypeSchemaView(),
+        coreTypes: typeEnvironment.coreTypes));
   }
 }
 

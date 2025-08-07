@@ -123,7 +123,7 @@ class ImportLibrary extends MultiCorrectionProducer {
             case var exportedName?)
           exportedName,
     ];
-    var importPrefix = import.prefix2?.element;
+    var importPrefix = import.prefix?.element;
     var importCombinator = _ImportLibraryCombinator(
       uri,
       combinators,
@@ -236,7 +236,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // Maybe there is an existing import, but it is with prefix and we don't use
     // this prefix.
     var alreadyImportedWithPrefix = <LibraryElement>{};
-    for (var import in unitResult.libraryFragment.libraryImports2) {
+    for (var import in unitResult.libraryFragment.libraryImports) {
       // Prepare the element.
       var libraryElement = import.importedLibrary;
       if (libraryElement == null) {
@@ -248,14 +248,11 @@ class ImportLibrary extends MultiCorrectionProducer {
       }
       if (element is PropertyAccessorElement) {
         element = element.variable;
-        if (element == null) {
-          continue;
-        }
       }
       if (!kinds.contains(element.kind)) {
         continue;
       }
-      var importPrefix = import.prefix2?.element;
+      var importPrefix = import.prefix?.element;
       // Maybe update a "show"/"hide" directive.
       var (
         combinatorProducer,
@@ -400,7 +397,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     // additional analysis.
     var foundImport = false;
     var names = <_PrefixedName>[];
-    for (var import in unitResult.libraryFragment.libraryImports2) {
+    for (var import in unitResult.libraryFragment.libraryImports) {
       // prepare element
       var importedLibrary = import.importedLibrary;
       if (importedLibrary == null || importedLibrary != libraryToImport) {
@@ -506,7 +503,7 @@ class ImportLibrary extends MultiCorrectionProducer {
 
     var names = <_PrefixedName>[];
     var name = Name.forLibrary(
-      dartFixContext.unitResult.libraryElement2,
+      dartFixContext.unitResult.libraryElement,
       memberName,
     );
     await for (var libraryToImport in librariesWithExtensions(name)) {
@@ -918,7 +915,7 @@ class _ImportLibraryCombinatorMultiple extends ResolvedCorrectionProducer {
         newCombinatorCode = ' ${keyword.lexeme} ${names.join(', ')}';
       }
       var libraryPath =
-          unitResult.libraryElement2.firstFragment.source.fullName;
+          unitResult.libraryElement.firstFragment.source.fullName;
       await builder.addDartFileEdit(libraryPath, (builder) {
         builder.addSimpleReplacement(
           SourceRange(offset - 1, length + 1),

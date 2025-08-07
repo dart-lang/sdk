@@ -168,7 +168,7 @@ class ElementMatcher {
       return null;
     }
     while (part != null) {
-      for (var libraryImport in part.libraryImports2) {
+      for (var libraryImport in part.libraryImports) {
         // TODO(brianwilkerson): Filter based on combinators to help avoid making
         //  invalid suggestions.
         var uri = libraryImport.importedLibrary?.uri;
@@ -346,6 +346,28 @@ class _MatcherBuilder {
     //   return _buildFromElement(element);
     // }
     var methodName = node.methodName;
+
+    var targetType = node.realTarget?.staticType;
+    if (targetType is InterfaceType) {
+      // We can invoke both methods and constructors of the target type.
+      _addMatcher(
+        components: [methodName.name, targetType.element.name!],
+        kinds: const [ElementKind.constructorKind, ElementKind.methodKind],
+      );
+      // We can invoke methods of supertypes of the target type.
+      var superElements =
+          targetType.allSupertypes
+              .map((superType) => superType.element)
+              .toList();
+      for (var element in superElements) {
+        _addMatcher(
+          components: [methodName.name, element.name!],
+          kinds: const [ElementKind.methodKind],
+        );
+      }
+      return;
+    }
+
     var targetName = _nameOfTarget(node.realTarget);
     if (targetName != null) {
       // If there is a target, and we know the type of the target, then we know
@@ -455,17 +477,23 @@ class _MatcherBuilder {
     // name of the type defining the member.
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
-      _addMatcher(
-        components: [node.identifier.name, targetType.element.name!],
-        kinds: const [
-          ElementKind.constantKind,
-          ElementKind.fieldKind,
-          ElementKind.functionKind, // tear-off
-          ElementKind.getterKind,
-          ElementKind.methodKind, // tear-off
-          ElementKind.setterKind,
-        ],
-      );
+      var elements = [
+        targetType.element,
+        ...targetType.allSupertypes.map((t) => t.element),
+      ];
+      for (var element in elements) {
+        _addMatcher(
+          components: [node.identifier.name, element.name!],
+          kinds: const [
+            ElementKind.constantKind,
+            ElementKind.fieldKind,
+            ElementKind.functionKind, // tear-off
+            ElementKind.getterKind,
+            ElementKind.methodKind, // tear-off
+            ElementKind.setterKind,
+          ],
+        );
+      }
     }
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.

@@ -24,6 +24,10 @@ class ClassMemberParser extends Parser {
   });
 
   @override
+  // This parser skips expressions so [parseExpression] has to be called.
+  bool get allowedToShortcutParseExpression => false;
+
+  @override
   Token parseExpression(Token token) {
     return skipExpression(token);
   }

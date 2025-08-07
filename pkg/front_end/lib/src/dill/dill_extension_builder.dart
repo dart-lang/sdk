@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/lookup_result.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
@@ -22,7 +23,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   @override
   final Extension extension;
 
-  final MutableDeclarationNameSpace _nameSpace;
+  late final DeclarationNameSpace _nameSpace;
 
   final List<MemberBuilder> _constructorBuilders = [];
   final List<MemberBuilder> _memberBuilders = [];
@@ -30,8 +31,9 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
   List<NominalParameterBuilder>? _typeParameters;
   TypeBuilder? _onType;
 
-  DillExtensionBuilder(this.extension, this.libraryBuilder)
-      : _nameSpace = new DillDeclarationNameSpace() {
+  DillExtensionBuilder(this.extension, this.libraryBuilder) {
+    Map<String, MemberLookupResult> content = {};
+
     bool isPrivateFromOtherLibrary(Member member) {
       Name name = member.name;
       return name.isPrivate &&
@@ -41,37 +43,51 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
     for (ExtensionMemberDescriptor descriptor in extension.memberDescriptors) {
       if (descriptor.isInternalImplementation) continue;
 
-      Name name = descriptor.name;
+      String name = descriptor.name.text;
       switch (descriptor.kind) {
         case ExtensionMemberKind.Method:
+          Procedure procedure = descriptor.memberReference!.asProcedure;
+          MemberBuilder builder;
           if (descriptor.isStatic) {
-            Procedure procedure = descriptor.memberReference!.asProcedure;
-            DillExtensionStaticMethodBuilder builder =
-                new DillExtensionStaticMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this);
-            if (!isPrivateFromOtherLibrary(procedure)) {
-              _nameSpace.addLocalMember(name.text, builder, setter: false);
-            }
-            _memberBuilders.add(builder);
+            builder = new DillExtensionStaticMethodBuilder(
+                procedure, descriptor, libraryBuilder, this);
           } else {
-            Procedure procedure = descriptor.memberReference!.asProcedure;
             Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
             assert(tearOff != null, "No tear found for ${descriptor}");
-            DillExtensionInstanceMethodBuilder builder =
-                new DillExtensionInstanceMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this, tearOff!);
-            if (!isPrivateFromOtherLibrary(procedure)) {
-              _nameSpace.addLocalMember(name.text, builder, setter: false);
-            }
-            _memberBuilders.add(builder);
+            builder = new DillExtensionInstanceMethodBuilder(
+                procedure, descriptor, libraryBuilder, this, tearOff!);
           }
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            assert(
+                !content.containsKey(name),
+                "Unexpected existing member ${content[name]}, "
+                "trying to add $builder.");
+            content[name] = builder;
+          }
+          _memberBuilders.add(builder);
           break;
         case ExtensionMemberKind.Getter:
           Procedure procedure = descriptor.memberReference!.asProcedure;
           DillExtensionGetterBuilder builder = new DillExtensionGetterBuilder(
               procedure, descriptor, libraryBuilder, this);
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: false);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              // Coverage-ignore-block(suite): Not run.
+              assert(
+                  existing.getable == null && existing.setable != null,
+                  "Unexpected existing member $existing, "
+                  "trying to add $builder.");
+              assert(
+                  existing.isStatic == builder.isStatic,
+                  "Static/instance conflict between existing member $existing "
+                  "and new builder $builder.");
+              content[name] = new GetableSetableMemberResult(
+                  builder, existing.setable!,
+                  isStatic: existing.isStatic);
+            } else {
+              content[name] = builder;
+            }
           }
           _memberBuilders.add(builder);
           break;
@@ -80,7 +96,23 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
           DillExtensionFieldBuilder builder = new DillExtensionFieldBuilder(
               field, descriptor, libraryBuilder, this);
           if (!isPrivateFromOtherLibrary(field)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: false);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              // Coverage-ignore-block(suite): Not run.
+              assert(
+                  existing.getable == null && existing.setable != null,
+                  "Unexpected existing member $existing, "
+                  "trying to add $builder.");
+              assert(
+                  existing.isStatic == builder.isStatic,
+                  "Static/instance conflict between existing member $existing "
+                  "and new builder $builder.");
+              content[name] = new GetableSetableMemberResult(
+                  builder, existing.setable!,
+                  isStatic: existing.isStatic);
+            } else {
+              content[name] = builder;
+            }
           }
           _memberBuilders.add(builder);
           break;
@@ -89,7 +121,22 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
           DillExtensionSetterBuilder builder = new DillExtensionSetterBuilder(
               procedure, descriptor, libraryBuilder, this);
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: true);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              assert(
+                  existing.getable != null && existing.setable == null,
+                  "Unexpected existing member $existing, "
+                  "trying to add $builder.");
+              assert(
+                  existing.isStatic == builder.isStatic,
+                  "Static/instance conflict between existing member $existing "
+                  "and new builder $builder.");
+              content[name] = new GetableSetableMemberResult(
+                  existing.getable!, builder,
+                  isStatic: existing.isStatic);
+            } else {
+              content[name] = builder;
+            }
           }
           _memberBuilders.add(builder);
           break;
@@ -99,12 +146,19 @@ class DillExtensionBuilder extends ExtensionBuilderImpl
               new DillExtensionOperatorBuilder(
                   procedure, descriptor, libraryBuilder, this);
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: false);
+            assert(
+                !content.containsKey(name),
+                "Unexpected existing member ${content[name]}, "
+                "trying to add $builder.");
+            content[name] = builder;
           }
           _memberBuilders.add(builder);
           break;
       }
     }
+
+    _nameSpace =
+        new DillDeclarationNameSpace(constructors: const {}, content: content);
   }
 
   @override

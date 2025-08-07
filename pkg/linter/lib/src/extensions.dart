@@ -86,10 +86,8 @@ extension AstNodeExtension on AstNode {
     var parent = thisOrAncestorOfType<CompilationUnitMember>();
     if (parent == null) return false;
 
-    return switch (parent.declaredFragment?.element) {
-      Annotatable(:var metadata) => metadata.hasInternal,
-      _ => false,
-    };
+    var metadata = parent.declaredFragment?.element.metadata;
+    return metadata?.hasInternal ?? false;
   }
 }
 
@@ -319,7 +317,7 @@ extension DartTypeExtension on DartType? {
 }
 
 extension ElementAnnotationExtension on ElementAnnotation {
-  bool get isReflectiveTest => switch (element2) {
+  bool get isReflectiveTest => switch (element) {
     GetterElement(:var name, :var library) =>
       name == 'reflectiveTest' &&
           library.uri.toString() ==
@@ -330,17 +328,17 @@ extension ElementAnnotationExtension on ElementAnnotation {
 
 extension ElementExtension on Element? {
   Element? get canonicalElement2 => switch (this) {
-    PropertyAccessorElement(:var variable?) => variable,
+    PropertyAccessorElement(:var variable) => variable,
     _ => this,
   };
 
-  /// Whether this is an [Annotatable] which is annotated with `@awaitNotRequired`.
+  /// Whether this is annotated with `@awaitNotRequired`.
   bool get hasAwaitNotRequired {
     var self = this;
-    if (self == null || self is! Annotatable) {
+    if (self == null) {
       return false;
     }
-    return (self as Annotatable).metadata.hasAwaitNotRequired ||
+    return self.metadata.hasAwaitNotRequired ||
         (self is PropertyAccessorElement && self.variable.hasAwaitNotRequired);
   }
 
@@ -623,7 +621,7 @@ extension MethodDeclarationExtension on MethodDeclaration {
         var methodName = Name.forElement(declaredElement);
         if (methodName == null) return null;
         var inherited = parent.getInheritedMember(methodName);
-        if (inherited is MethodElement2OrMember) return inherited;
+        if (inherited is InternalMethodElement) return inherited;
       }
     }
     return null;

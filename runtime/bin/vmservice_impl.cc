@@ -9,7 +9,6 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/isolate_data.h"
-#include "bin/main_options.h"
 #include "bin/platform.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -35,6 +34,7 @@ namespace bin {
   }
 
 static constexpr const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
+static constexpr const char* DEFAULT_VM_SERVICE_SERVER_IP = "localhost";
 
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();

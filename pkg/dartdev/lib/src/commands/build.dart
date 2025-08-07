@@ -115,9 +115,10 @@ then that is used instead.''',
 
   @override
   Future<int> run() async {
-    if (!Sdk.checkArtifactExists(genKernel) ||
-        !Sdk.checkArtifactExists(genSnapshotHost) ||
-        !Sdk.checkArtifactExists(sdk.dart)) {
+    if (!checkArtifactExists(sdk.genKernelSnapshot) ||
+        !checkArtifactExists(sdk.genSnapshot) ||
+        !checkArtifactExists(sdk.dartAotRuntime) ||
+        !checkArtifactExists(sdk.dart)) {
       return 255;
     }
     // AOT compilation isn't supported on ia32. Currently, generating an
@@ -199,8 +200,8 @@ See documentation on https://dart.dev/interop/c-interop#native-assets.
         recordedUsagesPath = path.join(tempDir.path, 'recorded_usages.json');
       }
       final generator = KernelGenerator(
-        genSnapshot: genSnapshotHost,
-        targetDartAotRuntime: hostDartAotRuntime,
+        genSnapshot: sdk.genSnapshot,
+        targetDartAotRuntime: sdk.dartAotRuntime,
         kind: Kind.exe,
         sourceFile: sourceUri.toFilePath(),
         outputFile: outputExeUri.toFilePath(),

@@ -4,7 +4,7 @@
 
 library _fe_analyzer_shared.messages.severity;
 
-enum Severity { context, error, ignored, internalProblem, warning, info }
+enum CfeSeverity { context, error, ignored, internalProblem, warning, info }
 
 const Map<String, String> severityEnumNames = const <String, String>{
   'CONTEXT': 'context',
@@ -15,27 +15,27 @@ const Map<String, String> severityEnumNames = const <String, String>{
   'INFO': 'info',
 };
 
-const Map<String, Severity> severityEnumValues = const <String, Severity>{
-  'CONTEXT': Severity.context,
-  'ERROR': Severity.error,
-  'IGNORED': Severity.ignored,
-  'INTERNAL_PROBLEM': Severity.internalProblem,
-  'WARNING': Severity.warning,
-  'INFO': Severity.info,
+const Map<String, CfeSeverity> severityEnumValues = const <String, CfeSeverity>{
+  'CONTEXT': CfeSeverity.context,
+  'ERROR': CfeSeverity.error,
+  'IGNORED': CfeSeverity.ignored,
+  'INTERNAL_PROBLEM': CfeSeverity.internalProblem,
+  'WARNING': CfeSeverity.warning,
+  'INFO': CfeSeverity.info,
 };
 
-const Map<Severity, String> severityPrefixes = const <Severity, String>{
-  Severity.error: "Error",
-  Severity.internalProblem: "Internal problem",
-  Severity.warning: "Warning",
-  Severity.context: "Context",
-  Severity.info: "Info",
+const Map<CfeSeverity, String> severityPrefixes = const <CfeSeverity, String>{
+  CfeSeverity.error: "Error",
+  CfeSeverity.internalProblem: "Internal problem",
+  CfeSeverity.warning: "Warning",
+  CfeSeverity.context: "Context",
+  CfeSeverity.info: "Info",
 };
 
-const Map<Severity, String> severityTexts = const <Severity, String>{
-  Severity.error: "error",
-  Severity.internalProblem: "internal problem",
-  Severity.warning: "warning",
-  Severity.context: "context",
-  Severity.info: "info",
+const Map<CfeSeverity, String> severityTexts = const <CfeSeverity, String>{
+  CfeSeverity.error: "error",
+  CfeSeverity.internalProblem: "internal problem",
+  CfeSeverity.warning: "warning",
+  CfeSeverity.context: "context",
+  CfeSeverity.info: "info",
 };

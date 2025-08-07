@@ -1193,6 +1193,33 @@ DEFINE_RUNTIME_ENTRY(ResolveExternalCall, 2) {
 #endif  // defined(DART_DYNAMIC_MODULES)
 }
 
+// Check that argument types are valid for the given function.
+// Arg0: function
+// Arg1: arguments descriptor
+// Arg2: arguments
+// Return value: whether the arguments are valid
+DEFINE_RUNTIME_ENTRY(CheckFunctionArgumentTypes, 3) {
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  const auto& args = Array::CheckedHandle(zone, arguments.ArgAt(2));
+
+  const ArgumentsDescriptor args_desc(descriptor);
+  if (function.AreValidArguments(args_desc, nullptr)) {
+    const auto& result =
+        Object::Handle(zone, function.DoArgumentTypesMatch(args, args_desc));
+    if (result.IsError()) {
+      Exceptions::PropagateError(Error::Cast(result));
+    }
+    arguments.SetReturn(Bool::True());
+  } else {
+    arguments.SetReturn(Bool::False());
+  }
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES)
+}
+
 // Helper routine for tracing a type check.
 static void PrintTypeCheck(const char* message,
                            const Instance& instance,
@@ -3318,6 +3345,25 @@ DEFINE_RUNTIME_ENTRY(NoSuchMethodFromPrologue, 4) {
   arguments.SetReturn(result);
 }
 
+// Throw NoSuchMethodError with given arguments.
+// Arg0: arguments of NoSuchMethodError._throwNew.
+DEFINE_RUNTIME_ENTRY(NoSuchMethodError, 1) {
+  const Array& args = Array::CheckedHandle(zone, arguments.ArgAt(0));
+  const Library& libcore = Library::Handle(Library::CoreLibrary());
+  const Class& cls =
+      Class::Handle(libcore.LookupClass(Symbols::NoSuchMethodError()));
+  ASSERT(!cls.IsNull());
+  const auto& error = cls.EnsureIsFinalized(Thread::Current());
+  ASSERT(error == Error::null());
+  const Function& throwNew =
+      Function::Handle(cls.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(args.Length() == throwNew.NumParameters());
+  const Object& result =
+      Object::Handle(zone, DartEntry::InvokeFunction(throwNew, args));
+  ThrowIfError(result);
+  arguments.SetReturn(result);
+}
+
 // Invoke appropriate noSuchMethod function (or in the case of no lazy
 // dispatchers, walk the receiver to find the correct method to call).
 // Arg0: receiver
@@ -3462,9 +3508,12 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       int num_vars = 0;
       // Variable locations and number are unknown when precompiling.
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      if (!frame->function().ForceOptimize()) {
-        // Ensure that we have unoptimized code.
-        frame->function().EnsureHasCompiledUnoptimizedCode();
+      const auto& function = frame->function();
+      if (!function.ForceOptimize()) {
+        if (!function.is_declared_in_bytecode()) {
+          // Ensure that we have unoptimized code.
+          function.EnsureHasCompiledUnoptimizedCode();
+        }
         num_vars = frame->NumLocalVariables();
       }
 #endif
@@ -4160,8 +4209,10 @@ DEFINE_RUNTIME_ENTRY(ResumeFrame, 2) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #if !defined(PRODUCT)
-  if (isolate->has_resumption_breakpoints()) {
-    isolate->debugger()->ResumptionBreakpoint();
+  if (isolate != nullptr) {
+    if (isolate->has_resumption_breakpoints()) {
+      isolate->debugger()->ResumptionBreakpoint();
+    }
   }
 #endif
 
@@ -4636,7 +4687,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   if (!metadata.IsLive()) {
     FATAL("Callback invoked after it has been deleted.");
   }
-  if (metadata.is_isolate_group_shared()) {
+  if (metadata.is_isolate_group_bound()) {
     *out_entry_point = metadata.target_entry_point();
     *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
   } else {
@@ -4668,7 +4719,7 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     current_thread->set_execution_state(Thread::kThreadInVM);
   }
 
-  if (metadata.is_isolate_group_shared()) {
+  if (metadata.is_isolate_group_bound()) {
     Isolate* current_isolate =
         current_thread != nullptr ? current_thread->isolate() : nullptr;
 
@@ -4698,8 +4749,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   return current_thread;
 }
 
-extern "C" void DLRT_ExitIsolateGroupSharedIsolate() {
-  TRACE_RUNTIME_CALL("ExitIsolateGroupSharedIsolate%s", "");
+extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
+  TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   Isolate* source_isolate =
@@ -4821,10 +4872,20 @@ extern "C" void __msan_unpoison_param(size_t) {
 #endif
 
 #if !defined(USING_THREAD_SANITIZER)
-extern "C" void __tsan_acquire(void* addr) {
+extern "C" uint32_t __tsan_atomic32_load(uint32_t* addr, int order) {
   UNREACHABLE();
 }
-extern "C" void __tsan_release(void* addr) {
+extern "C" void __tsan_atomic32_store(uint32_t* addr,
+                                      uint32_t value,
+                                      int order) {
+  UNREACHABLE();
+}
+extern "C" uint64_t __tsan_atomic64_load(uint64_t* addr, int order) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_atomic64_store(uint64_t* addr,
+                                      uint64_t value,
+                                      int order) {
   UNREACHABLE();
 }
 #endif
@@ -4834,7 +4895,9 @@ extern "C" void __tsan_release(void* addr) {
 
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoison, 2, __msan_unpoison);
 DEFINE_LEAF_RUNTIME_ENTRY(MsanUnpoisonParam, 1, __msan_unpoison_param);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanLoadAcquire, 1, __tsan_acquire);
-DEFINE_LEAF_RUNTIME_ENTRY(TsanStoreRelease, 1, __tsan_release);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Load, 2, __tsan_atomic32_load);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
 
 }  // namespace dart

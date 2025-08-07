@@ -69,8 +69,7 @@ import 'package:no_ints/main.dart' as no_ints;
       pluginPackageGenerator.generatePubspec(),
       contains('''
 dependencies:
-  analyzer: '$analyzerVersion'
-  analyzer_plugin: '$analyzerPluginVersion'
+  analysis_server_plugin: '$analysisServerPluginVersion'
   no_bools:
     git:
       url: https://example.com/example.git
@@ -93,8 +92,7 @@ dependencies:
       pluginPackageGenerator.generatePubspec(),
       contains('''
 dependencies:
-  analyzer: '$analyzerVersion'
-  analyzer_plugin: '$analyzerPluginVersion'
+  analysis_server_plugin: '$analysisServerPluginVersion'
   no_bools:
     path: ../no_bools_plugin
   no_ints:
@@ -129,8 +127,7 @@ environment:
       pluginPackageGenerator.generatePubspec(),
       contains('''
 dependencies:
-  analyzer: '$analyzerVersion'
-  analyzer_plugin: '$analyzerPluginVersion'
+  analysis_server_plugin: '$analysisServerPluginVersion'
   no_bools: ^1.0.0
   no_ints: ^1.2.0
 '''),

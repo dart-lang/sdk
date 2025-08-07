@@ -1521,8 +1521,8 @@ package:test/a.dart
 
           void writeResult(ScopeLookupResult result) {
             sink.withIndent(() {
-              elementPrinter.writeNamedElement2('getter', result.getter2);
-              if (result.setter2 case var setter?) {
+              elementPrinter.writeNamedElement2('getter', result.getter);
+              if (result.setter case var setter?) {
                 elementPrinter.writeNamedElement2('setter', setter);
               }
             });
@@ -1532,8 +1532,8 @@ package:test/a.dart
 
           if (prefixName != null) {
             var prefixLookup = fragment.scope.lookup(prefixName);
-            expect(prefixLookup.setter2, isNull);
-            var importPrefix = prefixLookup.getter2;
+            expect(prefixLookup.setter, isNull);
+            var importPrefix = prefixLookup.getter;
             if (importPrefix == null) {
               sink.withIndent(() {
                 elementPrinter.writeNamedElement2(prefixName, importPrefix);

@@ -253,7 +253,7 @@ class TestCaseEnqueuer {
   /// test completing successfully, just on it completing.
   void _add(TestCase testCase) {
     Node<Command>? lastNode;
-    for (var i = 0; i < testCase.configuration.repeat; ++i) {
+    for (var i = 0; i < testCase.repeat; ++i) {
       if (i > 0) {
         testCase = testCase.indexedCopy(i);
       }
@@ -714,6 +714,8 @@ class CommandExecutorImpl implements CommandExecutor {
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
     steps
         .add(() => device.pushCachedData("$buildPath/dart", '$devicedir/dart'));
+    steps.add(() => device
+        .pushCachedData("$buildPath/dartvm", '$devicedir/dartvm'));
     steps.add(() => device
         .runAdbCommand(['push', hostKernelFile, '$deviceTestDir/out.dill']));
 

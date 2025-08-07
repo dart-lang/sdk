@@ -25,6 +25,7 @@ class NoLiteralBoolComparisons extends LintRule {
   void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
     var visitor = _Visitor(this, context);
     registry.addBinaryExpression(this, visitor);
+    registry.addConditionalExpression(this, visitor);
   }
 }
 
@@ -41,8 +42,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    if (node.operator.type == TokenType.EQ_EQ ||
-        node.operator.type == TokenType.BANG_EQ) {
+    if (node.operator.type
+        case TokenType.EQ_EQ ||
+            TokenType.BANG_EQ ||
+            TokenType.BAR ||
+            TokenType.BAR_BAR ||
+            TokenType.AMPERSAND ||
+            TokenType.AMPERSAND_AMPERSAND ||
+            TokenType.CARET) {
       var left = node.leftOperand;
       var right = node.rightOperand;
       if (right is BooleanLiteral && isBool(left.staticType)) {

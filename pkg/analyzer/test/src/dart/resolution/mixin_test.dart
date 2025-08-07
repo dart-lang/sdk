@@ -117,7 +117,8 @@ MethodDeclaration
       staticType: int
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@20
-    type: int Function()
+    element: <testLibrary>::@mixin::M::@getter::foo
+      type: int Function()
 ''');
   }
 
@@ -226,7 +227,8 @@ MethodDeclaration
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@17
-    type: void Function()
+    element: <testLibrary>::@mixin::M::@method::foo
+      type: void Function()
 ''');
   }
 
@@ -311,14 +313,16 @@ MethodDeclaration
         type: int
       name: _
       declaredElement: <testLibraryFragment> _@29
-        type: int
+        element: isPrivate
+          type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@21
-    type: void Function(int)
+    element: <testLibrary>::@mixin::M::@setter::foo
+      type: void Function(int)
 ''');
   }
 

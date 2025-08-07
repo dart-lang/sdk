@@ -44,7 +44,7 @@ DEFINE_FLAG(int,
 DEFINE_FLAG(int,
             max_profile_depth,
             Sample::kPCArraySizeInWords* kMaxSamplesPerTick,
-            "Maximum number stack frames walked. Minimum 1. Maximum 255.");
+            "Maximum number stack frames walked. Minimum 2. Maximum 255.");
 #if defined(DART_INCLUDE_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true, "Always collect native stack traces.");
 #else
@@ -63,6 +63,15 @@ DEFINE_FLAG(
     "N seconds of samples at a given sample rate. If not provided, the "
     "default is ~4 seconds. Large values will greatly increase memory "
     "consumption.");
+DEFINE_FLAG(
+    bool,
+    profile_startup,
+    false,
+    "Make the profiler discard new samples once the profiler sample buffer is "
+    "full. When this flag is not set, the profiler sample buffer is used as a "
+    "ring buffer, meaning that once it is full, new samples start overwriting "
+    "the oldest ones. This flag itself does not enable the profiler; the "
+    "profiler must be enabled separately, e.g. with --profiler.");
 
 // Include native stack dumping helpers into AOT compiler even in PRODUCT
 // mode. This allows to report more informative errors when gen_snapshot
@@ -568,6 +577,17 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
       StackFrame::DumpCurrentTrace();
     } else if (thread->execution_state() == Thread::kThreadInVM) {
       StackFrame::DumpCurrentTrace();
+    } else if (thread->execution_state() == Thread::kThreadInGenerated) {
+      // No exit frame, walk from the crash's registers.
+#if defined(DART_DYNAMIC_MODULES)
+      if (thread->vm_tag() == VMTag::kDartInterpretedTagId) {
+        Interpreter* interpreter = thread->interpreter();
+        sp = interpreter->get_sp();
+        fp = interpreter->get_fp();
+        pc = interpreter->get_pc();
+      }
+#endif  // defined(DART_DYNAMIC_MODULES)
+      StackFrame::DumpCurrentTrace(sp, fp, pc);
     }
   }
 
@@ -663,8 +683,12 @@ intptr_t Profiler::CalculateSampleBufferCapacity() {
   // Deeper stacks require more than a single Sample object to be represented
   // correctly. These samples are chained, so we need to determine the worst
   // case sample chain length for a single stack.
+  //
+  // We use the fact that `ceil((float)a / (float)b) == (a + b - 1) / b` when
+  // `a` and `b` are positive integers below.
   const intptr_t max_sample_chain_length =
-      FLAG_max_profile_depth / kMaxSamplesPerTick;
+      (FLAG_max_profile_depth + Sample::kPCArraySizeInWords - 1) /
+      Sample::kPCArraySizeInWords;
   const intptr_t sample_count = FLAG_sample_buffer_duration *
                                 SamplesPerSecond() * max_sample_chain_length;
   return (sample_count / SampleBlock::kSamplesPerBlock) + 1;
@@ -725,17 +749,24 @@ SampleBlock* SampleBlockBuffer::ReserveSampleBlock() {
     i = (i + 1) % capacity;
   } while (i != start);
 
-  // No free blocks: try for completed block instead.
-  i = start;
-  do {
-    SampleBlock* block = &blocks_[i];
-    if (block->TryAllocateCompleted()) {
-      return block;
-    }
-    i = (i + 1) % capacity;
-  } while (i != start);
+  if (FLAG_profile_startup) {
+    // There are no free blocks and [FLAG_profile_startup] is set, so we stop
+    // recording samples.
+    return nullptr;
+  } else {
+    // There are no free blocks and [FLAG_profile_startup] is not set, so we
+    // reuse a completed block if one is available.
+    i = start;
+    do {
+      SampleBlock* block = &blocks_[i];
+      if (block->TryAllocateCompleted()) {
+        return block;
+      }
+      i = (i + 1) % capacity;
+    } while (i != start);
 
-  return nullptr;
+    return nullptr;
+  }
 }
 
 void SampleBlockBuffer::FreeCompletedBlocks() {

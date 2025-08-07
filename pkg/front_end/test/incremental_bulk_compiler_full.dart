@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult, IncrementalKernelGenerator;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -20,8 +20,7 @@ import 'incremental_utils.dart' as util;
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   return new Future.value(new Context());
 }
 
@@ -40,7 +39,7 @@ CompilerOptions getOptions() {
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       // Ignored.
     };
   options.sdkSummary = sdkRoot.resolve("vm_platform.dill");

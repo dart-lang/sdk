@@ -86,7 +86,7 @@ class F implements D<int, bool>;""",
         loader.appendLibraries(component);
         target.buildOutlines();
         ClassBuilder objectClass = loader.coreLibrary
-            .lookupLocalMember("Object", required: true) as ClassBuilder;
+            .lookupRequiredLocalMember("Object") as ClassBuilder;
         ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
             objectClass, loader, new CoreTypes(component));
         Library library = component.libraries.last;

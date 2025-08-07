@@ -36,19 +36,11 @@ class ElementDisplayStringBuilder {
   @override
   String toString() => _buffer.toString();
 
-  void writeAbstractElement(FragmentImpl element) {
+  void writeAbstractElement(ElementImpl element) {
     _write(element.name ?? '<unnamed ${element.runtimeType}>');
   }
 
-  void writeAbstractElement2(ElementImpl element) {
-    _write(element.name ?? '<unnamed ${element.runtimeType}>');
-  }
-
-  void writeClassElement(ClassFragmentImpl element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
-
+  void writeClassElement(ClassElementImpl element) {
     if (element.isSealed) {
       _write('sealed ');
     } else if (element.isAbstract) {
@@ -75,46 +67,30 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeCompilationUnitElement(LibraryFragmentImpl element) {
-    var path = element.source.fullName;
-    _write(path);
-  }
-
-  void writeConstructorElement(ConstructorElementMixin2 element) {
+  void writeConstructorElement(InternalConstructorElement element) {
     _writeType(element.returnType);
-    _write(' ');
 
-    _write(element.displayName);
+    var displayName = element.name ?? '<null-name>';
+    if (displayName != 'new') {
+      _write('.$displayName');
+    }
 
-    _writeFormalParameters2(
+    _writeFormalParameters(
       element.formalParameters,
       forElement: true,
       allowMultiline: true,
     );
   }
 
-  void writeConstructorFragment(ConstructorFragmentImpl element) {
-    _writeType(element.returnType);
-    _write(' ');
-
-    _write(element.displayName);
-
-    _writeFormalParameters(
-      element.parameters,
-      forElement: true,
-      allowMultiline: true,
-    );
+  void writeDynamicElement(DynamicElementImpl element) {
+    _write('dynamic');
   }
 
   void writeDynamicType() {
     _write('dynamic');
   }
 
-  void writeEnumElement(EnumFragmentImpl element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
-
+  void writeEnumElement(EnumElementImpl element) {
     _write('enum ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -122,7 +98,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeExecutableElement(ExecutableElement2OrMember element, String name) {
+  void writeExecutableElement(InternalExecutableElement element, String name) {
     if (element.kind != ElementKind.SETTER) {
       _writeType(element.returnType);
       _write(' ');
@@ -131,8 +107,8 @@ class ElementDisplayStringBuilder {
     _write(name);
 
     if (element.kind != ElementKind.GETTER) {
-      _writeTypeParameters2(element.typeParameters);
-      _writeFormalParameters2(
+      _writeTypeParameters(element.typeParameters);
+      _writeFormalParameters(
         element.formalParameters,
         forElement: true,
         allowMultiline: true,
@@ -140,62 +116,30 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void writeExecutableFragment(ExecutableFragmentImpl fragment, String name) {
-    if (fragment.isAugmentation) {
-      _write('augment ');
-    }
-
-    if (fragment is! SetterFragmentImpl) {
-      _writeType(fragment.returnType);
-      _write(' ');
-    }
-
-    _write(name);
-
-    if (fragment is! GetterFragmentImpl) {
-      _writeTypeParameters(fragment.typeParameters);
-      _writeFormalParameters(
-        fragment.parameters,
-        forElement: true,
-        allowMultiline: true,
-      );
-    }
-  }
-
-  void writeExtensionElement(ExtensionFragmentImpl element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
-
+  void writeExtensionElement(ExtensionElementImpl element) {
     _write('extension');
-    if (element.displayName.isNotEmpty) {
-      _write(' ');
-      _write(element.displayName);
-      _writeTypeParameters(element.typeParameters);
+    if (element.name case var name?) {
+      _write(' $name');
     }
+    _writeTypeParameters(element.typeParameters);
     _write(' on ');
     _writeType(element.extendedType);
   }
 
-  void writeExtensionTypeElement(ExtensionTypeFragmentImpl element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
-
+  void writeExtensionTypeElement(ExtensionTypeElementImpl element) {
     _write('extension type ');
     _write(element.displayName);
 
     _writeTypeParameters(element.typeParameters);
     _write('(');
     _writeType(element.representation.type);
-    _write(' ');
-    _write(element.representation.name ?? '<null-name}>');
+    _write(' ${element.representation.name ?? '<null-name>'}');
     _write(')');
 
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeFormalParameter(FormalParameterFragmentImpl element) {
+  void writeFormalParameterElement(InternalFormalParameterElement element) {
     if (element.isRequiredPositional) {
       _writeWithoutDelimiters(element, forElement: true);
     } else if (element.isOptionalPositional) {
@@ -205,20 +149,6 @@ class ElementDisplayStringBuilder {
     } else if (element.isNamed) {
       _write('{');
       _writeWithoutDelimiters(element, forElement: true);
-      _write('}');
-    }
-  }
-
-  void writeFormalParameter2(FormalParameterElementMixin element) {
-    if (element.isRequiredPositional) {
-      _writeWithoutDelimiters2(element, forElement: true);
-    } else if (element.isOptionalPositional) {
-      _write('[');
-      _writeWithoutDelimiters2(element, forElement: true);
-      _write(']');
-    } else if (element.isNamed) {
-      _write('{');
-      _writeWithoutDelimiters2(element, forElement: true);
       _write('}');
     }
   }
@@ -232,18 +162,20 @@ class ElementDisplayStringBuilder {
 
     _writeType(type.returnType);
     _write(' Function');
-    _writeTypeParameters2(type.typeParameters);
-    _writeFormalParameters2(type.parameters, forElement: false);
+    _writeTypeParameters(type.typeParameters);
+    _writeFormalParameters(type.parameters, forElement: false);
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeGenericFunctionTypeElement(
-    GenericFunctionTypeFragmentImpl element,
-  ) {
+  void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
     _writeType(element.returnType);
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
-    _writeFormalParameters(element.parameters, forElement: true);
+    _writeFormalParameters(element.formalParameters, forElement: true);
+  }
+
+  void writeGetterElement(GetterElementImpl element) {
+    writeExecutableElement(element, 'get ${element.displayName}');
   }
 
   void writeInterfaceType(InterfaceType type) {
@@ -260,9 +192,12 @@ class ElementDisplayStringBuilder {
     _write('InvalidType');
   }
 
+  void writeLabelElement(LabelElementImpl element) {
+    _write(element.name ?? '<null-name>');
+  }
+
   void writeLibraryElement(LibraryElementImpl element) {
-    _write('library ');
-    _write('${element.source.uri}');
+    _write('library ${element.uri}');
   }
 
   void writeLibraryExport(LibraryExportImpl element) {
@@ -275,10 +210,25 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writeMixinElement(MixinFragmentImpl element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
+  void writeLocalFunctionElement(LocalFunctionElementImpl element) {
+    _writeType(element.returnType);
+    _write(' ${element.name ?? '<null-name>'}');
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(element.formalParameters, forElement: true);
+  }
+
+  void writeMethodElement(MethodElementImpl element) {
+    _writeType(element.returnType);
+    _write(' ${element.name ?? '<null-name>'}');
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(
+      element.formalParameters,
+      forElement: true,
+      allowMultiline: true,
+    );
+  }
+
+  void writeMixinElement(MixinElementImpl element) {
     if (element.isBase) {
       _write('base ');
     }
@@ -287,6 +237,10 @@ class ElementDisplayStringBuilder {
     _writeTypeParameters(element.typeParameters);
     _writeTypesIfNotEmpty(' on ', element.superclassConstraints);
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
+  }
+
+  void writeNeverElement(NeverElementImpl element) {
+    _write('Never');
   }
 
   void writeNeverType(NeverType type) {
@@ -302,11 +256,7 @@ class ElementDisplayStringBuilder {
   void writePrefixElement(PrefixElementImpl element) {
     var libraryImports = element.imports;
     var displayName = element.displayName;
-    if (libraryImports.isEmpty) {
-      _write('as ');
-      _write(displayName);
-      return;
-    }
+
     var first = libraryImports.first;
     _write("import '${first.libraryName}' as $displayName;");
     if (libraryImports.length == 1) {
@@ -339,8 +289,7 @@ class ElementDisplayStringBuilder {
       _write('{');
       for (var field in namedFields) {
         _writeType(field.type);
-        _write(' ');
-        _write(field.name);
+        _write(' ${field.name}');
         if (index++ < fieldCount - 1) {
           _write(', ');
         }
@@ -357,45 +306,33 @@ class ElementDisplayStringBuilder {
     _writeNullability(type.nullabilitySuffix);
   }
 
-  void writeTypeAliasElement(TypeAliasFragmentImpl element) {
-    if (element.isAugmentation) {
-      _write('augment ');
-    }
+  void writeSetterElement(SetterElementImpl element) {
+    writeExecutableElement(element, 'set ${element.displayName}');
+  }
 
+  void writeTopLevelFunctionElement(TopLevelFunctionElementImpl element) {
+    _writeType(element.returnType);
+    _write(' ${element.name ?? '<null-name>'}');
+    _writeTypeParameters(element.typeParameters);
+    _writeFormalParameters(
+      element.formalParameters,
+      forElement: true,
+      allowMultiline: true,
+    );
+  }
+
+  void writeTypeAliasElement(TypeAliasElementImpl element) {
     _write('typedef ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
     _write(' = ');
-
-    var aliasedElement = element.aliasedElement;
-    if (aliasedElement != null) {
-      aliasedElement.appendTo(this);
-    } else {
-      _writeType(element.aliasedType);
-    }
+    _writeType(element.aliasedType);
   }
 
-  void writeTypeParameter(TypeParameterFragmentImpl element) {
+  void writeTypeParameterElement(TypeParameterElementImpl element) {
     var variance = element.variance;
     if (!element.isLegacyCovariant && variance != Variance.unrelated) {
-      _write(variance.keyword);
-      _write(' ');
-    }
-
-    _write(element.displayName);
-
-    var bound = element.bound;
-    if (bound != null) {
-      _write(' extends ');
-      _writeType(bound);
-    }
-  }
-
-  void writeTypeParameter2(TypeParameterElementImpl element) {
-    var variance = element.variance;
-    if (!element.isLegacyCovariant && variance != Variance.unrelated) {
-      _write(variance.keyword);
-      _write(' ');
+      _write('${variance.keyword} ');
     }
 
     _write(element.displayName);
@@ -430,16 +367,9 @@ class ElementDisplayStringBuilder {
     _write('_');
   }
 
-  void writeVariableElement(VariableFragmentImpl element) {
+  void writeVariableElement(InternalVariableElement element) {
     _writeType(element.type);
-    _write(' ');
-    _write(element.displayName);
-  }
-
-  void writeVariableElement2(VariableElement2OrMember element) {
-    _writeType(element.type);
-    _write(' ');
-    _write(element.displayName);
+    _write(' ${element.displayName}');
   }
 
   void writeVoidType() {
@@ -463,17 +393,15 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeDirectiveUri(DirectiveUri uri) {
-    if (uri is DirectiveUriWithUnitImpl) {
-      _write('unit ${uri.libraryFragment.source.uri}');
-    } else if (uri is DirectiveUriWithSourceImpl) {
-      _write('source ${uri.source}');
+    if (uri is DirectiveUriWithSourceImpl) {
+      _write('${uri.source.uri}');
     } else {
       _write('<unknown>');
     }
   }
 
   void _writeFormalParameters(
-    List<FormalParameterFragmentImpl> parameters, {
+    List<InternalFormalParameterElement> parameters, {
     required bool forElement,
     bool allowMultiline = false,
   }) {
@@ -531,65 +459,6 @@ class ElementDisplayStringBuilder {
     _write(')');
   }
 
-  void _writeFormalParameters2(
-    List<FormalParameterElementMixin> parameters, {
-    required bool forElement,
-    bool allowMultiline = false,
-  }) {
-    // Assume the display string looks better wrapped when there are at least
-    // three parameters. This avoids having to pre-compute the single-line
-    // version and know the length of the function name/return type.
-    var multiline = allowMultiline && _multiline && parameters.length >= 3;
-
-    // The prefix for open groups is included in separator for single-line but
-    // not for multiline so must be added explicitly.
-    var openGroupPrefix = multiline ? ' ' : '';
-    var separator = multiline ? ',' : ', ';
-    var trailingComma = multiline ? ',\n' : '';
-    var parameterPrefix = multiline ? '\n  ' : '';
-
-    _write('(');
-
-    _WriteFormalParameterKind? lastKind;
-    var lastClose = '';
-
-    void openGroup(_WriteFormalParameterKind kind, String open, String close) {
-      if (lastKind != kind) {
-        _write(lastClose);
-        if (lastKind != null) {
-          // We only need to include the space before the open group if there
-          // was a previous parameter, otherwise it goes immediately after the
-          // open paren.
-          _write(openGroupPrefix);
-        }
-        _write(open);
-        lastKind = kind;
-        lastClose = close;
-      }
-    }
-
-    for (var i = 0; i < parameters.length; i++) {
-      if (i != 0) {
-        _write(separator);
-      }
-
-      var parameter = parameters[i];
-      if (parameter.isRequiredPositional) {
-        openGroup(_WriteFormalParameterKind.requiredPositional, '', '');
-      } else if (parameter.isOptionalPositional) {
-        openGroup(_WriteFormalParameterKind.optionalPositional, '[', ']');
-      } else if (parameter.isNamed) {
-        openGroup(_WriteFormalParameterKind.named, '{', '}');
-      }
-      _write(parameterPrefix);
-      _writeWithoutDelimiters2(parameter, forElement: forElement);
-    }
-
-    _write(trailingComma);
-    _write(lastClose);
-    _write(')');
-  }
-
   void _writeNullability(NullabilitySuffix nullabilitySuffix) {
     if (_withNullability) {
       switch (nullabilitySuffix) {
@@ -628,20 +497,7 @@ class ElementDisplayStringBuilder {
     }
   }
 
-  void _writeTypeParameters(List<TypeParameterFragmentImpl> elements) {
-    if (elements.isEmpty) return;
-
-    _write('<');
-    for (var i = 0; i < elements.length; i++) {
-      if (i != 0) {
-        _write(', ');
-      }
-      elements[i].appendTo(this);
-    }
-    _write('>');
-  }
-
-  void _writeTypeParameters2(List<TypeParameterElement> elements) {
+  void _writeTypeParameters(List<TypeParameterElement> elements) {
     if (elements.isEmpty) return;
 
     _write('<');
@@ -671,33 +527,7 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeWithoutDelimiters(
-    FormalParameterFragmentImpl element, {
-    required bool forElement,
-  }) {
-    if (element.isRequiredNamed) {
-      _write('required ');
-    }
-
-    // TODO(scheglov): write a placeholder, or remove completely
-    // When we do correct separate writing elements.
-    _writeType(element.element.type);
-
-    if (forElement || element.isNamed) {
-      _write(' ');
-      _write(element.displayName);
-    }
-
-    if (forElement) {
-      var defaultValueCode = element.element.defaultValueCode;
-      if (defaultValueCode != null) {
-        _write(' = ');
-        _write(defaultValueCode);
-      }
-    }
-  }
-
-  void _writeWithoutDelimiters2(
-    FormalParameterElementMixin element, {
+    InternalFormalParameterElement element, {
     required bool forElement,
   }) {
     if (element.isRequiredNamed) {
@@ -707,8 +537,9 @@ class ElementDisplayStringBuilder {
     _writeType(element.type);
 
     if (forElement || element.isNamed) {
-      _write(' ');
-      _write(element.displayName);
+      if (element.name case var name?) {
+        _write(' $name');
+      }
     }
 
     if (forElement) {

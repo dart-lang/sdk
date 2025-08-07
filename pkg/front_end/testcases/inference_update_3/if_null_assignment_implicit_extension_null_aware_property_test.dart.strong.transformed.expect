@@ -46,9 +46,9 @@ static extension-member method Extension|set#pIterableIntQuestion(lowered final 
 static method main() → dynamic {
   core::String? s = "" as{Unchecked} core::String?;
   self::C2<core::double> c2Double = new self::C2::•<core::double>();
-  self::contextB1Question<dynamic>(let final core::String? #t1 = s in #t1 == null ?{self::B1<dynamic>?} null : let final self::C1<core::int>? #t2 = self::Extension|get#pC1IntQuestion(#t1) in #t2 == null ?{self::B1<dynamic>?} let final self::C2<core::double> #t3 = c2Double in let final void #t4 = self::Extension|set#pC1IntQuestion(#t1, #t3) in #t3 : #t2{self::C1<core::int>});
+  self::contextB1Question<dynamic>(let final core::String? #t1 = s in #t1 == null ?{self::B1<dynamic>?} null : let final self::C1<core::int>? #t2 = self::Extension|get#pC1IntQuestion(#t1{core::String}) in #t2 == null ?{self::B1<dynamic>?} let final self::C2<core::double> #t3 = c2Double in let final void #t4 = self::Extension|set#pC1IntQuestion(#t1{core::String}, #t3) in #t3 : #t2{self::C1<core::int>});
   core::List<core::num> listNum = core::_GrowableList::•<core::num>(0);
-  self::contextIterableQuestion<core::num>(let final core::String? #t5 = s in #t5 == null ?{core::Iterable<core::num>?} null : let final core::Iterable<core::int>? #t6 = self::Extension|get#pIterableIntQuestion(#t5) in #t6 == null ?{core::Iterable<core::num>?} let final core::List<core::num> #t7 = listNum in let final void #t8 = self::Extension|set#pIterableIntQuestion(#t5, #t7) in #t7 : #t6{core::Iterable<core::int>});
+  self::contextIterableQuestion<core::num>(let final core::String? #t5 = s in #t5 == null ?{core::Iterable<core::num>?} null : let final core::Iterable<core::int>? #t6 = self::Extension|get#pIterableIntQuestion(#t5{core::String}) in #t6 == null ?{core::Iterable<core::num>?} let final core::List<core::num> #t7 = listNum in let final void #t8 = self::Extension|set#pIterableIntQuestion(#t5{core::String}, #t7) in #t7 : #t6{core::Iterable<core::int>});
 }
 
 

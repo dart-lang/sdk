@@ -35,12 +35,12 @@ int f01() => 0;
 ''');
     assertResponse(r'''
 suggestions
-  c01
-    kind: topLevelVariable
   A1
     kind: class
   A1.named
     kind: constructor
+  c01
+    kind: topLevelVariable
   const
     kind: keyword
   false
@@ -75,21 +75,26 @@ int A04() => 0;
 int B04() => 0;
 ''');
 
-    // TODO(scheglov): This is wrong.
     assertResponse(r'''
 replacement
   left: 1
 suggestions
-  A02
-    kind: topLevelVariable
   A01
     kind: class
   A01
     kind: constructorInvocation
+  A02
+    kind: topLevelVariable
   A03
     kind: topLevelVariable
   A04
     kind: functionInvocation
+  false
+    kind: keyword
+  final
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -167,6 +172,8 @@ replacement
 suggestions
   null
     kind: keyword
+  const
+    kind: keyword
 ''');
   }
 
@@ -202,6 +209,8 @@ replacement
   left: 1
 suggestions
   null
+    kind: keyword
+  const
     kind: keyword
 ''');
   }
@@ -244,6 +253,18 @@ replacement
 suggestions
   return
     kind: keyword
+  throw
+    kind: keyword
+  assert
+    kind: keyword
+  for
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 
@@ -256,6 +277,20 @@ replacement
   left: 1
 suggestions
   return
+    kind: keyword
+  throw
+    kind: keyword
+  assert
+    kind: keyword
+  for
+    kind: keyword
+  super
+    kind: keyword
+  true
+    kind: keyword
+  try
+    kind: keyword
+  var
     kind: keyword
 ''');
   }
@@ -551,7 +586,19 @@ void f() { if (true) {} e^ }
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  assert
+    kind: keyword
   else
+    kind: keyword
+  false
+    kind: keyword
+  late
+    kind: keyword
+  true
+    kind: keyword
+  while
     kind: keyword
 ''');
   }
@@ -588,6 +635,8 @@ replacement
   left: 1
 suggestions
   const
+    kind: keyword
+  switch
     kind: keyword
 ''');
   }

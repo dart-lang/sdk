@@ -45,20 +45,22 @@ class AddReturnNull extends ResolvedCorrectionProducer {
     } else {
       return;
     }
-    int position;
-    String returnStatement;
-    if (block.statements.isEmpty) {
-      position = block.offset + 1;
-      var prefix = utils.getLinePrefix(block.offset);
-      returnStatement = '$eol$prefix${utils.oneIndent}return null;$eol$prefix';
-    } else {
-      var lastStatement = block.statements.last;
-      position = lastStatement.offset + lastStatement.length;
-      var prefix = utils.getNodePrefix(lastStatement);
-      returnStatement = '$eol${prefix}return null;';
-    }
-
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
+      int position;
+      String returnStatement;
+      if (block.statements.isEmpty) {
+        position = block.offset + 1;
+        var prefix = utils.getLinePrefix(block.offset);
+        returnStatement =
+            '$eol$prefix${utils.oneIndent}return null;$eol$prefix';
+      } else {
+        var lastStatement = block.statements.last;
+        position = lastStatement.offset + lastStatement.length;
+        var prefix = utils.getNodePrefix(lastStatement);
+        returnStatement = '$eol${prefix}return null;';
+      }
+
       builder.addInsertion(position, (builder) {
         builder.write(returnStatement);
       });

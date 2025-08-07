@@ -6,11 +6,12 @@ import 'dart:convert' show utf8;
 import 'dart:io'
     show Directory, File, FileSystemEntity, exitCode, stdin, stdout;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show CommentToken, Token;
 import 'package:front_end/src/api_prototype/compiler_options.dart' as api
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/file_system.dart' as api
     show FileSystem;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
@@ -158,8 +159,8 @@ api.CompilerOptions getOptions() {
     ..target = new VmTarget(new TargetFlags())
     ..librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
-    ..onDiagnostic = (api.DiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+    ..onDiagnostic = (api.CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error) {
         print(message.plainTextFormatted.join('\n'));
         errorCount++;
       }

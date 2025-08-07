@@ -21,15 +21,18 @@ import 'type_builder.dart';
 mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Lookup a static member of this declaration.
   @override
-  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
-      LibraryBuilder accessingLibrary) {
+  MemberLookupResult? findStaticBuilder(String name, int fileOffset,
+      Uri fileUri, LibraryBuilder accessingLibrary) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    return nameSpace.lookupLocal(name,
-        fileUri: fileUri, fileOffset: fileOffset, staticOnly: true);
+    MemberLookupResult? result = nameSpace.lookup(name);
+    if (result != null && !result.isStatic) {
+      result = null;
+    }
+    return result;
   }
 
   @override
@@ -56,29 +59,25 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   InterfaceType? get thisType => null;
 
   @override
-  NamedBuilder? lookupLocalMember(String name,
-      {bool setter = false, bool required = false}) {
-    // TODO(johnniwinther): Support augmented on extensions/extension type
-    //  declarations.
-    LookupResult? result = nameSpace.lookupLocalMember(name);
-    NamedBuilder? builder = setter ? result?.setable : result?.getable;
-    if (required && builder == null) {
+  LookupResult? lookupLocalMember(String name, {bool required = false}) {
+    LookupResult? result = nameSpace.lookup(name);
+    if (required && result == null) {
       internalProblem(
           templateInternalProblemNotFoundIn.withArguments(
               name, fullNameForErrors),
           -1,
           null);
     }
-    return builder;
+    return result;
   }
 
   MemberBuilder? lookupLocalMemberByName(Name name,
       {bool setter = false, bool required = false}) {
-    NamedBuilder? builder =
-        lookupLocalMember(name.text, setter: setter, required: required);
+    LookupResult? result = lookupLocalMember(name.text, required: required);
+    NamedBuilder? builder = setter ? result?.setable : result?.getable;
     if (builder == null && setter) {
       // When looking up setters, we include assignable fields.
-      builder = lookupLocalMember(name.text, setter: false, required: required);
+      builder = result?.getable;
       if (builder is! PropertyBuilder || !builder.hasSetter) {
         builder = null;
       }

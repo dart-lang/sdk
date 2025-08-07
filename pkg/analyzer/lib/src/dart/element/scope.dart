@@ -63,8 +63,8 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
   @override
   ScopeLookupResult lookup(String id) {
     var result = innerScope.lookup(id);
-    if (result.getter2 != null || result.setter2 != null) return result;
-    return ScopeLookupResultImpl(getter2: _getters[id], setter2: _setters[id]);
+    if (result.getter != null || result.setter != null) return result;
+    return ScopeLookupResultImpl(getter: _getters[id], setter: _setters[id]);
   }
 }
 
@@ -81,7 +81,7 @@ class EnclosedScope with _GettersAndSetters implements Scope {
     var getter = _getters[id];
     var setter = _setters[id];
     if (getter != null || setter != null) {
-      return ScopeLookupResultImpl(getter2: getter, setter2: setter);
+      return ScopeLookupResultImpl(getter: getter, setter: setter);
     }
 
     return _parent.lookup(id);
@@ -129,7 +129,7 @@ class ImportsTracking {
   }
 
   ImportsTrackingOfPrefix? trackerOf(LibraryImportImpl import) {
-    var prefix = import.prefix2?.element;
+    var prefix = import.prefix?.element;
     return map[prefix];
   }
 }
@@ -324,7 +324,7 @@ class LibraryFragmentScope implements Scope {
   ImportsTracking? _importsTracking;
 
   factory LibraryFragmentScope(LibraryFragmentImpl fragment) {
-    var parent = fragment.enclosingElement?.scope;
+    var parent = fragment.enclosingFragment?.scope;
     return LibraryFragmentScope._(
       parent: parent,
       fragment: fragment,
@@ -411,7 +411,7 @@ class LibraryFragmentScope implements Scope {
     }
 
     // No result.
-    return ScopeLookupResultImpl(getter2: null, setter2: null);
+    return ScopeLookupResultImpl(getter: null, setter: null);
   }
 
   void notifyExtensionUsed(ExtensionElement element) {
@@ -420,7 +420,7 @@ class LibraryFragmentScope implements Scope {
 
   PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
     var isDeferred = prefix.imports.any((import) {
-      return import.prefix2?.isDeferred ?? false;
+      return import.prefix?.isDeferred ?? false;
     });
     if (isDeferred) {
       return null;
@@ -439,13 +439,13 @@ class LibraryFragmentScope implements Scope {
     // Try prefix elements.
     if (_shouldTryPrefixElement(id)) {
       if (_prefixElements[id] case var prefixElement?) {
-        return ScopeLookupResultImpl(getter2: prefixElement, setter2: null);
+        return ScopeLookupResultImpl(getter: prefixElement, setter: null);
       }
     }
 
     // Try imports of the library fragment.
     var noPrefixResult = noPrefixScope.lookup(id);
-    if (noPrefixResult.getter2 != null || noPrefixResult.setter2 != null) {
+    if (noPrefixResult.getter != null || noPrefixResult.setter != null) {
       return noPrefixResult;
     }
 
@@ -459,8 +459,8 @@ class LibraryFragmentScope implements Scope {
     var librarySetter = libraryDeclarations._setters[id];
     if (libraryGetter != null || librarySetter != null) {
       return ScopeLookupResultImpl(
-        getter2: libraryGetter,
-        setter2: librarySetter,
+        getter: libraryGetter,
+        setter: librarySetter,
       );
     }
     return null;
@@ -511,9 +511,9 @@ class PrefixScope implements Scope {
     for (var import in libraryImports) {
       var importedUri = import.uri;
       if (importedUri is DirectiveUriWithLibraryImpl &&
-          import.prefix2?.element == prefix) {
+          import.prefix?.element == prefix) {
         _importElements.add(import);
-        var importedLibrary = importedUri.library2;
+        var importedLibrary = importedUri.library;
         _importedLibraries.add(importedLibrary);
         var combinators = import.combinators.build();
         for (var exportedReference in importedLibrary.exportedReferences) {
@@ -528,7 +528,7 @@ class PrefixScope implements Scope {
             }
           }
         }
-        if (import.prefix2 case var importPrefix?) {
+        if (import.prefix case var importPrefix?) {
           if (importPrefix.isDeferred) {
             _deferredLibrary ??= importedLibrary;
           }
@@ -555,8 +555,8 @@ class PrefixScope implements Scope {
     if (deferredLibrary != null &&
         id == TopLevelFunctionElement.LOAD_LIBRARY_NAME) {
       return ScopeLookupResultImpl(
-        getter2: deferredLibrary.loadLibraryFunction,
-        setter2: null,
+        getter: deferredLibrary.loadLibraryFunction,
+        setter: null,
       );
     }
 
@@ -573,8 +573,8 @@ class PrefixScope implements Scope {
       _importsTracking?.lookupResult(getter);
       _importsTracking?.lookupResult(setter);
       return PrefixScopeLookupResult(
-        getter2: getter,
-        setter2: setter,
+        getter: getter,
+        setter: setter,
         getterIsFromDeprecatedExport:
             _gettersFromDeprecatedExport?.contains(id) ?? false,
         setterIsFromDeprecatedExport:
@@ -586,7 +586,7 @@ class PrefixScope implements Scope {
       return parent.lookup(id);
     }
 
-    return ScopeLookupResultImpl(getter2: null, setter2: null);
+    return ScopeLookupResultImpl(getter: null, setter: null);
   }
 
   /// Usually this is an error, but we allow it in comment references.
@@ -690,7 +690,7 @@ class PrefixScope implements Scope {
 
   static void _addElement(Set<Element> conflictingElements, Element element) {
     if (element is MultiplyDefinedElementImpl) {
-      conflictingElements.addAll(element.conflictingElements2);
+      conflictingElements.addAll(element.conflictingElements);
     } else {
       conflictingElements.add(element);
     }
@@ -714,8 +714,8 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
   final int _deprecatedBits;
 
   PrefixScopeLookupResult({
-    required super.getter2,
-    required super.setter2,
+    required super.getter,
+    required super.setter,
     required bool getterIsFromDeprecatedExport,
     required bool setterIsFromDeprecatedExport,
   }) : _deprecatedBits =
@@ -724,13 +724,13 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
                : 0) |
            (setterIsFromDeprecatedExport ? setterIsFromDeprecatedExportBit : 0);
 
-  /// This flag is set to `true` if [getter2] is available using import
+  /// This flag is set to `true` if [getter] is available using import
   /// directives where every imported library re-exports the element, and
   /// every such `export` directive is marked as deprecated.
   bool get getterIsFromDeprecatedExport =>
       (_deprecatedBits & getterIsFromDeprecatedExportBit) != 0;
 
-  /// This flag is set to `true` if [setter2] is available using import
+  /// This flag is set to `true` if [setter] is available using import
   /// directives where every imported library re-exports the element, and
   /// every such `export` directive is marked as deprecated.
   bool get setterIsFromDeprecatedExport =>
@@ -739,12 +739,20 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
 
 class ScopeLookupResultImpl extends ScopeLookupResult {
   @override
-  final Element? getter2;
+  final Element? getter;
 
   @override
-  final Element? setter2;
+  final Element? setter;
 
-  ScopeLookupResultImpl({required this.getter2, required this.setter2});
+  ScopeLookupResultImpl({required this.getter, required this.setter});
+
+  @Deprecated('Use getter instead')
+  @override
+  Element? get getter2 => getter;
+
+  @Deprecated('Use getter instead')
+  @override
+  Element? get setter2 => setter;
 }
 
 class TypeParameterScope extends EnclosedScope {

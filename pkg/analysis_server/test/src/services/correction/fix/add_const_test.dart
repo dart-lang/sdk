@@ -626,6 +626,48 @@ class AddConst_PreferConstConstructorsTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_const_constructors;
 
+  Future<void> test_dotShorthand_named() async {
+    await resolveTestCode('''
+class C {
+  const C.named();
+}
+void f() {
+  C c = .named();
+  print(c);
+}
+''');
+    await assertHasFix('''
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .named();
+  print(c);
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_unnamed() async {
+    await resolveTestCode('''
+class C {
+  const C();
+}
+void f() {
+  C c = .new();
+  print(c);
+}
+''');
+    await assertHasFix('''
+class C {
+  const C();
+}
+void f() {
+  C c = const .new();
+  print(c);
+}
+''');
+  }
+
   Future<void> test_final_variable() async {
     createAnalysisOptionsFile(
       lints: [

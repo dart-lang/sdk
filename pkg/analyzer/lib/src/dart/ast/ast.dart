@@ -48,6 +48,8 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
+part 'ast.g.dart';
+
 /// Marker for declarations that are code generated.
 const generated = _Generated();
 
@@ -531,7 +533,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// The list must be the same length as the number of arguments, but can
   /// contain `null` entries if a given argument doesn't correspond to a formal
   /// parameter.
-  List<FormalParameterElementMixin?>? _correspondingStaticParameters;
+  List<InternalFormalParameterElement?>? _correspondingStaticParameters;
 
   @generated
   ArgumentListImpl({
@@ -548,11 +550,11 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     return leftParenthesis;
   }
 
-  List<FormalParameterElementMixin?>? get correspondingStaticParameters =>
+  List<InternalFormalParameterElement?>? get correspondingStaticParameters =>
       _correspondingStaticParameters;
 
   set correspondingStaticParameters(
-    List<FormalParameterElementMixin?>? parameters,
+    List<InternalFormalParameterElement?>? parameters,
   ) {
     if (parameters != null && parameters.length != arguments.length) {
       throw ArgumentError(
@@ -604,7 +606,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// - the function being invoked is known based on static type information
   /// - the expression corresponds to one of the parameters of the function
   ///   being invoked
-  FormalParameterElementMixin? _getStaticParameterElementFor(
+  InternalFormalParameterElement? _getStaticParameterElementFor(
     Expression expression,
   ) {
     if (_correspondingStaticParameters == null ||
@@ -1151,7 +1153,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   ExpressionImpl _rightHandSide;
 
   @override
-  MethodElement2OrMember? element;
+  InternalMethodElement? element;
 
   @generated
   AssignmentExpressionImpl({
@@ -1211,7 +1213,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// right operand is bound, or `null` if the AST structure is not resolved or
   /// the function being invoked is not known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForRightHandSide {
+  InternalFormalParameterElement? get _staticParameterElementForRightHandSide {
     Element? executableElement;
     if (operator.type != TokenType.EQ) {
       executableElement = element;
@@ -1226,10 +1228,10 @@ final class AssignmentExpressionImpl extends ExpressionImpl
       }
       if (operator.type == TokenType.EQ && leftHandSide is IndexExpression) {
         return formalParameters.length == 2
-            ? (formalParameters[1] as FormalParameterElementMixin)
+            ? (formalParameters[1] as InternalFormalParameterElement)
             : null;
       }
-      return formalParameters[0] as FormalParameterElementMixin;
+      return formalParameters[0] as InternalFormalParameterElement;
     }
 
     return null;
@@ -1523,374 +1525,6 @@ base mixin AstNodeWithNameScopeMixin on AstNodeImpl {
   /// The [Scope] that was used while resolving `this`, or `null` if resolution
   /// has not been performed yet.
   Scope? nameScope;
-}
-
-/// An object that can be used to visit an AST structure.
-///
-/// Clients may not extend, implement or mix-in this class. There are classes
-/// that implement this interface that provide useful default behaviors in
-/// `package:analyzer/dart/ast/visitor.dart`. A couple of the most useful
-/// include
-/// - SimpleAstVisitor which implements every visit method by doing nothing,
-/// - RecursiveAstVisitor which causes every node in a structure to be visited,
-///   and
-/// - ThrowingAstVisitor which implements every visit method by throwing an
-///   exception.
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract class AstVisitor<R> {
-  R? visitAdjacentStrings(AdjacentStrings node);
-
-  R? visitAnnotation(Annotation node);
-
-  R? visitArgumentList(ArgumentList node);
-
-  R? visitAsExpression(AsExpression node);
-
-  R? visitAssertInitializer(AssertInitializer node);
-
-  R? visitAssertStatement(AssertStatement assertStatement);
-
-  R? visitAssignedVariablePattern(AssignedVariablePattern node);
-
-  R? visitAssignmentExpression(AssignmentExpression node);
-
-  R? visitAwaitExpression(AwaitExpression node);
-
-  R? visitBinaryExpression(BinaryExpression node);
-
-  R? visitBlock(Block node);
-
-  R? visitBlockFunctionBody(BlockFunctionBody node);
-
-  R? visitBooleanLiteral(BooleanLiteral node);
-
-  R? visitBreakStatement(BreakStatement node);
-
-  R? visitCascadeExpression(CascadeExpression node);
-
-  R? visitCaseClause(CaseClause node);
-
-  R? visitCastPattern(CastPattern node);
-
-  R? visitCatchClause(CatchClause node);
-
-  R? visitCatchClauseParameter(CatchClauseParameter node);
-
-  R? visitClassDeclaration(ClassDeclaration node);
-
-  R? visitClassTypeAlias(ClassTypeAlias node);
-
-  R? visitComment(Comment node);
-
-  R? visitCommentReference(CommentReference node);
-
-  R? visitCompilationUnit(CompilationUnit node);
-
-  R? visitConditionalExpression(ConditionalExpression node);
-
-  R? visitConfiguration(Configuration node);
-
-  R? visitConstantPattern(ConstantPattern node);
-
-  R? visitConstructorDeclaration(ConstructorDeclaration node);
-
-  R? visitConstructorFieldInitializer(ConstructorFieldInitializer node);
-
-  R? visitConstructorName(ConstructorName node);
-
-  R? visitConstructorReference(ConstructorReference node);
-
-  R? visitConstructorSelector(ConstructorSelector node);
-
-  R? visitContinueStatement(ContinueStatement node);
-
-  R? visitDeclaredIdentifier(DeclaredIdentifier node);
-
-  R? visitDeclaredVariablePattern(DeclaredVariablePattern node);
-
-  R? visitDefaultFormalParameter(DefaultFormalParameter node);
-
-  R? visitDoStatement(DoStatement node);
-
-  R? visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  );
-
-  R? visitDotShorthandInvocation(DotShorthandInvocation node);
-
-  R? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node);
-
-  R? visitDottedName(DottedName node);
-
-  R? visitDoubleLiteral(DoubleLiteral node);
-
-  R? visitEmptyFunctionBody(EmptyFunctionBody node);
-
-  R? visitEmptyStatement(EmptyStatement node);
-
-  R? visitEnumConstantArguments(EnumConstantArguments node);
-
-  R? visitEnumConstantDeclaration(EnumConstantDeclaration node);
-
-  R? visitEnumDeclaration(EnumDeclaration node);
-
-  R? visitExportDirective(ExportDirective node);
-
-  R? visitExpressionFunctionBody(ExpressionFunctionBody node);
-
-  R? visitExpressionStatement(ExpressionStatement node);
-
-  R? visitExtendsClause(ExtendsClause node);
-
-  R? visitExtensionDeclaration(ExtensionDeclaration node);
-
-  R? visitExtensionOnClause(ExtensionOnClause node);
-
-  R? visitExtensionOverride(ExtensionOverride node);
-
-  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
-
-  R? visitFieldDeclaration(FieldDeclaration node);
-
-  R? visitFieldFormalParameter(FieldFormalParameter node);
-
-  R? visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node);
-
-  R? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node);
-
-  R? visitForEachPartsWithPattern(ForEachPartsWithPattern node);
-
-  R? visitForElement(ForElement node);
-
-  R? visitFormalParameterList(FormalParameterList node);
-
-  R? visitForPartsWithDeclarations(ForPartsWithDeclarations node);
-
-  R? visitForPartsWithExpression(ForPartsWithExpression node);
-
-  R? visitForPartsWithPattern(ForPartsWithPattern node);
-
-  R? visitForStatement(ForStatement node);
-
-  R? visitFunctionDeclaration(FunctionDeclaration node);
-
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node);
-
-  R? visitFunctionExpression(FunctionExpression node);
-
-  R? visitFunctionExpressionInvocation(FunctionExpressionInvocation node);
-
-  R? visitFunctionReference(FunctionReference node);
-
-  R? visitFunctionTypeAlias(FunctionTypeAlias functionTypeAlias);
-
-  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node);
-
-  R? visitGenericFunctionType(GenericFunctionType node);
-
-  R? visitGenericTypeAlias(GenericTypeAlias node);
-
-  R? visitGuardedPattern(GuardedPattern node);
-
-  R? visitHideCombinator(HideCombinator node);
-
-  R? visitIfElement(IfElement node);
-
-  R? visitIfStatement(IfStatement node);
-
-  R? visitImplementsClause(ImplementsClause node);
-
-  R? visitImplicitCallReference(ImplicitCallReference node);
-
-  R? visitImportDirective(ImportDirective node);
-
-  R? visitImportPrefixReference(ImportPrefixReference node);
-
-  R? visitIndexExpression(IndexExpression node);
-
-  R? visitInstanceCreationExpression(InstanceCreationExpression node);
-
-  R? visitIntegerLiteral(IntegerLiteral node);
-
-  R? visitInterpolationExpression(InterpolationExpression node);
-
-  R? visitInterpolationString(InterpolationString node);
-
-  R? visitIsExpression(IsExpression node);
-
-  R? visitLabel(Label node);
-
-  R? visitLabeledStatement(LabeledStatement node);
-
-  R? visitLibraryDirective(LibraryDirective node);
-
-  R? visitLibraryIdentifier(LibraryIdentifier node);
-
-  R? visitListLiteral(ListLiteral node);
-
-  R? visitListPattern(ListPattern node);
-
-  R? visitLogicalAndPattern(LogicalAndPattern node);
-
-  R? visitLogicalOrPattern(LogicalOrPattern node);
-
-  R? visitMapLiteralEntry(MapLiteralEntry node);
-
-  R? visitMapPattern(MapPattern node);
-
-  R? visitMapPatternEntry(MapPatternEntry node);
-
-  R? visitMethodDeclaration(MethodDeclaration node);
-
-  R? visitMethodInvocation(MethodInvocation node);
-
-  R? visitMixinDeclaration(MixinDeclaration node);
-
-  R? visitMixinOnClause(MixinOnClause node);
-
-  R? visitNamedExpression(NamedExpression node);
-
-  R? visitNamedType(NamedType node);
-
-  R? visitNativeClause(NativeClause node);
-
-  R? visitNativeFunctionBody(NativeFunctionBody node);
-
-  R? visitNullAssertPattern(NullAssertPattern node);
-
-  R? visitNullAwareElement(NullAwareElement node);
-
-  R? visitNullCheckPattern(NullCheckPattern node);
-
-  R? visitNullLiteral(NullLiteral node);
-
-  R? visitObjectPattern(ObjectPattern node);
-
-  R? visitParenthesizedExpression(ParenthesizedExpression node);
-
-  R? visitParenthesizedPattern(ParenthesizedPattern node);
-
-  R? visitPartDirective(PartDirective node);
-
-  R? visitPartOfDirective(PartOfDirective node);
-
-  R? visitPatternAssignment(PatternAssignment node);
-
-  R? visitPatternField(PatternField node);
-
-  R? visitPatternFieldName(PatternFieldName node);
-
-  R? visitPatternVariableDeclaration(PatternVariableDeclaration node);
-
-  R? visitPatternVariableDeclarationStatement(
-    PatternVariableDeclarationStatement node,
-  );
-
-  R? visitPostfixExpression(PostfixExpression node);
-
-  R? visitPrefixedIdentifier(PrefixedIdentifier node);
-
-  R? visitPrefixExpression(PrefixExpression node);
-
-  R? visitPropertyAccess(PropertyAccess node);
-
-  R? visitRecordLiteral(RecordLiteral node);
-
-  R? visitRecordPattern(RecordPattern node);
-
-  R? visitRecordTypeAnnotation(RecordTypeAnnotation node);
-
-  R? visitRecordTypeAnnotationNamedField(RecordTypeAnnotationNamedField node);
-
-  R? visitRecordTypeAnnotationNamedFields(RecordTypeAnnotationNamedFields node);
-
-  R? visitRecordTypeAnnotationPositionalField(
-    RecordTypeAnnotationPositionalField node,
-  );
-
-  R? visitRedirectingConstructorInvocation(
-    RedirectingConstructorInvocation node,
-  );
-
-  R? visitRelationalPattern(RelationalPattern node);
-
-  R? visitRepresentationConstructorName(RepresentationConstructorName node);
-
-  R? visitRepresentationDeclaration(RepresentationDeclaration node);
-
-  R? visitRestPatternElement(RestPatternElement node);
-
-  R? visitRethrowExpression(RethrowExpression node);
-
-  R? visitReturnStatement(ReturnStatement node);
-
-  R? visitScriptTag(ScriptTag node);
-
-  R? visitSetOrMapLiteral(SetOrMapLiteral node);
-
-  R? visitShowCombinator(ShowCombinator node);
-
-  R? visitSimpleFormalParameter(SimpleFormalParameter node);
-
-  R? visitSimpleIdentifier(SimpleIdentifier node);
-
-  R? visitSimpleStringLiteral(SimpleStringLiteral node);
-
-  R? visitSpreadElement(SpreadElement node);
-
-  R? visitStringInterpolation(StringInterpolation node);
-
-  R? visitSuperConstructorInvocation(SuperConstructorInvocation node);
-
-  R? visitSuperExpression(SuperExpression node);
-
-  R? visitSuperFormalParameter(SuperFormalParameter node);
-
-  R? visitSwitchCase(SwitchCase node);
-
-  R? visitSwitchDefault(SwitchDefault node);
-
-  R? visitSwitchExpression(SwitchExpression node);
-
-  R? visitSwitchExpressionCase(SwitchExpressionCase node);
-
-  R? visitSwitchPatternCase(SwitchPatternCase node);
-
-  R? visitSwitchStatement(SwitchStatement node);
-
-  R? visitSymbolLiteral(SymbolLiteral node);
-
-  R? visitThisExpression(ThisExpression node);
-
-  R? visitThrowExpression(ThrowExpression node);
-
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
-
-  R? visitTryStatement(TryStatement node);
-
-  R? visitTypeArgumentList(TypeArgumentList node);
-
-  R? visitTypeLiteral(TypeLiteral node);
-
-  R? visitTypeParameter(TypeParameter node);
-
-  R? visitTypeParameterList(TypeParameterList node);
-
-  R? visitVariableDeclaration(VariableDeclaration node);
-
-  R? visitVariableDeclarationList(VariableDeclarationList node);
-
-  R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
-
-  R? visitWhenClause(WhenClause node);
-
-  R? visitWhileStatement(WhileStatement node);
-
-  R? visitWildcardPattern(WildcardPattern node);
-
-  R? visitWithClause(WithClause node);
-
-  R? visitYieldStatement(YieldStatement node);
 }
 
 /// The result of attempting to evaluate an expression as a constant.
@@ -5514,7 +5148,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   SimpleIdentifierImpl? _name;
 
   @override
-  ConstructorElementMixin2? element;
+  InternalConstructorElement? element;
 
   @generated
   ConstructorNameImpl({
@@ -5986,6 +5620,11 @@ abstract final class Declaration implements AnnotatedNode {
   /// The fragment declared by this declaration.
   ///
   /// Returns `null` if the AST structure hasn't been resolved.
+  ///
+  /// Returns `null` for [FieldDeclaration] and [TopLevelVariableDeclaration]
+  /// because these nodes don't declare any fragments, but individual
+  /// [VariableDeclaration]s inside them do. They are [Declaration]s mostly to
+  /// fit into [ClassDeclaration.members] and [CompilationUnit.declarations].
   @experimental
   Fragment? get declaredFragment;
 }
@@ -6749,7 +6388,7 @@ final class DotShorthandConstructorInvocationImpl
   @override
   bool get canBeConst {
     var element = constructorName.element;
-    if (element is! ConstructorElementMixin2) return false;
+    if (element is! InternalConstructorElement) return false;
     if (!element.isConst) return false;
 
     // Ensure that dependencies (e.g. default parameter values) are computed.
@@ -7520,7 +7159,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   FieldFragmentImpl? declaredFragment;
 
   @override
-  ConstructorElementMixin2? constructorElement;
+  InternalConstructorElement? constructorElement;
 
   @generated
   EnumConstantDeclarationImpl({
@@ -7544,7 +7183,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 
   @Deprecated('Use constructorElement instead')
   @override
-  ConstructorElementMixin2? get constructorElement2 => constructorElement;
+  InternalConstructorElement? get constructorElement2 => constructorElement;
 
   @generated
   @override
@@ -8162,8 +7801,8 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-sealed class ExpressionImpl extends AstNodeImpl
-    implements CollectionElementImpl, Expression {
+sealed class ExpressionImpl extends CollectionElementImpl
+    implements Expression {
   TypeImpl? _staticType;
 
   @override
@@ -8171,7 +7810,7 @@ sealed class ExpressionImpl extends AstNodeImpl
 
   @experimental
   @override
-  FormalParameterElementMixin? get correspondingParameter {
+  InternalFormalParameterElement? get correspondingParameter {
     var parent = this.parent;
     if (parent is ArgumentListImpl) {
       return parent._getStaticParameterElementFor(this);
@@ -8287,6 +7926,10 @@ sealed class ExpressionImpl extends AstNodeImpl
             return (current, constKeyword);
           }
           return null;
+        case DotShorthandConstructorInvocation():
+          if (current.constKeyword case var constKeyword?) {
+            return (current, constKeyword);
+          }
         case EnumConstantArguments():
           return (current, null);
         case InstanceCreationExpression():
@@ -13930,7 +13573,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   /// index expression is bound, or `null` if the AST structure is not resolved,
   /// or the function being invoked is not known based on static type
   /// information.
-  FormalParameterElementMixin? get _staticParameterElementForIndex {
+  InternalFormalParameterElement? get _staticParameterElementForIndex {
     Element? element = this.element;
 
     var parent = this.parent;
@@ -13938,7 +13581,7 @@ final class IndexExpressionImpl extends ExpressionImpl
       element = parent.writeElement ?? parent.readElement;
     }
 
-    if (element is ExecutableElement2OrMember) {
+    if (element is InternalExecutableElement) {
       var formalParameters = element.formalParameters;
       if (formalParameters.isEmpty) {
         return null;
@@ -17074,14 +16717,14 @@ final class NamedExpressionImpl extends ExpressionImpl
 
   @experimental
   @override
-  FormalParameterElementMixin? get element {
+  InternalFormalParameterElement? get element {
     return _name.label.element?.ifTypeOrNull();
   }
 
   @Deprecated('Use element instead')
   @experimental
   @override
-  FormalParameterElementMixin? get element2 {
+  InternalFormalParameterElement? get element2 {
     return element;
   }
 
@@ -19554,7 +19197,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` ff the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForOperand {
+  InternalFormalParameterElement? get _staticParameterElementForOperand {
     if (element == null) {
       return null;
     }
@@ -19564,7 +19207,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
     }
     // TODO(paulberry): eliminate this cast by changing the type of
     // `staticElement` to `MethodElement2OrMember?`.
-    return parameters[0] as FormalParameterElementMixin;
+    return parameters[0] as InternalFormalParameterElement;
   }
 
   @generated
@@ -19828,7 +19471,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   /// The parameter element representing the parameter to which the value of the
   /// operand is bound, or `null` if the AST structure is not resolved or the
   /// function being invoked isn't known based on static type information.
-  FormalParameterElementMixin? get _staticParameterElementForOperand {
+  InternalFormalParameterElement? get _staticParameterElementForOperand {
     if (element == null) {
       return null;
     }
@@ -19838,7 +19481,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
     }
     // TODO(paulberry): eliminate this cast by changing the type of
     // `staticElement` to `MethodElementOrMember?`.
-    return parameters[0] as FormalParameterElementMixin;
+    return parameters[0] as InternalFormalParameterElement;
   }
 
   @generated
@@ -22360,8 +22003,8 @@ abstract final class SpreadElement implements CollectionElement {
     GenerateNodeProperty('expression'),
   ],
 )
-final class SpreadElementImpl extends AstNodeImpl
-    implements CollectionElementImpl, SpreadElement {
+final class SpreadElementImpl extends CollectionElementImpl
+    implements SpreadElement {
   @generated
   @override
   final Token spreadOperator;
@@ -22779,7 +22422,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   ArgumentListImpl _argumentList;
 
   @override
-  ConstructorElementMixin2? element;
+  InternalConstructorElement? element;
 
   @generated
   SuperConstructorInvocationImpl({

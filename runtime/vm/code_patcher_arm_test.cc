@@ -46,8 +46,10 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   __ set_constant_pool_allowed(true);  // Uninitialized pp is OK.
   SPILLS_LR_TO_FRAME({});              // Clobbered LR is OK.
 
+  __ LoadObject(CODE_REG, StubCode::OneArgCheckInlineCache());
   __ LoadObject(R9, ic_data);
-  __ BranchLinkPatchable(StubCode::OneArgCheckInlineCache());
+  __ Call(compiler::FieldAddress(
+      CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
   RESTORES_LR_FROM_FRAME({});  // Clobbered LR is OK.
   __ Ret();
 }

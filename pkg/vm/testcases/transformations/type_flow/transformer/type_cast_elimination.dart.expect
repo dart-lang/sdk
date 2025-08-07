@@ -115,11 +115,11 @@ static method main() → void {
   self::testNullableAOfNum();
   self::testNullableAOfNumNegative(new self::B::•<core::int?>());
   self::testNullableAOfNullableNum(new self::B::•<core::int?>());
-  [@vm.direct-call.metadata=#lib::B.testT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT1}(){(dynamic) → dynamic};
-  [@vm.direct-call.metadata=#lib::B.testT2negative] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testT2negative}(){(dynamic) → dynamic};
-  [@vm.direct-call.metadata=#lib::B.testT3] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(){(dynamic) → dynamic};
-  [@vm.direct-call.metadata=#lib::B.testNullableT1] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(){(dynamic) → dynamic};
-  [@vm.direct-call.metadata=#lib::B.testNullableT2] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testT1] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int>().{self::B::testT1}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testT2negative] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int>().{self::B::testT2negative}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testT3] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testNullableT1] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(){(dynamic) → dynamic};
+  [@vm.direct-call.metadata=#lib::B.testNullableT2] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(){(dynamic) → dynamic};
 }
 constants  {
   #C1 = 42

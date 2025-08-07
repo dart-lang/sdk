@@ -34,7 +34,7 @@ library
       libraryImports
         dart:async
       functions
-        #F1 f @28
+        #F1 f (nameOffset:28) (firstTokenOffset:21) (offset:28)
           element: <testLibrary>::@function::f
   functions
     f
@@ -58,7 +58,7 @@ library
       libraryImports
         dart:async
       functions
-        #F1 f @28
+        #F1 f (nameOffset:28) (firstTokenOffset:21) (offset:28)
           element: <testLibrary>::@function::f
   functions
     f
@@ -82,7 +82,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @60
+        #F1 f (nameOffset:60) (firstTokenOffset:44) (offset:60)
           element: <testLibrary>::@function::f
           documentationComment: /**\n * Docs\n */
   functions
@@ -103,7 +103,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 main @0
+        #F1 main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
   functions
     main
@@ -151,7 +151,7 @@ library
   reference: <testLibrary>
   name: my.lib
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
@@ -163,7 +163,7 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       functions
-        #F2 main @16
+        #F2 main (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::main
   functions
     main
@@ -182,7 +182,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @9
+        #F1 f (nameOffset:9) (firstTokenOffset:0) (offset:9)
           element: <testLibrary>::@function::f
   functions
     external f
@@ -232,10 +232,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x @13
+            #F2 x (nameOffset:13) (firstTokenOffset:7) (offset:13)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
     f
@@ -260,10 +260,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 this.a @16
+            #F2 this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
               element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f
@@ -288,10 +288,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 this.a @17
+            #F2 this.a (nameOffset:17) (firstTokenOffset:8) (offset:17)
               element: <testLibrary>::@function::f::@formalParameter::a
               initializer: expression_0
                 IntegerLiteral
@@ -323,11 +323,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 this.a @16
+            #F2 this.a (nameOffset:16) (firstTokenOffset:7) (offset:16)
               element: <testLibrary>::@function::f::@formalParameter::a
+              parameters
+                #F3 b (nameOffset:22) (firstTokenOffset:18) (offset:22)
+                  element: b@22
   functions
     f
       reference: <testLibrary>::@function::f
@@ -353,10 +356,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x @8
+            #F2 x (nameOffset:8) (firstTokenOffset:2) (offset:8)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
     f
@@ -379,10 +382,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x @3
+            #F2 x (nameOffset:3) (firstTokenOffset:3) (offset:3)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
     f
@@ -405,10 +408,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x @3
+            #F2 x (nameOffset:3) (firstTokenOffset:3) (offset:3)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
     f
@@ -431,10 +434,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x @2
+            #F2 x (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: <testLibrary>::@function::f::@formalParameter::x
   functions
     f
@@ -457,11 +460,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 g @2
+            #F2 g (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F3 x (nameOffset:4) (firstTokenOffset:4) (offset:4)
+                  element: x@4
+                #F4 y (nameOffset:7) (firstTokenOffset:7) (offset:7)
+                  element: y@7
   functions
     f
       reference: <testLibrary>::@function::f
@@ -490,10 +498,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 g @6
+            #F2 g (nameOffset:6) (firstTokenOffset:2) (offset:6)
               element: <testLibrary>::@function::f::@formalParameter::g
   functions
     f
@@ -516,10 +524,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 g @7
+            #F2 g (nameOffset:7) (firstTokenOffset:2) (offset:7)
               element: <testLibrary>::@function::f::@formalParameter::g
   functions
     f
@@ -542,10 +550,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 i @6
+            #F2 i (nameOffset:6) (firstTokenOffset:2) (offset:6)
               element: <testLibrary>::@function::f::@formalParameter::i
   functions
     f
@@ -570,13 +578,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
           formalParameters
-            #F3 a @12
+            #F3 a (nameOffset:12) (firstTokenOffset:10) (offset:12)
               element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f
@@ -604,10 +612,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 a @9
+            #F2 a (nameOffset:9) (firstTokenOffset:7) (offset:9)
               element: <testLibrary>::@function::f::@formalParameter::a
   functions
     f
@@ -630,12 +638,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 x @2
+            #F2 x (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: <testLibrary>::@function::f::@formalParameter::x
-            #F3 y @5
+            #F3 y (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@function::f::@formalParameter::y
   functions
     f
@@ -661,7 +669,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
   functions
     f
@@ -682,7 +690,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @2
+        #F1 f (nameOffset:2) (firstTokenOffset:0) (offset:2)
           element: <testLibrary>::@function::f
   functions
     f
@@ -701,7 +709,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
   functions
     f
@@ -722,7 +730,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @4
+        #F1 f (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@function::f
   functions
     f
@@ -743,10 +751,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @2
+        #F1 f (nameOffset:2) (firstTokenOffset:0) (offset:2)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @4
+            #F2 T (nameOffset:4) (firstTokenOffset:4) (offset:4)
               element: #E0 T
   functions
     f
@@ -768,16 +776,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
-            #F3 U @10
+            #F3 U (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E1 U
           formalParameters
-            #F4 x @15
+            #F4 x (nameOffset:15) (firstTokenOffset:13) (offset:15)
               element: <testLibrary>::@function::f::@formalParameter::x
+              parameters
+                #F5 u (nameOffset:19) (firstTokenOffset:17) (offset:19)
+                  element: u@19
   functions
     f
       reference: <testLibrary>::@function::f
@@ -818,10 +829,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
   functions
     f
@@ -846,10 +857,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @7
+            #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
               element: #E0 T
   functions
     f
@@ -871,9 +882,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
-        #F2 g @7
+        #F2 g (nameOffset:7) (firstTokenOffset:7) (offset:7)
           element: <testLibrary>::@function::g
   functions
     f
@@ -898,7 +909,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 get @0
+        #F1 get (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::get
   functions
     get
@@ -917,10 +928,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class main @6
+        #F1 class main (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::main
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::main::@constructor::new
               typeName: main
   classes
@@ -945,22 +956,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class main @6
+        #F1 class main (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::main
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::main::@constructor::new
               typeName: main
-        #F3 class C @29
+        #F3 class C (nameOffset:29) (firstTokenOffset:23) (offset:29)
           element: <testLibrary>::@class::C
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F5 class D @40
+        #F5 class D (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::D
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -1039,12 +1050,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 synthetic main (offset=4)
+        #F1 synthetic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@topLevelVariable::main
       getters
-        #F2 main @4
+        #F2 main (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@getter::main
-          returnType: dynamic
   topLevelVariables
     synthetic main
       reference: <testLibrary>::@topLevelVariable::main
@@ -1083,7 +1093,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 main @8
+        #F1 main (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::main
   typeAliases
     main
@@ -1116,18 +1126,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 main @4
+        #F1 main (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::main
       getters
-        #F2 synthetic main
+        #F2 synthetic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::main
-          returnType: dynamic
       setters
-        #F3 synthetic main
+        #F3 synthetic main (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::main
           formalParameters
-            #F4 _main
-              element: <testLibrary>::@setter::main::@formalParameter::_main
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::main::@formalParameter::value
   topLevelVariables
     main
       reference: <testLibrary>::@topLevelVariable::main
@@ -1146,10 +1155,11 @@ library
       reference: <testLibrary>::@setter::main
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _main
+        #E0 requiredPositional value
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::main
 ''');
   }
 
@@ -1178,10 +1188,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 set @0
+        #F1 set (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::set
           formalParameters
-            #F2 _ @9
+            #F2 _ (nameOffset:9) (firstTokenOffset:5) (offset:9)
               element: <testLibrary>::@function::set::@formalParameter::_
   functions
     set
@@ -1925,8 +1935,7 @@ class foo {}
 
     configuration
       ..withConstructors = false
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+      ..withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2003,8 +2012,7 @@ void foo() {}
 
     configuration
       ..withConstructors = false
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+      ..withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2081,9 +2089,7 @@ part 'a.dart';
 int get foo => 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2177,9 +2183,7 @@ augment int get foo => 0;
 part 'a.dart';
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2239,8 +2243,7 @@ set foo(int _) {}
 
     configuration
       ..withConstructors = false
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+      ..withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2344,9 +2347,7 @@ part 'a.dart';
 int foo = 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2471,9 +2472,7 @@ part 'a.dart';
 class foo {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2569,9 +2568,7 @@ part 'a.dart';
 int get foo => 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2674,9 +2671,7 @@ augment set foo(int _) {}
 part 'a.dart';
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2743,9 +2738,7 @@ part 'a.dart';
 set foo(int _) {}
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2855,9 +2848,7 @@ part 'a.dart';
 int foo = 0;
 ''');
 
-    configuration
-      ..withExportScope = true
-      ..withPropertyLinking = true;
+    configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

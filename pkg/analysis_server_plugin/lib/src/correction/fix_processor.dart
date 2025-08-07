@@ -71,8 +71,8 @@ class FixProcessor {
       return;
     }
 
-    var builder =
-        ChangeBuilder(workspace: _fixContext.workspace, eol: producer.eol);
+    var builder = ChangeBuilder(
+        workspace: _fixContext.workspace, defaultEol: producer.defaultEol);
     try {
       var fixKind = producer.fixKind;
 

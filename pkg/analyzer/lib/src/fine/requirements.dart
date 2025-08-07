@@ -15,14 +15,9 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:meta/meta.dart';
 
-/// When [withFineDependencies], this variable might be set to accumulate
-/// requirements for the analysis result being computed.
+/// When using fine-grained dependencies, this variable might be set to
+/// accumulate requirements for the analysis result being computed.
 RequirementsManifest? globalResultRequirements;
-
-/// Whether fine-grained dependencies feature is enabled.
-///
-/// This cannot be `const` because we change it in tests.
-bool withFineDependencies = false;
 
 /// Requirements for a single `export`.
 @visibleForTesting
@@ -98,8 +93,8 @@ class ExportRequirement {
       return ExportCountMismatch(
         fragmentUri: fragmentUri,
         exportedUri: exportedUri,
+        expectedCount: exportedIds.length,
         actualCount: actualCount,
-        requiredCount: exportedIds.length,
       );
     }
 

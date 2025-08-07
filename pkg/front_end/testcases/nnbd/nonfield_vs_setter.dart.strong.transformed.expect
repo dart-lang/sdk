@@ -91,10 +91,6 @@ library;
 //   static extensionStaticMethodAndInstanceSetter() {}
 //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:47:27: Error: Can't assign to this.
-//   topLevelMethodAndSetter = topLevelMethodAndSetter();
-//                           ^
-//
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:22: Error: Couldn't find constructor 'typedefAndSetter'.
 //   typedefAndSetter = typedefAndSetter();
 //                      ^^^^^^^^^^^^^^^^
@@ -102,58 +98,6 @@ library;
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:3: Error: Can't assign to a type literal.
 //   typedefAndSetter = typedefAndSetter();
 //   ^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:49:18: Error: Can't assign to this.
-//   classAndSetter = classAndSetter();
-//                  ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:9: Error: Can't use 'staticMethodAndSetter' because it is declared more than once.
-//   Class.staticMethodAndSetter = Class.staticMethodAndSetter();
-//         ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:39: Error: Can't use 'staticMethodAndSetter' because it is declared more than once.
-//   Class.staticMethodAndSetter = Class.staticMethodAndSetter();
-//                                       ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:31: Error: Can't assign to this.
-//   Class.staticMethodAndSetter = Class.staticMethodAndSetter();
-//                               ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:57:43: Error: Can't use 'staticMethodAndInstanceSetter' because it is declared more than once.
-//   c.staticMethodAndInstanceSetter = Class.staticMethodAndInstanceSetter();
-//                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:59:9: Error: Can't use 'instanceMethodAndStaticSetter' because it is declared more than once.
-//   Class.instanceMethodAndStaticSetter = c.instanceMethodAndStaticSetter();
-//         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:59:39: Error: Can't assign to this.
-//   Class.instanceMethodAndStaticSetter = c.instanceMethodAndStaticSetter();
-//                                       ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:65:13: Error: Can't use 'extensionStaticMethodAndSetter' because it is declared more than once.
-//   Extension.extensionStaticMethodAndSetter =
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:66:17: Error: Can't use 'extensionStaticMethodAndSetter' because it is declared more than once.
-//       Extension.extensionStaticMethodAndSetter();
-//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:65:44: Error: Can't assign to this.
-//   Extension.extensionStaticMethodAndSetter =
-//                                            ^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:69:17: Error: Can't use 'extensionStaticMethodAndInstanceSetter' because it is declared more than once.
-//       Extension.extensionStaticMethodAndInstanceSetter();
-//                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:71:13: Error: Can't use 'extensionInstanceMethodAndStaticSetter' because it is declared more than once.
-//   Extension.extensionInstanceMethodAndStaticSetter =
-//             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:71:52: Error: Can't assign to this.
-//   Extension.extensionInstanceMethodAndStaticSetter =
-//                                                    ^
 //
 // pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:53:5: Error: The setter 'instanceMethodAndSetter' isn't defined for the type 'Class'.
 //  - 'Class' is from 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
@@ -224,24 +168,24 @@ static extension-member method Extension|get#extensionInstanceMethodAndStaticSet
   return () → dynamic => self::Extension|extensionInstanceMethodAndStaticSetter(#this);
 static extension-member method Extension|extensionStaticMethodAndInstanceSetter() → dynamic {}
 static method test() → dynamic {
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:47:27: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:47:3: Error: Can't use 'topLevelMethodAndSetter' because it is declared more than once.
   topLevelMethodAndSetter = topLevelMethodAndSetter();
-                          ^";
+  ^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:48:3: Error: Can't assign to a type literal.
   typedefAndSetter = typedefAndSetter();
   ^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:49:18: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:49:3: Error: Can't use 'classAndSetter' because it is declared more than once.
   classAndSetter = classAndSetter();
-                 ^";
+  ^^^^^^^^^^^^^^";
   self::Class c = new self::Class::•();
   invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:53:5: Error: The setter 'instanceMethodAndSetter' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceMethodAndSetter'.
   c.instanceMethodAndSetter = c.instanceMethodAndSetter();
     ^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}instanceMethodAndSetter = c.{self::Class::instanceMethodAndSetter}(){() → dynamic};
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:31: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:55:9: Error: Can't use 'staticMethodAndSetter' because it is declared more than once.
   Class.staticMethodAndSetter = Class.staticMethodAndSetter();
-                              ^";
+        ^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:57:5: Error: The setter 'staticMethodAndInstanceSetter' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'staticMethodAndInstanceSetter'.
@@ -249,9 +193,9 @@ Try correcting the name to the name of an existing setter, or defining a setter 
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c.{<unresolved>}staticMethodAndInstanceSetter = invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:57:43: Error: Can't use 'staticMethodAndInstanceSetter' because it is declared more than once.
   c.staticMethodAndInstanceSetter = Class.staticMethodAndInstanceSetter();
                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:59:39: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:59:9: Error: Can't use 'instanceMethodAndStaticSetter' because it is declared more than once.
   Class.instanceMethodAndStaticSetter = c.instanceMethodAndStaticSetter();
-                                      ^";
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   c.{self::Class::Class} = invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:61:15: Error: The getter 'Class' isn't defined for the type 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'Class'.
@@ -264,17 +208,17 @@ Try correcting the name to the name of an existing setter, or defining a setter 
 Try correcting the name to the name of an existing method, or defining a method named 'extensionInstanceMethodAndSetter'.
   0.extensionInstanceFieldAndSetter = 0.extensionInstanceMethodAndSetter();
                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0{<unresolved>}.extensionInstanceMethodAndSetter();
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:65:44: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:65:13: Error: Can't use 'extensionStaticMethodAndSetter' because it is declared more than once.
   Extension.extensionStaticMethodAndSetter =
-                                           ^";
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
   invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:68:5: Error: The setter 'extensionStaticMethodAndInstanceSetter' isn't defined for the type 'int'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'extensionStaticMethodAndInstanceSetter'.
   0.extensionStaticMethodAndInstanceSetter =
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in 0.{<unresolved>}extensionStaticMethodAndInstanceSetter = invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:69:17: Error: Can't use 'extensionStaticMethodAndInstanceSetter' because it is declared more than once.
       Extension.extensionStaticMethodAndInstanceSetter();
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:71:52: Error: Can't assign to this.
+  invalid-expression "pkg/front_end/testcases/nnbd/nonfield_vs_setter.dart:71:13: Error: Can't use 'extensionInstanceMethodAndStaticSetter' because it is declared more than once.
   Extension.extensionInstanceMethodAndStaticSetter =
-                                                   ^";
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
 }
 static method main() → dynamic {}

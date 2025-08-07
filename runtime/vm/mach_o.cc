@@ -23,11 +23,27 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool,
+            macho_linker_signature,
+            true,
+            "Whether to include a ad-hoc linker-signed code signature block");
+
+DEFINE_FLAG(charp,
+            macho_install_name,
+            nullptr,
+            "The install name to be used for the dynamic library. "
+            "The output filename is used if not provided.");
+
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 DEFINE_FLAG(charp,
             macho_min_os_version,
             nullptr,
             "The minimum OS version required for MacOS/iOS Mach-O snapshots");
+
+DEFINE_FLAG(charp,
+            macho_rpath,
+            nullptr,
+            "Run paths to be added at runtime (comma delimited)");
 #endif
 
 static constexpr intptr_t kLinearInitValue = -1;
@@ -63,6 +79,7 @@ static constexpr intptr_t kLinearInitValue = -1;
 
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
 #define FOR_EACH_MACOS_ONLY_CONCRETE_MACHO_CONTENTS_TYPE(V)                    \
+  V(MachORunPath)                                                              \
   V(MachOBuildVersion)                                                         \
   V(MachOLoadDylib)
 #else
@@ -1173,6 +1190,42 @@ class MachOBuildVersion : public MachOCommand {
 
   DISALLOW_COPY_AND_ASSIGN(MachOBuildVersion);
 };
+
+class MachORunPath : public MachOCommand {
+ public:
+  static constexpr uint32_t kCommandCode = mach_o::LC_RPATH;
+
+  MachORunPath(const char* path, intptr_t length)
+      : MachOCommand(kCommandCode,
+                     /*needs_offset=*/false,
+                     /*in_segment=*/false),
+        path_(path),
+        length_(length) {}
+
+  uint32_t cmdsize() const override {
+    return Utils::RoundUp(HeaderSize() + length_ + 1, kLoadCommandAlignment);
+  }
+
+  void WriteLoadCommand(MachOWriteStream* stream) const override {
+    const intptr_t start = stream->Position();
+    MachOCommand::WriteLoadCommand(stream);
+    stream->Write32(HeaderSize());  // path.offset
+    ASSERT_EQUAL(HeaderSize(), stream->Position() - start);
+    stream->WriteFixedLengthCString(path_, length_);
+    stream->WriteByte('\0');  // Null-terminate the string.
+    stream->Align(kLoadCommandAlignment);
+  }
+
+  void Accept(Visitor* visitor) override { visitor->VisitMachORunPath(this); }
+
+ private:
+  uint32_t HeaderSize() const { return sizeof(mach_o::rpath_command); }
+
+  const char* const path_;
+  const intptr_t length_;
+
+  DISALLOW_COPY_AND_ASSIGN(MachORunPath);
+};
 #endif
 #undef MACHO_XYZ_VERSION_ENCODING
 
@@ -1933,9 +1986,13 @@ MachOWriter::MachOWriter(Zone* zone,
                          const char* path,
                          Dwarf* dwarf)
     : SharedObjectWriter(zone, stream, type, dwarf),
-      header_(*new (zone)
-                  MachOHeader(zone, type, IsStripped(dwarf), id, path, dwarf)) {
-}
+      header_(*new (zone) MachOHeader(
+          zone,
+          type,
+          IsStripped(dwarf),
+          FLAG_macho_install_name != nullptr ? FLAG_macho_install_name : id,
+          path,
+          dwarf)) {}
 
 void MachOWriter::AddText(const char* name,
                           intptr_t label,
@@ -2402,8 +2459,19 @@ void MachOHeader::GenerateMiscellaneousCommands() {
 #if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
     ASSERT(!HasCommand(MachOBuildVersion::kCommandCode));
     ASSERT(!HasCommand(MachOLoadDylib::kCommandCode));
+    ASSERT(!HasCommand(MachORunPath::kCommandCode));
     commands_.Add(new (zone_) MachOBuildVersion());
     commands_.Add(MachOLoadDylib::CreateLoadSystemDylib(zone_));
+    if (FLAG_macho_rpath != nullptr) {
+      const char* current = FLAG_macho_rpath;
+      for (const char* next = current;; next += 1) {
+        if (*next == ',' || *next == '\0') {
+          commands_.Add(new (zone_) MachORunPath(current, next - current));
+          if (*next == '\0') break;
+          current = next + 1;
+        }
+      }
+    }
 #endif
   }
 }
@@ -2580,7 +2648,7 @@ void MachOHeader::FinalizeCommands() {
   for (auto* const c : linkedit_commands) {
     linkedit_segment->AddContents(c);
   }
-  if (type_ == SnapshotType::Snapshot) {
+  if (type_ == SnapshotType::Snapshot && FLAG_macho_linker_signature) {
     // Also include an embedded ad-hoc linker signed code signature as the
     // last contents of the linkedit segment (which is the last segment).
     auto* const signature = new (zone_) MachOCodeSignature(identifier_);

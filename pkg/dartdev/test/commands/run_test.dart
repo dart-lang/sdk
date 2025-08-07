@@ -838,7 +838,8 @@ main() => print('b:b');
         sub = process.stdout.transform(utf8.decoder).listen((event) async {
           if (event.contains('ready')) {
             readyCompleter.complete();
-          } else if (event.contains(devToolsMessagePrefix)) {
+          }
+          if (event.contains(devToolsMessagePrefix)) {
             await sub.cancel();
             completer.complete();
           }
@@ -926,20 +927,6 @@ void residentRun() {
         '--$residentCompilerInfoFileOption=$serverInfoFile',
       ]);
     });
-  });
-
-  test('running dartdev is a prerequisite for passing --resident', () async {
-    p = project(mainSrc: 'void main() {}');
-    final result = await p.run(['--resident', p.relativeFilePath]);
-
-    expect(result.exitCode, 255);
-    expect(
-      result.stderr,
-      contains(
-        'Passing the `--resident` flag to `dart` is invalid. It must be passed '
-        'to `dart run`.',
-      ),
-    );
   });
 
   test(
@@ -1103,8 +1090,7 @@ void residentRun() {
     final result = await p.run([
       'run',
       '--resident',
-      '--$residentCompilerInfoFileOption',
-      path.relative(serverInfoFile, from: p.dirPath),
+      '--$residentCompilerInfoFileOption=${path.relative(serverInfoFile, from: p.dirPath)}',
       p.relativeFilePath,
     ]);
 

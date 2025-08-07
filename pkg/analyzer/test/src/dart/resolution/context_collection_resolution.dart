@@ -98,6 +98,9 @@ abstract class ContextResolutionTest
 
   final IdProvider _idProvider = IdProvider();
 
+  /// Whether fine-grained dependencies experiment is enabled.
+  bool withFineDependencies = false;
+
   List<MockSdkLibrary> get additionalMockSdkLibraries => [];
 
   AnalysisContextCollectionImpl get analysisContextCollection {
@@ -124,6 +127,7 @@ abstract class ContextResolutionTest
       librarySummaryPaths: librarySummaryFiles?.map((e) => e.path).toList(),
       updateAnalysisOptions3: updateAnalysisOptions,
       drainStreams: false,
+      withFineDependencies: withFineDependencies,
     );
 
     _analysisContextCollection = collection;
@@ -214,7 +218,7 @@ abstract class ContextResolutionTest
     var uriStr = uri.toString();
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResultImpl;
-    return libraryResult.element2;
+    return libraryResult.element;
   }
 
   void makeFilePriority(File file) {

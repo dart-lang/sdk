@@ -30,12 +30,11 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer f @6
+        #F1 hasInitializer f (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic f
+        #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::f
-          returnType: V Function<U, V>(U, V)
   topLevelVariables
     final hasInitializer f
       reference: <testLibrary>::@topLevelVariable::f
@@ -65,7 +64,7 @@ library
   reference: <testLibrary>
   name: lib
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
@@ -77,12 +76,11 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer f @19
+        #F2 hasInitializer f (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F3 synthetic f
+        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::f
-          returnType: double Function(int)
   topLevelVariables
     final hasInitializer f
       reference: <testLibrary>::@topLevelVariable::f
@@ -111,22 +109,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 hasInitializer f @21
+            #F3 hasInitializer f (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@field::f
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 synthetic f
+            #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@getter::f
-              returnType: InvalidType
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -170,38 +167,38 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @43
+        #F1 class C (nameOffset:43) (firstTokenOffset:37) (offset:43)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 V @45
+            #F2 V (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: #E0 V
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:52) (offset:58)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 58
               formalParameters
-                #F4 f @65
+                #F4 f (nameOffset:65) (firstTokenOffset:60) (offset:65)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::f
-        #F5 class D @77
+        #F5 class D (nameOffset:77) (firstTokenOffset:71) (offset:77)
           element: <testLibrary>::@class::D
           typeParameters
-            #F6 T @79
+            #F6 T (nameOffset:79) (firstTokenOffset:79) (offset:79)
               element: #E1 T
-            #F7 U @81
+            #F7 U (nameOffset:81) (firstTokenOffset:81) (offset:81)
               element: #E2 U
           constructors
-            #F8 synthetic new
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        #F9 F @8
+        #F9 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F10 T @10
+            #F10 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E3 T
       topLevelVariables
-        #F11 hasInitializer x @118
+        #F11 hasInitializer x (nameOffset:118) (firstTokenOffset:118) (offset:118)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             InstanceCreationExpression
@@ -224,14 +221,13 @@ library
                 rightParenthesis: ) @131
               staticType: C<int>
       getters
-        #F12 synthetic x
+        #F12 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
           element: <testLibrary>::@getter::x
-          returnType: C<int>
       functions
-        #F13 f @96
+        #F13 f (nameOffset:96) (firstTokenOffset:87) (offset:96)
           element: <testLibrary>::@function::f
           typeParameters
-            #F14 U @98
+            #F14 U (nameOffset:98) (firstTokenOffset:98) (offset:98)
               element: #E4 U
   classes
     class C
@@ -314,30 +310,30 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @38
+        #F1 class C (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::C
           constructors
-            #F2 const new
+            #F2 const new (nameOffset:<null>) (firstTokenOffset:44) (offset:50)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 50
               formalParameters
-                #F3 f @54
+                #F3 f (nameOffset:54) (firstTokenOffset:52) (offset:54)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::f
-        #F4 class D @66
+        #F4 class D (nameOffset:66) (firstTokenOffset:60) (offset:66)
           element: <testLibrary>::@class::D
           typeParameters
-            #F5 T @68
+            #F5 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: #E0 T
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
-        #F7 F @8
+        #F7 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F8 hasInitializer x @101
+        #F8 hasInitializer x (nameOffset:101) (firstTokenOffset:101) (offset:101)
           element: <testLibrary>::@topLevelVariable::x
           initializer: expression_0
             InstanceCreationExpression
@@ -358,14 +354,13 @@ library
                 rightParenthesis: ) @114
               staticType: C
       getters
-        #F9 synthetic x
+        #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
           element: <testLibrary>::@getter::x
-          returnType: C
       functions
-        #F10 f @79
+        #F10 f (nameOffset:79) (firstTokenOffset:74) (offset:79)
           element: <testLibrary>::@function::f
           typeParameters
-            #F11 T @81
+            #F11 T (nameOffset:81) (firstTokenOffset:81) (offset:81)
               element: #E1 T
   classes
     class C
@@ -440,44 +435,43 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B @18
+        #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class S @40
+        #F5 class S (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::S
           typeParameters
-            #F6 T @42
+            #F6 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E0 T
           constructors
-            #F7 new
+            #F7 new (nameOffset:<null>) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
               typeNameOffset: 59
               formalParameters
-                #F8 _ @63
+                #F8 _ (nameOffset:63) (firstTokenOffset:61) (offset:63)
                   element: <testLibrary>::@class::S::@constructor::new::@formalParameter::_
       topLevelVariables
-        #F9 hasInitializer s @74
+        #F9 hasInitializer s (nameOffset:74) (firstTokenOffset:74) (offset:74)
           element: <testLibrary>::@topLevelVariable::s
       getters
-        #F10 synthetic s
+        #F10 synthetic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
           element: <testLibrary>::@getter::s
-          returnType: S<B>
       setters
-        #F11 synthetic s
+        #F11 synthetic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
           element: <testLibrary>::@setter::s
           formalParameters
-            #F12 _s
-              element: <testLibrary>::@setter::s::@formalParameter::_s
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+              element: <testLibrary>::@setter::s::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -528,10 +522,11 @@ library
       reference: <testLibrary>::@setter::s
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _s
+        #E2 requiredPositional value
           firstFragment: #F12
           type: S<B>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::s
 ''');
   }
 
@@ -556,79 +551,75 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 b @14
+            #F2 b (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@class::A::@field::b
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 synthetic b
+            #F4 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@class::A::@getter::b
-              returnType: B
           setters
-            #F5 synthetic b
+            #F5 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@class::A::@setter::b
               formalParameters
-                #F6 _b
-                  element: <testLibrary>::@class::A::@setter::b::@formalParameter::_b
-        #F7 class B @25
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+                  element: <testLibrary>::@class::A::@setter::b::@formalParameter::value
+        #F7 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           fields
-            #F8 synthetic c
+            #F8 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@field::c
           constructors
-            #F9 synthetic new
+            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F10 c @37
+            #F10 c (nameOffset:37) (firstTokenOffset:31) (offset:37)
               element: <testLibrary>::@class::B::@getter::c
-              returnType: C
           setters
-            #F11 c @59
+            #F11 c (nameOffset:59) (firstTokenOffset:50) (offset:59)
               element: <testLibrary>::@class::B::@setter::c
               formalParameters
-                #F12 value @63
+                #F12 value (nameOffset:63) (firstTokenOffset:61) (offset:63)
                   element: <testLibrary>::@class::B::@setter::c::@formalParameter::value
-        #F13 class C @81
+        #F13 class C (nameOffset:81) (firstTokenOffset:75) (offset:81)
           element: <testLibrary>::@class::C
           constructors
-            #F14 synthetic new
+            #F14 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F15 class D @92
+        #F15 class D (nameOffset:92) (firstTokenOffset:86) (offset:92)
           element: <testLibrary>::@class::D
           constructors
-            #F16 synthetic new
+            #F16 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       topLevelVariables
-        #F17 hasInitializer a @111
+        #F17 hasInitializer a (nameOffset:111) (firstTokenOffset:111) (offset:111)
           element: <testLibrary>::@topLevelVariable::a
-        #F18 hasInitializer x @128
+        #F18 hasInitializer x (nameOffset:128) (firstTokenOffset:128) (offset:128)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F19 synthetic a
+        #F19 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
           element: <testLibrary>::@getter::a
-          returnType: A
-        #F20 synthetic x
+        #F20 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
           element: <testLibrary>::@getter::x
-          returnType: C
       setters
-        #F21 synthetic a
+        #F21 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
           element: <testLibrary>::@setter::a
           formalParameters
-            #F22 _a
-              element: <testLibrary>::@setter::a::@formalParameter::_a
-        #F23 synthetic x
+            #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
+              element: <testLibrary>::@setter::a::@formalParameter::value
+        #F23 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F24 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F24 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -655,10 +646,11 @@ library
           reference: <testLibrary>::@class::A::@setter::b
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _b
+            #E0 requiredPositional value
               firstFragment: #F6
               type: B
           returnType: void
+          variable: <testLibrary>::@class::A::@field::b
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -688,6 +680,7 @@ library
               firstFragment: #F12
               type: C
           returnType: void
+          variable: <testLibrary>::@class::B::@field::c
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F13
@@ -733,18 +726,20 @@ library
       reference: <testLibrary>::@setter::a
       firstFragment: #F21
       formalParameters
-        #E2 requiredPositional _a
+        #E2 requiredPositional value
           firstFragment: #F22
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static x
       reference: <testLibrary>::@setter::x
       firstFragment: #F23
       formalParameters
-        #E3 requiredPositional _x
+        #E3 requiredPositional value
           firstFragment: #F24
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -762,38 +757,35 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x @4
+        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
-        #F2 hasInitializer y @40
+        #F2 hasInitializer y (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::y
-        #F3 hasInitializer z @53
+        #F3 hasInitializer z (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::z
       getters
-        #F4 synthetic x
+        #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
-          returnType: Iterable<String>
-        #F5 synthetic y
+        #F5 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@getter::y
-          returnType: List<int>
-        #F6 synthetic z
+        #F6 synthetic z (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@getter::z
-          returnType: List<String>
       setters
-        #F7 synthetic x
+        #F7 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F8 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
-        #F9 synthetic y
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::x::@formalParameter::value
+        #F9 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@setter::y
           formalParameters
-            #F10 _y
-              element: <testLibrary>::@setter::y::@formalParameter::_y
-        #F11 synthetic z
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@setter::y::@formalParameter::value
+        #F11 synthetic z (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@setter::z
           formalParameters
-            #F12 _z
-              element: <testLibrary>::@setter::z::@formalParameter::_z
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: <testLibrary>::@setter::z::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -834,26 +826,29 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F8
           type: Iterable<String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
     synthetic static y
       reference: <testLibrary>::@setter::y
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _y
+        #E1 requiredPositional value
           firstFragment: #F10
           type: List<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::y
     synthetic static z
       reference: <testLibrary>::@setter::z
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _z
+        #E2 requiredPositional value
           firstFragment: #F12
           type: List<String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::z
 ''');
   }
 
@@ -872,48 +867,45 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 p @16
+            #F2 p (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::p
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 synthetic p
+            #F4 synthetic p (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::p
-              returnType: int
           setters
-            #F5 synthetic p
+            #F5 synthetic p (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::p
               formalParameters
-                #F6 _p
-                  element: <testLibrary>::@class::C::@setter::p::@formalParameter::_p
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+                  element: <testLibrary>::@class::C::@setter::p::@formalParameter::value
       topLevelVariables
-        #F7 hasInitializer x @25
+        #F7 hasInitializer x (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::x
-        #F8 hasInitializer y @40
+        #F8 hasInitializer y (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::y
       getters
-        #F9 synthetic x
+        #F9 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@getter::x
-          returnType: List<C>
-        #F10 synthetic y
+        #F10 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@getter::y
-          returnType: Iterable<int>
       setters
-        #F11 synthetic x
+        #F11 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F12 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
-        #F13 synthetic y
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@setter::x::@formalParameter::value
+        #F13 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@setter::y
           formalParameters
-            #F14 _y
-              element: <testLibrary>::@setter::y::@formalParameter::_y
+            #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@setter::y::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -940,10 +932,11 @@ library
           reference: <testLibrary>::@class::C::@setter::p
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _p
+            #E0 requiredPositional value
               firstFragment: #F6
               type: int
           returnType: void
+          variable: <testLibrary>::@class::C::@field::p
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -973,18 +966,20 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F11
       formalParameters
-        #E1 requiredPositional _x
+        #E1 requiredPositional value
           firstFragment: #F12
           type: List<C>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
     synthetic static y
       reference: <testLibrary>::@setter::y
       firstFragment: #F13
       formalParameters
-        #E2 requiredPositional _y
+        #E2 requiredPositional value
           firstFragment: #F14
           type: Iterable<int>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::y
 ''');
   }
 
@@ -1003,12 +998,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 U @2
+            #F2 U (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: #E0 U
-            #F3 V @5
+            #F3 V (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: #E1 V
   functions
     f
@@ -1039,25 +1034,24 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 U @8
+            #F2 U (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 U
-            #F3 V @11
+            #F3 V (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 V
           fields
-            #F4 x @24
+            #F4 x (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F5 new
+            #F5 new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
           getters
-            #F6 synthetic x
+            #F6 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::C::@getter::x
-              returnType: dynamic
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1101,24 +1095,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 U @8
+            #F2 U (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 U
-            #F3 V @11
+            #F3 V (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 V
           fields
-            #F4 synthetic x
+            #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F6 x @22
+            #F6 x (nameOffset:22) (firstTokenOffset:18) (offset:22)
               element: <testLibrary>::@class::C::@getter::x
-              returnType: dynamic
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1165,22 +1158,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F4 f @15
+            #F4 f (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@class::C::@method::f
               typeParameters
-                #F5 U @17
+                #F5 U (nameOffset:17) (firstTokenOffset:17) (offset:17)
                   element: #E1 U
-                #F6 V @20
+                #F6 V (nameOffset:20) (firstTokenOffset:20) (offset:20)
                   element: #E2 V
   classes
     class C
@@ -1223,25 +1216,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 U @8
+            #F2 U (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 U
-            #F3 V @11
+            #F3 V (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 V
           fields
-            #F4 synthetic x
+            #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F6 x @27
+            #F6 x (nameOffset:27) (firstTokenOffset:18) (offset:27)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F7 value @29
+                #F7 value (nameOffset:29) (firstTokenOffset:29) (offset:29)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::value
   classes
     class C
@@ -1271,6 +1264,7 @@ library
               firstFragment: #F7
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::C::@field::x
 ''');
   }
 
@@ -1289,10 +1283,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @2
+            #F2 T (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: #E0 T
   functions
     f
@@ -1320,10 +1314,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @0
+        #F1 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           typeParameters
-            #F2 T @2
+            #F2 T (nameOffset:2) (firstTokenOffset:2) (offset:2)
               element: #E0 T
   functions
     f
@@ -1352,37 +1346,36 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 P @8
+            #F2 P (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 P
           constructors
-            #F3 factory new
+            #F3 factory new (nameOffset:<null>) (firstTokenOffset:27) (offset:35)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 35
               formalParameters
-                #F4 p @49
+                #F4 p (nameOffset:49) (firstTokenOffset:37) (offset:49)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
-            #F5 _ @66
+            #F5 _ (nameOffset:66) (firstTokenOffset:64) (offset:66)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
               typeNameOffset: 64
               periodOffset: 65
       topLevelVariables
-        #F6 hasInitializer c @78
+        #F6 hasInitializer c (nameOffset:78) (firstTokenOffset:78) (offset:78)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
           element: <testLibrary>::@getter::c
-          returnType: C<num>
       setters
-        #F8 synthetic c
+        #F8 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F9 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
+            #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+              element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -1420,10 +1413,11 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F8
       formalParameters
-        #E2 requiredPositional _c
+        #E2 requiredPositional value
           firstFragment: #F9
           type: C<num>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -1443,26 +1437,24 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer foo @25
+            #F2 hasInitializer foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::foo
-            #F3 hasInitializer bar @56
+            #F3 hasInitializer bar (nameOffset:56) (firstTokenOffset:56) (offset:56)
               element: <testLibrary>::@class::A::@field::bar
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 synthetic foo
+            #F5 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@getter::foo
-              returnType: int
-            #F6 synthetic bar
+            #F6 synthetic bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@class::A::@getter::bar
-              returnType: int Function(double)
           methods
-            #F7 baz @100
+            #F7 baz (nameOffset:100) (firstTokenOffset:72) (offset:100)
               element: <testLibrary>::@class::A::@method::baz
   classes
     class A
@@ -1517,23 +1509,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x @21
+        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::x::@formalParameter::value
       functions
-        #F5 m @4
+        #F5 m (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@function::m
           typeParameters
-            #F6 T @6
+            #F6 T (nameOffset:6) (firstTokenOffset:6) (offset:6)
               element: #E0 T
   topLevelVariables
     hasInitializer x
@@ -1553,10 +1544,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E1 requiredPositional _x
+        #E1 requiredPositional value
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
   functions
     m
       reference: <testLibrary>::@function::m
@@ -1584,38 +1576,35 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer m @19
+        #F1 hasInitializer m (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::m
-        #F2 hasInitializer n @53
+        #F2 hasInitializer n (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::n
-        #F3 hasInitializer x @73
+        #F3 hasInitializer x (nameOffset:73) (firstTokenOffset:73) (offset:73)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F4 synthetic m
+        #F4 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::m
-          returnType: int Function<T>()?
-        #F5 synthetic n
+        #F5 synthetic n (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@getter::n
-          returnType: int Function<T>()
-        #F6 synthetic x
+        #F6 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
-        #F7 synthetic m
+        #F7 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::m
           formalParameters
-            #F8 _m
-              element: <testLibrary>::@setter::m::@formalParameter::_m
-        #F9 synthetic n
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::m::@formalParameter::value
+        #F9 synthetic n (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@setter::n
           formalParameters
-            #F10 _n
-              element: <testLibrary>::@setter::n::@formalParameter::_n
-        #F11 synthetic x
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: <testLibrary>::@setter::n::@formalParameter::value
+        #F11 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F12 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer m
       reference: <testLibrary>::@topLevelVariable::m
@@ -1656,26 +1645,29 @@ library
       reference: <testLibrary>::@setter::m
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _m
+        #E0 requiredPositional value
           firstFragment: #F8
           type: int Function<T>()?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::m
     synthetic static n
       reference: <testLibrary>::@setter::n
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _n
+        #E1 requiredPositional value
           firstFragment: #F10
           type: int Function<T>()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::n
     synthetic static x
       reference: <testLibrary>::@setter::x
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _x
+        #E2 requiredPositional value
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -1696,18 +1688,17 @@ library
       libraryImports
         dart:collection
       topLevelVariables
-        #F1 hasInitializer m @30
+        #F1 hasInitializer m (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::m
       getters
-        #F2 synthetic m
+        #F2 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::m
-          returnType: HashMap<dynamic, dynamic>
       setters
-        #F3 synthetic m
+        #F3 synthetic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::m
           formalParameters
-            #F4 _m
-              element: <testLibrary>::@setter::m::@formalParameter::_m
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
     hasInitializer m
       reference: <testLibrary>::@topLevelVariable::m
@@ -1726,10 +1717,11 @@ library
       reference: <testLibrary>::@setter::m
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _m
+        #E0 requiredPositional value
           firstFragment: #F4
           type: HashMap<dynamic, dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::m
 ''');
   }
 
@@ -1747,48 +1739,44 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a @4
+        #F1 hasInitializer a (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b @19
+        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c @34
+        #F3 hasInitializer c (nameOffset:34) (firstTokenOffset:34) (offset:34)
           element: <testLibrary>::@topLevelVariable::c
-        #F4 hasInitializer d @49
+        #F4 hasInitializer d (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F5 synthetic a
+        #F5 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::a
-          returnType: dynamic
-        #F6 synthetic b
+        #F6 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-          returnType: dynamic
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@getter::c
-          returnType: dynamic
-        #F8 synthetic d
+        #F8 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::d
-          returnType: int
       setters
-        #F9 synthetic a
+        #F9 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::a
           formalParameters
-            #F10 _a
-              element: <testLibrary>::@setter::a::@formalParameter::_a
-        #F11 synthetic b
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::a::@formalParameter::value
+        #F11 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::b
           formalParameters
-            #F12 _b
-              element: <testLibrary>::@setter::b::@formalParameter::_b
-        #F13 synthetic c
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::b::@formalParameter::value
+        #F13 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F14 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F15 synthetic d
+            #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F15 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::d
           formalParameters
-            #F16 _d
-              element: <testLibrary>::@setter::d::@formalParameter::_d
+            #F16 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+              element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
     hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1840,34 +1828,38 @@ library
       reference: <testLibrary>::@setter::a
       firstFragment: #F9
       formalParameters
-        #E0 requiredPositional _a
+        #E0 requiredPositional value
           firstFragment: #F10
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
       reference: <testLibrary>::@setter::b
       firstFragment: #F11
       formalParameters
-        #E1 requiredPositional _b
+        #E1 requiredPositional value
           firstFragment: #F12
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
     synthetic static c
       reference: <testLibrary>::@setter::c
       firstFragment: #F13
       formalParameters
-        #E2 requiredPositional _c
+        #E2 requiredPositional value
           firstFragment: #F14
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static d
       reference: <testLibrary>::@setter::d
       firstFragment: #F15
       formalParameters
-        #E3 requiredPositional _d
+        #E3 requiredPositional value
           firstFragment: #F16
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::d
 ''');
   }
 
@@ -1884,42 +1876,38 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @31
+        #F1 class C (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::C
           fields
-            #F2 v @49
+            #F2 v (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@class::C::@field::v
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 synthetic v
+            #F4 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@getter::v
-              returnType: int Function(String)
-                alias: <testLibrary>::@typeAlias::F
           setters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F6 _v
-                  element: <testLibrary>::@class::C::@setter::v::@formalParameter::_v
-        #F7 class D @69
+                #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+                  element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
+        #F7 class D (nameOffset:69) (firstTokenOffset:54) (offset:69)
           element: <testLibrary>::@class::D
           fields
-            #F8 synthetic v
+            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::D::@field::v
           constructors
-            #F9 synthetic new
+            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F10 v @79
+            #F10 v (nameOffset:79) (firstTokenOffset:73) (offset:79)
               element: <testLibrary>::@class::D::@getter::v
-              returnType: int Function(String)
-                alias: <testLibrary>::@typeAlias::F
       typeAliases
-        #F11 F @12
+        #F11 F (nameOffset:12) (firstTokenOffset:0) (offset:12)
           element: <testLibrary>::@typeAlias::F
   classes
     class C
@@ -1951,11 +1939,12 @@ library
           reference: <testLibrary>::@class::C::@setter::v
           firstFragment: #F5
           formalParameters
-            #E0 requiredPositional _v
+            #E0 requiredPositional value
               firstFragment: #F6
               type: int Function(String)
                 alias: <testLibrary>::@typeAlias::F
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F7
@@ -2000,18 +1989,17 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x @21
+        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
-          returnType: int
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2030,10 +2018,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2052,18 +2041,17 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x @21
+        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
-          returnType: int?
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2082,10 +2070,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2104,18 +2093,17 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x @21
+        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
-          returnType: void Function()
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2134,10 +2122,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: void Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2156,18 +2145,17 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer x @21
+        #F1 hasInitializer x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
-          returnType: void Function()?
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -2186,10 +2174,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: void Function()?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -2209,46 +2198,44 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 v @37
+            #F3 v (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@class::C::@field::v
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@getter::v
-              returnType: Map<T, int>
           setters
-            #F6 synthetic v
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@setter::v
               formalParameters
-                #F7 _v
-                  element: <testLibrary>::@class::C::@setter::v::@formalParameter::_v
-        #F8 class D @57
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+                  element: <testLibrary>::@class::C::@setter::v::@formalParameter::value
+        #F8 class D (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@class::D
           typeParameters
-            #F9 U @59
+            #F9 U (nameOffset:59) (firstTokenOffset:59) (offset:59)
               element: #E1 U
-            #F10 V @62
+            #F10 V (nameOffset:62) (firstTokenOffset:62) (offset:62)
               element: #E2 V
           fields
-            #F11 synthetic v
+            #F11 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@field::v
           constructors
-            #F12 synthetic new
+            #F12 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F13 v @83
+            #F13 v (nameOffset:83) (firstTokenOffset:69) (offset:83)
               element: <testLibrary>::@class::D::@getter::v
-              returnType: Map<V, U>
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2285,10 +2272,11 @@ library
           firstFragment: #F6
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E3 requiredPositional _v
+            #E3 requiredPositional value
               firstFragment: #F7
               type: Map<T, int>
           returnType: void
+          variable: <testLibrary>::@class::C::@field::v
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F8
@@ -2331,26 +2319,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @13
+        #F1 F (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F2 hasInitializer v @53
+        #F2 hasInitializer v (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@getter::v
-          returnType: dynamic
       setters
-        #F4 synthetic v
+        #F4 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F5 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: <testLibrary>::@setter::v::@formalParameter::value
       functions
-        #F6 h @33
+        #F6 h (nameOffset:33) (firstTokenOffset:33) (offset:33)
           element: <testLibrary>::@function::h
           formalParameters
-            #F7 f @37
+            #F7 f (nameOffset:37) (firstTokenOffset:35) (offset:37)
               element: <testLibrary>::@function::h::@formalParameter::f
   typeAliases
     F
@@ -2375,10 +2362,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F4
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F5
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
   functions
     h
       reference: <testLibrary>::@function::h
@@ -2407,44 +2395,47 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
-            #F3 U @11
+            #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F5 f @41
+            #F5 f (nameOffset:41) (firstTokenOffset:36) (offset:41)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F6 x @47
+                #F6 x (nameOffset:47) (firstTokenOffset:43) (offset:47)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::x
-                #F7 g @50
+                #F7 g (nameOffset:50) (firstTokenOffset:50) (offset:50)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
-        #F8 class D @73
+        #F8 class D (nameOffset:73) (firstTokenOffset:58) (offset:73)
           element: <testLibrary>::@class::D
           typeParameters
-            #F9 V @75
+            #F9 V (nameOffset:75) (firstTokenOffset:75) (offset:75)
               element: #E2 V
-            #F10 W @78
+            #F10 W (nameOffset:78) (firstTokenOffset:78) (offset:78)
               element: #E3 W
           constructors
-            #F11 synthetic new
+            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           methods
-            #F12 f @90
+            #F12 f (nameOffset:90) (firstTokenOffset:85) (offset:90)
               element: <testLibrary>::@class::D::@method::f
               formalParameters
-                #F13 x @96
+                #F13 x (nameOffset:96) (firstTokenOffset:92) (offset:96)
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::x
-                #F14 g @101
+                #F14 g (nameOffset:101) (firstTokenOffset:99) (offset:101)
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::g
+                  parameters
+                    #F15 s (nameOffset:105) (firstTokenOffset:103) (offset:105)
+                      element: s@105
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2532,19 +2523,19 @@ library
       libraryImports
         package:test/a.dart
       classes
-        #F1 class C @23
+        #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 f @44
+            #F3 f (nameOffset:44) (firstTokenOffset:39) (offset:44)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F4 x @50
+                #F4 x (nameOffset:50) (firstTokenOffset:46) (offset:50)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::x
-                #F5 g @53
+                #F5 g (nameOffset:53) (firstTokenOffset:53) (offset:53)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
   classes
     class C
@@ -2583,34 +2574,37 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 f @25
+            #F3 f (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@class::C::@method::f
               formalParameters
-                #F4 x @31
+                #F4 x (nameOffset:31) (firstTokenOffset:27) (offset:31)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::x
-                #F5 g @34
+                #F5 g (nameOffset:34) (firstTokenOffset:34) (offset:34)
                   element: <testLibrary>::@class::C::@method::f::@formalParameter::g
-        #F6 class D @57
+        #F6 class D (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@class::D
           constructors
-            #F7 synthetic new
+            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           methods
-            #F8 f @66
+            #F8 f (nameOffset:66) (firstTokenOffset:61) (offset:66)
               element: <testLibrary>::@class::D::@method::f
               formalParameters
-                #F9 x @72
+                #F9 x (nameOffset:72) (firstTokenOffset:68) (offset:72)
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::x
-                #F10 g @79
+                #F10 g (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@class::D::@method::f::@formalParameter::g
+                  parameters
+                    #F11 s (nameOffset:88) (firstTokenOffset:81) (offset:88)
+                      element: s@88
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2671,24 +2665,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer v @40
+        #F1 hasInitializer v (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v
+        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@getter::v
-          returnType: dynamic
       setters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+              element: <testLibrary>::@setter::v::@formalParameter::value
       functions
-        #F5 f @0
+        #F5 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F6 g @7
+            #F6 g (nameOffset:7) (firstTokenOffset:2) (offset:7)
               element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F7 x (nameOffset:13) (firstTokenOffset:9) (offset:13)
+                  element: x@13
+                #F8 h (nameOffset:21) (firstTokenOffset:16) (offset:21)
+                  element: h@21
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -2707,10 +2705,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
   functions
     f
       reference: <testLibrary>::@function::f
@@ -2742,24 +2741,28 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer v @42
+        #F1 hasInitializer v (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v
+        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::v
-          returnType: dynamic
       setters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+              element: <testLibrary>::@setter::v::@formalParameter::value
       functions
-        #F5 f @0
+        #F5 f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
-            #F6 g @8
+            #F6 g (nameOffset:8) (firstTokenOffset:3) (offset:8)
               element: <testLibrary>::@function::f::@formalParameter::g
+              parameters
+                #F7 x (nameOffset:14) (firstTokenOffset:10) (offset:14)
+                  element: x@14
+                #F8 h (nameOffset:22) (firstTokenOffset:17) (offset:22)
+                  element: h@22
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -2778,10 +2781,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F4
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
   functions
     f
       reference: <testLibrary>::@function::f
@@ -2813,36 +2817,39 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           fields
-            #F2 synthetic f
+            #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::f
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 f @29
+            #F4 f (nameOffset:29) (firstTokenOffset:20) (offset:29)
               element: <testLibrary>::@class::C::@setter::f
               formalParameters
-                #F5 g @31
+                #F5 g (nameOffset:31) (firstTokenOffset:31) (offset:31)
                   element: <testLibrary>::@class::C::@setter::f::@formalParameter::g
-        #F6 class D @54
+        #F6 class D (nameOffset:54) (firstTokenOffset:39) (offset:54)
           element: <testLibrary>::@class::D
           fields
-            #F7 synthetic f
+            #F7 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::D::@field::f
           constructors
-            #F8 synthetic new
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           setters
-            #F9 f @67
+            #F9 f (nameOffset:67) (firstTokenOffset:58) (offset:67)
               element: <testLibrary>::@class::D::@setter::f
               formalParameters
-                #F10 g @73
+                #F10 g (nameOffset:73) (firstTokenOffset:69) (offset:73)
                   element: <testLibrary>::@class::D::@setter::f::@formalParameter::g
+                  parameters
+                    #F11 s (nameOffset:82) (firstTokenOffset:75) (offset:82)
+                      element: s@82
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -2868,6 +2875,7 @@ library
               firstFragment: #F5
               type: int Function(String)
           returnType: void
+          variable: <testLibrary>::@class::C::@field::f
     abstract class D
       reference: <testLibrary>::@class::D
       firstFragment: #F6
@@ -2894,6 +2902,7 @@ library
                   firstFragment: #F11
                   type: String
           returnType: void
+          variable: <testLibrary>::@class::D::@field::f
 ''');
   }
 
@@ -2919,17 +2928,17 @@ library
       libraryImports
         package:test/a.dart
       classes
-        #F1 class B @23
+        #F1 class B (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F3 m @39
+            #F3 m (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@class::B::@method::m
               formalParameters
-                #F4 p @41
+                #F4 p (nameOffset:41) (firstTokenOffset:41) (offset:41)
                   element: <testLibrary>::@class::B::@method::m::@formalParameter::p
   classes
     class B
@@ -2979,41 +2988,39 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new
+            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
-            #F3 named @21
+            #F3 named (nameOffset:21) (firstTokenOffset:19) (offset:21)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 19
               periodOffset: 20
       topLevelVariables
-        #F4 hasInitializer a1 @36
+        #F4 hasInitializer a1 (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::a1
-        #F5 hasInitializer a2 @50
+        #F5 hasInitializer a2 (nameOffset:50) (firstTokenOffset:50) (offset:50)
           element: <testLibrary>::@topLevelVariable::a2
       getters
-        #F6 synthetic a1
+        #F6 synthetic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::a1
-          returnType: A
-        #F7 synthetic a2
+        #F7 synthetic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@getter::a2
-          returnType: A
       setters
-        #F8 synthetic a1
+        #F8 synthetic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::a1
           formalParameters
-            #F9 _a1
-              element: <testLibrary>::@setter::a1::@formalParameter::_a1
-        #F10 synthetic a2
+            #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+              element: <testLibrary>::@setter::a1::@formalParameter::value
+        #F10 synthetic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@setter::a2
           formalParameters
-            #F11 _a2
-              element: <testLibrary>::@setter::a2::@formalParameter::_a2
+            #F11 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+              element: <testLibrary>::@setter::a2::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3054,18 +3061,20 @@ library
       reference: <testLibrary>::@setter::a1
       firstFragment: #F8
       formalParameters
-        #E0 requiredPositional _a1
+        #E0 requiredPositional value
           firstFragment: #F9
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a1
     synthetic static a2
       reference: <testLibrary>::@setter::a2
       firstFragment: #F10
       formalParameters
-        #E1 requiredPositional _a2
+        #E1 requiredPositional value
           firstFragment: #F11
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a2
 ''');
   }
 
@@ -3088,33 +3097,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/foo.dart as foo @21
+        package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
         <testLibraryFragment>::@prefix2::foo
           fragments: @21
       topLevelVariables
-        #F1 hasInitializer a1 @30
+        #F1 hasInitializer a1 (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::a1
-        #F2 hasInitializer a2 @48
+        #F2 hasInitializer a2 (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::a2
       getters
-        #F3 synthetic a1
+        #F3 synthetic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::a1
-          returnType: A
-        #F4 synthetic a2
+        #F4 synthetic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::a2
-          returnType: A
       setters
-        #F5 synthetic a1
+        #F5 synthetic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::a1
           formalParameters
-            #F6 _a1
-              element: <testLibrary>::@setter::a1::@formalParameter::_a1
-        #F7 synthetic a2
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@setter::a1::@formalParameter::value
+        #F7 synthetic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@setter::a2
           formalParameters
-            #F8 _a2
-              element: <testLibrary>::@setter::a2::@formalParameter::_a2
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+              element: <testLibrary>::@setter::a2::@formalParameter::value
   topLevelVariables
     hasInitializer a1
       reference: <testLibrary>::@topLevelVariable::a1
@@ -3144,18 +3151,20 @@ library
       reference: <testLibrary>::@setter::a1
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _a1
+        #E0 requiredPositional value
           firstFragment: #F6
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a1
     synthetic static a2
       reference: <testLibrary>::@setter::a2
       firstFragment: #F7
       formalParameters
-        #E1 requiredPositional _a2
+        #E1 requiredPositional value
           firstFragment: #F8
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a2
 ''');
   }
 
@@ -3174,29 +3183,34 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer v @71
+        #F1 hasInitializer v (nameOffset:71) (firstTokenOffset:71) (offset:71)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v
+        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@getter::v
-          returnType: List<Object Function(int Function(String))>
       setters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+              element: <testLibrary>::@setter::v::@formalParameter::value
       functions
-        #F5 f @4
+        #F5 f (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@function::f
           formalParameters
-            #F6 x @10
+            #F6 x (nameOffset:10) (firstTokenOffset:6) (offset:10)
               element: <testLibrary>::@function::f::@formalParameter::x
-        #F7 g @39
+              parameters
+                #F7 y (nameOffset:19) (firstTokenOffset:12) (offset:19)
+                  element: y@19
+        #F8 g (nameOffset:39) (firstTokenOffset:32) (offset:39)
           element: <testLibrary>::@function::g
           formalParameters
-            #F8 x @45
+            #F9 x (nameOffset:45) (firstTokenOffset:41) (offset:45)
               element: <testLibrary>::@function::g::@formalParameter::x
+              parameters
+                #F10 y (nameOffset:54) (firstTokenOffset:47) (offset:54)
+                  element: y@54
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -3215,10 +3229,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F4
           type: List<Object Function(int Function(String))>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
   functions
     f
       reference: <testLibrary>::@function::f
@@ -3229,15 +3244,15 @@ library
           type: int Function(String)
           formalParameters
             #E2 requiredPositional y
-              firstFragment: #F9
+              firstFragment: #F7
               type: String
       returnType: int
     g
       reference: <testLibrary>::@function::g
-      firstFragment: #F7
+      firstFragment: #F8
       formalParameters
         #E3 requiredPositional x
-          firstFragment: #F8
+          firstFragment: #F9
           type: int Function(String)
           formalParameters
             #E4 requiredPositional y
@@ -3270,49 +3285,48 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @15
+        #F1 class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 m @25
+            #F3 m (nameOffset:25) (firstTokenOffset:21) (offset:25)
               element: <testLibrary>::@class::A::@method::m
-        #F4 class B @48
+        #F4 class B (nameOffset:48) (firstTokenOffset:33) (offset:48)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F6 m @61
+            #F6 m (nameOffset:61) (firstTokenOffset:54) (offset:61)
               element: <testLibrary>::@class::B::@method::m
-        #F7 class C @84
+        #F7 class C (nameOffset:84) (firstTokenOffset:69) (offset:84)
           element: <testLibrary>::@class::C
           constructors
-            #F8 synthetic new
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:84)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F9 class D @121
+        #F9 class D (nameOffset:121) (firstTokenOffset:106) (offset:121)
           element: <testLibrary>::@class::D
           fields
-            #F10 f @141
+            #F10 f (nameOffset:141) (firstTokenOffset:141) (offset:141)
               element: <testLibrary>::@class::D::@field::f
           constructors
-            #F11 synthetic new
+            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:121)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
-            #F12 synthetic f
+            #F12 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:141)
               element: <testLibrary>::@class::D::@getter::f
-              returnType: dynamic
           setters
-            #F13 synthetic f
+            #F13 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:141)
               element: <testLibrary>::@class::D::@setter::f
               formalParameters
-                #F14 _f
-                  element: <testLibrary>::@class::D::@setter::f::@formalParameter::_f
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:141)
+                  element: <testLibrary>::@class::D::@setter::f::@formalParameter::value
   classes
     abstract class A
       reference: <testLibrary>::@class::A
@@ -3375,10 +3389,11 @@ library
           reference: <testLibrary>::@class::D::@setter::f
           firstFragment: #F13
           formalParameters
-            #E0 requiredPositional _f
+            #E0 requiredPositional value
               firstFragment: #F14
               type: dynamic
           returnType: void
+          variable: <testLibrary>::@class::D::@field::f
 ''');
   }
 
@@ -3399,47 +3414,45 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 call @19
+            #F3 call (nameOffset:19) (firstTokenOffset:12) (offset:19)
               element: <testLibrary>::@class::A::@method::call
-        #F4 class B @42
+        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           fields
-            #F5 a @50
+            #F5 a (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::B::@field::a
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F7 synthetic a
+            #F7 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::B::@getter::a
-              returnType: A
           setters
-            #F8 synthetic a
+            #F8 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::B::@setter::a
               formalParameters
-                #F9 _a
-                  element: <testLibrary>::@class::B::@setter::a::@formalParameter::_a
+                #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+                  element: <testLibrary>::@class::B::@setter::a::@formalParameter::value
       topLevelVariables
-        #F10 hasInitializer c @59
+        #F10 hasInitializer c (nameOffset:59) (firstTokenOffset:59) (offset:59)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F11 synthetic c
+        #F11 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
           element: <testLibrary>::@getter::c
-          returnType: double
       setters
-        #F12 synthetic c
+        #F12 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F13 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
+            #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+              element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3478,10 +3491,11 @@ library
           reference: <testLibrary>::@class::B::@setter::a
           firstFragment: #F8
           formalParameters
-            #E0 requiredPositional _a
+            #E0 requiredPositional value
               firstFragment: #F9
               type: A
           returnType: void
+          variable: <testLibrary>::@class::B::@field::a
   topLevelVariables
     hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
@@ -3500,10 +3514,11 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F12
       formalParameters
-        #E1 requiredPositional _c
+        #E1 requiredPositional value
           firstFragment: #F13
           type: double
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -3522,28 +3537,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a @4
+        #F1 hasInitializer a (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b @42
+        #F2 hasInitializer b (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F3 synthetic a
+        #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::a
-          returnType: int Function()
-        #F4 synthetic b
+        #F4 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::b
-          returnType: int
       setters
-        #F5 synthetic a
+        #F5 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::a
           formalParameters
-            #F6 _a
-              element: <testLibrary>::@setter::a::@formalParameter::_a
-        #F7 synthetic b
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::a::@formalParameter::value
+        #F7 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@setter::b
           formalParameters
-            #F8 _b
-              element: <testLibrary>::@setter::b::@formalParameter::_b
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+              element: <testLibrary>::@setter::b::@formalParameter::value
   topLevelVariables
     hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -3573,18 +3586,20 @@ library
       reference: <testLibrary>::@setter::a
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _a
+        #E0 requiredPositional value
           firstFragment: #F6
           type: int Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
     synthetic static b
       reference: <testLibrary>::@setter::b
       firstFragment: #F7
       formalParameters
-        #E1 requiredPositional _b
+        #E1 requiredPositional value
           firstFragment: #F8
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::b
 ''');
   }
 
@@ -3601,23 +3616,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart deferred as a @28
+        package:test/a.dart deferred as a (nameOffset:28) (firstTokenOffset:<null>) (offset:28)
       prefixes
         <testLibraryFragment>::@prefix2::a
           fragments: @28
       topLevelVariables
-        #F1 hasInitializer x @35
+        #F1 hasInitializer x (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::x
-          returnType: Future<dynamic> Function()
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -3636,10 +3650,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: Future<dynamic> Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3654,18 +3669,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x @4
+        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
-          returnType: int Function(int Function(String))
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -3684,10 +3698,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int Function(int Function(String))
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3702,18 +3717,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x @4
+        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
-          returnType: int Function(int Function(String))
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -3732,10 +3746,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int Function(int Function(String))
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -3755,18 +3770,17 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 hasInitializer y @21
+        #F1 hasInitializer y (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::y
       getters
-        #F2 synthetic y
+        #F2 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::y
-          returnType: int
       setters
-        #F3 synthetic y
+        #F3 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::y
           formalParameters
-            #F4 _y
-              element: <testLibrary>::@setter::y::@formalParameter::_y
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::y::@formalParameter::value
   topLevelVariables
     hasInitializer y
       reference: <testLibrary>::@topLevelVariable::y
@@ -3785,10 +3799,11 @@ library
       reference: <testLibrary>::@setter::y
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _y
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::y
 ''');
   }
 
@@ -3806,24 +3821,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer x @25
+            #F2 hasInitializer x (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::x
-            #F3 hasInitializer y @51
+            #F3 hasInitializer y (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@class::A::@field::y
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F5 synthetic x
+            #F5 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@getter::x
-              returnType: dynamic
-            #F6 synthetic y
+            #F6 synthetic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::A::@getter::y
-              returnType: dynamic
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3872,29 +3885,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           fields
-            #F2 hasInitializer a @25
+            #F2 hasInitializer a (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@class::A::@field::a
-            #F3 hasInitializer b @49
+            #F3 hasInitializer b (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@class::A::@field::b
-            #F4 hasInitializer c @66
+            #F4 hasInitializer c (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@class::A::@field::c
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 synthetic a
+            #F6 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@getter::a
-              returnType: dynamic
-            #F7 synthetic b
+            #F7 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@class::A::@getter::b
-              returnType: A
-            #F8 synthetic c
+            #F8 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::A::@getter::c
-              returnType: dynamic
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -3957,51 +3967,49 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 value @17
+            #F3 value (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::A::@field::value
           constructors
-            #F4 new
+            #F4 new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 27
               formalParameters
-                #F5 this.value @34
+                #F5 this.value (nameOffset:34) (firstTokenOffset:29) (offset:34)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
           getters
-            #F6 synthetic value
+            #F6 synthetic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::A::@getter::value
-              returnType: T
           setters
-            #F7 synthetic value
+            #F7 synthetic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::A::@setter::value
               formalParameters
-                #F8 _value
-                  element: <testLibrary>::@class::A::@setter::value::@formalParameter::_value
-        #F9 class B @51
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: <testLibrary>::@class::A::@setter::value::@formalParameter::value
+        #F9 class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::B
           fields
-            #F10 hasInitializer a @61
+            #F10 hasInitializer a (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: <testLibrary>::@class::B::@field::a
           constructors
-            #F11 synthetic new
+            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
-            #F12 synthetic a
+            #F12 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@class::B::@getter::a
-              returnType: A<String>
           setters
-            #F13 synthetic a
+            #F13 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@class::B::@setter::a
               formalParameters
-                #F14 _a
-                  element: <testLibrary>::@class::B::@setter::a::@formalParameter::_a
+                #F14 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+                  element: <testLibrary>::@class::B::@setter::a::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -4038,10 +4046,11 @@ library
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E2 requiredPositional _value
+            #E2 requiredPositional value
               firstFragment: #F8
               type: T
           returnType: void
+          variable: <testLibrary>::@class::A::@field::value
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F9
@@ -4067,10 +4076,11 @@ library
           reference: <testLibrary>::@class::B::@setter::a
           firstFragment: #F13
           formalParameters
-            #E3 requiredPositional _a
+            #E3 requiredPositional value
               firstFragment: #F14
               type: A<String>
           returnType: void
+          variable: <testLibrary>::@class::B::@field::a
 ''');
   }
 
@@ -4097,65 +4107,63 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 value @17
+            #F3 value (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::A::@field::value
           constructors
-            #F4 new
+            #F4 new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 27
               formalParameters
-                #F5 this.value @34
+                #F5 this.value (nameOffset:34) (firstTokenOffset:29) (offset:34)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
           getters
-            #F6 synthetic value
+            #F6 synthetic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::A::@getter::value
-              returnType: T
           setters
-            #F7 synthetic value
+            #F7 synthetic value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::A::@setter::value
               formalParameters
-                #F8 _value
-                  element: <testLibrary>::@class::A::@setter::value::@formalParameter::_value
-        #F9 class B @51
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: <testLibrary>::@class::A::@setter::value::@formalParameter::value
+        #F9 class B (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::B
           typeParameters
-            #F10 T @53
+            #F10 T (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: #E1 T
           constructors
-            #F11 synthetic new
+            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               formalParameters
-                #F12 value (offset=51)
+                #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::value
-        #F13 class C @78
+        #F13 class C (nameOffset:78) (firstTokenOffset:72) (offset:78)
           element: <testLibrary>::@class::C
           fields
-            #F14 hasInitializer a @88
+            #F14 hasInitializer a (nameOffset:88) (firstTokenOffset:88) (offset:88)
               element: <testLibrary>::@class::C::@field::a
           constructors
-            #F15 synthetic new
+            #F15 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F16 synthetic a
+            #F16 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:88)
               element: <testLibrary>::@class::C::@getter::a
-              returnType: B<int>
           setters
-            #F17 synthetic a
+            #F17 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:88)
               element: <testLibrary>::@class::C::@setter::a
               formalParameters
-                #F18 _a
-                  element: <testLibrary>::@class::C::@setter::a::@formalParameter::_a
+                #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:88)
+                  element: <testLibrary>::@class::C::@setter::a::@formalParameter::value
       mixins
-        #F19 mixin M @112
+        #F19 mixin M (nameOffset:112) (firstTokenOffset:106) (offset:112)
           element: <testLibrary>::@mixin::M
   classes
     class A
@@ -4193,10 +4201,11 @@ library
           firstFragment: #F7
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E3 requiredPositional _value
+            #E3 requiredPositional value
               firstFragment: #F8
               type: T
           returnType: void
+          variable: <testLibrary>::@class::A::@field::value
     class alias B
       reference: <testLibrary>::@class::B
       firstFragment: #F9
@@ -4254,10 +4263,11 @@ library
           reference: <testLibrary>::@class::C::@setter::a
           firstFragment: #F17
           formalParameters
-            #E5 requiredPositional _a
+            #E5 requiredPositional value
               firstFragment: #F18
               type: B<int>
           returnType: void
+          variable: <testLibrary>::@class::C::@field::a
   mixins
     mixin M
       reference: <testLibrary>::@mixin::M
@@ -4281,32 +4291,31 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 hasInitializer f @19
+            #F3 hasInitializer f (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@class::A::@field::f
           constructors
-            #F4 new
+            #F4 new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
               formalParameters
-                #F5 this.f @35
+                #F5 this.f (nameOffset:35) (firstTokenOffset:30) (offset:35)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
           getters
-            #F6 synthetic f
+            #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@class::A::@getter::f
-              returnType: int
           setters
-            #F7 synthetic f
+            #F7 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@class::A::@setter::f
               formalParameters
-                #F8 _f
-                  element: <testLibrary>::@class::A::@setter::f::@formalParameter::_f
+                #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+                  element: <testLibrary>::@class::A::@setter::f::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -4340,10 +4349,11 @@ library
           reference: <testLibrary>::@class::A::@setter::f
           firstFragment: #F7
           formalParameters
-            #E2 requiredPositional _f
+            #E2 requiredPositional value
               firstFragment: #F8
               type: int
           returnType: void
+          variable: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -4362,28 +4372,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new
+            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
               formalParameters
-                #F3 _ @14
+                #F3 _ (nameOffset:14) (firstTokenOffset:14) (offset:14)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::_
       topLevelVariables
-        #F4 hasInitializer a @26
+        #F4 hasInitializer a (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::a
-        #F5 hasInitializer b @48
+        #F5 hasInitializer b (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F6 synthetic a
+        #F6 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::a
-          returnType: dynamic
-        #F7 synthetic b
+        #F7 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::b
-          returnType: dynamic
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -4439,18 +4447,17 @@ library
         package:test/a.dart
         package:test/b.dart
       topLevelVariables
-        #F1 hasInitializer v @38
+        #F1 hasInitializer v (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v
+        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@getter::v
-          returnType: InvalidType
       setters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -4469,10 +4476,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F4
           type: InvalidType
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -4487,18 +4495,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x @4
+        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
-          returnType: dynamic Function(dynamic) Function(dynamic)
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4517,10 +4524,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: dynamic Function(dynamic) Function(dynamic)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -4535,18 +4543,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x @4
+        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
-          returnType: int Function(int) Function(int)
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4565,10 +4572,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int Function(int) Function(int)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -4583,18 +4591,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer x @4
+        #F1 hasInitializer x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 synthetic x
+        #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
-          returnType: dynamic Function([dynamic])
       setters
-        #F3 synthetic x
+        #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
-            #F4 _x
-              element: <testLibrary>::@setter::x::@formalParameter::_x
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
     hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
@@ -4613,10 +4620,11 @@ library
       reference: <testLibrary>::@setter::x
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _x
+        #E0 requiredPositional value
           firstFragment: #F4
           type: dynamic Function([dynamic])
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -4634,22 +4642,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a @6
+        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b @19
+        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c @32
+        #F3 hasInitializer c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 synthetic a
+        #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-          returnType: dynamic
-        #F5 synthetic b
+        #F5 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-          returnType: dynamic
-        #F6 synthetic c
+        #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
-          returnType: dynamic
   topLevelVariables
     final hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -4699,22 +4704,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a @6
+        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b @19
+        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c @32
+        #F3 hasInitializer c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 synthetic a
+        #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-          returnType: dynamic
-        #F5 synthetic b
+        #F5 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-          returnType: dynamic
-        #F6 synthetic c
+        #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
-          returnType: dynamic
   topLevelVariables
     final hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -4766,27 +4768,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a @6
+        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b @23
+        #F2 hasInitializer b (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c @36
+        #F3 hasInitializer c (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::c
-        #F4 hasInitializer d @49
+        #F4 hasInitializer d (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F5 synthetic a
+        #F5 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-          returnType: dynamic
-        #F6 synthetic b
+        #F6 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::b
-          returnType: dynamic
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
-          returnType: dynamic
-        #F8 synthetic d
+        #F8 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::d
-          returnType: dynamic
   topLevelVariables
     final hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -4852,22 +4850,19 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 hasInitializer a @6
+        #F1 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
-        #F2 hasInitializer b @19
+        #F2 hasInitializer b (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::b
-        #F3 hasInitializer c @36
+        #F3 hasInitializer c (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 synthetic a
+        #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-          returnType: dynamic
-        #F5 synthetic b
+        #F5 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-          returnType: dynamic
-        #F6 synthetic c
+        #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
-          returnType: dynamic
   topLevelVariables
     final hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -4924,50 +4919,47 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 class B @18
+        #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F5 class C @40
+        #F5 class C (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::C
           typeParameters
-            #F6 T @42
+            #F6 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E0 T
           fields
-            #F7 f @67
+            #F7 f (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::C::@field::f
           constructors
-            #F8 const new
+            #F8 const new (nameOffset:<null>) (firstTokenOffset:72) (offset:78)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 78
               formalParameters
-                #F9 this.f @85
+                #F9 this.f (nameOffset:85) (firstTokenOffset:80) (offset:85)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::f
           getters
-            #F10 synthetic f
+            #F10 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@class::C::@getter::f
-              returnType: T
       topLevelVariables
-        #F11 hasInitializer b @98
+        #F11 hasInitializer b (nameOffset:98) (firstTokenOffset:98) (offset:98)
           element: <testLibrary>::@topLevelVariable::b
-        #F12 hasInitializer c @113
+        #F12 hasInitializer c (nameOffset:113) (firstTokenOffset:113) (offset:113)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F13 synthetic b
+        #F13 synthetic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
           element: <testLibrary>::@getter::b
-          returnType: B
-        #F14 synthetic c
+        #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:113)
           element: <testLibrary>::@getter::c
-          returnType: C<B>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -5053,28 +5045,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension <null-name> (offset=0)
+        #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@extension::0
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@extension::0::@field::foo
           getters
-            #F3 foo @32
+            #F3 foo (nameOffset:32) (firstTokenOffset:24) (offset:32)
               element: <testLibrary>::@extension::0::@getter::foo
-              returnType: int
       topLevelVariables
-        #F4 hasInitializer v @48
+        #F4 hasInitializer v (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F5 synthetic v
+        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::v
-          returnType: int
       setters
-        #F6 synthetic v
+        #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F7 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+              element: <testLibrary>::@setter::v::@formalParameter::value
   extensions
     extension <null-name>
       reference: <testLibrary>::@extension::0
@@ -5110,10 +5100,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F6
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F7
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -5132,46 +5123,44 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
-        #F4 F @34
+        #F4 F (nameOffset:34) (firstTokenOffset:24) (offset:34)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F5 hasInitializer V2 @56
+        #F5 hasInitializer V2 (nameOffset:56) (firstTokenOffset:56) (offset:56)
           element: <testLibrary>::@topLevelVariable::V2
-        #F6 hasInitializer V @71
+        #F6 hasInitializer V (nameOffset:71) (firstTokenOffset:71) (offset:71)
           element: <testLibrary>::@topLevelVariable::V
       getters
-        #F7 synthetic V2
+        #F7 synthetic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
           element: <testLibrary>::@getter::V2
-          returnType: dynamic
-        #F8 synthetic V
+        #F8 synthetic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@getter::V
-          returnType: int
       setters
-        #F9 synthetic V2
+        #F9 synthetic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
           element: <testLibrary>::@setter::V2
           formalParameters
-            #F10 _V2
-              element: <testLibrary>::@setter::V2::@formalParameter::_V2
-        #F11 synthetic V
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+              element: <testLibrary>::@setter::V2::@formalParameter::value
+        #F11 synthetic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@setter::V
           formalParameters
-            #F12 _V
-              element: <testLibrary>::@setter::V::@formalParameter::_V
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+              element: <testLibrary>::@setter::V::@formalParameter::value
       functions
-        #F13 f @44
+        #F13 f (nameOffset:44) (firstTokenOffset:42) (offset:44)
           element: <testLibrary>::@function::f
           formalParameters
-            #F14 p @48
+            #F14 p (nameOffset:48) (firstTokenOffset:46) (offset:48)
               element: <testLibrary>::@function::f::@formalParameter::p
   classes
     class C
@@ -5219,18 +5208,20 @@ library
       reference: <testLibrary>::@setter::V2
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _V2
+        #E1 requiredPositional value
           firstFragment: #F10
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V2
     synthetic static V
       reference: <testLibrary>::@setter::V
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _V
+        #E2 requiredPositional value
           firstFragment: #F12
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V
   functions
     f
       reference: <testLibrary>::@function::f
@@ -5255,28 +5246,26 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 V @4
+        #F1 V (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::V
-        #F2 V2 @22
+        #F2 V2 (nameOffset:22) (firstTokenOffset:22) (offset:22)
           element: <testLibrary>::@topLevelVariable::V2
       getters
-        #F3 synthetic V
+        #F3 synthetic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::V
-          returnType: dynamic
-        #F4 synthetic V2
+        #F4 synthetic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
           element: <testLibrary>::@getter::V2
-          returnType: List<dynamic>
       setters
-        #F5 synthetic V
+        #F5 synthetic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::V
           formalParameters
-            #F6 _V
-              element: <testLibrary>::@setter::V::@formalParameter::_V
-        #F7 synthetic V2
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::V::@formalParameter::value
+        #F7 synthetic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
           element: <testLibrary>::@setter::V2
           formalParameters
-            #F8 _V2
-              element: <testLibrary>::@setter::V2::@formalParameter::_V2
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+              element: <testLibrary>::@setter::V2::@formalParameter::value
   topLevelVariables
     V
       reference: <testLibrary>::@topLevelVariable::V
@@ -5306,18 +5295,20 @@ library
       reference: <testLibrary>::@setter::V
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _V
+        #E0 requiredPositional value
           firstFragment: #F6
           type: dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V
     synthetic static V2
       reference: <testLibrary>::@setter::V2
       firstFragment: #F7
       formalParameters
-        #E1 requiredPositional _V2
+        #E1 requiredPositional value
           firstFragment: #F8
           type: List<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::V2
 ''');
   }
 
@@ -5334,20 +5325,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F4 m @15
+            #F4 m (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
-                #F5 p @21
+                #F5 p (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@class::C::@method::m::@formalParameter::p
   classes
     class C
@@ -5383,18 +5374,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 v @4
+        #F1 v (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v
+        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::v
-          returnType: InvalidType
       setters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+              element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     v
       reference: <testLibrary>::@topLevelVariable::v
@@ -5413,10 +5403,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F4
           type: InvalidType
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -5429,18 +5420,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 d @6
+        #F1 d (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F2 synthetic d
+        #F2 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::d
-          returnType: Never
       setters
-        #F3 synthetic d
+        #F3 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@setter::d
           formalParameters
-            #F4 _d
-              element: <testLibrary>::@setter::d::@formalParameter::_d
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
     d
       reference: <testLibrary>::@topLevelVariable::d
@@ -5459,10 +5449,11 @@ library
       reference: <testLibrary>::@setter::d
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _d
+        #E0 requiredPositional value
           firstFragment: #F4
           type: Never
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::d
 ''');
   }
 
@@ -5479,28 +5470,27 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 t @17
+            #F3 t (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::C::@field::t
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 synthetic t
+            #F5 synthetic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@getter::t
-              returnType: T
           setters
-            #F6 synthetic t
+            #F6 synthetic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@setter::t
               formalParameters
-                #F7 _t
-                  element: <testLibrary>::@class::C::@setter::t::@formalParameter::_t
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: <testLibrary>::@class::C::@setter::t::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -5533,10 +5523,11 @@ library
           firstFragment: #F6
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E1 requiredPositional _t
+            #E1 requiredPositional value
               firstFragment: #F7
               type: T
           returnType: void
+          variable: <testLibrary>::@class::C::@field::t
 ''');
   }
 
@@ -5553,28 +5544,27 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           fields
-            #F3 t @18
+            #F3 t (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::t
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 synthetic t
+            #F5 synthetic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@getter::t
-              returnType: T?
           setters
-            #F6 synthetic t
+            #F6 synthetic t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::C::@setter::t
               formalParameters
-                #F7 _t
-                  element: <testLibrary>::@class::C::@setter::t::@formalParameter::_t
+                #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+                  element: <testLibrary>::@class::C::@setter::t::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -5607,10 +5597,11 @@ library
           firstFragment: #F6
           hasEnclosingTypeParameterReference: true
           formalParameters
-            #E1 requiredPositional _t
+            #E1 requiredPositional value
               firstFragment: #F7
               type: T?
           returnType: void
+          variable: <testLibrary>::@class::C::@field::t
 ''');
   }
 
@@ -5629,17 +5620,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
-        #F3 enum E @16
+        #F3 enum E (nameOffset:16) (firstTokenOffset:11) (offset:16)
           element: <testLibrary>::@enum::E
           fields
-            #F4 hasInitializer v @20
+            #F4 hasInitializer v (nameOffset:20) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5653,7 +5644,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5666,53 +5657,47 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F6 synthetic const new
+            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 synthetic v
+            #F7 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
-            #F8 synthetic values
+            #F8 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       typeAliases
-        #F9 F @32
+        #F9 F (nameOffset:32) (firstTokenOffset:24) (offset:32)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F10 c @39
+        #F10 c (nameOffset:39) (firstTokenOffset:39) (offset:39)
           element: <testLibrary>::@topLevelVariable::c
-        #F11 e @44
+        #F11 e (nameOffset:44) (firstTokenOffset:44) (offset:44)
           element: <testLibrary>::@topLevelVariable::e
-        #F12 f @49
+        #F12 f (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F13 synthetic c
+        #F13 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F14 synthetic e
+        #F14 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F15 synthetic f
+        #F15 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: <testLibrary>::@typeAlias::F
       setters
-        #F16 synthetic c
+        #F16 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F17 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F18 synthetic e
+            #F17 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F18 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F19 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F20 synthetic f
+            #F19 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F20 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F21 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F21 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -5805,27 +5790,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F16
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F17
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F18
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F19
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F20
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F21
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -5842,7 +5830,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
@@ -5850,55 +5838,51 @@ library
           uri: package:test/a.dart
           unit: #F1
       topLevelVariables
-        #F2 c @28
+        #F2 c (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::c
-        #F3 e @33
+        #F3 e (nameOffset:33) (firstTokenOffset:33) (offset:33)
           element: <testLibrary>::@topLevelVariable::e
-        #F4 f @38
+        #F4 f (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F5 synthetic c
+        #F5 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F6 synthetic e
+        #F6 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F7 synthetic f
+        #F7 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: <testLibrary>::@typeAlias::F
       setters
-        #F8 synthetic c
+        #F8 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F9 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F10 synthetic e
+            #F9 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F10 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F11 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F12 synthetic f
+            #F11 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F12 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F13 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F13 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@setter::f::@formalParameter::value
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F14 class C @17
+        #F14 class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::C
           constructors
-            #F15 synthetic new
+            #F15 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
-        #F16 enum E @27
+        #F16 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F17 hasInitializer v @31
+            #F17 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -5912,7 +5896,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F18 synthetic values
+            #F18 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -5925,18 +5909,16 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F19 synthetic const new
+            #F19 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F20 synthetic v
+            #F20 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
-            #F21 synthetic values
+            #F21 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       typeAliases
-        #F22 F @43
+        #F22 F (nameOffset:43) (firstTokenOffset:35) (offset:43)
           element: <testLibrary>::@typeAlias::F
   classes
     class C
@@ -6030,27 +6012,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F8
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F9
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F10
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F11
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F12
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F13
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -6064,7 +6049,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
@@ -6072,17 +6057,17 @@ library
           uri: package:test/a.dart
           unit: #F1
       classes
-        #F2 class C @32
+        #F2 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::C
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
-        #F4 enum E @42
+        #F4 enum E (nameOffset:42) (firstTokenOffset:37) (offset:42)
           element: <testLibrary>::@enum::E
           fields
-            #F5 hasInitializer v @46
+            #F5 hasInitializer v (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6096,7 +6081,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6109,57 +6094,51 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F7 synthetic const new
+            #F7 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F8 synthetic v
+            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
-            #F9 synthetic values
+            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       typeAliases
-        #F10 F @58
+        #F10 F (nameOffset:58) (firstTokenOffset:50) (offset:58)
           element: <testLibrary>::@typeAlias::F
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F11 c @13
+        #F11 c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
-        #F12 e @18
+        #F12 e (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::e
-        #F13 f @23
+        #F13 f (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F14 synthetic c
+        #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F15 synthetic e
+        #F15 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F16 synthetic f
+        #F16 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: <testLibrary>::@typeAlias::F
       setters
-        #F17 synthetic c
+        #F17 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F18 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F19 synthetic e
+            #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F19 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F20 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F21 synthetic f
+            #F20 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F21 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F22 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6252,27 +6231,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F17
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F18
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F19
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F20
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F21
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F22
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -6290,7 +6272,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
@@ -6306,17 +6288,17 @@ library
       previousFragment: #F0
       nextFragment: #F2
       classes
-        #F3 class C @17
+        #F3 class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::C
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
-        #F5 enum E @27
+        #F5 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F6 hasInitializer v @31
+            #F6 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6330,7 +6312,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6343,57 +6325,51 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F8 synthetic const new
+            #F8 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 synthetic v
+            #F9 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
-            #F10 synthetic values
+            #F10 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       typeAliases
-        #F11 F @43
+        #F11 F (nameOffset:43) (firstTokenOffset:35) (offset:43)
           element: <testLibrary>::@typeAlias::F
     #F2 package:test/b.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F1
       topLevelVariables
-        #F12 c @13
+        #F12 c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
-        #F13 e @18
+        #F13 e (nameOffset:18) (firstTokenOffset:18) (offset:18)
           element: <testLibrary>::@topLevelVariable::e
-        #F14 f @23
+        #F14 f (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F15 synthetic c
+        #F15 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F16 synthetic e
+        #F16 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F17 synthetic f
+        #F17 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: <testLibrary>::@typeAlias::F
       setters
-        #F18 synthetic c
+        #F18 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F19 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F20 synthetic e
+            #F19 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F20 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F21 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F22 synthetic f
+            #F21 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F22 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F23 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F23 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6486,27 +6462,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F18
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F19
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F20
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F21
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F22
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F23
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -6521,7 +6500,7 @@ library
   reference: <testLibrary>
   name: l
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
@@ -6533,17 +6512,17 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F2 class C @17
+        #F2 class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::C
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
-        #F4 enum E @27
+        #F4 enum E (nameOffset:27) (firstTokenOffset:22) (offset:27)
           element: <testLibrary>::@enum::E
           fields
-            #F5 hasInitializer v @31
+            #F5 hasInitializer v (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6557,7 +6536,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6570,53 +6549,47 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F7 synthetic const new
+            #F7 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F8 synthetic v
+            #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
-            #F9 synthetic values
+            #F9 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       typeAliases
-        #F10 F @43
+        #F10 F (nameOffset:43) (firstTokenOffset:35) (offset:43)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F11 c @50
+        #F11 c (nameOffset:50) (firstTokenOffset:50) (offset:50)
           element: <testLibrary>::@topLevelVariable::c
-        #F12 e @55
+        #F12 e (nameOffset:55) (firstTokenOffset:55) (offset:55)
           element: <testLibrary>::@topLevelVariable::e
-        #F13 f @60
+        #F13 f (nameOffset:60) (firstTokenOffset:60) (offset:60)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F14 synthetic c
+        #F14 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F15 synthetic e
+        #F15 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F16 synthetic f
+        #F16 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: <testLibrary>::@typeAlias::F
       setters
-        #F17 synthetic c
+        #F17 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F18 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F19 synthetic e
+            #F18 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F19 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F20 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F21 synthetic f
+            #F20 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F21 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F22 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F22 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6709,27 +6682,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F17
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F18
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F19
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F20
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F21
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F22
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -6742,25 +6718,24 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F3 c @13
+        #F3 c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@getter::c
-          returnType: C
       setters
-        #F5 synthetic c
+        #F5 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F6 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+              element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6787,10 +6762,11 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F6
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -6803,30 +6779,29 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
-            #F3 U @11
+            #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F5 c @32
+        #F5 c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F6 synthetic c
+        #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
-          returnType: C<int, String>
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+              element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6858,10 +6833,11 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E2 requiredPositional _c
+        #E2 requiredPositional value
           firstFragment: #F8
           type: C<int, String>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -6874,30 +6850,29 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
-            #F3 U @11
+            #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
-        #F5 c @19
+        #F5 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F6 synthetic c
+        #F6 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-          returnType: C<dynamic, dynamic>
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::c::@formalParameter::value
   classes
     class C
       reference: <testLibrary>::@class::C
@@ -6929,10 +6904,11 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E2 requiredPositional _c
+        #E2 requiredPositional value
           firstFragment: #F8
           type: C<dynamic, dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -6945,10 +6921,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       enums
-        #F1 enum E @5
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@enum::E
           fields
-            #F2 hasInitializer v @9
+            #F2 hasInitializer v (nameOffset:9) (firstTokenOffset:9) (offset:9)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
@@ -6962,7 +6938,7 @@ library
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -6975,29 +6951,26 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new
+            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 synthetic v
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::v
-              returnType: E
-            #F6 synthetic values
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-              returnType: List<E>
       topLevelVariables
-        #F7 e @15
+        #F7 e (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::e
       getters
-        #F8 synthetic e
+        #F8 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::e
-          returnType: E
       setters
-        #F9 synthetic e
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@setter::e::@formalParameter::value
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -7053,10 +7026,11 @@ library
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E0 requiredPositional _e
+        #E0 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
 ''');
   }
 
@@ -7075,39 +7049,35 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c @19
+        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @24
+        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @29
+        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/a.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -7150,27 +7120,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/a.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -7190,39 +7163,35 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c @19
+        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @24
+        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @29
+        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/b.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -7265,27 +7234,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/b.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -7306,39 +7278,35 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c @19
+        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @24
+        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @29
+        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/c.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -7381,27 +7349,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/c.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -7422,39 +7393,35 @@ library
       libraryImports
         package:test/a/a.dart
       topLevelVariables
-        #F1 c @21
+        #F1 c (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @26
+        #F2 e (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @31
+        #F3 f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/a/c/c.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -7497,27 +7464,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/a/c/c.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -7537,39 +7507,35 @@ library
       libraryImports
         package:test/a/a.dart
       topLevelVariables
-        #F1 c @21
+        #F1 c (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @26
+        #F2 e (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @31
+        #F3 f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/a/b/b.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -7612,27 +7578,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/a/b/b.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -7652,39 +7621,35 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c @19
+        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @24
+        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @29
+        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/a.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -7727,27 +7692,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/a.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -7768,28 +7736,26 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c1 @20
+        #F1 c1 (nameOffset:20) (firstTokenOffset:20) (offset:20)
           element: <testLibrary>::@topLevelVariable::c1
-        #F2 c2 @27
+        #F2 c2 (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::c2
       getters
-        #F3 synthetic c1
+        #F3 synthetic c1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@getter::c1
-          returnType: C1
-        #F4 synthetic c2
+        #F4 synthetic c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::c2
-          returnType: C2
       setters
-        #F5 synthetic c1
+        #F5 synthetic c1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@setter::c1
           formalParameters
-            #F6 _c1
-              element: <testLibrary>::@setter::c1::@formalParameter::_c1
-        #F7 synthetic c2
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+              element: <testLibrary>::@setter::c1::@formalParameter::value
+        #F7 synthetic c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@setter::c2
           formalParameters
-            #F8 _c2
-              element: <testLibrary>::@setter::c2::@formalParameter::_c2
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+              element: <testLibrary>::@setter::c2::@formalParameter::value
   topLevelVariables
     c1
       reference: <testLibrary>::@topLevelVariable::c1
@@ -7819,18 +7785,20 @@ library
       reference: <testLibrary>::@setter::c1
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _c1
+        #E0 requiredPositional value
           firstFragment: #F6
           type: C1
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c1
     synthetic static c2
       reference: <testLibrary>::@setter::c2
       firstFragment: #F7
       formalParameters
-        #E1 requiredPositional _c2
+        #E1 requiredPositional value
           firstFragment: #F8
           type: C2
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c2
 ''');
   }
 
@@ -7850,39 +7818,35 @@ library
       libraryImports
         package:test/a/b.dart
       topLevelVariables
-        #F1 c @21
+        #F1 c (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @26
+        #F2 e (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @31
+        #F3 f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/a/b.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -7925,27 +7889,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/a/b.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -7964,39 +7931,35 @@ library
       libraryImports
         package:test/a.dart
       topLevelVariables
-        #F1 c @19
+        #F1 c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 e @24
+        #F2 e (nameOffset:24) (firstTokenOffset:24) (offset:24)
           element: <testLibrary>::@topLevelVariable::e
-        #F3 f @29
+        #F3 f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 synthetic c
+        #F4 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F5 synthetic e
+        #F5 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-          returnType: E
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: package:test/a.dart::@typeAlias::F
       setters
-        #F7 synthetic c
+        #F7 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F8 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F9 synthetic e
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F9 synthetic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
-            #F10 _e
-              element: <testLibrary>::@setter::e::@formalParameter::_e
-        #F11 synthetic f
+            #F10 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@setter::e::@formalParameter::value
+        #F11 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F12 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F12 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -8039,27 +8002,30 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F7
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F8
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static e
       reference: <testLibrary>::@setter::e
       firstFragment: #F9
       formalParameters
-        #E1 requiredPositional _e
+        #E1 requiredPositional value
           firstFragment: #F10
           type: E
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::e
     synthetic static f
       reference: <testLibrary>::@setter::f
       firstFragment: #F11
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F12
           type: dynamic Function()
             alias: package:test/a.dart::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -8072,22 +8038,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
       topLevelVariables
-        #F2 f @15
+        #F2 f (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F3 synthetic f
+        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function()
-            alias: <testLibrary>::@typeAlias::F
       setters
-        #F4 synthetic f
+        #F4 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F5 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -8113,11 +8077,12 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F4
       formalParameters
-        #E0 requiredPositional _f
+        #E0 requiredPositional value
           firstFragment: #F5
           type: dynamic Function()
             alias: <testLibrary>::@typeAlias::F
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -8132,30 +8097,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
-            #F3 U @15
+            #F3 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E1 U
       topLevelVariables
-        #F4 f @39
+        #F4 f (nameOffset:39) (firstTokenOffset:39) (offset:39)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F5 synthetic f
+        #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@getter::f
-          returnType: String Function(int)
-            alias: <testLibrary>::@typeAlias::F
-              typeArguments
-                int
-                String
       setters
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F7 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -8192,7 +8152,7 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F6
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F7
           type: String Function(int)
             alias: <testLibrary>::@typeAlias::F
@@ -8200,6 +8160,7 @@ library
                 int
                 String
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -8212,30 +8173,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @10
+        #F1 F (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@typeAlias::F
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
-            #F3 U @15
+            #F3 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E1 U
       topLevelVariables
-        #F4 f @26
+        #F4 f (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F5 synthetic f
+        #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::f
-          returnType: dynamic Function(dynamic)
-            alias: <testLibrary>::@typeAlias::F
-              typeArguments
-                dynamic
-                dynamic
       setters
-        #F6 synthetic f
+        #F6 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F7 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -8272,7 +8228,7 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F6
       formalParameters
-        #E2 requiredPositional _f
+        #E2 requiredPositional value
           firstFragment: #F7
           type: dynamic Function(dynamic)
             alias: <testLibrary>::@typeAlias::F
@@ -8280,6 +8236,7 @@ library
                 dynamic
                 dynamic
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 }

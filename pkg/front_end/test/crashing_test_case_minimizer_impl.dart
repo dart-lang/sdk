@@ -17,7 +17,7 @@ import 'package:_fe_analyzer_shared/src/util/relativize.dart'
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show ExperimentalFlag;
 import 'package:front_end/src/api_prototype/file_system.dart'
@@ -2074,8 +2074,8 @@ worlds:
           ExperimentalFlag.alternativeInvalidationStrategy] = true;
     }
 
-    TargetFlags targetFlags = new TargetFlags(
-        trackWidgetCreation: _settings.widgetTransformation);
+    TargetFlags targetFlags =
+        new TargetFlags(trackWidgetCreation: _settings.widgetTransformation);
     Target target;
     switch (_settings.targetString) {
       case "vm":
@@ -2099,7 +2099,7 @@ worlds:
     options.sdkSummary = _settings.platformUri;
     options.packagesFileUri = _settings.packagesFileUri;
     options.omitPlatform = false;
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       // don't care.
       // Except if we're looking to trigger a specific error on reload.
       if (_settings.lookForErrorErrorOnReload != null &&

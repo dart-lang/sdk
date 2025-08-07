@@ -145,7 +145,7 @@ class TestCompiler {
     final List<Code> formattedErrorsCodes = <Code>[];
     final List<Code> formattedWarningsCodes = <Code>[];
 
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       String stringId = message.ansiFormatted.join("\n");
       if (message is FormattedMessage) {
         stringId = message.toJsonString();
@@ -153,12 +153,12 @@ class TestCompiler {
         throw "Unsupported currently";
       }
       FormattedMessage formattedMessage = message;
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         if (!formattedErrors.add(stringId)) {
           throw "Got the same message twice: ${stringId}";
         }
         formattedErrorsCodes.add(formattedMessage.code);
-      } else if (message.severity == Severity.warning) {
+      } else if (message.severity == CfeSeverity.warning) {
         if (!formattedWarnings.add(stringId)) {
           throw "Got the same message twice: ${stringId}";
         }

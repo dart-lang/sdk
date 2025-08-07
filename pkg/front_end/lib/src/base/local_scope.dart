@@ -11,6 +11,9 @@ abstract class LocalScope implements LookupScope {
   @override
   ScopeKind get kind;
 
+  @override
+  LookupResult? lookup(String name, {int fileOffset = -1});
+
   LocalScope createNestedScope(
       {required String debugName, required ScopeKind kind});
 
@@ -51,7 +54,7 @@ abstract base class BaseLocalScope implements LocalScope {
 }
 
 mixin LocalScopeMixin implements LocalScope {
-  LookupScope? get _parent;
+  LocalScope? get _parent;
 
   Map<String, VariableBuilder>? get _local;
 
@@ -59,9 +62,9 @@ mixin LocalScopeMixin implements LocalScope {
   Iterable<VariableBuilder> get localVariables => _local?.values ?? const [];
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+  LookupResult? lookup(String name, {int fileOffset = -1}) {
     _recordUse(name, fileOffset);
-    return _local?[name] ?? _parent?.lookup(name, fileOffset, fileUri);
+    return _local?[name] ?? _parent?.lookup(name, fileOffset: fileOffset);
   }
 
   @override
@@ -156,8 +159,8 @@ final class LocalTypeParameterScope extends BaseLocalScope
   Iterable<VariableBuilder> get localVariables => const [];
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
-    return _local?[name] ?? _parent?.lookup(name, fileOffset, fileUri);
+  LookupResult? lookup(String name, {int fileOffset = -1}) {
+    return _local?[name] ?? _parent?.lookup(name, fileOffset: fileOffset);
   }
 
   @override
@@ -201,13 +204,13 @@ final class FixedLocalScope extends BaseLocalScope
 final class FormalParameterScope extends BaseLocalScope
     with ImmutableLocalScopeMixin, LocalScopeMixin {
   @override
-  final LookupScope? _parent;
+  final LocalScope? _parent;
   @override
   final Map<String, VariableBuilder>? _local;
 
   FormalParameterScope(
-      {LookupScope? parent, Map<String, VariableBuilder>? local})
-      : _parent = parent,
+      {required LookupScope parent, Map<String, VariableBuilder>? local})
+      : _parent = new EnclosingLocalScope(parent),
         _local = local;
 
   @override
@@ -232,8 +235,8 @@ final class EnclosingLocalScope extends BaseLocalScope
   Iterable<VariableBuilder> get localVariables => const [];
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
-    return _scope.lookup(name, fileOffset, fileUri);
+  LookupResult? lookup(String name, {int fileOffset = -1}) {
+    return _scope.lookup(name);
   }
 
   @override

@@ -1380,6 +1380,108 @@ class DartTextDocumentContentProviderRegistrationOptions implements ToJsonable {
   }
 }
 
+class DartTextDocumentSummaryParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartTextDocumentSummaryParams.canParse,
+    DartTextDocumentSummaryParams.fromJson,
+  );
+
+  final DocumentUri uri;
+
+  DartTextDocumentSummaryParams({
+    required this.uri,
+  });
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartTextDocumentSummaryParams &&
+        other.runtimeType == DartTextDocumentSummaryParams &&
+        uri == other.uri;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['uri'] = uri.toString();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseUri(obj, reporter, 'uri',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type DartTextDocumentSummaryParams');
+      return false;
+    }
+  }
+
+  static DartTextDocumentSummaryParams fromJson(Map<String, Object?> json) {
+    final uriJson = json['uri'];
+    final uri = Uri.parse(uriJson as String);
+    return DartTextDocumentSummaryParams(
+      uri: uri,
+    );
+  }
+}
+
+class DocumentSummary implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DocumentSummary.canParse,
+    DocumentSummary.fromJson,
+  );
+
+  final String? summary;
+
+  DocumentSummary({
+    this.summary,
+  });
+
+  @override
+  int get hashCode => summary.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is DocumentSummary &&
+        other.runtimeType == DocumentSummary &&
+        summary == other.summary;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['summary'] = summary;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseString(obj, reporter, 'summary',
+          allowsUndefined: false, allowsNull: true);
+    } else {
+      reporter.reportError('must be of type DocumentSummary');
+      return false;
+    }
+  }
+
+  static DocumentSummary fromJson(Map<String, Object?> json) {
+    final summaryJson = json['summary'];
+    final summary = summaryJson as String?;
+    return DocumentSummary(
+      summary: summary,
+    );
+  }
+}
+
 class EditableArgument implements ToJsonable {
   static const jsonHandler = LspJsonHandler(
     EditableArgument.canParse,

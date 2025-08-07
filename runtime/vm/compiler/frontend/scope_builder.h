@@ -165,10 +165,10 @@ class ScopeBuilder {
 
   KernelReaderHelper helper_;
   ConstantReader constant_reader_;
+  TypeTranslator type_translator_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
   InferredTypeMetadataHelper inferred_arg_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
-  TypeTranslator type_translator_;
 
   DISALLOW_COPY_AND_ASSIGN(ScopeBuilder);
 };

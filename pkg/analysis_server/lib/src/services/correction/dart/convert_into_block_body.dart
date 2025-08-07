@@ -71,6 +71,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     var sourceRange = range.endEnd(body.beginToken.previous!, body);
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addReplacement(sourceRange, (builder) {
         builder.write(' ');
         if (body.isAsynchronous) {

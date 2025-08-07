@@ -396,7 +396,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
     if (severityEnumName == null) {
       throw "Unknown severity '$severity'";
     }
-    codeArguments.add('severity: Severity.$severityEnumName');
+    codeArguments.add('severity: CfeSeverity.$severityEnumName');
   }
 
   if (parameters.isEmpty && conversions.isEmpty && arguments.isEmpty) {
@@ -407,7 +407,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
     return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> code$name = message$name;
+const Code code$name = message$name;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode message$name =
@@ -424,6 +424,7 @@ const MessageCode message$name =
   }
 
   templateArguments.add("withArguments: _withArguments$name");
+  templateArguments.addAll(codeArguments);
 
   List<String> messageArguments = <String>[];
   String message = interpolate(problemMessage);
@@ -448,8 +449,8 @@ const Template<Message Function(${parameters.join(', ')})> template$name =
         ${templateArguments.join(', ')},);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(${parameters.join(', ')})> code$name =
-    const Code<Message Function(${parameters.join(', ')})>(
+const Code code$name =
+    const Code(
         \"$name\", ${codeArguments.join(', ')});
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

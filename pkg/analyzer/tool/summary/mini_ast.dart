@@ -219,19 +219,9 @@ class MiniAstBuilder extends StackListener {
   void endBinaryExpression(Token token, Token endToken) {
     debugEvent("BinaryExpression");
 
-    if (identical('.', token.stringValue)) {
-      var rightOperand = pop() as String;
-      var leftOperand = pop();
-      if (leftOperand is String && !leftOperand.contains('.')) {
-        push(PrefixedIdentifier(leftOperand, token, rightOperand));
-      } else {
-        push(UnknownExpression());
-      }
-    } else {
-      pop(); // RHS
-      pop(); // LHS
-      push(UnknownExpression());
-    }
+    pop(); // RHS
+    pop(); // LHS
+    push(UnknownExpression());
   }
 
   @override
@@ -469,6 +459,15 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    debugEvent("CascadeAccess");
+
+    pop(); // RHS
+    pop(); // LHS
+    push(UnknownExpression());
+  }
+
+  @override
   void handleClassNoWithClause() {
     debugEvent("NoClassWithClause");
   }
@@ -476,6 +475,25 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
+  }
+
+  @override
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    debugEvent("DotAccess");
+
+    if (!isNullAware) {
+      var rightOperand = pop() as String;
+      var leftOperand = pop();
+      if (leftOperand is String && !leftOperand.contains('.')) {
+        push(PrefixedIdentifier(leftOperand, token, rightOperand));
+      } else {
+        push(UnknownExpression());
+      }
+    } else {
+      pop(); // RHS
+      pop(); // LHS
+      push(UnknownExpression());
+    }
   }
 
   @override

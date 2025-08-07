@@ -51,7 +51,7 @@ Future<void> runPlatformAnalysis(
 Future<void> _runAnalysis(CompilerOptions options, Iterable<Uri> entryPoints,
     PerformAnalysisFunction performAnalysis) async {
   options.packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json');
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
   };
   InternalCompilerResult compilerResult = await kernelForProgramInternal(
@@ -139,11 +139,11 @@ class AnalysisVisitor extends StaticTypeVisitorBase {
         .withArguments(message)
         .withLocation(uri, node.fileOffset, noLength);
     FormattedMessage diagnosticMessage = locatedMessage.withFormatting(
-        formatWithLocationNoSdk(locatedMessage, Severity.warning,
+        formatWithLocationNoSdk(locatedMessage, CfeSeverity.warning,
             location: location, uriToSource: component.uriToSource),
         location.line,
         location.column,
-        Severity.warning,
+        CfeSeverity.warning,
         []);
     actualMap
         .putIfAbsent(message, () => <FormattedMessage>[])

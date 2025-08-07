@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart' show noLength, templateConstructorNotFound;
 import '../base/scope.dart';
 import 'builder.dart';
@@ -22,7 +23,7 @@ class ConstructorReferenceBuilder {
   /// This is the name of a named constructor. As `bar` in `new Foo<T>.bar()`.
   final String? suffix;
 
-  Builder? target;
+  MemberLookupResult? target;
 
   ConstructorReferenceBuilder(this.typeName, this.typeArguments, this.suffix,
       this.fileUri, this.charOffset);
@@ -38,33 +39,32 @@ class ConstructorReferenceBuilder {
     if (qualifier != null) {
       String prefix = qualifier;
       String middle = typeName.name;
-      declaration = scope.lookup(prefix, charOffset, fileUri)?.getable;
+      declaration = scope.lookup(prefix)?.getable;
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;
-        declaration =
-            prefix.lookup(middle, typeName.nameOffset, fileUri)?.getable;
+        declaration = prefix.lookup(middle)?.getable;
       } else if (declaration is DeclarationBuilder) {
-        declaration = declaration.findConstructorOrFactory(
-            middle, typeName.nameOffset, fileUri, accessingLibrary);
+        MemberLookupResult? result =
+            declaration.findConstructorOrFactory(middle, accessingLibrary);
         if (suffix == null) {
-          target = declaration;
+          target = result;
           return;
         }
       }
     } else {
-      declaration = scope.lookup(typeName.name, charOffset, fileUri)?.getable;
+      declaration = scope.lookup(typeName.name)?.getable;
       if (declaration is TypeAliasBuilder) {
         TypeAliasBuilder aliasBuilder = declaration;
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
     }
     if (declaration is DeclarationBuilder) {
-      target = declaration.findConstructorOrFactory(
-          suffix ?? "", charOffset, fileUri, accessingLibrary);
+      target =
+          declaration.findConstructorOrFactory(suffix ?? "", accessingLibrary);
     }
     if (target == null) {
       accessingLibrary.addProblem(

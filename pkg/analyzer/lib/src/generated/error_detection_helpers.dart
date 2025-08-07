@@ -193,7 +193,7 @@ mixin ErrorDetectionHelpers {
   /// [CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE].
   void checkForFieldInitializerNotAssignable(
     ConstructorFieldInitializerImpl initializer,
-    FieldElement2OrMember fieldElement, {
+    InternalFieldElement fieldElement, {
     required bool isConstConstructor,
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
@@ -288,11 +288,11 @@ mixin ErrorDetectionHelpers {
 
   void checkIndexExpressionIndex(
     Expression index, {
-    required ExecutableElement2OrMember? readElement,
-    required ExecutableElement2OrMember? writeElement,
+    required InternalExecutableElement? readElement,
+    required InternalExecutableElement? writeElement,
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
-    if (readElement is MethodElement2OrMember) {
+    if (readElement is InternalMethodElement) {
       var parameters = readElement.formalParameters;
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
@@ -304,7 +304,7 @@ mixin ErrorDetectionHelpers {
       }
     }
 
-    if (writeElement is MethodElement2OrMember) {
+    if (writeElement is InternalMethodElement) {
       var parameters = writeElement.formalParameters;
       if (parameters.isNotEmpty) {
         _checkForArgumentTypeNotAssignableForArgument(
@@ -341,7 +341,7 @@ mixin ErrorDetectionHelpers {
   /// > Let `e` be an expression whose static type is an interface type that has
   /// > a method named `call`. In the case where the context type for `e`
   /// > is a function type or the type `Function`, `e` is treated as `e.call`.
-  MethodElement2OrMember? getImplicitCallMethod(
+  InternalMethodElement? getImplicitCallMethod(
     DartType type,
     DartType context,
     SyntacticEntity errorNode,
@@ -389,7 +389,7 @@ mixin ErrorDetectionHelpers {
 
   void _checkForArgumentTypeNotAssignableForArgument({
     required Expression argument,
-    required FormalParameterElementMixin? parameter,
+    required InternalFormalParameterElement? parameter,
     required bool promoteParameterToNullable,
     Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {

@@ -198,10 +198,6 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
   });
 }
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start) {
-  UNREACHABLE();
-}
-
 CodePtr CodePatcher::GetInstanceCallAt(uword return_address,
                                        const Code& caller_code,
                                        Object* data) {
@@ -258,18 +254,13 @@ void CodePatcher::PatchSwitchableCallAt(uword return_address,
                                         const Code& caller_code,
                                         const Object& data,
                                         const Code& target) {
-  // Switchable instance calls only generated for precompilation.
-  UNREACHABLE();
+  PatchInstanceCallAt(return_address, caller_code, data, target);
 }
 
-void CodePatcher::PatchSwitchableCallAtWithMutatorsStopped(
-    Thread* thread,
-    uword return_address,
-    const Code& caller_code,
-    const Object& data,
-    const Code& target) {
-  // Switchable instance calls only generated for precompilation.
-  UNREACHABLE();
+ObjectPtr CodePatcher::GetSwitchableCallTargetAt(uword return_address,
+                                                 const Code& caller_code) {
+  InstanceCall call(return_address, caller_code);
+  return call.target();
 }
 
 uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
@@ -281,9 +272,8 @@ uword CodePatcher::GetSwitchableCallTargetEntryAt(uword return_address,
 
 ObjectPtr CodePatcher::GetSwitchableCallDataAt(uword return_address,
                                                const Code& caller_code) {
-  // Switchable instance calls only generated for precompilation.
-  UNREACHABLE();
-  return Object::null();
+  InstanceCall call(return_address, caller_code);
+  return call.data();
 }
 
 void CodePatcher::PatchNativeCallAt(uword return_address,

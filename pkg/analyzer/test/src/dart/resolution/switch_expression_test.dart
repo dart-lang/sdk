@@ -247,7 +247,6 @@ SwitchExpression
                 keyword: var
                 name: isEven
                 declaredFragment: isPublic isEven@46
-                  type: null
                   element: hasImplicitType isPublic
                     type: bool
                 matchedValueType: bool
@@ -566,7 +565,6 @@ SwitchExpression
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@50
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -575,7 +573,6 @@ SwitchExpression
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@59
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -652,7 +649,6 @@ SwitchExpression
                 type: int
               name: a
               declaredFragment: isPublic a@58
-                type: int
                 element: isPublic
                   type: int
               matchedValueType: Object?
@@ -735,7 +731,6 @@ SwitchExpression
             type: int
           name: a
           declaredFragment: isPublic a@44
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?

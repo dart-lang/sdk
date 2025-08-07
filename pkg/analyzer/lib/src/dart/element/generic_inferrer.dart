@@ -148,7 +148,8 @@ class GenericInferrer {
       parameterType: SharedTypeView(parameterType),
       parameterName: parameterName,
       genericClassName: genericClass?.name,
-      isGenericClassInDartCore: genericClass?.library.isDartCore ?? false,
+      isGenericClassInDartCore:
+          genericClass?.element.library.isDartCore ?? false,
     );
     inferenceLogWriter?.enterConstraintGeneration(
       ConstraintGenerationSource.argument,
@@ -190,7 +191,7 @@ class GenericInferrer {
   /// [argumentTypes].
   void constrainArguments2({
     InterfaceFragmentImpl? genericClass,
-    required List<FormalParameterElementMixin> parameters,
+    required List<InternalFormalParameterElement> parameters,
     required List<TypeImpl> argumentTypes,
     required AstNodeImpl? nodeForTesting,
   }) {
@@ -473,74 +474,6 @@ class GenericInferrer {
     }
   }
 
-  /// Choose the bound that was implied by the return type, if any.
-  ///
-  /// Which bound this is depends on what positions the type parameter
-  /// appears in. If the type only appears only in a contravariant position,
-  /// we will choose the lower bound instead.
-  ///
-  /// For example given:
-  ///
-  ///     Func1<T, bool> makeComparer<T>(T x) => (T y) => x() == y;
-  ///
-  ///     main() {
-  ///       Func1<num, bool> t = makeComparer/* infer <num> */(42);
-  ///       print(t(42.0)); /// false, no error.
-  ///     }
-  ///
-  /// The constraints we collect are:
-  ///
-  /// * `num <: T`
-  /// * `int <: T`
-  ///
-  /// ... and no upper bound. Therefore the lower bound is the best choice.
-  ///
-  /// If [isContravariant] is `true`, then we are solving for a contravariant
-  /// type parameter which means we choose the upper bound rather than the
-  /// lower bound for normally covariant type parameters.
-  TypeImpl _chooseTypeFromConstraint(
-    MergedTypeConstraint constraint, {
-    bool toKnownType = false,
-    required bool isContravariant,
-  }) {
-    TypeImpl upper = constraint.upper.unwrapTypeSchemaView();
-    TypeImpl lower = constraint.lower.unwrapTypeSchemaView();
-    // Prefer the known bound, if any.
-    // Otherwise take whatever bound has partial information, e.g. `Iterable<?>`
-    //
-    // For both of those, prefer the lower bound (arbitrary heuristic) or upper
-    // bound if [isContravariant] is `true`
-    if (isContravariant) {
-      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(upper))) {
-        return upper;
-      }
-      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(lower))) {
-        return lower;
-      }
-      if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.greatestClosureOfSchema(upper) : upper;
-      }
-      if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.leastClosureOfSchema(lower) : lower;
-      }
-      return upper;
-    } else {
-      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(lower))) {
-        return lower;
-      }
-      if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(upper))) {
-        return upper;
-      }
-      if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType ? _typeSystem.leastClosureOfSchema(lower) : lower;
-      }
-      if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType ? _typeSystem.greatestClosureOfSchema(upper) : upper;
-      }
-      return lower;
-    }
-  }
-
   /// Computes (or recomputes) a set of inferred types based on the constraints
   /// that have been recorded so far.
   List<TypeImpl> _chooseTypes({required bool preliminary}) {
@@ -578,13 +511,15 @@ class GenericInferrer {
       if (previouslyInferredType != null) {
         inferredTypes[i] = previouslyInferredType;
       } else if (preliminary) {
-        var inferredType = _inferTypeParameterFromContext(
-          constraint,
-          extendsClause,
-          isContravariant: typeParam.variance.isContravariant,
-          typeParameterToInfer: typeParam,
-          inferencePhaseConstraints: inferencePhaseConstraints,
-        );
+        var inferredType =
+            _inferTypeParameterFromContext(
+                  constraint,
+                  extendsClause,
+                  isContravariant: typeParam.variance.isContravariant,
+                  typeParameterToInfer: typeParam,
+                  inferencePhaseConstraints: inferencePhaseConstraints,
+                )
+                as TypeImpl;
 
         inferredTypes[i] = inferredType;
         if (typeParam.isLegacyCovariant &&
@@ -594,13 +529,15 @@ class GenericInferrer {
           _typesInferredSoFar[typeParam] = inferredType;
         }
       } else {
-        inferredTypes[i] = _inferTypeParameterFromAll(
-          constraint,
-          extendsClause,
-          isContravariant: typeParam.variance.isContravariant,
-          typeParameterToInfer: typeParam,
-          inferencePhaseConstraints: inferencePhaseConstraints,
-        );
+        inferredTypes[i] =
+            _inferTypeParameterFromAll(
+                  constraint,
+                  extendsClause,
+                  isContravariant: typeParam.variance.isContravariant,
+                  typeParameterToInfer: typeParam,
+                  inferencePhaseConstraints: inferencePhaseConstraints,
+                )
+                as TypeImpl;
       }
     }
 
@@ -666,7 +603,7 @@ class GenericInferrer {
         'Consider passing explicit type argument(s) to the generic.\n\n';
   }
 
-  TypeImpl _inferTypeParameterFromAll(
+  SharedType _inferTypeParameterFromAll(
     MergedTypeConstraint constraint,
     MergedTypeConstraint? extendsClause, {
     required bool isContravariant,
@@ -701,15 +638,15 @@ class GenericInferrer {
       ]);
     }
 
-    var choice = _chooseTypeFromConstraint(
+    var choice = _typeSystemOperations.chooseTypeFromConstraint(
       constraint,
-      toKnownType: true,
+      grounded: true,
       isContravariant: isContravariant,
     );
     return choice;
   }
 
-  TypeImpl _inferTypeParameterFromContext(
+  SharedType _inferTypeParameterFromContext(
     MergedTypeConstraint constraint,
     MergedTypeConstraint? extendsClause, {
     required bool isContravariant,
@@ -720,8 +657,9 @@ class GenericInferrer {
     // Both bits of the bound information should be available at the same time.
     assert(extendsClause == null || typeParameterToInfer.bound != null);
 
-    TypeImpl t = _chooseTypeFromConstraint(
+    SharedType t = _typeSystemOperations.chooseTypeFromConstraint(
       constraint,
+      grounded: false,
       isContravariant: isContravariant,
     );
     if (!_typeSystemOperations.isKnownType(SharedTypeSchemaView(t))) {
@@ -760,8 +698,9 @@ class GenericInferrer {
             !boundConstraint.isEmpty(_typeSystemOperations))
           boundConstraint,
       ]);
-      return _chooseTypeFromConstraint(
+      return _typeSystemOperations.chooseTypeFromConstraint(
         constraint,
+        grounded: false,
         isContravariant: isContravariant,
       );
     }
@@ -803,7 +742,7 @@ class GenericInferrer {
       if (genericMetadataIsEnabled) {
         // Only report an error if generic metadata is valid syntax.
         var element = errorEntity.name.element;
-        if (element != null && !element.hasOptionalTypeArgs) {
+        if (element != null && !element.metadata.hasOptionalTypeArgs) {
           String constructorName =
               errorEntity.constructorName == null
                   ? errorEntity.name.name
@@ -831,7 +770,7 @@ class GenericInferrer {
             return;
           }
         }
-        if (!element.hasOptionalTypeArgs) {
+        if (!element.metadata.hasOptionalTypeArgs) {
           diagnosticReporter.atNode(
             errorEntity,
             WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION,
@@ -962,14 +901,5 @@ class GenericInferrer {
     );
 
     return messageLines.join('\n');
-  }
-}
-
-extension on Element {
-  bool get hasOptionalTypeArgs {
-    if (this case Annotatable annotatable) {
-      return annotatable.metadata.hasOptionalTypeArgs;
-    }
-    return false;
   }
 }

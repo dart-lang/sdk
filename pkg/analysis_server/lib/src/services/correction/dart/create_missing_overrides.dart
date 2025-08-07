@@ -70,8 +70,8 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
               builder.selectHere();
             }
           } else {
-            builder.write(eol); // After the previous member.
-            builder.write(eol); // Empty line separator.
+            builder.writeln(); // After the previous member.
+            builder.writeln(); // Empty line separator.
             builder.write(prefix);
           }
           numOfMembersWritten++;
@@ -92,7 +92,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
               addSeparatorBetweenDeclarations();
               // Add `@override`.
               builder.write('@override');
-              builder.write(eol);
+              builder.writeln();
               // Add field.
               builder.write(prefix);
               if (targetDeclaration is EnumDeclaration) {

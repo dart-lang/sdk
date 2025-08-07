@@ -17,6 +17,14 @@ function follow_links() {
   echo "$file"
 }
 
+function get_realpath() {
+  file="$1"
+  if [ -f "$file" ]; then
+    file="$(cd $(dirname "$file"); pwd -P)/$(basename "$file")"
+  fi
+  echo $(follow_links "$file")
+}
+
 # Unlike $0, $BASH_SOURCE points to the absolute path of this file.
 PROG_NAME="$(follow_links "$BASH_SOURCE")"
 
@@ -89,7 +97,7 @@ while [ $# -gt 0 ]; do
     *.wasm)
       if [ -z "$WASM_FILE" ]; then
         # First wasm file is the actual dart program
-        WASM_FILE="$(realpath "$1")"
+        WASM_FILE="$(get_realpath "$1")"
         MJS_FILE="${WASM_FILE%.wasm}.mjs"
       else
         # Following wasm files are imported linear memory modules

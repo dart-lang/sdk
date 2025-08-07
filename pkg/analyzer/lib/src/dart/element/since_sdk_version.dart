@@ -24,19 +24,9 @@ class SinceSdkVersionComputer {
       return null;
     }
 
-    Version? specified;
-    if (element is Annotatable) {
-      specified = _specifiedVersion(element as Annotatable);
-    }
-
-    if (element is LibraryElement) {
-      return specified;
-    } else if (element.enclosingElement case HasSinceSdkVersion hasSince?) {
-      var enclosing = hasSince.sinceSdkVersion;
-      return specified.maxWith(enclosing);
-    } else {
-      return specified;
-    }
+    var specified = _specifiedVersion(element);
+    var enclosing = element.enclosingElement?.sinceSdkVersion;
+    return specified.maxWith(enclosing);
   }
 
   /// Returns the parsed [Version], or `null` if wrong format.
@@ -55,7 +45,7 @@ class SinceSdkVersionComputer {
   }
 
   /// Returns the maximal specified `@Since()` version, `null` if none.
-  static Version? _specifiedVersion(Annotatable element) {
+  static Version? _specifiedVersion(Element element) {
     var annotations =
         element.metadata.annotations.cast<ElementAnnotationImpl>();
     Version? result;

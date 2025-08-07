@@ -80,7 +80,7 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
           type: type,
           typeGroupName: 'TYPE',
         );
-        builder.write(eol);
+        builder.writeln();
         builder.write(prefix);
       });
       builder.addLinkedPosition(range.node(node), 'NAME');

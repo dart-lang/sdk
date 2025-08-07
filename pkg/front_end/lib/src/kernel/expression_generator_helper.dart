@@ -9,11 +9,13 @@ import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/constant_context.dart' show ConstantContext;
+import '../base/lookup_result.dart';
 import '../base/messages.dart' show Message;
 import '../base/scope.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
@@ -21,6 +23,7 @@ import '../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 import 'constness.dart' show Constness;
+import 'expression_generator.dart';
 import 'forest.dart' show Forest;
 import 'internal_ast.dart';
 
@@ -49,7 +52,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
-  Constructor? lookupSuperConstructor(Name name);
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary);
 
   Expression toValue(Object? node);
 
@@ -59,8 +63,14 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool isDeclaredInEnclosingCase(VariableDeclaration variable);
 
-  Expression_Generator_Builder scopeLookup(LookupScope scope, Token nameToken,
-      {PrefixBuilder? prefix, Token? prefixToken});
+  Generator processLookupResult(
+      {required LookupResult? lookupResult,
+      required String name,
+      required Token nameToken,
+      required int nameOffset,
+      required ScopeKind scopeKind,
+      PrefixBuilder? prefix,
+      Token? prefixToken});
 
   Expression_Generator_Initializer finishSend(Object receiver,
       List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,
@@ -97,7 +107,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
       Arguments? arguments,
       Expression? rhs,
       LocatedMessage message,
-      int? length});
+      int? length,
+      bool errorHasBeenReported});
 
   LocatedMessage? checkArgumentsForFunction(FunctionNode function,
       Arguments arguments, int offset, List<TypeParameter> typeParameters);

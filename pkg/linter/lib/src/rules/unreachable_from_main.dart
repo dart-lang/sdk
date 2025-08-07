@@ -596,10 +596,10 @@ extension on ElementAnnotation {
   );
 
   bool get isWidgetPreview {
-    var element2 = this.element2;
-    return element2 is ConstructorElement &&
-        element2.enclosingElement.name == 'Preview' &&
-        element2.library.uri == _flutterWidgetPreviewLibraryUri;
+    var element = this.element;
+    return element is ConstructorElement &&
+        element.enclosingElement.name == 'Preview' &&
+        element.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -610,24 +610,19 @@ extension on LibraryElement {
 }
 
 extension on Element {
-  bool get hasVisibleForTesting => switch (this) {
-    Annotatable(:var metadata) => metadata.hasVisibleForTesting,
-    _ => false,
-  };
-  bool get hasWidgetPreview => switch (this) {
-    Annotatable(:var metadata) =>
+  bool get hasVisibleForTesting => metadata.hasVisibleForTesting;
+
+  bool get hasWidgetPreview =>
       // Widget previews can be applied to public:
       //   - Constructors (generative and factory)
       //   - Top-level functions
       //   - Static member functions
       (this is ConstructorElement ||
-              this is TopLevelFunctionElement ||
-              (this is ExecutableElement &&
-                  (this as ExecutableElement).isStatic)) &&
-          !isPrivate &&
-          metadata.hasWidgetPreview,
-    _ => false,
-  };
+          this is TopLevelFunctionElement ||
+          (this is ExecutableElement &&
+              (this as ExecutableElement).isStatic)) &&
+      !isPrivate &&
+      metadata.hasWidgetPreview;
   bool get isPragma => (library?.isDartCore ?? false) && name == 'pragma';
   bool get isWidgetPreview =>
       (library?.isWidgetPreviews ?? false) && name == 'Preview';
@@ -653,7 +648,7 @@ extension on Annotation {
   }
 
   DartType? get _elementType {
-    var element = elementAnnotation?.element2;
+    var element = elementAnnotation?.element;
     DartType? type;
     if (element is ConstructorElement) {
       type = element.returnType;

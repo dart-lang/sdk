@@ -20,9 +20,7 @@ void detachElementsFromNodes(LibraryElementImpl element) {
 class _Visitor extends GeneralizingElementVisitor2<void> {
   @override
   void visitClassElement(covariant ClassElementImpl element) {
-    for (var fragment in element.fragments) {
-      fragment.mixinInferenceCallback = null;
-    }
+    element.mixinInferenceCallback = null;
     super.visitClassElement(element);
   }
 
@@ -61,21 +59,17 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
 
   @override
   void visitElement(Element element) {
-    if (element case Annotatable annotatable) {
-      for (var annotation in annotatable.metadata.annotations) {
-        var ast = (annotation as ElementAnnotationImpl).annotationAst;
-        _detachNode(ast);
-        _sanitizeArguments(ast.arguments?.arguments);
-      }
+    for (var annotation in element.metadata.annotations) {
+      var ast = (annotation as ElementAnnotationImpl).annotationAst;
+      _detachNode(ast);
+      _sanitizeArguments(ast.arguments?.arguments);
     }
     super.visitElement(element);
   }
 
   @override
   void visitEnumElement(covariant EnumElementImpl element) {
-    for (var fragment in element.fragments) {
-      fragment.mixinInferenceCallback = null;
-    }
+    element.mixinInferenceCallback = null;
     super.visitEnumElement(element);
   }
 
@@ -87,9 +81,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
 
   @override
   void visitMixinElement(covariant MixinElementImpl element) {
-    for (var fragment in element.fragments) {
-      fragment.mixinInferenceCallback = null;
-    }
+    element.mixinInferenceCallback = null;
     super.visitMixinElement(element);
   }
 
@@ -100,7 +92,6 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
         fragment.typeInference = null;
       }
     }
-    element.constantInitializer;
     _detachConstVariable(element);
     super.visitPropertyInducingElement(element);
   }

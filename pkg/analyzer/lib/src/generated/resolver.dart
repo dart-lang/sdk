@@ -1479,8 +1479,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       checkIndexExpressionIndex(
         node.index,
         readElement:
-            hasRead ? result.readElement2 as ExecutableElement2OrMember? : null,
-        writeElement: result.writeElement2 as ExecutableElement2OrMember?,
+            hasRead ? result.readElement2 as InternalExecutableElement? : null,
+        writeElement: result.writeElement2 as InternalExecutableElement?,
         whyNotPromoted: whyNotPromoted,
       );
 
@@ -1515,6 +1515,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     } else if (node is PropertyAccessImpl) {
       if (node.target case var target?) {
+        if (isDotShorthand(node)) {
+          // Recovery.
+          // It's a compile-time error to use a dot shorthand as the target of a
+          // write, but to prevent any crashing we provide an unknown context
+          // type since this shouldn't be valid code.
+          pushDotShorthandContext(target, operations.unknownType);
+        }
         analyzeExpression(target, operations.unknownType);
         popRewrite();
       }
@@ -1635,7 +1642,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var getter = result.getter2;
     if (getter != null) {
       fieldNode.element = getter;
-      if (getter is PropertyAccessorElement2OrMember) {
+      if (getter is InternalPropertyAccessorElement) {
         return (getter, SharedTypeView(getter.returnType));
       } else {
         return (getter, SharedTypeView(getter.type));
@@ -1688,7 +1695,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       );
     }
 
-    var element = result.getter2 as MethodElement2OrMember?;
+    var element = result.getter2 as InternalMethodElement?;
     node.element = element;
     if (element == null) {
       return null;
@@ -1714,13 +1721,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var readType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
-      if (element is MethodElement2OrMember) {
+      if (element is InternalMethodElement) {
         readType = element.returnType;
       }
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is GetterElement2OrMember) {
+      if (element is InternalGetterElement) {
         readType = element.returnType;
       } else if (element is VariableElement) {
         readType = localVariableTypeProvider.getType(
@@ -1761,8 +1768,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     var writeType =
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
-     if (node is IndexExpression) {
-      if (element is MethodElement2OrMember) {
+    if (node is IndexExpression) {
+      if (element is InternalMethodElement) {
         var parameters = element.formalParameters;
         if (parameters.length == 2) {
           writeType = parameters[1].type;
@@ -1771,19 +1778,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
-      if (element is SetterElement2OrMember) {
+      if (element is InternalSetterElement) {
         if (element.isSynthetic) {
-          var variable = element.variable;
-          if (variable != null) {
-            writeType = variable.type;
-          }
+          writeType = element.variable.type;
         } else {
           var parameters = element.formalParameters;
           if (parameters.length == 1) {
             writeType = parameters[0].type;
           }
         }
-      } else if (element is VariableElement2OrMember) {
+      } else if (element is InternalVariableElement) {
         writeType = element.type;
       }
     }
@@ -3145,7 +3149,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(node.index);
     checkIndexExpressionIndex(
       node.index,
-      readElement: result.readElement2 as ExecutableElement2OrMember?,
+      readElement: result.readElement2 as InternalExecutableElement?,
       writeElement: null,
       whyNotPromoted: whyNotPromoted,
     );
@@ -4438,7 +4442,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     DartType type;
     if (element is MethodElement) {
       type = element.type;
-    } else if (element is ConstructorElementMixin2) {
+    } else if (element is InternalConstructorElement) {
       type = element.type;
     } else if (element is GetterElement) {
       type = resolverResult.getType!;
@@ -4577,13 +4581,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
   }
 
-  /// Given an [argumentList] and the [parameters] related to the element that
+  /// Given an [argumentList] and the [formalParameters] related to the element that
   /// will be invoked using those arguments, compute the list of parameters that
   /// correspond to the list of arguments.
   ///
   /// Returns the parameters that correspond to the arguments. If no parameter
   /// matched an argument, that position will be `null` in the list.
-  static List<FormalParameterElementMixin?> resolveArgumentsToParameters({
+  static List<InternalFormalParameterElement?> resolveArgumentsToParameters({
     required ArgumentList argumentList,
     required List<FormalParameterElement> formalParameters,
     DiagnosticReporter? diagnosticReporter,
@@ -4591,11 +4595,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }) {
     int requiredParameterCount = 0;
     int unnamedParameterCount = 0;
-    var unnamedParameters = <FormalParameterElementMixin>[];
-    Map<String, FormalParameterElementMixin>? namedParameters;
+    var unnamedParameters = <InternalFormalParameterElement>[];
+    Map<String, InternalFormalParameterElement>? namedParameters;
     int length = formalParameters.length;
     for (int i = 0; i < length; i++) {
-      var parameter = formalParameters[i] as FormalParameterElementMixin;
+      var parameter = formalParameters[i] as InternalFormalParameterElement;
       if (parameter.isRequiredPositional) {
         unnamedParameters.add(parameter);
         unnamedParameterCount++;
@@ -4611,7 +4615,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     int unnamedIndex = 0;
     NodeList<Expression> arguments = argumentList.arguments;
     int argumentCount = arguments.length;
-    var resolvedParameters = List<FormalParameterElementMixin?>.filled(
+    var resolvedParameters = List<InternalFormalParameterElement?>.filled(
       argumentCount,
       null,
     );
@@ -5149,12 +5153,8 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = parent.declaredFragment!.element;
       nameScope = FormalParameterScope(nameScope, element.formalParameters);
     } else if (parent is FunctionTypeAlias) {
-      var aliasedElement = parent.declaredFragment!.element.aliasedElement;
-      var functionElement = aliasedElement as GenericFunctionTypeElement;
-      nameScope = FormalParameterScope(
-        nameScope,
-        functionElement.formalParameters,
-      );
+      var scope = nameScope = LocalScope(nameScope);
+      scope.addFormalParameters(parent.parameters);
     } else if (parent is MethodDeclaration) {
       var element = parent.declaredFragment!.element;
       nameScope = FormalParameterScope(nameScope, element.formalParameters);
@@ -5293,12 +5293,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       node.typeParameters?.accept(this);
       node.type.accept(this);
 
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        nameScope = FormalParameterScope(
-          TypeParameterScope(nameScope, aliasedElement.typeParameters),
-          aliasedElement.formalParameters,
-        );
+      if (node.type case GenericFunctionType functionTypeNode) {
+        if (functionTypeNode.typeParameters case var typeParameterList?) {
+          nameScope = TypeParameterScope(
+            nameScope,
+            typeParameterList.typeParameters
+                .map((n) => n.declaredFragment!.element)
+                .toList(),
+          );
+        }
+        var scope = nameScope = LocalScope(nameScope);
+        scope.addFormalParameters(functionTypeNode.parameters);
       }
       _visitDocumentationComment(node.documentationComment);
     } finally {
@@ -5495,7 +5500,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       return;
     }
     // Prepare VariableElement.
-    var element = scopeLookupResult.getter2;
+    var element = scopeLookupResult.getter;
     if (element is! VariableElement) {
       return;
     }
@@ -5948,7 +5953,7 @@ class _WhyNotPromotedVisitor
         DiagnosticMessageImpl(
           filePath: property.firstFragment.libraryFragment.source.fullName,
           message: message,
-          offset: property.nonSynthetic.firstFragment.nameOffset2!,
+          offset: property.nonSynthetic.firstFragment.nameOffset!,
           length: property.name!.length,
           url: reason.documentationLink.url,
         ),
@@ -5994,7 +5999,7 @@ class _WhyNotPromotedVisitor
           DiagnosticMessageImpl(
             filePath: source!.fullName,
             message: message,
-            offset: nonSyntheticFragment.nameOffset2!,
+            offset: nonSyntheticFragment.nameOffset!,
             length: nonSyntheticElement.name!.length,
             url: link.url,
           ),
@@ -6086,7 +6091,7 @@ class _WhyNotPromotedVisitor
           "'$propertyName' couldn't be promoted "
           "because field promotion is only available in Dart 3.2 and "
           "above.",
-      offset: property.nonSynthetic.firstFragment.nameOffset2!,
+      offset: property.nonSynthetic.firstFragment.nameOffset!,
       length: property.name!.length,
       url: NonPromotionDocumentationLink.fieldPromotionUnavailable.url,
     );
@@ -6098,4 +6103,12 @@ extension on Element {
       this is LocalFunctionElement &&
       name == '_' &&
       library.hasWildcardVariablesFeatureEnabled;
+}
+
+extension on LocalScope {
+  void addFormalParameters(FormalParameterList formalParameterList) {
+    for (var formalParameter in formalParameterList.parameters) {
+      add(formalParameter.declaredFragment!.element);
+    }
+  }
 }

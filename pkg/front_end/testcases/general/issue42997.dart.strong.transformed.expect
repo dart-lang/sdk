@@ -49,7 +49,7 @@ class PropertyState#1<I extends core::Object? = dynamic, O extends core::Object?
   method dispose() → void {
     for (final invalid-type #t1 = invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:10: Error: Can't use 'PropertyState' because it is declared more than once.
     for (PropertyState<Object, Object>> state in _states) ;
-         ^"{<invalid>}.<(#C1); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
+         ^^^^^^^^^^^^^"{<invalid>}.<(#C1); invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;
                              ^"; invalid-expression "pkg/front_end/testcases/general/issue42997.dart:12:30: Error: This couldn't be parsed.
     for (PropertyState<Object, Object>> state in _states) ;

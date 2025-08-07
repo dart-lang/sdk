@@ -229,10 +229,10 @@ class _Constructor {
 
   void updateWithParameters(ConstructorDeclaration node) {
     var formalParameters = node.parameters.parameters;
-    for (var parameter in formalParameters) {
-      parameter = parameter.notDefault;
-      if (parameter is FieldFormalParameterImpl) {
-        var parameterFragment = parameter.declaredFragment!;
+    for (var formalParameter in formalParameters) {
+      formalParameter = formalParameter.notDefault;
+      if (formalParameter is FieldFormalParameterImpl) {
+        var parameterFragment = formalParameter.declaredFragment!;
         var fieldElement = parameterFragment.element.field;
         if (fieldElement == null) {
           continue;
@@ -243,7 +243,7 @@ class _Constructor {
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             diagnosticReporter.atToken(
-              parameter.name,
+              formalParameter.name,
               CompileTimeErrorCode
                   .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
               arguments: [fieldElement.displayName],

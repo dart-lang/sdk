@@ -595,11 +595,12 @@ class TypeSystemOperations
   }
 
   @override
-  SharedTypeView greatestClosure(SharedTypeSchemaView schema) {
+  SharedTypeView greatestClosureOfSchema(
+    SharedTypeSchemaView schema, {
+    SharedTypeView? topType,
+  }) {
     return SharedTypeView(
-      typeSystem.greatestClosureOfSchema(
-        schema.unwrapTypeSchemaView<TypeImpl>(),
-      ),
+      typeSystem.greatestClosureOfSchema(schema.unwrapTypeSchemaView()),
     );
   }
 
@@ -661,6 +662,11 @@ class TypeSystemOperations
         !type.isDartCoreNull &&
         !type.isDartAsyncFutureOr &&
         type.element is! ExtensionTypeElement;
+  }
+
+  @override
+  bool isInvalidType(SharedTypeView type) {
+    return type.unwrapTypeView<TypeImpl>() is InvalidType;
   }
 
   @override
@@ -728,6 +734,13 @@ class TypeSystemOperations
       typeSystem.typeProvider.iterableType(
         elementTypeSchema.unwrapTypeSchemaView<TypeImpl>(),
       ),
+    );
+  }
+
+  @override
+  SharedTypeView leastClosureOfSchema(SharedTypeSchemaView schema) {
+    return SharedTypeView(
+      typeSystem.leastClosureOfSchema(schema.unwrapTypeSchemaView()),
     );
   }
 
@@ -1282,7 +1295,7 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
 
   @override
   TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
-    var variable = node.element as VariableElement2OrMember;
+    var variable = node.element as InternalVariableElement;
     if (variable is PromotableElementImpl) {
       var promotedType =
           isRead

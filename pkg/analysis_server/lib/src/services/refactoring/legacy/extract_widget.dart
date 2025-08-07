@@ -34,7 +34,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   final int offset;
   final int length;
 
-  late CorrectionUtils utils;
+  final CorrectionUtils utils;
 
   ClassElement? classBuildContext;
   ClassElement? classKey;
@@ -76,9 +76,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
     this.resolveResult,
     this.offset,
     this.length,
-  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
-    utils = CorrectionUtils(resolveResult);
-  }
+  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session),
+      utils = CorrectionUtils(resolveResult);
 
   @override
   String get refactoringName {
@@ -125,12 +124,11 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
 
     // Check for duplicate declarations.
     if (!result.hasFatalError) {
-      for (var element in resolveResult.libraryElement2.children) {
+      for (var element in resolveResult.libraryElement.children) {
         if (element.displayName == name) {
-          var message = format(
+          var message = formatList(
             "Library already declares {0} with name '{1}'.",
-            element.kind.displayName,
-            name,
+            [element.kind.displayName, name],
           );
           result.addError(message, newLocation_fromElement(element));
         }
@@ -144,7 +142,7 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     var builder = ChangeBuilder(
       session: sessionHelper.session,
-      eol: utils.endOfLine,
+      defaultEol: utils.endOfLine,
     );
     await builder.addDartFileEdit(resolveResult.path, (builder) {
       var expression = _expression;
@@ -636,7 +634,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         );
       }
     } else if (element is LocalVariableElement) {
-      if (!expressionRange.contains(element.firstFragment.nameOffset)) {
+      if (!expressionRange.contains(element.firstFragment.nameOffset!)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");
         } else {
@@ -645,9 +643,6 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
       }
     } else if (element is PropertyAccessorElement) {
       var field = element.variable;
-      if (field == null) {
-        return;
-      }
       if (_isMemberOfEnclosingClass(field)) {
         if (node.inSetterContext()) {
           status.addError("Write to '$elementName' cannot be extracted.");

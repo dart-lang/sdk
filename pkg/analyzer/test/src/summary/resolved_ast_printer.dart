@@ -1746,11 +1746,22 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeFragment('declaredElement', fragment);
         if (fragment is ExecutableFragmentImpl) {
           _sink.withIndent(() {
-            _writeType('type', fragment.type);
+            var element = fragment.element;
+            _elementPrinter.writeNamedElement2('element', element);
+            _sink.withIndent(() {
+              _writeType('type', element.type);
+            });
           });
         } else if (fragment is FormalParameterFragmentImpl) {
           _sink.withIndent(() {
-            _writeType('type', fragment.type);
+            var element = fragment.element;
+            _sink.writeIndentedLine(() {
+              _sink.write('element:');
+              _writeVariableElementFlags(element);
+            });
+            _sink.withIndent(() {
+              _writeType('type', element.type);
+            });
           });
         }
       }
@@ -1767,23 +1778,14 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.writeIf(fragment.isPublic, 'isPublic ');
       _sink.writeIf(fragment.isStatic, 'isStatic ');
       _sink.writeIf(fragment.isSynthetic, 'isSynthetic ');
-      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset2}');
+      _sink.write('${fragment.name ?? ''}@${fragment.nameOffset}');
     });
 
     _sink.withIndent(() {
-      _writeType('type', fragment.type2);
-
       var element = fragment.element;
       _sink.writeIndentedLine(() {
         _sink.write('element:');
-        _sink.writeIf(element.hasImplicitType, ' hasImplicitType');
-        _sink.writeIf(element.isConst, ' isConst');
-        _sink.writeIf(element.isFinal, ' isFinal');
-        _sink.writeIf(element.isLate, ' isLate');
-        _sink.writeIf(element.isPrivate, ' isPrivate');
-        _sink.writeIf(element.isPublic, ' isPublic');
-        _sink.writeIf(element.isStatic, ' isStatic');
-        _sink.writeIf(element.isSynthetic, ' isSynthetic');
+        _writeVariableElementFlags(element);
         expect(element.firstFragment, same(fragment));
         expect(element.fragments, hasLength(1));
       });
@@ -1833,6 +1835,32 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  void _writeFormalParameterFragments(
+    List<FormalParameterFragmentImpl> fragments,
+  ) {
+    _sink.writelnWithIndent('parameters');
+    _sink.withIndent(() {
+      for (var fragment in fragments) {
+        var name = fragment.name;
+        _sink.writelnWithIndent(name ?? '<empty>');
+        _sink.withIndent(() {
+          _writeParameterKind(fragment);
+
+          var element = fragment.element;
+          _sink.writeIndentedLine(() {
+            _sink.write('element:');
+            _sink.writeIf(element.hasImplicitType, ' hasImplicitType');
+            _sink.writeIf(element.isConst, ' isConst');
+            _sink.writeIf(element.isFinal, ' isFinal');
+          });
+          _sink.withIndent(() {
+            _writeType('type', element.type);
+          });
+        });
+      }
+    });
+  }
+
   void _writeFragment(String name, Fragment? fragment) {
     if (_withResolution) {
       _elementPrinter.writeNamedFragment(name, fragment);
@@ -1849,7 +1877,7 @@ Expected parent: (${parent.runtimeType}) $parent
     } else {
       _sink.withIndent(() {
         _sink.writeln('GenericFunctionTypeElement');
-        _writeParameterElements(element.parameters);
+        _writeFormalParameterFragments(element.formalParameters);
         _writeType('returnType', element.returnType);
         _writeType('type', element.type);
       });
@@ -1934,20 +1962,6 @@ Expected parent: (${parent.runtimeType}) $parent
         _writeElement2('correspondingParameter', node.correspondingParameter);
       }
     }
-  }
-
-  void _writeParameterElements(List<FormalParameterFragmentImpl> parameters) {
-    _sink.writelnWithIndent('parameters');
-    _sink.withIndent(() {
-      for (var parameter in parameters) {
-        var name = parameter.name;
-        _sink.writelnWithIndent(name ?? '<empty>');
-        _sink.withIndent(() {
-          _writeParameterKind(parameter);
-          _writeType('type', parameter.type);
-        });
-      }
-    });
   }
 
   void _writeParameterKind(FormalParameterFragmentImpl parameter) {
@@ -2054,6 +2068,17 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  void _writeVariableElementFlags(VariableElementImpl element) {
+    _sink.writeIf(element.hasImplicitType, ' hasImplicitType');
+    _sink.writeIf(element.isConst, ' isConst');
+    _sink.writeIf(element.isFinal, ' isFinal');
+    _sink.writeIf(element.isLate, ' isLate');
+    _sink.writeIf(element.isPrivate, ' isPrivate');
+    _sink.writeIf(element.isPublic, ' isPublic');
+    _sink.writeIf(element.isStatic, ' isStatic');
+    _sink.writeIf(element.isSynthetic, ' isSynthetic');
+  }
+
   static void _assertHasIdenticalElement<T>(List<T> elements, T expected) {
     for (var element in elements) {
       if (identical(element, expected)) {
@@ -2097,13 +2122,13 @@ Expected parent: (${parent.runtimeType}) $parent
     } else if (parametersParent is FormalParameter) {
       var declaredFragment = parametersParent.declaredFragment!;
       declaredFragment as FormalParameterFragmentImpl;
-      return declaredFragment.parameters;
+      return declaredFragment.formalParameters;
     } else if (parametersParent is FunctionExpression) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is GenericFunctionTypeImpl) {
       var declaredFragment = parametersParent.declaredFragment!;
-      return declaredFragment.parameters;
+      return declaredFragment.formalParameters;
     } else if (parametersParent is MethodDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;

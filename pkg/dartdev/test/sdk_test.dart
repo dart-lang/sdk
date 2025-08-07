@@ -26,11 +26,11 @@ void _sdk() {
   });
 
   test('dds snapshot', () {
-    expectSnapshotExists(Sdk().ddsAotSnapshot, Sdk().ddsSnapshot);
+    expectFileExists(Sdk().ddsAotSnapshot);
   });
 
   test('dart2js snapshot', () {
-    expectSnapshotExists(Sdk().dart2jsAotSnapshot, Sdk().dart2jsSnapshot);
+    expectFileExists(Sdk().dart2jsAotSnapshot);
   });
 }
 
@@ -43,10 +43,6 @@ void _runtime() {
 
 void expectFileExists(String path) {
   expect(File(path).existsSync(), isTrue);
-}
-
-void expectSnapshotExists(String aotpath, String jitpath) {
-  expect(File(aotpath).existsSync() || File(jitpath).existsSync(), isTrue);
 }
 
 void expectDirectoryExists(String path) {

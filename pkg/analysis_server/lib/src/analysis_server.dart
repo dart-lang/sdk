@@ -421,6 +421,10 @@ abstract class AnalysisServer {
     return sessions;
   }
 
+  /// The default line terminator that should be used by the server when there
+  /// is no existing EOL to copy.
+  String get defaultEol => io.Platform.lineTerminator;
+
   /// A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;

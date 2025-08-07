@@ -164,42 +164,6 @@ class C {
 ''');
   }
 
-  test_class_instance_setterParameter_0() async {
-    await assertErrorsInCode(
-      r'''
-class C {
-  int get foo => 0;
-  set foo() {}
-}
-''',
-      _filterGetterSetterTypeErrors([
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-          36,
-          3,
-        ),
-      ]),
-    );
-  }
-
-  test_class_instance_setterParameter_2() async {
-    await assertErrorsInCode(
-      r'''
-class C {
-  int get foo => 0;
-  set foo(String p1, String p2) {}
-}
-''',
-      _filterGetterSetterTypeErrors([
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-          36,
-          3,
-        ),
-      ]),
-    );
-  }
-
   test_class_instance_superGetter() async {
     await assertNoErrorsInCode(r'''
 class A {

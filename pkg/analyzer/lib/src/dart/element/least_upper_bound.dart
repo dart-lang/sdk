@@ -653,7 +653,7 @@ class LeastUpperBoundHelper {
     var fParameters = f.formalParameters;
     var gParameters = g.formalParameters;
 
-    var parameters = <FormalParameterElementMixin>[];
+    var parameters = <InternalFormalParameterElement>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {
@@ -801,8 +801,8 @@ class LeastUpperBoundHelper {
   }
 
   TypeImpl _parameterType(
-    FormalParameterElementMixin a,
-    FormalParameterElementMixin b,
+    InternalFormalParameterElement a,
+    InternalFormalParameterElement b,
   ) {
     return _typeSystem.greatestLowerBound(a.type, b.type);
   }

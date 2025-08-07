@@ -761,6 +761,7 @@ class AssemblerBase : public StackResource {
     // threads. Currently, only used for lazily populating hash indices in
     // shared const maps and sets.
     kRelease,
+    kAcquire,
 
     // All other stores.
     kRelaxedNonAtomic,
@@ -1059,6 +1060,9 @@ class AssemblerBase : public StackResource {
   void LoadAcquireCompressedFromOffset(Register dst,
                                        Register base,
                                        int32_t offset);
+  void LoadAcquireCompressedFieldFromOffset(Register dst,
+                                            Register base,
+                                            int32_t offset);
   void LoadCompressedField(Register dst, const FieldAddress& address);
   void LoadCompressedFromOffset(Register dst, Register base, int32_t offset);
   void LoadCompressedFieldFromOffset(Register dst,
@@ -1074,7 +1078,10 @@ class AssemblerBase : public StackResource {
   // compressed pointers and compressed pointers may require write barriers, so
   // StoreCompressedIntoObject should be used instead.
 
-  void LoadFromSlot(Register dst, Register base, const Slot& slot);
+  void LoadFromSlot(Register dst,
+                    Register base,
+                    const Slot& slot,
+                    MemoryOrder memory_order = kRelaxedNonAtomic);
   void StoreToSlot(Register src,
                    Register base,
                    const Slot& slot,

@@ -70,6 +70,7 @@ class SplitAndCondition extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       // remove "&& rightCondition"
       builder.addDeletion(
         range.endEnd(binaryExpression.leftOperand, condition),

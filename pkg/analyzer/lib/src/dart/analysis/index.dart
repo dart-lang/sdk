@@ -200,9 +200,7 @@ class IndexElementInfo {
               accessor is GetterElement
                   ? IndexSyntheticElementKind.getter
                   : IndexSyntheticElementKind.setter;
-          if (accessor.variable case var variable?) {
-            element = variable;
-          }
+          element = accessor.variable;
         }
       } else if (element is MethodElement) {
         var enclosing = element.enclosingElement;
@@ -886,7 +884,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     IndexRelationKind kind;
     var element = node.propertyName.element;
-    if (element is ConstructorElementMixin2) {
+    if (element is InternalConstructorElement) {
       element = _getActualConstructorElement(element);
       kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
     } else {
@@ -1451,7 +1449,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     visitedElements.add(ancestor);
     if (includeThis) {
-      var offset = descendant.firstFragment.nameOffset2;
+      var offset = descendant.firstFragment.nameOffset;
       var length = descendant.name?.length;
       if (offset != null && length != null) {
         assembler.addElementRelation(
@@ -1475,12 +1473,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
     for (InterfaceType mixinType in ancestor.mixins) {
-      _recordIsAncestorOf(
-        descendant,
-        mixinType.element,
-        true,
-        visitedElements,
-      );
+      _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
     }
     if (ancestor is MixinElement) {
       for (InterfaceType type in ancestor.superclassConstraints) {

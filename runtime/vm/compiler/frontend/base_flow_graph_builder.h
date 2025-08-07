@@ -185,9 +185,13 @@ class BaseFlowGraphBuilder {
   Fragment LoadField(const Field& field, bool calls_initializer);
   Fragment LoadNativeField(const Slot& native_field,
                            InnerPointerAccess loads_inner_pointer,
-                           bool calls_initializer = false);
+                           bool calls_initializer = false,
+                           compiler::Assembler::MemoryOrder memory_order =
+                               compiler::Assembler::kRelaxedNonAtomic);
   Fragment LoadNativeField(const Slot& native_field,
-                           bool calls_initializer = false);
+                           bool calls_initializer = false,
+                           compiler::Assembler::MemoryOrder memory_order =
+                               compiler::Assembler::kRelaxedNonAtomic);
   // Pass true for index_unboxed if indexing into external typed data.
   Fragment LoadIndexed(classid_t class_id,
                        intptr_t index_scale = compiler::target::kWordSize,

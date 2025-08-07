@@ -20,8 +20,8 @@ class LexicalLookup {
   /// a getter.  If a matching element is found, a [LexicalLookupResult] is
   /// returned.  Otherwise `null` is returned.
   static LexicalLookupResult? resolveGetter(ScopeLookupResult scopeResult) {
-    var scopeGetter = scopeResult.getter2;
-    var scopeSetter = scopeResult.setter2;
+    var scopeGetter = scopeResult.getter;
+    var scopeSetter = scopeResult.setter;
     if (scopeGetter != null || scopeSetter != null) {
       if (scopeGetter != null) {
         return LexicalLookupResult(requested: scopeGetter);
@@ -38,8 +38,8 @@ class LexicalLookup {
   /// a setter.  If a matching element is found, a [LexicalLookupResult] is
   /// returned.  Otherwise `null` is returned.
   static LexicalLookupResult? resolveSetter(ScopeLookupResult scopeResult) {
-    var scopeGetter = scopeResult.getter2;
-    var scopeSetter = scopeResult.setter2;
+    var scopeGetter = scopeResult.getter;
+    var scopeSetter = scopeResult.setter;
     if (scopeGetter != null || scopeSetter != null) {
       if (scopeGetter is VariableElement) {
         return LexicalLookupResult(requested: scopeGetter);

@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'dot_shorthands_test.dart' as dot_shorthands;
 import 'extensions/test_all.dart' as extensions;
 
 main() {
   defineReflectiveSuite(() {
+    dot_shorthands.main();
     extensions.main();
   }, name: 'utilities');
 }

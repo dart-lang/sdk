@@ -184,14 +184,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkMethod(MethodDeclaration node, MethodFragmentImpl element) {
+  void _checkMethod(MethodDeclaration node, MethodFragmentImpl fragment) {
+    var element = fragment.element;
     if (element.typeInferenceError != null) {
       // Inferring the return type and/or one or more parameter types resulted
       // in a type inference error. Do not report lint in this case.
       return;
     }
 
-    var container = element.enclosingFragment!.element;
+    var container = fragment.enclosingFragment.element;
     var noOverride =
         node.isStatic ||
         container is ExtensionElement ||

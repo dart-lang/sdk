@@ -9,6 +9,7 @@ import 'package:kernel/type_environment.dart';
 import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
@@ -121,7 +122,7 @@ enum ScopeKind {
 
 abstract class LookupScope {
   ScopeKind get kind;
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri);
+  LookupResult? lookup(String name);
   // TODO(johnniwinther): Should this be moved to an outer scope interface?
   void forEachExtension(void Function(ExtensionBuilder) f);
 }
@@ -138,10 +139,8 @@ abstract class BaseNameSpaceLookupScope implements LookupScope {
   LookupScope? get _parent;
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
-    return _nameSpace.lookupLocal(name,
-            fileUri: fileUri, fileOffset: fileOffset, staticOnly: false) ??
-        _parent?.lookup(name, fileOffset, fileUri);
+  LookupResult? lookup(String name) {
+    return _nameSpace.lookup(name) ?? _parent?.lookup(name);
   }
 
   @override
@@ -173,13 +172,12 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   TypeParameterBuilder? getTypeParameter(String name);
 
   @override
-  // Coverage-ignore(suite): Not run.
   ScopeKind get kind => ScopeKind.typeParameters;
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+  LookupResult? lookup(String name) {
     LookupResult? result = getTypeParameter(name);
-    return result ?? _parent.lookup(name, fileOffset, fileUri);
+    return result ?? _parent.lookup(name);
   }
 
   @override
@@ -338,8 +336,8 @@ NamedBuilder computeAmbiguousDeclarationForImport(
 
   // TODO(ahe): Can I move this to Scope or Prefix?
   if (declaration == other) return declaration;
-  if (declaration is InvalidTypeDeclarationBuilder) return declaration;
-  if (other is InvalidTypeDeclarationBuilder) return other;
+  if (declaration is InvalidBuilder) return declaration;
+  if (other is InvalidBuilder) return other;
   NamedBuilder? preferred;
   Uri uri = computeLibraryUri(declaration);
   Uri otherUri = computeLibraryUri(other);
@@ -368,56 +366,14 @@ NamedBuilder computeAmbiguousDeclarationForImport(
       // instead of including URIs in this message.
       firstUri,
       secondUri);
-  // We report the error lazily (setting suppressMessage to false) because the
-  // spec 18.1 states that 'It is not an error if N is introduced by two or
+  // We report the error lazily (setting errorHasBeenReported to false) because
+  // the spec 18.1 states that 'It is not an error if N is introduced by two or
   // more imports but never referred to.'
-  return new InvalidTypeDeclarationBuilder(
+  return new InvalidBuilder(
       name,
       message.withLocation(
           uriOffset.fileUri, uriOffset.fileOffset, name.length),
-      suppressMessage: false);
-}
-
-abstract class ProblemBuilder extends NamedBuilderImpl {
-  @override
-  final String name;
-
-  final NamedBuilder builder;
-
-  @override
-  final int fileOffset;
-
-  @override
-  final Uri fileUri;
-
-  ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
-
-  Message get message;
-
-  @override
-  String get fullNameForErrors => name;
-}
-
-class AmbiguousBuilder extends ProblemBuilder {
-  AmbiguousBuilder(
-      String name, NamedBuilder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? get parent => null;
-
-  @override
-  Message get message => templateDuplicatedDeclarationUse.withArguments(name);
-
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder getFirstDeclaration() {
-    NamedBuilder declaration = builder;
-    while (declaration.next != null) {
-      declaration = declaration.next!;
-    }
-    return declaration;
-  }
+      errorHasBeenReported: false);
 }
 
 mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
@@ -536,21 +492,9 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
       TypeEnvironment typeEnvironment) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
-}
-
-class AmbiguousMemberBuilder extends AmbiguousBuilder
-    with ErroneousMemberBuilderMixin {
-  AmbiguousMemberBuilder(
-      String name, NamedBuilder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get setable => this;
+  MemberBuilder get getable;
 }
 
 class LookupResultIterator implements Iterator<NamedBuilder> {

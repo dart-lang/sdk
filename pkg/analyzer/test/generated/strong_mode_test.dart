@@ -89,9 +89,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       _isListOf = assertions.isListOf;
       _isMapOf = assertions.isMapOf;
       _isFunction2Of = assertions.isFunction2Of;
-      _isFutureOf = _isInstantiationOf(
-        _hasElement(typeProvider.futureElement),
-      );
+      _isFutureOf = _isInstantiationOf(_hasElement(typeProvider.futureElement));
       _isFutureOrOf = _isInstantiationOf(
         _hasElement(typeProvider.futureOrElement),
       );
@@ -3235,7 +3233,7 @@ class B<T2, U2> {
     assertType(typeName.type, 'A<T2, U2>');
 
     var constructorMember = redirected.element!;
-    expect(constructorMember.displayString(), 'A<T2, U2> A.named()');
+    expect(constructorMember.displayString(), 'A<T2, U2>.named()');
     expect(redirected.name!.element, constructorMember);
   }
 
@@ -3268,7 +3266,7 @@ class B<T2, U2> {
     assertType(typeName.type, 'A<T2, U2>');
 
     expect(redirected.name, isNull);
-    expect(redirected.element!.displayString(), 'A<T2, U2> A()');
+    expect(redirected.element!.displayString(), 'A<T2, U2>()');
   }
 
   test_redirectingConstructor_propagation() async {
@@ -3583,7 +3581,8 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: <testLibraryFragment> x@9
-          type: T
+          element: isPublic
+            type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3592,10 +3591,12 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: <testLibraryFragment> f@2
-      type: T Function<T>(T)
+      element: <testLibrary>::@function::f
+        type: T Function<T>(T)
     staticType: T Function<T>(T)
   declaredElement: <testLibraryFragment> f@2
-    type: T Function<T>(T)
+    element: <testLibrary>::@function::f
+      type: T Function<T>(T)
 ''');
   }
 
@@ -3635,7 +3636,8 @@ FunctionDeclaration
           type: T
         name: x
         declaredElement: <testLibraryFragment> x@21
-          type: T
+          element: isPublic
+            type: T
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -3644,10 +3646,12 @@ FunctionDeclaration
         staticType: Null
       semicolon: ;
     declaredElement: <testLibraryFragment> f@2
-      type: T Function<T extends num>(T)
+      element: <testLibrary>::@function::f
+        type: T Function<T extends num>(T)
     staticType: T Function<T extends num>(T)
   declaredElement: <testLibraryFragment> f@2
-    type: T Function<T extends num>(T)
+    element: <testLibrary>::@function::f
+      type: T Function<T extends num>(T)
 ''');
   }
 
@@ -3697,7 +3701,8 @@ MethodDeclaration
         type: T
       name: x
       declaredElement: <testLibraryFragment> x@31
-        type: T
+        element: isPublic
+          type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -3706,7 +3711,8 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: <testLibraryFragment> f@24
-    type: T Function<T>(T)
+    element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
 ''');
   }
 
@@ -4235,7 +4241,8 @@ MethodInvocation
           parameter: SimpleFormalParameter
             name: e
             declaredElement: <testLibraryFragment> e@93
-              type: dynamic
+              element: hasImplicitType isPublic
+                type: dynamic
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
@@ -4244,7 +4251,8 @@ MethodInvocation
             element: e@93
             staticType: dynamic
         declaredElement: <testLibraryFragment> null@null
-          type: dynamic Function(dynamic)
+          element: null@null
+            type: dynamic Function(dynamic)
         correspondingParameter: ParameterMember
           baseElement: f@null
           substitution: {T: dynamic}
@@ -4279,7 +4287,8 @@ MethodInvocation
           parameter: SimpleFormalParameter
             name: e
             declaredElement: <testLibraryFragment> e@115
-              type: dynamic
+              element: hasImplicitType isPublic
+                type: dynamic
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
@@ -4287,7 +4296,8 @@ MethodInvocation
             literal: 3
             staticType: int
         declaredElement: <testLibraryFragment> null@null
-          type: int Function(dynamic)
+          element: null@null
+            type: int Function(dynamic)
         correspondingParameter: ParameterMember
           baseElement: f@null
           substitution: {T: int}
@@ -4592,7 +4602,8 @@ MethodDeclaration
         type: T
       name: y
       declaredElement: <testLibraryFragment> y@66
-        type: T
+        element: isPublic
+          type: T
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -4601,7 +4612,8 @@ MethodDeclaration
       staticType: Null
     semicolon: ;
   declaredElement: <testLibraryFragment> f@59
-    type: T Function<T>(T)
+    element: <testLibrary>::@class::D::@method::f
+      type: T Function<T>(T)
 ''');
   }
 

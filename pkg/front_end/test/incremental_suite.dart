@@ -8,8 +8,9 @@ import 'dart:io' show Directory, File;
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+    show CfeDiagnosticMessage, getMessageCodeObject;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import 'package:compiler/src/kernel/dart2js_target.dart' show Dart2jsTarget;
 import "package:dev_compiler/src/kernel/target.dart" show DevCompilerTarget;
@@ -721,7 +722,7 @@ Future<Map<String, Uint8List>> createModules(
     options.sdkRoot = null;
     options.sdkSummary = sdkSummaryUri;
     options.omitPlatform = true;
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       throw message.ansiFormatted;
     };
     if (packagesUri != null) {
@@ -1256,7 +1257,7 @@ class NewWorldTest {
       final Set<String> formattedWarnings = Set<String>();
       final Set<String> seenDiagnosticCodes = Set<String>();
 
-      options!.onDiagnostic = (DiagnosticMessage message) {
+      options!.onDiagnostic = (CfeDiagnosticMessage message) {
         String? code = getMessageCodeObject(message)?.name;
         if (code != null) seenDiagnosticCodes.add(code);
 
@@ -1266,12 +1267,12 @@ class NewWorldTest {
         } else if (message is DiagnosticMessageFromJson) {
           stringId = message.toJsonString();
         }
-        if (message.severity == Severity.error) {
+        if (message.severity == CfeSeverity.error) {
           gotError = true;
           if (!formattedErrors.add(stringId) && !world.allowDuplicateErrors) {
             Expect.fail("Got the same message twice: ${stringId}");
           }
-        } else if (message.severity == Severity.warning) {
+        } else if (message.severity == CfeSeverity.warning) {
           gotWarning = true;
           if (!formattedWarnings.add(stringId) &&
               !world.allowDuplicateWarnings) {
@@ -2495,9 +2496,9 @@ CompilerOptions getOptions({Target? target, String? sdkSummary}) {
     ..target = target
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
-    ..onDiagnostic = (DiagnosticMessage message) {
-      if (message.severity == Severity.error ||
-          message.severity == Severity.warning) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error ||
+          message.severity == CfeSeverity.warning) {
         Expect.fail(
             "Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }

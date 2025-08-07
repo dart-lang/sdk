@@ -17,6 +17,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -39,15 +40,9 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   late final SelectionState selectionState;
   late final ValidSelectionState validSelectionState;
 
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
-  }
-
   /// Create [testFile] with [rawCode], analyze availability in it.
   Future<Availability> _analyzeAvailability(String rawCode) async {
-    var testCode = TestCode.parse(rawCode);
+    var testCode = TestCode.parseNormalized(rawCode);
     newFile(testFile.path, testCode.code);
 
     await _buildRefactoringContext(file: testFile, testCode: testCode);
@@ -131,7 +126,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   }
 
   String _referenceToString(Reference reference) {
-    var selfLibrary = refactoringContext.resolvedLibraryResult.element2;
+    var selfLibrary = refactoringContext.resolvedLibraryResult.element;
     var selfUriStr = '${selfLibrary.uri}';
 
     var name = reference.name;
@@ -159,12 +154,6 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 @reflectiveTest
 class ChangeMethodSignatureTest_analyzeSelection
     extends AbstractChangeMethodSignatureTest {
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
-  }
-
   Future<void> test_classConstructor_fieldFormal_explicitType() async {
     await _analyzeSelection(r'''
 class A {
@@ -3241,9 +3230,10 @@ void f() {
     MethodSignatureUpdate signatureUpdate,
     String expected,
   ) async {
+    expected = normalizeNewlinesForPlatform(expected);
     var builder = ChangeBuilder(
       session: refactoringContext.session,
-      eol: refactoringContext.utils.endOfLine,
+      defaultEol: refactoringContext.utils.endOfLine,
     );
 
     var status = await computeSourceChange(
@@ -3260,7 +3250,8 @@ void f() {
           sourceChange: builder.sourceChange,
         );
       case ChangeStatusFailure():
-        buffer.writeln('${status.runtimeType}');
+        buffer.write('${status.runtimeType}');
+        buffer.write(eol);
     }
 
     _assertTextExpectation(buffer.toString(), expected);
@@ -3273,7 +3264,8 @@ void f() {
     var fileEdits = sourceChange.edits.sortedBy((e) => e.file);
     for (var fileEdit in fileEdits) {
       var file = getFile(fileEdit.file);
-      buffer.writeln('>>>>>>> ${file.posixPath}');
+      buffer.write('>>>>>>> ${file.posixPath}');
+      buffer.write(eol);
       var current = file.readAsStringSync();
       var updated = SourceEdit.applySequence(current, fileEdit.edits);
       buffer.write(updated);

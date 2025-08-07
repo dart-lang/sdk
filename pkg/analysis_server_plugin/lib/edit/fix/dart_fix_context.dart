@@ -109,10 +109,10 @@ class DartFixContext implements FixContext {
         continue;
       }
 
-      if (elementResult.element2.exportedExtensions
+      if (elementResult.element.exportedExtensions
           .havingMemberWithBaseName(memberName)
           .isNotEmpty) {
-        yield elementResult.element2;
+        yield elementResult.element;
       }
     }
   }

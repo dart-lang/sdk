@@ -255,18 +255,36 @@ const char* Platform::ResolveExecutablePath() {
 }
 
 intptr_t Platform::ResolveExecutablePathInto(char* result, size_t result_size) {
-  // Get the required length of the buffer.
-  uint32_t path_size = 0;
-  if (_NSGetExecutablePath(nullptr, &path_size) == 0) {
+  // A temporary buffer to hold the initial executable path.
+  char exe_path[PATH_MAX + 1];
+  uint32_t exe_path_size = sizeof(exe_path);
+
+  // Get the path of the executable.
+  if (_NSGetExecutablePath(exe_path, &exe_path_size) != 0) {
+    // The buffer was too small. Get the required size and handle the error.
+    // For this specific use case, we assume PATH_MAX is sufficient.
     return -1;
   }
-  if (path_size > result_size) {
+
+  // Now, canonicalize the path to resolve symlinks.
+  // realpath is the standard POSIX function for this purpose.
+  char resolved_exe_path[PATH_MAX + 1];
+  if (realpath(exe_path, resolved_exe_path) == nullptr) {
     return -1;
   }
-  if (_NSGetExecutablePath(result, &path_size) != 0) {
+
+  // Check if the resolved path fits into the destination buffer.
+  size_t resolved_size = strlen(resolved_exe_path);
+  if (resolved_size >= result_size) {
+    // The buffer is too small.
     return -1;
   }
-  return path_size;
+
+  // Safely copy the resolved path.
+  strncpy(result, resolved_exe_path, resolved_size);
+  result[resolved_size] = '\0';
+
+  return resolved_size;
 }
 
 void Platform::SetProcessName(const char* name) {

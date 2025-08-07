@@ -58,32 +58,32 @@ static field self::E ee = new self::E::•();
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method callerA1([@vm.inferred-arg-type.metadata=!] self::A aa) → void {
-  [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
+  [@vm.inferred-type.metadata=? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method callerA2([@vm.inferred-arg-type.metadata=#lib::B] self::A aa) → void {
-  [@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
+  [@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method callerA3([@vm.inferred-arg-type.metadata=#lib::C] self::A aa) → void {
-  [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
+  [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method callerA4([@vm.inferred-arg-type.metadata=#lib::D] self::A aa) → void {
-  [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::foo}(){() → core::int};
+  [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=? (skip check)] aa.{self::A::foo}(){() → core::int};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method callerE1() → void {
-  [@vm.direct-call.metadata=dart.core::_StringBase.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] #C1.{core::Object::toString}{<object>}.(){() → core::String};
+  [@vm.direct-call.metadata=dart.core::_StringBase.toString] [@vm.inferred-type.metadata=? (skip check) (receiver not int)] #C1.{core::Object::toString}{<object>}.(){() → core::String};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method callerE2([@vm.inferred-arg-type.metadata=#lib::E] dynamic x) → void {
-  [@vm.direct-call.metadata=#lib::E.toString] [@vm.inferred-type.metadata=!? (skip check) (receiver not int)] x.{core::Object::toString}{<object>}.(){() → core::String};
+  [@vm.direct-call.metadata=#lib::E.toString] [@vm.inferred-type.metadata=? (skip check) (receiver not int)] x.{core::Object::toString}{<object>}.(){() → core::String};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

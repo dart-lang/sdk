@@ -9,7 +9,7 @@ import 'package:dart2wasm/target.dart' show WasmTarget;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         computePlatformBinariesLocation,
         kernelForModule,
         kernelForProgram,
@@ -57,7 +57,7 @@ Future<Component> compileTestCaseToKernelProgram(
               throw message;
             },
           )
-          ..onDiagnostic = (DiagnosticMessage message) {
+          ..onDiagnostic = (CfeDiagnosticMessage message) {
             fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
           };
     if (linkedDependencies != null) {

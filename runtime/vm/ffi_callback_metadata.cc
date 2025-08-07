@@ -232,8 +232,8 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   FillRuntimeFunction(new_page, kExitTemporaryIsolate,
                       reinterpret_cast<void*>(DLRT_ExitTemporaryIsolate));
   FillRuntimeFunction(
-      new_page, kExitIsolateGroupSharedIsolate,
-      reinterpret_cast<void*>(DLRT_ExitIsolateGroupSharedIsolate));
+      new_page, kExitIsolateGroupBoundIsolate,
+      reinterpret_cast<void*>(DLRT_ExitIsolateGroupBoundIsolate));
 
   // Add all the trampolines to the free list.
   const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
@@ -367,14 +367,14 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
                 FfiCallbackKind::kIsolateLocalStaticCallback) ||
            (isolate == nullptr && isolate_group != nullptr &&
             function.GetFfiCallbackKind() ==
-                FfiCallbackKind::kIsolateGroupSharedStaticCallback));
+                FfiCallbackKind::kIsolateGroupBoundStaticCallback));
   } else {
     ASSERT((isolate != nullptr && isolate_group == nullptr &&
             function.GetFfiCallbackKind() ==
                 FfiCallbackKind::kIsolateLocalClosureCallback) ||
            (isolate == nullptr && isolate_group != nullptr &&
             function.GetFfiCallbackKind() ==
-                FfiCallbackKind::kIsolateGroupSharedClosureCallback));
+                FfiCallbackKind::kIsolateGroupBoundClosureCallback));
     handle = CreatePersistentHandle(
         isolate != nullptr ? isolate->group() : isolate_group, closure);
   }
@@ -389,9 +389,9 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallbackImpl(
     const Function& function,
     PersistentHandle* closure,
     MetadataEntry** list_head) {
-  TrampolineType trampoline_type =
-      isolate != nullptr ? TrampolineType::kSync
-                         : TrampolineType::kSyncIsolateGroupShared;
+  TrampolineType trampoline_type = isolate != nullptr
+                                       ? TrampolineType::kSync
+                                       : TrampolineType::kSyncIsolateGroupBound;
 
 #if defined(TARGET_ARCH_IA32)
   // On ia32, store the stack delta that we need to use when returning.
@@ -403,7 +403,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallbackImpl(
     ASSERT(stack_return_delta == 4);
     trampoline_type = isolate != nullptr
                           ? TrampolineType::kSyncStackDelta4
-                          : TrampolineType::kSyncIsolateGroupSharedStackDelta4;
+                          : TrampolineType::kSyncIsolateGroupBoundStackDelta4;
   }
 #endif
 
@@ -503,8 +503,8 @@ FfiCallbackMetadata::Metadata FfiCallbackMetadata::LookupMetadataForTrampoline(
 FfiCallbackMetadata* FfiCallbackMetadata::singleton_ = nullptr;
 
 ApiState* FfiCallbackMetadata::Metadata::api_state() const {
-  return (is_isolate_group_shared() ? target_isolate_group_
-                                    : target_isolate_->group())
+  return (is_isolate_group_bound() ? target_isolate_group_
+                                   : target_isolate_->group())
       ->api_state();
 }
 

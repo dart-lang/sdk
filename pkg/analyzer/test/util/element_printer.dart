@@ -30,7 +30,7 @@ class ElementPrinter {
     } else if (uri is DirectiveUriWithLibrary) {
       _sink.writeln('DirectiveUriWithLibrary');
       _sink.withIndent(() {
-        var uriStr = uri.library2.uri;
+        var uriStr = uri.library.uri;
         _sink.writelnWithIndent('uri: $uriStr');
       });
     } else if (uri is DirectiveUriWithUnit) {
@@ -74,7 +74,7 @@ class ElementPrinter {
       case TypeParameterElementImpl element:
         var idStr = idMap[element];
         _sink.writeln('$idStr ${element.name ?? '<null-name>'}');
-      case Member member:
+      case SubstitutedElementImpl member:
         _writeMember(member);
       case TypeAliasElementImpl element:
         writelnReference(element.reference);
@@ -91,20 +91,20 @@ class ElementPrinter {
       case MethodElementImpl element:
         writelnReference(element.reference);
       case LabelFragmentImpl():
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LabelElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LibraryElementImpl e:
         writelnReference(e.reference!);
       case LocalFunctionElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LocalVariableFragmentImpl():
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case LocalVariableElementImpl():
         // TODO(scheglov): nameOffset2 can be `null`
-        _sink.writeln('${element.name}@${element.firstFragment.nameOffset2}');
+        _sink.writeln('${element.name}@${element.firstFragment.nameOffset}');
       case NeverElementImpl():
         _sink.writeln('Never');
       case ClassElementImpl element:
@@ -121,7 +121,7 @@ class ElementPrinter {
       case MultiplyDefinedElementImpl multiElement:
         _sink.writeln('multiplyDefinedElement');
         _sink.withIndent(() {
-          for (var element in multiElement.conflictingElements2) {
+          for (var element in multiElement.conflictingElements) {
             _sink.writeIndent();
             writeElement2(element);
           }
@@ -272,7 +272,7 @@ class ElementPrinter {
         var enclosingStr = _elementToReferenceString(enclosingElement!);
         return '$enclosingStr::@formalParameter::$nameStr';
       } else {
-        return '$nameStr@${element.firstFragment.nameOffset2}';
+        return '$nameStr@${element.firstFragment.nameOffset}';
       }
     }
 
@@ -289,7 +289,7 @@ class ElementPrinter {
         ']',
       ].join();
     } else {
-      return '${element.name ?? ''}@${element.firstFragment.nameOffset2}';
+      return '${element.name ?? ''}@${element.firstFragment.nameOffset}';
     }
   }
 
@@ -304,7 +304,7 @@ class ElementPrinter {
       if (uriStr == 'package:test/test.dart') {
         uriStr = '<testLibraryFragment>';
       }
-      return '$uriStr ${fragment.name}@${fragment.nameOffset2}';
+      return '$uriStr ${fragment.name}@${fragment.nameOffset}';
     }
 
     var enclosingFragment = fragment.enclosingFragment;
@@ -319,7 +319,7 @@ class ElementPrinter {
       return '$enclosingStr::@formalParameter::${fragment.name}';
     } else if (fragment is JoinPatternVariableFragmentImpl) {
       return [
-        if (!fragment.isConsistent) 'notConsistent ',
+        if (!fragment.element.isConsistent) 'notConsistent ',
         if (fragment.isFinal) 'final ',
         fragment.name ?? '',
         '[',
@@ -327,7 +327,7 @@ class ElementPrinter {
         ']',
       ].join();
     } else {
-      return '${fragment.name}@${fragment.nameOffset2}';
+      return '${fragment.name}@${fragment.nameOffset}';
     }
   }
 
@@ -387,7 +387,7 @@ class ElementPrinter {
     return type.getDisplayString();
   }
 
-  void _writeMember(Member element) {
+  void _writeMember(SubstitutedElementImpl element) {
     _sink.writeln(_nameOfMemberClass(element));
     _sink.withIndent(() {
       writeNamedElement2('baseElement', element.baseElement);
@@ -402,7 +402,7 @@ class ElementPrinter {
 
       writeSubstitution('substitution', element.substitution);
 
-      if (element is ConstructorMember) {
+      if (element is SubstitutedConstructorElementImpl) {
         if (_configuration.withRedirectedConstructors) {
           writeNamedElement2(
             'redirectedConstructor',
@@ -416,8 +416,29 @@ class ElementPrinter {
     });
   }
 
-  static String _nameOfMemberClass(Member member) {
-    return '${member.runtimeType}';
+  static String _nameOfMemberClass(SubstitutedElementImpl member) {
+    // TODO(scheglov): remove during updating expectations
+    switch (member) {
+      case SubstitutedConstructorElementImpl():
+        return 'ConstructorMember';
+      case SubstitutedFieldElementImpl():
+        return 'FieldMember';
+      case SubstitutedFieldFormalParameterElementImpl():
+        return 'FieldFormalParameterMember';
+      case SubstitutedSuperFormalParameterElementImpl():
+        return 'SuperFormalParameterMember';
+      case SubstitutedFormalParameterElementImpl():
+        return 'ParameterMember';
+      case SubstitutedGetterElementImpl():
+        return 'GetterMember';
+      case SubstitutedMethodElementImpl():
+        return 'MethodMember';
+      case SubstitutedSetterElementImpl():
+        return 'SetterMember';
+      default:
+        throw UnimplementedError('(${member.runtimeType}) $member');
+    }
+    // return '${member.runtimeType}';
   }
 }
 

@@ -137,6 +137,6 @@ extension on AnalysisSession {
   Future<LibraryElement> getLibrary(String uriStr) async {
     var libraryResult = await getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
-    return libraryResult.element2;
+    return libraryResult.element;
   }
 }

@@ -103,10 +103,7 @@ class _UseDifferentDivisionOperator extends ResolvedCorrectionProducer {
     }
     // All extensions available in the current scope for the left operand that
     // define the other division operator.
-    var name = Name.forLibrary(
-      unitResult.libraryElement2,
-      otherOperator.lexeme,
-    );
+    var name = Name.forLibrary(unitResult.libraryElement, otherOperator.lexeme);
     var hasNoExtensionWithOtherDivisionOperator =
         await librariesWithExtensions(name).where((library) {
           return library.exportedExtensions

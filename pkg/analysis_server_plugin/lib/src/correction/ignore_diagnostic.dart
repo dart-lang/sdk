@@ -134,6 +134,7 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
     if (_isCodeUnignorable) return;
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       var source = unitResult.content;
 
       // Look for the last blank line in any leading comments (to insert after
@@ -200,6 +201,7 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
     if (_isCodeUnignorable) return;
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       var offset = diagnostic.problemMessage.offset;
       var lineNumber = unitResult.lineInfo.getLocation(offset).lineNumber - 1;
 
@@ -282,6 +284,7 @@ abstract class _DartIgnoreDiagnostic extends _BaseIgnoreDiagnostic {
     bool insertEmptyLineBefore = false,
     bool insertEmptyLineAfter = false,
   }) {
+    var eol = builder.eol;
     var prefix = insertEmptyLineBefore ? eol : '';
     var indent = unitResult.linePrefix(offset);
     var comment = '// $commentPrefix: $_code';

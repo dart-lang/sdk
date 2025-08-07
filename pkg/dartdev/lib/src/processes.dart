@@ -289,7 +289,8 @@ List<ProcessInfo> _getProcessInfoWindows() {
 }
 
 bool _isProcessDartRelated(ProcessInfo process) {
-  return process.command == 'dart' || process.command == 'dart.exe';
+  return process.command == 'dart' || process.command == 'dart.exe' ||
+      process.command == 'dartvm' || process.command == 'dartvm.exe';
 }
 
 String _getCommandFrom(String commandLine) {

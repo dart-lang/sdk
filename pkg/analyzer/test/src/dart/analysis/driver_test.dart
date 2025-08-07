@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
@@ -59,7 +58,7 @@ class AnalysisDriver_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
 
     void assertInnerUri(ResolvedUnitResult result) {
       var innerSource =
-          result.libraryFragment.libraryImports2
+          result.libraryFragment.libraryImports
               .map((import) => import.importedLibrary?.firstFragment.source)
               .nonNulls
               .where(
@@ -157,12 +156,6 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest
     super.setUp();
     registerLintRules();
     useEmptyByteStore();
-  }
-
-  @override
-  Future<void> tearDown() async {
-    withFineDependencies = false;
-    return super.tearDown();
   }
 
   test_addedFiles() async {
@@ -1080,7 +1073,7 @@ import 'c.dart';
     Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
-      return result.element2;
+      return result.element;
     }
 
     var a_element = await getLibrary('a.dart');
@@ -1156,7 +1149,7 @@ import 'b.dart';
     Future<LibraryElement> getLibrary(String shortName) async {
       var uriStr = 'package:test/$shortName';
       var result = await driver.getLibraryByUriValid(uriStr);
-      return result.element2;
+      return result.element;
     }
 
     var b_element = await getLibrary('b.dart');
@@ -1908,8 +1901,8 @@ class B {}
 
     var result = await driver.getLibraryByUri(aUriStr);
     result as LibraryElementResult;
-    expect(result.element2.getClass('A'), isNotNull);
-    expect(result.element2.getClass('B'), isNotNull);
+    expect(result.element.getClass('A'), isNotNull);
+    expect(result.element.getClass('B'), isNotNull);
 
     // It is an error to ask for a library when we know that it is a part.
     expect(
@@ -1975,8 +1968,8 @@ class B {}
 
       var result = await driver.getLibraryByUri(aUriStr);
       result as LibraryElementResult;
-      expect(result.element2.getClass('A'), isNotNull);
-      expect(result.element2.getClass('B'), isNotNull);
+      expect(result.element.getClass('A'), isNotNull);
+      expect(result.element.getClass('B'), isNotNull);
 
       // It is an error to ask for a library when we know that it is a part.
       expect(
@@ -2988,7 +2981,7 @@ void bar() {}
     var collector = DriverEventCollector(driver);
 
     configuration.unitElementConfiguration.elementSelector = (unitFragment) {
-      return unitFragment.functions2
+      return unitFragment.functions
           .map((fragment) => fragment.element)
           .toList();
     };
@@ -5448,6 +5441,7 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
 
   @override
   void setUp() {
+    withFineDependencies = true;
     super.setUp();
     registerLintRules();
     useEmptyByteStore();
@@ -5456,7 +5450,6 @@ class FineAnalysisDriverTest extends PubPackageResolutionTest
   @override
   Future<void> tearDown() async {
     testFineAfterLibraryAnalyzerHook = null;
-    withFineDependencies = false;
     return super.tearDown();
   }
 
@@ -13865,6 +13858,358 @@ class A2 {}
     );
   }
 
+  test_dependency_export_enum() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+enum E {v}
+enum _E {v}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@enum::E
+    exportNamespace
+      E: package:test/a.dart::@enum::E
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      E: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface: #M5
+          map
+            index: #M6
+      _E: #M7
+        declaredFields
+          v: #M8
+          values: #M9
+        declaredGetters
+          v: #M10
+          values: #M11
+        interface: #M12
+          map
+            index: #M6
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      E: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            E: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+enum E {v}
+enum _E2 {v}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      E: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        interface: #M5
+          map
+            index: #M6
+      _E2: #M13
+        declaredFields
+          v: #M14
+          values: #M15
+        declaredGetters
+          v: #M16
+          values: #M17
+        interface: #M18
+          map
+            index: #M6
+  requirements
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@enum::E
+    exportNamespace
+      E: package:test/a.dart::@enum::E
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_export_extension() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+extension E on int {}
+extension _E on int {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      E: #M0
+      _E: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      E: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            E: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+extension E on int {}
+extension _E2 on int {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      E: #M0
+      _E2: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extension::E
+    exportNamespace
+      E: package:test/a.dart::@extension::E
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_export_extensionType() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+extension type E(int it) {}
+extension type _E(int it) {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extensionType::E
+    exportNamespace
+      E: package:test/a.dart::@extensionType::E
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      E: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+      _E: #M4
+        declaredFields
+          it: #M5
+        declaredGetters
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      E: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            E: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+extension type E(int it) {}
+extension type _E2(int it) {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      E: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+      _E2: #M9
+        declaredFields
+          it: #M10
+        declaredGetters
+          it: #M11
+        interface: #M12
+          map
+            it: #M11
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@extensionType::E
+    exportNamespace
+      E: package:test/a.dart::@extensionType::E
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_export_mixin() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+mixin M {}
+mixin _M {}
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@mixin::M
+    exportNamespace
+      M: package:test/a.dart::@mixin::M
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      M: #M0
+        interface: #M1
+      _M: #M2
+        interface: #M3
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      M: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            M: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+mixin M {}
+mixin _M2 {}
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      M: #M0
+        interface: #M1
+      _M2: #M4
+        interface: #M5
+  requirements
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@mixin::M
+    exportNamespace
+      M: package:test/a.dart::@mixin::M
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_export_noLibrary() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 final a = 0;
@@ -14597,8 +14942,8 @@ final a = 0;
   exportCountMismatch
     fragmentUri: package:test/test.dart
     exportedUri: package:test/a.dart
+    expected: 2
     actual: 1
-    required: 2
 [operation] linkLibraryCycle
   package:test/test.dart
     reExportMap
@@ -14906,6 +15251,80 @@ final a = 1.2;
         a: <null>
       package:test/b.dart
         a: #M4
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_export_typeAlias() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+typedef A = int;
+typedef _A = int;
+''');
+
+    newFile('$testPackageLibPath/test.dart', r'''
+export 'a.dart';
+''');
+
+    configuration.elementTextConfiguration.withExportScope = true;
+    await _runChangeScenario(
+      operation: _FineOperationGetTestLibrary(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getLibraryByUri T1
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@typeAlias::A
+    exportNamespace
+      A: package:test/a.dart::@typeAlias::A
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+      _A: #M1
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[operation] linkLibraryCycle
+  package:test/test.dart
+    reExportMap
+      A: #M0
+  requirements
+    exportRequirements
+      package:test/test.dart
+        exports
+          package:test/a.dart
+            A: #M0
+[status] idle
+''',
+      updateFiles: () {
+        modifyFile2(a, r'''
+typedef A = int;
+typedef _A2 = int;
+''');
+        return [a];
+      },
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+      _A2: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M2
+[future] getLibraryByUri T2
+  library
+    exportedReferences
+      exported[(0, 0)] package:test/a.dart::@typeAlias::A
+    exportNamespace
+      A: package:test/a.dart::@typeAlias::A
+[operation] readLibraryCycleBundle
+  package:test/test.dart
 [status] idle
 ''',
     );
@@ -37271,6 +37690,51 @@ const b = false;
     );
   }
 
+  test_manifest_constInitializer_cascadeExpression() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0..abs();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+''',
+      updatedCode: r'''
+const a = 0..abs();
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+      b: #M2
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M3
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+      b: #M4
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+''',
+    );
+  }
+
   test_manifest_constInitializer_conditionalExpression() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -37486,6 +37950,110 @@ const b = 0 as int;
     declaredVariables
       a: #M2
       b: #M5
+''',
+    );
+  }
+
+  test_manifest_constInitializer_importPrefixReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'dart:core' as core;
+const a = 0 as core.int;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0ascore.int
+          tokenLengthList: [1, 2, 4, 1, 3]
+          elements
+            [0] (dart:core, class_, int) #M2
+          elementIndexList
+            3 = importPrefix
+            5 = element 0
+''',
+      updatedCode: r'''
+import 'dart:core' as core;
+const a = 0 as core.int;
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+      b: #M3
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0ascore.int
+          tokenLengthList: [1, 2, 4, 1, 3]
+          elements
+            [0] (dart:core, class_, int) #M2
+          elementIndexList
+            3 = importPrefix
+            5 = element 0
+      b: #M4
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+''',
+    );
+  }
+
+  test_manifest_constInitializer_indexExpression() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = [0][0];
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+''',
+      updatedCode: r'''
+const a = [0][0];
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+      b: #M2
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M3
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+      b: #M4
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
 ''',
     );
   }
@@ -37745,6 +38313,106 @@ const d = {0: b};
     );
   }
 
+  test_manifest_constInitializer_methodInvocation_custom() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0.abs();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+''',
+      updatedCode: r'''
+const a = 0.abs();
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+      b: #M2
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M3
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+      b: #M4
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+''',
+    );
+  }
+
+  test_manifest_constInitializer_methodInvocation_identical() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = identical(0, 1);
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: bool @ dart:core
+    declaredVariables
+      a: #M1
+        type: bool @ dart:core
+        constInitializer
+          tokenBuffer: identical(0,1)
+          tokenLengthList: [9, 1, 1, 1, 1, 1]
+          elements
+            [0] (dart:core, topLevelFunction, identical) #M2
+          elementIndexList
+            5 = element 0
+''',
+      updatedCode: r'''
+const a = identical(0, 1);
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: bool @ dart:core
+      b: #M3
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: bool @ dart:core
+        constInitializer
+          tokenBuffer: identical(0,1)
+          tokenLengthList: [9, 1, 1, 1, 1, 1]
+          elements
+            [0] (dart:core, topLevelFunction, identical) #M2
+          elementIndexList
+            5 = element 0
+      b: #M4
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+''',
+    );
+  }
+
   test_manifest_constInitializer_namedType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -37789,6 +38457,112 @@ const b = B;
     declaredVariables
       a: #M6
       b: #M10
+''',
+    );
+  }
+
+  test_manifest_constInitializer_postfixExpression_increment() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0;
+const b = a++;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+      b: #M1
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M2
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+      b: #M3
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+''',
+      updatedCode: r'''
+const a = 0;
+const b = a++;
+const c = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+      b: #M1
+        returnType: int @ dart:core
+      c: #M4
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M2
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+      b: #M5
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+      c: #M6
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+''',
+    );
+  }
+
+  test_manifest_constInitializer_postfixExpression_nullAssert() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = 0!;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M1
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+''',
+      updatedCode: r'''
+const a = 0!;
+const b = 0;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+        returnType: int @ dart:core
+      b: #M2
+        returnType: int @ dart:core
+    declaredVariables
+      a: #M3
+        type: int @ dart:core
+        constInitializer
+          isValid: false
+      b: #M4
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
 ''',
     );
   }
@@ -38336,6 +39110,107 @@ const d = b;
       b: #M8
       c: #M6
       d: #M9
+''',
+    );
+  }
+
+  test_manifest_constInitializer_symbolLiteral() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+const a = #foo.bar;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+''',
+      updatedCode: r'''
+const a = #foo.bar;
+const b = 1;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      a: #M0
+      b: #M2
+    declaredVariables
+      a: #M1
+      b: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_typeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef A = int;
+''');
+
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+const x = A;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredTypeAliases
+      A: #M0
+        aliasedType: int @ dart:core
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      x: #M1
+        returnType: Type @ dart:core
+    declaredVariables
+      x: #M2
+        type: Type @ dart:core
+        constInitializer
+          tokenBuffer: A
+          tokenLengthList: [1]
+          elements
+            [0] (package:test/a.dart, typeAlias, A) #M0
+          elementIndexList
+            5 = element 0
+''',
+      updatedCode: r'''
+import 'a.dart';
+const x = A;
+const y = double;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      x: #M1
+        returnType: Type @ dart:core
+      y: #M3
+        returnType: Type @ dart:core
+    declaredVariables
+      x: #M2
+        type: Type @ dart:core
+        constInitializer
+          tokenBuffer: A
+          tokenLengthList: [1]
+          elements
+            [0] (package:test/a.dart, typeAlias, A) #M0
+          elementIndexList
+            5 = element 0
+      y: #M4
+        type: Type @ dart:core
+        constInitializer
+          tokenBuffer: double
+          tokenLengthList: [6]
+          elements
+            [0] (dart:core, class_, double) #M5
+          elementIndexList
+            5 = element 0
 ''',
     );
   }
@@ -46777,7 +47652,6 @@ import 'a.dart';
       NodeTextExpectationsCollector.intraInvocationId = id;
     }
 
-    withFineDependencies = true;
     configuration
       ..withResultRequirements = true
       ..withLibraryManifest = true
@@ -46864,7 +47738,6 @@ import 'a.dart';
 
     newFile(testFile.path, initialCode);
 
-    withFineDependencies = true;
     configuration
       ..withGetLibraryByUri = false
       ..withLibraryManifest = true
@@ -46914,7 +47787,6 @@ import 'a.dart';
   Future<void> _runManualRequirementsRecording({
     required String expectedEvents,
   }) async {
-    withFineDependencies = true;
     configuration
       ..withAnalyzeFileEvents = false
       ..withLibraryManifest = true
@@ -47062,7 +47934,7 @@ class _ManualRequirementsUnit {
 
   InstanceElementImpl scopeInstanceElement(String name) {
     var lookupResult = libraryFragment.scope.lookup(name);
-    return lookupResult.getter2 as InstanceElementImpl;
+    return lookupResult.getter as InstanceElementImpl;
   }
 
   InterfaceElementImpl scopeInterfaceElement(String name) {

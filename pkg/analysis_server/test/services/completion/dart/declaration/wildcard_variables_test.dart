@@ -223,7 +223,7 @@ suggestions
   __.ES
     kind: extensionInvocation
   __
-    kind: library
+    kind: prefix
 ''');
   }
 

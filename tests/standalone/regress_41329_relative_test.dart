@@ -27,6 +27,6 @@ Future<void> main() async {
   final link2 = Link('dart')..createSync(linkLocation, recursive: true);
   final path = Uri.parse(link2.absolute.path).path;
   Directory.current = origDir;
-  final result = await Process.run('${path}', ['help']);
+  final result = await Process.run('${path}', ['--help']);
   Expect.equals(result.exitCode, 0);
 }

@@ -61,14 +61,21 @@ class LibraryElementSuggestionBuilder
   @override
   void visitClassElement(ClassElement element) {
     AstNode node = request.target.containingNode;
-    var libraryElement = request.libraryElement;
-    if (node is ExtendsClause && !element.isExtendableIn(libraryElement)) {
-      return;
-    } else if (node is ImplementsClause &&
-        !element.isImplementableIn(libraryElement)) {
-      return;
-    } else if (node is WithClause && !element.isMixableIn(libraryElement)) {
-      return;
+    if (node is ExtendsClause) {
+      if (element.library != request.libraryElement &&
+          !element.isExtendableOutside) {
+        return;
+      }
+    } else if (node is ImplementsClause) {
+      if (element.library != request.libraryElement &&
+          !element.isImplementableOutside) {
+        return;
+      }
+    } else if (node is WithClause) {
+      if (element.library != request.libraryElement &&
+          !element.isMixableOutside) {
+        return;
+      }
     }
     _visitInterfaceElement(element);
   }
@@ -101,9 +108,7 @@ class LibraryElementSuggestionBuilder
   void visitGetterElement(GetterElement element) {
     var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
-        (opType.includeAnnotationSuggestions &&
-            variable != null &&
-            variable.isConst)) {
+        (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (element.isSynthetic) {
@@ -130,7 +135,8 @@ class LibraryElementSuggestionBuilder
   visitMixinElement(MixinElement element) {
     AstNode node = request.target.containingNode;
     if (node is ImplementsClause &&
-        !element.isImplementableIn(request.libraryElement)) {
+        request.libraryElement != element.library &&
+        !element.isImplementableOutside) {
       return;
     }
     _visitInterfaceElement(element);
@@ -140,9 +146,7 @@ class LibraryElementSuggestionBuilder
   void visitSetterElement(SetterElement element) {
     var variable = element.variable;
     if (opType.includeReturnValueSuggestions ||
-        (opType.includeAnnotationSuggestions &&
-            variable != null &&
-            variable.isConst)) {
+        (opType.includeAnnotationSuggestions && variable.isConst)) {
       var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (!element.isSynthetic) {

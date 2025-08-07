@@ -5,11 +5,13 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/refactoring/legacy/extract_local.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../utils/test_code_extensions.dart';
 import 'abstract_refactoring.dart';
 
 void main() {
@@ -22,6 +24,8 @@ void main() {
 class ExtractLocalTest extends RefactoringTest {
   @override
   late ExtractLocalRefactoringImpl refactoring;
+
+  late TestCode parsedExpectedCode;
 
   Future<void> test_checkFinalConditions_sameVariable_after() async {
     await indexTestUnit('''
@@ -344,6 +348,24 @@ void f() {
 ''');
   }
 
+  Future<void> test_const_enum() async {
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const A vvv = A.a;
+}
+''');
+    _createRefactoringForString('A.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const res = A.a;
+  const A vvv = res;
+}
+''');
+  }
+
   Future<void> test_const_inList() async {
     await indexTestUnit('''
 void f() {
@@ -608,6 +630,94 @@ int foo({int ppp = 0}) => ppp + 1;
     expect(subExpressions, ['foo(ppp: 42)']);
   }
 
+  Future<void> test_dotShorthand() async {
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  A vvv = .a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  A res = .a;
+  A vvv = res;
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_const() async {
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const A vvv = .a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const A res = .a;
+  const A vvv = res;
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_inferred() async {
+    await indexTestUnit('''
+enum A { a }
+T f<T>(T arg) => arg;
+
+void g() {
+  A a = f(.a);
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+T f<T>(T arg) => arg;
+
+void g() {
+  A res = .a;
+  A a = f(res);
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_inferred_chain() async {
+    await indexTestUnit('''
+class A {
+  A.named();
+  A fn() => A.named();
+}
+
+T f<T>(T arg) => arg;
+
+void g() {
+  A a = f(.named().fn());
+}
+''');
+    _createRefactoringForString('.named().fn()');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A {
+  A.named();
+  A fn() => A.named();
+}
+
+T f<T>(T arg) => arg;
+
+void g() {
+  A res = .named().fn();
+  A a = f(res);
+}
+''');
+  }
+
   Future<void> test_fragmentExpression() async {
     await indexTestUnit('''
 void f() {
@@ -830,6 +940,32 @@ void f() {
 ''');
   }
 
+  // Enabling the lint should not impact the result -- which is keeping the type
+  // in the extracted local.
+  Future<void> test_lint_alwaysSpecifyTypes_dotShorthand() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.always_specify_types],
+    );
+    await indexTestUnit('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  fn(.a);
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  A res = .a;
+  fn(res);
+}
+''');
+  }
+
   Future<void> test_lint_alwaysSpecifyTypes_final() async {
     createAnalysisOptionsFile(
       lints: [LintNames.always_specify_types, LintNames.prefer_final_locals],
@@ -916,6 +1052,74 @@ void f() {
 ''');
   }
 
+  Future<void> test_lint_preferFinalLocals_const() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.prefer_final_locals],
+    );
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const a = A.a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const res = A.a;
+  const a = res;
+}
+''');
+  }
+
+  Future<void> test_lint_preferFinalLocals_dotShorthand() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.prefer_final_locals],
+    );
+    await indexTestUnit('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  fn(.a);
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void fn(A a) => print(a);
+void f() {
+  final A res = .a;
+  fn(res);
+}
+''');
+  }
+
+  Future<void> test_lint_preferFinalLocals_dotShorthand_const() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.prefer_final_locals],
+    );
+    await indexTestUnit('''
+enum A { a }
+void f() {
+  const A a = .a;
+}
+''');
+    _createRefactoringForString('.a');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum A { a }
+void f() {
+  const A res = .a;
+  const A a = res;
+}
+''');
+  }
+
   Future<void> test_occurrences_differentName_samePrefix() async {
     await indexTestUnit('''
 void f(A a) {
@@ -966,9 +1170,9 @@ void f() {
 void f() {
   {
     int v = 1;
-    var res = v + 1;
-    print(res); // marker
-    print(res);
+    var /*0*/res = v + 1;
+    print(/*1*/res); // marker
+    print(/*2*/res);
   }
   {
     int v = 2;
@@ -978,7 +1182,7 @@ void f() {
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [38, 61, 87],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1065,16 +1269,16 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
+      print(/*2*/res);
       break;
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [69, 94, 112],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1095,15 +1299,15 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
+      print(/*2*/res);
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [53, 78, 96],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1281,14 +1485,14 @@ void f() {
     await _assertSuccessfulRefactoring('''
 void f() {
   print((x) {
-    var res = x.y;
-    return res * res + 1;
+    var /*0*/res = x.y;
+    return /*1*/res * /*2*/res + 1;
   });
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [33, 55, 61],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['y'],
     );
   }
@@ -1302,14 +1506,14 @@ class Point {int x = 0; int y = 0;}
     // apply refactoring
     await _assertSuccessfulRefactoring('''
 foo(Point p) {
-  var res = p.x;
-  return res * res + p.y * p.y;
+  var /*0*/res = p.x;
+  return /*1*/res * /*2*/res + p.y * p.y;
 }
 class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [21, 41, 47],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['x', 'i'],
     );
   }
@@ -1326,15 +1530,15 @@ class Point {int x = 0; int y = 0;}
     await _assertSuccessfulRefactoring('''
 class A {
   foo(Point p) {
-    var res = p.x;
-    return res * res + p.y * p.y;
+    var /*0*/res = p.x;
+    return /*1*/res * /*2*/res + p.y * p.y;
   }
 }
 class Point {int x = 0; int y = 0;}
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [35, 57, 63],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['x', 'i'],
     );
   }
@@ -1401,15 +1605,15 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
       break;
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [69, 94],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1429,14 +1633,14 @@ void f(int x) {
 void f(int x) {
   switch (x) {
     case 0:
-      var res = x + 1;
-      print(res);
+      var /*0*/res = x + 1;
+      print(/*1*/res);
   }
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [53, 78],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 'i'],
     );
   }
@@ -1602,11 +1806,15 @@ void f() {
     // apply refactoring
     await _assertSuccessfulRefactoring(r'''
 void f() {
-  var res = 'cde';
-  print('ab${res}fgh');
+  var /*0*/res = 'cde';
+  print('ab${/*1*/res}fgh');
 }
 ''');
-    _assertSingleLinkedEditGroup(length: 3, offsets: [17, 43], names: ['cde']);
+    _assertSingleLinkedEditGroup(
+      length: 3,
+      offsets: parsedExpectedCode.positionOffsets,
+      names: ['cde'],
+    );
   }
 
   Future<void> test_stringLiteral_whole() async {
@@ -1619,13 +1827,13 @@ void f() {
     // apply refactoring
     await _assertSuccessfulRefactoring('''
 void f() {
-  var res = 'abc';
-  print(res);
+  var /*0*/res = 'abc';
+  print(/*1*/res);
 }
 ''');
     _assertSingleLinkedEditGroup(
       length: 3,
-      offsets: [17, 38],
+      offsets: parsedExpectedCode.positionOffsets,
       names: ['object', 's'],
     );
   }
@@ -1644,11 +1852,15 @@ void f() {
 void f() {
   int x = 1;
   int y = 2;
-  var res = '$x+$y';
-  print('${res}=${x+y}');
+  var /*0*/res = '$x+$y';
+  print('${/*1*/res}=${x+y}');
 }
 ''');
-    _assertSingleLinkedEditGroup(length: 3, offsets: [43, 69], names: ['xy']);
+    _assertSingleLinkedEditGroup(
+      length: 3,
+      offsets: parsedExpectedCode.positionOffsets,
+      names: ['xy'],
+    );
   }
 
   Future<void> _assertInitialConditions_fatal_selection() async {
@@ -1685,12 +1897,14 @@ void f() {
   }
 
   /// Checks that all conditions are OK and the result of applying the
-  /// [SourceChange] to [testUnit] is [expectedCode].
-  Future<void> _assertSuccessfulRefactoring(String expectedCode) async {
+  /// [SourceChange] to [testUnit] is [expectedContent] after parsing with
+  /// [TestCode].
+  Future<void> _assertSuccessfulRefactoring(String expectedContent) async {
+    parsedExpectedCode = TestCode.parseNormalized(expectedContent);
     await assertRefactoringConditionsOK();
     var refactoringChange = await refactoring.createChange();
     this.refactoringChange = refactoringChange;
-    assertTestChangeResult(expectedCode);
+    assertTestChangeResult(parsedExpectedCode.code);
   }
 
   void _createRefactoring(int offset, int length) {

@@ -85,6 +85,8 @@ suggestions
     kind: class
   A02
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -108,6 +110,8 @@ suggestions
     kind: class
   A02
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 }

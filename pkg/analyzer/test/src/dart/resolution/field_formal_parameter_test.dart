@@ -41,10 +41,12 @@ FieldFormalParameter
         type: int
       name: a
       declaredElement: <testLibraryFragment> a@44
-        type: int
+        element: isPublic
+          type: int
     rightParenthesis: )
   declaredElement: <testLibraryFragment> f@38
-    type: void Function(int)
+    element: isFinal isPublic
+      type: void Function(int)
 ''');
   }
 
@@ -85,10 +87,12 @@ FieldFormalParameter
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@50
-        type: U
+        element: isPublic
+          type: U
     rightParenthesis: )
   declaredElement: <testLibraryFragment> f@43
-    type: U Function<U>(U)
+    element: isFinal isPublic
+      type: U Function<U>(U)
 ''');
   }
 
@@ -131,7 +135,8 @@ FieldFormalParameter
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@62
-        type: U
+        element: isPublic
+          type: U
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
@@ -139,10 +144,12 @@ FieldFormalParameter
         type: V
       name: b
       declaredElement: <testLibraryFragment> b@67
-        type: V
+        element: isPublic
+          type: V
     rightParenthesis: )
   declaredElement: <testLibraryFragment> f@52
-    type: T Function<T, U>(U, V)
+    element: isFinal isPublic
+      type: T Function<T, U>(U, V)
 ''');
   }
 
@@ -161,7 +168,8 @@ FieldFormalParameter
   period: .
   name: f
   declaredElement: <testLibraryFragment> f@28
-    type: int
+    element: hasImplicitType isFinal isPublic
+      type: int
 ''');
   }
 
@@ -184,7 +192,8 @@ FieldFormalParameter
   period: .
   name: f
   declaredElement: <testLibraryFragment> f@32
-    type: int
+    element: isFinal isPublic
+      type: int
 ''');
   }
 
@@ -204,7 +213,8 @@ FieldFormalParameter
   period: .
   name: f
   declaredElement: <testLibraryFragment> f@47
-    type: int
+    element: hasImplicitType isFinal isPublic
+      type: int
 ''');
   }
 }

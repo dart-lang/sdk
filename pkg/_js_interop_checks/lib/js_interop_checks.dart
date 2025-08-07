@@ -4,7 +4,8 @@
 
 // ignore_for_file: implementation_imports
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:front_end/src/api_prototype/codes.dart'
@@ -1214,6 +1215,6 @@ class JsInteropDiagnosticReporter {
     } else {
       _reporter.report(message, charOffset, length, fileUri, context: context);
     }
-    if (message.code.severity == Severity.error) hasJsInteropErrors = true;
+    if (message.code.severity == CfeSeverity.error) hasJsInteropErrors = true;
   }
 }

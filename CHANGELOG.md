@@ -1,3 +1,42 @@
+## 3.10.0
+
+**Released on:** Unreleased
+
+#### Dart CLI and Dart VM
+
+- The Dart CLI and Dart VM have been split into two seperate executables.
+
+  The Dart CLI tool has been split out of the VM into it's own embedder which
+  runs in AOT mode. The pure Dart VM executable is called `dartvm` and
+  has no Dart CLI functionality in it
+
+  The Dart CLI executable parses the CLI commands and invokes the rest
+  of the AOT tools in the same process, for the 'run' and 'test'
+  commands it execs a process which runs `dartvm`
+
+  `dart hello.dart` execs the `dartvm` process and runs 'hello.dart'
+
+  The Dart CLI is not generated for ia32 as we are not shipping a
+  Dart SDK for ia32 anymore (support to execute the `dartvm` for ia32
+  architecture is retained)
+
+### Libraries
+
+#### `dart:io`
+
+- **Breaking Change** [#56468][]: Marked `IOOverrides` as an `abstract base`
+  class.
+
+[#56468]: https://github.com/dart-lang/sdk/issues/56468
+
+#### `dart:js_interop`
+
+- `JSArray.add` is added to avoid cases where during migration from `List` to
+  `JSArray`, `JSAnyOperatorExtension.add` is accidentally used. See [#59830][]
+  for more details.
+
+[#59830]: https://github.com/dart-lang/sdk/issues/59830
+
 ## 3.9.0
 
 **Released on:** Unreleased
@@ -867,6 +906,7 @@ The AOT snapshot can be used as follows to run DDC:
 [pub#4445]: https://github.com/dart-lang/pub/issues/4445
 [#57084]: https://github.com/dart-lang/sdk/issues/57084
 [#56552]: https://github.com/dart-lang/sdk/issues/56552
+>>>>>>> BASE      (d73f7bdb4366b447eb9874fe80381b8efd03c718 Generate `GeneralizingAstVisitor`, `TimedAstVisitor`, `Analy)
 
 ## 3.6.0
 

@@ -121,12 +121,11 @@ class _ExtensionMemberValidator {
     // Check if there is a member with "newName" in the extension.
     for (var newNameMember in getChildren(elementExtension, name)) {
       result.addError(
-        format(
-          "Extension '{0}' already declares {1} with name '{2}'.",
+        formatList("Extension '{0}' already declares {1} with name '{2}'.", [
           elementExtension.displayName,
           getElementKindName(newNameMember),
           name,
-        ),
+        ]),
         newLocation_fromElement(newNameMember),
       );
     }
@@ -139,12 +138,11 @@ class _ExtensionMemberValidator {
       if (conflict != null) {
         var localElement = conflict.localElement;
         result.addError(
-          format(
-            "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+          formatList("Usage of renamed {0} will be shadowed by {1} '{2}'.", [
             elementKind.displayName,
             getElementKindName(localElement),
             localElement.displayName,
-          ),
+          ]),
           newLocation_fromMatch(conflict.match),
         );
       }

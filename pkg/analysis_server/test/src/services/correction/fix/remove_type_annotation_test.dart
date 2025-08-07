@@ -239,6 +239,52 @@ class OmitLocaVariableTypesBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.omit_local_variable_types;
 
+  Future<void> test_dotShorthand_list() async {
+    await resolveTestCode('''
+enum E { a, b }
+E f() {
+  E e = .a;
+  List<E> listE = [.a];
+  print(listE);
+  E e2 = .b;
+  print(e2);
+  return e;
+}
+''');
+    await assertHasFix('''
+enum E { a, b }
+E f() {
+  var e = E.a;
+  var listE = <E>[.a];
+  print(listE);
+  var e2 = E.b;
+  print(e2);
+  return e;
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_multipleVariables() async {
+    await resolveTestCode('''
+enum E { a }
+E f() {
+  E e = .a;
+  E e2 = .a;
+  print(e2);
+  return e;
+}
+''');
+    await assertHasFix('''
+enum E { a }
+E f() {
+  var e = E.a;
+  var e2 = E.a;
+  print(e2);
+  return e;
+}
+''');
+  }
+
   Future<void> test_singleFile() async {
     await resolveTestCode('''
 List f() {
@@ -275,6 +321,118 @@ class OmitLocaVariableTypesLintTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.omit_local_variable_types;
 
+  Future<void> test_forEach_dotShorthands_functionType() async {
+    await resolveTestCode('''
+enum E { a, b, c }
+void f() {
+  for (E Function() e in [() => .a]) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+enum E { a, b, c }
+void f() {
+  for (var e in <E Function()>[() => .a]) {
+    print(e);
+  }
+}
+''');
+  }
+
+  Future<void> test_forEach_dotShorthands_generic_nested() async {
+    await resolveTestCode('''
+enum E { a, b, c }
+
+T ff<T>(T t, E e) => t;
+
+void f() {
+  for (E e in [ff(ff(.b, .b), .b)]) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+enum E { a, b, c }
+
+T ff<T>(T t, E e) => t;
+
+void f() {
+  for (var e in <E>[ff(ff(.b, .b), .b)]) {
+    print(e);
+  }
+}
+''');
+  }
+
+  Future<void>
+  test_forEach_dotShorthands_generic_nested_explicitTypeArguments() async {
+    await resolveTestCode('''
+enum E { a, b, c }
+
+T ff<T>(T t, E e) => t;
+
+X fun<U, X>(U u, X x) => x;
+
+void f() {
+  for (int e in [fun(ff<E>(.a, E.a), 2)]) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+enum E { a, b, c }
+
+T ff<T>(T t, E e) => t;
+
+X fun<U, X>(U u, X x) => x;
+
+void f() {
+  for (var e in [fun(ff<E>(.a, E.a), 2)]) {
+    print(e);
+  }
+}
+''');
+  }
+
+  Future<void> test_forEach_dotShorthands_list() async {
+    await resolveTestCode('''
+enum E { a }
+void f() {
+  for (E e in [.a]) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+enum E { a }
+void f() {
+  for (var e in <E>[.a]) {
+    print(e);
+  }
+}
+''');
+  }
+
+  Future<void> test_forEach_dotShorthands_set() async {
+    await resolveTestCode('''
+enum E { a }
+void f() {
+  for (E e in {.a}) {
+    print(e);
+  }
+}
+''');
+    await assertHasFix('''
+enum E { a }
+void f() {
+  for (var e in <E>{.a}) {
+    print(e);
+  }
+}
+''');
+  }
+
   Future<void> test_forEach_final() async {
     await resolveTestCode('''
 void f(List<int> list) {
@@ -292,6 +450,65 @@ void f(List<int> list) {
 ''');
   }
 
+  Future<void> test_generic_instanceCreation_cascade_dotShorthand() async {
+    await resolveTestCode('''
+enum E { a }
+Set f() {
+  Set<E> s = { .a }..addAll([]);
+  return s;
+}
+''');
+    await assertHasFix('''
+enum E { a }
+Set f() {
+  var s = <E>{ .a }..addAll([]);
+  return s;
+}
+''');
+  }
+
+  Future<void>
+  test_generic_instanceCreation_withoutArguments_dotShorthand() async {
+    await resolveTestCode('''
+C<int> f() {
+  C<int> c = .new();
+  return c;
+}
+class C<T> {}
+''');
+    await assertHasFix('''
+C<int> f() {
+  var c = C<int>.new();
+  return c;
+}
+class C<T> {}
+''');
+  }
+
+  Future<void>
+  test_generic_instanceCreation_withoutArguments_dotShorthand_parameter() async {
+    await resolveTestCode('''
+class C<T> {
+  C(T x);
+}
+enum E { a }
+C<E> f() {
+  C<E> c = C(.a);
+  return c;
+}
+''');
+    await assertHasFix('''
+class C<T> {
+  C(T x);
+}
+enum E { a }
+C<E> f() {
+  var c = C<E>(.a);
+  return c;
+}
+''');
+  }
+
   Future<void> test_generic_listLiteral_const() async {
     await resolveTestCode('''
 String f() {
@@ -303,6 +520,23 @@ String f() {
 String f() {
   const values = const <String>['a'];
   return values[0];
+}
+''');
+  }
+
+  Future<void> test_generic_listLiteral_dotShorthand() async {
+    await resolveTestCode('''
+enum E { a, b }
+List f() {
+  List<E> l = [.a, .b];
+  return l;
+}
+''');
+    await assertHasFix('''
+enum E { a, b }
+List f() {
+  var l = <E>[.a, .b];
+  return l;
 }
 ''');
   }
@@ -348,6 +582,61 @@ String f() {
 String f() {
   const s = '';
   return s;
+}
+''');
+  }
+
+  Future<void> test_simple_dotShorthand_constructorInvocation() async {
+    await resolveTestCode('''
+class E {}
+E f() {
+  E e = .new();
+  return e;
+}
+''');
+    await assertHasFix('''
+class E {}
+E f() {
+  var e = E.new();
+  return e;
+}
+''');
+  }
+
+  Future<void> test_simple_dotShorthand_methodInvocation() async {
+    await resolveTestCode('''
+class E {
+  static E method() => E();
+}
+E f() {
+  E e = .method();
+  return e;
+}
+''');
+    await assertHasFix('''
+class E {
+  static E method() => E();
+}
+E f() {
+  var e = E.method();
+  return e;
+}
+''');
+  }
+
+  Future<void> test_simple_dotShorthand_propertyAccess() async {
+    await resolveTestCode('''
+enum E { a }
+E f() {
+  E e = .a;
+  return e;
+}
+''');
+    await assertHasFix('''
+enum E { a }
+E f() {
+  var e = E.a;
+  return e;
 }
 ''');
   }

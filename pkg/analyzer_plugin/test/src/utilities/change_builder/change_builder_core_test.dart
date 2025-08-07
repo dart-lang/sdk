@@ -55,7 +55,7 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     var copy = builder.copy() as ChangeBuilderImpl;
     expect(identical(copy, builder), isFalse);
     expect(copy.workspace, builder.workspace);
-    expect(copy.eol, builder.eol);
+    expect(copy.defaultEol, builder.defaultEol);
   }
 
   @Deprecated('Will be removed when `copy` is removed.')

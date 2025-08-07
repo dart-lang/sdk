@@ -125,11 +125,7 @@ class _ElementRecorder {
   ) {
     if (referencedElement is PropertyAccessorElement) {
       if (referencedElement.isSynthetic) {
-        var variable = referencedElement.variable;
-        if (variable == null) {
-          return;
-        }
-        referencedElement = variable;
+        referencedElement = referencedElement.variable;
       }
     }
 
@@ -181,9 +177,9 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created finder to send information to the [recorder].
   _ReferenceFinder(this.unit, this.recorder) {
-    for (var import in unit.libraryElement2.firstFragment.libraryImports2) {
+    for (var import in unit.libraryElement.firstFragment.libraryImports) {
       _importsByPrefix
-          .putIfAbsent(import.prefix2?.element.name ?? '', () => {})
+          .putIfAbsent(import.prefix?.element.name ?? '', () => {})
           .add(import);
     }
   }
@@ -352,7 +348,7 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
                     // allowed), use the imports own prefix when checking for the
                     // element.
                     import.namespace.getPrefixed2(
-                      import.prefix2?.element.name ?? '',
+                      import.prefix?.element.name ?? '',
                       lookupName,
                     ) ==
                     element,

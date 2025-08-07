@@ -78,6 +78,7 @@ class SimpleIdentifier extends IdentifierImpl {
     return new QualifiedNameGenerator(qualifier, token);
   }
 
+  // Coverage-ignore(suite): Not run.
   QualifiedNameBuilder withBuilderQualifier(Builder qualifier) {
     return new QualifiedNameBuilder(qualifier, token);
   }
@@ -187,6 +188,7 @@ class QualifiedNameGenerator extends QualifiedName {
   String toString() => "qualified-name-generator($qualifier, $name)";
 }
 
+// Coverage-ignore(suite): Not run.
 class QualifiedNameBuilder extends QualifiedName {
   final Builder qualifier;
 
@@ -195,7 +197,6 @@ class QualifiedNameBuilder extends QualifiedName {
   Token get suffix => token;
 
   @override
-  // Coverage-ignore(suite): Not run.
   int get firstOffset => qualifier.fileOffset;
 
   @override

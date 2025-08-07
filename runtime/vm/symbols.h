@@ -123,7 +123,7 @@ class ObjectPointerVisitor;
   V(FfiInt8, "Int8")                                                           \
   V(FfiIntPtr, "IntPtr")                                                       \
   V(FfiIsolateLocalCallback, "_FfiIsolateLocalCallback")                       \
-  V(FfiIsolateGroupSharedCallback, "_FfiIsolateGroupSharedCallback")           \
+  V(FfiIsolateGroupBoundCallback, "_FfiIsolateGroupBoundCallback")             \
   V(FfiNative, "Native")                                                       \
   V(FfiNativeFunction, "NativeFunction")                                       \
   V(FfiNativeType, "NativeType")                                               \

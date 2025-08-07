@@ -17,7 +17,8 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart'
     show JoinPatternVariableElementImpl, MetadataImpl;
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart' show ExecutableMember;
+import 'package:analyzer/src/dart/element/member.dart'
+    show SubstitutedExecutableElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -265,7 +266,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     }
     var element = node.writeOrReadElement;
     // Store un-parameterized members.
-    if (element is ExecutableMember) {
+    if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
     }
     var variable = element.ifTypeOrNull<PropertyAccessorElement>()?.variable;
@@ -963,7 +964,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
           return const [];
         }
         return overridden.map(
-          (e) => (e is ExecutableMember) ? e.baseElement : e,
+          (e) => (e is SubstitutedExecutableElementImpl) ? e.baseElement : e,
         );
       }
     }
@@ -1015,8 +1016,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
         Diagnostic.tmp(
           source: fragment.libraryFragment!.source,
           offset:
-              fragment.nameOffset2 ??
-              fragment.enclosingFragment?.nameOffset2 ??
+              fragment.nameOffset ??
+              fragment.enclosingFragment?.nameOffset ??
               0,
           length: fragment.name?.length ?? 0,
           diagnosticCode: code,
@@ -1119,9 +1120,7 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   static bool _hasPragmaVmEntryPoint(Element element) {
-    return element is Annotatable &&
-        ((element as Annotatable).metadata as MetadataImpl)
-            .hasPragmaVmEntryPoint;
+    return (element.metadata as MetadataImpl).hasPragmaVmEntryPoint;
   }
 }
 
@@ -1181,7 +1180,7 @@ class UsedLocalElements {
   void addElement(Element? element) {
     if (element is JoinPatternVariableElementImpl) {
       elements.addAll(element.transitiveVariables);
-    } else if (element is ExecutableMember) {
+    } else if (element is SubstitutedExecutableElementImpl) {
       elements.add(element.baseElement);
     } else if (element != null) {
       elements.add(element);
@@ -1190,7 +1189,7 @@ class UsedLocalElements {
 
   void addMember(Element? element) {
     // Store un-parameterized members.
-    if (element is ExecutableMember) {
+    if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
     }
 
@@ -1201,7 +1200,7 @@ class UsedLocalElements {
 
   void addReadMember(Element? element) {
     // Store un-parameterized members.
-    if (element is ExecutableMember) {
+    if (element is SubstitutedExecutableElementImpl) {
       element = element.baseElement;
     }
 

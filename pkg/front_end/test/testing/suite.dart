@@ -17,7 +17,7 @@ import 'package:compiler/src/options.dart' as dart2jsOptions
 import 'package:dart2wasm/target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     show ConstantEvaluator, ErrorReporter;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -265,7 +265,6 @@ class FastaContext extends ChainContext with MatchContext {
           new Verify(compileMode == CompileMode.full
               ? VerificationStage.afterConstantEvaluation
               : VerificationStage.outline),
-          new ErrorCommentChecker(compileMode),
         ],
         suiteFolderOptions = new SuiteFolderOptions(baseUri),
         suiteTestOptions = new SuiteTestOptions() {
@@ -312,6 +311,7 @@ class FastaContext extends ChainContext with MatchContext {
                 serializeFirst: true, isLastMatchStep: true));
           }
         }
+        steps.add(new ErrorCommentChecker(compileMode));
         steps.add(const EnsureNoErrors());
         steps.add(new WriteDill(skipVm: skipVm));
         if (semiFuzz) {
@@ -327,6 +327,7 @@ class FastaContext extends ChainContext with MatchContext {
         break;
       case CompileMode.modular:
       case CompileMode.outline:
+        steps.add(new ErrorCommentChecker(compileMode));
         steps.add(new WriteDill(skipVm: true));
         break;
     }
@@ -755,7 +756,7 @@ CompilationSetup createCompilationSetup(
       Map<ExperimentalFlag, Version>? experimentReleasedVersion,
       Uri? dynamicInterfaceSpecificationUri) {
     CompilerOptions compilerOptions = new CompilerOptions()
-      ..onDiagnostic = (DiagnosticMessage message) {
+      ..onDiagnostic = (CfeDiagnosticMessage message) {
         errors.add(message.plainTextFormatted);
       }
       ..enableUnscheduledExperiments =
@@ -2155,10 +2156,10 @@ class Verify extends Step<ComponentResult, ComponentResult, FastaContext> {
 
     Component component = result.component;
     StringBuffer messages = new StringBuffer();
-    void Function(DiagnosticMessage)? previousOnDiagnostics =
+    void Function(CfeDiagnosticMessage)? previousOnDiagnostics =
         result.options.rawOptionsForTesting.onDiagnostic;
     result.options.rawOptionsForTesting.onDiagnostic =
-        (DiagnosticMessage message) {
+        (CfeDiagnosticMessage message) {
       if (messages.isNotEmpty) {
         messages.write("\n");
       }

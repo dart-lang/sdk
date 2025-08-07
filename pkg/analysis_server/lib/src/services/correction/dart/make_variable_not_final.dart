@@ -44,7 +44,7 @@ class MakeVariableNotFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    var nameOffset = variable.firstFragment.nameOffset2;
+    var nameOffset = variable.firstFragment.nameOffset;
     if (nameOffset == null) {
       return;
     }

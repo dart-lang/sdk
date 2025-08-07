@@ -24,5 +24,5 @@ static field self::B obj = new self::C::•();
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=#lib::C] self::obj.{self::B::foo}(){({x: self::A?}) → void};
+  [@vm.direct-call.metadata=#lib::C.foo] [@vm.inferred-type.metadata=? (skip check)] [@vm.inferred-type.metadata=#lib::C] self::obj.{self::B::foo}(){({x: self::A?}) → void};
 }

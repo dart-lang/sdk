@@ -44,7 +44,22 @@ bar() {
   Baz.foo = 42;
 }
 
+@pragma('vm:shared')
+var list_length = 0;
+
+@pragma('vm:shared')
+String string_foo = "";
+
 main() {
+  IsolateGroup.runSync(() {
+    final l = <int>[];
+    for (int i = 0; i < 100; i++) {
+      l.add(i);
+    }
+    list_length = l.length;
+  });
+  Expect.equals(100, list_length);
+
   Expect.equals(42, IsolateGroup.runSync(() => 42));
 
   Expect.listEquals([1, 2, 3], IsolateGroup.runSync(() => [1, 2, 3]));
@@ -131,6 +146,40 @@ main() {
     bar();
     Expect.equals(42, Baz.foo);
   }
+
+  IsolateGroup.runSync(() {
+    string_foo = "foo bar";
+  });
+  Expect.equals("foo bar", string_foo);
+
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        ReceivePort();
+      });
+    },
+    (e) =>
+        e is ArgumentError &&
+        e.toString().contains("Only available when running in context"),
+  );
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.exit();
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawn((_) {}, null);
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawnUri(Uri.parse("http://127.0.0.1"), [], (_) {});
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
 
   print("All tests completed :)");
 }

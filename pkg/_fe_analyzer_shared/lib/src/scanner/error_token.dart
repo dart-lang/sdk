@@ -93,7 +93,7 @@ abstract class ErrorToken extends SimpleToken {
 
   Message get assertionMessage;
 
-  Code<dynamic> get errorCode => assertionMessage.code;
+  Code get errorCode => assertionMessage.code;
 
   int? get character => null;
 

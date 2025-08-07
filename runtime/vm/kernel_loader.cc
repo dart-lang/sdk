@@ -212,7 +212,9 @@ KernelLoader::KernelLoader(Program* program,
                        &constant_reader_,
                        &active_class_,
                        /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_type_metadata_helper_(&helper_,
+                                     &constant_reader_,
+                                     &type_translator_),
       static_field_value_(Object::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -473,7 +475,9 @@ KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
                        &constant_reader_,
                        &active_class_,
                        /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_type_metadata_helper_(&helper_,
+                                     &constant_reader_,
+                                     &type_translator_),
       static_field_value_(Object::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -626,32 +630,18 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
 }
 
 void KernelLoader::FindModifiedLibraries(Program* program,
-                                         IsolateGroup* isolate_group,
                                          BitVector* modified_libs,
-                                         bool force_reload,
-                                         bool* is_empty_program,
+                                         intptr_t* p_num_libraries,
                                          intptr_t* p_num_classes,
                                          intptr_t* p_num_procedures) {
   Thread* thread = Thread::Current();
   LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     Zone* zone = thread->zone();
-    if (force_reload) {
-      // If a reload is being forced we mark all libraries as having
-      // been modified.
-      const auto& libs = GrowableObjectArray::Handle(
-          zone, isolate_group->object_store()->libraries());
-      intptr_t num_libs = libs.Length();
-      Library& lib = dart::Library::Handle(zone);
-      for (intptr_t i = 0; i < num_libs; i++) {
-        lib ^= libs.At(i);
-        if (!lib.is_dart_scheme()) {
-          modified_libs->Add(lib.index());
-        }
-      }
-      return;
-    }
 
+    if (p_num_libraries != nullptr) {
+      *p_num_libraries = 0;
+    }
     if (p_num_classes != nullptr) {
       *p_num_classes = 0;
     }
@@ -661,10 +651,9 @@ void KernelLoader::FindModifiedLibraries(Program* program,
 
     // Now go through all the libraries that are present in the incremental
     // kernel files, these will constitute the modified libraries.
-    *is_empty_program = true;
     if (program->is_single_program()) {
       KernelLoader loader(program, /*uri_to_source_table=*/nullptr);
-      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+      loader.walk_incremental_kernel(modified_libs, p_num_libraries,
                                      p_num_classes, p_num_procedures);
     }
 
@@ -689,24 +678,23 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       }
       ASSERT(subprogram->is_single_program());
       KernelLoader loader(subprogram.get(), /*uri_to_source_table=*/nullptr);
-      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+      loader.walk_incremental_kernel(modified_libs, p_num_libraries,
                                      p_num_classes, p_num_procedures);
     }
   }
 }
 
 void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
-                                           bool* is_empty_program,
+                                           intptr_t* p_num_libraries,
                                            intptr_t* p_num_classes,
                                            intptr_t* p_num_procedures) {
-  intptr_t length = program_->library_count();
-  *is_empty_program = *is_empty_program && (length == 0);
+  const intptr_t num_libraries = program_->library_count();
   bool collect_library_stats =
       p_num_classes != nullptr || p_num_procedures != nullptr;
   intptr_t num_classes = 0;
   intptr_t num_procedures = 0;
   Library& lib = Library::Handle(Z);
-  for (intptr_t i = 0; i < length; i++) {
+  for (intptr_t i = 0; i < num_libraries; i++) {
     intptr_t kernel_offset = library_offset(i);
     helper_.SetOffset(kernel_offset);
     LibraryHelper library_helper(&helper_);
@@ -724,6 +712,9 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
       num_classes += library_index.class_count();
       num_procedures += library_index.procedure_count();
     }
+  }
+  if (p_num_libraries != nullptr) {
+    *p_num_libraries += num_libraries;
   }
   if (p_num_classes != nullptr) {
     *p_num_classes += num_classes;
@@ -744,6 +735,7 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_guarded_cid(type.cid);
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
+  field.set_exact_type(type.exact_type);
   if (FLAG_precompiled_mode) {
     field.set_is_unboxed(!field.is_late() && !field.is_static() &&
                          !field.is_nullable() &&

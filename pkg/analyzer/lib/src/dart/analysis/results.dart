@@ -20,13 +20,13 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// This returns the offset used for finding the corresponding AST node.
 ///
-/// - If the fragment is named, the [Fragment.nameOffset2] is used.
+/// - If the fragment is named, the [Fragment.nameOffset] is used.
 /// - If the fragment is a a [ConstructorFragment] for an unnamed constructor,
 /// the [ConstructorFragment.typeNameOffset] is used.
 /// - If the fragment is an unnamed [ExtensionFragment], the
 /// [ExtensionFragment.offset] is used.
 int? _getFragmentNameOffset(Fragment fragment) {
-  var nameOffset = fragment.nameOffset2;
+  var nameOffset = fragment.nameOffset;
   if (nameOffset == null) {
     if (fragment is ConstructorFragment) {
       nameOffset = fragment.typeNameOffset;
@@ -278,9 +278,13 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
 
 class LibraryElementResultImpl implements LibraryElementResult {
   @override
-  final LibraryElementImpl element2;
+  final LibraryElementImpl element;
 
-  LibraryElementResultImpl(this.element2);
+  LibraryElementResultImpl(this.element);
+
+  @override
+  @Deprecated('Use element instead')
+  LibraryElement get element2 => element;
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -413,19 +417,23 @@ class ResolvedForCompletionResultImpl {
 class ResolvedLibraryResultImpl extends AnalysisResultImpl
     implements ResolvedLibraryResult {
   @override
-  final LibraryElementImpl element2;
+  final LibraryElementImpl element;
 
   @override
   final List<ResolvedUnitResult> units;
 
   ResolvedLibraryResultImpl({
     required super.session,
-    required this.element2,
+    required this.element,
     required this.units,
   });
 
   @override
-  TypeProviderImpl get typeProvider => element2.typeProvider;
+  @Deprecated('Use element instead')
+  LibraryElement get element2 => element;
+
+  @override
+  TypeProviderImpl get typeProvider => element.typeProvider;
 
   @Deprecated('Use getFragmentDeclaration() instead')
   @override
@@ -503,18 +511,22 @@ class ResolvedUnitResultImpl extends FileResultImpl
   bool get exists => fileState.exists;
 
   @override
-  LibraryElementImpl get libraryElement2 {
+  LibraryElementImpl get libraryElement {
     return libraryFragment.element;
   }
+
+  @override
+  @Deprecated('Use libraryElement instead')
+  LibraryElement get libraryElement2 => libraryElement;
 
   @override
   LibraryFragmentImpl get libraryFragment => unit.declaredFragment!;
 
   @override
-  TypeProviderImpl get typeProvider => libraryElement2.typeProvider;
+  TypeProviderImpl get typeProvider => libraryElement.typeProvider;
 
   @override
-  TypeSystemImpl get typeSystem => libraryElement2.typeSystem;
+  TypeSystemImpl get typeSystem => libraryElement.typeSystem;
 }
 
 class UnitElementResultImpl extends FileResultImpl

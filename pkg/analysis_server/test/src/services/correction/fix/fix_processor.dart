@@ -13,6 +13,7 @@ import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -36,6 +37,12 @@ abstract class BaseFixProcessorTest extends AbstractSingleUnitTest {
   /// The workspace in which fixes contributor operates.
   Future<ChangeWorkspace> get workspace async {
     return DartChangeWorkspace([await session]);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    verifyNoTestUnitErrors = false;
   }
 
   /// Computes fixes for the given [diagnostic] in [testUnit].
@@ -128,7 +135,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     );
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
     var edits = [for (var fix in fixes) ...fix.edits];
-    var result = SourceEdit.applySequence(original, edits);
+    var result = SourceEdit.applySequence(normalizeSource(original), edits);
     expect(result, normalizeSource(expected));
   }
 
@@ -197,11 +204,6 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
 
   @override
   void setUp() {
-    // TODO(dantup): Many of these tests produce edits with \n on Windows (for
-    //  example AddKeyToConstructorsBulkTest.test_singleFile inserts \n before
-    //  the new constructor).
-    useLineEndingsForPlatform = false;
-
     super.setUp();
     verifyNoTestUnitErrors = false;
     _createAnalysisOptionsFile();
@@ -280,13 +282,6 @@ abstract class FixInFileProcessorTest extends BaseFixProcessorTest {
     return fixes;
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    verifyNoTestUnitErrors = false;
-    useLineEndingsForPlatform = true;
-  }
-
   /// Computes fixes for the given [diagnostic] in [testUnit].
   @override
   Future<List<Fix>> _computeFixes(
@@ -322,13 +317,6 @@ abstract class FixPriorityTest extends BaseFixProcessorTest {
     var kinds = computedFixes.map((fix) => fix.kind).toList();
     kinds.sort((a, b) => b.priority.compareTo(a.priority));
     expect(kinds, containsAllInOrder(fixKinds));
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    verifyNoTestUnitErrors = false;
-    useLineEndingsForPlatform = true;
   }
 }
 
@@ -375,20 +363,29 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
 /// A base class defining support for writing fix processor tests.
 abstract class FixProcessorTest extends BaseFixProcessorTest {
+  late TestCode parsedExpectedCode;
+
   /// The kind of fixes being tested by this test class.
   FixKind get kind;
 
   /// Asserts that the resolved compilation unit has a fix which produces
-  /// [expected] output.
+  /// [expectedContent] output.
+  ///
+  /// [expectedContent] will have newlines normalized and be parsed with
+  /// [TestCode.parse], with the resulting code stored in [parsedExpectedCode].
   Future<void> assertHasFix(
-    String expected, {
+    String expectedContent, {
     ErrorFilter? errorFilter,
     String? target,
     int? expectedNumberOfFixesForKind,
     String? matchFixMessage,
     bool allowFixAllFixes = false,
   }) async {
-    expected = normalizeSource(expected);
+    parsedExpectedCode = TestCode.parse(
+      normalizeSource(expectedContent),
+      positionShorthand: allowTestCodeShorthand,
+      rangeShorthand: allowTestCodeShorthand,
+    );
     var diagnostic = await _findDiagnosticToFix(filter: errorFilter);
     var fix = await _assertHasFix(
       diagnostic,
@@ -409,7 +406,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     }
 
     resultCode = SourceEdit.applySequence(fileContent, change.edits[0].edits);
-    expect(resultCode, expected);
+    expect(resultCode, parsedExpectedCode.code);
   }
 
   Future<void> assertHasFixAllFix(
@@ -497,13 +494,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
     return values.map((value) {
       return LinkedEditSuggestion(value, kind);
     }).toList();
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    verifyNoTestUnitErrors = false;
-    useLineEndingsForPlatform = true;
   }
 
   /// Computes fixes, verifies that there is a fix for the given [diagnostic] of

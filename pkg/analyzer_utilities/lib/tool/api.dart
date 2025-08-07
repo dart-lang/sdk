@@ -99,7 +99,7 @@ class ApiDescription {
             (await context.currentSession.getResolvedLibrary(file))
                 as ResolvedLibraryResult;
         var node = nodes[uri] = Node<MemberSortKey>();
-        _dumpLibrary(resolvedLibraryResult.element2, node);
+        _dumpLibrary(resolvedLibraryResult.element, node);
       }
     }
     // Then dump anything referenced by public libraries.
@@ -392,13 +392,11 @@ class ApiDescription {
         throw UnimplementedError('Unexpected element: $runtimeType');
     }
 
-    if (element case Annotatable element) {
-      if (element.metadata.hasDeprecated) {
-        parentheticals.add(['deprecated']);
-      }
-      if (element.metadata.hasExperimental) {
-        parentheticals.add(['experimental']);
-      }
+    if (element.metadata.hasDeprecated) {
+      parentheticals.add(['deprecated']);
+    }
+    if (element.metadata.hasExperimental) {
+      parentheticals.add(['experimental']);
     }
 
     if (parentheticals.isNotEmpty) {
@@ -650,16 +648,14 @@ extension on Element {
   bool isInPublicApiOf(String packageName) {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable?,
+      :var variable,
     ) when variable.isInPublicApiOf(packageName)) {
       return true;
     }
     if (packageName == 'analyzer') {
       // Any element annotated with `@analyzerPublicApi` is considered to be
       // part of the public API of the analyzer package.
-      if (this case Annotatable(
-        metadata: Metadata(:var annotations),
-      ) when annotations.any(_isPublicApiAnnotation)) {
+      if (metadata.annotations.any(_isPublicApiAnnotation)) {
         return true;
       }
     }
@@ -670,9 +666,7 @@ extension on Element {
 
   bool _isPublicApiAnnotation(ElementAnnotation annotation) {
     if (annotation.computeConstantValue() case DartObject(
-      type: InterfaceType(
-        element: InterfaceElement(name: 'AnalyzerPublicApi'),
-      ),
+      type: InterfaceType(element: InterfaceElement(name: 'AnalyzerPublicApi')),
     )) {
       return true;
     } else {

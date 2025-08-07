@@ -36,7 +36,7 @@ class _Generator {
     );
     utilitiesLibraryResult as LibraryElementResult;
     parameterKindClass =
-        utilitiesLibraryResult.element2.getClass('ParameterKind')!;
+        utilitiesLibraryResult.element.getClass('ParameterKind')!;
 
     await _buildImplClasses(astUnitResult);
     _removeGeneratedMembers(astUnitResult);
@@ -974,7 +974,7 @@ extension _DartTypeExtension on DartType {
 
 extension _ElementAnnotationExtension on ElementAnnotation {
   bool get isDoNotGenerate {
-    if (element2 case ConstructorElement constructorElement) {
+    if (element case ConstructorElement constructorElement) {
       var interfaceElement = constructorElement.enclosingElement;
       return interfaceElement.isDoNotGenerateExactly;
     }

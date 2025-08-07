@@ -3409,6 +3409,12 @@ suggestions
     kind: localVariable
   switch
     kind: keyword
+  assert
+    kind: keyword
+  const
+    kind: keyword
+  false
+    kind: keyword
 ''');
   }
 
@@ -4091,6 +4097,8 @@ suggestions
     kind: localVariable
   null
     kind: keyword
+  const
+    kind: keyword
 ''');
   }
 
@@ -4390,11 +4398,21 @@ class C {mth(Map x, ) {}mtf(, Map x) {}m() {for (int i=0; i<5; i++); A^ x;}}clas
 replacement
   left: 1
 suggestions
+  final
+    kind: keyword
   Arrays
     kind: class
+  var
+    kind: keyword
   Arrays
     kind: constructorInvocation
   assert
+    kind: keyword
+  dynamic
+    kind: keyword
+  false
+    kind: keyword
+  late
     kind: keyword
 ''');
   }
@@ -4521,6 +4539,7 @@ suggestions
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'dynamic'.
   Future<void> test_commentSnippets011_1() async {
     allowedIdentifiers = {'Map'};
     await computeSuggestions('''
@@ -4532,9 +4551,12 @@ replacement
 suggestions
   Map
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'dynamic'.
   Future<void> test_commentSnippets012_1() async {
     allowedIdentifiers = {'Map'};
     await computeSuggestions('''
@@ -4547,6 +4569,8 @@ replacement
 suggestions
   Map
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -4702,6 +4726,8 @@ class D {f(){} g(){f^(f);}}
 replacement
   left: 1
 suggestions
+  if
+    kind: keyword
   final
     kind: keyword
   f
@@ -5140,6 +5166,7 @@ suggestions
 ''');
   }
 
+  // TODO(keertip): Do not suggest 'covariant'.
   Future<void> test_commentSnippets030_1() async {
     allowedIdentifiers = {'T'};
     await computeSuggestions('''
@@ -5149,8 +5176,24 @@ class Bar<T extends Foo> {const Bar(T k);T^ m(T a, T b){}final T f = null;}
 replacement
   left: 1
 suggestions
+  static
+    kind: keyword
+  const
+    kind: keyword
+  set
+    kind: keyword
+  factory
+    kind: keyword
   T
     kind: typeParameter
+  covariant
+    kind: keyword
+  get
+    kind: keyword
+  late
+    kind: keyword
+  operator
+    kind: keyword
 ''');
   }
 
@@ -5165,6 +5208,8 @@ replacement
 suggestions
   T
     kind: typeParameter
+  covariant
+    kind: keyword
 ''');
   }
 
@@ -5179,6 +5224,8 @@ replacement
 suggestions
   T
     kind: typeParameter
+  covariant
+    kind: keyword
 ''');
   }
 
@@ -5573,7 +5620,7 @@ replacement
   left: 2
 suggestions
   json
-    kind: library
+    kind: prefix
   json.JsonCodec
     kind: constructorInvocation
   json.JsonDecoder
@@ -5595,13 +5642,13 @@ replacement
   right: 1
 suggestions
   json
-    kind: library
+    kind: prefix
   json.JsonCodec
     kind: constructorInvocation
   json.JsonDecoder
     kind: constructorInvocation
   jxx
-    kind: library
+    kind: prefix
   jxx.JsonCodec
     kind: constructorInvocation
   jxx.JsonDecoder
@@ -5622,13 +5669,13 @@ replacement
   right: 2
 suggestions
   json
-    kind: library
+    kind: prefix
   json.JsonCodec
     kind: constructorInvocation
   json.JsonDecoder
     kind: constructorInvocation
   jxx
-    kind: library
+    kind: prefix
   jxx.JsonCodec
     kind: constructorInvocation
   jxx.JsonDecoder
@@ -5649,7 +5696,7 @@ replacement
   left: 2
 suggestions
   json
-    kind: library
+    kind: prefix
   json.JsonCodec
     kind: constructorInvocation
   json.JsonDecoder
@@ -5676,7 +5723,6 @@ k() {
   const xdr.a(1, 2, 3);
 }
 ''');
-    // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
     assertResponse(r'''
 replacement
   left: 1
@@ -5685,6 +5731,10 @@ suggestions
   xa
     kind: constructorInvocation
   xdr
+    kind: constructorInvocation
+  xdr.a
+    kind: constructorInvocation
+  xdr.b
     kind: constructorInvocation
 ''');
   }
@@ -5704,7 +5754,6 @@ k() {
   const x^dr.a(1, 2, 3);
 }
 ''');
-    // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
     assertResponse(r'''
 replacement
   left: 1
@@ -5713,6 +5762,10 @@ suggestions
   xa
     kind: constructorInvocation
   xdr
+    kind: constructorInvocation
+  xdr.a
+    kind: constructorInvocation
+  xdr.b
     kind: constructorInvocation
 ''');
   }
@@ -6879,6 +6932,8 @@ replacement
 suggestions
   File
     kind: constructorInvocation
+  File.fromPath
+    kind: constructorInvocation
   FileMode
     kind: constructorInvocation
   FileMode._internal
@@ -7631,12 +7686,13 @@ class AAA {
 void f() {
 }
 ''');
-    // TODO(brianwilkerson): We should be suggesting the named constructor here.
     assertResponse(r'''
 replacement
   left: 3
 suggestions
   AAA
+    kind: constructorInvocation
+  AAA.nnn
     kind: constructorInvocation
 ''');
   }
@@ -7861,6 +7917,8 @@ import 'dart:math' show s^"
 replacement
   left: 1
 suggestions
+  cos
+    kind: function
   sin
     kind: function
   sqrt
@@ -8533,6 +8591,10 @@ replacement
 suggestions
   i
     kind: localVariable
+  switch
+    kind: keyword
+  this
+    kind: keyword
 ''');
   }
 
@@ -8547,6 +8609,10 @@ replacement
 suggestions
   i
     kind: localVariable
+  this
+    kind: keyword
+  switch
+    kind: keyword
 ''');
   }
 
@@ -8744,6 +8810,10 @@ suggestions
     kind: topLevelVariable
   this
     kind: keyword
+  const
+    kind: keyword
+  switch
+    kind: keyword
 ''');
   }
 
@@ -8761,6 +8831,10 @@ suggestions
   topValue
     kind: topLevelVariable
   this
+    kind: keyword
+  const
+    kind: keyword
+  switch
     kind: keyword
 ''');
   }
@@ -9034,6 +9108,8 @@ suggestions
     selection: 68 24
   String
     kind: class
+  abstract
+    kind: keyword
 ''');
   }
 
@@ -9736,8 +9812,14 @@ class Collection{}class List extends Collection{}class Foo {L^}
 replacement
   left: 1
 suggestions
+  Collection
+    kind: class
   List
     kind: class
+  final
+    kind: keyword
+  external
+    kind: keyword
   late
     kind: keyword
 ''');
@@ -9752,11 +9834,31 @@ class Collection{}class List extends Collection{}class Foo {C^}
 replacement
   left: 1
 suggestions
+  @override
+  // TODO: implement hashCode
+  int get hashCode => super.hashCode;
+    kind: override
+    selection: 62 14
+  @override
+  noSuchMethod(Invocation invocation) {
+    // TODO: implement noSuchMethod
+    return super.noSuchMethod(invocation);
+  }
+    kind: override
+    selection: 90 38
   Collection
     kind: class
+  static
+    kind: keyword
   const
     kind: keyword
+  factory
+    kind: keyword
+  abstract
+    kind: keyword
   covariant
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }
@@ -10080,6 +10182,8 @@ replacement
 suggestions
   num
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -10166,8 +10270,16 @@ class num{}class Sunflower {static n^}
 replacement
   left: 1
 suggestions
+  final
+    kind: keyword
   num
     kind: class
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
+  external
+    kind: keyword
 ''');
   }
 
@@ -10747,8 +10859,12 @@ void f() {
 replacement
   left: 1
 suggestions
+  false
+    kind: keyword
   l1t
     kind: topLevelVariable
+  null
+    kind: keyword
 ''');
   }
 

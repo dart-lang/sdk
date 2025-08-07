@@ -3845,7 +3845,7 @@ FfiCallbackMetadata::Trampoline Isolate::CreateIsolateLocalFfiCallback(
 }
 
 // TODO(aam): Should this be in IsolateGroup?
-FfiCallbackMetadata::Trampoline Isolate::CreateIsolateGroupSharedFfiCallback(
+FfiCallbackMetadata::Trampoline Isolate::CreateIsolateGroupBoundFfiCallback(
     Zone* zone,
     const Function& trampoline,
     const Closure& target) {

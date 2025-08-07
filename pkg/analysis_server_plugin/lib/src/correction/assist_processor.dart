@@ -49,7 +49,7 @@ class AssistProcessor {
 
     var builder = ChangeBuilder(
       workspace: _assistContext.workspace,
-      eol: producer.eol,
+      defaultEol: producer.defaultEol,
     );
     try {
       if (_performance != null) {

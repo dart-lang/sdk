@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -98,6 +99,11 @@ class LibraryBuilder {
     required this.units,
   });
 
+  void addChildFragment(FragmentImpl parent, FragmentImpl child) {
+    child.enclosingFragment = parent;
+    (_parentChildFragments[parent] ??= []).add(child);
+  }
+
   void addExporters() {
     for (var (fragmentIndex, fragment) in element.units.indexed) {
       for (var (exportIndex, exportElement)
@@ -137,28 +143,24 @@ class LibraryBuilder {
     }
   }
 
-  void addFragmentChild(FragmentImpl parent, FragmentImpl child) {
-    (_parentChildFragments[parent] ??= []).add(child);
-  }
-
   void addTopFragment(LibraryFragmentImpl parent, FragmentImpl fragment) {
-    fragment.enclosingElement = parent;
+    fragment.enclosingFragment = parent;
     (_topFragments[parent] ??= []).add(fragment);
   }
 
   void buildClassSyntheticConstructors() {
-    for (var classFragment in element.topLevelElements) {
-      if (classFragment is! ClassFragmentImpl) continue;
-      if (classFragment.isMixinApplication) continue;
-      if (classFragment.constructors.isNotEmpty) continue;
+    for (var classElement in element.children) {
+      if (classElement is! ClassElementImpl) continue;
+      if (classElement.isMixinApplication) continue;
+      if (classElement.constructors.isNotEmpty) continue;
 
       var fragment = ConstructorFragmentImpl(
         name: 'new',
         firstTokenOffset: null,
       )..isSynthetic = true;
-      fragment.typeName = classFragment.name;
+      fragment.typeName = classElement.name;
+      classElement.firstFragment.constructors = [fragment].toFixedList();
 
-      var classElement = classFragment.element;
       classElement.constructors = [
         ConstructorElementImpl(
           name: fragment.name,
@@ -168,8 +170,6 @@ class LibraryBuilder {
           firstFragment: fragment,
         ),
       ];
-
-      classFragment.constructors = [fragment].toFixedList();
     }
   }
 
@@ -198,6 +198,13 @@ class LibraryBuilder {
       parentChildFragments: _parentChildFragments,
     );
 
+    for (var linkingUnit in units) {
+      InformativeDataApplier().applyFromNode(
+        linkingUnit.element,
+        linkingUnit.node,
+      );
+    }
+
     _declareDartCoreDynamicNever();
   }
 
@@ -213,11 +220,7 @@ class LibraryBuilder {
         ),
       );
       enum_.valuesTypeNode.type = valuesType;
-      enum_.valuesElement.type = valuesType;
       enum_.valuesElement.element.type = valuesType;
-      // TODO(scheglov): We repeat this code.
-      enum_.valuesElement.element.getter!.returnType = valuesType;
-      enum_.valuesElement.element.getter!.firstFragment.returnType = valuesType;
     }
   }
 
@@ -336,7 +339,7 @@ class LibraryBuilder {
 
       var element = interfaceFragment.element;
       for (var constructor in interfaceFragment.constructors) {
-        for (var parameter in constructor.parameters) {
+        for (var parameter in constructor.formalParameters) {
           if (parameter is FieldFormalParameterFragmentImpl) {
             parameter.field = element.getField(parameter.name ?? '')?.asElement;
           }
@@ -378,7 +381,7 @@ class LibraryBuilder {
     for (var interfaceFragment in element.topLevelElements) {
       switch (interfaceFragment) {
         case ClassFragmentImpl():
-          if (interfaceFragment.isDartCoreObject) continue;
+          if (interfaceFragment.element.isDartCoreObject) continue;
           if (interfaceFragment.supertype == null) {
             shouldResetClassHierarchies = true;
             interfaceFragment.supertype = objectType;
@@ -478,7 +481,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library2: exportedLibrary,
+            library: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -497,7 +500,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library2: exportedLibrary,
+            library: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -558,7 +561,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library2: importedLibrary,
+            library: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -577,7 +580,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library2: importedLibrary,
+            library: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -607,7 +610,7 @@ class LibraryBuilder {
       isSynthetic: state.isSyntheticDartCore,
       combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
-      prefix2: prefixFragment,
+      prefix: prefixFragment,
       uri: uri,
     );
   }
@@ -619,12 +622,12 @@ class LibraryBuilder {
     required bool isDeferred,
   }) {
     var fragment = PrefixFragmentImpl(
-      enclosingFragment: libraryFragment,
       name: unlinkedName?.name,
       firstTokenOffset: null,
-      nameOffset2: unlinkedName?.nameOffset,
+      nameOffset: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;
+    fragment.enclosingFragment = libraryFragment;
 
     var refName = getReferenceName(unlinkedName?.name);
     var reference = this.reference

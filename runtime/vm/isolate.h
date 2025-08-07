@@ -1325,7 +1325,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
-  FfiCallbackMetadata::Trampoline CreateIsolateGroupSharedFfiCallback(
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
       Zone* zone,
       const Function& trampoline,
       const Closure& target);

@@ -7,6 +7,25 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
+/// Expand [formalParameters] to include all chains of super formals.
+Future<void> addNamedSuperFormalParameters(
+  SearchEngine searchEngine,
+  List<FormalParameterElement> formalParameters,
+) async {
+  // Indexed-based loop to allow modification while iterating.
+  for (var i = 0; i < formalParameters.length; i++) {
+    var formalParameter = formalParameters[i];
+    if (formalParameter.isNamed) {
+      var references = await searchEngine.searchReferences(formalParameter);
+      formalParameters.addAll(
+        references
+            .map((match) => match.element)
+            .whereType<SuperFormalParameterElement>(),
+      );
+    }
+  }
+}
+
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
@@ -153,9 +172,7 @@ getHierarchyMembersAndParameters(
       subClasses.add(superClass);
     }
     if (member2.isPrivate) {
-      subClasses.removeWhere(
-        (subClass) => subClass.library != member2.library,
-      );
+      subClasses.removeWhere((subClass) => subClass.library != member2.library);
     }
     for (var subClass in subClasses) {
       var subClassMembers = getChildren(subClass, name);
@@ -266,7 +283,7 @@ List<Element> getMembers(InterfaceElement clazz) {
 Element getSyntheticAccessorVariable(Element element) {
   if (element is PropertyAccessorElement) {
     if (element.isSynthetic) {
-      return element.variable ?? element;
+      return element.variable;
     }
   }
   return element;

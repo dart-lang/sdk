@@ -13,6 +13,7 @@ import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../codes/cfe_codes.dart';
 import '../fragment/factory/declaration.dart';
@@ -20,6 +21,7 @@ import '../kernel/hierarchy/class_member.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../util/reference_map.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -98,12 +100,10 @@ class SourceFactoryBuilder extends SourceMemberBuilderImpl
   bool get isStatic => true;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   Builder get parent => declarationBuilder;
@@ -406,12 +406,13 @@ class FactoryReferences {
   ///
   /// This must be called before [factoryReference] and [tearOffReference] are
   /// accessed.
-  void registerReference(SourceLoader loader, SourceFactoryBuilder builder) {
+  void registerReference(
+      ReferenceMap referenceMap, SourceFactoryBuilder builder) {
     if (_factoryReference != null) {
-      loader.buildersCreatedWithReferences[_factoryReference!] = builder;
+      referenceMap.registerNamedBuilder(_factoryReference!, builder);
     }
     if (_tearOffReference != null) {
-      loader.buildersCreatedWithReferences[_tearOffReference!] = builder;
+      referenceMap.registerNamedBuilder(_tearOffReference!, builder);
     }
   }
 

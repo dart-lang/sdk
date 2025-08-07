@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -11,6 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 class VisibilityTracker {
   /// The set of known previously declared names.
   final Set<String> _declaredNames = {};
+  final _notImportedNames = HashMap<String, List<String>>();
 
   /// Whether the name of the [element] is visible at the completion location.
   ///
@@ -31,8 +34,22 @@ class VisibilityTracker {
     var prefix = importData?.prefix;
     var qualifiedName = prefix != null ? '$prefix.$name' : name;
 
+    // Track names from non imported libraries so as to allow multiple
+    // suggestions with same name from differnet libraries.
     if (isNotImported) {
-      return !_declaredNames.contains(qualifiedName);
+      if (_declaredNames.contains(qualifiedName)) {
+        return false;
+      }
+      var libraryUri = importData!.libraryUri.toString();
+      var notImportedList = _notImportedNames.putIfAbsent(
+        name,
+        () => <String>[],
+      );
+      if (notImportedList.isEmpty || !notImportedList.contains(libraryUri)) {
+        notImportedList.add(libraryUri);
+        return true;
+      }
+      return false;
     }
     return _declaredNames.add(qualifiedName);
   }

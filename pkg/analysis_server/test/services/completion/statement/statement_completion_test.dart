@@ -28,23 +28,22 @@ void main() {
 class StatementCompletionTest extends AbstractSingleUnitTest {
   late SourceChange change;
 
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
+  int _after(String source, String match) {
+    match = normalizeSource(match);
+    return source.indexOf(match) + match.length;
   }
 
-  int _after(String source, String match) =>
-      source.indexOf(match) + match.length;
-
-  int _afterLast(String source, String match) =>
-      source.lastIndexOf(match) + match.length;
+  int _afterLast(String source, String match) {
+    match = normalizeSource(match);
+    return source.lastIndexOf(match) + match.length;
+  }
 
   void _assertHasChange(
     String message,
     String expectedCode, [
     int Function(String)? cmp,
   ]) {
+    expectedCode = normalizeSource(expectedCode);
     if (change.message == message) {
       if (change.edits.isNotEmpty) {
         var resultCode = SourceEdit.applySequence(
@@ -82,6 +81,7 @@ class StatementCompletionTest extends AbstractSingleUnitTest {
     int delta = 0,
   }) async {
     verifyNoTestUnitErrors = false;
+    sourceCode = normalizeSource(sourceCode);
     await resolveTestCode(sourceCode.replaceAll('////', ''));
     var offset = findOffset(search);
     if (atEnd) {

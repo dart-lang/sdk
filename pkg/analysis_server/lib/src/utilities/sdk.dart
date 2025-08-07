@@ -25,8 +25,7 @@ class Sdk {
 
   factory Sdk() => _instance;
 
-  Sdk._(this.sdkPath, bool runFromBuildRoot)
-    : _runFromBuildRoot = runFromBuildRoot;
+  Sdk._(this.sdkPath, this._runFromBuildRoot);
 
   /// Path to the 'dart' executable in the Dart SDK.
   String get dart {
@@ -42,8 +41,9 @@ class Sdk {
   }
 
   static Sdk _createSingleton() {
-    // Find SDK path.
-    (String, bool)? trySDKPath(String executablePath) {
+    // Looks for certain SDK files at [executablePath], returning an [Sdk] if
+    // found, and `null` if not.
+    Sdk? trySdkPath(String executablePath) {
       // The common case, and how cli_util.dart computes the Dart SDK directory,
       // [path.dirname] called twice on Platform.executable. We confirm by
       // asserting that the directory `./bin/snapshots/` exists in this directory:
@@ -63,20 +63,17 @@ class Sdk {
 
       // Try to locate the DartDev snapshot to determine if we're able to find
       // the SDK snapshots with this SDK path. This is meant to handle
-      // non-standard SDK layouts that can involve symlinks (e.g., Brew
+      // non-standard SDK layouts that can involve symlinks (e.g., Homebrew
       // installations, google3 tests, etc).
       if (!_checkArtifactExists(
-        path.join(snapshotsDir, 'dartdev.dart.snapshot'),
+        path.join(snapshotsDir, 'dartdev_aot.dart.snapshot'),
       )) {
         return null;
       }
-      return (sdkPath, runFromBuildRoot);
+      return Sdk._(sdkPath, runFromBuildRoot);
     }
 
-    var (sdkPath, runFromBuildRoot) =
-        trySDKPath(Platform.resolvedExecutable) ??
-        trySDKPath(Platform.executable)!;
-
-    return Sdk._(sdkPath, runFromBuildRoot);
+    return trySdkPath(Platform.resolvedExecutable) ??
+        trySdkPath(Platform.executable)!;
   }
 }

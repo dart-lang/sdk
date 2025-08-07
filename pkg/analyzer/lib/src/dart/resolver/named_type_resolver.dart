@@ -92,7 +92,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
-      var prefixElement = nameScope.lookup(prefixName).getter2;
+      var prefixElement = nameScope.lookup(prefixName).getter;
       importPrefix.element = prefixElement;
 
       if (prefixElement == null) {
@@ -311,7 +311,7 @@ class NamedTypeResolver with ScopeHelpers {
       scopeLookupResult: scopeLookupResult,
       nameToken: nameToken,
     );
-    return scopeLookupResult.getter2;
+    return scopeLookupResult.getter;
   }
 
   void _resolveToElement(
@@ -405,7 +405,7 @@ class NamedTypeResolver with ScopeHelpers {
       }
       var fragment = element?.firstFragment;
       var source = fragment?.libraryFragment?.source;
-      var nameOffset = fragment?.nameOffset2;
+      var nameOffset = fragment?.nameOffset;
       diagnosticReporter.atOffset(
         offset: importPrefix.offset,
         length: nameToken.end - importPrefix.offset,
@@ -672,7 +672,7 @@ class _ErrorHelper {
       var name = node.name.lexeme;
       var fragment = element.firstFragment;
       var source = fragment.libraryFragment?.source;
-      var nameOffset = fragment.nameOffset2;
+      var nameOffset = fragment.nameOffset;
       diagnosticReporter.atOffset(
         offset: errorRange.offset,
         length: errorRange.length,

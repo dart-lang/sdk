@@ -318,7 +318,7 @@ const white = [!Colors.white!];
           start: code.position.position,
           end: code.position.position,
         ),
-        newText: "\nimport '$uiImportUri';",
+        newText: "${eol}import '$uiImportUri';",
       ),
     ];
 

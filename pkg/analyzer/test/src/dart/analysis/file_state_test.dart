@@ -6384,6 +6384,7 @@ class FileSystemStateTest with ResourceProviderMixin {
       onNewFile: (file) {},
       testData: null,
       unlinkedUnitStore: UnlinkedUnitStoreImpl(),
+      withFineDependencies: false,
     );
   }
 

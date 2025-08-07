@@ -158,10 +158,21 @@ class VMConnectElement extends CustomElement implements Renderable {
     }
     try {
       Uri uri = Uri.parse(networkAddress);
-      if (uri.path.endsWith('/ws')) {
-        return 'ws://${uri.authority}${uri.path}';
+      // We massage this URI in various places throughout the codebase,
+      // sometimes rather naively. We remove any trailing '/' to normalize the
+      // URI to avoid situations where URIs can be constructed with two
+      // consecutive slashes which can cause authentication code checks to fail
+      // (e.g., http://127.0.0.1:8080/oOR_LvT4RT4=//getVMTimeline).
+      //
+      // See https://github.com/dart-lang/sdk/issues/61091#issuecomment-3058991929
+      var path = uri.path;
+      if (path.endsWith('/')) {
+        path = path.substring(0, path.length - 1);
       }
-      return 'ws://${uri.authority}${uri.path}/ws';
+      if (uri.path.endsWith('/ws')) {
+        return 'ws://${uri.authority}$path';
+      }
+      return 'ws://${uri.authority}$path/ws';
     } catch (e) {
       print('caught exception with: $networkAddress -- $e');
       return networkAddress;

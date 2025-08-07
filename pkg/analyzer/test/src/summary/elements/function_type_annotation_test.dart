@@ -27,18 +27,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 f @16
+        #F1 f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic f
+        #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@getter::f
-          returnType: void Function()
       setters
-        #F3 synthetic f
+        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F4 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     f
       reference: <testLibrary>::@topLevelVariable::f
@@ -57,10 +56,11 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _f
+        #E0 requiredPositional value
           firstFragment: #F4
           type: void Function()
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -75,18 +75,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 f @17
+        #F1 f (nameOffset:17) (firstTokenOffset:17) (offset:17)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic f
+        #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@getter::f
-          returnType: void Function()?
       setters
-        #F3 synthetic f
+        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F4 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     f
       reference: <testLibrary>::@topLevelVariable::f
@@ -105,10 +104,11 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _f
+        #E0 requiredPositional value
           firstFragment: #F4
           type: void Function()?
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -123,7 +123,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @30
+        #F1 f (nameOffset:30) (firstTokenOffset:0) (offset:30)
           element: <testLibrary>::@function::f
   functions
     f
@@ -144,11 +144,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 p @37
+            #F2 p (nameOffset:37) (firstTokenOffset:7) (offset:37)
               element: <testLibrary>::@function::f::@formalParameter::p
+              parameters
+                #F3 c (nameOffset:43) (firstTokenOffset:39) (offset:43)
+                  element: c@43
   functions
     f
       reference: <testLibrary>::@function::f
@@ -176,7 +179,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F @8
+        #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
     F
@@ -199,14 +202,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class C @6
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 m @42
+            #F3 m (nameOffset:42) (firstTokenOffset:12) (offset:42)
               element: <testLibrary>::@class::C::@method::m
   classes
     class C
@@ -235,10 +238,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 f @5
+        #F1 f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
-            #F2 p @37
+            #F2 p (nameOffset:37) (firstTokenOffset:7) (offset:37)
               element: <testLibrary>::@function::f::@formalParameter::p
   functions
     f
@@ -263,18 +266,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       topLevelVariables
-        #F1 v @30
+        #F1 v (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v
+        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::v
-          returnType: int Function(int, String)
       setters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     v
       reference: <testLibrary>::@topLevelVariable::v
@@ -293,10 +295,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F4
           type: int Function(int, String)
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -316,20 +319,20 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
-        #F4 class B @64
+        #F4 class B (nameOffset:64) (firstTokenOffset:29) (offset:64)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -369,18 +372,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v @62
+        #F4 hasInitializer v (nameOffset:62) (firstTokenOffset:62) (offset:62)
           element: <testLibrary>::@topLevelVariable::v
           metadata
             Annotation
@@ -407,13 +410,15 @@ library
                           type: String
                         name: a @52
                         declaredElement: <testLibraryFragment> a@52
-                          type: String
+                          element: isPublic
+                            type: String
                       rightParenthesis: ) @53
                     declaredElement: GenericFunctionTypeElement
                       parameters
                         a
                           kind: required positional
-                          type: String
+                          element:
+                            type: String
                       returnType: int
                       type: int Function(String)
                     type: int Function(String)
@@ -425,15 +430,14 @@ library
                 baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
       getters
-        #F5 synthetic v
+        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@getter::v
-          returnType: int
       setters
-        #F6 synthetic v
+        #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F7 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F7 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+              element: <testLibrary>::@setter::v::@formalParameter::value
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -474,13 +478,15 @@ library
                       type: String
                     name: a @52
                     declaredElement: <testLibraryFragment> a@52
-                      type: String
+                      element: isPublic
+                        type: String
                   rightParenthesis: ) @53
                 declaredElement: GenericFunctionTypeElement
                   parameters
                     a
                       kind: required positional
-                      type: String
+                      element:
+                        type: String
                   returnType: int
                   type: int Function(String)
                 type: int Function(String)
@@ -505,10 +511,11 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F6
       formalParameters
-        #E1 requiredPositional _v
+        #E1 requiredPositional value
           firstFragment: #F7
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
@@ -527,18 +534,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v @35
+        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -566,16 +573,19 @@ library
                                 type: int?
                               name: a @63
                               declaredElement: <testLibraryFragment> a@63
-                                type: int?
+                                element: isPublic
+                                  type: int?
                             declaredElement: <testLibraryFragment> a@63
-                              type: int?
+                              element: isPublic
+                                type: int?
                           rightDelimiter: } @64
                           rightParenthesis: ) @65
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional named
-                              type: int?
+                              element:
+                                type: int?
                           returnType: String
                           type: String Function({int? a})
                         type: String Function({int? a})
@@ -590,9 +600,8 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function({int? a})>
       getters
-        #F5 synthetic v
+        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
-          returnType: A<String Function({int? a})>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -637,18 +646,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v @35
+        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -676,16 +685,19 @@ library
                                 type: int?
                               name: a @63
                               declaredElement: <testLibraryFragment> a@63
-                                type: int?
+                                element: isPublic
+                                  type: int?
                             declaredElement: <testLibraryFragment> a@63
-                              type: int?
+                              element: isPublic
+                                type: int?
                           rightDelimiter: ] @64
                           rightParenthesis: ) @65
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional positional
-                              type: int?
+                              element:
+                                type: int?
                           returnType: String
                           type: String Function([int?])
                         type: String Function([int?])
@@ -700,9 +712,8 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function([int?])>
       getters
-        #F5 synthetic v
+        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
-          returnType: A<String Function([int?])>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -747,18 +758,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v @35
+        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -786,16 +797,19 @@ library
                                 type: int
                               name: a @71
                               declaredElement: <testLibraryFragment> a@71
-                                type: int
+                                element: isPublic
+                                  type: int
                             declaredElement: <testLibraryFragment> a@71
-                              type: int
+                              element: isPublic
+                                type: int
                           rightDelimiter: } @72
                           rightParenthesis: ) @73
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required named
-                              type: int
+                              element:
+                                type: int
                           returnType: String
                           type: String Function({required int a})
                         type: String Function({required int a})
@@ -810,9 +824,8 @@ library
                 rightParenthesis: ) @76
               staticType: A<String Function({required int a})>
       getters
-        #F5 synthetic v
+        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
-          returnType: A<String Function({required int a})>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -857,18 +870,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 const new
+            #F3 const new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 21
       topLevelVariables
-        #F4 hasInitializer v @35
+        #F4 hasInitializer v (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
             InstanceCreationExpression
@@ -893,13 +906,15 @@ library
                               type: int
                             name: a @61
                             declaredElement: <testLibraryFragment> a@61
-                              type: int
+                              element: isPublic
+                                type: int
                           rightParenthesis: ) @62
                         declaredElement: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required positional
-                              type: int
+                              element:
+                                type: int
                           returnType: String
                           type: String Function(int)
                         type: String Function(int)
@@ -914,9 +929,8 @@ library
                 rightParenthesis: ) @65
               staticType: A<String Function(int)>
       getters
-        #F5 synthetic v
+        #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
-          returnType: A<String Function(int)>
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -957,10 +971,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin B @6
+        #F1 mixin B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::B
           typeParameters
-            #F2 X @8
+            #F2 X (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 X
   mixins
     mixin B
@@ -988,23 +1002,23 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @6
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           typeParameters
-            #F2 T @8
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B @31
+        #F4 class B (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
       mixins
-        #F6 mixin M @20
+        #F6 mixin M (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@mixin::M
   classes
     class A
@@ -1058,12 +1072,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       typeAliases
-        #F1 F1 @8
+        #F1 F1 (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F1
-        #F2 F2 @43
+        #F2 F2 (nameOffset:43) (firstTokenOffset:35) (offset:43)
           element: <testLibrary>::@typeAlias::F2
           typeParameters
-            #F3 V2 @46
+            #F3 V2 (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: #E0 V2
   typeAliases
     F1

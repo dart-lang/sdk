@@ -5,7 +5,7 @@
 import "dart:convert" show json;
 
 import "package:_fe_analyzer_shared/src/messages/diagnostic_message.dart"
-    show DiagnosticMessage, getMessageCodeObject;
+    show CfeDiagnosticMessage, getMessageCodeObject;
 import "package:expect/async_helper.dart" show asyncTest;
 import "package:expect/expect.dart" show Expect;
 import "package:front_end/src/api_prototype/compiler_options.dart"
@@ -21,7 +21,7 @@ import "package:front_end/src/kernel_generator_impl.dart";
 import "package:front_end/src/source/source_loader.dart"
     show defaultDartCoreSource;
 
-Future<List<DiagnosticMessage>> outline(String objectHeader) async {
+Future<List<CfeDiagnosticMessage>> outline(String objectHeader) async {
   final Uri base = Uri.parse("org-dartlang-test:///");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
@@ -43,7 +43,7 @@ Future<List<DiagnosticMessage>> outline(String objectHeader) async {
           .replaceAll("class Object {", "$objectHeader")
           .replaceAll("const Object();", ""));
 
-  final List<DiagnosticMessage> messages = <DiagnosticMessage>[];
+  final List<CfeDiagnosticMessage> messages = <CfeDiagnosticMessage>[];
 
   CompilerContext context = new CompilerContext(new ProcessedOptions(
       options: new CompilerOptions()
@@ -63,17 +63,18 @@ Future<List<DiagnosticMessage>> outline(String objectHeader) async {
 
 Future<void> test() async {
   Set<String> normalErrors = (await outline("class Object {"))
-      .map((DiagnosticMessage message) => getMessageCodeObject(message)!.name)
+      .map(
+          (CfeDiagnosticMessage message) => getMessageCodeObject(message)!.name)
       .toSet();
 
   Future<void> check(String objectHeader, List<Code> expectedCodes) async {
-    List<DiagnosticMessage> messages = (await outline(objectHeader))
-        .where((DiagnosticMessage message) =>
+    List<CfeDiagnosticMessage> messages = (await outline(objectHeader))
+        .where((CfeDiagnosticMessage message) =>
             !normalErrors.contains(getMessageCodeObject(message)!.name))
         .toList();
     Expect.setEquals(
         expectedCodes,
-        messages.map((DiagnosticMessage m) => getMessageCodeObject(m)),
+        messages.map((CfeDiagnosticMessage m) => getMessageCodeObject(m)),
         objectHeader);
   }
 

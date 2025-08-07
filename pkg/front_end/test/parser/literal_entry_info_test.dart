@@ -916,6 +916,16 @@ class TestInfoListener implements Listener {
   }
 
   @override
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    calls.add('handleDotAccess $token');
+  }
+
+  @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    calls.add('handleCascadeAccess $token');
+  }
+
+  @override
   void endBinaryExpression(Token token, Token endToken) {
     calls.add('endBinaryExpression $token');
   }

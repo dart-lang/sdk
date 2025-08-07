@@ -514,6 +514,7 @@ class Object {
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
   V(Array, empty_subtype_test_cache_array)                                     \
+  V(Array, mutable_empty_array)                                                \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
   V(CompressedStackMaps, empty_compressed_stackmaps)                           \
@@ -1716,10 +1717,10 @@ class Class : public Object {
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
+  FunctionPtr LookupFunction(const String& name) const;
   FunctionPtr LookupFunctionReadLocked(const String& name) const;
   FunctionPtr LookupDynamicFunctionUnsafe(const String& name) const;
 
-  FunctionPtr LookupDynamicFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupStaticFunction(const String& name) const;
   FunctionPtr LookupStaticFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupConstructor(const String& name) const;
@@ -1727,8 +1728,6 @@ class Class : public Object {
   FunctionPtr LookupFactory(const String& name) const;
   FunctionPtr LookupFactoryAllowPrivate(const String& name) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name) const;
-  FunctionPtr LookupGetterFunction(const String& name) const;
-  FunctionPtr LookupSetterFunction(const String& name) const;
   FieldPtr LookupInstanceField(const String& name) const;
   FieldPtr LookupStaticField(const String& name) const;
   FieldPtr LookupField(const String& name) const;
@@ -2246,10 +2245,6 @@ class Class : public Object {
   FunctionPtr LookupFunctionAllowPrivate(const String& name,
                                          MemberKind kind) const;
   FieldPtr LookupField(const String& name, MemberKind kind) const;
-
-  FunctionPtr LookupAccessorFunction(const char* prefix,
-                                     intptr_t prefix_length,
-                                     const String& name) const;
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance, class TargetFakeInstance>
@@ -2990,9 +2985,9 @@ struct NameFormattingParams {
 
 enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
-  kIsolateGroupSharedStaticCallback,
+  kIsolateGroupBoundStaticCallback,
   kIsolateLocalClosureCallback,
-  kIsolateGroupSharedClosureCallback,
+  kIsolateGroupBoundClosureCallback,
   kAsyncCallback,
 };
 
@@ -4607,6 +4602,11 @@ class Field : public Object {
   // Used by class finalizer, otherwise initialized in constructor.
   void SetFieldType(const AbstractType& value) const;
   void SetFieldTypeSafe(const AbstractType& value) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  AbstractTypePtr exact_type() const { return untag()->exact_type(); }
+  void set_exact_type(const AbstractType& value) const;
+#endif
 
   DART_WARN_UNUSED_RESULT
   ErrorPtr VerifyEntryPoint(EntryPointPragma kind) const;
@@ -7838,10 +7838,13 @@ class MegamorphicCache : public CallSiteData {
 
   // The caller must hold IsolateGroup::type_feedback_mutex().
   void InsertLocked(const Smi& class_id, const Object& target) const;
-  void EnsureCapacityLocked() const;
   ObjectPtr LookupLocked(const Smi& class_id) const;
 
-  void InsertEntryLocked(const Smi& class_id, const Object& target) const;
+  template <std::memory_order order>
+  static void InsertEntryLocked(const Array& array,
+                                intptr_t mask,
+                                const Smi& class_id,
+                                const Object& target);
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,
@@ -7849,7 +7852,15 @@ class MegamorphicCache : public CallSiteData {
                               const Object& target);
 
   static inline ObjectPtr GetClassId(const Array& array, intptr_t index);
+  template <std::memory_order order>
+  static inline void SetClassId(const Array& array,
+                                intptr_t index,
+                                const Smi& class_id);
   static inline ObjectPtr GetTargetFunction(const Array& array, intptr_t index);
+  template <std::memory_order order>
+  static inline void SetTargetFunction(const Array& array,
+                                       intptr_t index,
+                                       const Object& target);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, CallSiteData);
 };
@@ -10581,8 +10592,6 @@ class String : public Instance {
                                Heap::Space space = Heap::kNew);
   static StringPtr ToLowerCase(const String& str,
                                Heap::Space space = Heap::kNew);
-
-  static StringPtr RemovePrivateKey(const String& name);
 
   static const char* ScrubName(const String& name, bool is_extension = false);
   static StringPtr ScrubNameRetainPrivate(const String& name,
@@ -13549,9 +13558,23 @@ ObjectPtr MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
   return array.At((index * kEntryLength) + kClassIdIndex);
 }
 
+template <std::memory_order order>
+void MegamorphicCache::SetClassId(const Array& array,
+                                  intptr_t index,
+                                  const Smi& class_id) {
+  array.SetAt<order>((index * kEntryLength) + kClassIdIndex, class_id);
+}
+
 ObjectPtr MegamorphicCache::GetTargetFunction(const Array& array,
                                               intptr_t index) {
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
+}
+
+template <std::memory_order order>
+void MegamorphicCache::SetTargetFunction(const Array& array,
+                                         intptr_t index,
+                                         const Object& target) {
+  array.SetAt<order>((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 
 inline uword AbstractType::Hash() const {

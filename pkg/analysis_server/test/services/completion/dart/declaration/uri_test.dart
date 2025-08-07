@@ -454,6 +454,8 @@ suggestions
     kind: import
   dart:typed_data
     kind: import
+  package:test/test.dart
+    kind: import
   dart:core
     kind: import
 ''');
@@ -492,6 +494,8 @@ suggestions
   dart:math
     kind: import
   dart:typed_data
+    kind: import
+  package:test/test.dart
     kind: import
   dart:core
     kind: import
@@ -647,6 +651,8 @@ suggestions
     kind: import
   package:test/
     kind: import
+  package:test/test.dart
+    kind: import
 ''');
   }
 
@@ -663,6 +669,8 @@ suggestions
   package:
     kind: import
   package:test/
+    kind: import
+  package:test/test.dart
     kind: import
 ''');
   }
@@ -692,13 +700,25 @@ import "p^" import
 replacement
   left: 1
 suggestions
+  dart:js_interop
+    kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
     kind: import
+  package:bar/bar.dart
+    kind: import
   package:foo/
     kind: import
+  package:foo/baz/
+    kind: import
+  package:foo/foo.dart
+    kind: import
   package:test/
+    kind: import
+  package:test/test.dart
     kind: import
 ''');
   }
@@ -813,11 +833,17 @@ import "p^" class
 replacement
   left: 1
 suggestions
+  dart:js_interop
+    kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
     kind: import
   package:test/
+    kind: import
+  package:test/test.dart
     kind: import
 ''');
   }
@@ -847,13 +873,25 @@ import r"p^" import
 replacement
   left: 1
 suggestions
+  dart:js_interop
+    kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
     kind: import
+  package:bar/bar.dart
+    kind: import
   package:foo/
     kind: import
+  package:foo/baz/
+    kind: import
+  package:foo/foo.dart
+    kind: import
   package:test/
+    kind: import
+  package:test/test.dart
     kind: import
 ''');
   }
@@ -1053,6 +1091,8 @@ suggestions
   dart:math
     kind: import
   dart:typed_data
+    kind: import
+  package:test/test.dart
     kind: import
   dart:core
     kind: import

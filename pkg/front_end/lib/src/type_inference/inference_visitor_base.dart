@@ -27,6 +27,7 @@ import '../base/instrumentation.dart'
         InstrumentationValueForMember,
         InstrumentationValueForType,
         InstrumentationValueForTypeArgs;
+import '../base/lookup_result.dart';
 import '../base/problems.dart' show internalProblem, unhandled;
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
@@ -54,7 +55,6 @@ import 'type_demotion.dart';
 import 'type_inference_engine.dart';
 import 'type_inferrer.dart' show TypeInferrerImpl;
 import 'type_schema.dart' show isKnown, UnknownType;
-import 'type_schema_elimination.dart' show greatestClosure;
 import 'type_schema_environment.dart'
     show
         getNamedParameterType,
@@ -190,11 +190,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   StaticTypeContext get staticTypeContext => _inferrer.staticTypeContext;
 
   DartType computeGreatestClosure(DartType type) {
-    return greatestClosure(type, topType: const DynamicType());
+    return cfeOperations.greatestClosureOfSchema(new SharedTypeSchemaView(type),
+        topType: new SharedTypeView(const DynamicType())) as DartType;
   }
 
   DartType computeGreatestClosure2(DartType type) {
-    return greatestClosure(type, topType: coreTypes.objectNullableRawType);
+    return cfeOperations.greatestClosureOfSchema(new SharedTypeSchemaView(type),
+            topType: new SharedTypeView(coreTypes.objectNullableRawType))
+        as DartType;
   }
 
   DartType computeNullable(DartType type) =>
@@ -1288,12 +1291,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
     }
 
-    MemberBuilder? constructorBuilder = builder.findConstructorOrFactory(
-      name.text,
-      fileOffset,
-      helper.uri,
-      libraryBuilder,
-    );
+    MemberLookupResult? result =
+        builder.findConstructorOrFactory(name.text, libraryBuilder);
+    if (result == null || result.isInvalidLookup) {
+      return null;
+    }
+    MemberBuilder? constructorBuilder = result.getable;
     return isTearoff
         ? constructorBuilder?.readTarget
         : constructorBuilder?.invokeTarget;
@@ -4995,7 +4998,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         context: whyNotPromoted != null
             ? getWhyNotPromotedContext(
                 whyNotPromoted(),
-                read, // Coverage-ignore(suite): Not run.
+                read,
+                // Coverage-ignore(suite): Not run.
                 (type) => !type.isPotentiallyNullable,
               )
             : null,

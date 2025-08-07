@@ -126,7 +126,7 @@ VariableGet createVariableGet(VariableDeclaration variable,
     {DartType? promotedType}) {
   return new VariableGet(variable)
     ..fileOffset = variable.fileOffset
-    ..promotedType = promotedType;
+    ..promotedType = promotedType != variable.type ? promotedType : null;
 }
 
 /// Creates a [VariableSet] of [variable] with the [value].

@@ -43,9 +43,9 @@ static final field core::bool alwaysFalse = [@vm.direct-call.metadata=dart.core:
 static method main() → dynamic {
   final math::Random r = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
   if([@vm.inferred-type.metadata=dart.core::bool] self::alwaysFalse) {
-    [@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::foo}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int) → core::int}){(core::int?) → void};
-    [@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::B::•().{self::B::foo}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int) → core::int}){(core::int?) → void};
-    [@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=!? (skip check)] new self::A::•().{self::A::foo}(null){(core::int?) → void};
+    [@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=? (skip check)] new self::A::•().{self::A::foo}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int) → core::int}){(core::int?) → void};
+    [@vm.direct-call.metadata=#lib::B.foo] [@vm.inferred-type.metadata=? (skip check)] new self::B::•().{self::B::foo}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] r.{math::Random::nextInt}(10){(core::int) → core::int}){(core::int?) → void};
+    [@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=? (skip check)] new self::A::•().{self::A::foo}(null){(core::int?) → void};
   }
   final core::List<self::B> l = [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::B>] core::_GrowableList::_literal2<self::B>(new self::B::•(), new self::C::•());
   {

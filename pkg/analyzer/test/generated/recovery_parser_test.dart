@@ -484,6 +484,20 @@ class B = Object with A {}''',
     expect(classDecl.name.lexeme, 'foo');
   }
 
+  void test_dotShorthand_missing_identifier() {
+    var result = parseExpression(
+      ".",
+      codes: [
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
+        ParserErrorCode.EXPERIMENT_NOT_ENABLED,
+      ],
+    );
+    var expression = result as DotShorthandPropertyAccess;
+    expect(expression.period.lexeme, '.');
+    expect(expression.propertyName.isSynthetic, isTrue);
+  }
+
   void test_equalityExpression_missing_LHS() {
     var expression =
         parseExpression("== y", codes: [ParserErrorCode.MISSING_IDENTIFIER])
@@ -1697,20 +1711,6 @@ class C {
             as SimpleIdentifier;
     expectNotNullIfNoErrors(expression);
     expect(expression.isSynthetic, isTrue);
-  }
-
-  void test_propertyAccess_missing_LHS_RHS() {
-    Expression result = parseExpression(
-      ".",
-      codes: [
-        ParserErrorCode.MISSING_IDENTIFIER,
-        ParserErrorCode.MISSING_IDENTIFIER,
-      ],
-    );
-    var expression = result as PrefixedIdentifier;
-    expect(expression.prefix.isSynthetic, isTrue);
-    expect(expression.period.lexeme, '.');
-    expect(expression.identifier.isSynthetic, isTrue);
   }
 
   void test_relationalExpression_missing_LHS() {

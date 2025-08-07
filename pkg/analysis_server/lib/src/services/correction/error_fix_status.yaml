@@ -517,9 +517,9 @@ CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
 CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT:
   status: needsEvaluation
 CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
@@ -1662,8 +1662,6 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
   notes: |-
     Fixes could include (1) removing all past the first parameter, and (2)
     removing all but a singular used parameter, if only one is used.
-CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
-  status: needsFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
@@ -1876,10 +1874,7 @@ LintCode.annotate_redeclares:
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
 LintCode.avoid_bool_literals_in_conditional_expressions:
-  status: needsFix
-  notes: |-
-    Each expression like `condition ? true : boolExpression` can be universally
-    fixed to not contain a bool literal.
+  status: hasFix
 LintCode.avoid_catches_without_on_clauses:
   status: noFix
   notes: |-
@@ -3319,6 +3314,8 @@ ParserErrorCode.WITH_BEFORE_EXTENDS:
   status: needsFix
   notes: |-
     Move the extends clause.
+ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+  status: needsFix
 ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
   status: hasFix
 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
@@ -3465,10 +3462,14 @@ WarningCode.DEPRECATED_EXPORT_USE:
   status: hasFix
   notes: |-
     A data driven fix using `replacedBy`.
+WarningCode.DEPRECATED_EXTEND:
+  status: hasFix
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
-    The fix is to remove `Function` from where it's referenced.
+    The fix is to remove the class from the implements list.
+WarningCode.DEPRECATED_IMPLEMENT:
+  status: hasFix
 WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
   status: hasFix
 WarningCode.DEPRECATED_MIXIN_FUNCTION:
@@ -3554,6 +3555,12 @@ WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
 WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
   status: needsFix
+WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-

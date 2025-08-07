@@ -1,0 +1,222 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:10:3: Error: Method not found: 'Unresolved'.
+//   Unresolved(); // Error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:11:7: Error: Couldn't find constructor 'Unresolved'.
+//   new Unresolved(); // Error
+//       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:12:9: Error: Couldn't find constructor 'Unresolved'.
+//   const Unresolved(); // Error
+//         ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:14:3: Error: Undefined name 'Unresolved'.
+//   Unresolved.named(); // Error
+//   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:15:7: Error: Couldn't find constructor 'Unresolved.named'.
+//   new Unresolved.named(); // Error
+//       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:16:9: Error: Couldn't find constructor 'Unresolved.named'.
+//   const Unresolved.named(); // Error
+//         ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:18:7: Error: Method not found: 'Unresolved'.
+//   lib.Unresolved(); // Error
+//       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:19:11: Error: Couldn't find constructor 'Unresolved'.
+//   new lib.Unresolved(); // Error
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:20:13: Error: Couldn't find constructor 'Unresolved'.
+//   const lib.Unresolved(); // Error
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:22:7: Error: Undefined name 'Unresolved'.
+//   lib.Unresolved.named(); // Error
+//       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:23:11: Error: Couldn't find constructor 'Unresolved'.
+//   new lib.Unresolved.named(); // Error
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:24:13: Error: Couldn't find constructor 'Unresolved'.
+//   const lib.Unresolved.named(); // Error
+//             ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:26:11: Error: Member not found: 'Private._named'.
+//   Private._named(); // Error
+//           ^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:27:15: Error: Couldn't find constructor 'Private._named'.
+//   new Private._named(); // Error
+//               ^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:28:17: Error: Couldn't find constructor 'Private._named'.
+//   const Private._named(); // Error
+//                 ^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:30:15: Error: Member not found: 'Private._named'.
+//   lib.Private._named(); // Error
+//               ^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:31:19: Error: Couldn't find constructor 'Private._named'.
+//   new lib.Private._named(); // Error
+//                   ^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:32:21: Error: Couldn't find constructor 'Private._named'.
+//   const lib.Private._named(); // Error
+//                     ^^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:38:26: Error: Couldn't find constructor 'Super'.
+//   Super.constructor1() : this(); // Error
+//                          ^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:39:31: Error: Couldn't find constructor 'Super.named'.
+//   Super.constructor2() : this.named(); // Error
+//                               ^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:43:14: Error: Superclass has no constructor named 'Super'.
+//   Class1() : super(); // Error
+//              ^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:44:20: Error: Superclass has no constructor named 'Super.named'.
+//   Class1.named() : super.named(); // Error
+//                    ^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:48:20: Error: Superclass has no constructor named 'Private._named'.
+//   Class2.named() : super._named(); // Error
+//                    ^^^^^
+//
+// pkg/front_end/testcases/general/unresolved_constructor.dart:54:20: Error: Superclass has no constructor named 'Private._named'.
+//   Class3.named() : super._named(); // Error
+//                    ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "unresolved_constructor_lib.dart" as unr;
+
+import "org-dartlang-testcase:///unresolved_constructor.dart" as lib;
+import "org-dartlang-testcase:///unresolved_constructor_lib.dart" as lib;
+import "org-dartlang-testcase:///unresolved_constructor_lib.dart";
+
+class Super extends core::Object {
+  constructor constructor() → self::Super
+    : super core::Object::•()
+    ;
+  constructor constructor1() → self::Super
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:38:26: Error: Couldn't find constructor 'Super'.
+  Super.constructor1() : this(); // Error
+                         ^^^^"
+    ;
+  constructor constructor2() → self::Super
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:39:31: Error: Couldn't find constructor 'Super.named'.
+  Super.constructor2() : this.named(); // Error
+                              ^^^^^"
+    ;
+}
+class Class1 extends self::Super {
+  constructor •() → self::Class1
+    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:43:14: Error: Superclass has no constructor named 'Super'.
+  Class1() : super(); // Error
+             ^^^^^"
+    ;
+  constructor named() → self::Class1
+    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:44:20: Error: Superclass has no constructor named 'Super.named'.
+  Class1.named() : super.named(); // Error
+                   ^^^^^"
+    ;
+}
+class Class2 extends unr::Private {
+  constructor named() → self::Class2
+    : final dynamic #t5 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:48:20: Error: Superclass has no constructor named 'Private._named'.
+  Class2.named() : super._named(); // Error
+                   ^^^^^"
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+}
+class Class3 extends self::_Class3&Private&Mixin {
+  constructor named() → self::Class3
+    : final dynamic #t6 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:54:20: Error: Superclass has no constructor named 'Private._named'.
+  Class3.named() : super._named(); // Error
+                   ^^^^^"
+    ;
+}
+abstract class _Class3&Private&Mixin extends unr::Private implements self::Mixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor unr::_named() → self::_Class3&Private&Mixin
+    : super unr::Private::_named()
+    ;
+}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:10:3: Error: Method not found: 'Unresolved'.
+  Unresolved(); // Error
+  ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:11:7: Error: Couldn't find constructor 'Unresolved'.
+  new Unresolved(); // Error
+      ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:12:9: Error: Couldn't find constructor 'Unresolved'.
+  const Unresolved(); // Error
+        ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:14:3: Error: Undefined name 'Unresolved'.
+  Unresolved.named(); // Error
+  ^^^^^^^^^^"{dynamic}.named();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:15:7: Error: Couldn't find constructor 'Unresolved.named'.
+  new Unresolved.named(); // Error
+      ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:16:9: Error: Couldn't find constructor 'Unresolved.named'.
+  const Unresolved.named(); // Error
+        ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:18:7: Error: Method not found: 'Unresolved'.
+  lib.Unresolved(); // Error
+      ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:19:11: Error: Couldn't find constructor 'Unresolved'.
+  new lib.Unresolved(); // Error
+          ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:20:13: Error: Couldn't find constructor 'Unresolved'.
+  const lib.Unresolved(); // Error
+            ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:22:7: Error: Undefined name 'Unresolved'.
+  lib.Unresolved.named(); // Error
+      ^^^^^^^^^^"{dynamic}.named();
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:23:11: Error: Couldn't find constructor 'Unresolved'.
+  new lib.Unresolved.named(); // Error
+          ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:24:13: Error: Couldn't find constructor 'Unresolved'.
+  const lib.Unresolved.named(); // Error
+            ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:26:11: Error: Member not found: 'Private._named'.
+  Private._named(); // Error
+          ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:27:15: Error: Couldn't find constructor 'Private._named'.
+  new Private._named(); // Error
+              ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:28:17: Error: Couldn't find constructor 'Private._named'.
+  const Private._named(); // Error
+                ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:30:15: Error: Member not found: 'Private._named'.
+  lib.Private._named(); // Error
+              ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:31:19: Error: Couldn't find constructor 'Private._named'.
+  new lib.Private._named(); // Error
+                  ^^^^^^";
+  invalid-expression "pkg/front_end/testcases/general/unresolved_constructor.dart:32:21: Error: Couldn't find constructor 'Private._named'.
+  const lib.Private._named(); // Error
+                    ^^^^^^";
+}
+
+library;
+import self as unr;
+import "dart:core" as core;
+
+class Private extends core::Object /*hasConstConstructor*/  {
+  const constructor _named() → unr::Private
+    : super core::Object::•()
+    ;
+}

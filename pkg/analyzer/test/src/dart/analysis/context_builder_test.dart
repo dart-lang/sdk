@@ -96,6 +96,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
+      withFineDependencies: false,
     );
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
@@ -109,6 +110,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       contextRoot: contextRoot,
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
+      withFineDependencies: false,
     );
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
@@ -122,6 +124,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     AnalysisContext context = contextBuilder.createContext(
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
+      withFineDependencies: false,
     );
     expect(context.contextRoot, contextRoot);
   }
@@ -130,6 +133,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
+      withFineDependencies: false,
     );
     expect(context.contextRoot, contextRoot);
     expect(
@@ -142,6 +146,7 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
+      withFineDependencies: false,
     );
     expect(context.contextRoot, contextRoot);
     expect(context.sdkRoot, sdkRoot);
@@ -190,9 +195,11 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       resourceProvider: resourceProvider,
     ).locateRoots(includedPaths: [path]);
 
-    return ContextBuilderImpl(
-      resourceProvider: resourceProvider,
-    ).createContext(contextRoot: roots.single, sdkPath: sdkRoot.path);
+    return ContextBuilderImpl(resourceProvider: resourceProvider).createContext(
+      contextRoot: roots.single,
+      sdkPath: sdkRoot.path,
+      withFineDependencies: false,
+    );
   }
 
   static void _expectEqualOptions(

@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageUri;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+    show CfeDiagnosticMessage, getMessageUri;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
         Code,
@@ -16,8 +17,8 @@ import 'package:front_end/src/codes/cfe_codes.dart'
 /// Test that turning a message into json and back again retains the wanted
 /// information.
 void main() {
-  for (int i = 0; i < Severity.values.length; i++) {
-    Severity severity = Severity.values[i];
+  for (int i = 0; i < CfeSeverity.values.length; i++) {
+    CfeSeverity severity = CfeSeverity.values[i];
     Code code = new Code("MyCodeName");
     Message message = new Message(code, problemMessage: '');
     LocatedMessage locatedMessage =
@@ -28,14 +29,14 @@ void main() {
         "Formatted string Colorized #2",
         13,
         2,
-        Severity.error, []);
+        CfeSeverity.error, []);
     FormattedMessage formattedMessage3 = new FormattedMessage(
         locatedMessage,
         "Formatted string Plain #3",
         "Formatted string Colorized #3",
         313,
         32,
-        Severity.error, []);
+        CfeSeverity.error, []);
 
     FormattedMessage formattedMessage1 = new FormattedMessage(
         locatedMessage,
@@ -68,7 +69,7 @@ void main() {
   }
 }
 
-void compareMessages(DiagnosticMessage a, DiagnosticMessage b) {
+void compareMessages(CfeDiagnosticMessage a, CfeDiagnosticMessage b) {
   List<String> list1 = a.ansiFormatted.toList();
   List<String> list2 = b.ansiFormatted.toList();
   expect(list1.length, list2.length);

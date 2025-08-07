@@ -7,9 +7,9 @@ import 'dart:io' show File, Platform;
 import "dart:typed_data" show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
+    show CfeDiagnosticMessage, getMessageCodeObject;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show Severity, severityEnumValues;
+    show CfeSeverity, severityEnumValues;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions, parseExperimentalArguments, parseExperimentalFlags;
 import 'package:front_end/src/api_prototype/experimental_flags.dart'
@@ -124,7 +124,7 @@ class MessageTestSuite extends ChainContext {
       String? externalTest;
       bool frontendInternal = false;
       List<String>? analyzerCodes;
-      Severity? severity;
+      CfeSeverity? severity;
       YamlNode? badSeverity;
       YamlNode? unnecessarySeverity;
       List<String> badHasPublishedDocsValue = <String>[];
@@ -221,7 +221,7 @@ class MessageTestSuite extends ChainContext {
             severity = severityEnumValues[value];
             if (severity == null) {
               badSeverity = node;
-            } else if (severity == Severity.error) {
+            } else if (severity == CfeSeverity.error) {
               unnecessarySeverity = node;
             }
             break;
@@ -427,9 +427,9 @@ class MessageTestSuite extends ChainContext {
               ? spellingMessages.join("\n") + spellingPostMessage
               : null));
 
-      bool exampleAndAnalyzerCodeRequired = severity != Severity.context &&
-          severity != Severity.internalProblem &&
-          severity != Severity.ignored;
+      bool exampleAndAnalyzerCodeRequired = severity != CfeSeverity.context &&
+          severity != CfeSeverity.internalProblem &&
+          severity != CfeSeverity.ignored;
 
       result.add(createDescription(
           "externalExample",
@@ -468,7 +468,7 @@ class MessageTestSuite extends ChainContext {
   }
 
   String formatProblems(
-      String message, Example example, List<DiagnosticMessage> messages) {
+      String message, Example example, List<CfeDiagnosticMessage> messages) {
     var span = example.node.span;
     StringBuffer buffer = new StringBuffer();
     buffer
@@ -480,7 +480,7 @@ class MessageTestSuite extends ChainContext {
       ..write(": error: ")
       ..write(message);
     buffer.write("\n${span.text}");
-    for (DiagnosticMessage message in messages) {
+    for (CfeDiagnosticMessage message in messages) {
       buffer.write("\nCode: ${getMessageCodeObject(message)!.name}");
       buffer.write("\n  > ");
       buffer.write(
@@ -604,7 +604,7 @@ class ScriptExample extends Example {
     if (script is! String && script is! Map) {
       throw suite.formatProblems(
           "A script must be either a String or a Map in $code:",
-          this, <DiagnosticMessage>[]);
+          this, <CfeDiagnosticMessage>[]);
     }
   }
 
@@ -734,7 +734,7 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
     }
 
     print("Compiling $main");
-    List<DiagnosticMessage> messages = <DiagnosticMessage>[];
+    List<CfeDiagnosticMessage> messages = <CfeDiagnosticMessage>[];
 
     await suite.compiler.batchCompile(
         new CompilerOptions()
@@ -750,17 +750,17 @@ class Compile extends Step<Example?, Null, MessageTestSuite> {
         main,
         output);
 
-    List<DiagnosticMessage> unexpectedMessages = <DiagnosticMessage>[];
+    List<CfeDiagnosticMessage> unexpectedMessages = <CfeDiagnosticMessage>[];
     if (example.allowMoreCodes) {
-      List<DiagnosticMessage> messagesFiltered = <DiagnosticMessage>[];
-      for (DiagnosticMessage message in messages) {
+      List<CfeDiagnosticMessage> messagesFiltered = <CfeDiagnosticMessage>[];
+      for (CfeDiagnosticMessage message in messages) {
         if (getMessageCodeObject(message)!.name == example.expectedCode) {
           messagesFiltered.add(message);
         }
       }
       messages = messagesFiltered;
     }
-    for (DiagnosticMessage message in messages) {
+    for (CfeDiagnosticMessage message in messages) {
       if (getMessageCodeObject(message)!.name != example.expectedCode) {
         unexpectedMessages.add(message);
       }

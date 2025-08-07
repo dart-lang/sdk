@@ -11,6 +11,7 @@ import '../base/name_space.dart';
 import '../base/uri_offset.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/method_builder.dart';
 import '../fragment/method/declaration.dart';
@@ -101,10 +102,10 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
   bool get isSynthesized => false;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {

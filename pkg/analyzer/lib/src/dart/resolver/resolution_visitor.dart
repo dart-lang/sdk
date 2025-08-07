@@ -36,12 +36,12 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 class ElementHolder {
   final FragmentImpl _element;
   final List<TypeParameterFragmentImpl> _typeParameters = [];
-  final List<FormalParameterFragmentImpl> _parameters = [];
+  final List<FormalParameterFragmentImpl> _formalParameters = [];
 
   ElementHolder(this._element);
 
-  List<FormalParameterFragmentImpl> get parameters {
-    return _parameters.toFixedList();
+  List<FormalParameterFragmentImpl> get formalParameters {
+    return _formalParameters.toFixedList();
   }
 
   List<TypeParameterFragmentImpl> get typeParameters {
@@ -49,7 +49,7 @@ class ElementHolder {
   }
 
   void addParameter(FormalParameterFragmentImpl element) {
-    _parameters.add(element);
+    _formalParameters.add(element);
   }
 
   void addTypeParameter(TypeParameterFragmentImpl element) {
@@ -57,7 +57,7 @@ class ElementHolder {
   }
 
   void enclose(FragmentImpl element) {
-    element.enclosingElement = _element;
+    element.enclosingFragment = _element;
   }
 }
 
@@ -180,7 +180,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     if (_elementWalker == null) {
-      _createElementAnnotation(node);
+      ElementAnnotationImpl(_unitElement, node);
     }
     _withElementWalker(null, () {
       super.visitAnnotation(node);
@@ -192,7 +192,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     covariant AssignedVariablePatternImpl node,
   ) {
     var name = node.name.lexeme;
-    var element = _nameScope.lookup(name).getter2;
+    var element = _nameScope.lookup(name).getter;
     node.element = element;
 
     if (element == null) {
@@ -236,7 +236,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           name: _getFragmentName(exceptionNode.name),
           firstTokenOffset: exceptionNode.offset,
         );
-        fragment.nameOffset2 = exceptionNode.name.offsetIfNotEmpty;
+        fragment.nameOffset = exceptionNode.name.offsetIfNotEmpty;
         _elementHolder.enclose(fragment);
         _define(fragment.element);
 
@@ -247,7 +247,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           fragment.hasImplicitType = true;
           fragment.element.type = _typeProvider.objectType;
         } else {
-          fragment.type = exceptionTypeNode.typeOrThrow;
           fragment.element.type = exceptionTypeNode.typeOrThrow;
         }
 
@@ -263,7 +262,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           name: _getFragmentName(stackTraceNode.name),
           firstTokenOffset: stackTraceNode.offset,
         );
-        fragment.nameOffset2 = stackTraceNode.name.offsetIfNotEmpty;
+        fragment.nameOffset = stackTraceNode.name.offsetIfNotEmpty;
         _elementHolder.enclose(fragment);
         _define(fragment.element);
 
@@ -387,7 +386,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       name: _getFragmentName(nameToken),
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
+    fragment.nameOffset = nameToken.offsetIfNotEmpty;
     node.declaredFragment = fragment;
     _elementHolder.enclose(fragment);
 
@@ -398,7 +397,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     if (node.type case var typeNode?) {
       typeNode.accept(this);
-      fragment.type = typeNode.typeOrThrow;
       fragment.element.type = typeNode.typeOrThrow;
     } else {
       fragment.hasImplicitType = true;
@@ -420,13 +418,12 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       name: _getFragmentName(node.name),
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = node.name.offsetIfNotEmpty;
+    fragment.nameOffset = node.name.offsetIfNotEmpty;
     _patternVariables.add(name, fragment.element);
     _elementHolder.enclose(fragment);
     _define(fragment.element);
     fragment.hasImplicitType = node.type == null;
     if (node.type case var typeNode?) {
-      fragment.type = typeNode.typeOrThrow;
       fragment.element.type = typeNode.typeOrThrow;
     }
     node.declaredFragment = fragment;
@@ -458,7 +455,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           firstTokenOffset: node.offset,
           parameterKind: node.kind,
           name: name2,
-          nameOffset2: nameOffset2,
+          nameOffset: nameOffset2,
         )..constantInitializer = node.defaultValue;
       } else if (node.parameter is SuperFormalParameter) {
         // Only for recovery, this should not happen in valid code.
@@ -466,14 +463,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           firstTokenOffset: node.offset,
           parameterKind: node.kind,
           name: name2,
-          nameOffset2: nameOffset2,
+          nameOffset: nameOffset2,
         )..constantInitializer = node.defaultValue;
       } else {
         fragment = FormalParameterFragmentImpl(
           firstTokenOffset: node.offset,
           parameterKind: node.kind,
           name: name2,
-          nameOffset2: nameOffset2,
+          nameOffset: nameOffset2,
         )..constantInitializer = node.defaultValue;
       }
       _elementHolder.addParameter(fragment);
@@ -640,7 +637,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment = FieldFormalParameterFragmentImpl(
           firstTokenOffset: node.offset,
           name: nameToken.lexeme.nullIfEmpty,
-          nameOffset2: nameToken.offset.nullIfNegative,
+          nameOffset: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(fragment);
@@ -667,7 +664,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
             } else {
               // Only for recovery, this should not happen in valid code.
               fragment.element.type = node.type?.type ?? _dynamicType;
-              fragment.type = node.type?.type ?? _dynamicType;
               _withElementWalker(null, () {
                 node.parameters?.accept(this);
               });
@@ -758,12 +754,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
             expression.parameters?.accept(this);
             if (_elementWalker == null) {
-              fragment.parameters = holder.parameters;
+              fragment.formalParameters = holder.formalParameters;
             }
 
             node.returnType?.accept(this);
             if (_elementWalker == null) {
-              fragment.returnType = node.returnType?.type ?? _dynamicType;
+              fragment.element.returnType =
+                  node.returnType?.type ?? _dynamicType;
             }
 
             _defineFormalParameters(fragment.element.formalParameters);
@@ -789,7 +786,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    var fragment = LocalFunctionFragmentImpl.forOffset(
+    var fragment = LocalFunctionFragmentImpl(
+      name: null,
       firstTokenOffset: node.offset,
     );
 
@@ -797,7 +795,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.declaredFragment = fragment;
 
     fragment.hasImplicitReturnType = true;
-    fragment.returnType = DynamicTypeImpl.instance;
+    fragment.element.returnType = DynamicTypeImpl.instance;
 
     FunctionBody body = node.body;
     fragment.isAsynchronous = body.isAsynchronous;
@@ -811,7 +809,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment.typeParameters = holder.typeParameters;
 
         node.parameters!.accept(this);
-        fragment.parameters = holder.parameters;
+        fragment.formalParameters = holder.formalParameters;
 
         _defineFormalParameters(fragment.element.formalParameters);
         node.body.accept(this);
@@ -853,7 +851,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         fragment = FormalParameterFragmentImpl(
           firstTokenOffset: node.offset,
           name: nameToken.lexeme.nullIfEmpty,
-          nameOffset2: nameToken.offset.nullIfNegative,
+          nameOffset: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
         );
         _elementHolder.addParameter(fragment);
@@ -881,7 +879,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
             node.parameters.accept(this);
             if (_elementWalker == null) {
-              fragment.parameters = holder.parameters;
+              fragment.formalParameters = holder.formalParameters;
             }
 
             node.returnType?.accept(this);
@@ -890,12 +888,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
                 typeParameters:
                     fragment.typeParameters.map((f) => f.element).toList(),
                 parameters:
-                    fragment.parameters.map((f) => f.asElement2).toList(),
+                    fragment.formalParameters.map((f) => f.asElement2).toList(),
                 returnType: node.returnType?.type ?? _dynamicType,
                 nullabilitySuffix: _getNullability(node.question != null),
               );
               fragment.element.type = type;
-              fragment.type = type;
             }
           });
         },
@@ -905,7 +902,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    var fragment = GenericFunctionTypeFragmentImpl.forOffset(
+    var fragment = GenericFunctionTypeFragmentImpl(
       firstTokenOffset: node.offset,
     );
     _unitElement.encloseElement(fragment);
@@ -924,7 +921,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           fragment.typeParameters = holder.typeParameters;
 
           node.parameters.accept(this);
-          fragment.parameters = holder.parameters;
+          fragment.formalParameters = holder.formalParameters;
 
           node.returnType?.accept(this);
           fragment.returnType = node.returnType?.type ?? _dynamicType;
@@ -934,7 +931,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var type = FunctionTypeImpl(
       typeParameters: fragment.typeParameters.map((f) => f.asElement2).toList(),
-      parameters: fragment.parameters.map((f) => f.asElement2).toList(),
+      parameters: fragment.formalParameters.map((f) => f.asElement2).toList(),
       returnType: fragment.returnType,
       nullabilitySuffix: _getNullability(node.question != null),
     );
@@ -1246,14 +1243,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           fragment = FormalParameterFragmentImpl(
             firstTokenOffset: node.offset,
             name: nameToken.lexeme.nullIfEmpty,
-            nameOffset2: nameToken.offset.nullIfNegative,
+            nameOffset: nameToken.offset.nullIfNegative,
             parameterKind: node.kind,
           );
         } else {
           fragment = FormalParameterFragmentImpl(
             firstTokenOffset: node.offset,
             name: null,
-            nameOffset2: null,
+            nameOffset: null,
             parameterKind: node.kind,
           );
         }
@@ -1274,7 +1271,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.type?.accept(this);
     if (_elementWalker == null) {
       fragment.element.type = node.type?.type ?? _dynamicType;
-      fragment.type = node.type?.type ?? _dynamicType;
     }
 
     _setOrCreateMetadataElements(fragment, node.metadata);
@@ -1305,7 +1301,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         element = SuperFormalParameterFragmentImpl(
           firstTokenOffset: node.offset,
           name: nameToken.lexeme.nullIfEmpty,
-          nameOffset2: nameToken.offset.nullIfNegative,
+          nameOffset: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
         );
         _elementHolder.enclose(element);
@@ -1332,7 +1328,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
             } else {
               // Only for recovery, this should not happen in valid code.
               element.element.type = node.type?.type ?? _dynamicType;
-              element.type = node.type?.type ?? _dynamicType;
               _withElementWalker(null, () {
                 node.parameters?.accept(this);
               });
@@ -1445,7 +1440,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       localFragment.hasInitializer = initializerNode != null;
       if (varList.type case var typeNode?) {
         var type = typeNode.typeOrThrow;
-        localFragment.type = type;
         localFragment.element.type = type;
       } else {
         localFragment.hasImplicitType = true;
@@ -1533,7 +1527,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       name: nameToken.nameIfNotEmpty,
       firstTokenOffset: node.offset,
     );
-    fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
+    fragment.nameOffset = nameToken.offsetIfNotEmpty;
     node.declaredFragment = fragment;
     node.functionExpression.declaredFragment = fragment;
 
@@ -1558,7 +1552,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         name: _getFragmentName(nameToken),
         firstTokenOffset: variable.offset,
       );
-      fragment.nameOffset2 = nameToken.offsetIfNotEmpty;
+      fragment.nameOffset = nameToken.offsetIfNotEmpty;
       variable.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
       _define(fragment.element);
@@ -1587,7 +1581,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           name: name.lexeme,
           firstTokenOffset: typeParameter.offset,
         );
-        fragment.nameOffset2 = name.offset;
+        fragment.nameOffset = name.offset;
         _elementHolder.addTypeParameter(fragment);
 
         _setCodeRange(fragment, typeParameter);
@@ -1600,13 +1594,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
       _setOrCreateMetadataElements(fragment, typeParameter.metadata);
     }
-  }
-
-  /// Create a new [ElementAnnotation] for the [node].
-  void _createElementAnnotation(AnnotationImpl node) {
-    var element = ElementAnnotationImpl(_unitElement);
-    element.annotationAst = node;
-    node.elementAnnotation = element;
   }
 
   void _define(Element element) {
@@ -1669,7 +1656,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       for (var variable in variables.values) {
         _define(variable);
       }
-      guardedPattern.variables = variables.cast();
+      guardedPattern.variables = variables;
       guardedPattern.whenClause?.accept(this);
       if (then != null) {
         then();
@@ -1841,7 +1828,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _setOrCreateMetadataElements(
-    AnnotatableFragmentImpl element,
+    FragmentImpl element,
     NodeList<AnnotationImpl> annotations, {
     bool visitNodes = true,
   }) {
@@ -2028,9 +2015,7 @@ class _VariableBinder
         ),
       ),
     );
-    resultFragment
-      ..enclosingFragment = first.firstFragment.enclosingFragment
-      ..type = InvalidTypeImpl.instance;
+    resultFragment.enclosingFragment = first.firstFragment.enclosingFragment;
 
     return resultFragment.element;
   }

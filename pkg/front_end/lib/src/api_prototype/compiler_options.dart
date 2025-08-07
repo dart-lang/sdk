@@ -5,8 +5,9 @@
 library front_end.compiler_options;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, DiagnosticMessageHandler;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+    show CfeDiagnosticMessage, DiagnosticMessageHandler;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart' show Component, Version;
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
@@ -27,7 +28,7 @@ import 'file_system.dart' show FileSystem;
 import 'standard_file_system.dart' show StandardFileSystem;
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 
 /// Front-end options relevant to compiler back ends.
 ///
@@ -552,40 +553,40 @@ class Verbosity {
   }
 
   // Coverage-ignore(suite): Not run.
-  static bool shouldPrint(Verbosity verbosity, DiagnosticMessage message) {
-    Severity severity = message.severity;
+  static bool shouldPrint(Verbosity verbosity, CfeDiagnosticMessage message) {
+    CfeSeverity severity = message.severity;
     switch (verbosity) {
       case Verbosity.error:
         switch (severity) {
-          case Severity.internalProblem:
-          case Severity.error:
+          case CfeSeverity.internalProblem:
+          case CfeSeverity.error:
             return true;
-          case Severity.warning:
-          case Severity.info:
-          case Severity.context:
-          case Severity.ignored:
+          case CfeSeverity.warning:
+          case CfeSeverity.info:
+          case CfeSeverity.context:
+          case CfeSeverity.ignored:
             return false;
         }
       case Verbosity.warning:
         switch (severity) {
-          case Severity.internalProblem:
-          case Severity.error:
-          case Severity.warning:
+          case CfeSeverity.internalProblem:
+          case CfeSeverity.error:
+          case CfeSeverity.warning:
             return true;
-          case Severity.info:
-          case Severity.context:
-          case Severity.ignored:
+          case CfeSeverity.info:
+          case CfeSeverity.context:
+          case CfeSeverity.ignored:
             return false;
         }
       case Verbosity.info:
         switch (severity) {
-          case Severity.internalProblem:
-          case Severity.error:
-          case Severity.warning:
-          case Severity.info:
+          case CfeSeverity.internalProblem:
+          case CfeSeverity.error:
+          case CfeSeverity.warning:
+          case CfeSeverity.info:
             return true;
-          case Severity.context:
-          case Severity.ignored:
+          case CfeSeverity.context:
+          case CfeSeverity.ignored:
             return false;
         }
       case Verbosity.all:

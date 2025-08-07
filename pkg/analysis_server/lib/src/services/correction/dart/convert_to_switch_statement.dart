@@ -273,6 +273,7 @@ class ConvertSwitchExpressionToSwitchStatement
     required String beforeCaseExpression,
     required Token semicolon,
   }) async {
+    var eol = builder.eol;
     for (var case_ in switchExpression.cases) {
       var guardedPattern = case_.guardedPattern;
       // `_ =>` -> `default:`
@@ -323,6 +324,7 @@ class ConvertSwitchExpressionToSwitchStatement
     var indent = utils.getLinePrefix(declarationStatement.offset);
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       // Replace implicit type with explicit.
       if (declarationList.type == null) {
         var keyword = declarationList.keyword;

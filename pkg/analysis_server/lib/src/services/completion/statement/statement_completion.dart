@@ -403,7 +403,7 @@ class StatementCompletionProcessor {
     }
     if (node.leftBracket.isSynthetic && diagnostics.length == 1) {
       // The space before the left brace is assumed to exist, even if it does not.
-      var sb = SourceBuilder(file, node.end - 1);
+      var sb = SourceBuilder(file, node.end - eol.length);
       sb.append(' ');
       _appendEmptyBraces(sb, true);
       _insertBuilder(sb);
@@ -759,7 +759,7 @@ class StatementCompletionProcessor {
           return error.offset - 1;
         }
       }
-      return node.end - 1;
+      return node.end - eol.length;
     }
 
     int paramListEnd;
@@ -799,7 +799,7 @@ class StatementCompletionProcessor {
     );
     if (error != null) {
       var src = utils.getNodeText(node);
-      var insertOffset = node.functionDeclaration.end - 1;
+      var insertOffset = node.functionDeclaration.end - eol.length;
       var body = node.functionDeclaration.functionExpression.body;
       if (body is ExpressionFunctionBody) {
         var fnbOffset = body.functionDefinition.offset;
@@ -944,27 +944,22 @@ class StatementCompletionProcessor {
         argList.thisOrAncestorMatching((n) => n == node) == null) {
       return false;
     }
-    var previousInsertions = _lengthOfInsertions();
-    var loc = min(selectionOffset, argList.end - 1);
-    var delta = 1;
+    var loc = min(selectionOffset, argList.end);
+    _addInsertEdit(loc, ')');
     var semicolonError = _findDiagnostic(
       ParserErrorCode.EXPECTED_TOKEN,
       partialMatch: "';'",
     );
-    if (semicolonError == null) {
-      loc += 1;
-      delta = 0;
-    }
-    _addInsertEdit(loc, ')');
     if (semicolonError != null) {
       _addInsertEdit(loc, ';');
     }
     var indent = utils.getLinePrefix(selectionOffset);
     var exit = utils.getLineNext(selectionOffset);
+    var previousInsertions = _lengthOfInsertions();
     _addInsertEdit(exit, indent + eol);
-    exit += indent.length + eol.length + previousInsertions;
+    exit += indent.length + previousInsertions;
 
-    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, exit + delta);
+    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, exit);
     return true;
   }
 

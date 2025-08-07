@@ -284,13 +284,6 @@ library;
 // typedef Typedef = Object Function();
 //         ^^^^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:69:19: Error: 'C' isn't a type.
-// class Sub extends C {
-//                   ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:69:19: Context: This isn't a type.
-// class Sub extends C {
-//                   ^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:96:3: Error: Can't declare a member that conflicts with an inherited one.
 //   index,
 //   ^^^^^

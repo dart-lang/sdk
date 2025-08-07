@@ -62,12 +62,8 @@ class ConvertIntoFinalField extends ResolvedCorrectionProducer {
       }
     }
 
-    var variable = getterElement.variable;
-    if (variable == null) {
-      return;
-    }
-
     // Check that there is no corresponding setter.
+    var variable = getterElement.variable;
     if (variable.setter != null) {
       return;
     }

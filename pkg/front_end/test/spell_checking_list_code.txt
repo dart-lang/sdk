@@ -435,6 +435,7 @@ deeply
 def
 defaulting
 defeat
+deficiency
 defs
 deftypes
 degrades
@@ -1349,6 +1350,7 @@ preliminary
 preloaded
 premark
 preorder
+preparation
 prepares
 preprocess
 presented

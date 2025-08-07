@@ -5,6 +5,10 @@ analyzer:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
+  errors:
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
+    todo: ignore
 
 linter:
   rules:

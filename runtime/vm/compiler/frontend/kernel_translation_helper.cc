@@ -561,8 +561,7 @@ ClassPtr TranslationHelper::LookupClassByKernelClass(NameIndex kernel_class,
     }
     return Class::null();
   }
-  const Class& klass =
-      Class::Handle(Z, library.LookupClassAllowPrivate(class_name));
+  const Class& klass = Class::Handle(Z, library.LookupClass(class_name));
   if (klass.IsNull()) {
     if (required) {
       LookupFailed(kernel_class);
@@ -602,9 +601,8 @@ FieldPtr TranslationHelper::LookupFieldByKernelField(NameIndex kernel_field,
     }
     return Field::null();
   }
-  Field& field = Field::Handle(
-      Z, klass.LookupFieldAllowPrivate(
-             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  Field& field =
+      Field::Handle(Z, klass.LookupField(DartFieldName(kernel_field)));
   if (field.IsNull() && required) {
     LookupFailed(kernel_field);
   }
@@ -625,9 +623,8 @@ FieldPtr TranslationHelper::LookupFieldByKernelGetterOrSetter(
     }
     return Field::null();
   }
-  const Field& field = Field::Handle(
-      Z, klass.LookupFieldAllowPrivate(
-             DartSymbolObfuscate(CanonicalNameString(kernel_field))));
+  const Field& field =
+      Field::Handle(Z, klass.LookupField(DartFieldName(kernel_field)));
   if (field.IsNull() && required) {
     LookupFailed(kernel_field);
   }
@@ -654,7 +651,7 @@ FunctionPtr TranslationHelper::LookupStaticMethodByKernelProcedure(
   const auto& error = klass.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
   Function& function =
-      Function::Handle(Z, klass.LookupFunctionAllowPrivate(procedure_name));
+      Function::Handle(Z, klass.LookupFunction(procedure_name));
   if (function.IsNull() && required) {
     LookupFailed(procedure);
   }
@@ -687,7 +684,7 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
   const auto& error = owner.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
   Function& function = Function::Handle(
-      Z, owner.LookupConstructorAllowPrivate(DartConstructorName(constructor)));
+      Z, owner.LookupConstructor(DartConstructorName(constructor)));
   if (function.IsNull() && required) {
     LookupFailed(constructor);
   }
@@ -708,7 +705,7 @@ FunctionPtr TranslationHelper::LookupConstructorByKernelConstructor(
       String::ZoneHandle(Z, Symbols::FromConcatAll(thread_, pieces));
   const auto& error = owner.EnsureIsFinalized(thread_);
   ASSERT(error == Error::null());
-  FunctionPtr function = owner.LookupConstructorAllowPrivate(new_name);
+  FunctionPtr function = owner.LookupConstructor(new_name);
   if (function == Object::null() && required) {
     LookupFailed(constructor_name);
   }
@@ -723,7 +720,7 @@ FunctionPtr TranslationHelper::LookupMethodByMember(NameIndex target,
       Z, LookupClassByKernelClass(kernel_class, /*required=*/false));
   Function& function = Function::Handle(Z);
   if (!klass.IsNull() && klass.EnsureIsFinalized(thread_) == Error::null()) {
-    function = klass.LookupFunctionAllowPrivate(method_name);
+    function = klass.LookupFunction(method_name);
   }
   if (function.IsNull() && required) {
     LookupFailed(target);
@@ -746,34 +743,18 @@ ObjectPtr TranslationHelper::LookupMemberByMember(NameIndex kernel_name,
 
   Object& member = Object::Handle(Z);
   if (IsField(kernel_name)) {
-    member = klass.LookupFieldAllowPrivate(
-        DartSymbolObfuscate(CanonicalNameString(kernel_name)));
+    member = klass.LookupField(DartFieldName(kernel_name));
   } else {
     const String& procedure_name = DartProcedureName(kernel_name);
 
     const auto& error = klass.EnsureIsFinalized(thread_);
     ASSERT(error == Error::null());
-    member = klass.LookupFunctionAllowPrivate(procedure_name);
+    member = klass.LookupFunction(procedure_name);
   }
   if (member.IsNull() && required) {
     LookupFailed(kernel_name);
   }
   return member.ptr();
-}
-
-FunctionPtr TranslationHelper::LookupDynamicFunction(const Class& klass,
-                                                     const String& name) {
-  // Search the superclass chain for the selector.
-  Class& iterate_klass = Class::Handle(Z, klass.ptr());
-  while (!iterate_klass.IsNull()) {
-    FunctionPtr function =
-        iterate_klass.LookupDynamicFunctionAllowPrivate(name);
-    if (function != Object::null()) {
-      return function;
-    }
-    iterate_klass = iterate_klass.SuperClass();
-  }
-  return Function::null();
 }
 
 Type& TranslationHelper::GetDeclarationType(const Class& klass) {
@@ -1868,9 +1849,11 @@ DirectCallMetadataHelper::GetDirectTargetForFunctionInvocation(
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
     KernelReaderHelper* helper,
     ConstantReader* constant_reader,
+    TypeTranslator* type_translator,
     InferredTypeMetadataHelper::Kind kind)
     : MetadataHelper(helper, tag(kind), /* precompiler_only = */ true),
-      constant_reader_(constant_reader) {}
+      constant_reader_(constant_reader),
+      type_translator_(type_translator) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     intptr_t node_offset,
@@ -1884,8 +1867,33 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   AlternativeReadingScopeWithNewData alt(&helper_->reader_,
                                          &H.metadata_payloads(), md_offset);
 
-  const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
-  const uint8_t flags = helper_->ReadByte();
+  const intptr_t flags = helper_->ReadUInt();
+
+  intptr_t cid = kDynamicCid;
+  const AbstractType* exact_type = &Object::null_abstract_type();
+  if ((flags & InferredTypeMetadata::kFlagExactType) != 0) {
+    exact_type = &type_translator_->BuildType();
+    if (exact_type->IsType()) {
+      cid = exact_type->type_class_id();
+      ASSERT(cid != kIllegalCid);
+    } else {
+      // Not useful.
+      exact_type = &Object::null_abstract_type();
+    }
+  } else {
+    const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
+
+    if (H.IsRoot(kernel_name)) {
+      ASSERT((flags & InferredTypeMetadata::kFlagConstant) == 0);
+      return InferredTypeMetadata(kDynamicCid, flags);
+    }
+
+    const Class& klass =
+        Class::Handle(helper_->zone_, H.LookupClassByKernelClass(kernel_name));
+    ASSERT(!klass.IsNull());
+
+    cid = klass.id();
+  }
 
   const Object* constant_value = &Object::null_object();
   if ((flags & InferredTypeMetadata::kFlagConstant) != 0) {
@@ -1896,23 +1904,13 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     }
   }
 
-  if (H.IsRoot(kernel_name)) {
-    ASSERT((flags & InferredTypeMetadata::kFlagConstant) == 0);
-    return InferredTypeMetadata(kDynamicCid, flags);
-  }
-
-  const Class& klass =
-      Class::Handle(helper_->zone_, H.LookupClassByKernelClass(kernel_name));
-  ASSERT(!klass.IsNull());
-
-  intptr_t cid = klass.id();
   if (cid == kClosureCid) {
     // VM uses more specific function types and doesn't expect instances of
     // _Closure class, so inferred _Closure class doesn't make sense for the VM.
     cid = kDynamicCid;
   }
 
-  return InferredTypeMetadata(cid, flags, *constant_value);
+  return InferredTypeMetadata(cid, flags, *constant_value, *exact_type);
 }
 
 void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {
@@ -3283,7 +3281,7 @@ TypeTranslator::TypeTranslator(KernelReaderHelper* helper,
       translation_helper_(helper->translation_helper_),
       active_class_(active_class),
       type_parameter_scope_(nullptr),
-      inferred_type_metadata_helper_(helper_, constant_reader_),
+      inferred_type_metadata_helper_(helper_, constant_reader_, this),
       unboxing_info_metadata_helper_(helper_),
       zone_(translation_helper_.zone()),
       result_(AbstractType::Handle(translation_helper_.zone())),

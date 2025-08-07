@@ -6,12 +6,12 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
+import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';

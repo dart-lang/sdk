@@ -1855,7 +1855,7 @@ void f(A a) {
     await resolveTestFile();
     {
       var element = findNode.simple('foo();').element!;
-      expect(element.firstFragment.nameOffset2, 17);
+      expect(element.firstFragment.nameOffset, 17);
     }
 
     // New resolver.
@@ -1864,7 +1864,7 @@ void f(A a) {
     await resolveTestFile();
     {
       var element = findNode.simple('foo();').element!;
-      expect(element.firstFragment.nameOffset2, 17);
+      expect(element.firstFragment.nameOffset, 17);
     }
   }
 
@@ -1881,7 +1881,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').element!;
-      expect(element.nonSynthetic.firstFragment.nameOffset2, 4);
+      expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
 
     // New resolver.
@@ -1890,7 +1890,7 @@ var b = a;
     await resolveTestFile();
     {
       var element = findNode.simple('a;').element!;
-      expect(element.nonSynthetic.firstFragment.nameOffset2, 4);
+      expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
   }
 
@@ -2544,8 +2544,8 @@ void func() {
     // Both files use the same (default) analysis options.
     // So, when we resolve 'bbb', we can reuse the context after 'aaa'.
     expect(
-      aResult.libraryElement2.session,
-      same(bResult.libraryElement2.session),
+      aResult.libraryElement.session,
+      same(bResult.libraryElement.session),
     );
   }
 

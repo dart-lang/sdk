@@ -38,13 +38,13 @@ class B<T extends core::Object? = dynamic> extends self::A<core::String> impleme
     return _in::unsafeCast<asy::Future<self::B::T%>>([@vm.direct-call.metadata=#lib::B.noSuchMethod] [@vm.inferred-type.metadata=! (skip check)] this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C5, [@vm.inferred-type.metadata=dart.core::_ImmutableList] core::List::unmodifiable<dynamic>([@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::_literal1<dynamic>(action)), [@vm.inferred-type.metadata=dart.collection::UnmodifiableMapView<dart.core::Symbol, dynamic>] core::Map::unmodifiable<core::Symbol, dynamic>(#C8))){(core::Invocation) → dynamic});
 }
 
-[@vm.inferred-return-type.metadata=#lib::B<?>]
+[@vm.inferred-return-type.metadata=#lib::B]
 static method createB<T extends core::Object? = dynamic>() → self::B<dynamic>
   return new self::B::•<self::createB::T%>();
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  core::print([@vm.inferred-type.metadata=#lib::B<?>] self::createB<core::int>() as FutureOr<core::double>);
+  core::print([@vm.inferred-type.metadata=#lib::B] self::createB<core::int>() as FutureOr<core::double>);
 }
 constants  {
   #C1 = null

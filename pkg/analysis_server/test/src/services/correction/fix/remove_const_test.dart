@@ -624,6 +624,21 @@ var x = A([0]);
 ''');
   }
 
+  Future<void> test_explicitConst_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  A(_);
+}
+A x = const .new([0]);
+''');
+    await assertHasFix('''
+class A {
+  A(_);
+}
+A x = .new([0]);
+''');
+  }
+
   Future<void> test_implicitConst_instanceCreation_argument() async {
     await resolveTestCode('''
 class A {}
@@ -642,6 +657,38 @@ class B {
 }
 
 var x = B(A(), const [0]);
+''');
+  }
+
+  Future<void>
+  test_implicitConst_instanceCreation_argument_dotShorthand() async {
+    await resolveTestCode('''
+enum E { a }
+
+class A {
+  A.named();
+  const A.constNamed();
+}
+
+class B {
+  const B(A a, A aa, E e);
+}
+
+B x = const .new(.named(), .constNamed(), .a);
+''');
+    await assertHasFix('''
+enum E { a }
+
+class A {
+  A.named();
+  const A.constNamed();
+}
+
+class B {
+  const B(A a, A aa, E e);
+}
+
+B x = .new(.named(), const .constNamed(), .a);
 ''');
   }
 

@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet_context.dart';
-import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -625,7 +624,7 @@ foo() {
     String content,
     SnippetContext expectedContext,
   ) async {
-    var code = TestCode.parse(normalizeNewlinesForPlatform(content));
+    var code = TestCode.parseNormalized(content);
     var offset = code.position.offset;
     var expectedReplacementRange = code.range.sourceRange;
     await resolveTestCode(code.code);

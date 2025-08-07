@@ -1,4 +1,24 @@
-## 8.0.0-dev
+## 8.1.0-dev
+* Add `DartObject.constructorInvocation` with the constructor and arguments.
+* Make `PropertyAccessorElement.variable` non-nullable.
+* Add `documentationComment` to `Element` and `Fragment`.
+* Add `metadata` to `Element` and `Fragment`.`
+* Fix draining analysis events when used by `package:build`.
+* Deprecate `LibraryElementResult.element2`, use `element` instead.
+* Deprecate `ResolvedLibraryResult.element2`, use `element` instead.
+* Deprecate `ResolvedUnitResult.libraryElement2`, use `libraryElement` instead.
+* Deprecate `AnalysisSession.getParsedLibraryByElement2`, use `getParsedLibraryByElement` instead.
+* Deprecate `AnalysisSession.getResolvedLibraryByElement2`, use `getResolvedLibraryByElement` instead.
+* Deprecate `resolveFile2`, use `resolveFile` instead.
+* Deprecate `DartObject.variable2`, use `variable` instead.
+* Deprecate `DartObject.toFunctionValue2`, use `toFunctionValue` instead.
+* Deprecate `Annotatable`, use `documentationComment` and `metadata` of `Element` or `Fragment` directly.
+* Deprecate `ClassElement.isExtendableIn`; use `isExtendableOutside` instead.
+* Deprecate `ClassElement.isImplementableIn`; use `isImplementableOutside` instead.
+* Deprecate `ClassElement.isMixableIn`; use `isMixableOutside` instead.
+* Deprecate `MixinElement.isImplementableIn`; use `isImplementableOutside` instead.
+
+## 8.0.0
 * Remove deprecated element model V1.
 * Remove deprecated `DartType.isStructurallyEqualTo`.
 * Remove deprecated `RecordType.positionalTypes`.
@@ -8,6 +28,13 @@
 * Remove deprecated `PromotableElement` and `PromotableFragment`.
 * Remove deprecated `LocalVariableElement.hasInitializer`.
 * Remove deprecated `LocalVariableFragment.hasInitializer`.
+* Remove deprecated `LocalVariableFragment.nameOffset`.
+* Remove deprecated `JoinPatternVariableFragment.isConsistent`.
+* Remove deprecated `JoinPatternVariableFragment.variables2`.
+* Remove deprecated `VariableElement.constantInitializer2`.
+* Remove deprecated `VariableFragment.initializer`.
+* Remove deprecated `ConstantInitializer`.
+* Remove deprecated `HasSinceSdkVersion`.
 * `LibraryFragment` is not `Annotatable` anymore.
 * Stop implementing `ConstantEvaluationTarget` by `ElementAnnotation`.
   This is an internal interface that should not have been exposed.
@@ -159,6 +186,97 @@
 * Deprecate `TypeParameterizedElement.typeParameters2`, use `typeParameters` instead.
 * Deprecate `VariableElement.constantInitializer2`, use `constantInitializer` instead.
 * Deprecate `TypeProvider.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
+* Deprecate `EnumFragment.constants2`, use `constants` instead.
+* Deprecate `InterfaceElement.lookUpInheritedMethod2`, use `lookUpInheritedMethod` instead.
+* Deprecate `LibraryFragment.classes2`, use `classes` instead.
+* Deprecate `LibraryFragment.enums2`, use `enums` instead.
+* Deprecate `LibraryFragment.extensionTypes2`, use `extensionTypes` instead.
+* Deprecate `LibraryFragment.extensions2`, use `extensions` instead.
+* Deprecate `LibraryFragment.functions2`, use `functions` instead.
+* Deprecate `LibraryFragment.libraryExports2`, use `libraryExports` instead.
+* Deprecate `LibraryFragment.libraryImports2`, use `libraryImports` instead.
+* Deprecate `LibraryFragment.mixins2`, use `mixins` instead.
+* Deprecate `LibraryFragment.topLevelVariables2`, use `topLevelVariables` instead.
+* Deprecate `LibraryFragment.typeAliases2`, use `typeAliases` instead.
+* Deprecate `PatternVariableFragment.join2`, use `join` instead.
+* Deprecate `LibraryFragment.isNonSubtypableClass2`, use `isNonSubtypableClass` instead.
+* Deprecate `TypeParameterizedFragment.typeParameters2`, use `typeParameters` instead.
+* Deprecate `Fragment.nameOffset2`, use `nameOffset` instead.
+* Deprecate `DirectiveUriWithLibrary.library2`, use `library` instead.
+* Deprecate `ElementAnnotation.element2`, use `element` instead.
+* Deprecate `LibraryImport.prefix2`, use `prefix` instead.
+* Deprecate `MultiplyDefinedElement.conflictingElements2`, use `conflictingElements` instead.
+* Deprecate `ScopeLookupResult.getter2`, use `getter` instead.
+* Deprecate `ScopeLookupResult.setter2`, use `setter` instead.
+
+## 7.7.0
+* Deprecated `HasSinceSdkVersion`, use `Element2.sinceSdkVersion`.
+
+## 7.6.0
+* Deprecated `VariableElement.constantInitializer2`, use `constantInitializer` instead.
+* Deprecated `VariableFragment.initializer`, use `VariableElement.constantInitializer` instead.
+* Deprecated `ConstantInitializer`.
+
+## 7.5.9
+* Deprecated `JoinPatternVariableFragment.isConsistent` and `variables2`.
+  Use corresponding properties of `JoinPatternVariableElement2` instead.
+
+## 7.5.8
+* Add a special case for bool.fromEnvironment('dart.library.js_interop')
+  Cherry-pick https://dart-review.googlesource.com/c/sdk/+/439820
+
+## 7.5.7
+* Deprecate `LocalVariableFragment.nameOffset`, use `nameOffset2` instead.
+
+## 7.5.6
+* Deprecate `EnumFragment.constants2`, use `EnumElement2.constants2` instead.
+
+## 7.5.5
+* Deprecate `LocalVariableElement.hasInitializer` and `LocalVariableFragment.hasInitializer`.
+  This property is not useful and was not de-facto used.
+
+## 7.5.4
+* Deprecate `PromotableFragment` and `PromotableElement`.
+  These interfaces are implementation details.
+
+## 7.5.3
+* Deprecate `AugmentedExpression` and `AugmentedInvocation`.
+  This feature was removed from the specification.
+
+## 7.5.2
+* Deprecate `LibraryElement.identifier`, use `uri` instead.
+* Deprecate `LibraryElement2.identifier`, use `uri` instead.
+
+## 7.5.1
+* Deprecate `ConstantEvaluationTarget` itself, and its methods.
+* Deprecate methods of already deprecated `AnalysisTarget`.
+* Generate `api.txt` manifest.
+
+## 7.5.0
+* Deprecate methods inherited by `ElementAnnotation` from `ConstantEvaluationTarget`.
+* In the next major version `ElementAnnotation` will stop implementing `ConstantEvaluationTarget`.
+* Add `ElementAnnotation.libraryFragment`, as the replacement for the
+  deprecations above. It provides enough information about the location.
+
+## 7.4.6
+* Deprecate `PropertyAccessorFragment.variable3`.
+  Use `PropertyAccessorElement2.variable3` instead.
+* Deprecate `PropertyInducingFragment.getter2`.
+  Use `PropertyInducingElement2.getter2` instead.
+* Deprecate `PropertyInducingFragment.setter2`.
+  Use `PropertyInducingElement2.setter2` instead.
+
+## 7.4.5
+* Fix for https://github.com/dart-lang/sdk/issues/60683
+
+## 7.4.4
+* Fix for https://github.com/dart-lang/sdk/issues/60553, `LabelElement2`.
+
+## 7.4.3
+* Fix for https://github.com/dart-lang/sdk/issues/60591
+
+## 7.4.2
+* Fix for https://github.com/dart-lang/sdk/issues/60553, `PrefixElement2`.
 
 ## 7.4.1
 * Restore `InstanceElement.augmented` getter.

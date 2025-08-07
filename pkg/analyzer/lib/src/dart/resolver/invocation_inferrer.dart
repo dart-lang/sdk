@@ -44,8 +44,8 @@ Set<Object> _computeExplicitlyTypedParameterSet(
 /// Given an iterable of parameters, computes a map whose keys are either the
 /// parameter name (for named parameters) or the zero-based integer index (for
 /// unnamed parameters), and whose values are the parameters themselves.
-Map<Object, FormalParameterElementMixin> _computeParameterMap(
-  Iterable<FormalParameterElementMixin> parameters,
+Map<Object, InternalFormalParameterElement> _computeParameterMap(
+  Iterable<InternalFormalParameterElement> parameters,
 ) {
   int unnamedParameterIndex = 0;
   return {
@@ -61,8 +61,8 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
   /// The identifier pointing to the constructor that's being invoked, or `null`
   /// if a constructor name couldn't be found (should only happen when
   /// recovering from errors).  If the constructor is generic, this identifier's
-  /// static element will be updated to point to a [ConstructorMember] with type
-  /// arguments filled in.
+  /// static element will be updated to point to a
+  /// [SubstitutedConstructorElementImpl] with type arguments filled in.
   final SimpleIdentifierImpl? constructorName;
 
   AnnotationInferrer({
@@ -96,8 +96,8 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
     FunctionType? invokeType,
   ) {
     if (invokeType != null) {
-      var elementOrMember = node.element as ConstructorElementMixin2;
-      var constructorElement = ConstructorMember.from2(
+      var elementOrMember = node.element as InternalConstructorElement;
+      var constructorElement = SubstitutedConstructorElementImpl.from2(
         elementOrMember.baseElement,
         invokeType.returnType as InterfaceType,
       );
@@ -150,7 +150,7 @@ class DotShorthandConstructorInvocationInferrer
   ) {
     if (invokeType != null) {
       var constructedType = invokeType.returnType;
-      var constructorElement = ConstructorMember.from2(
+      var constructorElement = SubstitutedConstructorElementImpl.from2(
         node.element!.baseElement,
         constructedType as InterfaceType,
       );
@@ -369,7 +369,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
   /// parameters that were *not* deferred.
   List<_ParamInfo> _computeUndeferredParamInfo(
     FunctionType? rawType,
-    Map<Object, FormalParameterElementMixin> parameterMap,
+    Map<Object, InternalFormalParameterElement> parameterMap,
     List<_DeferredParamInfo> deferredFunctionLiterals,
   ) {
     if (rawType == null) return const [];
@@ -471,7 +471,7 @@ class InstanceCreationInferrer
     if (invokeType != null) {
       var constructedType = invokeType.returnType;
       node.constructorName.type.type = constructedType;
-      var constructorElement = ConstructorMember.from2(
+      var constructorElement = SubstitutedConstructorElementImpl.from2(
         node.constructorName.element!.baseElement,
         constructedType as InterfaceType,
       );
@@ -626,7 +626,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// be deferred due to the `inference-update-1` feature, a list of them is
   /// returned.
   List<_DeferredParamInfo>? _visitArguments({
-    required Map<Object, FormalParameterElementMixin> parameterMap,
+    required Map<Object, InternalFormalParameterElement> parameterMap,
     List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
     Substitution? substitution,
     GenericInferrer? inferrer,
@@ -640,7 +640,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     for (int i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
       Expression value;
-      FormalParameterElementMixin? parameter;
+      InternalFormalParameterElement? parameter;
       Object parameterKey;
       if (argument is NamedExpressionImpl) {
         value = argument.expression;
@@ -870,7 +870,7 @@ class _IdenticalArgumentInfo {
 class _ParamInfo {
   /// The function parameter corresponding to the argument, or `null` if we are
   /// resolving a dynamic invocation.
-  final FormalParameterElementMixin? parameter;
+  final InternalFormalParameterElement? parameter;
 
   _ParamInfo(this.parameter);
 }

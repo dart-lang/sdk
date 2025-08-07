@@ -34,16 +34,19 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
           TypedDataView::Handle(Z, parsed_function->function().KernelLibrary()),
           parsed_function->function().KernelLibraryOffset()),
       constant_reader_(&helper_, &active_class_),
-      inferred_type_metadata_helper_(&helper_, &constant_reader_),
-      inferred_arg_type_metadata_helper_(
-          &helper_,
-          &constant_reader_,
-          InferredTypeMetadataHelper::Kind::ArgType),
-      procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
                        &constant_reader_,
                        &active_class_,
-                       /*finalize=*/true) {
+                       /*finalize=*/true),
+      inferred_type_metadata_helper_(&helper_,
+                                     &constant_reader_,
+                                     &type_translator_),
+      inferred_arg_type_metadata_helper_(
+          &helper_,
+          &constant_reader_,
+          &type_translator_,
+          InferredTypeMetadataHelper::Kind::ArgType),
+      procedure_attributes_metadata_helper_(&helper_) {
   const auto& kernel_program_info = KernelProgramInfo::Handle(
       Z, parsed_function->function().KernelProgramInfo());
   H.InitFromKernelProgramInfo(kernel_program_info);

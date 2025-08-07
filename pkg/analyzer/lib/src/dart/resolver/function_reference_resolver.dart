@@ -99,11 +99,7 @@ class FunctionReferenceResolver {
     if (prefixElement is VariableElement) {
       prefixType = prefixElement.type;
     } else if (prefixElement is PropertyAccessorElement) {
-      var variable = prefixElement.variable;
-      if (variable == null) {
-        return false;
-      }
-      prefixType = variable.type;
+      prefixType = prefixElement.variable.type;
     }
 
     if (prefixType is DynamicType) {
@@ -440,7 +436,7 @@ class FunctionReferenceResolver {
     FunctionReferenceImpl node,
     PrefixedIdentifierImpl function,
   ) {
-    var prefixElement = function.prefix.scopeLookupResult!.getter2;
+    var prefixElement = function.prefix.scopeLookupResult!.getter;
 
     if (prefixElement == null) {
       _diagnosticReporter.atNode(
@@ -465,7 +461,7 @@ class FunctionReferenceResolver {
     var functionName = function.identifier.name;
 
     if (prefixElement is PrefixElement) {
-      var functionElement = prefixElement.scope.lookup(functionName).getter2;
+      var functionElement = prefixElement.scope.lookup(functionName).getter;
       if (functionElement == null) {
         _diagnosticReporter.atNode(
           function.identifier,
@@ -541,16 +537,11 @@ class FunctionReferenceResolver {
     } else if (target is ThisExpressionImpl) {
       targetType = target.typeOrThrow;
     } else if (target is SimpleIdentifierImpl) {
-      var targetElement = target.scopeLookupResult!.getter2;
-      if (targetElement is VariableElement2OrMember) {
+      var targetElement = target.scopeLookupResult!.getter;
+      if (targetElement is InternalVariableElement) {
         targetType = targetElement.type;
-      } else if (targetElement is PropertyAccessorElement2OrMember) {
-        var variable = targetElement.variable;
-        if (variable == null) {
-          node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-          return;
-        }
-        targetType = variable.type;
+      } else if (targetElement is InternalPropertyAccessorElement) {
+        targetType = targetElement.variable.type;
       } else {
         // TODO(srawlins): Can we get here?
         node.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -632,7 +623,7 @@ class FunctionReferenceResolver {
   ) {
     if (element is MultiplyDefinedElement) {
       MultiplyDefinedElement multiply = element;
-      element = multiply.conflictingElements2[0];
+      element = multiply.conflictingElements[0];
 
       // TODO(srawlins): Add a resolution test for this case.
     }
@@ -698,7 +689,7 @@ class FunctionReferenceResolver {
     FunctionReferenceImpl node,
     SimpleIdentifierImpl function,
   ) {
-    var element = function.scopeLookupResult!.getter2;
+    var element = function.scopeLookupResult!.getter;
 
     if (element == null) {
       TypeImpl receiverType;
@@ -742,16 +733,10 @@ class FunctionReferenceResolver {
           // Continue to assign types.
         }
 
-        if (method is PropertyAccessorElement2OrMember) {
+        if (method is InternalPropertyAccessorElement) {
           function.element = method;
           function.setPseudoExpressionStaticType(method.returnType);
-          var variable = method.variable;
-          if (variable != null) {
-            _resolve(node: node, rawType: variable.type);
-          } else {
-            function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-            node.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-          }
+          _resolve(node: node, rawType: method.variable.type);
           return;
         }
 
@@ -814,10 +799,6 @@ class FunctionReferenceResolver {
     } else if (element is PropertyAccessorElement) {
       function.element = element;
       var variable = element.variable;
-      if (variable == null) {
-        function.setPseudoExpressionStaticType(InvalidTypeImpl.instance);
-        return;
-      }
       function.setPseudoExpressionStaticType(variable.type);
       var callMethod = _getCallMethod(node, variable.type);
       if (callMethod is MethodElement) {

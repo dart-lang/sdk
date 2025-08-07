@@ -34,7 +34,7 @@ import 'package:testing/testing.dart';
 import "package:vm/modular/target/vm.dart" show VmTarget;
 
 api.CompilerOptions getOptions(
-    {void Function(api.DiagnosticMessage message)? onDiagnostic,
+    {void Function(api.CfeDiagnosticMessage message)? onDiagnostic,
     Uri? repoDir,
     Uri? packagesFileUri,
     bool compileSdk = false,
@@ -64,7 +64,7 @@ api.CompilerOptions getOptions(
 /// mixin transformation isn't compatible (and will actively crash).
 Future<BuildResult> compile(
     {required List<Uri> inputs,
-    void Function(api.DiagnosticMessage message)? onDiagnostic,
+    void Function(api.CfeDiagnosticMessage message)? onDiagnostic,
     Uri? repoDir,
     Uri? packagesFileUri,
     bool compileSdk = false,

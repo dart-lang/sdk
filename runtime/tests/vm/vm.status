@@ -65,6 +65,40 @@ dart/isolates/many_isolates_blocked_at_process_run_sync_test: Skip # App snapsho
 dart/isolates/many_isolates_blocked_at_sleep_test: Skip # App snapshot creation needs regular isolate shutdown
 dart/snapshot_version_test: RuntimeError
 
+[ $compiler == dart2bytecode ]
+cc/AllocationSinking_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/BCE*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/BasicInduction*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/BoundsCheckElimination_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/ChainInduction: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/CheckStackOverflowElimination_NoInterruptsPragma: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/CompileFunction*: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/ConstantFold_bitLength: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/DelayAllocations_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/DeoptimizeFramesWhenSettingBreakpoint: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/DerivedInduction: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/Ffi_StructSinking: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/FlowGraph_PhiUnboxingHeuristic_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/IsolateReload_EnumWithSet: SkipByDesign # Bytecode doesn't support KernelProgramInfo.
+cc/IsolateReload_RegressB179030011: SkipByDesign # Bytecode doesn't support concatenated kernel programs.
+cc/LICM_Deopt_*: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/LoadOptimizer_Redundant*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/NonStrictCondition*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/NotEqualCondition*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/OptimizeCompileFunctionOnHelperThread: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/PeriodicAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/RangeAnalysis_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/SecondExit*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/StackMapGC: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/StreamingFlowGraphBuilder_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/TryCatchOptimizer_DeadParameterElimination_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/TwoWayInduction: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/TypePropagator_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/WrapAroundAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
+dart/regress_52703_test: Pass, Slow
+
 [ $compiler == dartk ]
 cc/IsolateReload_LibraryLookup: Fail, Crash # Issue 32190
 
@@ -104,6 +138,7 @@ cc/VerifyImplicit_Crash: Crash # Negative tests of VerifiedMemory should crash i
 dart/appjit_cha_deopt_test: Pass, Slow # Quite slow in debug mode, uses --optimization-counter-threshold=100
 dart/b162922506_test: SkipSlow # Generates very large input file
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
+dart/many_functions_test: SkipSlow # Too slow in debug mode.
 dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow in debug mode
 dart/regress47472_test: Pass, Slow # Slow due to throwing 1 million exceptions.
 dart/spawn_shutdown_test: Pass, Slow # VM Shutdown test, It can take some time for all the isolates to shutdown in a Debug build.
@@ -113,6 +148,8 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
+dart/symbolized_crash_test: Skip # Stack dump code excluded from product mode
+dart/symbolized_dart_crash_test: Skip # Stack dump code excluded from product mode
 
 [ $sanitizer == asan ]
 dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
@@ -207,6 +244,9 @@ dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is no
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
 dart/sendport_api_test: SkipByDesign # No FFI on simulators
+dart/shared_collect_all_garbage_test: SkipByDesign # No FFI on simulators
+dart/shared_syncstar_test: SkipByDesign # No FFI on simulators
+dart/symbolized_dart_crash_test: Skip # Stack dump code doesn't see simulated stack
 dart/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator

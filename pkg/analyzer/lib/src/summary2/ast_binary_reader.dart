@@ -223,6 +223,9 @@ class AstBinaryReader {
       arguments: arguments,
     );
     node.element = _reader.readElement();
+    if (arguments != null) {
+      _resolveNamedExpressions(node.element, arguments);
+    }
     return node;
   }
 
@@ -270,7 +273,7 @@ class AstBinaryReader {
       operator: Tokens.fromType(operatorType),
       rightHandSide: rightHandSide,
     );
-    node.element = _reader.readElement() as MethodElement2OrMember?;
+    node.element = _reader.readElement() as InternalMethodElement?;
     node.readElement = _reader.readElement();
     node.readType = _reader.readType();
     node.writeElement = _reader.readElement();
@@ -362,7 +365,7 @@ class AstBinaryReader {
       period: name != null ? Tokens.period() : null,
       name: name,
     );
-    node.element = _reader.readElement() as ConstructorElementMixin2?;
+    node.element = _reader.readElement() as InternalConstructorElement?;
     return node;
   }
 
@@ -428,7 +431,7 @@ class AstBinaryReader {
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: nonDefaultElement.name,
-      nameOffset2: nonDefaultElement.nameOffset2,
+      nameOffset: nonDefaultElement.nameOffset,
       parameterKind: kind,
     );
     if (parameter is SimpleFormalParameterImpl) {
@@ -436,7 +439,6 @@ class AstBinaryReader {
     }
     node.declaredFragment = fragment;
     fragment.element.type = nonDefaultElement.element.type;
-    fragment.type = nonDefaultElement.element.type;
 
     return node;
   }
@@ -695,10 +697,8 @@ class AstBinaryReader {
     var type = _reader.readRequiredType() as FunctionTypeImpl;
     node.type = type;
 
-    var fragment = GenericFunctionTypeFragmentImpl.forOffset(
-      firstTokenOffset: null,
-    );
-    fragment.parameters =
+    var fragment = GenericFunctionTypeFragmentImpl(firstTokenOffset: null);
+    fragment.formalParameters =
         formalParameters.parameters
             .map((parameter) => parameter.declaredFragment!)
             .toList();
@@ -833,7 +833,7 @@ class AstBinaryReader {
     return InterpolationExpressionImpl(
       leftBracket:
           isIdentifier
-              ? Tokens.openCurlyBracket()
+              ? Tokens.stringInterpolationIdentifier()
               : Tokens.stringInterpolationExpression(),
       expression: expression,
       rightBracket: isIdentifier ? null : Tokens.closeCurlyBracket(),
@@ -1218,16 +1218,14 @@ class AstBinaryReader {
           AstBinaryFlags.isRequired(flags) ? Tokens.required_() : null,
     );
     var actualType = _reader.readRequiredType();
-    _reader.readByte(); // TODO(scheglov): inherits covariant
 
     var fragment = FormalParameterFragmentImpl(
       firstTokenOffset: null,
       name: name?.lexeme,
-      nameOffset2: null,
+      nameOffset: null,
       parameterKind: node.kind,
     );
     fragment.element.type = actualType;
-    fragment.type = actualType;
     node.declaredFragment = fragment;
 
     return node;
@@ -1288,7 +1286,7 @@ class AstBinaryReader {
       constructorName: constructorName,
       argumentList: argumentList,
     );
-    node.element = _reader.readElement() as ConstructorElementMixin2?;
+    node.element = _reader.readElement() as InternalConstructorElement?;
     _resolveNamedExpressions(node.element, node.argumentList);
     return node;
   }

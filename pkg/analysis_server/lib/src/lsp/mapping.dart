@@ -533,10 +533,10 @@ lsp.Location? fragmentToLocation(
     :var isSynthetic,
   ) when isSynthetic) {
     var element = fragment.element.nonSynthetic;
-    nameOffset = element.firstFragment.nameOffset2;
+    nameOffset = element.firstFragment.nameOffset;
     nameLength = element.firstFragment.name?.length;
   } else {
-    nameOffset = fragment.nameOffset2;
+    nameOffset = fragment.nameOffset;
     nameLength = fragment.name?.length;
   }
 

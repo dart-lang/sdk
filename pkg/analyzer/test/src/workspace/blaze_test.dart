@@ -187,7 +187,7 @@ language = struct(
     required Version package,
     required Version? override,
   }) {
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     expect(element.languageVersion.package, package);
     expect(element.languageVersion.override, override);
   }

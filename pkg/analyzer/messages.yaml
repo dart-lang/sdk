@@ -18362,46 +18362,6 @@ CompileTimeErrorCode:
 
       Parameters:
       0: the number of parameters found in the operator declaration
-  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
-    problemMessage: Setters must declare exactly one required positional parameter.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a setter is found that doesn't
-      declare exactly one required positional parameter.
-
-      #### Examples
-
-      The following code produces this diagnostic because the setter `s` declares
-      two required parameters:
-
-      ```dart
-      class C {
-        set [!s!](int x, int y) {}
-      }
-      ```
-
-      The following code produces this diagnostic because the setter `s` declares
-      one optional parameter:
-
-      ```dart
-      class C {
-        set [!s!]([int? x]) {}
-      }
-      ```
-
-      #### Common fixes
-
-      Change the declaration so that there's exactly one required positional
-      parameter:
-
-      ```dart
-      class C {
-        set s(int x) {}
-      }
-      ```
   WRONG_NUMBER_OF_TYPE_ARGUMENTS:
     problemMessage: "The type '{0}' is declared with {1} type parameters, but {2} type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
@@ -22138,6 +22098,45 @@ ParserErrorCode:
     problemMessage: "Typedefs can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
     hasPublishedDocs: false
+  WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+    problemMessage: Setters must declare exactly one required positional parameter.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a setter is found that doesn't
+      declare exactly one required positional parameter.
+
+      #### Examples
+
+      The following code produces this diagnostic because the setter `s` declares
+      two required parameters:
+
+      ```dart
+      class C {
+        set [!s!](int x, int y) {}
+      }
+      ```
+
+      The following code produces this diagnostic because the setter `s` declares
+      one optional parameter:
+
+      ```dart
+      class C {
+        set [!s!]([int? x]) {}
+      }
+      ```
+
+      #### Common fixes
+
+      Change the declaration so that there's exactly one required positional
+      parameter:
+
+      ```dart
+      class C {
+        set s(int x) {}
+      }
+      ```
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
     problemMessage: "The default value of a positional parameter should be preceded by '='."
     correctionMessage: "Try replacing the ':' with '='."
@@ -24010,6 +24009,47 @@ WarningCode:
 
       If the name isn't available, then look for instructions from the library
       author or contact them directly to find out how to update your code.
+  DEPRECATED_EXTEND:
+    problemMessage: "Extending '{0}' is deprecated."
+    correctionMessage: Try removing the 'extends' clause.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class which is annotated with
+      `@Deprecated.extend` is used in the `extends` clause of a class
+      declaration.
+
+      This annotation indicates that the ability for classes to extend the
+      annotated class is deprecated, and will soon be removed, perhaps by
+      marking the annotated class with `interface`, `final`, or `sealed`.
+
+      #### Example
+
+      If the library `p` defines a class annotated with `@Deprecated.extend`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      @Deprecated.extend()
+      class C {}
+      ```
+
+      Then, the following code, when in a library other than `p`, produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      class D extends [!C!] {}
+      ```
+
+      #### Common fixes
+
+      Follow any directions found in the `Deprecation.extend` annotation, or
+      just remove the class name from the `extends` clause.
   DEPRECATED_EXTENDS_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Extending 'Function' is deprecated."
@@ -24041,6 +24081,46 @@ WarningCode:
       ```dart
       class F {}
       ```
+  DEPRECATED_IMPLEMENT:
+    problemMessage: "Implementing '{0}' is deprecated."
+    correctionMessage: Try removing '{0}' from the 'implements' clause.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class which is annotated with
+      `@Deprecated.implement` is used in the `implements` clause of a class or
+      enum declaration. This annotation indicates that the ability for classes
+      to implement the annotated class is deprecated, and will soon be removed,
+      perhaps
+      by marking the annotated class with `interface`, `final`, or `sealed`.
+
+      #### Example
+
+      If the library `p` defines a class annotated with `@Deprecated.implement`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      @Deprecated.implement()
+      class C {}
+      ```
+
+      Then, the following code, when in a library other than `p`, produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      class D implements [!C!] {}
+      ```
+
+      #### Common fixes
+
+      Follow any directions found in the `Deprecation.implement` annotation, or
+      just remove the class name from the `implements` clause.
   DEPRECATED_IMPLEMENTS_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Implementing 'Function' has no effect."
@@ -24731,6 +24811,60 @@ WarningCode:
       ```dart
       void f() {}
       ```
+  INVALID_DEPRECATED_EXTEND_ANNOTATION:
+    problemMessage: "The annotation '@Deprecated.extend' can only be applied to extendable classes."
+    correctionMessage: Try removing the '@Deprecated.extend' annotation.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than an
+      extendable class is annotated with
+      [`Deprecated.extend`][meta-deprecated-extend]. An extendable class is a
+      class not declared with the `interface`, `final`, or `sealed` keywords,
+      and with at least one public generative constructor.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      sealed class:
+
+      ```dart
+      @[!Deprecated.extend!]()
+      sealed class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation.
+  INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
+    problemMessage: "The annotation '@Deprecated.implement' can only be applied to implementable classes."
+    correctionMessage: Try removing the '@Deprecated.implement' annotation.
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than an
+      implementable class or mixin is annotated with
+      [`Deprecated.implement`][meta-deprecated-implement]. An implementable
+      class or mixin is one not declared with the `base`, `final`, or `sealed`
+      keywords.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      sealed class:
+
+      ```dart
+      @[!Deprecated.implement!]()
+      sealed class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation.
   INVALID_EXPORT_OF_INTERNAL_ELEMENT:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
     correctionMessage: "Try using a hide clause to hide '{0}'."

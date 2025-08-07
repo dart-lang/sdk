@@ -37,7 +37,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void check(Element? element, Token target) {
     if (element == null) return;
-    if (element case Annotatable a when a.metadata.hasOverride) return;
+    if (element.metadata.hasOverride) return;
 
     var member = element.overriddenMember;
     if (member != null) {

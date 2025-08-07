@@ -36,9 +36,7 @@ class ElementWriter with TreeWriter {
   Map<String, Object?> _computeProperties(Element element) {
     var properties = <String, Object?>{};
 
-    if (element case Annotatable element) {
-      properties['annotations'] = element.metadata.annotations;
-    }
+    properties['annotations'] = element.metadata.annotations;
     if (element is InterfaceElement) {
       properties['interfaces'] = element.interfaces;
       properties['isEnum'] = element is EnumElement;
@@ -161,23 +159,23 @@ class ElementWriter with TreeWriter {
     if (fragment is LibraryFragment) {
       properties['source'] = fragment.source;
       properties['imports'] = {
-        for (var import in fragment.libraryImports2)
+        for (var import in fragment.libraryImports)
           {
             'combinators': import.combinators,
-            if (import.prefix2 != null) 'prefix': import.prefix2?.name,
-            'isDeferred': import.prefix2?.isDeferred ?? false,
+            if (import.prefix != null) 'prefix': import.prefix?.name,
+            'isDeferred': import.prefix?.isDeferred ?? false,
             'library': import.importedLibrary,
           },
       };
       properties['imports'] = {
-        for (var export in fragment.libraryExports2)
+        for (var export in fragment.libraryExports)
           {
             'combinators': export.combinators,
             'library': export.exportedLibrary,
           },
       };
     }
-    properties['nameOffset'] = fragment.nameOffset2;
+    properties['nameOffset'] = fragment.nameOffset;
     if (fragment is ExecutableFragment) {
       properties['isAsynchronous'] = fragment.isAsynchronous;
       properties['isGenerator'] = fragment.isGenerator;

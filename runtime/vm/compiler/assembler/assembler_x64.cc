@@ -2106,15 +2106,7 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // RSP might have been modified to reserve space for arguments
     // and ensure proper alignment of the stack frame.
     // We need to restore it before restoring registers.
-    const intptr_t kPushedCpuRegistersCount =
-        RegisterSet::RegisterCount(CallingConventions::kVolatileCpuRegisters);
-    const intptr_t kPushedXmmRegistersCount =
-        RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
-    const intptr_t kPushedRegistersSize =
-        kPushedCpuRegistersCount * target::kWordSize +
-        kPushedXmmRegistersCount * kFpuRegisterSize;
-
-    __ leaq(RSP, Address(RBP, -kPushedRegistersSize));
+    __ leaq(RSP, Address(RBP, -kVolatileRegisterSet.SpillSize()));
 
     // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
     __ PopRegisters(kVolatileRegisterSet);
@@ -2128,16 +2120,80 @@ LeafRuntimeScope::~LeafRuntimeScope() {
   __ LeaveFrame();
 }
 
-void Assembler::TsanLoadAcquire(Address addr) {
-  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
+  ASSERT(addr.base() != RSP);
+  ASSERT(addr.base() != RBP);
+  ASSERT(dst != RSP);
+  ASSERT(dst != RBP);
+
+  RegisterSet registers(CallingConventions::kVolatileCpuRegisters & ~(1 << dst),
+                        CallingConventions::kVolatileXmmRegisters);
+
+  EnterFrame(0);
+  PushRegisters(registers);
+  ReserveAlignedFrameSpace(0);
+
   leaq(CallingConventions::kArg1Reg, addr);
-  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
+  LoadImmediate(CallingConventions::kArg2Reg, __ATOMIC_ACQUIRE);
+
+  switch (size) {
+    case kEightBytes:
+      movq(RAX, compiler::Address(
+                    THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    case kUnsignedFourBytes:
+      movq(RAX, compiler::Address(
+                    THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+  movq(compiler::Assembler::VMTagAddress(), RAX);
+  CallCFunction(RAX);
+  movq(compiler::Assembler::VMTagAddress(),
+       compiler::Immediate(VMTag::kDartTagId));
+
+  MoveRegister(dst, RAX);
+
+  // RSP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  leaq(RSP, Address(RBP, -registers.SpillSize()));
+
+  PopRegisters(registers);
+  LeaveFrame();
 }
 
-void Assembler::TsanStoreRelease(Address addr) {
+void Assembler::TsanStoreRelease(Register src, Address addr, OperandSize size) {
+  ASSERT(addr.base() != RSP);
+  ASSERT(addr.base() != RBP);
+  ASSERT(src != RSP);
+  ASSERT(src != RBP);
+
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
-  leaq(CallingConventions::kArg1Reg, addr);
-  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
+
+  if (CallingConventions::kArg1Reg == src) {
+    MoveRegister(CallingConventions::kArg2Reg, src);
+    leaq(CallingConventions::kArg1Reg, addr);
+  } else {
+    leaq(CallingConventions::kArg1Reg, addr);
+    MoveRegister(CallingConventions::kArg2Reg, src);
+  }
+  LoadImmediate(CallingConventions::kArg3Reg, __ATOMIC_RELEASE);
+
+  switch (size) {
+    case kEightBytes:
+      rt.Call(kTsanAtomic64StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      rt.Call(kTsanAtomic32StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Assembler::RestoreCodePointer() {

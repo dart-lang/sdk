@@ -4,10 +4,10 @@
 
 import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
@@ -34,6 +34,35 @@ mixin EditableArgumentsMixin {
     var dartDoc = dartDocComputer.compute(element);
 
     return dartDoc?.full;
+  }
+
+  /// Returns the name of an enum constant prefixed with only a dot.
+  ///
+  /// If the dot-shorthands feature is not enabled, this method returns null.
+  String? getDotShorthandEnumConstantName(FieldElement enumConstant) {
+    if (!_supportsDotShorthandSyntax(enumConstant)) {
+      return null;
+    }
+
+    var name = enumConstant.name;
+    return name != null ? '.$name' : null;
+  }
+
+  /// Returns an enum constant [FieldElement] of the given [element] matching
+  /// the provided fully qualified name.
+  ///
+  /// This method iterates through all constants of the [element] and compares
+  /// their fully qualified names against the [matching] string.
+  FieldElement? getEnumConstantMatching(
+    EnumElement element, {
+    required String matching,
+  }) {
+    for (var enumConstant in element.constants) {
+      if (getQualifiedEnumConstantName(enumConstant) == matching) {
+        return enumConstant;
+      }
+    }
+    return null;
   }
 
   /// Gets the argument list at [offset] that can be edited.
@@ -162,6 +191,11 @@ mixin EditableArgumentsMixin {
   List<String> getQualifiedEnumConstantNames(EnumElement element) =>
       element.constants.map(getQualifiedEnumConstantName).nonNulls.toList();
 
+  /// Determines whether or not the dot-shortands feature is enabled for the
+  /// given [element].
+  bool _supportsDotShorthandSyntax(Element element) =>
+      element.library?.featureSet.isEnabled(Feature.dot_shorthands) ?? false;
+
   /// Returns the name of an enum constant prefixed with the enum name.
   static String? getQualifiedEnumConstantName(FieldElement enumConstant) {
     var enumName = enumConstant.enclosingElement.name;
@@ -187,10 +221,9 @@ extension on InvocationExpressionImpl {
       _ => null,
     };
 
-    return switch (element) {
-      FragmentedAnnotatableElementMixin(:var metadata) =>
-        metadata.hasWidgetFactory,
-      _ => false,
-    };
+    if (element != null) {
+      return element.metadata.hasWidgetFactory;
+    }
+    return false;
   }
 }

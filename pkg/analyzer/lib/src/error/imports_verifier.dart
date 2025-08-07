@@ -234,7 +234,7 @@ class ImportsVerifier {
     for (var importDirective in fileAnalysis.unit.directives) {
       if (importDirective is ImportDirectiveImpl) {
         var importElement = importDirective.libraryImport!;
-        var prefixElement = importElement.prefix2?.element;
+        var prefixElement = importElement.prefix?.element;
 
         var tracking = importsTracking.map[prefixElement];
         if (tracking == null) {
@@ -248,12 +248,12 @@ class ImportsVerifier {
 
         if (importElement.uri case DirectiveUriWithLibraryImpl uri) {
           // Ignore explicit dart:core import.
-          if (uri.library2.isDartCore) {
+          if (uri.library.isDartCore) {
             continue;
           }
 
           // The URI target does not exist, reported this elsewhere.
-          if (uri.library2.isSynthetic) {
+          if (uri.library.isSynthetic) {
             continue;
           }
 

@@ -121,7 +121,8 @@ ConstructorFieldInitializer
                 semicolon: ;
             rightBracket: }
         declaredElement: <testLibraryFragment> null@null
-          type: int Function()
+          element: null@null
+            type: int Function()
         staticType: int Function()
       rightParenthesis: )
       staticType: int Function()
@@ -173,7 +174,8 @@ ConstructorFieldInitializer
             staticInvokeType: num Function(num)
             staticType: int
         declaredElement: <testLibraryFragment> null@null
-          type: int Function()
+          element: null@null
+            type: int Function()
         staticType: int Function()
       rightParenthesis: )
       staticType: int Function()

@@ -19,7 +19,6 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
@@ -641,8 +640,7 @@ class TypeArgumentsVerifier {
   /// - [type] does not have any `dynamic` type arguments.
   /// - the element is marked with `@optionalTypeArgs` from "package:meta".
   bool _isMissingTypeArguments(AstNode node, DartType type, Element? element) {
-    var elementMetadata = element.ifTypeOrNull<Annotatable>()?.metadata;
-    if (elementMetadata == null) {
+    if (element == null) {
       return false;
     }
 
@@ -659,7 +657,7 @@ class TypeArgumentsVerifier {
     // Check if this type has type arguments and at least one is dynamic.
     // If so, we may need to issue a strict-raw-types error.
     if (typeArguments.any((t) => t is DynamicType)) {
-      if (element != null && elementMetadata.hasOptionalTypeArgs) {
+      if (element.metadata.hasOptionalTypeArgs) {
         return false;
       }
       return true;

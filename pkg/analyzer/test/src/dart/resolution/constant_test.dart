@@ -40,7 +40,7 @@ const a = const A();
 
     var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
     var aConstructor = aLib.getClass('A')!.constructors.single;
-    var p = aConstructor.formalParameters.single as FormalParameterElementImpl;
+    var p = aConstructor.formalParameters.single;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
@@ -197,6 +197,10 @@ C<double Function(int)>
       alias: package:test/a.dart::@typeAlias::F
         typeArguments
           double
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::C::@constructor::new
+      substitution: {T: double Function(int)}
   variable: <testLibrary>::@topLevelVariable::v
 ''');
   }

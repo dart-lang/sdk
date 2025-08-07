@@ -40,7 +40,7 @@ class EditImportElementsHandler extends LegacyHandler {
       sendResponse(Response.importElementsInvalidFile(request));
       return;
     }
-    var libraryUnit = result.libraryElement2.firstFragment;
+    var libraryUnit = result.libraryElement.firstFragment;
     if (libraryUnit != result.libraryFragment) {
       // The file in the request is a part of a library. We need to pass the
       // defining compilation unit to the computer, not the part.

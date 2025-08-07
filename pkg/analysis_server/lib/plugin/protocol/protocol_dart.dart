@@ -24,9 +24,7 @@ Element convertElement(engine.Element element) {
     name,
     Element.makeFlags(
       isPrivate: element.isPrivate,
-      isDeprecated:
-          (element is engine.Annotatable) &&
-          (element as engine.Annotatable).metadata.hasDeprecated,
+      isDeprecated: element.metadata.hasDeprecated,
       isAbstract: _isAbstract(element),
       isConst: _isConst(element),
       isFinal: _isFinal(element),

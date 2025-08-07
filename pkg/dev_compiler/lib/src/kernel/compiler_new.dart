@@ -2205,7 +2205,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var memberName = _declareMemberName(
         member,
-        useExtension: _isObjectMethodTearoff(member.name.text),
+        useExtension: member.isToStringOrNoSuchMethod,
       );
       if (!member.isAccessor) {
         var immediateTarget = js.string(fullyResolvedTargetLabel(member));
@@ -6156,8 +6156,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectGetter(memberName) &&
-        _shouldCallObjectMemberHelper(receiver)) {
+    if (member.isCoreObjectGetter && _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must match the
       // names of the Object instance getters.
       return _runtimeCall('#(#)', [memberName, jsReceiver]);
@@ -6219,7 +6218,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectMethodTearoff(memberName) &&
+    if (member.isToStringOrNoSuchMethod &&
         _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must start with
       // the names of the Object instance methods.
@@ -6520,10 +6519,107 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
-    var invocation = _emitInstanceInvocation(node);
+    var target = node.interfaceTarget;
+    if (target.isPrimitiveOperator) {
+      return _emitPrimitiveOperatorInvocation(node);
+    }
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    var jsArguments = _emitArgumentList(node.arguments, target: target);
+    if (node.isNativeListInvariantAddInvocation(_coreTypes.listClass)) {
+      // TODO(nshahan): If this code is retained, can it become invalid after a
+      // hot reload?
+      return js.call('#.push(#)', [jsReceiver, jsArguments]);
+    }
+    var name = node.name.text;
+    if (name == 'call') {
+      var directCallInvocation = _emitDirectInstanceCallInvocation(node);
+      if (directCallInvocation != null) {
+        return directCallInvocation;
+      }
+    }
+    if (target.isToStringOrNoSuchMethodWithDefaultSignature &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // Handle Object methods when the receiver could potentially be `null` or
+      // JavaScript interop values with static helper methods.
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance members.
+      // TODO(nshahan): What should be checked after a hot reload. I think only
+      // the return type of the NSM can change.
+      return _runtimeCall('#(#, #)', [name, jsReceiver, jsArguments]);
+    }
+    // Otherwise generate this as a normal typed method call.
+    var jsName = _emitMemberName(name, member: target);
+    var invocation = js.call('#.#(#)', [jsReceiver, jsName, jsArguments]);
+    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
+      var checkedInvocation = _rewriteInvocationWithHotReloadChecks(
+        jsReceiver,
+        jsName,
+        target,
+        node.arguments,
+        node.getStaticType(_staticTypeContext),
+        _nodeStart(node),
+      );
+      // As an optimization, avoid extra checks when the invocation code was
+      // compiled in the same generation that it is running.
+      return _emitHotReloadSafeInvocation(invocation, checkedInvocation);
+    }
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(invocation)
         : invocation;
+  }
+
+  /// Returns a direct invocation to support a `call()` method invocation when
+  /// the receiver is considered directly callable, otherwise returns
+  /// `null`.
+  ///
+  /// For example if `fn` is statically typed as a function type, then
+  /// `fn.call()` would be considered directly callable and compiled as `fn()`.
+  // TODO(nshahan): Handle retained call method invocations that have new
+  // signatures or were deleted after a hot reload.
+  js_ast.Expression? _emitDirectInstanceCallInvocation(
+    InstanceInvocation node,
+  ) {
+    // Erasing the extension types here to support existing callable behavior
+    // on the old style JS interop types that are callable. This should be
+    // safe as it is a compile time error to try to dynamically invoke a call
+    // method that is inherited from an extension type.
+    var receiverType = node.receiver
+        .getStaticType(_staticTypeContext)
+        .extensionTypeErasure;
+    if (!_isDirectCallable(receiverType)) return null;
+    // Handle call methods on function types as function calls.
+    var invocation = js_ast.Call(
+      _visitExpression(node.receiver),
+      _emitArgumentList(node.arguments, target: node.interfaceTarget),
+    );
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(invocation)
+        : invocation;
+  }
+
+  /// Returns an invocation of a primitive operator.
+  ///
+  /// See [ProcedureHelpers.isPrimitiveOperator].
+  // TODO(nshahan): Handle retained operator invocations that have new
+  // signatures or were deleted after a hot reload.
+  js_ast.Expression _emitPrimitiveOperatorInvocation(InstanceInvocation node) {
+    var receiver = node.receiver;
+    var target = node.interfaceTarget;
+    var arguments = node.arguments;
+    assert(arguments.types.isEmpty && arguments.named.isEmpty);
+    // JavaScript interop does not support overloading of these operators.
+    return switch (arguments.positional.length) {
+      0 => _emitUnaryOperator(receiver, target, node),
+      1 => _emitBinaryOperator(receiver, target, arguments.positional[0], node),
+      // Should always be a compile time error but here for exhaustiveness.
+      _ => throw UnsupportedError(
+        'Invalid number of positional arguments.\n'
+        'Found: ${arguments.positional.length}\n'
+        'Operator: ${node.name.text} '
+        '${node.location}',
+      ),
+    };
   }
 
   @override
@@ -6623,92 +6719,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       node.expression,
       NullLiteral(),
     ], negated: false);
-  }
-
-  js_ast.Expression _emitInstanceInvocation(InstanceInvocation node) {
-    /// Returns `true` when [node] represents an invocation of `List.add()` that
-    /// can be optimized.
-    ///
-    /// The optimized add operation can skip checks for a growable or modifiable
-    /// list and the element type is known to be invariant so it can skip the
-    /// type check.
-    bool isNativeListInvariantAdd(InstanceInvocation node) {
-      if (node.isInvariant && node.name.text == 'add') {
-        // The call to add is marked as invariant, so the type check on the
-        // parameter to add is not needed.
-        var receiver = node.receiver;
-        if (receiver is VariableGet &&
-            receiver.variable.isFinal &&
-            !receiver.variable.isLate) {
-          // The receiver is a final variable, so it only contains the
-          // initializer value. Also, avoid late variables in case the CFE
-          // lowering of late variables is changed in the future.
-          var initializer = receiver.variable.initializer;
-          if (initializer is ListLiteral) {
-            // The initializer is a list literal, so we know the list can be
-            // grown, modified, and is represented by a JavaScript Array.
-            return true;
-          }
-          if (initializer is StaticInvocation &&
-              initializer.target.enclosingClass == _coreTypes.listClass &&
-              initializer.target.name.text == 'of' &&
-              initializer.arguments.named.isEmpty) {
-            // The initializer is a `List.of()` call from the dart:core library
-            // and the growable named argument has not been passed (it defaults
-            // to true).
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    var name = node.name.text;
-    var receiver = node.receiver;
-    var arguments = node.arguments;
-    var target = node.interfaceTarget;
-    if (isOperatorMethodName(name) && arguments.named.isEmpty) {
-      var argLength = arguments.positional.length;
-      if (argLength == 0) {
-        return _emitUnaryOperator(receiver, target, node);
-      } else if (argLength == 1) {
-        return _emitBinaryOperator(
-          receiver,
-          target,
-          arguments.positional[0],
-          node,
-        );
-      }
-    }
-    var jsReceiver = _visitExpression(receiver);
-    var args = _emitArgumentList(arguments, target: target);
-    if (isNativeListInvariantAdd(node)) {
-      return js.call('#.push(#)', [jsReceiver, args]);
-    }
-    if (name == 'call') {
-      // Erasing the extension types here to support existing callable behavior
-      // on the old style JS interop types that are callable. This should be
-      // safe as it is a compile time error to try to dynamically invoke a call
-      // method that is inherited from an extension type.
-      var receiverType = receiver
-          .getStaticType(_staticTypeContext)
-          .extensionTypeErasure;
-      if (_isDirectCallable(receiverType)) {
-        // Handle call methods on function types as function calls.
-        return js_ast.Call(jsReceiver, args);
-      }
-    }
-    if (_isObjectMethodCall(name, arguments) &&
-        _shouldCallObjectMemberHelper(receiver)) {
-      // Handle Object methods when the receiver could potentially be `null` or
-      // JavaScript interop values with static helper methods.
-      // The names of the static helper methods in the runtime must match the
-      // names of the Object instance members.
-      return _runtimeCall('#(#, #)', [name, jsReceiver, args]);
-    }
-    // Otherwise generate this as a normal typed method call.
-    var jsName = _emitMemberName(name, member: target);
-    return js.call('#.#(#)', [jsReceiver, jsName, args]);
   }
 
   /// Returns an invocation of the runtime helpers `dcall`, `dgcall`, `dsend`,
@@ -7639,6 +7649,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ..sourceInformation = _nodeStart(node);
     if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
       var checkedCall = _rewriteInvocationWithHotReloadChecks(
+        fn.receiver,
+        fn.selector,
         target,
         node.arguments,
         node.getStaticType(_staticTypeContext),
@@ -7681,6 +7693,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// time to include checks to preserve soundness in the presence of hot
   /// reloads at runtime.
   ///
+  /// The compiled JavaScript [receiver] and [selector] should be passed so that
+  /// they can be reused for the validated invocation after the checks have
+  /// passed.
+  ///
   /// The checks are similar to the those performed when making a dynamic call.
   /// The [arguments] are checked for the correct shape and runtime types.
   /// Additionally after the invocation, the returned value is checked against
@@ -7692,7 +7708,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The resulting expression for the validated call site will receive the
   /// [originalCallSiteSourceLocation].
   js_ast.Expression _rewriteInvocationWithHotReloadChecks(
-    Member target,
+    js_ast.Expression receiver,
+    js_ast.Expression selector,
+    Procedure target,
     Arguments arguments,
     DartType expectedReturnType,
     SourceLocation? originalCallSiteSourceLocation,
@@ -7741,8 +7759,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // still valid.
     var checkResult = _emitScopedId('\$result');
     _letVariables!.add(checkResult);
-    var jsTarget = _emitStaticTarget(target);
-    var jsTypeArguments = [
+    var typeArguments = [
       // TODO(nshahan): Remove this check if we stop rewriting calls to SDK
       // functions.
       if (_reifyGenericFunction(target))
@@ -7751,9 +7768,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var correctnessCheck = _runtimeCall(
       'hotReloadCorrectnessChecks(#, #, #, #, #)',
       [
-        jsTarget.receiver,
-        jsTarget.selector,
-        js_ast.ArrayInitializer(jsTypeArguments),
+        receiver,
+        selector,
+        js_ast.ArrayInitializer(typeArguments),
         js_ast.ArrayInitializer(hoistedPositionalVariables),
         hoistedNamedVariables.isEmpty
             ? js_ast.LiteralNull()
@@ -7769,14 +7786,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         : js_ast.Binary(',', letAssignments, checkAssignment);
     // Create a new invocation of the original target but passing all the
     // arguments via their let variables.
-    var validatedCallSite = js_ast.Call(jsTarget, [
-      ...jsTypeArguments,
-      ...hoistedPositionalVariables,
-      if (hoistedNamedVariables.isNotEmpty)
-        js_ast.ObjectInitializer([
-          for (var e in hoistedNamedVariables.entries)
-            js_ast.Property(js.string(e.key), e.value),
-        ]),
+    var validatedCallSite = js.call('#.#(#)', [
+      receiver,
+      selector,
+      [
+        ...typeArguments,
+        ...hoistedPositionalVariables,
+        if (hoistedNamedVariables.isNotEmpty)
+          js_ast.ObjectInitializer([
+            for (var e in hoistedNamedVariables.entries)
+              js_ast.Property(js.string(e.key), e.value),
+          ]),
+      ],
     ])..sourceInformation = originalCallSiteSourceLocation;
     // Cast the result of the checked call or the value returned from a
     // `NoSuchMethod` invocation.
@@ -10014,24 +10035,6 @@ bool _isObjectMember(String name) {
     case 'runtimeType':
     case '==':
       return true;
-  }
-  return false;
-}
-
-bool _isObjectGetter(String name) =>
-    name == 'hashCode' || name == 'runtimeType';
-
-bool _isObjectMethodTearoff(String name) =>
-    // "==" isn't in here because there is no syntax to tear it off.
-    name == 'toString' || name == 'noSuchMethod';
-
-bool _isObjectMethodCall(String name, Arguments args) {
-  if (name == 'toString') {
-    return args.positional.isEmpty && args.named.isEmpty && args.types.isEmpty;
-  } else if (name == 'noSuchMethod') {
-    return args.positional.length == 1 &&
-        args.named.isEmpty &&
-        args.types.isEmpty;
   }
   return false;
 }

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -40,7 +41,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/names.dart' show emptyName, minusName, plusName;
+import 'package:kernel/names.dart' show minusName, plusName;
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -642,8 +643,6 @@ class BodyBuilder extends StackListenerImpl
     } else if (node is SuperInitializer) {
       return buildProblem(
           cfe.messageSuperAsExpression, node.fileOffset, noLength);
-    } else if (node is ProblemBuilder) {
-      return node.toExpression(libraryBuilder);
     } else {
       return unhandled("${node.runtimeType}", "toValue", -1, uri);
     }
@@ -661,11 +660,6 @@ class BodyBuilder extends StackListenerImpl
       return forest.createConstantPattern(node.buildSimpleRead());
     } else if (node is Expression) {
       return forest.createConstantPattern(node);
-    }
-    // Coverage-ignore(suite): Not run.
-    else if (node is ProblemBuilder) {
-      Expression expression = node.toExpression(libraryBuilder);
-      return forest.createConstantPattern(expression);
     } else {
       return unhandled("${node.runtimeType}", "toPattern", -1, uri);
     }
@@ -855,7 +849,6 @@ class BodyBuilder extends StackListenerImpl
       /*type*/ unionOfKinds([
         ValueKinds.Generator,
         ValueKinds.QualifiedName,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery
       ])
     ]));
@@ -867,11 +860,7 @@ class BodyBuilder extends StackListenerImpl
       /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
       /*constructor name*/ ValueKinds.Name,
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
-      /*class*/ unionOfKinds([
-        ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.ParserRecovery
-      ]),
+      /*class*/ unionOfKinds([ValueKinds.Generator, ValueKinds.ParserRecovery]),
     ]));
     if (arguments != null) {
       push(arguments);
@@ -1165,7 +1154,8 @@ class BodyBuilder extends StackListenerImpl
   List<Object>? createSuperParametersAsArguments(
       List<FormalParameterBuilder> formals) {
     List<Object>? superParametersAsArguments;
-    for (FormalParameterBuilder formal in formals) {
+    for (int i = 0; i < formals.length; i++) {
+      FormalParameterBuilder formal = formals[i];
       if (formal.isSuperInitializingFormal) {
         if (formal.isNamed) {
           (superParametersAsArguments ??= <Object>[]).add(new NamedExpression(
@@ -1714,7 +1704,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ])
     ]));
     Expression expression = popForValue();
@@ -1951,8 +1940,7 @@ class BodyBuilder extends StackListenerImpl
       /// >If no superinitializer is provided, an implicit superinitializer
       /// >of the form super() is added at the end of k’s initializer list,
       /// >unless the enclosing class is class Object.
-      Constructor? superTarget = lookupSuperConstructor(emptyName);
-      Initializer initializer;
+      Initializer? initializer;
       ArgumentsImpl arguments;
       List<Expression>? positionalArguments;
       List<NamedExpression>? namedArguments;
@@ -2011,94 +1999,121 @@ class BodyBuilder extends StackListenerImpl
           positionalSuperParametersAsArguments != null;
       arguments.namedSuperParameterNames = namedSuperParameterNames;
 
-      if (superTarget == null) {
-        String superclass = _context.superClassName;
-        int length = _context.memberNameLength;
-        if (length == 0) {
-          length = _context.className.length;
-        }
-        initializer = buildInvalidInitializer(
-            buildProblem(
-                cfe.templateSuperclassHasNoDefaultConstructor
-                    .withArguments(superclass),
-                _context.memberNameOffset,
-                length),
-            _context.memberNameOffset);
-      } else if (checkArgumentsForFunction(superTarget.function, arguments,
-              _context.memberNameOffset, const <TypeParameter>[])
-          case LocatedMessage argumentIssue) {
-        List<int>? positionalSuperParametersIssueOffsets;
-        if (positionalSuperParametersAsArguments != null) {
-          for (int positionalSuperParameterIndex =
-                  superTarget.function.positionalParameters.length;
-              positionalSuperParameterIndex <
-                  positionalSuperParametersAsArguments.length;
-              positionalSuperParameterIndex++) {
-            (positionalSuperParametersIssueOffsets ??= []).add(
-                positionalSuperParametersAsArguments[
-                        positionalSuperParameterIndex]
-                    .fileOffset);
+      MemberLookupResult? result =
+          lookupSuperConstructor('', libraryBuilder.nameOriginBuilder);
+      Constructor? superTarget;
+      if (result != null) {
+        if (result.isInvalidLookup) {
+          int length = _context.memberNameLength;
+          if (length == 0) {
+            length = _context.className.length;
+          }
+          initializer = buildInvalidInitializer(
+              LookupResult.createDuplicateExpression(result,
+                  context: libraryBuilder.loader.target.context,
+                  name: '',
+                  fileUri: uri,
+                  fileOffset: _context.memberNameOffset,
+                  length: noLength),
+              _context.memberNameOffset);
+        } else {
+          MemberBuilder? memberBuilder = result.getable;
+          Member? member = memberBuilder?.invokeTarget;
+          if (member is Constructor) {
+            superTarget = member;
           }
         }
-
-        List<int>? namedSuperParametersIssueOffsets;
-        if (namedSuperParametersAsArguments != null) {
-          Set<String> superTargetNamedParameterNames = {
-            for (VariableDeclaration namedParameter
-                in superTarget.function.namedParameters)
-              if (namedParameter // Coverage-ignore(suite): Not run.
-                      .name !=
-                  null)
-                // Coverage-ignore(suite): Not run.
-                namedParameter.name!
-          };
-          for (NamedExpression namedSuperParameter
-              in namedSuperParametersAsArguments) {
-            if (!superTargetNamedParameterNames
-                .contains(namedSuperParameter.name)) {
-              (namedSuperParametersIssueOffsets ??= [])
-                  .add(namedSuperParameter.fileOffset);
+      }
+      if (initializer == null) {
+        if (superTarget == null) {
+          String superclass = _context.superClassName;
+          int length = _context.memberNameLength;
+          if (length == 0) {
+            length = _context.className.length;
+          }
+          initializer = buildInvalidInitializer(
+              buildProblem(
+                  cfe.templateSuperclassHasNoDefaultConstructor
+                      .withArguments(superclass),
+                  _context.memberNameOffset,
+                  length),
+              _context.memberNameOffset);
+        } else if (checkArgumentsForFunction(superTarget.function, arguments,
+                _context.memberNameOffset, const <TypeParameter>[])
+            case LocatedMessage argumentIssue) {
+          List<int>? positionalSuperParametersIssueOffsets;
+          if (positionalSuperParametersAsArguments != null) {
+            for (int positionalSuperParameterIndex =
+                    superTarget.function.positionalParameters.length;
+                positionalSuperParameterIndex <
+                    positionalSuperParametersAsArguments.length;
+                positionalSuperParameterIndex++) {
+              (positionalSuperParametersIssueOffsets ??= []).add(
+                  positionalSuperParametersAsArguments[
+                          positionalSuperParameterIndex]
+                      .fileOffset);
             }
           }
-        }
 
-        Initializer? errorMessageInitializer;
-        if (positionalSuperParametersIssueOffsets != null) {
-          for (int issueOffset in positionalSuperParametersIssueOffsets) {
-            Expression errorMessageExpression = buildProblem(
-                cfe.messageMissingPositionalSuperConstructorParameter,
-                issueOffset,
-                noLength);
-            errorMessageInitializer ??=
-                buildInvalidInitializer(errorMessageExpression);
+          List<int>? namedSuperParametersIssueOffsets;
+          if (namedSuperParametersAsArguments != null) {
+            Set<String> superTargetNamedParameterNames = {
+              for (VariableDeclaration namedParameter
+                  in superTarget.function.namedParameters)
+                if (namedParameter // Coverage-ignore(suite): Not run.
+                        .name !=
+                    null)
+                  // Coverage-ignore(suite): Not run.
+                  namedParameter.name!
+            };
+            for (NamedExpression namedSuperParameter
+                in namedSuperParametersAsArguments) {
+              if (!superTargetNamedParameterNames
+                  .contains(namedSuperParameter.name)) {
+                (namedSuperParametersIssueOffsets ??= [])
+                    .add(namedSuperParameter.fileOffset);
+              }
+            }
           }
-        }
-        if (namedSuperParametersIssueOffsets != null) {
-          for (int issueOffset in namedSuperParametersIssueOffsets) {
-            Expression errorMessageExpression = buildProblem(
-                cfe.messageMissingNamedSuperConstructorParameter,
-                issueOffset,
-                noLength);
-            errorMessageInitializer ??=
-                buildInvalidInitializer(errorMessageExpression);
+
+          Initializer? errorMessageInitializer;
+          if (positionalSuperParametersIssueOffsets != null) {
+            for (int issueOffset in positionalSuperParametersIssueOffsets) {
+              Expression errorMessageExpression = buildProblem(
+                  cfe.messageMissingPositionalSuperConstructorParameter,
+                  issueOffset,
+                  noLength);
+              errorMessageInitializer ??=
+                  buildInvalidInitializer(errorMessageExpression);
+            }
           }
-        }
-        if (explicitSuperInitializer == null) {
+          if (namedSuperParametersIssueOffsets != null) {
+            for (int issueOffset in namedSuperParametersIssueOffsets) {
+              Expression errorMessageExpression = buildProblem(
+                  cfe.messageMissingNamedSuperConstructorParameter,
+                  issueOffset,
+                  noLength);
+              errorMessageInitializer ??=
+                  buildInvalidInitializer(errorMessageExpression);
+            }
+          }
+          if (explicitSuperInitializer == null) {
+            errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
+                cfe.templateImplicitSuperInitializerMissingArguments
+                    .withArguments(superTarget.enclosingClass.name),
+                argumentIssue.charOffset,
+                argumentIssue.length));
+          }
+          // Coverage-ignore-block(suite): Not run.
           errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
-              cfe.templateImplicitSuperInitializerMissingArguments
-                  .withArguments(superTarget.enclosingClass.name),
+              argumentIssue.messageObject,
               argumentIssue.charOffset,
               argumentIssue.length));
+          initializer = errorMessageInitializer;
+        } else {
+          initializer = buildSuperInitializer(
+              true, superTarget, arguments, _context.memberNameOffset);
         }
-        // Coverage-ignore-block(suite): Not run.
-        errorMessageInitializer ??= buildInvalidInitializer(buildProblem(
-            argumentIssue.messageObject,
-            argumentIssue.charOffset,
-            argumentIssue.length));
-        initializer = errorMessageInitializer;
-      } else {
-        initializer = buildSuperInitializer(
-            true, superTarget, arguments, _context.memberNameOffset);
       }
       if (libraryFeatures.superParameters.isEnabled) {
         InitializerInferenceResult inferenceResult =
@@ -2131,7 +2146,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     debugEvent("ExpressionStatement");
@@ -2234,7 +2248,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
           ]),
           unionOfKinds([
             ValueKinds.Expression,
@@ -2243,7 +2256,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
           ]),
         ]));
         guard = popForValue();
@@ -2256,7 +2268,6 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       ]));
       reportIfNotEnabled(
@@ -2270,7 +2281,6 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       ]));
       push(new Condition(popForValue()));
@@ -2286,7 +2296,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     debugEvent("ParenthesizedExpression");
@@ -2319,7 +2328,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -2348,7 +2356,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator,
         ValueKinds.Identifier,
         ValueKinds.ParserRecovery,
-        ValueKinds.ProblemBuilder
       ])
     ]));
     debugEvent("Send");
@@ -2396,7 +2403,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Initializer,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Selector,
       ])
     ]));
@@ -2486,12 +2492,10 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       ValueKinds.ConstantContext,
@@ -2530,7 +2534,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     bool isAnd = token.isA(TokenType.AMPERSAND_AMPERSAND);
@@ -2547,7 +2550,50 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
+      ]),
+    ]));
+  }
+
+  @override
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+    ]));
+    debugEvent("DotAccess");
+    if (isNullAware) {
+      doIfNotNull(token);
+    } else {
+      doDotExpression(token);
+    }
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+      ]),
+    ]));
+  }
+
+  @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+    ]));
+    debugEvent("CascadeAccess");
+    doCascadeExpression(token);
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
       ]),
     ]));
   }
@@ -2558,22 +2604,15 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Selector,
       ]),
     ]));
     debugEvent("BinaryExpression");
-    if (token.isA(TokenType.PERIOD) ||
-        token.isA(TokenType.PERIOD_PERIOD) ||
-        token.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
-      doDotOrCascadeExpression(token);
-    } else if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
+    if (token.isA(TokenType.AMPERSAND_AMPERSAND) ||
         token.isA(TokenType.BAR_BAR)) {
       doLogicalExpression(token);
     } else if (token.isA(TokenType.QUESTION_QUESTION)) {
       doIfNull(token);
-    } else if (token.isA(TokenType.QUESTION_PERIOD)) {
-      doIfNotNull(token);
     } else {
       doBinaryExpression(token);
     }
@@ -2605,7 +2644,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -2647,7 +2685,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -2679,13 +2716,11 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -2753,12 +2788,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression right = popForValue();
@@ -2770,9 +2803,6 @@ class BodyBuilder extends StackListenerImpl
       if (left is Generator) {
         push(left.buildEqualsOperation(token, right, isNot: isNot));
       } else {
-        if (left is ProblemBuilder) {
-          left = left.toExpression(libraryBuilder);
-        }
         assert(left is Expression);
         push(forest.createEquals(fileOffset, left as Expression, right,
             isNot: isNot));
@@ -2790,9 +2820,6 @@ class BodyBuilder extends StackListenerImpl
       } else if (left is Generator) {
         push(left.buildBinaryOperation(token, name, right));
       } else {
-        if (left is ProblemBuilder) {
-          left = left.toExpression(libraryBuilder);
-        }
         assert(left is Expression);
         push(forest.createBinary(fileOffset, left as Expression, name, right));
       }
@@ -2808,12 +2835,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression argument = popForValue();
@@ -2837,12 +2862,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression b = popForValue();
@@ -2864,7 +2887,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Initializer,
       ]),
     ]));
@@ -2886,25 +2908,63 @@ class BodyBuilder extends StackListenerImpl
     ]));
   }
 
-  void doDotOrCascadeExpression(Token token) {
+  void doDotExpression(Token token) {
     assert(checkState(token, <ValueKind>[
-      /* after . or .. */ unionOfKinds([
+      /* after . */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Selector,
       ]),
-      /* before . or .. */ unionOfKinds([
+      /* before . */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Initializer,
       ]),
     ]));
     Object? send = pop();
     if (send is Selector) {
-      Object? receiver = token.isA(TokenType.PERIOD) ? pop() : popForValue();
+      Object? receiver = pop();
       push(send.withReceiver(receiver, token.charOffset));
     } else if (send is IncompleteErrorGenerator) {
+      // Pop the "receiver" and push the error.
+      pop();
+      push(send);
+    } else {
+      // Pop the "receiver" and push the error.
+      pop();
+      token = token.next!;
+      push(buildProblem(cfe.templateExpectedIdentifier.withArguments(token),
+          offsetForToken(token), lengthForToken(token)));
+    }
+    assert(checkState(token, <ValueKind>[
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+      ]),
+    ]));
+  }
+
+  void doCascadeExpression(Token token) {
+    assert(checkState(token, <ValueKind>[
+      /* after .. */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Selector,
+      ]),
+      /* before .. */ unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.Initializer,
+      ]),
+    ]));
+    Object? send = pop();
+    if (send is Selector) {
+      Object? receiver = popForValue();
+      push(send.withReceiver(receiver, token.charOffset));
+    }
+    // Coverage-ignore(suite): Not run.
+    else if (send is IncompleteErrorGenerator) {
       // Pop the "receiver" and push the error.
       pop();
       push(send);
@@ -2933,7 +2993,8 @@ class BodyBuilder extends StackListenerImpl
       Arguments? arguments,
       Expression? rhs,
       LocatedMessage? message,
-      int? length}) {
+      int? length,
+      bool errorHasBeenReported = false}) {
     // TODO(johnniwinther): Use [arguments] and [rhs] to create an unresolved
     // access expression to include in the invalid expression.
     if (length == null) {
@@ -3006,7 +3067,7 @@ class BodyBuilder extends StackListenerImpl
     }
     return buildProblem(
         message.messageObject, message.charOffset, message.length,
-        context: context);
+        context: context, errorHasBeenReported: errorHasBeenReported);
   }
 
   Message warnUnresolvedMember(Name name, int charOffset,
@@ -3097,8 +3158,9 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  Constructor? lookupSuperConstructor(Name name) {
-    return _context.lookupSuperConstructor(name);
+  MemberLookupResult? lookupSuperConstructor(
+      String name, LibraryBuilder accessingLibrary) {
+    return _context.lookupSuperConstructor(name, accessingLibrary);
   }
 
   @override
@@ -3131,7 +3193,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Identifier,
         ValueKinds.Generator,
         ValueKinds.ParserRecovery,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
   }
@@ -3171,20 +3232,38 @@ class BodyBuilder extends StackListenerImpl
   bool isGuardScope(LocalScope scope) =>
       scope.kind == ScopeKind.caseHead || scope.kind == ScopeKind.ifCaseHead;
 
-  /// Look up [name] in [scope] using [nameToken] as location information (both
-  /// to report problems and as the file offset in the generated kernel code).
-  /// [isQualified] should be true if [name] is a qualified access (which
-  /// implies that it shouldn't be turned into a [ThisPropertyAccessGenerator]
-  /// if the name doesn't resolve in the scope).
-  @override
-  Expression_Generator_Builder scopeLookup(LookupScope scope, Token nameToken,
-      {PrefixBuilder? prefix, Token? prefixToken}) {
+  /// Look up the name from [nameToken] in [scope] using [nameToken] as location
+  /// information.
+  Generator scopeLookup(LocalScope scope, Token nameToken) {
     String name = nameToken.lexeme;
     int nameOffset = nameToken.charOffset;
+    LookupResult? lookupResult = scope.lookup(name, fileOffset: nameOffset);
+    return processLookupResult(
+        lookupResult: lookupResult,
+        name: name,
+        nameToken: nameToken,
+        nameOffset: nameOffset,
+        scopeKind: scope.kind);
+  }
+
+  @override
+  Generator processLookupResult(
+      {required LookupResult? lookupResult,
+      required String name,
+      required Token nameToken,
+      required int nameOffset,
+      required ScopeKind scopeKind,
+      PrefixBuilder? prefix,
+      Token? prefixToken}) {
     if (nameToken.isSynthetic) {
       return new ParserErrorGenerator(
           this, nameToken, cfe.messageSyntheticToken);
     }
+    if (lookupResult != null && lookupResult.isInvalidLookup) {
+      return new DuplicateDeclarationGenerator(this, nameToken, lookupResult,
+          new Name(name, libraryBuilder.nameOrigin), name.length);
+    }
+
     bool isQualified = prefixToken != null;
     bool mustBeConst =
         constantContext != ConstantContext.none && !inInitializerLeftHandSide;
@@ -3218,7 +3297,6 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
-    LookupResult? lookupResult = scope.lookup(name, nameOffset, uri);
     if (lookupResult == null) {
       Name memberName = new Name(name, libraryBuilder.nameOrigin);
       if (hasThisAccess) {
@@ -3238,9 +3316,8 @@ class BodyBuilder extends StackListenerImpl
     Builder? getable = lookupResult.getable;
     Builder? setable = lookupResult.setable;
     if (getable != null) {
-      if (getable is ProblemBuilder) {
-        return getable;
-      } else if (getable is InvalidTypeDeclarationBuilder) {
+      if (getable is InvalidBuilder) {
+        // TODO(johnniwinther): Create an `InvalidGenerator` instead.
         return new TypeUseGenerator(
             this,
             nameToken,
@@ -3260,14 +3337,14 @@ class BodyBuilder extends StackListenerImpl
         VariableDeclaration variable = getable.variable!;
         // TODO(johnniwinther): The handling of for-in variables should be
         //  done through the builder.
-        if (scope.kind == ScopeKind.forStatement &&
+        if (scopeKind == ScopeKind.forStatement &&
             variable.isAssignable &&
             variable.isLate &&
             variable.isFinal) {
           return new ForInLateFinalVariableUseGenerator(
               this, nameToken, variable);
         } else if (!getable.isAssignable ||
-            (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
+            (variable.isFinal && scopeKind == ScopeKind.forStatement)) {
           return _createReadOnlyVariableAccess(
               variable,
               nameToken,
@@ -3353,11 +3430,6 @@ class BodyBuilder extends StackListenerImpl
                     prefixToken.charOffset, name, nameOffset)
                 : new IdentifierTypeName(name, nameOffset));
       } else if (getable is MemberBuilder) {
-        if (setable is AmbiguousBuilder) {
-          // TODO(johnniwinther): Handle this. Currently we report unresolved
-          // setter instead of ambiguous setter here.
-          setable = null;
-        }
         assert(getable.isStatic || getable.isTopLevel,
             "Unexpected getable: $getable");
         assert(
@@ -3390,9 +3462,7 @@ class BodyBuilder extends StackListenerImpl
         return new LoadLibraryGenerator(this, nameToken, getable);
       }
     } else {
-      if (setable is ProblemBuilder) {
-        return setable;
-      } else if (setable is InvalidTypeDeclarationBuilder) {
+      if (setable is InvalidBuilder) {
         // Coverage-ignore-block(suite): Not run.
         return new TypeUseGenerator(
             this,
@@ -3472,7 +3542,6 @@ class BodyBuilder extends StackListenerImpl
       /* suffix */ ValueKinds.IdentifierOrParserRecovery,
       /* prefix */ unionOfKinds([
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
 
@@ -3484,7 +3553,9 @@ class BodyBuilder extends StackListenerImpl
       SimpleIdentifier identifier = node as SimpleIdentifier;
       if (qualifier is Generator) {
         push(identifier.withGeneratorQualifier(qualifier));
-      } else if (qualifier is Builder) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (qualifier is Builder) {
         push(identifier.withBuilderQualifier(qualifier));
       } else {
         unhandled("qualifier is ${qualifier.runtimeType}", "handleQualified",
@@ -3669,7 +3740,6 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(when, [
       unionOfKinds([
         ValueKinds.Expression,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -4032,21 +4102,19 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression,
         ValueKinds.Generator,
-        // TODO(johnniwinther): Avoid problem builders here.
-        ValueKinds.ProblemBuilder
       ]),
       unionOfKinds(<ValueKind>[
-        ValueKinds.Expression, ValueKinds.Generator,
-        // TODO(johnniwinther): Avoid problem builders here.
-        ValueKinds.ProblemBuilder
+        ValueKinds.Expression,
+        ValueKinds.Generator,
       ])
     ]));
     debugEvent("AssignmentExpression");
     Expression value = popForValue();
     Object? generator = pop();
     if (generator is! Generator) {
-      push(buildProblem(cfe.messageNotAnLvalue, offsetForToken(token),
-          lengthForToken(token)));
+      push(buildProblem(
+          cfe.messageNotAnLvalue, offsetForToken(token), lengthForToken(token),
+          errorHasBeenReported: generator is InvalidExpression));
     } else {
       push(new DelayedAssignment(
           this, token, generator, value, token.stringValue!));
@@ -4153,12 +4221,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -4420,7 +4486,7 @@ class BodyBuilder extends StackListenerImpl
     if (variableOrExpression is ParserRecovery) {
       problemInLoopOrSwitch ??= buildProblemStatement(
           cfe.messageSyntheticToken, variableOrExpression.charOffset,
-          suppressMessage: true);
+          errorHasBeenReported: true);
     }
     exitLoopOrSwitch(result);
   }
@@ -4469,7 +4535,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Generator,
             ValueKinds.Expression,
-            ValueKinds.ProblemBuilder,
           ]),
           count),
       ValueKinds.TypeArgumentsOrNull,
@@ -4521,7 +4586,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Generator,
             ValueKinds.Expression,
-            ValueKinds.ProblemBuilder,
             ValueKinds.Pattern,
           ]),
           count),
@@ -4566,7 +4630,6 @@ class BodyBuilder extends StackListenerImpl
             unionOfKinds([
               ValueKinds.Generator,
               ValueKinds.Expression,
-              ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
               ValueKinds.ParserRecovery,
             ]),
@@ -4660,7 +4723,6 @@ class BodyBuilder extends StackListenerImpl
             unionOfKinds([
               ValueKinds.Generator,
               ValueKinds.Expression,
-              ValueKinds.ProblemBuilder,
               ValueKinds.NamedExpression,
               ValueKinds.Pattern,
             ]),
@@ -4730,7 +4792,6 @@ class BodyBuilder extends StackListenerImpl
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.Generator,
-            ValueKinds.ProblemBuilder,
             ValueKinds.MapLiteralEntry,
           ]),
           count),
@@ -4805,13 +4866,11 @@ class BodyBuilder extends StackListenerImpl
       /* value */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       /* key */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ])
     ]));
     Pattern value = toPattern(pop());
@@ -5011,7 +5070,6 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Expression,
         ValueKinds.Generator,
         ValueKinds.Initializer,
-        ValueKinds.ProblemBuilder
       ])
     ]));
     Expression operand = popForValue();
@@ -5027,7 +5085,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.QualifiedName,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
 
@@ -5035,6 +5092,7 @@ class BodyBuilder extends StackListenerImpl
     List<TypeBuilder>? arguments = pop() as List<TypeBuilder>?;
     Object? name = pop();
 
+    // Coverage-ignore(suite): Not run.
     void errorCase(String name, Token suffix) {
       String displayName = debugName(name, suffix.lexeme);
       int offset = offsetForToken(beginToken);
@@ -5065,6 +5123,7 @@ class BodyBuilder extends StackListenerImpl
           } else {
             name = prefix.qualifiedLookup(suffix);
           }
+        // Coverage-ignore(suite): Not run.
         case QualifiedNameBuilder():
           errorCase(qualified.qualifier.fullNameForErrors, qualified.suffix);
           return;
@@ -5089,14 +5148,6 @@ class BodyBuilder extends StackListenerImpl
           arguments,
           allowPotentiallyConstantType: allowPotentiallyConstantType,
           performTypeCanonicalization: constantContext != ConstantContext.none);
-    } else if (name is ProblemBuilder) {
-      result = new NamedTypeBuilderImpl.forInvalidType(
-          name.name,
-          isMarkedAsNullable
-              ? const NullabilityBuilder.nullable()
-              : const NullabilityBuilder.omitted(),
-          name.message
-              .withLocation(name.fileUri, name.fileOffset, name.name.length));
     } else {
       unhandled(
           "${name.runtimeType}", "handleType", beginToken.charOffset, uri);
@@ -5298,7 +5349,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     DartType type = buildDartType(pop() as TypeBuilder, TypeUse.asType,
@@ -5317,7 +5367,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -5890,7 +5939,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds(<ValueKind>[
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder
       ]),
     ]));
     debugEvent("UnaryPrefixExpression");
@@ -5909,6 +5957,7 @@ class BodyBuilder extends StackListenerImpl
       } else if (receiver is Expression) {
         push(forest.createUnary(fileOffset, name, receiver));
       } else {
+        // Coverage-ignore-block(suite): Not run.
         Expression value = toValue(receiver);
         push(forest.createUnary(fileOffset, name, value));
       }
@@ -5999,7 +6048,6 @@ class BodyBuilder extends StackListenerImpl
       /*type*/ unionOfKinds([
         ValueKinds.Generator,
         ValueKinds.QualifiedName,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery
       ]),
     ]));
@@ -6046,15 +6094,8 @@ class BodyBuilder extends StackListenerImpl
             }
             identifier = null;
           }
-        case QualifiedNameBuilder():
-          Builder qualifier = qualified.qualifier;
-          if (qualifier is ProblemBuilder) {
-            type = qualifier;
-          } else {
-            unhandled("${qualifier.runtimeType}", "pushQualifiedReference",
-                start.charOffset, uri);
-          }
         // Coverage-ignore(suite): Not run.
+        case QualifiedNameBuilder():
         case QualifiedNameIdentifier():
           unhandled("${qualified.runtimeType}", "pushQualifiedReference",
               start.charOffset, uri);
@@ -6085,7 +6126,6 @@ class BodyBuilder extends StackListenerImpl
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery,
         ValueKinds.Expression,
       ]),
@@ -6416,7 +6456,6 @@ class BodyBuilder extends StackListenerImpl
       /*type arguments*/ ValueKinds.TypeArgumentsOrNull,
       /*class*/ unionOfKinds([
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.ParserRecovery,
         ValueKinds.Expression,
       ]),
@@ -6459,10 +6498,8 @@ class BodyBuilder extends StackListenerImpl
           invocationOffset: nameLastToken.charOffset,
           inImplicitCreationContext: inImplicitCreationContext));
     } else {
+      // Coverage-ignore-block(suite): Not run.
       String? typeName;
-      if (type is ProblemBuilder) {
-        typeName = type.fullNameForErrors;
-      }
       push(buildUnresolvedError(
           debugName(typeName!, name), nameLastToken.charOffset,
           arguments: arguments, kind: UnresolvedKind.Constructor));
@@ -6588,30 +6625,36 @@ class BodyBuilder extends StackListenerImpl
           // Raw generic type alias used for instance creation, needs inference.
           switch (typeDeclarationBuilder) {
             case ClassBuilder():
-              MemberBuilder? constructorBuilder =
-                  typeDeclarationBuilder.findConstructorOrFactory(
-                      name, charOffset, uri, libraryBuilder);
+              MemberLookupResult? result = typeDeclarationBuilder
+                  .findConstructorOrFactory(name, libraryBuilder);
               Member? target;
-              if (constructorBuilder == null) {
+              if (result == null) {
                 // Not found. Reported below.
                 target = null;
-              } else if (constructorBuilder is AmbiguousMemberBuilder) {
-                message = constructorBuilder.message
-                    .withLocation(uri, charOffset, noLength);
+              } else if (result.isInvalidLookup) {
+                message = LookupResult.createDuplicateMessage(result,
+                    enclosingDeclaration: typeDeclarationBuilder,
+                    name: name,
+                    fileUri: uri,
+                    fileOffset: charOffset,
+                    length: noLength);
                 target = null;
-              } else if (constructorBuilder is ConstructorBuilder) {
-                if (typeDeclarationBuilder.isAbstract) {
-                  return evaluateArgumentsBefore(
-                      arguments,
-                      buildAbstractClassInstantiationError(
-                          cfe.templateAbstractClassInstantiation
-                              .withArguments(typeDeclarationBuilder.name),
-                          typeDeclarationBuilder.name,
-                          nameToken.charOffset));
-                }
-                target = constructorBuilder.invokeTarget;
               } else {
-                target = constructorBuilder.invokeTarget;
+                MemberBuilder? constructorBuilder = result.getable!;
+                if (constructorBuilder is ConstructorBuilder) {
+                  if (typeDeclarationBuilder.isAbstract) {
+                    return evaluateArgumentsBefore(
+                        arguments,
+                        buildAbstractClassInstantiationError(
+                            cfe.templateAbstractClassInstantiation
+                                .withArguments(typeDeclarationBuilder.name),
+                            typeDeclarationBuilder.name,
+                            nameToken.charOffset));
+                  }
+                  target = constructorBuilder.invokeTarget;
+                } else {
+                  target = constructorBuilder.invokeTarget;
+                }
               }
               if (target is Constructor ||
                   (target is Procedure &&
@@ -6631,15 +6674,19 @@ class BodyBuilder extends StackListenerImpl
             case ExtensionTypeDeclarationBuilder():
               // TODO(johnniwinther): Add shared interface between
               //  [ClassBuilder] and [ExtensionTypeDeclarationBuilder].
-              MemberBuilder? constructorBuilder =
-                  typeDeclarationBuilder.findConstructorOrFactory(
-                      name, charOffset, uri, libraryBuilder);
-              if (constructorBuilder == null) {
-                // Not found. Reported below.
-              } else if (constructorBuilder is AmbiguousMemberBuilder) {
+              MemberLookupResult? result = typeDeclarationBuilder
+                  .findConstructorOrFactory(name, libraryBuilder);
+              MemberBuilder? constructorBuilder = result?.getable;
+              if (result != null && result.isInvalidLookup) {
                 // Coverage-ignore-block(suite): Not run.
-                message = constructorBuilder.message
-                    .withLocation(uri, charOffset, noLength);
+                message = LookupResult.createDuplicateMessage(result,
+                    enclosingDeclaration: typeDeclarationBuilder,
+                    name: name,
+                    fileUri: uri,
+                    fileOffset: charOffset,
+                    length: noLength);
+              } else if (constructorBuilder == null) {
+                // Not found. Reported below.
               } else if (constructorBuilder is ConstructorBuilder ||
                   // Coverage-ignore(suite): Not run.
                   constructorBuilder is FactoryBuilder) {
@@ -6655,7 +6702,7 @@ class BodyBuilder extends StackListenerImpl
                   arguments: arguments,
                   message: message,
                   kind: UnresolvedKind.Constructor);
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
               // Coverage-ignore(suite): Not run.
@@ -6697,7 +6744,7 @@ class BodyBuilder extends StackListenerImpl
                             .withArguments(numberOfTypeParameters),
                         nameToken.charOffset,
                         nameToken.length,
-                        suppressMessage: true));
+                        errorHasBeenReported: true));
               }
               List<DartType> dartTypeArguments = [];
               for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
@@ -6714,7 +6761,7 @@ class BodyBuilder extends StackListenerImpl
             // Coverage-ignore(suite): Not run.
             case ExtensionBuilder():
             // Coverage-ignore(suite): Not run.
-            case InvalidTypeDeclarationBuilder():
+            case InvalidBuilder():
             // Coverage-ignore(suite): Not run.
             case BuiltinTypeDeclarationBuilder():
             case null:
@@ -6768,7 +6815,7 @@ class BodyBuilder extends StackListenerImpl
                           .withArguments(numberOfTypeParameters),
                       nameToken.charOffset,
                       nameToken.length,
-                      suppressMessage: true));
+                      errorHasBeenReported: true));
             }
             List<DartType> dartTypeArguments = [];
             for (TypeBuilder typeBuilder in unaliasedTypeArgumentBuilders) {
@@ -6810,7 +6857,7 @@ class BodyBuilder extends StackListenerImpl
         case NominalParameterBuilder():
         case StructuralParameterBuilder():
         case ExtensionBuilder():
-        case InvalidTypeDeclarationBuilder():
+        case InvalidBuilder():
         // Coverage-ignore(suite): Not run.
         case BuiltinTypeDeclarationBuilder():
         case null:
@@ -6827,14 +6874,19 @@ class BodyBuilder extends StackListenerImpl
     }
     switch (typeDeclarationBuilder) {
       case ClassBuilder():
-        MemberBuilder? constructorBuilder = typeDeclarationBuilder
-            .findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
+        MemberLookupResult? result = typeDeclarationBuilder
+            .findConstructorOrFactory(name, libraryBuilder);
+        MemberBuilder? constructorBuilder = result?.getable;
         Member? target;
-        if (constructorBuilder == null) {
+        if (result != null && result.isInvalidLookup) {
+          message = LookupResult.createDuplicateMessage(result,
+              enclosingDeclaration: typeDeclarationBuilder,
+              name: name,
+              fileUri: uri,
+              fileOffset: charOffset,
+              length: noLength);
+        } else if (constructorBuilder == null) {
           // Not found. Reported below.
-        } else if (constructorBuilder is AmbiguousMemberBuilder) {
-          message = constructorBuilder.message
-              .withLocation(uri, charOffset, noLength);
         } else if (constructorBuilder is ConstructorBuilder) {
           if (typeDeclarationBuilder.isAbstract) {
             return evaluateArgumentsBefore(
@@ -6871,15 +6923,20 @@ class BodyBuilder extends StackListenerImpl
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
       case ExtensionTypeDeclarationBuilder():
-        MemberBuilder? constructorBuilder = typeDeclarationBuilder
-            .findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
+        MemberLookupResult? result = typeDeclarationBuilder
+            .findConstructorOrFactory(name, libraryBuilder);
+        MemberBuilder? constructorBuilder = result?.getable;
         Member? target;
-        if (constructorBuilder == null) {
-          // Not found. Reported below.
-        } else if (constructorBuilder is AmbiguousMemberBuilder) {
+        if (result != null && result.isInvalidLookup) {
           // Coverage-ignore-block(suite): Not run.
-          message = constructorBuilder.message
-              .withLocation(uri, charOffset, noLength);
+          message = LookupResult.createDuplicateMessage(result,
+              enclosingDeclaration: typeDeclarationBuilder,
+              name: name,
+              fileUri: uri,
+              fileOffset: charOffset,
+              length: noLength);
+        } else if (constructorBuilder == null) {
+          // Not found. Reported below.
         } else {
           target = constructorBuilder.invokeTarget;
         }
@@ -6893,7 +6950,7 @@ class BodyBuilder extends StackListenerImpl
         } else {
           errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
-      case InvalidTypeDeclarationBuilder():
+      case InvalidBuilder():
         LocatedMessage message = typeDeclarationBuilder.message;
         return evaluateArgumentsBefore(
             arguments,
@@ -6980,7 +7037,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.Condition,
@@ -7008,7 +7064,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.Condition,
@@ -7058,13 +7113,11 @@ class BodyBuilder extends StackListenerImpl
       /* else element */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       /* then element */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.MapLiteralEntry,
       ]),
       ValueKinds.AssignedVariablesNodeInfo,
@@ -7475,7 +7528,7 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(cfe.messageNamedFunctionExpression,
                 declaration.fileOffset, noLength,
                 // Error has already been reported by the parser.
-                suppressMessage: true))
+                errorHasBeenReported: true))
           ..fileOffset = declaration.fileOffset);
       } else {
         push(statement);
@@ -7623,12 +7676,10 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement, // Variable for non-pattern for-in loop.
         ValueKinds.ParserRecovery,
@@ -7771,8 +7822,9 @@ class BodyBuilder extends StackListenerImpl
             lvalue,
             new VariableGetImpl(variable, forNullGuardedAccess: false),
             isFinal: false);
-      } else if (lvalue is AmbiguousBuilder) {
-        elements.expressionProblem = toValue(lvalue);
+      } else if (lvalue is InvalidExpression) {
+        // Coverage-ignore-block(suite): Not run.
+        elements.expressionProblem = lvalue;
       } else if (lvalue is ParserRecovery) {
         elements.expressionProblem = buildProblem(
             cfe.messageSyntheticToken, lvalue.charOffset, noLength);
@@ -7818,12 +7870,10 @@ class BodyBuilder extends StackListenerImpl
       /* expression = */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       /* lvalue = */ unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
         ValueKinds.Statement,
         ValueKinds.ParserRecovery,
@@ -8317,7 +8367,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       ValueKinds.ConstantContext,
@@ -8339,11 +8388,7 @@ class BodyBuilder extends StackListenerImpl
   void endSwitchCaseWhenClause(Token token) {
     debugEvent("SwitchCaseWhenClause");
     assert(checkState(token, [
-      unionOfKinds([
-        ValueKinds.Expression,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.Generator
-      ]),
+      unionOfKinds([ValueKinds.Expression, ValueKinds.Generator]),
       ValueKinds.ConstantContext,
     ]));
     Object? guard = pop();
@@ -8358,7 +8403,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ])
     ]));
@@ -8628,12 +8672,8 @@ class BodyBuilder extends StackListenerImpl
   void handleSwitchExpressionCasePattern(Token token) {
     debugEvent("SwitchExpressionCasePattern");
     assert(checkState(token, [
-      unionOfKinds([
-        ValueKinds.Expression,
-        ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.Pattern
-      ])
+      unionOfKinds(
+          [ValueKinds.Expression, ValueKinds.Generator, ValueKinds.Pattern])
     ]));
     Object? pattern = pop();
     createAndEnterLocalScope(
@@ -8654,18 +8694,15 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       if (when != null)
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
         ]),
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9038,14 +9075,15 @@ class BodyBuilder extends StackListenerImpl
   @override
   InvalidExpression buildProblem(Message message, int charOffset, int length,
       {List<LocatedMessage>? context,
-      bool suppressMessage = false,
+      bool errorHasBeenReported = false,
       Expression? expression}) {
-    if (!suppressMessage) {
+    if (!errorHasBeenReported) {
       addProblem(message, charOffset, length,
           wasHandled: true, context: context);
     }
     String text = libraryBuilder.loader.target.context
-        .format(message.withLocation(uri, charOffset, length), Severity.error)
+        .format(
+            message.withLocation(uri, charOffset, length), CfeSeverity.error)
         .plain;
     return new InvalidExpression(text, expression)..fileOffset = charOffset;
   }
@@ -9054,21 +9092,24 @@ class BodyBuilder extends StackListenerImpl
   Expression wrapInProblem(
       Expression expression, Message message, int fileOffset, int length,
       {List<LocatedMessage>? context}) {
-    Severity severity = message.code.severity;
-    if (severity == Severity.error) {
+    CfeSeverity severity = message.code.severity;
+    if (severity == CfeSeverity.error) {
       return wrapInLocatedProblem(
           expression, message.withLocation(uri, fileOffset, length),
-          context: context);
+          context: context,
+          errorHasBeenReported: expression is InvalidExpression);
     } else {
       // Coverage-ignore-block(suite): Not run.
-      addProblem(message, fileOffset, length, context: context);
+      if (expression is! InvalidExpression) {
+        addProblem(message, fileOffset, length, context: context);
+      }
       return expression;
     }
   }
 
   @override
   Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
-      {List<LocatedMessage>? context}) {
+      {List<LocatedMessage>? context, bool errorHasBeenReported = false}) {
     // TODO(askesc): Produce explicit error expression wrapping the original.
     // See [issue 29717](https://github.com/dart-lang/sdk/issues/29717)
     int offset = expression.fileOffset;
@@ -9077,7 +9118,9 @@ class BodyBuilder extends StackListenerImpl
     }
     return buildProblem(
         message.messageObject, message.charOffset, message.length,
-        context: context, expression: expression);
+        context: context,
+        expression: expression,
+        errorHasBeenReported: errorHasBeenReported);
   }
 
   Expression buildAbstractClassInstantiationError(
@@ -9090,10 +9133,10 @@ class BodyBuilder extends StackListenerImpl
   Statement buildProblemStatement(Message message, int charOffset,
       {List<LocatedMessage>? context,
       int? length,
-      bool suppressMessage = false}) {
+      bool errorHasBeenReported = false}) {
     length ??= noLength;
     return new ExpressionStatement(buildProblem(message, charOffset, length,
-        context: context, suppressMessage: suppressMessage));
+        context: context, errorHasBeenReported: errorHasBeenReported));
   }
 
   Statement wrapInProblemStatement(Statement statement, Message message) {
@@ -9143,27 +9186,23 @@ class BodyBuilder extends StackListenerImpl
     if (isWildcardLoweredFormalParameter(name)) {
       name = '_';
     }
-    NamedBuilder? builder = _context.lookupLocalMember(name);
-    if (builder?.next != null) {
+    LookupResult? result = _context.lookupLocalMember(name);
+    NamedBuilder? builder = result?.getable;
+    if (result != null && result is DuplicateMemberLookupResult) {
       // Duplicated name, already reported.
-      while (builder != null) {
-        if (builder.next == null &&
-            builder is SourcePropertyBuilder &&
-            builder.hasField) {
-          // Assume the first field has been initialized.
-          _context.registerInitializedField(builder);
-        }
-        builder = builder.next;
+      MemberBuilder firstBuilder = result.declarations.first;
+      if (firstBuilder is SourcePropertyBuilder && firstBuilder.hasField) {
+        // Assume the first field has been initialized.
+        _context.registerInitializedField(firstBuilder);
       }
       return <Initializer>[
         buildInvalidInitializer(
-            buildProblem(
-              cfe.templateDuplicatedDeclarationUse.withArguments(name),
-              fieldNameOffset,
-              name.length,
-              // Avoid reporting two errors.
-              suppressMessage: true,
-            ),
+            LookupResult.createDuplicateExpression(result,
+                context: libraryBuilder.loader.target.context,
+                name: name,
+                fileUri: uri,
+                fileOffset: fieldNameOffset,
+                length: name.length),
             fieldNameOffset)
       ];
     } else if (builder is SourcePropertyBuilder &&
@@ -9414,10 +9453,8 @@ class BodyBuilder extends StackListenerImpl
               LocatedMessage message = cfe.messageTypeVariableInConstantContext
                   .withLocation(builder.fileUri!, builder.charOffset!,
                       typeParameter.name!.length);
-              builder.bind(
-                  libraryBuilder,
-                  new InvalidTypeDeclarationBuilder(
-                      typeParameter.name!, message));
+              builder.bind(libraryBuilder,
+                  new InvalidBuilder(typeParameter.name!, message));
               addProblem(
                   message.messageObject, message.charOffset, message.length);
             }
@@ -9561,7 +9598,7 @@ class BodyBuilder extends StackListenerImpl
   void addProblem(Message message, int charOffset, int length,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity}) {
+      CfeSeverity? severity}) {
     libraryBuilder.addProblem(message, charOffset, length, uri,
         wasHandled: wasHandled, context: context, severity: severity);
   }
@@ -9572,9 +9609,9 @@ class BodyBuilder extends StackListenerImpl
     // TODO(askesc): Instead of deciding on the severity, this method should
     // take two messages: one to use when a constant expression is
     // required and one to use otherwise.
-    Severity severity = message.code.severity;
+    CfeSeverity severity = message.code.severity;
     if (constantContext != ConstantContext.none) {
-      severity = Severity.error;
+      severity = CfeSeverity.error;
     }
     addProblem(message, charOffset, length,
         wasHandled: wasHandled, context: context, severity: severity);
@@ -9587,7 +9624,8 @@ class BodyBuilder extends StackListenerImpl
     addProblemErrorIfConst(message, charOffset, length,
         wasHandled: wasHandled, context: context);
     String text = libraryBuilder.loader.target.context
-        .format(message.withLocation(uri, charOffset, length), Severity.error)
+        .format(
+            message.withLocation(uri, charOffset, length), CfeSeverity.error)
         .plain;
     InvalidExpression expression = new InvalidExpression(text)
       ..fileOffset = charOffset;
@@ -9683,7 +9721,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       ValueKinds.ConstantContext,
     ]));
@@ -9701,7 +9738,6 @@ class BodyBuilder extends StackListenerImpl
             unionOfKinds([
               ValueKinds.Expression,
               ValueKinds.Generator,
-              ValueKinds.ProblemBuilder,
               ValueKinds.Pattern,
             ]),
             count)));
@@ -9771,7 +9807,6 @@ class BodyBuilder extends StackListenerImpl
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
-          ValueKinds.ProblemBuilder,
           ValueKinds.Pattern,
         ]),
     ]));
@@ -9790,7 +9825,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9836,7 +9870,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9853,7 +9886,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
     ]));
@@ -9871,7 +9903,8 @@ class BodyBuilder extends StackListenerImpl
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
     assert(variable.lexeme != '_');
     Pattern pattern;
-    Expression variableUse = toValue(scopeLookup(_localScope, variable));
+    Expression variableUse =
+        scopeLookup(_localScope, variable).buildSimpleRead();
     if (variableUse is VariableGet) {
       VariableDeclaration variableDeclaration = variableUse.variable;
       pattern = forest.createAssignedVariablePattern(
@@ -9943,7 +9976,6 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
       if (colon != null)
@@ -9985,14 +10017,9 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
-      unionOfKinds([
-        ValueKinds.Expression,
-        ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
-        ValueKinds.Pattern
-      ]),
+      unionOfKinds(
+          [ValueKinds.Expression, ValueKinds.Generator, ValueKinds.Pattern]),
       ValueKinds.AnnotationListOrNull,
     ]));
     Expression initializer = popForValue();
@@ -10017,13 +10044,11 @@ class BodyBuilder extends StackListenerImpl
       unionOfKinds([
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
       unionOfKinds([
         ValueKinds.Pattern,
         ValueKinds.Expression,
         ValueKinds.Generator,
-        ValueKinds.ProblemBuilder,
       ]),
     ]));
     Expression expression = popForValue();
@@ -10064,21 +10089,28 @@ class BodyBuilder extends StackListenerImpl
           token.length);
     }
 
-    assert(checkState(token, [ValueKinds.Selector]));
-    Selector selector = pop() as Selector;
-    if (selector is InvocationSelector) {
+    assert(checkState(token, [
+      unionOfKinds([ValueKinds.Selector, ValueKinds.ParserRecovery]),
+    ]));
+    Object? node = pop();
+    if (node is InvocationSelector) {
       // e.g. `.parse(2)`
       push(forest.createDotShorthandInvocation(
-          offsetForToken(token), selector.name, selector.arguments,
+          offsetForToken(token), node.name, node.arguments,
           nameOffset: offsetForToken(token.next),
           isConst: constantContext == ConstantContext.inferred));
-    } else if (selector is PropertySelector) {
+    } else if (node is PropertySelector) {
       // e.g. `.zero`
       push(forest.createDotShorthandPropertyGet(
         offsetForToken(token),
-        selector.name,
+        node.name,
         nameOffset: offsetForToken(token.next),
       ));
+    } else if (node is ParserRecovery) {
+      // Recovery for cases like `var x = .;` where we're missing an identifier.
+      token = token.next!;
+      push(buildProblem(cfe.templateExpectedIdentifier.withArguments(token),
+          offsetForToken(token), lengthForToken(token)));
     }
   }
 
@@ -10594,15 +10626,5 @@ extension on MemberKind {
       case MemberKind.PrimaryConstructor:
         return false;
     }
-  }
-}
-
-extension on ProblemBuilder {
-  Expression toExpression(SourceLibraryBuilder libraryBuilder) {
-    String text = libraryBuilder.loader.target.context
-        .format(
-            message.withLocation(fileUri, fileOffset, noLength), Severity.error)
-        .plain;
-    return new InvalidExpression(text)..fileOffset = fileOffset;
   }
 }

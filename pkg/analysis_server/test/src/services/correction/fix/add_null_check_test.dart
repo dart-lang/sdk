@@ -531,6 +531,9 @@ String? f(String? s) => s!..hashCode..length;
   }
 
   Future<void> test_spreadList() async {
+    // expected code contains !] which looks like a range.
+    allowTestCodeShorthand = false;
+
     await resolveTestCode('''
 void f (List<String>? args) {
   [...args];

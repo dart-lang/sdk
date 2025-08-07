@@ -23,6 +23,17 @@ const String generatedCodesPath = 'linter/lib/src/lint_codes.g.dart';
 
 const String generatedNamesPath = 'linter/lib/src/lint_names.g.dart';
 
+const lintCodesFile = GeneratedErrorCodeFile(
+  path: generatedCodesPath,
+  preferredImportUri: 'package:linter/src/lint_codes.dart',
+);
+
+const linterLintCodeInfo = ErrorClassInfo(
+  file: lintCodesFile,
+  name: 'LinterLintCode',
+  type: 'LINT',
+);
+
 GeneratedFile get generatedCodesFile =>
     GeneratedFile(generatedCodesPath, (pkgRoot) async {
       var out = StringBuffer('''
@@ -61,7 +72,7 @@ class LinterLintCode extends LintCode {
         out.writeln('  static const LintCode $errorName =');
         out.writeln(
           codeInfo.toAnalyzerCode(
-            'LinterLintCode',
+            linterLintCodeInfo,
             errorName,
             sharedNameReference: 'LintNames.$lintName',
             useExplicitConst: false,

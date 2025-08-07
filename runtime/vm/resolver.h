@@ -29,11 +29,6 @@ class Resolver : public AllStatic {
       const ArgumentsDescriptor& args_desc,
       bool allow_add);
 
-  static FunctionPtr ResolveDynamicForReceiverClassAllowPrivate(
-      const Class& receiver_class,
-      const String& function_name,
-      const ArgumentsDescriptor& args_desc);
-
   // If 'allow_add' is true we may add a function to the class during lookup.
   static FunctionPtr ResolveDynamicAnyArgs(Zone* zone,
                                            const Class& receiver_class,

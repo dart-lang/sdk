@@ -16,10 +16,12 @@ import 'package:analysis_server_plugin/src/registry.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -30,6 +32,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
+import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -320,7 +323,7 @@ class PluginServer {
     }
     var listener = RecordingDiagnosticListener();
     var diagnosticReporter = DiagnosticReporter(
-        listener, unitResult.libraryElement2.firstFragment.source);
+        listener, unitResult.libraryElement.firstFragment.source);
 
     var currentUnit = RuleContextUnit(
       file: unitResult.file,
@@ -345,14 +348,17 @@ class PluginServer {
     var context = RuleContextWithResolvedResults(
       allUnits,
       currentUnit,
-      libraryResult.element2.typeProvider,
-      libraryResult.element2.typeSystem as TypeSystemImpl,
+      libraryResult.element.typeProvider,
+      libraryResult.element.typeSystem as TypeSystemImpl,
       // TODO(srawlins): Support 'package' parameter.
       null,
     );
 
-    // A mapping from each lint and warning code to its corresponding plugin.
-    var pluginCodeMapping = <String, String>{};
+    // A mapping from each diagnostic code to its corresponding plugin.
+    var pluginCodeMapping = <DiagnosticCode, String>{};
+
+    // A mapping from each diagnostic code to its configured severity.
+    var severityMapping = <DiagnosticCode, protocol.AnalysisErrorSeverity?>{};
 
     for (var configuration in analysisOptions.pluginConfigurations) {
       if (!configuration.isEnabled) continue;
@@ -362,14 +368,13 @@ class PluginServer {
       for (var rule in rules) {
         rule.reporter = diagnosticReporter;
         // TODO(srawlins): Enable timing similar to what the linter package's
-        // `benchhmark.dart` script does.
+        // `benchmark.dart` script does.
         rule.registerNodeProcessors(nodeRegistry, context);
       }
       for (var code in rules.expand((r) => r.diagnosticCodes)) {
-        var existingPlugin = pluginCodeMapping[code.name];
-        if (existingPlugin == null) {
-          pluginCodeMapping[code.name] = configuration.name;
-        }
+        pluginCodeMapping.putIfAbsent(code, () => configuration.name);
+        severityMapping.putIfAbsent(
+            code, () => _configuredSeverity(configuration, code));
       }
     }
 
@@ -379,7 +384,7 @@ class PluginServer {
 
     var ignoreInfo = IgnoreInfo.forDart(unitResult.unit, unitResult.content);
     var diagnostics = listener.diagnostics.where((e) {
-      var pluginName = pluginCodeMapping[e.diagnosticCode.name];
+      var pluginName = pluginCodeMapping[e.diagnosticCode];
       if (pluginName == null) {
         // If [e] is somehow not mapped, something is wrong; but don't mark it
         // as ignored.
@@ -395,7 +400,8 @@ class PluginServer {
         (
           diagnostic: diagnostic,
           protocolError: protocol.AnalysisError(
-            _severityOf(diagnostic),
+            severityMapping[diagnostic.diagnosticCode] ??
+                protocol.AnalysisErrorSeverity.INFO,
             protocol.AnalysisErrorType.STATIC_WARNING,
             _locationFor(currentUnit.unit, path, diagnostic),
             diagnostic.message,
@@ -413,17 +419,27 @@ class PluginServer {
     return diagnosticsAndProtocolErrors.map((e) => e.protocolError).toList();
   }
 
-  /// Converts the severity of [diagnostic] into a
-  /// [protocol.AnalysisErrorSeverity].
-  protocol.AnalysisErrorSeverity _severityOf(Diagnostic diagnostic) {
-    try {
-      return protocol.AnalysisErrorSeverity.values
-          .byName(diagnostic.severity.name.toUpperCase());
-    } catch (_) {
-      assert(false, 'Invalid severity: ${diagnostic.severity}');
-      // Return the default severity of `LintCode`.
-      return protocol.AnalysisErrorSeverity.INFO;
+  /// Converts the severity of [code] into a [protocol.AnalysisErrorSeverity].
+  protocol.AnalysisErrorSeverity? _configuredSeverity(
+      PluginConfiguration configuration, DiagnosticCode code) {
+    var configuredSeverity =
+        configuration.diagnosticConfigs[code.name]?.severity;
+    if (configuredSeverity != null &&
+        configuredSeverity != ConfiguredSeverity.enable) {
+      var severityName = configuredSeverity.name.toUpperCase();
+      var severity =
+          protocol.AnalysisErrorSeverity.values.asNameMap()[severityName];
+      assert(severity != null,
+          'Invalid configured severity: ${configuredSeverity.name}');
+      return severity;
     }
+
+    // Fall back to the declared severity of [code].
+    var severityName = code.severity.name.toUpperCase();
+    var severity =
+        protocol.AnalysisErrorSeverity.values.asNameMap()[code.severity.name];
+    assert(severity != null, 'Invalid severity: $severityName');
+    return severity;
   }
 
   /// Invokes [fn] first for priority analysis contexts, then for the rest.

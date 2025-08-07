@@ -64,8 +64,7 @@ version: 0.0.1
 environment:
   sdk: ^3.6.0
 dependencies:
-  analyzer: '$analyzerVersion'
-  analyzer_plugin: '$analyzerPluginVersion'
+  analysis_server_plugin: '$analysisServerPluginVersion'
 ''');
 
     for (var configuration in _pluginConfigurations) {

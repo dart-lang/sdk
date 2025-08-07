@@ -233,27 +233,6 @@ PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
   }
 #endif
 
-// Remove private keys, but retain getter/setter/constructor/mixin manglings.
-StringPtr String::RemovePrivateKey(const String& name) {
-  ASSERT(name.IsOneByteString());
-  GrowableArray<uint8_t> without_key(name.Length());
-  intptr_t i = 0;
-  while (i < name.Length()) {
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i++);
-      if (c == '@') break;
-      without_key.Add(c);
-    }
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i);
-      if ((c < '0') || (c > '9')) break;
-      i++;
-    }
-  }
-
-  return String::FromLatin1(without_key.data(), without_key.length());
-}
-
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -781,6 +760,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   *empty_array_ = Array::null();
   *empty_instantiations_cache_array_ = Array::null();
   *empty_subtype_test_cache_array_ = Array::null();
+  *mutable_empty_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -1035,6 +1015,14 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     empty_array_->untag()->set_length(Smi::New(0));
     empty_array_->SetCanonical();
+  }
+  {
+    uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
+    InitializeObjectVariant<Array>(address, kArrayCid, 0);
+    Array::initializeHandle(mutable_empty_array_,
+                            static_cast<ArrayPtr>(address + kHeapObjectTag));
+    mutable_empty_array_->untag()->set_length(Smi::New(0));
+    mutable_empty_array_->SetCanonical();
   }
 
   Smi& smi = Smi::Handle();
@@ -5410,6 +5398,12 @@ void Class::EnsureDeclarationLoaded() const {
     // Loading of class declaration can be postponed until needed
     // if class comes from bytecode.
     if (is_declared_in_bytecode()) {
+      Thread* thread = Thread::Current();
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      if (is_declaration_loaded()) {
+        return;
+      }
       bytecode::BytecodeReader::LoadClassDeclaration(*this);
       ASSERT(is_declaration_loaded());
       ASSERT(is_type_finalized());
@@ -6655,10 +6649,6 @@ FunctionPtr Class::LookupDynamicFunctionUnsafe(const String& name) const {
   return LookupFunctionReadLocked(name, kInstance);
 }
 
-FunctionPtr Class::LookupDynamicFunctionAllowPrivate(const String& name) const {
-  return LookupFunctionAllowPrivate(name, kInstance);
-}
-
 FunctionPtr Class::LookupStaticFunction(const String& name) const {
   Thread* thread = Thread::Current();
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
@@ -6693,32 +6683,14 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kAny);
 }
 
-FunctionPtr Class::LookupFunctionReadLocked(const String& name) const {
-  return LookupFunctionReadLocked(name, kAny);
+FunctionPtr Class::LookupFunction(const String& name) const {
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+  return LookupFunctionReadLocked(name);
 }
 
-// Returns true if 'prefix' and 'accessor_name' match 'name'.
-static bool MatchesAccessorName(const String& name,
-                                const char* prefix,
-                                intptr_t prefix_length,
-                                const String& accessor_name) {
-  intptr_t name_len = name.Length();
-  intptr_t accessor_name_len = accessor_name.Length();
-
-  if (name_len != (accessor_name_len + prefix_length)) {
-    return false;
-  }
-  for (intptr_t i = 0; i < prefix_length; i++) {
-    if (name.CharAt(i) != prefix[i]) {
-      return false;
-    }
-  }
-  for (intptr_t i = 0, j = prefix_length; i < accessor_name_len; i++, j++) {
-    if (name.CharAt(j) != accessor_name.CharAt(i)) {
-      return false;
-    }
-  }
-  return true;
+FunctionPtr Class::LookupFunctionReadLocked(const String& name) const {
+  return LookupFunctionReadLocked(name, kAny);
 }
 
 FunctionPtr Class::CheckFunctionType(const Function& func, MemberKind kind) {
@@ -6826,42 +6798,6 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name,
       return CheckFunctionType(function, kind);
     }
   }
-  // No function found.
-  return Function::null();
-}
-
-FunctionPtr Class::LookupGetterFunction(const String& name) const {
-  return LookupAccessorFunction(kGetterPrefix, kGetterPrefixLength, name);
-}
-
-FunctionPtr Class::LookupSetterFunction(const String& name) const {
-  return LookupAccessorFunction(kSetterPrefix, kSetterPrefixLength, name);
-}
-
-FunctionPtr Class::LookupAccessorFunction(const char* prefix,
-                                          intptr_t prefix_length,
-                                          const String& name) const {
-  ASSERT(!IsNull());
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  Array& funcs = thread->ArrayHandle();
-  funcs = current_functions();
-  intptr_t len = funcs.Length();
-  Function& function = thread->FunctionHandle();
-  String& function_name = thread->StringHandle();
-  for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    function_name = function.name();
-    if (MatchesAccessorName(function_name, prefix, prefix_length, name)) {
-      return function.ptr();
-    }
-  }
-
   // No function found.
   return Function::null();
 }
@@ -12559,6 +12495,15 @@ void Field::SetFieldType(const AbstractType& value) const {
   SetFieldTypeSafe(value);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Field::set_exact_type(const AbstractType& value) const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(IsOriginal());
+  untag()->set_exact_type(value.ptr());
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 FieldPtr Field::New() {
   ASSERT(Object::field_class() != Class::null());
   return Object::Allocate<Field>(Heap::kOld);
@@ -13134,6 +13079,18 @@ ObjectPtr Field::EvaluateInitializer() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() && is_const()) {
+#if defined(DART_DYNAMIC_MODULES)
+    if (is_declared_in_bytecode()) {
+      const auto& initializer = Function::Handle(InitializerFunction());
+      ASSERT(!initializer.IsNull());
+      const auto& bytecode = Bytecode::Handle(initializer.GetBytecode());
+      ASSERT(!bytecode.IsNull());
+      const auto& pool = ObjectPool::Handle(bytecode.object_pool());
+      ASSERT(!pool.IsNull());
+      ASSERT(pool.Length() == 1);
+      return pool.ObjectAt(0);
+    }
+#endif  // defined(DART_DYNAMIC_MODULES)
     return kernel::EvaluateStaticConstFieldInitializer(*this);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -19759,24 +19716,9 @@ ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
   UNREACHABLE();
 }
 
+// Note this may run with Dart execution reading this cache.
 void MegamorphicCache::InsertLocked(const Smi& class_id,
                                     const Object& target) const {
-  auto isolate_group = IsolateGroup::Current();
-  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
-
-  // As opposed to ICData we are stopping mutator threads from other isolates
-  // while modifying the megamorphic cache, since updates are not atomic.
-  //
-  // NOTE: In the future we might change the megamorphic cache insertions to
-  // carefully use store-release barriers on the writer as well as
-  // load-acquire barriers on the reader, ...
-  isolate_group->RunWithStoppedMutators([&]() {
-    EnsureCapacityLocked();
-    InsertEntryLocked(class_id, target);
-  });
-}
-
-void MegamorphicCache::EnsureCapacityLocked() const {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   auto isolate_group = thread->isolate_group();
@@ -19787,6 +19729,7 @@ void MegamorphicCache::EnsureCapacityLocked() const {
   if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
     const Array& old_buckets = Array::Handle(zone, buckets());
     intptr_t new_capacity = old_capacity * 2;
+    intptr_t new_mask = new_capacity - 1;
     const Array& new_buckets =
         Array::Handle(zone, Array::New(kEntryLength * new_capacity));
 
@@ -19794,9 +19737,6 @@ void MegamorphicCache::EnsureCapacityLocked() const {
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
-    set_buckets(new_buckets);
-    set_mask(new_capacity - 1);
-    set_filled_entry_count(0);
 
     // Rehash the valid entries.
     Smi& class_id = Smi::Handle(zone);
@@ -19804,33 +19744,39 @@ void MegamorphicCache::EnsureCapacityLocked() const {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
         target = GetTargetFunction(old_buckets, i);
-        InsertEntryLocked(class_id, target);
+        InsertEntryLocked<std::memory_order_relaxed>(new_buckets, new_mask,
+                                                     class_id, target);
       }
     }
+
+    // Publish buckets first. Old mask with new buckets is just a spurious miss.
+    untag()->set_buckets<std::memory_order_release>(new_buckets.ptr());
+    untag()->set_mask<std::memory_order_release>(Smi::New(new_mask));
   }
+
+  const Array& new_buckets = Array::Handle(zone, buckets());
+  InsertEntryLocked<std::memory_order_release>(new_buckets, mask(), class_id,
+                                               target);
+  set_filled_entry_count(filled_entry_count() + 1);
 }
 
-void MegamorphicCache::InsertEntryLocked(const Smi& class_id,
-                                         const Object& target) const {
-  auto thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
-
-  ASSERT(Thread::Current()->IsDartMutatorThread());
-  ASSERT(static_cast<double>(filled_entry_count() + 1) <=
-         (kLoadFactor * static_cast<double>(mask() + 1)));
-  const Array& backing_array = Array::Handle(buckets());
-  intptr_t id_mask = mask();
-  intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
-  intptr_t i = index;
+template <std::memory_order order>
+void MegamorphicCache::InsertEntryLocked(const Array& backing_array,
+                                         intptr_t mask,
+                                         const Smi& class_id,
+                                         const Object& target) {
+  const intptr_t start = (class_id.Value() * kSpreadFactor) & mask;
+  intptr_t i = start;
   do {
     if (Smi::Value(Smi::RawCast(GetClassId(backing_array, i))) == kIllegalCid) {
-      SetEntry(backing_array, i, class_id, target);
-      set_filled_entry_count(filled_entry_count() + 1);
+      // Publish target first. Old class id with new target is just a spurious
+      // miss.
+      SetTargetFunction<order>(backing_array, i, target);
+      SetClassId<order>(backing_array, i, class_id);
       return;
     }
-    i = (i + 1) & id_mask;
-  } while (i != index);
+    i = (i + 1) & mask;
+  } while (i != start);
   UNREACHABLE();
 }
 

@@ -22,6 +22,10 @@ class DDSRunner {
     required bool debugDds,
     required bool enableServicePortFallback,
   }) async {
+    void printError(String details) => stderr.writeln(
+          'Could not start the VM service:\n$details',
+        );
+
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
     var execName = fullSdk
@@ -30,16 +34,10 @@ class DDSRunner {
     var snapshotName = fullSdk
         ? sdk.ddsAotSnapshot
         : absolute(sdkDir, 'dds_aot.dart.snapshot');
-    final isAot = Sdk.checkArtifactExists(snapshotName) ? true : false;
+    final isAot = checkArtifactExists(snapshotName) ? true : false;
     if (!isAot) {
-      // On ia32 sdks we do not have an AOT runtime and so we would be
-      // using the regular executable.
-      snapshotName =
-          fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
-      if (!Sdk.checkArtifactExists(snapshotName)) {
-        return false;
-      }
-      execName = sdk.dart;
+      printError('Unable to find snapshot for the development server');
+      return false;
     }
 
     final process = await Process.start(
@@ -80,10 +78,6 @@ class DDSRunner {
 
     // DDS will close stderr once it's finished launching.
     final launchResult = await process.stderr.transform(utf8.decoder).join();
-
-    void printError(String details) => stderr.writeln(
-          'Could not start the VM service:\n$details',
-        );
 
     try {
       final result = json.decode(launchResult) as Map<String, dynamic>;

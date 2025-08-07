@@ -38,9 +38,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required EncodeContext context,
     required ClassElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ClassItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -103,9 +101,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     required EncodeContext context,
     required EnumElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return EnumItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -168,9 +164,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     required EncodeContext context,
     required ExtensionElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -239,9 +233,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required EncodeContext context,
     required ExtensionTypeElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return ExtensionTypeItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -288,14 +280,14 @@ sealed class InstanceItem<E extends InstanceElementImpl>
 
   /// The names of duplicate or otherwise conflicting members.
   /// Such names will not be added to `declaredXyz` maps.
-  final Map<LookupName, ManifestItemId> declaredConflicts;
+  Map<LookupName, ManifestItemId> declaredConflicts;
 
-  final Map<LookupName, InstanceItemFieldItem> declaredFields;
-  final Map<LookupName, InstanceItemGetterItem> declaredGetters;
-  final Map<LookupName, InstanceItemSetterItem> declaredSetters;
-  final Map<LookupName, InstanceItemMethodItem> declaredMethods;
-  final Map<LookupName, InterfaceItemConstructorItem> declaredConstructors;
-  final Map<LookupName, ManifestItemId> inheritedConstructors;
+  Map<LookupName, InstanceItemFieldItem> declaredFields;
+  Map<LookupName, InstanceItemGetterItem> declaredGetters;
+  Map<LookupName, InstanceItemSetterItem> declaredSetters;
+  Map<LookupName, InstanceItemMethodItem> declaredMethods;
+  Map<LookupName, InterfaceItemConstructorItem> declaredConstructors;
+  Map<LookupName, ManifestItemId> inheritedConstructors;
 
   InstanceItem({
     required super.id,
@@ -314,8 +306,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     LookupName lookupName,
     InterfaceItemConstructorItem item,
   ) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 
@@ -339,8 +330,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void addDeclaredGetter(LookupName lookupName, InstanceItemGetterItem item) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 
@@ -372,8 +362,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void addDeclaredMethod(LookupName lookupName, InstanceItemMethodItem item) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 
@@ -399,8 +388,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void addDeclaredSetter(LookupName lookupName, InstanceItemSetterItem item) {
-    var baseName = lookupName.asBaseName;
-    if (declaredConflicts.containsKey(baseName)) {
+    if (declaredConflicts.containsKey(lookupName)) {
       return;
     }
 
@@ -438,13 +426,13 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   }
 
   void beforeUpdatingMembers() {
-    declaredConflicts.clear();
-    declaredFields.clear();
-    declaredGetters.clear();
-    declaredSetters.clear();
-    declaredMethods.clear();
-    declaredConstructors.clear();
-    inheritedConstructors.clear();
+    declaredConflicts = {};
+    declaredFields = {};
+    declaredGetters = {};
+    declaredSetters = {};
+    declaredMethods = {};
+    declaredConstructors = {};
+    inheritedConstructors = {};
   }
 
   ManifestItemId? getConstructorId(LookupName name) {
@@ -525,9 +513,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
       metadata: ManifestMetadata.encode(context, element.metadata),
       isStatic: element.isStatic,
       type: element.type.encode(context),
-      constInitializer: element.constantInitializer?.expression.encode(
-        context,
-      ),
+      constInitializer: element.constantInitializer?.encode(context),
     );
   }
 
@@ -545,10 +531,7 @@ class InstanceItemFieldItem extends InstanceItemMemberItem<FieldElementImpl> {
   bool match(MatchContext context, FieldElementImpl element) {
     return super.match(context, element) &&
         type.match(context, element.type) &&
-        constInitializer.match(
-          context,
-          element.constantInitializer?.expression,
-        );
+        constInitializer.match(context, element.constantInitializer);
   }
 
   @override
@@ -635,7 +618,7 @@ class InstanceItemGetterItem extends InstanceItemMemberItem<GetterElementImpl> {
   }
 }
 
-sealed class InstanceItemMemberItem<E extends AnnotatableElementImpl>
+sealed class InstanceItemMemberItem<E extends ElementImpl>
     extends ManifestItem<E> {
   final bool isStatic;
 
@@ -678,9 +661,7 @@ sealed class InstanceItemMemberItem<E extends AnnotatableElementImpl>
     write(sink);
   }
 
-  static InstanceItemMemberItem<AnnotatableElementImpl> read(
-    SummaryDataReader reader,
-  ) {
+  static InstanceItemMemberItem<ElementImpl> read(SummaryDataReader reader) {
     var kind = reader.readEnum(_InstanceItemMemberItemKind.values);
     switch (kind) {
       case _InstanceItemMemberItemKind.field:
@@ -778,7 +759,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       isStatic: element.isStatic,
-      valueType: element.formalParameters[0].type.encode(context),
+      valueType: element.valueFormalParameter.type.encode(context),
     );
   }
 
@@ -794,7 +775,7 @@ class InstanceItemSetterItem extends InstanceItemMemberItem<SetterElementImpl> {
   @override
   bool match(MatchContext context, SetterElementImpl element) {
     return super.match(context, element) &&
-        valueType.match(context, element.formalParameters[0].type);
+        valueType.match(context, element.valueFormalParameter.type);
   }
 
   @override
@@ -1061,7 +1042,7 @@ class ManifestInterface {
   }
 }
 
-sealed class ManifestItem<E extends AnnotatableElementImpl> {
+sealed class ManifestItem<E extends ElementImpl> {
   /// The unique identifier of this item.
   final ManifestItemId id;
   final ManifestMetadata metadata;
@@ -1153,9 +1134,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     required EncodeContext context,
     required MixinElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return MixinItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -1296,8 +1275,7 @@ class TopLevelGetterItem extends TopLevelItem<GetterElementImpl> {
   }
 }
 
-sealed class TopLevelItem<E extends AnnotatableElementImpl>
-    extends ManifestItem<E> {
+sealed class TopLevelItem<E extends ElementImpl> extends ManifestItem<E> {
   TopLevelItem({required super.id, required super.metadata});
 }
 
@@ -1321,7 +1299,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
         context,
         element.thisOrVariableMetadata,
       ),
-      valueType: element.formalParameters[0].type.encode(context),
+      valueType: element.valueFormalParameter.type.encode(context),
     );
   }
 
@@ -1336,7 +1314,7 @@ class TopLevelSetterItem extends TopLevelItem<SetterElementImpl> {
   @override
   bool match(MatchContext context, SetterElementImpl element) {
     return super.match(context, element) &&
-        valueType.match(context, element.formalParameters[0].type);
+        valueType.match(context, element.valueFormalParameter.type);
   }
 
   @override
@@ -1366,9 +1344,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
       id: id,
       metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
-      constInitializer: element.constantInitializer?.expression.encode(
-        context,
-      ),
+      constInitializer: element.constantInitializer?.encode(context),
     );
   }
 
@@ -1385,10 +1361,7 @@ class TopLevelVariableItem extends TopLevelItem<TopLevelVariableElementImpl> {
   bool match(MatchContext context, TopLevelVariableElementImpl element) {
     return super.match(context, element) &&
         type.match(context, element.type) &&
-        constInitializer.match(
-          context,
-          element.constantInitializer?.expression,
-        );
+        constInitializer.match(context, element.constantInitializer);
   }
 
   @override
@@ -1415,9 +1388,7 @@ class TypeAliasItem extends TopLevelItem<TypeAliasElementImpl> {
     required EncodeContext context,
     required TypeAliasElementImpl element,
   }) {
-    return context.withTypeParameters(element.typeParameters, (
-      typeParameters,
-    ) {
+    return context.withTypeParameters(element.typeParameters, (typeParameters) {
       return TypeAliasItem(
         id: id,
         metadata: ManifestMetadata.encode(context, element.metadata),
@@ -1486,7 +1457,7 @@ extension SummaryDataReaderExtension on SummaryDataReader {
   }
 }
 
-extension _AnnotatableElementExtension on AnnotatableElementImpl {
+extension _AnnotatableElementExtension on ElementImpl {
   MetadataImpl get effectiveMetadata {
     if (this case PropertyAccessorElementImpl accessor) {
       return accessor.thisOrVariableMetadata;
@@ -1559,7 +1530,7 @@ extension _LookupNameToInterfaceItemConstructorItemMapExtension
 extension _PropertyAccessExtension on PropertyAccessorElementImpl {
   MetadataImpl get thisOrVariableMetadata {
     if (isSynthetic) {
-      return variable!.metadata;
+      return variable.metadata;
     } else {
       return metadata;
     }

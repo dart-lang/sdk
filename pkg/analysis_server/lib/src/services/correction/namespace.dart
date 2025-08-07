@@ -44,13 +44,13 @@ LibraryImport? _getImportElement(
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
   List<LibraryImport>? candidates;
-  for (var libraryImport in libraryElement.firstFragment.libraryImports2) {
+  for (var libraryImport in libraryElement.firstFragment.libraryImports) {
     // required library
     if (libraryImport.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix
-    var prefixElement = libraryImport.prefix2?.element;
+    var prefixElement = libraryImport.prefix?.element;
     if (prefixElement == null) {
       continue;
     }

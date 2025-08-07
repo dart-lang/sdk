@@ -40,7 +40,7 @@ class AnnotationResolver {
     ArgumentListImpl argumentList,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    ConstructorElementMixin2? constructorElement;
+    InternalConstructorElement? constructorElement;
     if (constructorName != null) {
       constructorElement = classElement.getNamedConstructor(
         constructorName.name,
@@ -108,7 +108,7 @@ class AnnotationResolver {
     String typeDisplayName,
     SimpleIdentifierImpl? constructorName,
     List<TypeParameterElementImpl> typeParameters,
-    ConstructorElementMixin2? constructorElement,
+    InternalConstructorElement? constructorElement,
     ArgumentListImpl argumentList,
     InterfaceType Function(List<TypeImpl> typeArguments) instantiateElement,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
@@ -233,7 +233,7 @@ class AnnotationResolver {
     }
     var argumentList = node.arguments;
 
-    var element1 = name1.scopeLookupResult!.getter2;
+    var element1 = name1.scopeLookupResult!.getter;
     name1.element = element1;
 
     if (element1 == null) {
@@ -275,7 +275,7 @@ class AnnotationResolver {
     // prefix.*
     if (element1 is PrefixElement) {
       if (name2 != null) {
-        var element = element1.scope.lookup(name2.name).getter2;
+        var element = element1.scope.lookup(name2.name).getter;
         name2.element = element;
         // prefix.Class(args) or prefix.Class.CONST
         if (element is InterfaceElementImpl) {
@@ -390,13 +390,8 @@ class AnnotationResolver {
   ) {
     // The accessor should be synthetic, the variable should be constant, and
     // there should be no arguments.
-    var variableElement = accessorElement.variable;
-    if (variableElement == null) {
-      return;
-    }
-
     if (!accessorElement.isSynthetic ||
-        !variableElement.isConst ||
+        !accessorElement.variable.isConst ||
         annotation.arguments != null) {
       _diagnosticReporter.atNode(
         annotation,

@@ -65,6 +65,8 @@ BytecodeLoader::BytecodeLoader(Thread* thread, const TypedDataBase& binary)
     : thread_(thread),
       binary_(binary),
       bytecode_component_array_(Array::Handle(thread->zone())),
+      pending_classes_(GrowableObjectArray::Handle(thread->zone(),
+                                                   GrowableObjectArray::New())),
       bytecode_offsets_map_(
           Array::Handle(thread->zone(),
                         HashTables::New<BytecodeOffsetsMap>(16))) {
@@ -81,17 +83,20 @@ BytecodeLoader::~BytecodeLoader() {
   thread_->set_bytecode_loader(nullptr);
 }
 
-FunctionPtr BytecodeLoader::LoadBytecode() {
+FunctionPtr BytecodeLoader::LoadBytecode(bool load_code) {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
 
-  BytecodeReaderHelper component_reader(thread_, binary_);
-  bytecode_component_array_ = component_reader.ReadBytecodeComponent();
+  if (bytecode_component_array_.IsNull()) {
+    BytecodeReaderHelper component_reader(thread_, binary_);
+    bytecode_component_array_ = component_reader.ReadBytecodeComponent();
+  }
 
   BytecodeComponentData bytecode_component(bytecode_component_array_);
   BytecodeReaderHelper bytecode_reader(thread_, &bytecode_component);
   AlternativeReadingScope alt(&bytecode_reader.reader(),
                               bytecode_component.GetLibraryIndexOffset());
-  bytecode_reader.ReadLibraryDeclarations(bytecode_component.GetNumLibraries());
+  bytecode_reader.ReadLibraryDeclarations(bytecode_component.GetNumLibraries(),
+                                          pending_classes_, load_code);
 
   if (bytecode_component.GetMainOffset() == 0) {
     return Function::null();
@@ -102,19 +107,63 @@ FunctionPtr BytecodeLoader::LoadBytecode() {
   return Function::RawCast(bytecode_reader.ReadObject());
 }
 
+void BytecodeLoader::LoadPendingCode() {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(!bytecode_component_array_.IsNull());
+
+  BytecodeComponentData bytecode_component(bytecode_component_array_);
+  BytecodeReaderHelper bytecode_reader(thread_, &bytecode_component);
+  bytecode_reader.ReadPendingCode(pending_classes_);
+}
+
 void BytecodeLoader::SetOffset(const Object& obj, intptr_t offset) {
   BytecodeOffsetsMap map(bytecode_offsets_map_.ptr());
   map.UpdateOrInsert(obj, Smi::Handle(thread_->zone(), Smi::New(offset)));
   bytecode_offsets_map_ = map.Release().ptr();
 }
 
-intptr_t BytecodeLoader::GetOffset(const Object& obj) {
+intptr_t BytecodeLoader::GetOffset(const Object& obj) const {
   BytecodeOffsetsMap map(bytecode_offsets_map_.ptr());
   const auto value = map.GetOrNull(obj);
   ASSERT(value != Object::null());
   const intptr_t offset = Smi::Value(Smi::RawCast(value));
   ASSERT(map.Release().ptr() == bytecode_offsets_map_.ptr());
   return offset;
+}
+
+bool BytecodeLoader::HasOffset(const Object& obj) const {
+  BytecodeOffsetsMap map(bytecode_offsets_map_.ptr());
+  const auto value = map.GetOrNull(obj);
+  ASSERT(map.Release().ptr() == bytecode_offsets_map_.ptr());
+  return value != Object::null();
+}
+
+void BytecodeLoader::FindModifiedLibraries(BitVector* modified_libs,
+                                           intptr_t* p_num_libraries,
+                                           intptr_t* p_num_classes,
+                                           intptr_t* p_num_procedures) {
+  if (bytecode_component_array_.IsNull()) {
+    BytecodeReaderHelper component_reader(thread_, binary_);
+    bytecode_component_array_ = component_reader.ReadBytecodeComponent();
+  }
+
+  BytecodeComponentData bytecode_component(bytecode_component_array_);
+  BytecodeReaderHelper bytecode_reader(thread_, &bytecode_component);
+  AlternativeReadingScope alt(&bytecode_reader.reader(),
+                              bytecode_component.GetLibraryIndexOffset());
+
+  bytecode_reader.FindModifiedLibraries(modified_libs,
+                                        bytecode_component.GetNumLibraries());
+
+  if (p_num_libraries != nullptr) {
+    *p_num_libraries = bytecode_component.GetNumLibraries();
+  }
+  if (p_num_classes != nullptr) {
+    *p_num_classes = bytecode_component.GetNumClasses();
+  }
+  if (p_num_procedures != nullptr) {
+    *p_num_procedures = bytecode_component.GetNumCodes();
+  }
 }
 
 BytecodeReaderHelper::BytecodeReaderHelper(Thread* thread,
@@ -755,8 +804,6 @@ void BytecodeReaderHelper::ReadLocalVariables(const Bytecode& bytecode,
 }
 
 ArrayPtr BytecodeReaderHelper::ReadBytecodeComponent() {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-
   AlternativeReadingScope alt(&reader_, 0);
 
   const intptr_t start_offset = reader_.offset();
@@ -1779,7 +1826,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
                        /* is_reflectable = */ false,
                        /* is_late = */ false, cls, Object::dynamic_type(),
                        TokenPosition::kNoSource, TokenPosition::kNoSource);
-
+    IG->RegisterStaticField(field, Object::null_object());
     fields.SetAt(num_fields, field);
   }
 
@@ -2087,6 +2134,12 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   const int kHasSourcePositionsFlag = 1 << 5;
   const int kHasAnnotationsFlag = 1 << 6;
   const int kHasPragmaFlag = 1 << 7;
+  const int kHasConstConstructorFlag = 1 << 8;
+  const int kIsSealedFlag = 1 << 9;
+  const int kIsMixinClassFlag = 1 << 10;
+  const int kIsBaseClassFlag = 1 << 11;
+  const int kIsInterfaceFlag = 1 << 12;
+  const int kIsFinalFlag = 1 << 13;
 
   // Class is allocated when reading library declaration in
   // BytecodeReaderHelper::ReadLibraryDeclaration.
@@ -2127,6 +2180,24 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
   if ((flags & kIsTransformedMixinApplicationFlag) != 0) {
     cls.set_is_transformed_mixin_application();
+  }
+  if ((flags & kHasConstConstructorFlag) != 0) {
+    cls.set_is_const();
+  }
+  if ((flags & kIsSealedFlag) != 0) {
+    cls.set_is_sealed();
+  }
+  if ((flags & kIsMixinClassFlag) != 0) {
+    cls.set_is_mixin_class();
+  }
+  if ((flags & kIsBaseClassFlag) != 0) {
+    cls.set_is_base_class();
+  }
+  if ((flags & kIsInterfaceFlag) != 0) {
+    cls.set_is_interface_class();
+  }
+  if ((flags & kIsFinalFlag) != 0) {
+    cls.set_is_final();
   }
 
   intptr_t num_type_arguments = 0;
@@ -2226,11 +2297,12 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(
   library.SetLoaded();
 }
 
-void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
+void BytecodeReaderHelper::ReadLibraryDeclarations(
+    intptr_t num_libraries,
+    const GrowableObjectArray& pending_classes,
+    bool load_code) {
   auto& library = Library::Handle(Z);
   auto& uri = String::Handle(Z);
-  auto& pending_classes =
-      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
 
   // Verify that libraries in the dynamic module are not loaded yet.
   {
@@ -2262,6 +2334,13 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
     ReadLibraryDeclaration(library, pending_classes);
   }
 
+  if (load_code) {
+    ReadPendingCode(pending_classes);
+  }
+}
+
+void BytecodeReaderHelper::ReadPendingCode(
+    const GrowableObjectArray& pending_classes) {
   auto& cls = Class::Handle(Z);
   auto& error = Error::Handle(Z);
   auto& members = Array::Handle(Z);
@@ -2284,13 +2363,31 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(intptr_t num_libraries) {
     members = cls.fields();
     for (intptr_t j = 0, m = members.Length(); j < m; ++j) {
       field ^= members.At(j);
-      if ((field.is_static() || field.is_late()) &&
-          field.has_nontrivial_initializer()) {
-        function = field.EnsureInitializerFunction();
-        if (!function.HasBytecode()) {
-          ReadCode(function, thread_->bytecode_loader()->GetOffset(field));
+      if (field.has_nontrivial_initializer()) {
+        if (field.is_static() || field.is_late() ||
+            thread_->bytecode_loader()->HasOffset(field)) {
+          function = field.EnsureInitializerFunction();
+          if (!function.HasBytecode()) {
+            ReadCode(function, thread_->bytecode_loader()->GetOffset(field));
+          }
         }
       }
+    }
+  }
+}
+
+void BytecodeReaderHelper::FindModifiedLibraries(BitVector* modified_libs,
+                                                 intptr_t num_libraries) {
+  auto& uri = String::Handle(Z);
+  auto& lib = Library::Handle(Z);
+  for (intptr_t i = 0; i < num_libraries; ++i) {
+    uri ^= ReadObject();
+    reader_.ReadUInt();  // Skip offset.
+
+    lib = Library::LookupLibrary(thread_, uri);
+    if (!lib.IsNull() && !lib.is_dart_scheme()) {
+      // This is a library that already exists so mark it as being modified.
+      modified_libs->Add(lib.index());
     }
   }
 }

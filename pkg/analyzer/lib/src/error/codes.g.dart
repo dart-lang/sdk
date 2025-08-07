@@ -5879,14 +5879,6 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
   );
 
-  ///  No parameters.
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER =
-      CompileTimeErrorCode(
-        'WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
-        "Setters must declare exactly one required positional parameter.",
-        hasPublishedDocs: true,
-      );
-
   ///  Parameters:
   ///  0: the name of the type being referenced (<i>G</i>)
   ///  1: the number of type parameters that were declared
@@ -6380,6 +6372,14 @@ class WarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode DEPRECATED_EXTEND = WarningCode(
+    'DEPRECATED_EXTEND',
+    "Extending '{0}' is deprecated.",
+    correctionMessage: "Try removing the 'extends' clause.",
+  );
+
   ///  No parameters.
   static const WarningCode DEPRECATED_EXTENDS_FUNCTION = WarningCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',
@@ -6387,6 +6387,14 @@ class WarningCode extends DiagnosticCode {
     correctionMessage: "Try removing 'Function' from the 'extends' clause.",
     hasPublishedDocs: true,
     uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the member
+  static const WarningCode DEPRECATED_IMPLEMENT = WarningCode(
+    'DEPRECATED_IMPLEMENT',
+    "Implementing '{0}' is deprecated.",
+    correctionMessage: "Try removing '{0}' from the 'implements' clause.",
   );
 
   ///  No parameters.
@@ -6707,6 +6715,24 @@ class WarningCode extends DiagnosticCode {
     "The annotation 'awaitNotRequired' can only be applied to a "
         "Future-returning function, or a Future-typed field.",
   );
+
+  ///  No parameters.
+  static const WarningCode INVALID_DEPRECATED_EXTEND_ANNOTATION = WarningCode(
+    'INVALID_DEPRECATED_EXTEND_ANNOTATION',
+    "The annotation '@Deprecated.extend' can only be applied to extendable "
+        "classes.",
+    correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
+  );
+
+  ///  No parameters.
+  static const WarningCode INVALID_DEPRECATED_IMPLEMENT_ANNOTATION =
+      WarningCode(
+        'INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
+        "The annotation '@Deprecated.implement' can only be applied to "
+            "implementable classes.",
+        correctionMessage:
+            "Try removing the '@Deprecated.implement' annotation.",
+      );
 
   ///  Parameters:
   ///  0: the name of the element

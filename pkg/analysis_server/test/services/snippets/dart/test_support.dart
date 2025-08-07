@@ -42,8 +42,8 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
   /// is expected to be. The marked ranges in [expected] are where linked edit
   /// groups / placeholders appear.
   Future<Snippet> assertSnippetResult(String content, String expected) async {
-    var code = TestCode.parse(normalizeSource(content));
-    var expectedCode = TestCode.parse(normalizeSource(expected));
+    var code = TestCode.parseNormalized(content);
+    var expectedCode = TestCode.parseNormalized(expected);
     var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
@@ -112,8 +112,8 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
     String expected,
     String linkedGroupText,
   ) async {
-    var code = TestCode.parse(normalizeSource(content));
-    var expectedCode = TestCode.parse(normalizeSource(expected));
+    var code = TestCode.parseNormalized(content);
+    var expectedCode = TestCode.parseNormalized(expected);
     var expectedSelection = expectedCode.range.sourceRange;
 
     var snippet = await expectValidSnippet(code);

@@ -30,7 +30,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
   extensions
     extension E
@@ -53,7 +53,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @34
+        #F1 extension E (nameOffset:34) (firstTokenOffset:0) (offset:34)
           element: <testLibrary>::@extension::E
   extensions
     extension E
@@ -76,19 +76,18 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           fields
-            #F2 hasInitializer x @36
+            #F2 hasInitializer x (nameOffset:36) (firstTokenOffset:36) (offset:36)
               element: <testLibrary>::@extension::E::@field::x
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @40
                   staticType: int
           getters
-            #F3 synthetic x
+            #F3 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@extension::E::@getter::x
-              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -123,10 +122,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   extensions
     extension E
@@ -151,10 +150,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
   extensions
     extension E
@@ -181,18 +180,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
           fields
-            #F3 synthetic foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@extension::E::@field::foo
           getters
-            #F4 foo @38
+            #F4 foo (nameOffset:38) (firstTokenOffset:30) (offset:38)
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -230,18 +228,17 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
           fields
-            #F3 synthetic foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@extension::E::@field::foo
           getters
-            #F4 foo @36
+            #F4 foo (nameOffset:36) (firstTokenOffset:30) (offset:36)
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: T
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -285,10 +282,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @31
+        #F1 extension E (nameOffset:31) (firstTokenOffset:16) (offset:31)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @38
+            #F2 T (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: #E0 T
               metadata
                 Annotation
@@ -299,18 +296,17 @@ library
                     staticType: null
                   element2: <testLibrary>::@getter::foo
           fields
-            #F3 hasInitializer foo @65
+            #F3 hasInitializer foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@extension::E::@field::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 1 @71
                   staticType: int
           getters
-            #F4 synthetic foo
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: int
           methods
-            #F5 bar @88
+            #F5 bar (nameOffset:88) (firstTokenOffset:76) (offset:88)
               element: <testLibrary>::@extension::E::@method::bar
               metadata
                 Annotation
@@ -321,16 +317,15 @@ library
                     staticType: null
                   element2: <testLibrary>::@extension::E::@getter::foo
       topLevelVariables
-        #F6 hasInitializer foo @6
+        #F6 hasInitializer foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::foo
           initializer: expression_1
             IntegerLiteral
               literal: 0 @12
               staticType: int
       getters
-        #F7 synthetic foo
+        #F7 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
-          returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -407,26 +402,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A @22
+        #F1 class A (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
-        #F3 extension E @50
+        #F3 extension E (nameOffset:50) (firstTokenOffset:27) (offset:50)
           element: <testLibrary>::@extension::E
       topLevelVariables
-        #F4 hasInitializer a @6
+        #F4 hasInitializer a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             NullLiteral
               literal: null @10
               staticType: Null
       getters
-        #F5 synthetic a
+        #F5 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-          returnType: dynamic
   classes
     class A
       reference: <testLibrary>::@class::A
@@ -471,10 +465,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           methods
-            #F2 foo @28
+            #F2 foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
               element: <testLibrary>::@extension::E::@method::foo
   extensions
     extension E
@@ -503,13 +497,13 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
           methods
-            #F3 foo @35
+            #F3 foo (nameOffset:35) (firstTokenOffset:30) (offset:35)
               element: <testLibrary>::@extension::E::@method::foo
   extensions
     extension E
@@ -541,16 +535,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           typeParameters
-            #F2 T @12
+            #F2 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
           methods
-            #F3 foo @35
+            #F3 foo (nameOffset:35) (firstTokenOffset:30) (offset:35)
               element: <testLibrary>::@extension::E::@method::foo
               formalParameters
-                #F4 _ @41
+                #F4 _ (nameOffset:41) (firstTokenOffset:39) (offset:41)
                   element: <testLibrary>::@extension::E::@method::foo::@formalParameter::_
   extensions
     extension E
@@ -587,15 +581,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@extension::E::@field::foo
           getters
-            #F3 foo @31
+            #F3 foo (nameOffset:31) (firstTokenOffset:23) (offset:31)
               element: <testLibrary>::@extension::E::@getter::foo
-              returnType: int
   extensions
     extension E
       reference: <testLibrary>::@extension::E
@@ -630,16 +623,16 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension E @10
+        #F1 extension E (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::E
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@extension::E::@field::foo
           setters
-            #F3 foo @27
+            #F3 foo (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: <testLibrary>::@extension::E::@setter::foo
               formalParameters
-                #F4 value @35
+                #F4 value (nameOffset:35) (firstTokenOffset:31) (offset:35)
                   element: <testLibrary>::@extension::E::@setter::foo::@formalParameter::value
   extensions
     extension E
@@ -661,6 +654,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: <testLibrary>::@extension::E::@field::foo
 ''');
   }
 
@@ -675,7 +669,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       extensions
-        #F1 extension <null-name> (offset=0)
+        #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@extension::0
   extensions
     extension <null-name>
@@ -920,7 +914,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1075,7 +1068,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1268,7 +1260,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1461,7 +1452,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1652,7 +1642,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1801,7 +1790,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1921,7 +1909,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2110,7 +2097,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2246,7 +2232,6 @@ extension A<T1> on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2400,7 +2385,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2555,7 +2539,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2741,7 +2724,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2896,7 +2878,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3745,7 +3726,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3899,7 +3879,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4053,7 +4032,6 @@ extension A on int {
 }
 ''');
 
-    configuration.withPropertyLinking = true;
     checkElementText(library, r'''
 library
   reference: <testLibrary>

@@ -31,7 +31,6 @@ var set d;
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //      ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_PARAMETERS
 // [cfe] A function declaration needs an explicit list of parameters.
 //       ^
@@ -43,7 +42,6 @@ var set e, f;
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //      ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_FUNCTION_PARAMETERS
 // [cfe] A function declaration needs an explicit list of parameters.
 //       ^
@@ -87,7 +85,6 @@ class C0 {
 //    ^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 //        ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
 // [cfe] A method declaration needs an explicit list of parameters.
 //         ^
@@ -97,7 +94,6 @@ class C0 {
 // [analyzer] SYNTACTIC_ERROR.VAR_RETURN_TYPE
 // [cfe] The return type can't be 'var'.
 //        ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
 // [cfe] A method declaration needs an explicit list of parameters.
 //         ^
@@ -132,7 +128,6 @@ class C1 {
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 // [cfe] The return type of the setter must be 'void' or absent.
 //         ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
 // [cfe] A method declaration needs an explicit list of parameters.
 //          ^
@@ -142,7 +137,6 @@ class C1 {
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] The return type of the setter must be 'void' or absent.
 //          ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
 // [cfe] A method declaration needs an explicit list of parameters.
 //           ^
@@ -177,7 +171,6 @@ class C2 {
 // [analyzer] COMPILE_TIME_ERROR.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER
 // [cfe] The return type of the setter must be 'void' or absent.
 //              ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
 // [cfe] A method declaration needs an explicit list of parameters.
 //               ^
@@ -187,7 +180,6 @@ class C2 {
 // [analyzer] COMPILE_TIME_ERROR.NON_VOID_RETURN_FOR_SETTER
 // [cfe] The return type of the setter must be 'void' or absent.
 //               ^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 // [analyzer] SYNTACTIC_ERROR.MISSING_METHOD_PARAMETERS
 // [cfe] A method declaration needs an explicit list of parameters.
 //                ^

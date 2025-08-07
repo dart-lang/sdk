@@ -15,7 +15,7 @@ class C<T extends core::Object? = dynamic> extends core::Object implements self:
 [@vm.closure-id=1]
 static method main() → void {
   core::print(#C2);
-  [@vm.direct-call.metadata=closure 1 in #lib::main] [@vm.inferred-type.metadata=!? (receiver not int)]([@vm.closure-id=1]() → Null {
+  [@vm.direct-call.metadata=closure 1 in #lib::main] [@vm.inferred-type.metadata=? (receiver not int)]([@vm.closure-id=1]() → Null {
     core::print(#C2);
   })(){() → Null};
 }

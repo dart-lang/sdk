@@ -36,14 +36,14 @@ class C<V> extends B<V> {
     var C_key = C.superFormalParameter('key');
 
     var B_key_member = C_key.superConstructorParameter;
-    B_key_member as SuperFormalParameterMember;
+    B_key_member as SubstitutedSuperFormalParameterElementImpl;
 
     var B = findElement2.unnamedConstructor('B');
     var B_key = B.superFormalParameter('key');
     assertElement(B_key_member, declaration: B_key, substitution: {'U': 'V'});
 
     var A_key_member = B_key_member.superConstructorParameter;
-    A_key_member as ParameterMember;
+    A_key_member as SubstitutedFormalParameterElementImpl;
 
     var A = findElement2.unnamedConstructor('A');
     var A_key = A.parameter('key');
@@ -88,10 +88,12 @@ SuperFormalParameter
         type: int
       name: b
       declaredElement: <testLibraryFragment> b@69
-        type: int
+        element: isPublic
+          type: int
     rightParenthesis: )
   declaredElement: <testLibraryFragment> a@60
-    type: T Function<T>(int)
+    element: isFinal isPublic
+      type: T Function<T>(int)
 ''');
   }
 
@@ -116,7 +118,8 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: <testLibraryFragment> a@13
-    type: dynamic
+    element: hasImplicitType isFinal isPublic
+      type: dynamic
 ''');
   }
 
@@ -138,7 +141,8 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: <testLibraryFragment> a@59
-    type: int?
+    element: hasImplicitType isFinal isPublic
+      type: int?
 ''');
   }
 
@@ -160,7 +164,8 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: <testLibraryFragment> a@59
-    type: int?
+    element: hasImplicitType isFinal isPublic
+      type: int?
 ''');
   }
 
@@ -183,7 +188,8 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: <testLibraryFragment> a@76
-    type: int
+    element: hasImplicitType isFinal isPublic
+      type: int
 ''');
   }
 
@@ -205,7 +211,8 @@ SuperFormalParameter
   period: .
   name: a
   declaredElement: <testLibraryFragment> a@55
-    type: int
+    element: hasImplicitType isFinal isPublic
+      type: int
 ''');
   }
 

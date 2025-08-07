@@ -669,7 +669,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_foo
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null
@@ -733,7 +733,8 @@ DefaultFormalParameter
   parameter: SimpleFormalParameter
     name: a
     declaredElement: <testLibraryFragment> a@8
-      type: dynamic
+      element: hasImplicitType isPublic
+        type: dynamic
   separator: =
   defaultValue: CascadeExpression
     target: SimpleIdentifier
@@ -750,7 +751,8 @@ DefaultFormalParameter
         staticType: InvalidType
     staticType: InvalidType
   declaredElement: <testLibraryFragment> a@8
-    type: dynamic
+    element: hasImplicitType isPublic
+      type: dynamic
 ''');
   }
 
@@ -2531,7 +2533,7 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_foo
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
   readElement2: <null>
   readType: null

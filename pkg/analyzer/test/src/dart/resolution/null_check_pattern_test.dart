@@ -31,7 +31,6 @@ NullCheckPattern
     keyword: var
     name: y
     declaredFragment: isPublic y@34
-      type: null
       element: hasImplicitType isPublic
         type: int
     matchedValueType: int
@@ -59,7 +58,6 @@ NullCheckPattern
     keyword: var
     name: y
     declaredFragment: isPublic y@45
-      type: null
       element: hasImplicitType isPublic
         type: int
     matchedValueType: int
@@ -94,7 +92,6 @@ PatternVariableDeclaration
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@24
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int

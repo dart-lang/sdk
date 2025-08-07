@@ -8,6 +8,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/dot_shorthands.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -56,9 +57,15 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
         return;
       }
       var initializer = variables[0].initializer;
-      String? typeArgumentsText;
-      int? typeArgumentsOffset;
-      if (type is NamedType) {
+      String? insertionText;
+      int? insertionOffset;
+      if (initializer != null && isDotShorthand(initializer)) {
+        // Inserts the type before the dot shorthand (e.g. `E.a` where type is
+        // `E`) because we erase the required context type when we replace the
+        // declared type with `var`.
+        insertionText = utils.getNodeText(type);
+        insertionOffset = initializer.beginToken.offset;
+      } else if (type is NamedType) {
         var typeArguments = type.typeArguments;
         if (typeArguments != null) {
           if (initializer is CascadeExpression) {
@@ -66,26 +73,26 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
           }
           if (initializer is TypedLiteral) {
             if (initializer.typeArguments == null) {
-              typeArgumentsText = utils.getNodeText(typeArguments);
+              insertionText = utils.getNodeText(typeArguments);
               if (initializer is ListLiteral) {
-                typeArgumentsOffset = initializer.leftBracket.offset;
+                insertionOffset = initializer.leftBracket.offset;
               } else if (initializer is SetOrMapLiteral) {
-                typeArgumentsOffset = initializer.leftBracket.offset;
+                insertionOffset = initializer.leftBracket.offset;
               } else {
                 throw StateError('Unhandled subclass of TypedLiteral');
               }
             }
           } else if (initializer is InstanceCreationExpression) {
             if (initializer.constructorName.type.typeArguments == null) {
-              typeArgumentsText = utils.getNodeText(typeArguments);
-              typeArgumentsOffset = initializer.constructorName.type.end;
+              insertionText = utils.getNodeText(typeArguments);
+              insertionOffset = initializer.constructorName.type.end;
             }
           }
         }
       }
       if (initializer is SetOrMapLiteral &&
           initializer.typeArguments == null &&
-          typeArgumentsText == null) {
+          insertionText == null) {
         // This is to prevent the fix from converting a valid map or set literal
         // into an ambiguous literal. We could apply this in more places
         // by examining the elements of the collection.
@@ -94,8 +101,8 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(type), 'var');
 
-        if (typeArgumentsText != null && typeArgumentsOffset != null) {
-          builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
+        if (insertionText != null && insertionOffset != null) {
+          builder.addSimpleInsertion(insertionOffset, insertionText);
         }
       });
     } else if (parent is DeclaredIdentifier &&
@@ -105,15 +112,21 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
         return;
       }
 
-      String? typeArgumentsText;
-      int? typeArgumentsOffset;
-      if (type is NamedType) {
+      String? insertionText;
+      int? insertionOffset;
+      var iterable = grandparent.iterable;
+      if (hasDependentDotShorthand(iterable) && iterable is TypedLiteral) {
+        // If there's a dependent shorthand in the literal, we need to
+        // insert explicit type arguments to ensure we have an appropriate
+        // context type to resolve the dot shorthand.
+        insertionText = '<${utils.getNodeText(type)}>';
+        insertionOffset = iterable.beginToken.offset;
+      } else if (type is NamedType) {
         var typeArguments = type.typeArguments;
         if (typeArguments != null) {
-          var iterable = grandparent.iterable;
           if (iterable is TypedLiteral && iterable.typeArguments == null) {
-            typeArgumentsText = utils.getNodeText(typeArguments);
-            typeArgumentsOffset = iterable.offset;
+            insertionText = utils.getNodeText(typeArguments);
+            insertionOffset = iterable.offset;
           }
         }
       }
@@ -123,8 +136,8 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
         } else {
           builder.addSimpleReplacement(range.node(type), 'var');
         }
-        if (typeArgumentsText != null && typeArgumentsOffset != null) {
-          builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
+        if (insertionText != null && insertionOffset != null) {
+          builder.addSimpleInsertion(insertionOffset, insertionText);
         }
       });
     }

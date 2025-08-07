@@ -23,7 +23,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// type parameters of the class.
 ///
 /// If the target is a [TypeAliasElement] with an [InterfaceType] as the
-/// aliased type, the [element] is a [ConstructorMember] created from the
+/// aliased type, the [element] is a [SubstitutedConstructorElementImpl] created from the
 /// [ConstructorElement] of the corresponding class, and substituting
 /// the class type parameters with the type arguments specified in the alias,
 /// explicit types or the type parameters of the alias. The [typeParameters]
@@ -32,8 +32,8 @@ class ConstructorElementToInfer {
   /// The type parameters used in [element].
   final List<TypeParameterElementImpl> typeParameters;
 
-  /// The element, might be [ConstructorMember].
-  final ConstructorElementMixin2 element;
+  /// The element, might be [SubstitutedConstructorElementImpl].
+  final InternalConstructorElement element;
 
   ConstructorElementToInfer(this.typeParameters, this.element);
 
@@ -82,7 +82,7 @@ class InvocationInferenceHelper {
     required LibraryElementImpl definingLibrary,
   }) {
     List<TypeParameterElementImpl> typeParameters;
-    ConstructorElementMixin2? rawElement;
+    InternalConstructorElement? rawElement;
 
     if (typeElement is InterfaceElementImpl) {
       typeParameters = typeElement.typeParameters;
@@ -92,8 +92,7 @@ class InvocationInferenceHelper {
       } else {
         var name = constructorIdentifier.name;
         rawElement = typeElement.getNamedConstructor(name);
-        if (rawElement != null &&
-            !rawElement.isAccessibleIn(definingLibrary)) {
+        if (rawElement != null && !rawElement.isAccessibleIn(definingLibrary)) {
           rawElement = null;
         }
       }

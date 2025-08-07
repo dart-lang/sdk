@@ -100,7 +100,7 @@ void checkForTypeParameterBoundRecursion(
 }
 
 class EnclosingExecutableContext {
-  final ExecutableElement2OrMember? element;
+  final InternalExecutableElement? element;
   final bool isAsynchronous;
   final bool isConstConstructor;
   final bool isGenerativeConstructor;
@@ -133,9 +133,9 @@ class EnclosingExecutableContext {
     required this.isGenerator,
     this.catchErrorOnErrorReturnType,
   }) : isConstConstructor =
-           element is ConstructorElementMixin2 && element.isConst,
+           element is InternalConstructorElement && element.isConst,
        isGenerativeConstructor =
-           element is ConstructorElementMixin2 && !element.isFactory,
+           element is InternalConstructorElement && !element.isFactory,
        inFactoryConstructor = _inFactoryConstructor(element),
        inStaticMethod = _inStaticMethod(element);
 
@@ -499,7 +499,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = declarationElement.asElement2;
 
       List<ClassMember> members = node.members;
-      if (!declarationElement.isDartCoreFunctionImpl) {
+      if (!declarationElement.element.isDartCoreFunctionImpl) {
         _checkForBuiltInIdentifierAsName(
           node.name,
           CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
@@ -996,11 +996,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       () {
         TypeAnnotation? returnType = node.returnType;
         if (node.isSetter) {
-          FunctionExpression functionExpression = node.functionExpression;
-          _checkForWrongNumberOfParametersForSetter(
-            node.name,
-            functionExpression.parameters,
-          );
           _checkForNonVoidReturnTypeForSetter(returnType);
         }
         _checkForTypeAnnotationDeferredClass(returnType);
@@ -1115,7 +1110,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
     if (importElement != null) {
       _checkForImportInternalLibrary(node, importElement);
-      if (importElement.prefix2?.isDeferred ?? false) {
+      if (importElement.prefix?.isDeferred ?? false) {
         _checkForDeferredImportOfExtensions(node, importElement);
       }
     }
@@ -1234,7 +1229,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       () {
         var returnType = node.returnType;
         if (node.isSetter) {
-          _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
           _checkForNonVoidReturnTypeForSetter(returnType);
         } else if (node.isOperator) {
           var hasWrongNumberOfParameters =
@@ -1991,7 +1985,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     required Element? element,
   }) {
     if (element is MultiplyDefinedElementImpl) {
-      var conflictingMembers = element.conflictingElements2;
+      var conflictingMembers = element.conflictingElements;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
@@ -2034,9 +2028,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     } else if (element is GetterElement) {
       var variable = element.variable;
-      if (variable == null) {
-        return;
-      }
       if (variable.isConst) {
         diagnosticReporter.atNode(
           expression,
@@ -2247,7 +2238,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     // method declared in the enclosing class vs. inherited getter/setter
     for (var method in fragment.methods) {
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
 
@@ -2264,7 +2255,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
 
       if (method.isStatic) {
-        void reportStaticConflict(ExecutableElement2OrMember inherited) {
+        void reportStaticConflict(InternalExecutableElement inherited) {
           diagnosticReporter.atElement2(
             method.asElement2,
             CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
@@ -2292,7 +2283,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         continue;
       }
 
-      void reportFieldConflict(PropertyAccessorElement2OrMember inherited) {
+      void reportFieldConflict(InternalPropertyAccessorElement inherited) {
         diagnosticReporter.atElement2(
           method.asElement2,
           CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
@@ -2304,12 +2295,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
 
-      if (getter is GetterElement2OrMember) {
+      if (getter is InternalGetterElement) {
         reportFieldConflict(getter);
         continue;
       }
 
-      if (setter is SetterElement2OrMember) {
+      if (setter is InternalSetterElement) {
         reportFieldConflict(setter);
         continue;
       }
@@ -2340,7 +2331,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           ],
         );
         conflictingDeclaredNames.add(name);
-      } else if (inherited is MethodElement2OrMember) {
+      } else if (inherited is InternalMethodElement) {
         // Extension type accessors preclude inherited accessors/methods.
         if (enclosingClass is ExtensionTypeElementImpl) {
           continue;
@@ -2362,14 +2353,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var inherited = _inheritanceManager.getInheritedMap(enclosingClass);
     for (var entry in inherited.entries) {
       var method = entry.value;
-      if (method is MethodElement2OrMember) {
+      if (method is InternalMethodElement) {
         var methodName = entry.key;
         if (conflictingDeclaredNames.contains(methodName.name)) {
           continue;
         }
         var setterName = methodName.forSetter;
         var setter = inherited[setterName];
-        if (setter is PropertyAccessorElement2OrMember) {
+        if (setter is InternalPropertyAccessorElement) {
           diagnosticReporter.atElement2(
             enclosingClass,
             CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER,
@@ -2386,7 +2377,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       method.enclosingElement!.kind.displayName,
                       method.enclosingElement!.name,
                     ]),
-                offset: method.firstFragment.nameOffset2!,
+                offset: method.firstFragment.nameOffset!,
                 length: method.firstFragment.name!.length,
                 url: null,
               ),
@@ -2397,7 +2388,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                       setter.enclosingElement.kind.displayName,
                       setter.enclosingElement.name,
                     ]),
-                offset: setter.firstFragment.nameOffset2!,
+                offset: setter.firstFragment.nameOffset!,
                 length: setter.firstFragment.name!.length,
                 url: null,
               ),
@@ -2472,7 +2463,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeFragmentImpl fragment,
   ) {
     for (var typeParameter in fragment.typeParameters) {
-      if (typeParameter.isWildcardVariable) continue;
+      if (typeParameter.element.isWildcardVariable) continue;
 
       var name = typeParameter.name ?? '';
       // name is same as the name of the enclosing class
@@ -3380,7 +3371,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             return DiagnosticMessageImpl(
               filePath:
                   executable.firstFragment.libraryFragment.source.fullName,
-              offset: nonSynthetic.firstFragment.nameOffset2!,
+              offset: nonSynthetic.firstFragment.nameOffset!,
               length: nonSynthetic.firstFragment.name!.length,
               message: "Inherited from '${container.name}'",
               url: null,
@@ -5782,31 +5773,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     return false;
   }
 
-  /// Verify that the given setter [parameterList] has only one required
-  /// parameter. The [setterName] is the name of the setter to report problems
-  /// on.
-  ///
-  /// This method assumes that the method declaration was tested to be a setter
-  /// before being called.
-  ///
-  /// See [CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER].
-  void _checkForWrongNumberOfParametersForSetter(
-    Token setterName,
-    FormalParameterList? parameterList,
-  ) {
-    if (parameterList == null) {
-      return;
-    }
-
-    NodeList<FormalParameter> parameters = parameterList.parameters;
-    if (parameters.length != 1 || !parameters[0].isRequiredPositional) {
-      diagnosticReporter.atToken(
-        setterName,
-        CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
-      );
-    }
-  }
-
   void _checkForWrongTypeParameterVarianceInField(FieldDeclarationImpl node) {
     if (_enclosingClass != null) {
       for (var typeParameter in _enclosingClass!.asElement.typeParameters) {
@@ -6385,7 +6351,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _withEnclosingExecutable(
-    ExecutableElement2OrMember element,
+    InternalExecutableElement element,
     void Function() operation, {
     required bool isAsynchronous,
     required bool isGenerator,

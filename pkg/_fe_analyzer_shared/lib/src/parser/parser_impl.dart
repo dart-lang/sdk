@@ -334,6 +334,12 @@ class Parser {
   /// Whether the `enhanced-parts` feature is enabled.
   final bool enableFeatureEnhancedParts;
 
+  /// Whether the parser is allowed to shortcut certain [parseExpression] calls.
+  ///
+  /// Should be false if [parseExpression] is customized, e.g. if skipping
+  /// expressions.
+  bool get allowedToShortcutParseExpression => true;
+
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
@@ -2592,7 +2598,7 @@ class Parser {
       }
       listener.handleEnumElements(token, elementCount);
       if (token.isA(TokenType.SEMICOLON)) {
-        while (notEofOrValue('}', token.next!)) {
+        while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
           token = parseClassOrMixinOrExtensionOrEnumMemberImpl(
             token,
             DeclarationKind.Enum,
@@ -3697,30 +3703,31 @@ class Parser {
   /// context that permits `new` to be treated as an identifier, rewrites the
   /// `new` token to an identifier token, and reports the rewritten token to the
   /// listener.  Otherwise does nothing.
+  @pragma("vm:prefer-inline")
   void _tryRewriteNewToIdentifier(Token token, IdentifierContext context) {
     if (!context.allowsNewAsIdentifier) return;
-    Token identifier = token.next!;
-    if (identifier.kind == KEYWORD_TOKEN) {
-      final String? value = token.next!.stringValue;
-      if (value == 'new') {
-        // `new` after `.` is treated as an identifier so that it can represent
-        // an unnamed constructor.
-        Token replacementToken = rewriter.replaceTokenFollowing(
-          token,
-          new StringToken(
-            TokenType.IDENTIFIER,
-            identifier.lexeme,
-            token.next!.charOffset,
-          ),
-        );
-        listener.handleNewAsIdentifier(replacementToken);
-      }
-    }
+    _tryRewriteNewToIdentifierImpl(token);
   }
 
-  /// Checks whether the next token is (directly) an identifier. If this returns
-  /// true a call to [ensureIdentifier] will return the next token.
-  bool isNextIdentifier(Token token) => token.next?.kind == IDENTIFIER_TOKEN;
+  void _tryRewriteNewToIdentifierImpl(Token token) {
+    Token identifier = token.next!;
+    if (identifier.kind != KEYWORD_TOKEN) return;
+
+    final String? value = identifier.stringValue;
+    if (value != 'new') return;
+
+    // `new` after `.` is treated as an identifier so that it can represent
+    // an unnamed constructor.
+    Token replacementToken = rewriter.replaceTokenFollowing(
+      token,
+      new StringToken(
+        TokenType.IDENTIFIER,
+        identifier.lexeme,
+        identifier.charOffset,
+      ),
+    );
+    listener.handleNewAsIdentifier(replacementToken);
+  }
 
   /// Parse a simple identifier at the given [token], and return the identifier
   /// that was parsed.
@@ -3748,8 +3755,8 @@ class Parser {
     return identifier;
   }
 
-  bool notEofOrValue(String value, Token token) {
-    return token.kind != EOF_TOKEN && value != token.stringValue;
+  bool notEofOrType(TokenType type, Token token) {
+    return !token.isA(TokenType.EOF) && !token.isA(type);
   }
 
   Token parseTypeVariablesOpt(Token token) {
@@ -4849,7 +4856,7 @@ class Parser {
     assert(token.isA(TokenType.OPEN_CURLY_BRACKET));
     listener.beginClassOrMixinOrExtensionBody(kind, token);
     int count = 0;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       token = parseClassOrMixinOrExtensionOrEnumMemberImpl(
         token,
         kind,
@@ -6142,7 +6149,7 @@ class Parser {
     loopState = LoopState.OutsideLoop;
     listener.beginBlockFunctionBody(begin);
     token = next;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token startToken = token.next!;
       token = parseStatement(token);
       if (identical(token.next!, startToken)) {
@@ -6592,13 +6599,27 @@ class Parser {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
 
-    bool isDotShorthand = _isDotShorthand(token.next!);
+    Token nextToken = token.next!;
+    bool isDotShorthand = _isDotShorthand(nextToken);
     if (!isDotShorthand) {
-      token = parseUnaryExpression(
-        token,
-        allowCascades,
-        constantPatternContext,
-      );
+      if (nextToken.isA(TokenType.PERIOD)) {
+        // Recovery.
+        // This is an incomplete dot shorthand like `var x = .`.
+        // This allows for better code completion, assuming the user wanted to
+        // write a dot shorthand.
+        token = ensureIdentifier(
+          nextToken,
+          IdentifierContext.expressionContinuation,
+        );
+        listener.handleDotShorthandHead(nextToken);
+        listener.handleDotShorthandContext(nextToken);
+      } else {
+        token = parseUnaryExpression(
+          token,
+          allowCascades,
+          constantPatternContext,
+        );
+      }
     }
 
     Token bangToken = token;
@@ -6715,30 +6736,184 @@ class Parser {
       // Avoid additional constant pattern errors.
       constantPatternContext = ConstantPatternContext.none;
     }
-    bool enteredLoop = false;
-    for (int level = tokenLevel; level >= precedence; --level) {
-      int lastBinaryExpressionLevel = -1;
-      Token? lastCascade;
-      while (tokenLevel == level) {
-        enteredLoop = true;
-        Token operator = next;
-        if (tokenLevel == CASCADE_PRECEDENCE) {
-          if (!allowCascades) {
-            return token;
-          } else if (lastCascade != null &&
-              next.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
-            reportRecoverableError(
-              next,
-              codes.messageNullAwareCascadeOutOfOrder,
+    if (tokenLevel < precedence) {
+      if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
+        // Attempt recovery
+        if (_attemptPrecedenceLevelRecovery(
+          token,
+          precedence,
+          /* currentLevel = */ -1,
+          allowCascades,
+          typeArg,
+        )) {
+          return _parsePrecedenceExpressionLoop(
+            precedence,
+            allowCascades,
+            typeArg,
+            token,
+            ConstantPatternContext.none,
+          );
+        }
+      }
+      return token;
+    }
+    int level = tokenLevel;
+    int lastBinaryExpressionLevel = -1;
+    Token? lastCascade;
+    while (true) {
+      Token operator = next;
+      if (tokenLevel == CASCADE_PRECEDENCE) {
+        if (!allowCascades) {
+          return token;
+        } else if (lastCascade != null &&
+            next.isA(TokenType.QUESTION_PERIOD_PERIOD)) {
+          reportRecoverableError(next, codes.messageNullAwareCascadeOutOfOrder);
+        }
+        lastCascade = next;
+        token = parseCascadeExpression(token);
+      } else if (tokenLevel == ASSIGNMENT_PRECEDENCE) {
+        // Right associative, so we recurse at the same precedence
+        // level.
+        Token next = token.next!;
+        if (next.next!.isA(TokenType.GT_EQ)) {
+          // Special case use of triple-shift in cases where it isn't
+          // enabled.
+          reportExperimentNotEnabled(
+            ExperimentalFlag.tripleShift,
+            next,
+            next.next!,
+          );
+          assert(next == operator);
+          next = rewriter.replaceNextTokensWithSyntheticToken(
+            token,
+            /* count = */ 2,
+            TokenType.GT_GT_GT_EQ,
+          );
+          operator = next;
+        }
+        token =
+            next.next!.isA(Keyword.THROW)
+                ? parseThrowExpression(next, allowCascades)
+                : parsePrecedenceExpression(
+                  next,
+                  level,
+                  allowCascades,
+                  ConstantPatternContext.none,
+                );
+        listener.handleAssignmentExpression(operator, token);
+      } else if (tokenLevel == POSTFIX_PRECEDENCE) {
+        if ((identical(type, TokenType.PLUS_PLUS)) ||
+            (identical(type, TokenType.MINUS_MINUS))) {
+          listener.handleUnaryPostfixAssignmentExpression(token.next!);
+          token = next;
+        } else if (identical(type, TokenType.BANG)) {
+          listener.handleNonNullAssertExpression(next);
+          token = next;
+        }
+      } else if (tokenLevel == SELECTOR_PRECEDENCE) {
+        if (identical(type, TokenType.PERIOD) ||
+            identical(type, TokenType.QUESTION_PERIOD)) {
+          // Left associative, so we recurse at the next higher precedence
+          // level. However, SELECTOR_PRECEDENCE is the highest level, so we
+          // should just call [parseUnaryExpression] directly. However, a
+          // unary expression isn't legal after a period, so we call
+          // [parsePrimary] instead.
+          Token dot = token.next!;
+          token = parsePrimary(
+            dot,
+            IdentifierContext.expressionContinuation,
+            constantPatternContext,
+          );
+
+          if (isDotShorthand) {
+            listener.handleDotShorthandHead(dot);
+            isDotShorthand = false;
+          } else {
+            listener.handleDotAccess(
+              operator,
+              token,
+              /* isNullAware = */ identical(type, TokenType.QUESTION_PERIOD),
             );
           }
-          lastCascade = next;
-          token = parseCascadeExpression(token);
-        } else if (tokenLevel == ASSIGNMENT_PRECEDENCE) {
-          // Right associative, so we recurse at the same precedence
-          // level.
-          Token next = token.next!;
-          if (next.next!.isA(TokenType.GT_EQ)) {
+
+          Token bangToken = token;
+          if (token.next!.isA(TokenType.BANG)) {
+            bangToken = token.next!;
+          }
+          typeArg = computeMethodTypeArguments(bangToken);
+          if (typeArg != noTypeParamOrArg) {
+            // For example e.f<T>(c), where token is before '<'.
+            if (bangToken.isA(TokenType.BANG)) {
+              listener.handleNonNullAssertExpression(bangToken);
+            }
+            token = typeArg.parseArguments(bangToken, this);
+            if (!token.next!.isA(TokenType.OPEN_PAREN)) {
+              if (constantPatternContext != ConstantPatternContext.none) {
+                reportRecoverableError(
+                  bangToken.next!,
+                  codes.messageInvalidConstantPatternGeneric,
+                );
+              }
+              listener.handleTypeArgumentApplication(bangToken.next!);
+              typeArg = noTypeParamOrArg;
+            }
+          }
+        } else if (identical(type, TokenType.OPEN_PAREN) ||
+            identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
+          token = parseArgumentOrIndexStar(
+            token,
+            typeArg,
+            /* checkedNullAware = */ false,
+          );
+        } else if (identical(type, TokenType.QUESTION)) {
+          // We have determined selector precedence so this is a null-aware
+          // bracket operator.
+          token = parseArgumentOrIndexStar(
+            token,
+            typeArg,
+            /* checkedNullAware = */ true,
+          );
+        } else if (identical(type, TokenType.INDEX)) {
+          rewriteSquareBrackets(token);
+          token = parseArgumentOrIndexStar(
+            token,
+            noTypeParamOrArg,
+            /* checkedNullAware = */ false,
+          );
+        } else if (identical(type, TokenType.BANG)) {
+          listener.handleNonNullAssertExpression(token.next!);
+          token = next;
+        } else {
+          // Recovery
+          reportRecoverableErrorWithToken(
+            token.next!,
+            codes.templateUnexpectedToken,
+          );
+          token = next;
+        }
+      } else if (identical(type, TokenType.IS)) {
+        token = parseIsOperatorRest(token);
+      } else if (identical(type, TokenType.AS)) {
+        token = parseAsOperatorRest(token);
+      } else if (identical(type, TokenType.QUESTION)) {
+        token = parseConditionalExpressionRest(token);
+      } else {
+        if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
+          // We don't allow (a == b == c) or (a < b < c).
+          if (lastBinaryExpressionLevel == level) {
+            // Report an error, then continue parsing as if it is legal.
+            reportRecoverableError(
+              next,
+              codes.messageEqualityCannotBeEqualityOperand,
+            );
+          } else {
+            // Set a flag to catch subsequent binary expressions of this type.
+            lastBinaryExpressionLevel = level;
+          }
+        }
+        if (next.isA(TokenType.GT_GT) &&
+            next.charEnd == next.next!.charOffset) {
+          if (next.next!.isA(TokenType.GT)) {
             // Special case use of triple-shift in cases where it isn't
             // enabled.
             reportExperimentNotEnabled(
@@ -6750,178 +6925,44 @@ class Parser {
             next = rewriter.replaceNextTokensWithSyntheticToken(
               token,
               /* count = */ 2,
-              TokenType.GT_GT_GT_EQ,
+              TokenType.GT_GT_GT,
             );
             operator = next;
           }
-          token =
-              next.next!.isA(Keyword.THROW)
-                  ? parseThrowExpression(next, allowCascades)
-                  : parsePrecedenceExpression(
-                    next,
-                    level,
-                    allowCascades,
-                    ConstantPatternContext.none,
-                  );
-          listener.handleAssignmentExpression(operator, token);
-        } else if (tokenLevel == POSTFIX_PRECEDENCE) {
-          if ((identical(type, TokenType.PLUS_PLUS)) ||
-              (identical(type, TokenType.MINUS_MINUS))) {
-            listener.handleUnaryPostfixAssignmentExpression(token.next!);
-            token = next;
-          } else if (identical(type, TokenType.BANG)) {
-            listener.handleNonNullAssertExpression(next);
-            token = next;
-          }
-        } else if (tokenLevel == SELECTOR_PRECEDENCE) {
-          if (identical(type, TokenType.PERIOD) ||
-              identical(type, TokenType.QUESTION_PERIOD)) {
-            // Left associative, so we recurse at the next higher precedence
-            // level. However, SELECTOR_PRECEDENCE is the highest level, so we
-            // should just call [parseUnaryExpression] directly. However, a
-            // unary expression isn't legal after a period, so we call
-            // [parsePrimary] instead.
-            Token dot = token.next!;
-            token = parsePrimary(
-              dot,
-              IdentifierContext.expressionContinuation,
-              constantPatternContext,
-            );
-
-            if (isDotShorthand) {
-              listener.handleDotShorthandHead(dot);
-              isDotShorthand = false;
-            } else {
-              listener.handleEndingBinaryExpression(operator, token);
-            }
-
-            Token bangToken = token;
-            if (token.next!.isA(TokenType.BANG)) {
-              bangToken = token.next!;
-            }
-            typeArg = computeMethodTypeArguments(bangToken);
-            if (typeArg != noTypeParamOrArg) {
-              // For example e.f<T>(c), where token is before '<'.
-              if (bangToken.isA(TokenType.BANG)) {
-                listener.handleNonNullAssertExpression(bangToken);
-              }
-              token = typeArg.parseArguments(bangToken, this);
-              if (!token.next!.isA(TokenType.OPEN_PAREN)) {
-                if (constantPatternContext != ConstantPatternContext.none) {
-                  reportRecoverableError(
-                    bangToken.next!,
-                    codes.messageInvalidConstantPatternGeneric,
-                  );
-                }
-                listener.handleTypeArgumentApplication(bangToken.next!);
-                typeArg = noTypeParamOrArg;
-              }
-            }
-          } else if (identical(type, TokenType.OPEN_PAREN) ||
-              identical(type, TokenType.OPEN_SQUARE_BRACKET)) {
-            token = parseArgumentOrIndexStar(
-              token,
-              typeArg,
-              /* checkedNullAware = */ false,
-            );
-          } else if (identical(type, TokenType.QUESTION)) {
-            // We have determined selector precedence so this is a null-aware
-            // bracket operator.
-            token = parseArgumentOrIndexStar(
-              token,
-              typeArg,
-              /* checkedNullAware = */ true,
-            );
-          } else if (identical(type, TokenType.INDEX)) {
-            rewriteSquareBrackets(token);
-            token = parseArgumentOrIndexStar(
-              token,
-              noTypeParamOrArg,
-              /* checkedNullAware = */ false,
-            );
-          } else if (identical(type, TokenType.BANG)) {
-            listener.handleNonNullAssertExpression(token.next!);
-            token = next;
-          } else {
-            // Recovery
-            reportRecoverableErrorWithToken(
-              token.next!,
-              codes.templateUnexpectedToken,
-            );
-            token = next;
-          }
-        } else if (identical(type, TokenType.IS)) {
-          token = parseIsOperatorRest(token);
-        } else if (identical(type, TokenType.AS)) {
-          token = parseAsOperatorRest(token);
-        } else if (identical(type, TokenType.QUESTION)) {
-          token = parseConditionalExpressionRest(token);
-        } else {
-          if (level == EQUALITY_PRECEDENCE || level == RELATIONAL_PRECEDENCE) {
-            // We don't allow (a == b == c) or (a < b < c).
-            if (lastBinaryExpressionLevel == level) {
-              // Report an error, then continue parsing as if it is legal.
-              reportRecoverableError(
-                next,
-                codes.messageEqualityCannotBeEqualityOperand,
-              );
-            } else {
-              // Set a flag to catch subsequent binary expressions of this type.
-              lastBinaryExpressionLevel = level;
-            }
-          }
-          if (next.isA(TokenType.GT_GT) &&
-              next.charEnd == next.next!.charOffset) {
-            if (next.next!.isA(TokenType.GT)) {
-              // Special case use of triple-shift in cases where it isn't
-              // enabled.
-              reportExperimentNotEnabled(
-                ExperimentalFlag.tripleShift,
-                next,
-                next.next!,
-              );
-              assert(next == operator);
-              next = rewriter.replaceNextTokensWithSyntheticToken(
-                token,
-                /* count = */ 2,
-                TokenType.GT_GT_GT,
-              );
-              operator = next;
-            }
-          }
-          listener.beginBinaryExpression(next);
-          // Left associative, so we recurse at the next higher
-          // precedence level.
-          token = parsePrecedenceExpression(
-            token.next!,
-            level + 1,
-            allowCascades,
-            ConstantPatternContext.none,
-          );
-          listener.endBinaryExpression(operator, token);
         }
-        next = token.next!;
-        type = next.type;
-        tokenLevel = _computePrecedence(next, forPattern: false);
-        if (constantPatternContext != ConstantPatternContext.none) {
-          // For error recovery we allow too much when parsing constant
-          // patterns, so for the cases that shouldn't be parsed as expressions
-          // in this context we break out of the parsing loop directly.
-          if (type == TokenType.BANG) {
-            if (tokenLevel == POSTFIX_PRECEDENCE) {
-              // This is a suffixed ! which is a null assert pattern.
-              return token;
-            } else if (next.next!.isA(TokenType.QUESTION)) {
-              // This is a suffixed !? which is a null assert pattern in a null
-              // check pattern.
-              return token;
-            }
-          } else if (type == TokenType.AS) {
-            // This is a suffixed `as` which is a case pattern.
+        listener.beginBinaryExpression(next);
+        // Left associative, so we recurse at the next higher
+        // precedence level.
+        token = parsePrecedenceExpression(
+          token.next!,
+          level + 1,
+          allowCascades,
+          ConstantPatternContext.none,
+        );
+        listener.endBinaryExpression(operator, token);
+      }
+      next = token.next!;
+      type = next.type;
+      tokenLevel = _computePrecedence(next, forPattern: false);
+      if (constantPatternContext != ConstantPatternContext.none) {
+        // For error recovery we allow too much when parsing constant
+        // patterns, so for the cases that shouldn't be parsed as expressions
+        // in this context we break out of the parsing loop directly.
+        if (type == TokenType.BANG) {
+          if (tokenLevel == POSTFIX_PRECEDENCE) {
+            // This is a suffixed ! which is a null assert pattern.
+            return token;
+          } else if (next.next!.isA(TokenType.QUESTION)) {
+            // This is a suffixed !? which is a null assert pattern in a null
+            // check pattern.
             return token;
           }
+        } else if (type == TokenType.AS) {
+          // This is a suffixed `as` which is a case pattern.
+          return token;
         }
       }
+
       if (_recoverAtPrecedenceLevel && !_currentlyRecovering) {
         // Attempt recovery
         if (_attemptPrecedenceLevelRecovery(
@@ -6932,32 +6973,22 @@ class Parser {
           typeArg,
         )) {
           // Recovered - try again at same level with the replacement token.
-          level++;
           next = token.next!;
           type = next.type;
           tokenLevel = _computePrecedence(next, forPattern: false);
         }
       }
-    }
 
-    if (!enteredLoop && _recoverAtPrecedenceLevel && !_currentlyRecovering) {
-      // Attempt recovery
-      if (_attemptPrecedenceLevelRecovery(
-        token,
-        precedence,
-        /* currentLevel = */ -1,
-        allowCascades,
-        typeArg,
-      )) {
-        return _parsePrecedenceExpressionLoop(
-          precedence,
-          allowCascades,
-          typeArg,
-          token,
-          ConstantPatternContext.none,
-        );
+      if (tokenLevel <= level) {
+        if (tokenLevel < precedence) {
+          break;
+        }
+        level = tokenLevel;
+      } else {
+        break;
       }
     }
+
     return token;
   }
 
@@ -7137,13 +7168,20 @@ class Parser {
         IdentifierContext.expressionContinuation,
         ConstantPatternContext.none,
       );
-      listener.handleEndingBinaryExpression(cascadeOperator, token);
+      listener.handleCascadeAccess(
+        cascadeOperator,
+        token,
+        /* isNullAware = */ cascadeOperator.isA(
+          TokenType.QUESTION_PERIOD_PERIOD,
+        ),
+      );
     }
     Token next = token.next!;
     Token mark;
     do {
       mark = token;
       if (next.isA(TokenType.PERIOD) || next.isA(TokenType.QUESTION_PERIOD)) {
+        bool isNullAware = next.isA(TokenType.QUESTION_PERIOD);
         Token period = next;
         token = parseSend(
           next,
@@ -7151,7 +7189,7 @@ class Parser {
           ConstantPatternContext.none,
         );
         next = token.next!;
-        listener.handleEndingBinaryExpression(period, token);
+        listener.handleDotAccess(period, token, isNullAware);
       } else if (next.isA(TokenType.BANG)) {
         listener.handleNonNullAssertExpression(next);
         token = next;
@@ -7835,7 +7873,7 @@ class Parser {
   ///
   /// ```
   /// listLiteral:
-  ///   'const'? typeArguments? '[' (expressionList ','?)? ']'
+  ///   'const'? typeArguments? '[' (elementList ','?)? ']'
   /// ;
   /// ```
   ///
@@ -7868,12 +7906,13 @@ class Parser {
         break;
       }
       int ifCount = 0;
-      LiteralEntryInfo? info = computeLiteralEntry(token);
+      LiteralEntryInfo? info = _computeLiteralEntry(token);
       while (info != null) {
+        next = token.next!;
         if (info.hasEntry) {
-          if (token.next!.isA(TokenType.QUESTION)) {
-            Token nullAwareToken = token.next!;
-            token = token.next!;
+          if (next.isA(TokenType.QUESTION)) {
+            Token nullAwareToken = next;
+            token = next;
             token = parseExpression(token);
             listener.handleNullAwareElement(nullAwareToken);
           } else {
@@ -7883,7 +7922,7 @@ class Parser {
           token = info.parse(token, this);
         }
         ifCount += info.ifConditionDelta;
-        info = info.computeNext(token);
+        info = _nextLiteralEntry(info, token);
       }
       next = token.next!;
       ++count;
@@ -7951,7 +7990,7 @@ class Parser {
 
     while (true) {
       int ifCount = 0;
-      LiteralEntryInfo? info = computeLiteralEntry(token);
+      LiteralEntryInfo? info = _computeLiteralEntry(token);
       if (info == simpleEntry) {
         // TODO(danrubel): Remove this section and use the while loop below
         // once hasSetEntry is no longer needed.
@@ -7960,77 +7999,66 @@ class Parser {
         hasSetEntry ??= !isMapEntry;
         if (isMapEntry) {
           Token colon = token.next!;
-          Token next = colon.next!;
-          if (next.isA(TokenType.QUESTION)) {
-            // Null-aware value. For example:
-            //   <int, String>{ x: ?y }
-            token = parseExpression(next);
-            listener.handleLiteralMapEntry(
-              colon,
-              token,
-              nullAwareKeyToken: null,
-              nullAwareValueToken: next,
-            );
-          } else {
-            // Non null-aware entry. For example:
-            //   <bool, num>{ x: y }
-            token = parseExpression(colon);
-            listener.handleLiteralMapEntry(colon, token.next!);
+          token = colon;
+          Token next = token.next!;
+          Token? nullAwareValueToken;
+          if (next.isA(TokenType.QUESTION_PERIOD)) {
+            token = nullAwareValueToken = _splitFollowingQuestionPeriod(token);
+          } else if (next.isA(TokenType.QUESTION)) {
+            token = nullAwareValueToken = next;
           }
+
+          token = parseExpression(token);
+          listener.handleLiteralMapEntry(
+            colon,
+            token.next!,
+            nullAwareValueToken: nullAwareValueToken,
+          );
         }
       } else {
         while (info != null) {
           if (info.hasEntry) {
             Token? nullAwareKeyToken;
-            if (token.next!.isA(TokenType.QUESTION)) {
+            Token next = token.next!;
+            if (next.isA(TokenType.QUESTION)) {
               // Null-aware key, for example:
               //   <double, Symbol>{ if (b) ?x: y }
               //   <double, Symbol>{ if (b) ?x: ?y }
-              nullAwareKeyToken = token.next!;
-
-              // Parse the expression after '?'.
+              nullAwareKeyToken = next;
               token = nullAwareKeyToken;
-              token = parseExpression(token);
-            } else {
-              token = parseExpression(token);
             }
+            token = parseExpression(token);
+
             if (token.next!.isA(TokenType.COLON)) {
               Token colon = token.next!;
-              Token next = colon.next!;
-              if (next.isA(TokenType.QUESTION)) {
-                token = parseExpression(next);
-                // Null-aware value. For example:
-                //   <double, Symbol>{ if (b) x: ?y }
-                //   <double, Symbol>{ if (b) ?x: ?y }
-                listener.handleLiteralMapEntry(
-                  colon,
-                  token.next!,
-                  nullAwareKeyToken: nullAwareKeyToken,
-                  nullAwareValueToken: next,
-                );
-              } else {
-                // Non null-aware value. For example:
-                //   <String, int>{ if (b) x : y }
-                //   <String, int>{ if (b) ?x : y }
-                token = parseExpression(colon);
-                listener.handleLiteralMapEntry(
-                  colon,
-                  token.next!,
-                  nullAwareKeyToken: nullAwareKeyToken,
-                );
+              token = colon;
+
+              Token? nullAwareValueToken;
+              Token next = token.next!;
+              if (next.isA(TokenType.QUESTION_PERIOD)) {
+                token = nullAwareValueToken =
+                    _splitFollowingQuestionPeriod(token);
+              } else if (next.isA(TokenType.QUESTION)) {
+                token = nullAwareValueToken = next;
               }
-            } else {
-              if (nullAwareKeyToken != null) {
-                // Null-aware element. For example:
-                //   <String>{ if (b) ?x }
-                listener.handleNullAwareElement(nullAwareKeyToken);
-              }
+
+              token = parseExpression(token);
+              listener.handleLiteralMapEntry(
+                colon,
+                token.next!,
+                nullAwareKeyToken: nullAwareKeyToken,
+                nullAwareValueToken: nullAwareValueToken,
+              );
+            } else if (nullAwareKeyToken != null) {
+              // Null-aware element. For example:
+              //   <String>{ if (b) ?x }
+              listener.handleNullAwareElement(nullAwareKeyToken);
             }
           } else {
             token = info.parse(token, this);
           }
           ifCount += info.ifConditionDelta;
-          info = info.computeNext(token);
+          info = _nextLiteralEntry(info, token);
         }
       }
       ++count;
@@ -8087,6 +8115,35 @@ class Parser {
         }
       }
     }
+  }
+
+  LiteralEntryInfo? _computeLiteralEntry(Token token) {
+    if (token.next!.isA(TokenType.QUESTION_PERIOD)) {
+      _splitFollowingQuestionPeriod(token);
+    }
+    return computeLiteralEntry(token);
+  }
+
+  LiteralEntryInfo? _nextLiteralEntry(LiteralEntryInfo info, Token token) {
+    if (token.next!.isA(TokenType.QUESTION_PERIOD)) {
+      _splitFollowingQuestionPeriod(token);
+    }
+    return info.computeNext(token);
+  }
+
+  Token _splitFollowingQuestionPeriod(Token token) {
+    Token next = token.next!;
+    assert(next.isA(TokenType.QUESTION_PERIOD));
+    int offset = next.charOffset;
+    Token newNext = rewriter.replaceTokenFollowing(
+      token,
+      new Token(TokenType.QUESTION, offset),
+    );
+    rewriter.insertToken(
+      newNext,
+      new Token(TokenType.PERIOD, offset + 1),
+    );
+    return newNext;
   }
 
   /// formalParameterList functionBody.
@@ -8271,8 +8328,10 @@ class Parser {
 
     TypeParamOrArgInfo? potentialTypeArg;
 
-    if (isNextIdentifier(newKeyword)) {
-      Token identifier = newKeyword.next!;
+    Token next = newKeyword.next!;
+
+    if (next.kind == IDENTIFIER_TOKEN) {
+      Token identifier = next;
       String value = identifier.lexeme;
       if ((value == "Map" || value == "Set") &&
           !identifier.next!.isA(TokenType.PERIOD)) {
@@ -8322,7 +8381,7 @@ class Parser {
       // parseConstructorReference.
       // Do special recovery for literal maps/set/list erroneously prepended
       // with 'new'.
-      Token notIdentifier = newKeyword.next!;
+      Token notIdentifier = next;
       String value = notIdentifier.lexeme;
       if (value == "<") {
         potentialTypeArg = computeTypeParamOrArg(newKeyword);
@@ -8725,13 +8784,14 @@ class Parser {
     // send an `handleIdentifier` if we end up recovering.
     TypeParamOrArgInfo? potentialTypeArg;
     Token? afterToken;
-    if (isNextIdentifier(token)) {
-      Token identifier = token.next!;
-      String value = identifier.lexeme;
-      if (value == "Map" || value == "Set") {
-        potentialTypeArg = computeTypeParamOrArg(identifier);
-        afterToken = potentialTypeArg.skip(identifier).next!;
-        if (afterToken.isA(TokenType.OPEN_CURLY_BRACKET)) {
+    Token next = token.next!;
+    if (next.kind == IDENTIFIER_TOKEN) {
+      Token identifier = next;
+      potentialTypeArg = computeTypeParamOrArg(identifier);
+      afterToken = potentialTypeArg.skip(identifier).next!;
+      if (afterToken.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        String value = identifier.lexeme;
+        if (value == "Map" || value == "Set") {
           // Recover by ignoring the `Map`/`Set` and parse as a literal map/set.
           reportRecoverableError(
             identifier,
@@ -8742,12 +8802,11 @@ class Parser {
           );
           return parsePrimary(identifier, context, ConstantPatternContext.none);
         }
-      } else if (value == "List") {
-        potentialTypeArg = computeTypeParamOrArg(identifier);
-        afterToken = potentialTypeArg.skip(identifier).next!;
-        if ((potentialTypeArg != noTypeParamOrArg &&
-                afterToken.isA(TokenType.OPEN_SQUARE_BRACKET)) ||
-            afterToken.isA(TokenType.INDEX)) {
+      } else if ((potentialTypeArg != noTypeParamOrArg &&
+              afterToken.isA(TokenType.OPEN_SQUARE_BRACKET)) ||
+          afterToken.isA(TokenType.INDEX)) {
+        String value = identifier.lexeme;
+        if (value == "List") {
           // Recover by ignoring the `List` and parse as a literal List.
           // Note that we here require the `<...>` for `[` as `List[` would be
           // an indexed expression. `List[]` wouldn't though, so we don't
@@ -8914,7 +8973,70 @@ class Parser {
             ).next!;
         colon = token;
       }
-      token = parseExpression(token);
+      bool expressionHandled = false;
+
+      // For increased performance we'd prefer to shortcut common cases, but if
+      // a subclass of the parser has a special implementation of
+      // [parseExpression] (say, wanting to skip expressions) we can't do that.
+      if (allowedToShortcutParseExpression) {
+        Token next1 = token.next!;
+        // TODO(jensj): Possibly also for STRING CLOSE_PAREN / STRING COMMA?
+        if (next1.isA(TokenType.IDENTIFIER)) {
+          Token next2 = next1.next!;
+          if (next2.isA(TokenType.COMMA) || next2.isA(TokenType.CLOSE_PAREN)) {
+            // Shortcut common cases:
+            // "IDENTIFIER COMMA" and "IDENTIFIER CLOSE_PAREN"
+            listener.handleIdentifier(next1, IdentifierContext.expression);
+            listener.handleNoTypeArguments(next2);
+            listener.handleNoArguments(next2);
+            listener.handleSend(next1, next1);
+            token = next1;
+            expressionHandled = true;
+          } else if (next2.isA(TokenType.PERIOD)) {
+            Token next3 = next2.next!;
+            if (next3.isA(TokenType.IDENTIFIER)) {
+              Token next4 = next3.next!;
+              if (next4.isA(TokenType.COMMA) ||
+                  next4.isA(TokenType.CLOSE_PAREN)) {
+                // Shortcut common cases:
+                // "IDENTIFIER DOT IDENTIFIER COMMA" and
+                // "IDENTIFIER DOT IDENTIFIER CLOSE_PAREN"
+                listener.handleIdentifier(next1, IdentifierContext.expression);
+                listener.handleNoTypeArguments(next2);
+                listener.handleNoArguments(next2);
+                listener.handleSend(next1, next1);
+                listener.handleIdentifier(
+                  next3,
+                  IdentifierContext.expressionContinuation,
+                );
+                listener.handleNoTypeArguments(next4);
+                listener.handleNoArguments(next4);
+                listener.handleSend(next3, next3);
+                listener.handleDotAccess(
+                  next2,
+                  next3,
+                  /* isNullAware = */ false,
+                );
+                token = next3;
+                expressionHandled = true;
+              }
+            }
+          }
+        } else if (next1.isA(TokenType.STRING)) {
+          Token next2 = next1.next!;
+          if (next2.isA(TokenType.COMMA) || next2.isA(TokenType.CLOSE_PAREN)) {
+            // Shortcut common cases:
+            // "STRING COMMA" and "STRING CLOSE_PAREN"
+            listener.beginLiteralString(next1);
+            listener.endLiteralString(0, next2);
+            token = next1;
+            expressionHandled = true;
+          }
+        }
+      }
+      if (!expressionHandled) {
+        token = parseExpression(token);
+      }
       next = token.next!;
       if (colon != null) listener.handleNamedArgument(colon);
       ++argumentCount;
@@ -9842,7 +9964,7 @@ class Parser {
     listener.beginBlock(begin, blockKind);
     int statementCount = 0;
     Token startToken = token.next!;
-    while (notEofOrValue('}', startToken)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, startToken)) {
       token = parseStatement(token);
       if (identical(token.next!, startToken)) {
         // No progress was made, so we report the current token as being invalid
@@ -10233,7 +10355,7 @@ class Parser {
     int caseCount = 0;
     Token? defaultKeyword = null;
     Token? colonAfterDefault = null;
-    while (notEofOrValue('}', token.next!)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, token.next!)) {
       Token beginCase = token.next!;
       int expressionCount = 0;
       int labelCount = 0;
@@ -10719,7 +10841,7 @@ class Parser {
     next = rewriter.insertSyntheticToken(token, TokenType.SEMICOLON);
     listener.handleEmptyStatement(next);
 
-    while (notEofOrValue('}', next)) {
+    while (notEofOrType(TokenType.CLOSE_CURLY_BRACKET, next)) {
       token = next;
       next = token.next!;
     }

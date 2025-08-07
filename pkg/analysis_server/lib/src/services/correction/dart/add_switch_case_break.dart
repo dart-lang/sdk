@@ -44,7 +44,7 @@ class AddSwitchCaseBreak extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(lastStatement.end, (builder) {
-        builder.write(eol);
+        builder.writeln();
         builder.write(utils.getNodePrefix(lastStatement));
         builder.write('break;');
       });

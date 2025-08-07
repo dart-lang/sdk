@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -254,7 +253,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     covariant FunctionExpressionInvocationImpl node,
   ) {
     var element = node.element;
-    if (element is MethodElement2OrMember) {
+    if (element is InternalMethodElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isAllocatorExtension &&
           element.name == _allocateExtensionMethodName) {
@@ -340,7 +339,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(covariant MethodInvocationImpl node) {
     var element = node.methodName.element;
-    if (element is MethodElement2OrMember) {
+    if (element is InternalMethodElement) {
       var enclosingElement = element.enclosingElement;
       if (enclosingElement.isPointer) {
         if (element.name == 'fromFunction') {
@@ -454,7 +453,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         formalParameterList?.parameters ?? <FormalParameter>[];
     var hadNativeAnnotation = false;
 
-    for (var annotation in declarationElement.metadataAnnotations) {
+    for (var annotation in declarationElement.metadata.annotations) {
       var annotationValue = annotation.computeConstantValue();
       var annotationType = annotationValue?.type; // Native<T>
 
@@ -485,7 +484,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var ffiSignature = annotationType.typeArguments[0]; // The T in @Native<T>
 
       if (ffiSignature is FunctionTypeImpl) {
-        if (declarationElement is ExecutableElement2OrMember) {
+        if (declarationElement is InternalExecutableElement) {
           _checkFfiNativeFunction(
             errorNode,
             declarationElement,
@@ -504,7 +503,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       } else {
         if (declarationElement
             case TopLevelFunctionElement() || MethodElement()) {
-          declarationElement = declarationElement as ExecutableElement2OrMember;
+          declarationElement = declarationElement as InternalExecutableElement;
           var dartSignature = declarationElement.type;
 
           if (declarationElement.isStatic && ffiSignature is DynamicType) {
@@ -564,7 +563,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   ) {
     TypeImpl type;
 
-    if (declarationElement is FieldElement2OrMember) {
+    if (declarationElement is InternalFieldElement) {
       if (!declarationElement.isStatic) {
         _diagnosticReporter.atToken(
           errorToken,
@@ -574,12 +573,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       type = declarationElement.type;
     } else if (declarationElement is TopLevelVariableElementImpl) {
       type = declarationElement.type;
-    } else if (declarationElement is PropertyAccessorElement2OrMember) {
-      var variable = declarationElement.variable;
-      if (variable == null) {
-        return;
-      }
-      type = variable.type;
+    } else if (declarationElement is InternalPropertyAccessorElement) {
+      type = declarationElement.variable.type;
     } else {
       _diagnosticReporter.atToken(errorToken, FfiCode.NATIVE_FIELD_NOT_STATIC);
       return;
@@ -633,7 +628,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFfiNativeFunction(
     Token errorToken,
-    ExecutableElement2OrMember declarationElement,
+    InternalExecutableElement declarationElement,
     FunctionTypeImpl ffiSignature,
     DartObject annotationValue,
     List<FormalParameter> formalParameters,
@@ -769,8 +764,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return true;
       }
       if (element is PropertyAccessorElement) {
-        var variable = element.variable;
-        if (variable != null && variable.isConst) {
+        if (element.variable.isConst) {
           return true;
         }
       }
@@ -921,12 +915,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       var elementType = nativeType.typeArguments.single;
       var elementName = elementType.element?.name;
       if (dartType.element.isTypedDataClass) {
-        if (elementName == 'Float' &&
-            dartType.element.name == 'Float32List') {
+        if (elementName == 'Float' && dartType.element.name == 'Float32List') {
           return true;
         }
-        if (elementName == 'Double' &&
-            dartType.element.name == 'Float64List') {
+        if (elementName == 'Double' && dartType.element.name == 'Float64List') {
           return true;
         }
         if (_primitiveIntegerNativeTypesFixedSize.contains(elementName) &&
@@ -951,9 +943,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (element is PropertyAccessorElement) {
         var variable = element.variable;
-        if (variable == null) {
-          return null;
-        }
         if (variable.isConst) {
           return variable.computeConstantValue()?.toBoolValue();
         }
@@ -1250,7 +1239,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// `Pointer<T>.asFunction<F>()`.
   void _validateAsFunction(
     covariant MethodInvocationImpl node,
-    MethodElement2OrMember element,
+    InternalMethodElement element,
   ) {
     var typeArguments = node.typeArguments?.arguments;
     AstNode errorNode = typeArguments != null ? typeArguments[0] : node;
@@ -1750,7 +1739,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     };
 
     if (referencedElement != null) {
-      for (var annotation in referencedElement.metadataAnnotations) {
+      for (var annotation in referencedElement.metadata.annotations) {
         var value = annotation.computeConstantValue();
         var annotationType = value?.type;
 
@@ -2268,7 +2257,7 @@ extension on ElementAnnotation {
   }
 
   bool get isArray {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Array';
@@ -2293,7 +2282,7 @@ extension on ElementAnnotation {
   }
 
   bool get isPacked {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';

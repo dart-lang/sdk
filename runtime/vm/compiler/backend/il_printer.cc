@@ -968,6 +968,9 @@ void StoreFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   if (stores_inner_pointer() == InnerPointerAccess::kMayBeInnerPointer) {
     f->AddString(", MayStoreInnerPointer");
   }
+  if (memory_order_ == compiler::Assembler::kRelease) {
+    f->AddString(", Release");
+  }
 }
 
 void IfThenElseInstr::PrintOperandsTo(BaseTextBuffer* f) const {
@@ -1048,6 +1051,9 @@ void LoadFieldInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   }
   if (loads_inner_pointer() == InnerPointerAccess::kMayBeInnerPointer) {
     f->AddString(", MayLoadInnerPointer");
+  }
+  if (memory_order_ == compiler::Assembler::kAcquire) {
+    f->AddString(", Acquire");
   }
 }
 

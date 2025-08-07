@@ -1484,9 +1484,8 @@ Function& StreamingFlowGraphBuilder::FindMatchingFunction(
   ArgumentsDescriptor args_desc(
       Array::Handle(Z, ArgumentsDescriptor::NewBoxed(
                            type_args_len, argument_count, argument_names)));
-  return Function::Handle(
-      Z, Resolver::ResolveDynamicForReceiverClassAllowPrivate(klass, name,
-                                                              args_desc));
+  return Function::Handle(Z, Resolver::ResolveDynamicForReceiverClass(
+                                 klass, name, args_desc, /*allow_add=*/false));
 }
 
 bool StreamingFlowGraphBuilder::NeedsDebugStepCheck(const Function& function,
@@ -3390,12 +3389,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
       return BuildFfiNativeCallbackFunction(
           FfiCallbackKind::kIsolateLocalClosureCallback);
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundCallbackFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiCallbackKind::kIsolateGroupSharedStaticCallback);
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction:
+          FfiCallbackKind::kIsolateGroupBoundStaticCallback);
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundClosureFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiCallbackKind::kIsolateGroupSharedClosureCallback);
+          FfiCallbackKind::kIsolateGroupBoundClosureCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
       return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
@@ -6216,7 +6215,7 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   // FfiCallbackKind::kIsolateLocalStaticCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // FfiCallbackKind::kIsolateGroupSharedStaticCallback:
+  // FfiCallbackKind::kIsolateGroupBoundStaticCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
   // FfiCallbackKind::kAsyncCallback:
@@ -6226,15 +6225,15 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   //   _nativeIsolateLocalCallbackFunction<NativeSignatureType>(
   //       exceptionalReturn)
   //
-  // FfiCallbackKind::kIsolateGroupSharedClosureCallback:
-  //   _nativeIsolateGroupSharedCallbackFunction<NativeSignatureType>(
+  // FfiCallbackKind::kIsolateGroupBoundClosureCallback:
+  //   _nativeIsolateGroupBoundCallbackFunction<NativeSignatureType>(
   //       exceptionalReturn)
   //
   // The FE also guarantees that the arguments are constants.
 
   const bool has_target =
       kind == FfiCallbackKind::kIsolateLocalStaticCallback ||
-      kind == FfiCallbackKind::kIsolateGroupSharedStaticCallback;
+      kind == FfiCallbackKind::kIsolateGroupBoundStaticCallback;
   const bool has_exceptional_return = kind != FfiCallbackKind::kAsyncCallback;
   const intptr_t expected_argc =
       static_cast<int>(has_target) + static_cast<int>(has_exceptional_return);

@@ -70,6 +70,7 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart';
+import '../util/reference_map.dart';
 import 'diet_listener.dart' show DietListener;
 import 'diet_parser.dart' show DietParser, useImplicitCreationExpressionInCfe;
 import 'offset_map.dart';
@@ -109,10 +110,7 @@ class SourceLoader extends Loader {
   CoreTypes? _coreTypes;
   TypeEnvironment? _typeEnvironment;
 
-  /// For builders created with a reference, this maps from that reference to
-  /// that builder. This is used for looking up source builders when finalizing
-  /// exports in dill builders.
-  Map<Reference, NamedBuilder> buildersCreatedWithReferences = {};
+  final ReferenceMap referenceMap = new ReferenceMap();
 
   /// Used when checking whether a return type of an async function is valid.
   ///
@@ -799,7 +797,7 @@ class SourceLoader extends Loader {
       Message message, int charOffset, int length, Uri? fileUri,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
-      Severity? severity,
+      CfeSeverity? severity,
       bool problemOnLibrary = false,
       List<Uri>? involvedFiles}) {
     return addMessage(message, charOffset, length, fileUri, severity,
@@ -821,7 +819,7 @@ class SourceLoader extends Loader {
   /// [handledErrors] if [wasHandled] is true or to [unhandledErrors] if
   /// [wasHandled] is false.
   FormattedMessage? addMessage(Message message, int charOffset, int length,
-      Uri? fileUri, Severity? severity,
+      Uri? fileUri, CfeSeverity? severity,
       {bool wasHandled = false,
       List<LocatedMessage>? context,
       bool problemOnLibrary = false,
@@ -829,7 +827,7 @@ class SourceLoader extends Loader {
     assert(
         fileUri != missingUri, "Message unexpectedly reported on missing uri.");
     severity ??= message.code.severity;
-    if (severity == Severity.ignored) return null;
+    if (severity == CfeSeverity.ignored) return null;
     String trace = """
 message: ${message.problemMessage}
 charOffset: $charOffset
@@ -837,10 +835,10 @@ fileUri: $fileUri
 severity: $severity
 """;
     if (!seenMessages.add(trace)) return null;
-    if (message.code.severity == Severity.error) {
+    if (message.code.severity == CfeSeverity.error) {
       _hasSeenError = true;
     }
-    if (message.code.severity == Severity.context) {
+    if (message.code.severity == CfeSeverity.context) {
       internalProblem(
           templateInternalProblemContextSeverity
               .withArguments(message.code.name),
@@ -856,7 +854,7 @@ severity: $severity
         severity,
         context: context,
         involvedFiles: involvedFiles);
-    if (severity == Severity.error) {
+    if (severity == CfeSeverity.error) {
       (wasHandled ? handledErrors : unhandledErrors).add(fileUri != null
           ? message.withLocation(fileUri, charOffset, length)
           :
@@ -1261,9 +1259,7 @@ severity: $severity
 
     DeclarationBuilder? declarationBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? builder = memberScope
-          .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri)
-          ?.getable;
+      Builder? builder = memberScope.lookup(enclosingClassOrExtension)?.getable;
       if (builder is TypeDeclarationBuilder) {
         switch (builder) {
           case ClassBuilder():
@@ -1287,7 +1283,7 @@ severity: $severity
           case TypeAliasBuilder():
           case NominalParameterBuilder():
           case StructuralParameterBuilder():
-          case InvalidTypeDeclarationBuilder():
+          case InvalidBuilder():
           case BuiltinTypeDeclarationBuilder():
         }
       }
@@ -1609,17 +1605,17 @@ severity: $severity
       handleHierarchyCycles(ClassBuilder objectClass) {
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
-      denyListedClasses.add(coreLibrary.lookupLocalMember(
-          denylistedCoreClasses[i],
-          required: true) as ClassBuilder);
+      denyListedClasses.add(coreLibrary
+          .lookupRequiredLocalMember(denylistedCoreClasses[i]) as ClassBuilder);
     }
     ClassBuilder enumClass =
-        coreLibrary.lookupLocalMember("Enum", required: true) as ClassBuilder;
+        coreLibrary.lookupRequiredLocalMember("Enum") as ClassBuilder;
     if (typedDataLibrary != null) {
       for (int i = 0; i < denylistedTypedDataClasses.length; i++) {
         // Allow the member to not exist. If it doesn't, nobody can extend it.
         Builder? member = typedDataLibrary!
-            .lookupLocalMember(denylistedTypedDataClasses[i], required: false);
+            .lookupLocalMember(denylistedTypedDataClasses[i])
+            ?.getable;
         if (member != null) denyListedClasses.add(member as ClassBuilder);
       }
     }
@@ -1778,45 +1774,68 @@ severity: $severity
       TypeDeclarationBuilder? unaliasedDeclaration =
           mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
 
-      if (unaliasedDeclaration is ClassBuilder) {
-        if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
-            denyListedClasses.contains(unaliasedDeclaration)) {
+      switch (unaliasedDeclaration) {
+        case ClassBuilder():
+          if (!classBuilder.libraryBuilder.mayImplementRestrictedTypes &&
+              denyListedClasses.contains(unaliasedDeclaration)) {
+            classBuilder.libraryBuilder.addProblem(
+                templateExtendingRestricted
+                    .withArguments(mixedInTypeBuilder.fullNameForErrors),
+                classBuilder.fileOffset,
+                noLength,
+                classBuilder.fileUri,
+                context: declaration is TypeAliasBuilder
+                    ? [
+                        messageTypedefUnaliasedTypeCause.withLocation(
+                            unaliasedDeclaration.fileUri,
+                            unaliasedDeclaration.fileOffset,
+                            noLength),
+                      ]
+                    : null);
+          } else {
+            // Assume that mixin classes fulfill their contract of having no
+            // generative constructors.
+            if (!unaliasedDeclaration.isMixinClass) {
+              _checkConstructorsForMixin(classBuilder, unaliasedDeclaration);
+            }
+          }
+        case null:
+        case BuiltinTypeDeclarationBuilder():
+        case TypeAliasBuilder():
+        case ExtensionBuilder():
+        case ExtensionTypeDeclarationBuilder():
+        case NominalParameterBuilder():
+        case StructuralParameterBuilder():
+          // TODO(ahe): Either we need to check this for superclass and
+          // interfaces, or this shouldn't be necessary (or handled elsewhere).
           classBuilder.libraryBuilder.addProblem(
-              templateExtendingRestricted
+              templateIllegalMixin
                   .withArguments(mixedInTypeBuilder.fullNameForErrors),
               classBuilder.fileOffset,
               noLength,
               classBuilder.fileUri,
               context: declaration is TypeAliasBuilder
                   ? [
-                      messageTypedefUnaliasedTypeCause.withLocation(
-                          unaliasedDeclaration.fileUri,
-                          unaliasedDeclaration.fileOffset,
-                          noLength),
+                      messageTypedefCause.withLocation(declaration.fileUri,
+                          declaration.fileOffset, noLength),
                     ]
                   : null);
-        } else {
-          // Assume that mixin classes fulfill their contract of having no
-          // generative constructors.
-          if (!unaliasedDeclaration.isMixinClass) {
-            _checkConstructorsForMixin(classBuilder, unaliasedDeclaration);
+        case InvalidBuilder():
+          if (!unaliasedDeclaration.errorHasBeenReported) {
+            // Coverage-ignore-block(suite): Not run.
+            classBuilder.libraryBuilder.addProblem(
+                templateIllegalMixin
+                    .withArguments(mixedInTypeBuilder.fullNameForErrors),
+                classBuilder.fileOffset,
+                noLength,
+                classBuilder.fileUri,
+                context: declaration is TypeAliasBuilder
+                    ? [
+                        messageTypedefCause.withLocation(declaration.fileUri,
+                            declaration.fileOffset, noLength),
+                      ]
+                    : null);
           }
-        }
-      } else {
-        // TODO(ahe): Either we need to check this for superclass and
-        // interfaces, or this shouldn't be necessary (or handled elsewhere).
-        classBuilder.libraryBuilder.addProblem(
-            templateIllegalMixin
-                .withArguments(mixedInTypeBuilder.fullNameForErrors),
-            classBuilder.fileOffset,
-            noLength,
-            classBuilder.fileUri,
-            context: declaration is TypeAliasBuilder
-                ? [
-                    messageTypedefCause.withLocation(
-                        declaration.fileUri, declaration.fileOffset, noLength),
-                  ]
-                : null);
       }
     }
   }
@@ -2274,7 +2293,7 @@ severity: $severity
     assert(_coreLibraryCompilationUnit != null,
         "Core library has not been computed yet.");
     ClassBuilder classBuilder =
-        coreLibrary.lookupLocalMember(name, required: true) as ClassBuilder;
+        coreLibrary.lookupRequiredLocalMember(name) as ClassBuilder;
     return new InterfaceType(classBuilder.cls, nullability, typeArguments);
   }
 
@@ -2584,12 +2603,11 @@ severity: $severity
 
   void _checkMainMethods(
       SourceLibraryBuilder libraryBuilder, DartType listOfString) {
-    LookupResult? result =
-        libraryBuilder.exportNameSpace.lookupLocalMember('main');
+    LookupResult? result = libraryBuilder.exportNameSpace.lookup('main');
     Builder? mainBuilder = result?.getable;
     mainBuilder ??= result?.setable;
     if (mainBuilder is MemberBuilder) {
-      if (mainBuilder is InvalidTypeDeclarationBuilder) {
+      if (mainBuilder is InvalidBuilder) {
         // This is an ambiguous export, skip the check.
         return;
       }
@@ -2713,20 +2731,29 @@ severity: $severity
 
   @override
   ClassBuilder computeClassBuilderFromTargetClass(Class cls) {
+    ClassBuilder? classBuilder = referenceMap.lookupClassBuilder(cls.reference);
+    if (classBuilder != null) {
+      return classBuilder;
+    }
     Library library = cls.enclosingLibrary;
     LibraryBuilder? libraryBuilder =
         lookupLoadedLibraryBuilder(library.importUri);
     if (libraryBuilder == null) {
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
-    return libraryBuilder.lookupLocalMember(cls.name, required: true)
-        as ClassBuilder;
+    return libraryBuilder.lookupRequiredLocalMember(cls.name) as ClassBuilder;
   }
 
   @override
   ExtensionTypeDeclarationBuilder
       computeExtensionTypeBuilderFromTargetExtensionType(
           ExtensionTypeDeclaration extensionType) {
+    ExtensionTypeDeclarationBuilder? extensionTypeDeclarationBuilder =
+        referenceMap
+            .lookupExtensionTypeDeclarationBuilder(extensionType.reference);
+    if (extensionTypeDeclarationBuilder != null) {
+      return extensionTypeDeclarationBuilder;
+    }
     Library kernelLibrary = extensionType.enclosingLibrary;
     LibraryBuilder? library =
         lookupLoadedLibraryBuilder(kernelLibrary.importUri);
@@ -2735,7 +2762,7 @@ severity: $severity
       return target.dillTarget.loader
           .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
     }
-    return library.lookupLocalMember(extensionType.name, required: true)
+    return library.lookupRequiredLocalMember(extensionType.name)
         as ExtensionTypeDeclarationBuilder;
   }
 

@@ -80,9 +80,9 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     // should have initializer at declaration
     var initializer = node.initializer;
     if (initializer == null) {
-      var message = format(
+      var message = formatList(
         "Local variable '{0}' is not initialized at declaration.",
-        element.displayName,
+        [element.displayName],
       );
       return RefactoringStatus.fatal(message, newLocation_fromNode(node));
     }
@@ -91,7 +91,7 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
     // should not have assignments
     for (var reference in references) {
       if (reference.kind != MatchKind.READ) {
-        var message = format(
+        var message = formatList(
           "Local variable '{0}' is assigned more than once.",
           [element.displayName],
         );

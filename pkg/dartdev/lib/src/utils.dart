@@ -26,7 +26,7 @@ Future<int> runFromSnapshot({
   required List<String> args,
   required bool verbose,
 }) async {
-  if (!Sdk.checkArtifactExists(snapshot)) return 255;
+  if (!checkArtifactExists(snapshot)) return 255;
 
   int retval = 0;
   final result = Completer<int>();

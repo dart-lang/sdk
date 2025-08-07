@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart';
@@ -58,7 +59,7 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
             origin.location!.file, origin.fileOffset, noLength)
       ];
     }
-    compilerContext.report(locatedMessage, Severity.error,
+    compilerContext.report(locatedMessage, CfeSeverity.error,
         context: contextMessages);
     errors.add(locatedMessage);
   }

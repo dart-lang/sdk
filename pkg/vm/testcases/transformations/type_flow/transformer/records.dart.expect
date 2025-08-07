@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 
-[@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>]
+[@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>?]
 static field dynamic list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>] core::_GrowableList::_literal2<core::Object>("abc", (42, {foo42: "foo42"}));
 
 [@vm.inferred-return-type.metadata=dart.core::_Record]
@@ -30,7 +30,7 @@ static method main() → dynamic {
   core::print([@vm.inferred-type.metadata=dart.core::_Record] self::recordLiteral());
   core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] self::recordFieldAccess1((10, "hi")));
   core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 20)] self::recordFieldAccess2(({a: 20, b: "bye"})));
-  core::print([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] self::recordDynamicFieldAccess([@vm.direct-call.metadata=dart.core::_GrowableList.[]??] [@vm.inferred-type.metadata=! (receiver not int)] [@vm.inferred-type.metadata=dart.core::_GrowableList?<dart.core::Object>] self::list{dynamic}.[](1)));
+  core::print([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo42")] self::recordDynamicFieldAccess([@vm.direct-call.metadata=dart.core::_GrowableList.[]??] [@vm.inferred-type.metadata=! (receiver not int)] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::Object>?] self::list{dynamic}.[](1)));
 }
 constants  {
   #C1 = 1

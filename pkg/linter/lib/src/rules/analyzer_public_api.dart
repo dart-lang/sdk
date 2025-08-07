@@ -212,7 +212,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name != null && name.endsWith('Impl')) {
       // Nothing in the analyzer public API may have a name ending in `Impl`.
       rule.reportAtOffset(
-        fragment.nameOffset2!,
+        fragment.nameOffset!,
         name.length,
         diagnosticCode: AnalyzerPublicApi.implInPublicApi,
       );
@@ -221,8 +221,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
-      case InstanceFragment(:var typeParameters2, :var children):
-        for (var typeParameter in typeParameters2) {
+      case InstanceFragment(:var typeParameters, :var children):
+        for (var typeParameter in typeParameters) {
           _checkTypeParameter(typeParameter, fragment: fragment);
         }
         if (fragment case InterfaceFragment(
@@ -249,16 +249,16 @@ class _Visitor extends SimpleAstVisitor<void> {
         children.forEach(_checkMember);
       case ExecutableFragment():
         _checkType(fragment.element.type, fragment: fragment);
-      case TypeAliasFragment(:var element, :var typeParameters2):
+      case TypeAliasFragment(:var element, :var typeParameters):
         var aliasedType = element.aliasedType;
         _checkType(element.aliasedType, fragment: fragment);
-        if (typeParameters2.isNotEmpty &&
+        if (typeParameters.isNotEmpty &&
             aliasedType is FunctionType &&
             aliasedType.typeParameters.isEmpty) {
           // Sometimes `aliasedType` doesn't have the type parameters. Not sure
           // why.
           // TODO(paulberry): consider fixing this in the analyzer.
-          for (var typeParameter in typeParameters2) {
+          for (var typeParameter in typeParameters) {
             _checkTypeParameter(typeParameter, fragment: fragment);
           }
         }
@@ -272,14 +272,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     int offset;
     int length;
     while (true) {
-      if (fragment.nameOffset2 != null) {
-        offset = fragment.nameOffset2!;
+      if (fragment.nameOffset != null) {
+        offset = fragment.nameOffset!;
         length = fragment.name!.length;
         break;
       } else if (fragment case PropertyAccessorFragment()
-          when fragment.element.variable!.firstFragment.nameOffset2 != null) {
-        offset = fragment.element.variable!.firstFragment.nameOffset2!;
-        length = fragment.element.variable!.name!.length;
+          when fragment.element.variable.firstFragment.nameOffset != null) {
+        offset = fragment.element.variable.firstFragment.nameOffset!;
+        length = fragment.element.variable.name!.length;
         break;
       } else if (fragment is ConstructorFragment &&
           fragment.typeNameOffset != null) {
@@ -379,7 +379,7 @@ extension on Element {
   bool get isInAnalyzerPublicApi {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable?,
+      :var variable,
     ) when variable.isInAnalyzerPublicApi) {
       return true;
     }
@@ -395,9 +395,7 @@ extension on Element {
     ) when setter.isInAnalyzerPublicApi) {
       return true;
     }
-    if (this case Annotatable(
-      metadata: Metadata(:var annotations),
-    ) when annotations.any(_isPublicApiAnnotation)) {
+    if (metadata.annotations.any(_isPublicApiAnnotation)) {
       return true;
     }
     if (name case var name? when !name.isPublic) return false;

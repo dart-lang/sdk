@@ -9,35 +9,7 @@ import '../../../../client/completion_driver_test.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DotShorthandPropertyAccessTest);
-    defineReflectiveTests(DotShorthandPropertyAccessExperimentDisabledTest);
   });
-}
-
-@reflectiveTest
-class DotShorthandPropertyAccessExperimentDisabledTest
-    extends AbstractCompletionDriverTest
-    with DotShorthandPropertyAccessExperimentDisabledTestCases {}
-
-mixin DotShorthandPropertyAccessExperimentDisabledTestCases
-    on AbstractCompletionDriverTest {
-  @override
-  List<String> get experiments => [];
-
-  Future<void> test_class() async {
-    allowedIdentifiers = {'getter', 'notStatic'};
-    await computeSuggestions('''
-class C {
-  static C get getter => C();
-  C get notStatic => C();
-}
-void f() {
-  C c = .^
-}
-''');
-    assertResponse(r'''
-suggestions
-''');
-  }
 }
 
 @reflectiveTest
@@ -60,6 +32,55 @@ void f() {
 suggestions
   getter
     kind: getter
+''');
+  }
+
+  Future<void> test_class_assignment() async {
+    allowedIdentifiers = {'setter', 'self'};
+    await computeSuggestions('''
+class C {
+  set setter(int value) {}
+  late C self = this;
+}
+
+void f(C foo) {var foo.^ = C()}
+''');
+    assertResponse(r'''
+suggestions
+''');
+  }
+
+  Future<void> test_class_assignment_prefix() async {
+    allowedIdentifiers = {'setter', 'self'};
+    await computeSuggestions('''
+class C {
+  set setter(int value) {}
+  late C self = this;
+}
+
+void f(C foo) {var foo.s^ = C()}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+''');
+  }
+
+  Future<void> test_class_assignment_prefix_chain() async {
+    allowedIdentifiers = {'setter', 'self'};
+    await computeSuggestions('''
+class C {
+  set setter(int value) {}
+  late C self = this;
+}
+
+void f(C foo) {var foo.s^.self = C()}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
 ''');
   }
 

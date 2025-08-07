@@ -81,6 +81,9 @@ final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
   /// The identation to be used for a multi-line completion.
   final String indent;
 
+  /// The EOL marker to be used for a multi-line completion.
+  final String endOfLine;
+
   /// Initialize a newly created candidate suggestion to suggest a closure that
   /// conforms to the given [functionType].
   ///
@@ -92,6 +95,7 @@ final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
     required super.matcherScore,
     required this.includeTypes,
     required this.indent,
+    required this.endOfLine,
     this.useBlockStatement = true,
   });
 
@@ -125,10 +129,11 @@ final class ClosureSuggestion extends CandidateSuggestion with SuggestionData {
     int selectionOffset;
     if (useBlockStatement) {
       displayText = '$parametersDisplayString {}';
-      stringBuffer.writeln(' {');
+      stringBuffer.write(' {');
+      stringBuffer.write(endOfLine);
       stringBuffer.write('$indent  ');
       selectionOffset = stringBuffer.length;
-      stringBuffer.writeln();
+      stringBuffer.write(endOfLine);
       stringBuffer.write('$indent}');
     } else {
       displayText = '$parametersDisplayString =>';
@@ -981,11 +986,15 @@ final class SetStateMethodSuggestion extends TypedExecutableSuggestion
   /// The identation to be used for a multi-line completion.
   final String indent;
 
+  /// The EOL marker to be used for a multi-line completion.
+  final String endOfLine;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
   SetStateMethodSuggestion({
     required this.element,
     required this.referencingInterface,
     required this.indent,
+    required this.endOfLine,
     required super.importData,
     required super.matcherScore,
     required super.replacementRange,
@@ -1011,10 +1020,11 @@ final class SetStateMethodSuggestion extends TypedExecutableSuggestion
     // Build the completion and the selection offset.
     var buffer = StringBuffer();
 
-    buffer.writeln('setState(() {');
+    buffer.write('setState(() {');
+    buffer.write(endOfLine);
     buffer.write('$indent  ');
     var selectionOffset = buffer.length;
-    buffer.writeln();
+    buffer.write(endOfLine);
     buffer.write('$indent});');
     var completion = buffer.toString();
     _data = _Data(completion, selectionOffset, displayText: 'setState(() {});');
