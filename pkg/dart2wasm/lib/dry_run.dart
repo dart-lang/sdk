@@ -10,16 +10,17 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:kernel/type_environment.dart';
 
 enum _DryRunErrorCode {
   noDartHtml(0),
   noDartJs(1),
   interopChecksError(2),
+  // ignore: unused_field
   isTestValueError(3),
+  // ignore: unused_field
   isTestTypeError(4),
-  isTestGenericTypeError(5),
-  ;
+  // ignore: unused_field
+  isTestGenericTypeError(5);
 
   const _DryRunErrorCode(this.code);
 
@@ -105,17 +106,11 @@ class DryRunSummarizer {
     return collector.errors;
   }
 
-  List<_DryRunError> _analyzeComponent() {
-    final analyzer = _AnalysisVisitor(coreTypes, classHierarchy);
-    component.accept(analyzer);
-    return analyzer.errors;
-  }
-
   bool summarize() {
     final errors = [
       ..._analyzeImports(),
       ..._interopChecks(),
-      ..._analyzeComponent(),
+      // TODO: Add additional checks here.
     ];
 
     if (errors.isNotEmpty) {
@@ -147,87 +142,5 @@ class _CollectingDiagnosticReporter
     errors.add(_DryRunError(
         _DryRunErrorCode.interopChecksError, message.problemMessage,
         errorSourceUri: libraryUri ?? fileUri, errorLocation: location));
-  }
-}
-
-class _AnalysisVisitor extends RecursiveVisitor {
-  Library? _enclosingLibrary;
-  late StaticTypeContext _context;
-  final TypeEnvironment _typeEnvironment;
-  final DartType _jsAnyType;
-  final List<_DryRunError> errors = [];
-
-  _AnalysisVisitor(CoreTypes coreTypes, ClassHierarchy hierarchy)
-      : _typeEnvironment = TypeEnvironment(coreTypes, hierarchy),
-        _jsAnyType = ExtensionType(
-            coreTypes.index.getExtensionType('dart:js_interop', 'JSAny'),
-            Nullability.nonNullable);
-
-  @override
-  void visitLibrary(Library node) {
-    if (node.importUri.scheme == 'dart') return;
-    _enclosingLibrary = node;
-    _context = StaticTypeContext.forAnnotations(node, _typeEnvironment);
-    super.visitLibrary(node);
-    _enclosingLibrary = null;
-  }
-
-  @override
-  void visitProcedure(Procedure node) {
-    _context = StaticTypeContext(node, _typeEnvironment);
-    super.visitProcedure(node);
-  }
-
-  @override
-  void visitIsExpression(IsExpression node) {
-    final operandStaticType = node.operand.getStaticType(_context);
-    if (_typeEnvironment.isSubtypeOf(
-        operandStaticType.withDeclaredNullability(Nullability.nonNullable),
-        _jsAnyType)) {
-      errors.add(_DryRunError(
-          _DryRunErrorCode.isTestValueError,
-          'Should not perform an `is` test on a JS value. Use `isA` with a JS '
-          'value type instead.',
-          errorSourceUri: _enclosingLibrary?.importUri,
-          errorLocation: node.location));
-    }
-    if (_typeEnvironment.isSubtypeOf(
-        node.type.withDeclaredNullability(Nullability.nonNullable),
-        _jsAnyType)) {
-      errors.add(_DryRunError(
-          _DryRunErrorCode.isTestTypeError,
-          'Should not perform an `is` test against a JS value type. '
-          'Use `isA` instead.',
-          errorSourceUri: _enclosingLibrary?.importUri,
-          errorLocation: node.location));
-    } else if (_hasJsTypeArguments(node.type)) {
-      errors.add(_DryRunError(
-          _DryRunErrorCode.isTestGenericTypeError,
-          'Should not perform an `is` test against a generic DartType with JS '
-          'type arguments.',
-          errorSourceUri: _enclosingLibrary?.importUri,
-          errorLocation: node.location));
-    }
-    super.visitIsExpression(node);
-  }
-
-  bool _hasJsTypeArguments(DartType type) {
-    // Check InterfaceType and ExtensionType
-    if (type is TypeDeclarationType) {
-      final arguments = type.typeArguments;
-      if (arguments.any((e) => _typeEnvironment.isSubtypeOf(
-          e.withDeclaredNullability(Nullability.nonNullable), _jsAnyType))) {
-        return true;
-      }
-      return arguments.any(_hasJsTypeArguments);
-    } else if (type is RecordType) {
-      final fields = type.positional.followedBy(type.named.map((t) => t.type));
-      if (fields.any((e) => _typeEnvironment.isSubtypeOf(
-          e.withDeclaredNullability(Nullability.nonNullable), _jsAnyType))) {
-        return true;
-      }
-      return fields.any(_hasJsTypeArguments);
-    }
-    return false;
   }
 }
