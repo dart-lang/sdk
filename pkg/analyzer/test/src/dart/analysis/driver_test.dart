@@ -14101,6 +14101,103 @@ class A {
     );
   }
 
+  test_dependency_class_unnamedConstructor_change_notUsed() async {
+    configuration
+      ..includeDefaultConstructors()
+      ..withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A(int _);
+  A.named(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A(double _);
+  A.named(int _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M6
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_classTypaAlias_namedConstructor_change_invoked() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
@@ -19403,6 +19500,7 @@ extension type A(int it) {
   }
 
   test_dependency_extensionType_namedConstructor_change_invoked() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {
@@ -19434,17 +19532,18 @@ void f() {
           it: #M2
         declaredConstructors
           named: #M3
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -19485,15 +19584,16 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M7
-        interface: #M4
+          named: #M8
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M9
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -19507,7 +19607,7 @@ extension type A(int it) {
     interfaceName: A
     constructorName: named
     expectedId: #M3
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19528,13 +19628,14 @@ extension type A(int it) {
       package:test/a.dart
         A
           constructors
-            named: #M7
+            named: #M8
 [status] idle
 ''',
     );
   }
 
   test_dependency_extensionType_namedConstructor_change_notUsed() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {
@@ -19566,17 +19667,18 @@ void f() {
           it: #M2
         declaredConstructors
           named: #M3
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -19598,7 +19700,7 @@ void f() {
       package:test/a.dart
         A
           constructors
-            new: #M7
+            new: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -19618,14 +19720,15 @@ extension type A(int it) {
           it: #M2
         declaredConstructors
           named: #M8
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
         double: #M9
-        int: #M5
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20427,6 +20530,7 @@ extension type A(int it) {
   }
 
   test_dependency_extensionType_unnamedConstructor_change_invoked() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {}
@@ -20454,17 +20558,19 @@ void f() {
           it: #M1
         declaredGetters
           it: #M2
-        interface: #M3
+        declaredConstructors
+          new: #M3
+        interface: #M4
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20486,7 +20592,7 @@ void f() {
       package:test/a.dart
         A
           constructors
-            new: #M6
+            new: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -20502,13 +20608,15 @@ extension type A(double it) {}
           it: #M7
         declaredGetters
           it: #M8
-        interface: #M9
+        declaredConstructors
+          new: #M9
+        interface: #M10
           map
             it: #M8
   requirements
     topLevels
       dart:core
-        double: #M10
+        double: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20521,8 +20629,8 @@ extension type A(double it) {}
     libraryUri: package:test/a.dart
     interfaceName: A
     constructorName: new
-    expectedId: #M6
-    actualId: #M11
+    expectedId: #M3
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20543,13 +20651,14 @@ extension type A(double it) {}
       package:test/a.dart
         A
           constructors
-            new: #M11
+            new: #M9
 [status] idle
 ''',
     );
   }
 
   test_dependency_extensionType_unnamedConstructor_change_notUsed() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {
@@ -20581,17 +20690,18 @@ void f() {
           it: #M2
         declaredConstructors
           named: #M3
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20628,19 +20738,20 @@ extension type A(double it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          it: #M7
-        declaredGetters
           it: #M8
+        declaredGetters
+          it: #M9
         declaredConstructors
           named: #M3
-        interface: #M9
+          new: #M10
+        interface: #M11
           map
-            it: #M8
+            it: #M9
   requirements
     topLevels
       dart:core
-        double: #M10
-        int: #M5
+        double: #M12
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -42983,7 +43094,7 @@ const a = A.named();
   }
 
   test_manifest_constInitializer_constructorName_unnamed() async {
-    configuration.ignoredManifestInstanceMemberNames.remove('new');
+    configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -43028,7 +43139,7 @@ const a = A();
   }
 
   test_manifest_constInitializer_constructorName_unnamed_notAffected() async {
-    configuration.ignoredManifestInstanceMemberNames.remove('new');
+    configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
