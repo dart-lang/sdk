@@ -27,7 +27,7 @@ final class Spelunker {
   }
 }
 
-class _SourceVisitor extends GeneralizingAstVisitor {
+class _SourceVisitor extends GeneralizingAstVisitor<void> {
   int indent = 0;
 
   final StringSink sink;
