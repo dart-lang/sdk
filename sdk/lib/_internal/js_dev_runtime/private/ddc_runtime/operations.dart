@@ -4,7 +4,7 @@
 
 /// This library defines runtime operations on objects used by the code
 /// generator.
-part of dart._runtime;
+part of "dart:_runtime";
 
 // TODO(jmesserly): remove this in favor of _Invocation.
 class InvocationImpl extends Invocation {

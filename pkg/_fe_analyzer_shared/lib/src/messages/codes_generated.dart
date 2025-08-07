@@ -9,7 +9,7 @@
 
 // ignore_for_file: lines_longer_than_80_chars
 
-part of _fe_analyzer_shared.messages.codes;
+part of 'codes.dart';
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeAbstractClassConstructorTearOff = const MessageCode(

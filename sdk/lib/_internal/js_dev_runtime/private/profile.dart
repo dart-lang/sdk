@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This file supports profiling dynamic calls.
-part of dart._debugger;
+part of "dart:_debugger";
 
 class _MethodStats {
   final String typeName;

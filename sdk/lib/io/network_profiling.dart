@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of "dart:io";
 
 // TODO(bkonyi): refactor into io_resource_info.dart
 const int _versionMajor = 4;

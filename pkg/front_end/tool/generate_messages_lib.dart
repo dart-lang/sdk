@@ -56,7 +56,7 @@ Messages generateMessagesFilesRaw(
   sharedMessages.writeln(preamble1);
   sharedMessages.writeln(preamble2);
   sharedMessages.writeln("""
-part of _fe_analyzer_shared.messages.codes;
+part of 'codes.dart';
 """);
 
   cfeMessages.writeln(preamble1);
