@@ -6,8 +6,7 @@ import 'dart:convert' show json;
 
 import 'package:kernel/ast.dart';
 
-import 'cfe_codes.dart'
-    show Message, templateTypeOrigin, templateTypeOriginWithFileUri;
+import 'cfe_codes.dart' show Message, codeTypeOrigin, codeTypeOriginWithFileUri;
 import 'denylisted_classes.dart' show denylistedCoreClasses;
 
 /// A pretty-printer for Kernel types and constants with the ability to label
@@ -592,11 +591,10 @@ class LabeledNode {
       }
     }
     Message message = (importUri == fileUri || importUri.isScheme('dart'))
-        ? templateTypeOrigin.withArguments(toString(), importUri)
+        ? codeTypeOrigin.withArguments(toString(), importUri)
         :
         // Coverage-ignore(suite): Not run.
-        templateTypeOriginWithFileUri.withArguments(
-            toString(), importUri, fileUri);
+        codeTypeOriginWithFileUri.withArguments(toString(), importUri, fileUri);
     return "\n - " + message.problemMessage;
   }
 }

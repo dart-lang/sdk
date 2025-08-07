@@ -1060,10 +1060,6 @@ DEFINE_RUNTIME_ENTRY(AdjustArgumentsDesciptorForImplicitClosure, 3) {
     if (target.IsGenerativeConstructor()) {
       // Type arguments are not passed to a generative constructor.
       type_args_len = 0;
-    } else {
-      // No need to adjust arguments descriptor.
-      arguments.SetReturn(descriptor);
-      return;
     }
   }
 
@@ -3198,7 +3194,8 @@ static ObjectPtr InvokeCallThroughGetterOrNoSuchMethod(
     // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
     // number of arguments, or try (o.foo).call(...)
 
-    if ((target_name.ptr() == Symbols::call().ptr()) && receiver.IsClosure()) {
+    if ((demangled_target_name.ptr() == Symbols::call().ptr()) &&
+        receiver.IsClosure()) {
       // Special case: closures are implemented with a call getter instead of a
       // call method and with lazy dispatchers the field-invocation-dispatcher
       // would perform the closure call.
@@ -4888,6 +4885,36 @@ extern "C" void __tsan_atomic64_store(uint64_t* addr,
                                       int order) {
   UNREACHABLE();
 }
+extern "C" void __tsan_read1(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read2(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read4(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read8(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_read16(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write1(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write2(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write4(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write8(void* addr) {
+  UNREACHABLE();
+}
+extern "C" void __tsan_write16(void* addr) {
+  UNREACHABLE();
+}
 #endif
 
 // These runtime entries are defined even when not using MSAN / TSAN to keep
@@ -4899,5 +4926,15 @@ DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Load, 2, __tsan_atomic32_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic32Store, 3, __tsan_atomic32_store);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Load, 2, __tsan_atomic64_load);
 DEFINE_LEAF_RUNTIME_ENTRY(TsanAtomic64Store, 3, __tsan_atomic64_store);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead1, 1, __tsan_read1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead2, 1, __tsan_read2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead4, 1, __tsan_read4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead8, 1, __tsan_read8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanRead16, 1, __tsan_read16);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite1, 1, __tsan_write1);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite2, 1, __tsan_write2);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite4, 1, __tsan_write4);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite8, 1, __tsan_write8);
+DEFINE_LEAF_RUNTIME_ENTRY(TsanWrite16, 1, __tsan_write16);
 
 }  // namespace dart

@@ -43,7 +43,7 @@ abstract class HierarchyNodeBuilder {
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
-          templateAmbiguousSupertypes.withArguments(
+          codeAmbiguousSupertypes.withArguments(
               _name, superclass.asInterfaceType, type.asInterfaceType),
           _fileOffset,
           noLength,
@@ -492,7 +492,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
     LibraryBuilder libraryBuilder = _libraryBuilder;
     if (libraryBuilder is SourceLibraryBuilder) {
       libraryBuilder.addProblem(
-          templateAmbiguousSupertypes.withArguments(_name, superclass, type),
+          codeAmbiguousSupertypes.withArguments(_name, superclass, type),
           _fileOffset,
           noLength,
           _fileUri);

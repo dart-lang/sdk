@@ -504,6 +504,8 @@ class Assembler : public AssemblerBase {
 
   void TsanLoadAcquire(Register dst, Register addr, OperandSize size);
   void TsanStoreRelease(Register src, Register addr, OperandSize size);
+  void TsanRead(Register addr, intptr_t size);
+  void TsanWrite(Register addr, intptr_t size);
 
   void LoadAcquire(Register dst,
                    const Address& address,

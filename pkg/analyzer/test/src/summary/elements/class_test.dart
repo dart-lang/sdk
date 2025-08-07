@@ -9710,6 +9710,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 13
           unit: #F1
       classes
         #F2 class C (nameOffset:34) (firstTokenOffset:28) (offset:34)

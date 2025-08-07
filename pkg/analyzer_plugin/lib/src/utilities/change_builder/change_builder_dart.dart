@@ -2762,10 +2762,10 @@ class _InsertionPreparer {
       var semicolon = declaration.semicolon;
       if (semicolon != null) {
         return semicolon.end;
+      } else if (declaration.constants.isNotEmpty) {
+        var lastConstant = declaration.constants.last;
+        return lastConstant.end;
       }
-
-      var lastConstant = declaration.constants.last;
-      return lastConstant.end;
     }
 
     // At the beginning of the class.

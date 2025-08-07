@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._js_helper;
+part of "dart:_js_helper";
 
 base class IdentitySet<E> extends InternalSet<E> {
   /// The backing store for this set.

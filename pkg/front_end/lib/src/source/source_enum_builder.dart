@@ -147,7 +147,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     while (constructorIterator.moveNext()) {
       ConstructorBuilder constructorBuilder = constructorIterator.current;
       if (!constructorBuilder.isConst) {
-        libraryBuilder.addProblem(messageEnumNonConstConstructor,
+        libraryBuilder.addProblem(codeEnumNonConstConstructor,
             constructorBuilder.fileOffset, noLength, fileUri);
       }
     }
@@ -231,7 +231,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           customIndexDeclaration = customIndexDeclaration?.next;
         }
         libraryBuilder.addProblem(
-            templateEnumContainsRestrictedInstanceDeclaration
+            codeEnumContainsRestrictedInstanceDeclaration
                 .withArguments(restrictedInstanceMemberName),
             customIndexDeclaration!.fileOffset,
             customIndexDeclaration.fullNameForErrors.length,
@@ -404,7 +404,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
           // sources. (We should add a correct message. We no longer depend on
           // Object here.)
           libraryBuilder.addProblem(
-              messageNoUnnamedConstructorInObject,
+              codeNoUnnamedConstructorInObject,
               objectClass.fileOffset,
               objectClass.name.length,
               objectClass.fileUri);

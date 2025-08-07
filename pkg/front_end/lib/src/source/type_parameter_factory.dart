@@ -165,11 +165,11 @@ void checkTypeParameterDependencies(ProblemReporting problemReporting,
       if (dependency != null) {
         Message message;
         if (dependency.viaTypeParameters != null) {
-          message = templateCycleInTypeParameters.withArguments(
+          message = codeCycleInTypeParameters.withArguments(
               dependency.typeParameterBoundOfItself.name,
               dependency.viaTypeParameters!.map((v) => v.name).join("', '"));
         } else {
-          message = templateDirectCycleInTypeParameters
+          message = codeDirectCycleInTypeParameters
               .withArguments(dependency.typeParameterBoundOfItself.name);
         }
         problemReporting.addProblem(

@@ -648,7 +648,7 @@ abstract class ErrorCodeInfo {
     var comment = this.comment;
     if (comment != null) {
       for (var line in comment.split('\n')) {
-        out.writeln('$indent/// ${line.isEmpty ? '' : ' '}$line');
+        out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
       }
     }
     return out.toString();

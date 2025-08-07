@@ -8,13 +8,13 @@ import '../messages/codes.dart'
     show
         Code,
         Message,
-        messageEncoding,
-        templateAsciiControlCharacter,
-        templateNonAsciiIdentifier,
-        templateNonAsciiWhitespace,
-        templateUnmatchedToken,
-        templateUnsupportedOperator,
-        templateUnterminatedString;
+        codeEncoding,
+        codeAsciiControlCharacter,
+        codeNonAsciiIdentifier,
+        codeNonAsciiWhitespace,
+        codeUnmatchedToken,
+        codeUnsupportedOperator,
+        codeUnterminatedString;
 
 import 'recover.dart' show closeBraceFor, closeQuoteFor;
 
@@ -112,7 +112,7 @@ class EncodingErrorToken extends ErrorToken {
   String toString() => "EncodingErrorToken()";
 
   @override
-  Message get assertionMessage => messageEncoding;
+  Message get assertionMessage => codeEncoding;
 }
 
 /// Represents a non-ASCII character outside a string or comment.
@@ -126,7 +126,7 @@ class NonAsciiIdentifierToken extends ErrorToken {
   String toString() => "NonAsciiIdentifierToken($character)";
 
   @override
-  Message get assertionMessage => templateNonAsciiIdentifier.withArguments(
+  Message get assertionMessage => codeNonAsciiIdentifier.withArguments(
     new String.fromCharCodes([character]),
     character,
   );
@@ -144,7 +144,7 @@ class NonAsciiWhitespaceToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      templateNonAsciiWhitespace.withArguments(character);
+      codeNonAsciiWhitespace.withArguments(character);
 }
 
 /// Represents an ASCII control character outside a string or comment.
@@ -160,7 +160,7 @@ class AsciiControlCharacterToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      templateAsciiControlCharacter.withArguments(character);
+      codeAsciiControlCharacter.withArguments(character);
 }
 
 /// Denotes an operator that is not supported in the Dart language.
@@ -170,8 +170,7 @@ class UnsupportedOperator extends ErrorToken {
   UnsupportedOperator(this.token, int charOffset) : super(charOffset);
 
   @override
-  Message get assertionMessage =>
-      templateUnsupportedOperator.withArguments(token);
+  Message get assertionMessage => codeUnsupportedOperator.withArguments(token);
 
   @override
   String toString() => "UnsupportedOperator(${token.lexeme})";
@@ -198,7 +197,7 @@ class UnterminatedString extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      templateUnterminatedString.withArguments(start, closeQuoteFor(start));
+      codeUnterminatedString.withArguments(start, closeQuoteFor(start));
 }
 
 /// Represents an unterminated token.
@@ -235,5 +234,5 @@ class UnmatchedToken extends ErrorToken {
 
   @override
   Message get assertionMessage =>
-      templateUnmatchedToken.withArguments(closeBraceFor(begin.lexeme), begin);
+      codeUnmatchedToken.withArguments(closeBraceFor(begin.lexeme), begin);
 }

@@ -47,7 +47,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       // Coverage-ignore-block(suite): Not run.
       // Null spread
       return evaluator.createEvaluationErrorConstant(
-          spreadExpression, messageConstEvalNullValue);
+          spreadExpression, codeConstEvalNullValue);
     } else {
       // Fully evaluated spread
       List<Constant> entries;
@@ -72,7 +72,7 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       } else {
         // Not list or set in spread
         return evaluator.createEvaluationErrorConstant(
-            spreadExpression, messageConstEvalNotListOrSetInSpread);
+            spreadExpression, codeConstEvalNotListOrSetInSpread);
       }
       for (Constant entry in entries) {
         AbortConstant? error = addConstant(entry, spreadExpression);
@@ -164,20 +164,18 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     if (!evaluator.hasPrimitiveEqual(constant,
         staticTypeContext: evaluator.staticTypeContext)) {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
-        return evaluator.createEvaluationErrorConstant(
-            context,
-            templateConstEvalElementNotPrimitiveEquality
-                .withArguments(constant));
+        return evaluator.createEvaluationErrorConstant(context,
+            codeConstEvalElementNotPrimitiveEquality.withArguments(constant));
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(context,
-            templateConstEvalElementImplementsEqual.withArguments(constant));
+            codeConstEvalElementImplementsEqual.withArguments(constant));
       }
     }
     bool unseen = seen.add(constant);
     if (!unseen) {
       return evaluator.createEvaluationErrorConstant(
-          context, templateConstEvalDuplicateElement.withArguments(constant));
+          context, codeConstEvalDuplicateElement.withArguments(constant));
     }
 
     List<Constant> lastPart;
@@ -269,7 +267,7 @@ class MapConstantBuilder {
       // Coverage-ignore-block(suite): Not run.
       // Null spread
       return evaluator.createEvaluationErrorConstant(
-          spreadExpression, messageConstEvalNullValue);
+          spreadExpression, codeConstEvalNullValue);
     } else {
       // Fully evaluated spread
       if (spread is MapConstant) {
@@ -289,7 +287,7 @@ class MapConstantBuilder {
       } else {
         // Not map in spread
         return evaluator.createEvaluationErrorConstant(
-            spreadExpression, messageConstEvalNotMapInSpread);
+            spreadExpression, codeConstEvalNotMapInSpread);
       }
     }
     return null;
@@ -310,17 +308,17 @@ class MapConstantBuilder {
         staticTypeContext: evaluator.staticTypeContext)) {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(keyContext,
-            templateConstEvalKeyNotPrimitiveEquality.withArguments(key));
+            codeConstEvalKeyNotPrimitiveEquality.withArguments(key));
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(
-            keyContext, templateConstEvalKeyImplementsEqual.withArguments(key));
+            keyContext, codeConstEvalKeyImplementsEqual.withArguments(key));
       }
     }
     bool unseenKey = seenKeys.add(key);
     if (!unseenKey) {
       return evaluator.createEvaluationErrorConstant(
-          keyContext, templateConstEvalDuplicateKey.withArguments(key));
+          keyContext, codeConstEvalDuplicateKey.withArguments(key));
     }
 
     Constant key2 = evaluator.ensureIsSubtype(key, keyType, keyContext);

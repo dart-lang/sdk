@@ -5,7 +5,7 @@
 // Efficient JavaScript based implementation of a linked hash map used as a
 // backing map for constant maps and the [LinkedHashMap] patch
 
-part of _js_helper;
+part of 'dart:_js_helper';
 
 class JsLinkedHashMap<K, V> extends MapBase<K, V>
     implements LinkedHashMap<K, V>, InternalMap {

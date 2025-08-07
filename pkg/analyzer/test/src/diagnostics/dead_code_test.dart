@@ -2234,7 +2234,7 @@ void f() {
   l?..[0]..length;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 29, 15)],
+      [error(WarningCode.DEAD_CODE, 30, 14)],
     );
   }
 
@@ -2246,7 +2246,7 @@ void f() {
   i?..toInt()..isEven;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 23, 19)],
+      [error(WarningCode.DEAD_CODE, 24, 18)],
     );
   }
 
@@ -2258,7 +2258,7 @@ void f() {
   i?..sign..isEven;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 23, 16)],
+      [error(WarningCode.DEAD_CODE, 24, 15)],
     );
   }
 
@@ -2270,7 +2270,7 @@ void f() {
   l?[0];
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 29, 5)],
+      [error(WarningCode.DEAD_CODE, 30, 4)],
     );
   }
 
@@ -2282,7 +2282,7 @@ void f() {
   l?[0][0];
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 35, 8)],
+      [error(WarningCode.DEAD_CODE, 36, 7)],
     );
   }
 
@@ -2294,7 +2294,7 @@ void f() {
   i?.truncate();
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 23, 13)],
+      [error(WarningCode.DEAD_CODE, 24, 12)],
     );
   }
 
@@ -2306,7 +2306,7 @@ void f() {
   i?.truncate().truncate();
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 23, 24)],
+      [error(WarningCode.DEAD_CODE, 24, 23)],
     );
   }
 
@@ -2318,7 +2318,7 @@ void f() {
   i?.truncate().sign;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 23, 18)],
+      [error(WarningCode.DEAD_CODE, 24, 17)],
     );
   }
 
@@ -2330,7 +2330,7 @@ void f() {
   (i)?.sign;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 23, 9)],
+      [error(WarningCode.DEAD_CODE, 26, 6)],
     );
   }
 
@@ -2342,7 +2342,7 @@ void f() {
   (i)?.sign.sign;
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 23, 14)],
+      [error(WarningCode.DEAD_CODE, 26, 11)],
     );
   }
 

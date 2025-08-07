@@ -1247,7 +1247,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kRecord_fieldNames:
       body += LoadObjectStore();
-      body += LoadNativeField(Slot::ObjectStore_record_field_names());
+      body += LoadNativeField(Slot::ObjectStore_record_field_names(), false,
+                              compiler::Assembler::kAcquire);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::Record_shape());
       body += IntConstant(compiler::target::RecordShape::kFieldNamesIndexShift);

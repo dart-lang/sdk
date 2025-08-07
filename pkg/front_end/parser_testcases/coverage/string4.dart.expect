@@ -48,7 +48,7 @@ beginCompilationUnit(void)
           beginLiteralString(r"""
 æbler""")
           endLiteralString(0, })
-          handleRecoverableError(Message[ExpectedAfterButGot, Expected ';' after this., null, {string: ;}], r"""
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], r"""
 æbler""", r"""
 æbler""")
         endReturnStatement(true, return, ;)
@@ -56,7 +56,7 @@ beginCompilationUnit(void)
     endTopLevelMethod(void, null, })
   endTopLevelDeclaration(})
   handleErrorToken(UnterminatedString(r"""))
-  handleRecoverableError(Message[UnterminatedString, String starting with r""" must end with """., null, {string: r""", string2: """}], UnterminatedString(r"""), UnterminatedString(r"""))
+  handleRecoverableError(Message[Template(UnterminatedString), String starting with r""" must end with """., null, {string: r""", string2: """}], UnterminatedString(r"""), UnterminatedString(r"""))
   handleErrorToken(UnmatchedToken({))
-  handleRecoverableError(Message[UnmatchedToken, Can't find '}' to match '{'., null, {string: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
+  handleRecoverableError(Message[Template(UnmatchedToken), Can't find '}' to match '{'., null, {string: }, lexeme: {}], UnmatchedToken({), UnmatchedToken({))
 endCompilationUnit(2, )

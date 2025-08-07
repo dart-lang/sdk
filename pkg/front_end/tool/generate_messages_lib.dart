@@ -6,7 +6,10 @@ import 'dart:io' show File, exitCode;
 
 import "package:_fe_analyzer_shared/src/messages/severity.dart"
     show severityEnumNames;
+import 'package:pub_semver/pub_semver.dart' show Version;
 import 'package:yaml/yaml.dart' show loadYaml;
+
+import '../test/utils/io_utils.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
   return repoDir
@@ -26,7 +29,7 @@ class Messages {
 }
 
 Messages generateMessagesFilesRaw(
-    Uri repoDir, String Function(String) formatter) {
+    Uri repoDir, String Function(String, Version) formatter) {
   Uri messagesFile = repoDir.resolve("pkg/front_end/messages.yaml");
   Map<dynamic, dynamic> yaml =
       loadYaml(new File.fromUri(messagesFile).readAsStringSync());
@@ -53,7 +56,7 @@ Messages generateMessagesFilesRaw(
   sharedMessages.writeln(preamble1);
   sharedMessages.writeln(preamble2);
   sharedMessages.writeln("""
-part of _fe_analyzer_shared.messages.codes;
+part of 'codes.dart';
 """);
 
   cfeMessages.writeln(preamble1);
@@ -131,7 +134,10 @@ part of 'cfe_codes.dart';
     return new Messages('', '');
   }
 
-  return new Messages(formatter("$sharedMessages"), formatter("$cfeMessages"));
+  return new Messages(
+    formatter("$sharedMessages", getPackageVersionFor("_fe_analyzer_shared")),
+    formatter("$cfeMessages", getPackageVersionFor("front_end")),
+  );
 }
 
 final RegExp placeholderPattern =
@@ -407,10 +413,7 @@ Template compileTemplate(String name, int? index, String? problemMessage,
 
     return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code code$name = message$name;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode message$name =
+const MessageCode code$name =
     const MessageCode(\"$name\", ${codeArguments.join(', ')},);
 """, isShared: canBeShared);
   }
@@ -444,14 +447,9 @@ const MessageCode message$name =
 
   return new Template("""
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(${parameters.join(', ')})> template$name =
+const Template<Message Function(${parameters.join(', ')})> code$name =
     const Template<Message Function(${parameters.join(', ')})>(
         ${templateArguments.join(', ')},);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code code$name =
-    const Code(
-        \"$name\", ${codeArguments.join(', ')});
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArguments$name(${parameters.join(', ')}) {

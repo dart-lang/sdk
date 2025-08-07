@@ -19,8 +19,8 @@ import '../base/messages.dart'
         noLength,
         SummaryTemplate,
         Template,
-        messagePlatformPrivateLibraryAccess,
-        templateInternalProblemContextSeverity;
+        codePlatformPrivateLibraryAccess,
+        codeInternalProblemContextSeverity;
 import '../base/problems.dart' show internalProblem;
 import '../base/ticker.dart' show Ticker;
 import '../base/uris.dart';
@@ -29,7 +29,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart'
-    show SummaryTemplate, Template, templateDillOutlineSummary;
+    show SummaryTemplate, Template, codeDillOutlineSummary;
 import '../kernel/type_builder_computer.dart' show TypeBuilderComputer;
 import '../source/source_loader.dart' show SourceLoader;
 import 'dill_library_builder.dart' show DillLibraryBuilder;
@@ -137,7 +137,7 @@ class DillLoader extends Loader {
           !target.backendTarget
               .allowPlatformPrivateLibraryAccess(accessor.importUri, uri)) {
         // Coverage-ignore-block(suite): Not run.
-        accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
+        accessor.addProblem(codePlatformPrivateLibraryAccess, charOffset,
             noLength, accessor.fileUri);
       }
     }
@@ -233,8 +233,7 @@ severity: $severity
     if (!seenMessages.add(trace)) return null;
     if (message.code.severity == CfeSeverity.context) {
       internalProblem(
-          templateInternalProblemContextSeverity
-              .withArguments(message.code.name),
+          codeInternalProblemContextSeverity.withArguments(message.code.name),
           charOffset,
           fileUri);
     }
@@ -266,7 +265,7 @@ severity: $severity
   }
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>
-      templateDillOutlineSummary;
+      codeDillOutlineSummary;
 
   /// Append compiled libraries from the given [component]. If the [filter] is
   /// provided, append only libraries whose [Uri] is accepted by the [filter].

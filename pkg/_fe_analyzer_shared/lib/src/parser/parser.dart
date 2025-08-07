@@ -13,7 +13,7 @@ import 'parser_impl.dart' show Parser;
 import 'parser_error.dart' show ParserError;
 
 import '../messages/codes.dart'
-    show Message, messageNativeClauseShouldBeAnnotation;
+    show Message, codeNativeClauseShouldBeAnnotation;
 
 export 'assert.dart' show Assert;
 
@@ -61,7 +61,7 @@ class ErrorCollectingListener extends Listener {
     Token endToken,
   ) {
     /// TODO(danrubel): Ignore this error until we deprecate `native` support.
-    if (message == messageNativeClauseShouldBeAnnotation) {
+    if (message == codeNativeClauseShouldBeAnnotation) {
       return;
     }
     recoverableErrors.add(

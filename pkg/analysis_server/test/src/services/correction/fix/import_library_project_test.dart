@@ -313,6 +313,24 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_classContainingWith() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class A {}
+''');
+    await resolveTestCode('''
+class B extends A with M {}
+
+mixin M {}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+class B extends A with M {}
+
+mixin M {}
+''');
+  }
+
   Future<void> test_extension_name() async {
     createAnalysisOptionsFile(lints: [LintNames.comment_references]);
     newFile('$testPackageLibPath/lib.dart', '''
@@ -952,6 +970,66 @@ void f() { new Foo(); }
       expectedNumberOfFixesForKind: 2,
       matchFixMessage: "Import library '../a.dart'",
     );
+  }
+
+  Future<void> test_unchecked_methodInvocation() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on Object? {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+void f(Object? o) {
+  o.m();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(Object? o) {
+  o.m();
+}
+''');
+  }
+
+  Future<void> test_unchecked_operatorInvocation() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on Object? {
+  int operator +(int other) => 0;
+}
+''');
+    await resolveTestCode('''
+void f(Object? o) {
+  o + 1;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(Object? o) {
+  o + 1;
+}
+''');
+  }
+
+  Future<void> test_unchecked_propertyAccess() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on Object? {
+  int get getter => 0;
+}
+''');
+    await resolveTestCode('''
+void f(Object? o) {
+  o.getter;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart';
+
+void f(Object? o) {
+  o.getter;
+}
+''');
   }
 
   Future<void> test_withClass_annotation() async {

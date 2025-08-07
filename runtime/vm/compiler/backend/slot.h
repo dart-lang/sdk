@@ -73,7 +73,7 @@ class ParsedFunction;
   V(ReceivePort, UntaggedReceivePort, send_port, SendPort, FINAL)              \
   V(ReceivePort, UntaggedReceivePort, handler, Closure, VAR)                   \
   V(ImmutableLinkedHashBase, UntaggedLinkedHashBase, index,                    \
-    TypedDataUint32Array, VAR)                                                 \
+    TypedDataUint32Array, VAR_NOSANITIZETHREAD)                                \
   V(Instance, UntaggedInstance, native_fields_array, Dynamic, VAR)             \
   V(SuspendState, UntaggedSuspendState, function_data, Dynamic, VAR)           \
   V(SuspendState, UntaggedSuspendState, then_callback, Closure, VAR)           \
@@ -101,7 +101,7 @@ class ParsedFunction;
 //   that) or like a non-final field.
 #define NONNULLABLE_INT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                       \
   V(Array, UntaggedArray, length, Smi, FINAL)                                  \
-  V(Closure, UntaggedClosure, hash, Smi, VAR)                                  \
+  V(Closure, UntaggedClosure, hash, Smi, VAR_NOSANITIZETHREAD)                 \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
   V(TypedDataView, UntaggedTypedDataView, offset_in_bytes, Smi, FINAL)         \
@@ -535,6 +535,10 @@ class Slot : public ZoneAllocated {
     return MayContainInnerPointerBit::decode(flags_);
   }
 
+  bool is_no_sanitize_thread() const {
+    return IsNoSanitizeThreadBit::decode(flags_);
+  }
+
   // Type information about values that can be read from this slot.
   CompileType type() const { return type_; }
 
@@ -635,6 +639,8 @@ class Slot : public ZoneAllocated {
       BitField<decltype(flags_), bool, IsNonTaggedBit::kNextBit, 1>;
   using HasUntaggedInstanceBit =
       BitField<decltype(flags_), bool, MayContainInnerPointerBit::kNextBit, 1>;
+  using IsNoSanitizeThreadBit =
+      BitField<decltype(flags_), bool, HasUntaggedInstanceBit::kNextBit, 1>;
 
   friend class SlotCache;
 };

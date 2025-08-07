@@ -13,13 +13,13 @@ import '../base/messages.dart'
     show
         LocatedMessage,
         Message,
-        messageMoreThanOneSuperInitializer,
-        messageRedirectingConstructorWithAnotherInitializer,
-        messageRedirectingConstructorWithMultipleRedirectInitializers,
-        messageRedirectingConstructorWithSuperInitializer,
-        messageSuperInitializerNotLast,
+        codeMoreThanOneSuperInitializer,
+        codeRedirectingConstructorWithAnotherInitializer,
+        codeRedirectingConstructorWithMultipleRedirectInitializers,
+        codeRedirectingConstructorWithSuperInitializer,
+        codeSuperInitializerNotLast,
         noLength,
-        templateCantInferTypeDueToCircularity;
+        codeCantInferTypeDueToCircularity;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -68,7 +68,7 @@ class InferableConstructor implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-        templateCantInferTypeDueToCircularity.withArguments(name),
+        codeCantInferTypeDueToCircularity.withArguments(name),
         _builder.fileOffset,
         name.length,
         _builder.fileUri);
@@ -287,11 +287,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       required TreeNode parent}) {
     if (initializer is SuperInitializer) {
       if (superInitializer != null) {
-        _injectInvalidInitializer(messageMoreThanOneSuperInitializer,
+        _injectInvalidInitializer(codeMoreThanOneSuperInitializer,
             initializer.fileOffset, "super".length, helper, parent);
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
-            messageRedirectingConstructorWithSuperInitializer,
+            codeRedirectingConstructorWithSuperInitializer,
             initializer.fileOffset,
             "super".length,
             helper,
@@ -331,7 +331,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       if (superInitializer != null) {
         // Point to the existing super initializer.
         _injectInvalidInitializer(
-            messageRedirectingConstructorWithSuperInitializer,
+            codeRedirectingConstructorWithSuperInitializer,
             superInitializer!.fileOffset,
             "super".length,
             helper,
@@ -339,7 +339,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
         markAsErroneous();
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
-            messageRedirectingConstructorWithMultipleRedirectInitializers,
+            codeRedirectingConstructorWithMultipleRedirectInitializers,
             initializer.fileOffset,
             noLength,
             helper,
@@ -353,7 +353,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
           if (initializer is AssertInitializer) length = "assert".length;
           Initializer error = helper.buildInvalidInitializer(
               helper.buildProblem(
-                  messageRedirectingConstructorWithAnotherInitializer,
+                  codeRedirectingConstructorWithAnotherInitializer,
                   initializer.fileOffset,
                   length));
           error.parent = parent;
@@ -398,14 +398,14 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
       int length = noLength;
       if (initializer is AssertInitializer) length = "assert".length;
       _injectInvalidInitializer(
-          messageRedirectingConstructorWithAnotherInitializer,
+          codeRedirectingConstructorWithAnotherInitializer,
           initializer.fileOffset,
           length,
           helper,
           parent);
       markAsErroneous();
     } else if (superInitializer != null) {
-      _injectInvalidInitializer(messageSuperInitializerNotLast,
+      _injectInvalidInitializer(codeSuperInitializerNotLast,
           initializer.fileOffset, noLength, helper, parent);
       markAsErroneous();
     } else {

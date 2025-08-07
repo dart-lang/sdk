@@ -250,11 +250,8 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
       // Coverage-ignore-block(suite): Not run.
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
-      library.addProblem(
-          templateTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset,
-          name.length,
-          fileUri);
+      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
+          charOffset, name.length, fileUri);
     }
     return new TypeParameterType(parameter, nullability);
   }
@@ -271,11 +268,8 @@ abstract class NominalParameterBuilder extends TypeParameterBuilder {
       {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
-      library.addProblem(
-          templateTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset,
-          name.length,
-          fileUri);
+      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
+          charOffset, name.length, fileUri);
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
@@ -506,11 +500,8 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
       {required bool hasExplicitTypeArguments}) {
     if (arguments != null) {
       // Coverage-ignore-block(suite): Not run.
-      library.addProblem(
-          templateTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset,
-          name.length,
-          fileUri);
+      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
+          charOffset, name.length, fileUri);
     }
     // If the bound is not set yet, the actual value is not important yet as it
     // will be set later.
@@ -540,11 +531,8 @@ abstract class StructuralParameterBuilder extends TypeParameterBuilder {
       // Coverage-ignore-block(suite): Not run.
       int charOffset = -1; // TODO(ahe): Provide these.
       Uri? fileUri = null; // TODO(ahe): Provide these.
-      library.addProblem(
-          templateTypeArgumentsOnTypeVariable.withArguments(name),
-          charOffset,
-          name.length,
-          fileUri);
+      library.addProblem(codeTypeArgumentsOnTypeVariable.withArguments(name),
+          charOffset, name.length, fileUri);
     }
     return new StructuralParameterType(parameter, nullability);
   }

@@ -381,6 +381,21 @@ void f(String x) {
     await assertNoFix();
   }
 
+  Future<void> test_invalidType() async {
+    await resolveTestCode('''
+void g() {
+  int combined = 0;
+  combined += foo();
+}
+''');
+    await assertNoFix(
+      errorFilter:
+          (diagnostic) =>
+              diagnostic.diagnosticCode ==
+              CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    );
+  }
+
   Future<void> test_isNullThen_left_notAssignable_nonNullable() async {
     await resolveTestCode('''
 void f(String s) {}

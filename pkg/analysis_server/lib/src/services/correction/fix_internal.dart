@@ -630,6 +630,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveRequired.new,
   ],
   CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER: [
+    AddEnumConstant.new,
     ChangeTo.getterOrSetter,
     CreateGetter.new,
     CreateField.new,
@@ -1361,6 +1362,10 @@ final _builtInNonLintMultiGenerators = {
     DataDriven.new,
     ImportLibrary.forType,
   ],
+  CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS: [
+    CreateClass.new,
+    ImportLibrary.forType,
+  ],
   CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
     CreateClass.new,
     ImportLibrary.forType,
@@ -1399,6 +1404,15 @@ final _builtInNonLintMultiGenerators = {
     CreateClass.new,
     CreateMixin.new,
     ImportLibrary.forType,
+  ],
+  CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE: [
+    ImportLibrary.forExtensionMember,
+  ],
+  CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE: [
+    ImportLibrary.forExtensionMember,
+  ],
+  CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE: [
+    ImportLibrary.forExtensionMember,
   ],
   CompileTimeErrorCode.UNDEFINED_ANNOTATION: [
     CreateClass.new,

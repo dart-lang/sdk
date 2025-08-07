@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._interceptors;
+part of "dart:_interceptors";
 
 /// Holds cached RTI objects for JS Array instances.
 final _arrayRtiSymbol = JS<Object>('', 'Symbol("arrayRti")');

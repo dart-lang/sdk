@@ -719,7 +719,7 @@ List<Test> extractTestsFromComment(
         int position =
             commentsData.charOffset + scanOffset + nextSeparator.charOffset;
         Message message =
-            codes.templateExpectedButGot.withArguments(expectedSeparator);
+            codes.codeExpectedButGot.withArguments(expectedSeparator);
         return new TestParseError(
           _createParseErrorMessage(
               source, position, nextSeparator, nextSeparator, message),

@@ -1707,6 +1707,16 @@ class ObjectTable implements ObjectWriter, ObjectReader {
     _nodeVisitor = _NodeVisitor(this, coreTypes);
   }
 
+  // Can be used to add instantiated types and constants which
+  // should not depend on type parameters of the enclosing function.
+  T withoutEnclosingFunctionTypeParameters<T>(T Function() action) {
+    final saved = numEnclosingFunctionTypeParameters;
+    numEnclosingFunctionTypeParameters = 0;
+    final result = action();
+    numEnclosingFunctionTypeParameters = saved;
+    return result;
+  }
+
   ObjectHandle? getHandle(Node? node) {
     if (node == null) {
       return null;
@@ -2163,7 +2173,8 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
 
   @override
   ObjectHandle? visitFunctionType(FunctionType node) {
-    final int numEnclosingTypeParameters = _typeParameters.length;
+    final int numEnclosingTypeParameters =
+        objectTable.numEnclosingFunctionTypeParameters + _typeParameters.length;
     for (int i = 0; i < node.typeParameters.length; ++i) {
       _typeParameters[node.typeParameters[i]] = objectTable.getOrAddObject(
           new _TypeParameterHandle(
@@ -2188,8 +2199,7 @@ class _NodeVisitor extends VisitorDefault<ObjectHandle?>
     final returnType = objectTable.getHandle(node.returnType) as _TypeHandle;
 
     final result = objectTable.getOrAddObject(new _FunctionTypeHandle(
-        objectTable.numEnclosingFunctionTypeParameters +
-            numEnclosingTypeParameters,
+        numEnclosingTypeParameters,
         typeParameters,
         node.requiredParameterCount,
         positionalParams,

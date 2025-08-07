@@ -75,11 +75,12 @@ class ConstConditionalSimplifier extends RemovingTransformer {
     super.visitIfStatement(node, removalSentinel);
     Constant? condition = _evaluate(node.condition);
     if (condition is! BoolConstant) return node;
-    // Coverage-ignore(suite): Not run.
     if (condition.value) {
       return node.then;
     } else {
-      return node.otherwise ?? removalSentinel ?? new EmptyStatement();
+      return node.otherwise ??
+          removalSentinel ?? // Coverage-ignore(suite): Not run.
+          new EmptyStatement();
     }
   }
 
@@ -121,7 +122,8 @@ class ConstConditionalSimplifier extends RemovingTransformer {
 class _ConstantEvaluator extends TryConstantEvaluator {
   // TODO(fishythefish): Do caches need to be invalidated when the static type
   // context changes?
-  final Map<VariableDeclaration, Constant?> _variableCache = {};
+  /// Cache for local variables in the current method.
+  Map<VariableDeclaration, Constant?> _variableCache = {};
   final Map<Field, Constant?> _staticFieldCache = {};
   final Map<FunctionNode, Constant?> _functionCache = {};
   final Map<FunctionNode, Constant?> _localFunctionCache = {};
@@ -143,17 +145,14 @@ class _ConstantEvaluator extends TryConstantEvaluator {
 
   Constant? _evaluateFunctionInvocation(FunctionNode node) {
     if (node.typeParameters.isNotEmpty ||
-        // Coverage-ignore(suite): Not run.
         node.requiredParameterCount != 0 ||
-        // Coverage-ignore(suite): Not run.
         node.positionalParameters.isNotEmpty ||
-        // Coverage-ignore(suite): Not run.
         node.namedParameters.isNotEmpty) {
       return null;
     }
-    // Coverage-ignore-block(suite): Not run.
     Statement? body = node.body;
     if (body is! ReturnStatement) return null;
+    // Coverage-ignore-block(suite): Not run.
     Expression? expression = body.expression;
     if (expression == null) return null;
     return _evaluate(expression);
@@ -236,7 +235,16 @@ class _ConstantEvaluator extends TryConstantEvaluator {
 
   @override
   Constant visitStaticInvocation(StaticInvocation node) {
-    return _lookupStaticInvocation(node.target) ??
+    // Clear variable cache static invocations to avoid looking up cached
+    // variables from another call stack.
+    //
+    // This can occur when calling const extension type constructors since these
+    // are lowered into top level functions.
+    Map<VariableDeclaration, Constant?> oldCache = _variableCache;
+    _variableCache = {};
+    Constant result = _lookupStaticInvocation(node.target) ??
         super.visitStaticInvocation(node);
+    _variableCache = oldCache;
+    return result;
   }
 }

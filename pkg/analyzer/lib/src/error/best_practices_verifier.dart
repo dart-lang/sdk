@@ -406,7 +406,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    _deprecatedMemberUseVerifier.pushInDeprecatedMetadata(node.metadata);
+    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
+      node.firstVariableElement.isUseDeprecated,
+    );
 
     try {
       super.visitFieldDeclaration(node);
@@ -781,7 +783,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _deprecatedMemberUseVerifier.pushInDeprecatedMetadata(node.metadata);
+    _deprecatedMemberUseVerifier.pushInDeprecatedValue(
+      node.firstVariableElement.isUseDeprecated,
+    );
 
     if (!_invalidAccessVerifier._inTestDirectory) {
       for (var decl in node.variables.variables) {

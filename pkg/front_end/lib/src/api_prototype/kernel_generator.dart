@@ -8,7 +8,7 @@ library front_end.kernel_generator;
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show messageMissingMain, noLength;
+    show codeMissingMain, noLength;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
 import 'package:kernel/ast.dart' show Component;
@@ -74,7 +74,7 @@ Future<CompilerResult?> kernelForProgramInternal(
     if (requireMain && component.mainMethod == null) {
       context.options.report(
           context,
-          messageMissingMain.withLocation(source, -1, noLength),
+          codeMissingMain.withLocation(source, -1, noLength),
           CfeSeverity.error);
       return null;
     }

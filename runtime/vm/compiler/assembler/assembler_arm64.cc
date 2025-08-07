@@ -287,6 +287,7 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
 }
 
 void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
+  Comment("TsanLoadAcquire");
   RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
                         kAllFpuRegistersList);
 
@@ -326,6 +327,7 @@ void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
 void Assembler::TsanStoreRelease(Register src,
                                  Register addr,
                                  OperandSize size) {
+  Comment("TsanStoreRelease");
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
 
   if (src == R0) {
@@ -348,6 +350,56 @@ void Assembler::TsanStoreRelease(Register src,
     default:
       UNIMPLEMENTED();
       break;
+  }
+}
+
+void Assembler::TsanRead(Register addr, intptr_t size) {
+  Comment("TsanRead");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanRead1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanRead2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanRead4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanRead8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanRead16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+void Assembler::TsanWrite(Register addr, intptr_t size) {
+  Comment("TsanWrite");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+  MoveRegister(R0, addr);
+  switch (size) {
+    case 1:
+      rt.Call(kTsanWrite1RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 2:
+      rt.Call(kTsanWrite2RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 4:
+      rt.Call(kTsanWrite4RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 8:
+      rt.Call(kTsanWrite8RuntimeEntry, /*argument_count=*/1);
+      break;
+    case 16:
+      rt.Call(kTsanWrite16RuntimeEntry, /*argument_count=*/1);
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -552,7 +604,6 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
   Operand op;
   // PP is _un_tagged on ARM64.
   const uint32_t offset = target::ObjectPool::element_offset(index);
-  ASSERT(offset < (1 << 24));
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   if (Address::CanHoldOffset(offset, Address::PairOffset)) {
@@ -566,7 +617,7 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
              Address::CanHoldOffset(lower12, Address::PairOffset)) {
     add(TMP, PP, op);
     ldp(lower, upper, Address(TMP, lower12, Address::PairOffset));
-  } else {
+  } else if (Utils::IsUint(24, offset)) {
     const uint32_t lower12 = offset & 0xfff;
     const uint32_t higher12 = offset & 0xfff000;
 
@@ -580,6 +631,15 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
     add(TMP, PP, op_high);
     add(TMP, TMP, op_low);
     ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else if (Utils::IsUint(32, offset)) {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(TMP, Immediate(offset_low), 0);
+    movk(TMP, Immediate(offset_high), 1);
+    add(TMP, TMP, Operand(PP));
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else {
+    UNIMPLEMENTED();
   }
 }
 

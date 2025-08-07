@@ -273,7 +273,7 @@ class RegularFieldDeclaration
         // Coverage-ignore(suite): Not run.
         !_fragment.modifiers.isFinal) {
       internalProblem(
-          messageInternalProblemAlreadyInitialized, nameOffset, fileUri);
+          codeInternalProblemAlreadyInitialized, nameOffset, fileUri);
     }
     _encoding.createBodies(coreTypes, initializer);
   }

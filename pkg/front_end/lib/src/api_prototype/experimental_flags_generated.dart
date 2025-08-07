@@ -30,13 +30,14 @@ class ExperimentalFlag {
   final bool isExpired;
   final Version enabledVersion;
 
-  /// The minimum version that supports this feature.
+  /// The minimum version that enables the feature by default.
   ///
   /// If the feature is not enabled by default, this is the current language
   /// version.
   final Version experimentEnabledVersion;
 
-  /// The minimum version that supports this feature in allowed libraries.
+  /// The minimum version that allows this feature to be enabled with a flag and
+  /// enables the experiment in allowed libraries.
   ///
   /// Allowed libraries are specified in
   ///

@@ -7,7 +7,7 @@
 /// Many C types only define a minimal size in the C standard, but they are
 /// consistent per [Abi]. Therefore we use [AbiSpecificInteger]s to define
 /// these C types in this library.
-part of dart.ffi;
+part of "dart:ffi";
 
 /// The C `char` type.
 ///

@@ -183,6 +183,9 @@ class CreateGetter extends CreateFieldOrGetter {
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     await _addDeclaration(
       builder: builder,

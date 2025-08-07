@@ -5,6 +5,9 @@
 import 'dart:io' show Directory, File, Platform, Process, ProcessResult;
 
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
+import 'package:package_config/package_config.dart'
+    show PackageConfig, Package, LanguageVersion;
+import 'package:pub_semver/pub_semver.dart' show Version;
 
 String computeRepoDir() {
   Uri uri;
@@ -55,4 +58,27 @@ String computeRepoDir() {
 Uri computeRepoDirUri() {
   String dirPath = computeRepoDir();
   return new Directory(dirPath).uri;
+}
+
+Package? getPackageFor(String name) {
+  Uri packageConfigUri =
+      computeRepoDirUri().resolve(".dart_tool/package_config.json");
+  PackageConfig packageConfig = PackageConfig.parseBytes(
+      new File.fromUri(packageConfigUri).readAsBytesSync(), packageConfigUri);
+  for (Package package in packageConfig.packages) {
+    if (package.name == name) {
+      return package;
+    }
+  }
+  return null;
+}
+
+Version getPackageVersionFor(String name) {
+  Package? package = getPackageFor(name);
+  if (package == null) throw "Didn't find '$name' as a package.";
+  LanguageVersion? languageVersion = package.languageVersion;
+  if (languageVersion == null) {
+    throw "'$name' does not have a language version.";
+  }
+  return new Version(languageVersion.major, languageVersion.minor, 0);
 }

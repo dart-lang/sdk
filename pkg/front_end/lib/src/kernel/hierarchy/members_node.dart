@@ -11,19 +11,19 @@ import '../../base/messages.dart'
     show
         LocatedMessage,
         ProblemReporting,
-        messageDeclaredMemberConflictsWithInheritedMember,
-        messageDeclaredMemberConflictsWithInheritedMemberCause,
-        messageDeclaredMemberConflictsWithOverriddenMembersCause,
-        messageEnumAbstractMember,
-        messageInheritedMembersConflict,
-        messageInheritedMembersConflictCause1,
-        messageInheritedMembersConflictCause2,
-        templateCantInferReturnTypeDueToNoCombinedSignature,
-        templateCantInferTypeDueToNoCombinedSignature,
-        templateCantInferTypesDueToNoCombinedSignature,
-        templateInstanceAndSynthesizedStaticConflict,
-        templateMissingImplementationCause,
-        templateMissingImplementationNotAbstract;
+        codeDeclaredMemberConflictsWithInheritedMember,
+        codeDeclaredMemberConflictsWithInheritedMemberCause,
+        codeDeclaredMemberConflictsWithOverriddenMembersCause,
+        codeEnumAbstractMember,
+        codeInheritedMembersConflict,
+        codeInheritedMembersConflictCause1,
+        codeInheritedMembersConflictCause2,
+        codeCantInferReturnTypeDueToNoCombinedSignature,
+        codeCantInferTypeDueToNoCombinedSignature,
+        codeCantInferTypesDueToNoCombinedSignature,
+        codeInstanceAndSynthesizedStaticConflict,
+        codeMissingImplementationCause,
+        codeMissingImplementationNotAbstract;
 import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -59,8 +59,8 @@ abstract class MembersNodeBuilder {
       second = a;
     }
     return <LocatedMessage>[
-      messageInheritedMembersConflictCause1.withLocation2(first.uriOffset),
-      messageInheritedMembersConflictCause2.withLocation2(second.uriOffset),
+      codeInheritedMembersConflictCause1.withLocation2(first.uriOffset),
+      codeInheritedMembersConflictCause2.withLocation2(second.uriOffset),
     ];
   }
 
@@ -74,21 +74,21 @@ abstract class MembersNodeBuilder {
     if (a.declarationBuilder != b.declarationBuilder) {
       if (a.declarationBuilder == declarationBuilder) {
         declarationBuilder.libraryBuilder.addProblem2(
-            messageDeclaredMemberConflictsWithInheritedMember, a.uriOffset,
+            codeDeclaredMemberConflictsWithInheritedMember, a.uriOffset,
             context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
+              codeDeclaredMemberConflictsWithInheritedMemberCause
                   .withLocation2(b.uriOffset)
             ]);
       } else if (b.declarationBuilder == declarationBuilder) {
         declarationBuilder.libraryBuilder.addProblem2(
-            messageDeclaredMemberConflictsWithInheritedMember, b.uriOffset,
+            codeDeclaredMemberConflictsWithInheritedMember, b.uriOffset,
             context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
+              codeDeclaredMemberConflictsWithInheritedMemberCause
                   .withLocation2(a.uriOffset)
             ]);
       } else {
         declarationBuilder.libraryBuilder.addProblem(
-            messageInheritedMembersConflict,
+            codeInheritedMembersConflict,
             declarationBuilder.fileOffset,
             declarationBuilder.fullNameForErrors.length,
             declarationBuilder.fileUri,
@@ -110,7 +110,7 @@ abstract class MembersNodeBuilder {
         // TODO(johnniwinther): Move this to the creation of the shared
         // property builder.
         declarationBuilder.libraryBuilder.addProblem2(
-            templateInstanceAndSynthesizedStaticConflict
+            codeInstanceAndSynthesizedStaticConflict
                 .withArguments(staticMember.name.text),
             instanceMember.uriOffset);
       }
@@ -1031,7 +1031,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       if (classBuilder.isEnum &&
           declaration.declarationBuilder == classBuilder) {
         classBuilder.libraryBuilder.addProblem2(
-          messageEnumAbstractMember,
+          codeEnumAbstractMember,
           declaration.uriOffset,
         );
       } else {
@@ -1039,7 +1039,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         String className = declaration.declarationBuilder.fullNameForErrors;
         String displayName =
             declaration.isSetter ? "$className.$name=" : "$className.$name";
-        contextMap[displayName] = templateMissingImplementationCause
+        contextMap[displayName] = codeMissingImplementationCause
             .withArguments(displayName)
             .withLocation2(declaration.uriOffset);
       }
@@ -1051,7 +1051,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       context.add(contextMap[names[i]]!);
     }
     classBuilder.libraryBuilder.addProblem(
-        templateMissingImplementationNotAbstract.withArguments(
+        codeMissingImplementationNotAbstract.withArguments(
             classBuilder.fullNameForErrors, names),
         classBuilder.fileOffset,
         classBuilder.fullNameForErrors.length,
@@ -2817,7 +2817,7 @@ void reportCantInferParameterType(ProblemReporting problemReporting,
   String name = parameter.name;
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2825,7 +2825,7 @@ void reportCantInferParameterType(ProblemReporting problemReporting,
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
+      codeCantInferTypeDueToNoCombinedSignature.withArguments(name),
       parameter.fileOffset,
       name.length,
       parameter.fileUri,
@@ -2841,7 +2841,7 @@ void reportCantInferTypes(
     required int nameLength}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2849,7 +2849,7 @@ void reportCantInferTypes(
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferTypesDueToNoCombinedSignature.withArguments(name),
+      codeCantInferTypesDueToNoCombinedSignature.withArguments(name),
       nameOffset,
       nameLength,
       fileUri,
@@ -2865,7 +2865,7 @@ void reportCantInferReturnType(
     required int nameLength}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2873,7 +2873,7 @@ void reportCantInferReturnType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
+      codeCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
       nameOffset,
       nameLength,
       fileUri,
@@ -2889,7 +2889,7 @@ void reportCantInferFieldType(
     required int nameLength}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2897,7 +2897,7 @@ void reportCantInferFieldType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
+      codeCantInferTypeDueToNoCombinedSignature.withArguments(name),
       nameOffset,
       nameLength,
       fileUri,

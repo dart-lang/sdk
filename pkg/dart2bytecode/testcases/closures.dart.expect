@@ -514,7 +514,7 @@ Bytecode {
   PushConstant         CP#0
   Push                 r1
   Push                 FP[-5]
-  LoadTypeArgumentsField CP#14
+  LoadTypeArgumentsField CP#13
   AllocateClosure
   StoreLocal           r4
   Push                 r4
@@ -551,8 +551,8 @@ ConstantPool {
   [10] = ClosureFunction 1
   [11] = ClosureFunction 2
   [12] = ObjectRef < dart:core::Type >
-  [13] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/0
-  [14] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A
+  [13] = TypeArgumentsField DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A
+  [14] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/0
   [15] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::TypeParam/1
   [16] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::TypeParam/0
   [17] = Type DART_SDK/pkg/dart2bytecode/testcases/closures.dart::A::foo::TypeParam/1
@@ -605,7 +605,7 @@ L2:
   Push                 r1
   Push                 r1
   LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#14
+  LoadTypeArgumentsField CP#13
   AllocateClosure
   StoreLocal           r4
   Push                 r4
@@ -657,7 +657,7 @@ L2:
   Push                 r1
   Push                 r1
   LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#14
+  LoadTypeArgumentsField CP#13
   AllocateClosure
   StoreLocal           r4
   Push                 r4
@@ -686,12 +686,12 @@ ClosureCode {
   PushConstant         CP#12
   Push                 r1
   LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#14
+  LoadTypeArgumentsField CP#13
   PushNull
-  InstantiateType      CP#13
+  InstantiateType      CP#14
   Push                 r1
   LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#14
+  LoadTypeArgumentsField CP#13
   PushNull
   InstantiateType      CP#15
   PushNull
@@ -717,7 +717,7 @@ ClosureCode {
   Drop1
   Push                 r1
   LoadContextVar       0, 0
-  LoadTypeArgumentsField CP#14
+  LoadTypeArgumentsField CP#13
   Push                 r0
   InstantiateTypeArgumentsTOS 0, CP#26
   DirectCall           CP#27, 1

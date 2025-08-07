@@ -37,7 +37,7 @@ abstract class LookupResult {
       }
       length = noLength;
     }
-    Message message = templateDuplicatedDeclarationUse.withArguments(name);
+    Message message = codeDuplicatedDeclarationUse.withArguments(name);
     return message.withLocation(fileUri, fileOffset, length);
   }
 

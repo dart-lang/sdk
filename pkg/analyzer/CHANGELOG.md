@@ -2,7 +2,9 @@
 * Add `DartObject.constructorInvocation` with the constructor and arguments.
 * Make `PropertyAccessorElement.variable` non-nullable.
 * Add `documentationComment` to `Element` and `Fragment`.
-* Add `metadata` to `Element` and `Fragment`.`
+* Add `metadata` to `Element` and `Fragment`.
+* Add `metadata` to `ElementDirective`.
+* Add `partKeywordOffset` to `PartInclude`.
 * Fix draining analysis events when used by `package:build`.
 * Deprecate `LibraryElementResult.element2`, use `element` instead.
 * Deprecate `ResolvedLibraryResult.element2`, use `element` instead.

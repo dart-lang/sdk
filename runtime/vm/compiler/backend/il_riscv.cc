@@ -1996,6 +1996,21 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(kArrayPos).reg();
   const Location index = locs()->in(kIndexPos);
+  auto const rep =
+      RepresentationUtils::RepresentationOfArrayElement(class_id());
+
+  if (FLAG_target_thread_sanitizer) {
+    if (index.IsRegister()) {
+      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), index_unboxed_, array,
+                                          index.reg());
+    } else {
+      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), array,
+                                          Smi::Cast(index.constant()).Value());
+    }
+    __ TsanRead(TMP, RepresentationUtils::ValueSize(rep));
+  }
 
   compiler::Address element_address(TMP);  // Bad address.
   element_address = index.IsRegister()
@@ -2006,8 +2021,6 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                               IsUntagged(), class_id(), index_scale(), array,
                               Smi::Cast(index.constant()).Value());
 
-  auto const rep =
-      RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(representation() == Boxing::NativeRepresentation(rep));
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
 #if XLEN == 32
@@ -2240,6 +2253,21 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Location index = locs()->in(1);
   const Register temp = locs()->temp(0).reg();
   compiler::Address element_address(TMP);  // Bad address.
+  auto const rep =
+      RepresentationUtils::RepresentationOfArrayElement(class_id());
+
+  if (FLAG_target_thread_sanitizer) {
+    if (index.IsRegister()) {
+      __ ComputeElementAddressForRegIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), index_unboxed_, array,
+                                          index.reg());
+    } else {
+      __ ComputeElementAddressForIntIndex(TMP, IsUntagged(), class_id(),
+                                          index_scale(), array,
+                                          Smi::Cast(index.constant()).Value());
+    }
+    __ TsanWrite(TMP, RepresentationUtils::ValueSize(rep));
+  }
 
   // Deal with a special case separately.
   if (class_id() == kArrayCid && ShouldEmitStoreBarrier()) {
@@ -2265,8 +2293,6 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                               IsUntagged(), class_id(), index_scale(), array,
                               Smi::Cast(index.constant()).Value());
 
-  auto const rep =
-      RepresentationUtils::RepresentationOfArrayElement(class_id());
   ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
   if (IsClampedTypedDataBaseClassId(class_id())) {
     if (locs()->in(2).IsConstant()) {

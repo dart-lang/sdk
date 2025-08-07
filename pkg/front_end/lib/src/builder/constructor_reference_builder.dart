@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../base/lookup_result.dart';
-import '../base/messages.dart' show noLength, templateConstructorNotFound;
+import '../base/messages.dart' show noLength, codeConstructorNotFound;
 import '../base/scope.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -68,7 +68,7 @@ class ConstructorReferenceBuilder {
     }
     if (target == null) {
       accessingLibrary.addProblem(
-          templateConstructorNotFound.withArguments(fullNameForErrors),
+          codeConstructorNotFound.withArguments(fullNameForErrors),
           charOffset,
           noLength,
           fileUri);

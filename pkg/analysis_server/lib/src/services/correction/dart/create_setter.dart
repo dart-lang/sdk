@@ -101,10 +101,13 @@ class CreateSetter extends ResolvedCorrectionProducer {
     // Build setter source.
     var targetFile = targetSource.fullName;
     _setterName = nameNode.name;
+    var parameterTypeNode = climbPropertyAccess(nameNode);
+    var parameterType = inferUndefinedExpressionType(parameterTypeNode);
+    if (parameterType is InvalidType) {
+      return;
+    }
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertGetter(targetNode, (builder) {
-        var parameterTypeNode = climbPropertyAccess(nameNode);
-        var parameterType = inferUndefinedExpressionType(parameterTypeNode);
         builder.writeSetterDeclaration(
           _setterName,
           isStatic: staticModifier,

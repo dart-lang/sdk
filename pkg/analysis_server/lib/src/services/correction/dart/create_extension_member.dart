@@ -81,6 +81,9 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     // Try to find the type of the field.
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     void writeGetter(DartEditBuilder builder) {
       if (inStaticContext) {
@@ -197,6 +200,9 @@ class CreateExtensionMethod extends _CreateExtensionMember {
     DartType? returnType;
     if (invocation ?? parent case Expression exp) {
       returnType = inferUndefinedExpressionType(exp);
+    }
+    if (returnType is InvalidType) {
+      return;
     }
 
     if (returnType is InterfaceType && returnType.isDartCoreFunction) {
@@ -363,6 +369,9 @@ class CreateExtensionOperator extends _CreateExtensionMember {
       // Try to find the return type.
       returnType = inferUndefinedExpressionType(node) ?? VoidTypeImpl.instance;
     }
+    if (returnType is InvalidType) {
+      return;
+    }
 
     void writeMethod(DartEditBuilder builder) {
       if (builder.writeType(
@@ -469,6 +478,9 @@ class CreateExtensionSetter extends _CreateExtensionMember {
     // Try to find the type of the field.
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     void writeSetter(DartEditBuilder builder) {
       builder.writeSetterDeclaration(

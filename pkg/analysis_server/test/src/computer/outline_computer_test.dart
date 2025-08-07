@@ -5,11 +5,13 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
+import '../../utils/test_code_extensions.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -19,6 +21,7 @@ void main() {
 }
 
 class AbstractOutlineComputerTest extends AbstractContextTest {
+  late TestCode parsedTestCode;
   late String testPath;
   late String testCode;
 
@@ -29,7 +32,8 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
   }
 
   Future<Outline> _computeOutline(String code) async {
-    testCode = normalizeSource(code);
+    parsedTestCode = TestCode.parseNormalized(code);
+    testCode = parsedTestCode.code;
     newFile(testPath, testCode);
     var resolveResult = await getResolvedUnit(testFile);
     return DartUnitOutlineComputer(
@@ -145,28 +149,39 @@ MyWidget
 
 @reflectiveTest
 class OutlineComputerTest extends AbstractOutlineComputerTest {
-  String get testPathJson => jsonOfPath(testPath);
-
-  void assertJsonText(Object object, String expected) {
-    expected = expected.trimRight();
+  void assertJson(Object object, Map<String, dynamic> expected) {
+    var expectedJson = JsonEncoder.withIndent('  ').convert(expected);
     var actual = JsonEncoder.withIndent('  ').convert(object);
-    if (actual != expected) {
+    if (actual != expectedJson) {
       print('-----');
       print(actual);
       print('-----');
     }
-    expect(actual, expected);
+    expect(actual, expectedJson);
   }
 
-  String jsonOfPath(String path) {
-    path = convertPath(path);
-    return json.encode(path);
+  Matcher hasCodeOffsetLength(TestCodeRange range) {
+    return TypeMatcher<Outline>()
+        .having(
+          (outline) => outline.codeOffset,
+          'codeOffset',
+          range.sourceRange.offset,
+        )
+        .having(
+          (outline) => outline.codeLength,
+          'codeLength',
+          range.sourceRange.length,
+        );
   }
 
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
+  Matcher hasOffsetLength(TestCodeRange range) {
+    return TypeMatcher<Outline>()
+        .having((outline) => outline.offset, 'offset', range.sourceRange.offset)
+        .having(
+          (outline) => outline.length,
+          'length',
+          range.sourceRange.length,
+        );
   }
 
   Future<void> test_class() async {
@@ -479,268 +494,143 @@ augment class C {
 
   Future<void> test_enum_constants() async {
     var unitOutline = await _computeOutline('''
-enum E {
-  v1, v2
-}
+/*[0*/enum /*[1*/E/*1]*/ {
+  /*[2*/v1/*2]*/, /*[3*/v2/*3]*/
+}/*0]*/
 ''');
 
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
 
-    assertJsonText(topOutlines[0], '''
-{
-  "element": {
-    "kind": "ENUM",
-    "name": "E",
-    "location": {
-      "file": $testPathJson,
-      "offset": 5,
-      "length": 1,
-      "startLine": 1,
-      "startColumn": 6,
-      "endLine": 1,
-      "endColumn": 7
-    },
-    "flags": 0
-  },
-  "offset": 0,
-  "length": 19,
-  "codeOffset": 0,
-  "codeLength": 19,
-  "children": [
-    {
-      "element": {
-        "kind": "ENUM_CONSTANT",
-        "name": "v1",
-        "location": {
-          "file": $testPathJson,
-          "offset": 11,
-          "length": 2,
-          "startLine": 2,
-          "startColumn": 3,
-          "endLine": 2,
-          "endColumn": 5
-        },
-        "flags": 0
+    assertJson(topOutlines[0], {
+      'element': {
+        'kind': 'ENUM',
+        'name': 'E',
+        'location': _elementLocation(parsedTestCode.ranges[1]),
+        'flags': 0,
       },
-      "offset": 11,
-      "length": 2,
-      "codeOffset": 11,
-      "codeLength": 2
-    },
-    {
-      "element": {
-        "kind": "ENUM_CONSTANT",
-        "name": "v2",
-        "location": {
-          "file": $testPathJson,
-          "offset": 15,
-          "length": 2,
-          "startLine": 2,
-          "startColumn": 7,
-          "endLine": 2,
-          "endColumn": 9
+      ..._location(parsedTestCode.ranges[0], parsedTestCode.ranges[0]),
+      'children': [
+        {
+          'element': {
+            'kind': 'ENUM_CONSTANT',
+            'name': 'v1',
+            'location': _elementLocation(parsedTestCode.ranges[2]),
+            'flags': 0,
+          },
+          ..._location(parsedTestCode.ranges[2], parsedTestCode.ranges[2]),
         },
-        "flags": 0
-      },
-      "offset": 15,
-      "length": 2,
-      "codeOffset": 15,
-      "codeLength": 2
-    }
-  ]
-}
-''');
+        {
+          'element': {
+            'kind': 'ENUM_CONSTANT',
+            'name': 'v2',
+            'location': _elementLocation(parsedTestCode.ranges[3]),
+            'flags': 0,
+          },
+          ..._location(parsedTestCode.ranges[3], parsedTestCode.ranges[3]),
+        },
+      ],
+    });
   }
 
   Future<void> test_enum_members() async {
     var unitOutline = await _computeOutline('''
-enum E {
-  v;
-  final int f = 0;
-  const E();
-  const E.named();
-  void aMethod() {}
-  int get aGetter => 0;
-  set aSetter(int value) {}
-}
+/*[0*/enum /*[1*/E/*1]*/ {
+  /*[2*/v/*2]*/;
+  /*[3*/final int /*[4*//*[5*/f/*4]*/ = 0/*5]*/;/*3]*/
+  /*[6*/const /*[7*/E/*7]*/();/*6]*/
+  /*[8*/const E./*[9*/named/*9]*/();/*8]*/
+  /*[10*/void /*[11*/aMethod/*11]*/() {}/*10]*/;
+  /*[12*/int get /*[13*/aGetter/*13]*/ => 0;/*12]*/
+  /*[14*/set /*[15*/aSetter/*15]*/(int value) {}/*14]*/;
+}/*0]*/
 ''');
 
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
 
-    assertJsonText(topOutlines[0], '''
-{
-  "element": {
-    "kind": "ENUM",
-    "name": "E",
-    "location": {
-      "file": $testPathJson,
-      "offset": 5,
-      "length": 1,
-      "startLine": 1,
-      "startColumn": 6,
-      "endLine": 1,
-      "endColumn": 7
-    },
-    "flags": 0
-  },
-  "offset": 0,
-  "length": 138,
-  "codeOffset": 0,
-  "codeLength": 138,
-  "children": [
-    {
-      "element": {
-        "kind": "ENUM_CONSTANT",
-        "name": "v",
-        "location": {
-          "file": $testPathJson,
-          "offset": 11,
-          "length": 1,
-          "startLine": 2,
-          "startColumn": 3,
-          "endLine": 2,
-          "endColumn": 4
-        },
-        "flags": 0
+    assertJson(topOutlines[0], {
+      'element': {
+        'kind': 'ENUM',
+        'name': 'E',
+        'location': _elementLocation(parsedTestCode.ranges[1]),
+        'flags': 0,
       },
-      "offset": 11,
-      "length": 1,
-      "codeOffset": 11,
-      "codeLength": 1
-    },
-    {
-      "element": {
-        "kind": "FIELD",
-        "name": "f",
-        "location": {
-          "file": $testPathJson,
-          "offset": 26,
-          "length": 1,
-          "startLine": 3,
-          "startColumn": 13,
-          "endLine": 3,
-          "endColumn": 14
+      ..._location(parsedTestCode.ranges[0], parsedTestCode.ranges[0]),
+      'children': [
+        {
+          'element': {
+            'kind': 'ENUM_CONSTANT',
+            'name': 'v',
+            'location': _elementLocation(parsedTestCode.ranges[2]),
+            'flags': 0,
+          },
+          ..._location(parsedTestCode.ranges[2], parsedTestCode.ranges[2]),
         },
-        "flags": 4,
-        "returnType": "int"
-      },
-      "offset": 16,
-      "length": 16,
-      "codeOffset": 26,
-      "codeLength": 5
-    },
-    {
-      "element": {
-        "kind": "CONSTRUCTOR",
-        "name": "E",
-        "location": {
-          "file": $testPathJson,
-          "offset": 41,
-          "length": 1,
-          "startLine": 4,
-          "startColumn": 9,
-          "endLine": 4,
-          "endColumn": 10
+        {
+          'element': {
+            'kind': 'FIELD',
+            'name': 'f',
+            'location': _elementLocation(parsedTestCode.ranges[4]),
+            'flags': 4,
+            'returnType': 'int',
+          },
+          ..._location(parsedTestCode.ranges[3], parsedTestCode.ranges[5]),
         },
-        "flags": 0,
-        "parameters": "()"
-      },
-      "offset": 35,
-      "length": 10,
-      "codeOffset": 35,
-      "codeLength": 10
-    },
-    {
-      "element": {
-        "kind": "CONSTRUCTOR",
-        "name": "E.named",
-        "location": {
-          "file": $testPathJson,
-          "offset": 56,
-          "length": 5,
-          "startLine": 5,
-          "startColumn": 11,
-          "endLine": 5,
-          "endColumn": 16
+        {
+          'element': {
+            'kind': 'CONSTRUCTOR',
+            'name': 'E',
+            'location': _elementLocation(parsedTestCode.ranges[7]),
+            'flags': 0,
+            'parameters': '()',
+          },
+          ..._location(parsedTestCode.ranges[6], parsedTestCode.ranges[6]),
         },
-        "flags": 0,
-        "parameters": "()"
-      },
-      "offset": 48,
-      "length": 16,
-      "codeOffset": 48,
-      "codeLength": 16
-    },
-    {
-      "element": {
-        "kind": "METHOD",
-        "name": "aMethod",
-        "location": {
-          "file": $testPathJson,
-          "offset": 72,
-          "length": 7,
-          "startLine": 6,
-          "startColumn": 8,
-          "endLine": 6,
-          "endColumn": 15
+        {
+          'element': {
+            'kind': 'CONSTRUCTOR',
+            'name': 'E.named',
+            'location': _elementLocation(parsedTestCode.ranges[9]),
+            'flags': 0,
+            'parameters': '()',
+          },
+          ..._location(parsedTestCode.ranges[8], parsedTestCode.ranges[8]),
         },
-        "flags": 0,
-        "parameters": "()",
-        "returnType": "void"
-      },
-      "offset": 67,
-      "length": 17,
-      "codeOffset": 67,
-      "codeLength": 17
-    },
-    {
-      "element": {
-        "kind": "GETTER",
-        "name": "aGetter",
-        "location": {
-          "file": $testPathJson,
-          "offset": 95,
-          "length": 7,
-          "startLine": 7,
-          "startColumn": 11,
-          "endLine": 7,
-          "endColumn": 18
+        {
+          'element': {
+            'kind': 'METHOD',
+            'name': 'aMethod',
+            'location': _elementLocation(parsedTestCode.ranges[11]),
+            'flags': 0,
+            'parameters': '()',
+            'returnType': 'void',
+          },
+          ..._location(parsedTestCode.ranges[10], parsedTestCode.ranges[10]),
         },
-        "flags": 0,
-        "returnType": "int"
-      },
-      "offset": 87,
-      "length": 21,
-      "codeOffset": 87,
-      "codeLength": 21
-    },
-    {
-      "element": {
-        "kind": "SETTER",
-        "name": "aSetter",
-        "location": {
-          "file": $testPathJson,
-          "offset": 115,
-          "length": 7,
-          "startLine": 8,
-          "startColumn": 7,
-          "endLine": 8,
-          "endColumn": 14
+        {
+          'element': {
+            'kind': 'GETTER',
+            'name': 'aGetter',
+            'location': _elementLocation(parsedTestCode.ranges[13]),
+            'flags': 0,
+            'returnType': 'int',
+          },
+          ..._location(parsedTestCode.ranges[12], parsedTestCode.ranges[12]),
         },
-        "flags": 0,
-        "parameters": "(int value)",
-        "returnType": ""
-      },
-      "offset": 111,
-      "length": 25,
-      "codeOffset": 111,
-      "codeLength": 25
-    }
-  ]
-}
-''');
+        {
+          'element': {
+            'kind': 'SETTER',
+            'name': 'aSetter',
+            'location': _elementLocation(parsedTestCode.ranges[15]),
+            'flags': 0,
+            'parameters': '(int value)',
+            'returnType': '',
+          },
+          ..._location(parsedTestCode.ranges[14], parsedTestCode.ranges[14]),
+        },
+      ],
+    });
   }
 
   Future<void> test_extension_named() async {
@@ -1421,12 +1311,12 @@ mixin M<N> {
   Future<void> test_sourceRanges_fields() async {
     var unitOutline = await _computeOutline('''
 class A {
-  int fieldA, fieldB = 2;
+  /*[0*/int /*[1*/fieldA/*1]*//*0]*/, /*[2*//*[3*/fieldB = 2/*3]*/;/*2]*/
 
-  int fieldC;
+  /*[4*/int /*[5*/fieldC/*5]*/;/*4]*/
 
-  /// Documentation.
-  int fieldD;
+  /*[6*///// Documentation.
+  int /*[7*/fieldD/*7]*/;/*6]*/
 }
 ''');
     var outlines = unitOutline.children![0].children!;
@@ -1439,11 +1329,8 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldA');
 
-      expect(outline.offset, 12);
-      expect(outline.length, 10);
-
-      expect(outline.codeOffset, 16);
-      expect(outline.codeLength, 6);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[0]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[1]));
     }
 
     // fieldB
@@ -1453,11 +1340,8 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldB');
 
-      expect(outline.offset, 24);
-      expect(outline.length, 11);
-
-      expect(outline.codeOffset, 24);
-      expect(outline.codeLength, 10);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[2]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[3]));
     }
 
     // fieldC
@@ -1467,11 +1351,8 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldC');
 
-      expect(outline.offset, 39);
-      expect(outline.length, 11);
-
-      expect(outline.codeOffset, 43);
-      expect(outline.codeLength, 6);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[4]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[5]));
     }
 
     // fieldD
@@ -1481,20 +1362,17 @@ class A {
       expect(element.kind, ElementKind.FIELD);
       expect(element.name, 'fieldD');
 
-      expect(outline.offset, 54);
-      expect(outline.length, 32);
-
-      expect(outline.codeOffset, 79);
-      expect(outline.codeLength, 6);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[6]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[7]));
     }
   }
 
   Future<void> test_sourceRanges_inUnit() async {
     var unitOutline = await _computeOutline('''
-/// My first class.
-class A {}
+/*[0*//// My first class.
+/*[1*/class A {}/*1]*//*0]*/
 
-class B {}
+/*[2*/class B {}/*2]*/
 ''');
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(2));
@@ -1506,11 +1384,8 @@ class B {}
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, 'A');
 
-      expect(outline.offset, 0);
-      expect(outline.length, 30);
-
-      expect(outline.codeOffset, 20);
-      expect(outline.codeLength, 10);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[0]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[1]));
     }
 
     // B
@@ -1520,22 +1395,19 @@ class B {}
       expect(element.kind, ElementKind.CLASS);
       expect(element.name, 'B');
 
-      expect(outline.offset, 32);
-      expect(outline.length, 10);
-
-      expect(outline.codeOffset, 32);
-      expect(outline.codeLength, 10);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[2]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[2]));
     }
   }
 
   Future<void> test_sourceRanges_method() async {
     var unitOutline = await _computeOutline('''
 class A {
-  int methodA() {}
+  /*[0*/int methodA() {}/*0]*/
 
-  /// Documentation.
+  /*[1*//// Documentation.
   @override
-  int methodB() {}
+  /*[2*/int methodB() {}/*2]*//*1]*/
 }
 ''');
     var outlines = unitOutline.children![0].children!;
@@ -1548,11 +1420,8 @@ class A {
       expect(element.kind, ElementKind.METHOD);
       expect(element.name, 'methodA');
 
-      expect(outline.offset, 12);
-      expect(outline.length, 16);
-
-      expect(outline.codeOffset, 12);
-      expect(outline.codeLength, 16);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[0]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[0]));
     }
 
     // methodB
@@ -1562,11 +1431,8 @@ class A {
       expect(element.kind, ElementKind.METHOD);
       expect(element.name, 'methodB');
 
-      expect(outline.offset, 32);
-      expect(outline.length, 49);
-
-      expect(outline.codeOffset, 65);
-      expect(outline.codeLength, 16);
+      expect(outline, hasOffsetLength(parsedTestCode.ranges[1]));
+      expect(outline, hasCodeOffsetLength(parsedTestCode.ranges[2]));
     }
   }
 
@@ -1715,155 +1581,94 @@ set propB(int v) {}
 
   Future<void> test_topLevelFunction_recordTypes() async {
     var unitOutline = await _computeOutline('''
-(int, int) f((String, String) r) => throw '';
+/*[0*/(int, int) /*[1*/f/*1]*/((String, String) r) => throw '';/*0]*/
 ''');
 
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
 
-    assertJsonText(topOutlines[0], '''
-{
-  "element": {
-    "kind": "FUNCTION",
-    "name": "f",
-    "location": {
-      "file": $testPathJson,
-      "offset": 11,
-      "length": 1,
-      "startLine": 1,
-      "startColumn": 12,
-      "endLine": 1,
-      "endColumn": 13
-    },
-    "flags": 8,
-    "parameters": "((String, String) r)",
-    "returnType": "(int, int)"
-  },
-  "offset": 0,
-  "length": 45,
-  "codeOffset": 0,
-  "codeLength": 45
-}
-''');
+    assertJson(topOutlines[0], {
+      'element': {
+        'kind': 'FUNCTION',
+        'name': 'f',
+        'location': _elementLocation(parsedTestCode.ranges[1]),
+        'flags': 8,
+        'parameters': '((String, String) r)',
+        'returnType': '(int, int)',
+      },
+      ..._location(parsedTestCode.ranges[0], parsedTestCode.ranges[0]),
+    });
   }
 
   Future<void> test_topLevelVariable_recordTypes() async {
     var unitOutline = await _computeOutline('''
-(int, int)? r = null;
+/*[0*/(int, int)? /*[1*//*[2*/r/*2]*/ = null/*1]*/;/*0]*/
 ''');
 
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
 
-    assertJsonText(topOutlines[0], '''
-{
-  "element": {
-    "kind": "TOP_LEVEL_VARIABLE",
-    "name": "r",
-    "location": {
-      "file": $testPathJson,
-      "offset": 12,
-      "length": 1,
-      "startLine": 1,
-      "startColumn": 13,
-      "endLine": 1,
-      "endColumn": 14
-    },
-    "flags": 0,
-    "returnType": "(int, int)?"
-  },
-  "offset": 0,
-  "length": 21,
-  "codeOffset": 12,
-  "codeLength": 8
-}
-''');
+    assertJson(topOutlines[0], {
+      'element': {
+        'kind': 'TOP_LEVEL_VARIABLE',
+        'name': 'r',
+        'location': _elementLocation(parsedTestCode.ranges[2]),
+        'flags': 0,
+        'returnType': '(int, int)?',
+      },
+      ..._location(parsedTestCode.ranges[0], parsedTestCode.ranges[1]),
+    });
   }
 
   Future<void> test_wildcardLocalFunction() async {
     var unitOutline = await _computeOutline('''
-f() {
-  _() {
-    _(){}
-  }
-}
+/*[0*//*[1*/f/*1]*/() {
+  /*[2*//*[3*/_/*3]*/() {
+    /*[4*//*[5*/_/*5]*/(){}/*4]*/
+  }/*2]*/
+}/*0]*/
 ''');
 
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
 
-    assertJsonText(topOutlines.first, '''
-{
-  "element": {
-    "kind": "FUNCTION",
-    "name": "f",
-    "location": {
-      "file": $testPathJson,
-      "offset": 0,
-      "length": 1,
-      "startLine": 1,
-      "startColumn": 1,
-      "endLine": 1,
-      "endColumn": 2
-    },
-    "flags": 8,
-    "parameters": "()",
-    "returnType": ""
-  },
-  "offset": 0,
-  "length": 29,
-  "codeOffset": 0,
-  "codeLength": 29,
-  "children": [
-    {
-      "element": {
-        "kind": "FUNCTION",
-        "name": "_",
-        "location": {
-          "file": $testPathJson,
-          "offset": 8,
-          "length": 1,
-          "startLine": 2,
-          "startColumn": 3,
-          "endLine": 2,
-          "endColumn": 4
-        },
-        "flags": 16,
-        "parameters": "()",
-        "returnType": ""
+    assertJson(topOutlines.first, {
+      'element': {
+        'kind': 'FUNCTION',
+        'name': 'f',
+        'location': _elementLocation(parsedTestCode.ranges[1]),
+        'flags': 8,
+        'parameters': '()',
+        'returnType': '',
       },
-      "offset": 8,
-      "length": 19,
-      "codeOffset": 8,
-      "codeLength": 19,
-      "children": [
+      ..._location(parsedTestCode.ranges[0], parsedTestCode.ranges[0]),
+      'children': [
         {
-          "element": {
-            "kind": "FUNCTION",
-            "name": "_",
-            "location": {
-              "file": $testPathJson,
-              "offset": 18,
-              "length": 1,
-              "startLine": 3,
-              "startColumn": 5,
-              "endLine": 3,
-              "endColumn": 6
-            },
-            "flags": 16,
-            "parameters": "()",
-            "returnType": ""
+          'element': {
+            'kind': 'FUNCTION',
+            'name': '_',
+            'location': _elementLocation(parsedTestCode.ranges[3]),
+            'flags': 16,
+            'parameters': '()',
+            'returnType': '',
           },
-          "offset": 18,
-          "length": 5,
-          "codeOffset": 18,
-          "codeLength": 5
-        }
-      ]
-    }
-  ]
-}
-''');
+          ..._location(parsedTestCode.ranges[2], parsedTestCode.ranges[2]),
+          'children': [
+            {
+              'element': {
+                'kind': 'FUNCTION',
+                'name': '_',
+                'location': _elementLocation(parsedTestCode.ranges[5]),
+                'flags': 16,
+                'parameters': '()',
+                'returnType': '',
+              },
+              ..._location(parsedTestCode.ranges[4], parsedTestCode.ranges[4]),
+            },
+          ],
+        },
+      ],
+    });
   }
 
   Future<void> test_wildcardLocalFunction_preWildcards() async {
@@ -1871,88 +1676,65 @@ f() {
 // @dart = 3.4
 // (pre wildcard-variables)
 
-f() {
-  _() {
-    _(){}
-  }
-}
+/*[0*//*[1*/f/*1]*/() {
+  /*[2*//*[3*/_/*3]*/() {
+    /*[4*//*[5*/_/*5]*/(){}/*4]*/
+  }/*2]*/
+}/*0]*/
 ''');
 
     var topOutlines = unitOutline.children!;
     expect(topOutlines, hasLength(1));
 
-    assertJsonText(topOutlines.first, '''
-{
-  "element": {
-    "kind": "FUNCTION",
-    "name": "f",
-    "location": {
-      "file": $testPathJson,
-      "offset": 44,
-      "length": 1,
-      "startLine": 4,
-      "startColumn": 1,
-      "endLine": 4,
-      "endColumn": 2
-    },
-    "flags": 8,
-    "parameters": "()",
-    "returnType": ""
-  },
-  "offset": 44,
-  "length": 29,
-  "codeOffset": 44,
-  "codeLength": 29,
-  "children": [
-    {
-      "element": {
-        "kind": "FUNCTION",
-        "name": "_",
-        "location": {
-          "file": $testPathJson,
-          "offset": 52,
-          "length": 1,
-          "startLine": 5,
-          "startColumn": 3,
-          "endLine": 5,
-          "endColumn": 4
-        },
-        "flags": 16,
-        "parameters": "()",
-        "returnType": ""
+    assertJson(topOutlines.first, {
+      'element': {
+        'kind': 'FUNCTION',
+        'name': 'f',
+        'location': _elementLocation(parsedTestCode.ranges[1]),
+        'flags': 8,
+        'parameters': '()',
+        'returnType': '',
       },
-      "offset": 52,
-      "length": 19,
-      "codeOffset": 52,
-      "codeLength": 19,
-      "children": [
+      ..._location(parsedTestCode.ranges[0], parsedTestCode.ranges[0]),
+      'children': [
         {
-          "element": {
-            "kind": "FUNCTION",
-            "name": "_",
-            "location": {
-              "file": $testPathJson,
-              "offset": 62,
-              "length": 1,
-              "startLine": 6,
-              "startColumn": 5,
-              "endLine": 6,
-              "endColumn": 6
-            },
-            "flags": 16,
-            "parameters": "()",
-            "returnType": ""
+          'element': {
+            'kind': 'FUNCTION',
+            'name': '_',
+            'location': _elementLocation(parsedTestCode.ranges[3]),
+            'flags': 16,
+            'parameters': '()',
+            'returnType': '',
           },
-          "offset": 62,
-          "length": 5,
-          "codeOffset": 62,
-          "codeLength": 5
-        }
-      ]
-    }
-  ]
-}
-''');
+          ..._location(parsedTestCode.ranges[2], parsedTestCode.ranges[2]),
+          'children': [
+            {
+              'element': {
+                'kind': 'FUNCTION',
+                'name': '_',
+                'location': _elementLocation(parsedTestCode.ranges[5]),
+                'flags': 16,
+                'parameters': '()',
+                'returnType': '',
+              },
+              ..._location(parsedTestCode.ranges[4], parsedTestCode.ranges[4]),
+            },
+          ],
+        },
+      ],
+    });
+  }
+
+  Map<String, Object?> _elementLocation(TestCodeRange range) {
+    return {
+      'file': convertPath(testFilePath),
+      'offset': range.sourceRange.offset,
+      'length': range.sourceRange.length,
+      'startLine': range.range.start.line + 1,
+      'startColumn': range.range.start.character + 1,
+      'endLine': range.range.end.line + 1,
+      'endColumn': range.range.end.character + 1,
+    };
   }
 
   void _expect(
@@ -1990,5 +1772,14 @@ f() {
     if (returnType != null) {
       expect(element.returnType, returnType);
     }
+  }
+
+  Map<String, Object?> _location(TestCodeRange name, TestCodeRange code) {
+    return {
+      'offset': name.sourceRange.offset,
+      'length': name.sourceRange.length,
+      'codeOffset': code.sourceRange.offset,
+      'codeLength': code.sourceRange.length,
+    };
   }
 }

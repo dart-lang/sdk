@@ -6,7 +6,6 @@ import 'package:analyzer/src/lint/io.dart';
 
 import 'ascii_utils_test.dart' as ascii_utils;
 import 'doc_test.dart' as doc;
-import 'engine_test.dart' as engine;
 import 'formatter_test.dart' as formatter;
 import 'integration_test.dart' as integration;
 import 'lint_code_test.dart' as lint_code;
@@ -31,7 +30,6 @@ void main() {
 
   ascii_utils.main();
   doc.main();
-  engine.main();
   formatter.main();
   integration.main();
   lint_code.main();

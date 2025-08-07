@@ -1095,7 +1095,7 @@ class LibraryReader {
   }) {
     var uri = _readDirectiveUri(containerUnit: containerUnit);
 
-    return PartIncludeImpl(uri: uri);
+    return PartIncludeImpl(partKeywordOffset: -1, uri: uri);
   }
 
   /// Read the reference of a non-local element.

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._js_types;
+part of "dart:_js_types";
 
 /// Container class for constants that represent the possible types of a
 /// [WasmExternRef] that can be passed to [JSArrayBufferImpl].

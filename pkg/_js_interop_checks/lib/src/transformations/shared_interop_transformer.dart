@@ -9,13 +9,13 @@ import 'package:_js_interop_checks/js_interop_checks.dart'
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/api_prototype/codes.dart'
     show
-        messageJsInteropIsATearoff,
-        templateJsInteropExportClassNotMarkedExportable,
-        templateJsInteropExportInvalidInteropTypeArgument,
-        templateJsInteropExportInvalidTypeArgument,
-        templateJsInteropIsAInvalidTypeVariable,
-        templateJsInteropIsAObjectLiteralType,
-        templateJsInteropIsAPrimitiveExtensionType;
+        codeJsInteropIsATearoff,
+        codeJsInteropExportClassNotMarkedExportable,
+        codeJsInteropExportInvalidInteropTypeArgument,
+        codeJsInteropExportInvalidTypeArgument,
+        codeJsInteropIsAInvalidTypeVariable,
+        codeJsInteropIsAObjectLiteralType,
+        codeJsInteropIsAPrimitiveExtensionType;
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
@@ -194,7 +194,7 @@ class SharedInteropTransformer extends Transformer {
         if (!_inIsATearoff) {
           assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-            templateJsInteropIsAInvalidTypeVariable.withArguments(interopType),
+            codeJsInteropIsAInvalidTypeVariable.withArguments(interopType),
             invocation.fileOffset,
             invocation.name.text.length,
             invocation.location?.file,
@@ -205,7 +205,7 @@ class SharedInteropTransformer extends Transformer {
     } else if (target == _isATearoff) {
       // Calling the generated tear-off is still bad, however.
       _diagnosticReporter.report(
-        messageJsInteropIsATearoff,
+        codeJsInteropIsATearoff,
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -237,7 +237,7 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-        templateJsInteropExportInvalidTypeArgument.withArguments(dartType),
+        codeJsInteropExportInvalidTypeArgument.withArguments(dartType),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -249,9 +249,7 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-        templateJsInteropExportInvalidInteropTypeArgument.withArguments(
-          dartType,
-        ),
+        codeJsInteropExportInvalidInteropTypeArgument.withArguments(dartType),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -273,7 +271,7 @@ class SharedInteropTransformer extends Transformer {
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
-        templateJsInteropExportClassNotMarkedExportable.withArguments(
+        codeJsInteropExportClassNotMarkedExportable.withArguments(
           dartClass.name,
         ),
         invocation.fileOffset,
@@ -571,7 +569,7 @@ class SharedInteropTransformer extends Transformer {
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-              templateJsInteropIsAObjectLiteralType.withArguments(interopType),
+              codeJsInteropIsAObjectLiteralType.withArguments(interopType),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file,
@@ -600,7 +598,7 @@ class SharedInteropTransformer extends Transformer {
     if (typeofString != null) {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
-          templateJsInteropIsAPrimitiveExtensionType.withArguments(
+          codeJsInteropIsAPrimitiveExtensionType.withArguments(
             interopType,
             jsTypeName,
           ),

@@ -2823,6 +2823,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 12
           metadata
             Annotation
               atSign: @ @0
@@ -2862,6 +2863,7 @@ library
       parts
         part_0
           uri: source 'dart:math'
+          partKeywordOffset: 12
           metadata
             Annotation
               atSign: @ @0
@@ -4889,6 +4891,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 22
           metadata
             Annotation
               atSign: @ @17
@@ -4900,6 +4903,7 @@ library
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 43
           metadata
             Annotation
               atSign: @ @38
@@ -5387,6 +5391,7 @@ library
       parts
         part_0
           uri: package:test/foo.dart
+          partKeywordOffset: 3
           metadata
             Annotation
               atSign: @ @0
@@ -5446,6 +5451,7 @@ library
       parts
         part_0
           uri: package:test/foo.dart
+          partKeywordOffset: 14
           metadata
             Annotation
               atSign: @ @11
@@ -5526,6 +5532,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5568,6 +5575,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5605,6 +5613,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -5648,6 +5657,7 @@ library
       parts
         part_0
           uri: package:test/b.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/b.dart
       element: <testLibrary>
@@ -5657,6 +5667,7 @@ library
       parts
         part_1
           uri: package:test/a.dart
+          partKeywordOffset: 33
           metadata
             Annotation
               atSign: @ @21

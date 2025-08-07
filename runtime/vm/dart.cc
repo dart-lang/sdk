@@ -232,7 +232,7 @@ static void CheckOffsets() {
        i <= static_cast<intptr_t>(Last); i++) {                                \
     if (Filter(static_cast<Type>(i))) {                                        \
       CHECK_OFFSET(Class::Getter(static_cast<Type>(i)),                        \
-                   AOT_##Class##_##Getter[i]);                                 \
+                   AOT_##Class##_##Getter[i - static_cast<intptr_t>(First)]);  \
     }                                                                          \
   }
 #define CHECK_CONSTANT(Class, Name)                                            \
@@ -257,7 +257,8 @@ static void CheckOffsets() {
   for (intptr_t i = static_cast<intptr_t>(First);                              \
        i <= static_cast<intptr_t>(Last); i++) {                                \
     if (Filter(static_cast<Type>(i))) {                                        \
-      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)), Class##_##Getter[i]);  \
+      CHECK_OFFSET(Class::Getter(static_cast<Type>(i)),                        \
+                   Class##_##Getter[i - static_cast<intptr_t>(First)]);        \
     }                                                                          \
   }
 #define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name);

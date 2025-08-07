@@ -429,7 +429,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(ahe): We should probably use a context object here
     // instead of including URIs in this message.
     Message message =
-        templateDuplicatedExport.withArguments(name, firstUri, secondUri);
+        codeDuplicatedExport.withArguments(name, firstUri, secondUri);
     addProblem(message, uriOffset.fileOffset, noLength, uriOffset.fileUri);
     // We report the error lazily (setting errorHasBeenReported to false)
     // because the spec 18.1 states that 'It is not an error if N is introduced
@@ -877,11 +877,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       bool isValid = typeEnvironment.isSubtypeOf(getterType, setterType);
       if (!isValid) {
         addProblem2(
-            templateInvalidGetterSetterType.withArguments(
+            codeInvalidGetterSetterType.withArguments(
                 getterType, getterName, setterType, setterName),
             getterUriOffset,
             context: [
-              templateInvalidGetterSetterTypeSetterContext
+              codeInvalidGetterSetterTypeSetterContext
                   .withArguments(setterName)
                   .withLocation2(setterUriOffset)
             ]);
@@ -1232,10 +1232,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           typeArgumentsInfo?.getOffsetForIndex(issue.index, offset) ?? offset;
       if (issue.isGenericTypeAsArgumentIssue) {
         if (issueInferred) {
-          message = templateGenericFunctionTypeInferredAsActualTypeArgument
+          message = codeGenericFunctionTypeInferredAsActualTypeArgument
               .withArguments(argument);
         } else {
-          message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+          message = codeGenericFunctionTypeUsedAsActualTypeArgument;
         }
         typeParameter = null;
       } else {
@@ -1243,14 +1243,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (targetName != null) {
             if (issueInferred) {
               message =
-                  templateIncorrectTypeArgumentQualifiedInferred.withArguments(
+                  codeIncorrectTypeArgumentQualifiedInferred.withArguments(
                       argument,
                       typeParameter.bound,
                       typeParameter.name!,
                       targetReceiver,
                       targetName);
             } else {
-              message = templateIncorrectTypeArgumentQualified.withArguments(
+              message = codeIncorrectTypeArgumentQualified.withArguments(
                   argument,
                   typeParameter.bound,
                   typeParameter.name!,
@@ -1260,16 +1260,18 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           } else {
             if (issueInferred) {
               // Coverage-ignore-block(suite): Not run.
-              message = templateIncorrectTypeArgumentInstantiationInferred
-                  .withArguments(argument, typeParameter.bound,
-                      typeParameter.name!, targetReceiver);
-            } else {
               message =
-                  templateIncorrectTypeArgumentInstantiation.withArguments(
+                  codeIncorrectTypeArgumentInstantiationInferred.withArguments(
                       argument,
                       typeParameter.bound,
                       typeParameter.name!,
                       targetReceiver);
+            } else {
+              message = codeIncorrectTypeArgumentInstantiation.withArguments(
+                  argument,
+                  typeParameter.bound,
+                  typeParameter.name!,
+                  targetReceiver);
             }
           }
         } else {
@@ -1277,13 +1279,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
           if (issueInferred) {
-            message = templateIncorrectTypeArgumentInferred.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name!,
-                enclosingName);
+            message = codeIncorrectTypeArgumentInferred.withArguments(argument,
+                typeParameter.bound, typeParameter.name!, enclosingName);
           } else {
-            message = templateIncorrectTypeArgument.withArguments(argument,
+            message = codeIncorrectTypeArgument.withArguments(argument,
                 typeParameter.bound, typeParameter.name!, enclosingName);
           }
         }
@@ -1313,14 +1312,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
-          messageIncorrectTypeArgumentVariable.withLocation(
+          codeIncorrectTypeArgumentVariable.withLocation(
               typeParameter.location!.file,
               typeParameter.fileOffset,
               noLength));
     }
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
       // Coverage-ignore-block(suite): Not run.
-      (context ??= <LocatedMessage>[]).add(templateSuperBoundedHint
+      (context ??= <LocatedMessage>[]).add(codeSuperBoundedHint
           .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
           .withLocation(fileUri, fileOffset, noLength));
     }
@@ -1339,7 +1338,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // It looks like when parameters come from augmentation libraries, they
       // don't have a reportable location.
       (context ??= <LocatedMessage>[]).add(
-          messageIncorrectTypeArgumentVariable.withLocation(
+          codeIncorrectTypeArgumentVariable.withLocation(
               typeParameter.location!.file,
               typeParameter.fileOffset,
               noLength));
@@ -1347,7 +1346,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (superBoundedAttemptInverted != null && superBoundedAttempt != null) {
       (context ??= // Coverage-ignore(suite): Not run.
               <LocatedMessage>[])
-          .add(templateSuperBoundedHint
+          .add(codeSuperBoundedHint
               .withArguments(superBoundedAttempt, superBoundedAttemptInverted)
               .withLocation(fileUri, fileOffset, noLength));
     }
@@ -1376,7 +1375,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         fieldType.isPotentiallyNonNullable &&
         !hasInitializer) {
       addProblem(
-          templateFieldNonNullableWithoutInitializerError.withArguments(
+          codeFieldNonNullableWithoutInitializerError.withArguments(
               name, fieldType),
           nameOffset,
           nameLength,
@@ -1399,7 +1398,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             formal.variable!.type.isPotentiallyNonNullable &&
             !formal.hasDeclaredInitializer) {
           addProblem(
-              templateOptionalNonNullableWithoutInitializerError.withArguments(
+              codeOptionalNonNullableWithoutInitializerError.withArguments(
                   formal.name, formal.variable!.type),
               formal.fileOffset,
               formal.name.length,
@@ -1773,8 +1772,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       DartType unaliased = type.unalias;
       if (hasGenericFunctionTypeAsTypeArgument(unaliased)) {
         addProblem(
-            templateGenericFunctionTypeAsTypeArgumentThroughTypedef
-                .withArguments(unaliased, type),
+            codeGenericFunctionTypeAsTypeArgumentThroughTypedef.withArguments(
+                unaliased, type),
             fileOffset,
             noLength,
             fileUri);

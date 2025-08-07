@@ -387,7 +387,7 @@ class EnumElementDeclaration
         assert(libraryBuilder.loader.hasSeenError);
         String text = libraryBuilder.loader.target.context
             .format(
-                templateConstructorNotFound
+                codeConstructorNotFound
                     .withArguments(fullConstructorNameForErrors)
                     .withLocation(fileUri, fileOffset, noLength),
                 CfeSeverity.error)

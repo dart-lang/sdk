@@ -30,18 +30,18 @@ import '../base/messages.dart'
         FormattedMessage,
         LocatedMessage,
         Message,
-        messageConstConstructorLateFinalFieldCause,
-        messageConstConstructorLateFinalFieldError,
-        messageConstConstructorNonFinalField,
-        messageConstConstructorNonFinalFieldCause,
-        messageConstConstructorRedirectionToNonConst,
+        codeConstConstructorLateFinalFieldCause,
+        codeConstConstructorLateFinalFieldError,
+        codeConstConstructorNonFinalField,
+        codeConstConstructorNonFinalFieldCause,
+        codeConstConstructorRedirectionToNonConst,
         noLength,
-        templateFieldNonNullableNotInitializedByConstructorError,
-        templateFieldNonNullableWithoutInitializerError,
-        templateFinalFieldNotInitialized,
-        templateFinalFieldNotInitializedByConstructor,
-        templateMissingImplementationCause,
-        templateSuperclassHasNoDefaultConstructor;
+        codeFieldNonNullableNotInitializedByConstructorError,
+        codeFieldNonNullableWithoutInitializerError,
+        codeFinalFieldNotInitialized,
+        codeFinalFieldNotInitializedByConstructor,
+        codeMissingImplementationCause,
+        codeSuperclassHasNoDefaultConstructor;
 import '../base/processed_options.dart' show ProcessedOptions;
 import '../base/ticker.dart' show Ticker;
 import '../base/uri_offset.dart';
@@ -1295,7 +1295,7 @@ class KernelTarget {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
             classBuilder.libraryBuilder.addProblem(
-                messageConstConstructorRedirectionToNonConst,
+                codeConstConstructorRedirectionToNonConst,
                 initializer.fileOffset,
                 initializer.target.name.text.length,
                 constructor.fileUri);
@@ -1322,7 +1322,7 @@ class KernelTarget {
               fileUri = cls.fileUri;
             }
             classBuilder.libraryBuilder.addProblem(
-                templateSuperclassHasNoDefaultConstructor
+                codeSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass!.name),
                 offset,
                 noLength,
@@ -1398,12 +1398,12 @@ class KernelTarget {
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
         classDeclaration.libraryBuilder.addProblem(
-            messageConstConstructorNonFinalField,
+            codeConstConstructorNonFinalField,
             constructor.fileOffset,
             noLength,
             constructor.fileUri,
             context: nonFinalFields
-                .map((field) => messageConstConstructorNonFinalFieldCause
+                .map((field) => codeConstConstructorNonFinalFieldCause
                     .withLocation(field.fileUri, field.fileOffset, noLength))
                 .toList());
         nonFinalFields.clear();
@@ -1411,9 +1411,9 @@ class KernelTarget {
       if (constructor.isConst && lateFinalFields.isNotEmpty) {
         for (SourcePropertyBuilder field in lateFinalFields) {
           classDeclaration.libraryBuilder.addProblem2(
-              messageConstConstructorLateFinalFieldError, field.fieldUriOffset!,
+              codeConstConstructorLateFinalFieldError, field.fieldUriOffset!,
               context: [
-                messageConstConstructorLateFinalFieldCause.withLocation(
+                codeConstConstructorLateFinalFieldCause.withLocation(
                     constructor.fileUri, constructor.fileOffset, noLength)
               ]);
         }
@@ -1458,8 +1458,7 @@ class KernelTarget {
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
               libraryBuilder.addProblem(
-                  templateFinalFieldNotInitialized
-                      .withArguments(fieldBuilder.name),
+                  codeFinalFieldNotInitialized.withArguments(fieldBuilder.name),
                   fieldBuilder.fileOffset,
                   fieldBuilder.name.length,
                   fieldBuilder.fileUri);
@@ -1467,7 +1466,7 @@ class KernelTarget {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-                templateFieldNonNullableWithoutInitializerError.withArguments(
+                codeFieldNonNullableWithoutInitializerError.withArguments(
                     fieldBuilder.name, fieldBuilder.fieldType),
                 fieldBuilder.fileOffset,
                 fieldBuilder.name.length,
@@ -1497,13 +1496,13 @@ class KernelTarget {
             // properly.
             if (!constructorBuilder.invokeTarget.isErroneous) {
               libraryBuilder.addProblem(
-                  templateFinalFieldNotInitializedByConstructor
+                  codeFinalFieldNotInitializedByConstructor
                       .withArguments(fieldBuilder.name),
                   constructorBuilder.fileOffset,
                   constructorBuilder.name.length,
                   constructorBuilder.fileUri,
                   context: [
-                    templateMissingImplementationCause
+                    codeMissingImplementationCause
                         .withArguments(fieldBuilder.name)
                         .withLocation(fieldBuilder.fileUri,
                             fieldBuilder.fileOffset, fieldBuilder.name.length)
@@ -1514,13 +1513,13 @@ class KernelTarget {
               !fieldBuilder.isLate &&
               fieldBuilder.fieldType.isPotentiallyNonNullable) {
             libraryBuilder.addProblem(
-                templateFieldNonNullableNotInitializedByConstructorError
+                codeFieldNonNullableNotInitializedByConstructorError
                     .withArguments(fieldBuilder.name, fieldBuilder.fieldType),
                 constructorBuilder.fileOffset,
                 noLength,
                 constructorBuilder.fileUri,
                 context: [
-                  templateMissingImplementationCause
+                  codeMissingImplementationCause
                       .withArguments(fieldBuilder.name)
                       .withLocation(fieldBuilder.fileUri,
                           fieldBuilder.fileOffset, fieldBuilder.name.length)

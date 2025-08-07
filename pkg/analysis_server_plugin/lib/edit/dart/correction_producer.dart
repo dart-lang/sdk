@@ -568,34 +568,56 @@ abstract class ResolvedCorrectionProducer
       if (variableDeclaration.initializer == expression) {
         var variableElement = variableDeclaration.declaredFragment?.element;
         if (variableElement != null) {
-          return variableElement.type;
+          if (variableElement.type is! InvalidType) {
+            return variableElement.type;
+          }
+          return typeProvider.dynamicType;
         }
       }
     }
-    // `myField = 42;`.
     if (parent is AssignmentExpression) {
       var assignment = parent;
+      // `myField = 42;`.
       if (assignment.leftHandSide == expression) {
         var rhs = assignment.rightHandSide;
         return rhs.staticType;
-      }
-    }
-    // `v = myFunction();`.
-    if (parent is AssignmentExpression) {
-      var assignment = parent;
-      if (assignment.rightHandSide == expression) {
+      } else if (assignment.rightHandSide == expression) {
         if (assignment.operator.type == TokenType.EQ) {
           // `v = myFunction();`.
           return assignment.writeType;
-        } else {
+        } else if (assignment.writeType case var expectedType?) {
           // `v += myFunction();`.
           var method = assignment.element;
-          if (method != null) {
-            var parameters = method.formalParameters;
-            if (parameters.length == 1) {
-              return parameters[0].type;
+          if (method
+              case MethodElement(
+                :var returnType,
+                formalParameters: List(length: 1, :var first),
+              )) {
+            if (typeSystem.isAssignableTo(returnType, expectedType)) {
+              // The return type is assignable to the expected type, then use
+              // the expected parameter type.
+              return first.type;
+            } else if (typeSystem.isAssignableTo(expectedType, returnType) &&
+                typeSystem.isAssignableTo(expectedType, first.type)) {
+              // The expected type is a subtype of the return type and the
+              // parameter would accept the expected type, then use the
+              // expected type.
+              // ---
+              // Spec (section 17.31) reads:
+              // The static type of an additive expression is usually
+              // determined by the signature given in the declaration of the
+              // operator used. However, invocations of the operators + and -
+              // of class int, double and num are treated specially by the
+              // typechecker.
+              // ---
+              // This ensures that cases like `int v = 0; v += myFunction();`
+              // will return `int`.
+              if (_isSpecialCaseNumTypes(method, expectedType)) {
+                return expectedType;
+              }
             }
           }
+          return InvalidTypeImpl.instance;
         }
       }
     }
@@ -694,6 +716,18 @@ abstract class ResolvedCorrectionProducer
       }
     }
     return null;
+  }
+
+  bool _isSpecialCaseNumTypes(MethodElement method, DartType expectedType) {
+    if (!expectedType.isDartCoreInt) {
+      return false;
+    }
+    if (method.name == TokenType.PLUS.lexeme ||
+        method.name == TokenType.MINUS.lexeme ||
+        method.name == TokenType.STAR.lexeme) {
+      return true;
+    }
+    return false;
   }
 }
 

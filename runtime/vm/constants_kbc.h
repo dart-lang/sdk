@@ -205,11 +205,14 @@ namespace dart {
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.
 #define INTERNAL_KERNEL_BYTECODES_WITH_CUSTOM_CODE(V) \
-  /* VMInternal_ImplicitConstructorClosure uses D_F encoding as it calls  */   \
-  /* constructor and should be compatible with other ***Call instructions */   \
+  /* ImplicitConstructorClosure and ImplicitInstanceClosure instructions  */   \
+  /* use D_F encoding as they may call target constructor or method and   */   \
+  /* should be compatible with other ***Call instructions                 */   \
   /* in order to support DecodeArgc when returning from a call.           */   \
   V(VMInternal_ImplicitConstructorClosure,      D_F, ORDN, num, num, ___)      \
   V(VMInternal_ImplicitConstructorClosure_Wide, D_F, ORDN, num, num, ___)      \
+  V(VMInternal_ImplicitInstanceClosure,         D_F, ORDN, num, num, ___)      \
+  V(VMInternal_ImplicitInstanceClosure_Wide,    D_F, ORDN, num, num, ___)      \
 
 #define INTERNAL_KERNEL_BYTECODES_WITH_DEFAULT_CODE(V)                         \
   V(VMInternal_ImplicitGetter,                    0, ORDN, ___, ___, ___)      \
@@ -221,7 +224,6 @@ namespace dart {
   V(VMInternal_InvokeField,                       0, ORDN, ___, ___, ___)      \
   V(VMInternal_ForwardDynamicInvocation,          0, ORDN, ___, ___, ___)      \
   V(VMInternal_ImplicitStaticClosure,             0, ORDN, ___, ___, ___)      \
-  V(VMInternal_ImplicitInstanceClosure,           0, ORDN, ___, ___, ___)      \
   V(VMInternal_NoSuchMethodDispatcher,            0, ORDN, ___, ___, ___)      \
 
 #define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \

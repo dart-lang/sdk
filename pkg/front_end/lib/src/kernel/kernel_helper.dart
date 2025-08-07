@@ -266,7 +266,7 @@ class DelayedDefaultValueCloner {
       synthesizedParameter.hasDeclaredInitializer = false;
       if (synthesizedParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
-            templateOptionalSuperParameterWithoutInitializer.withArguments(
+            codeOptionalSuperParameterWithoutInitializer.withArguments(
                 synthesizedParameter.type, synthesizedParameter.name!),
             synthesizedParameter.fileOffset,
             synthesizedParameter.name?.length ?? 1,

@@ -12,8 +12,8 @@ import '../messages/codes.dart'
         codeBuiltInIdentifierInDeclaration,
         codeCatchSyntaxExtraParameters,
         codeNativeClauseShouldBeAnnotation,
-        templateInternalProblemStackNotEmpty,
-        templateInternalProblemUnhandled;
+        codeInternalProblemStackNotEmpty,
+        codeInternalProblemUnhandled;
 
 import '../scanner/scanner.dart' show Token;
 
@@ -167,7 +167,7 @@ abstract class StackListener extends Listener with StackChecker {
   void push(Object? node) {
     if (node == null) {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments("null", "push"),
+        codeInternalProblemUnhandled.withArguments("null", "push"),
         /* charOffset = */ -1,
         uri,
       );
@@ -210,7 +210,7 @@ abstract class StackListener extends Listener with StackChecker {
   void logEvent(String name) {
     printEvent(name);
     internalProblem(
-      templateInternalProblemUnhandled.withArguments(name, "$runtimeType"),
+      codeInternalProblemUnhandled.withArguments(name, "$runtimeType"),
       /* charOffset = */ -1,
       uri,
     );
@@ -230,7 +230,7 @@ abstract class StackListener extends Listener with StackChecker {
   void checkEmpty(int charOffset) {
     if (stack.isNotEmpty) {
       internalProblem(
-        templateInternalProblemStackNotEmpty.withArguments(
+        codeInternalProblemStackNotEmpty.withArguments(
           "${runtimeType}",
           stack.values.join("\n  "),
         ),
@@ -379,7 +379,7 @@ abstract class StackListener extends Listener with StackChecker {
       push(unescapeString(token.lexeme, token, this));
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "string interpolation",
           "endLiteralString",
         ),

@@ -410,7 +410,7 @@ class ProcessedOptionsTest {
     var uriTranslator = await processed.getUriTranslator();
     expect(uriTranslator.packages.packages, isEmpty);
     expect((errors.single as FormattedMessage).problemMessage,
-        startsWith(_stringPrefixOf(templateCantReadFile)));
+        startsWith(_stringPrefixOf(codeCantReadFile)));
   }
 
   Future<void> test_validateOptions_noInputs() async {
@@ -424,7 +424,7 @@ class ProcessedOptionsTest {
     var options = new ProcessedOptions(options: raw);
     var result = await options.validateOptions();
     expect((errors.single as FormattedMessage).problemMessage,
-        messageMissingInput.problemMessage);
+        codeMissingInput.problemMessage);
     expect(result, isFalse);
   }
 
@@ -481,7 +481,7 @@ class ProcessedOptionsTest {
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
     expect((errors.first as FormattedMessage).problemMessage,
-        startsWith(_stringPrefixOf(templateSdkRootNotFound)));
+        startsWith(_stringPrefixOf(codeSdkRootNotFound)));
   }
 
   Future<void> test_validateOptions_summary_exists() async {
@@ -517,7 +517,7 @@ class ProcessedOptionsTest {
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
     expect((errors.single as FormattedMessage).problemMessage,
-        startsWith(_stringPrefixOf(templateSdkSummaryNotFound)));
+        startsWith(_stringPrefixOf(codeSdkSummaryNotFound)));
   }
 
   Future<void> test_validateOptions_inferred_summary_exists() async {
@@ -558,15 +558,15 @@ class ProcessedOptionsTest {
         new ProcessedOptions(options: raw, inputs: [Uri.parse('foo.dart')]);
     expect(await options.validateOptions(), isFalse);
     expect((errors.single as FormattedMessage).problemMessage,
-        startsWith(_stringPrefixOf(templateSdkSummaryNotFound)));
+        startsWith(_stringPrefixOf(codeSdkSummaryNotFound)));
   }
 
   /// Returns the longest prefix of the text in a message template that doesn't
   /// mention a template argument.
   String _stringPrefixOf(Template template) {
-    var messageTemplate = template.problemMessageTemplate;
-    var index = messageTemplate.indexOf('#');
-    var prefix = messageTemplate.substring(0, index - 1);
+    var codeTemplate = template.problemMessageTemplate;
+    var index = codeTemplate.indexOf('#');
+    var prefix = codeTemplate.substring(0, index - 1);
 
     // Check that the prefix is not empty and that it contains more than one
     // word.

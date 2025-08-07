@@ -360,7 +360,7 @@ NamedBuilder computeAmbiguousDeclarationForImport(
     firstUri = secondUri;
     secondUri = uri;
   }
-  Message message = templateDuplicatedImport.withArguments(
+  Message message = codeDuplicatedImport.withArguments(
       name,
       // TODO(ahe): We should probably use a context object here
       // instead of including URIs in this message.

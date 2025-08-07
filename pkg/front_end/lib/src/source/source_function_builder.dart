@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/messages.dart'
-    show templateRequiredNamedParameterHasDefaultValueError;
+    show codeRequiredNamedParameterHasDefaultValueError;
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -77,7 +77,7 @@ void buildTypeParametersAndFormals(
       // Required named parameters can't have default values.
       if (formal.isRequiredNamed && formal.initializerToken != null) {
         libraryBuilder.addProblem(
-            templateRequiredNamedParameterHasDefaultValueError
+            codeRequiredNamedParameterHasDefaultValueError
                 .withArguments(formal.name),
             formal.fileOffset,
             formal.name.length,

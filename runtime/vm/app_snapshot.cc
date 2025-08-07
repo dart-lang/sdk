@@ -2204,7 +2204,7 @@ class FieldSerializationCluster : public SerializationCluster {
         s->Write<int8_t>(field->untag()->static_type_exactness_state_);
         s->Write<uint32_t>(field->untag()->kernel_offset_);
       }
-      s->Write<uint16_t>(field->untag()->kind_bits_);
+      s->Write<uint32_t>(field->untag()->kind_bits_);
 
       // Write out either the initial static value or field offset.
       if (Field::StaticBit::decode(field->untag()->kind_bits_)) {
@@ -2267,7 +2267,7 @@ class FieldDeserializationCluster : public DeserializationCluster {
 #endif  // defined(TARGET_ARCH_X64)
       field->untag()->kernel_offset_ = d.Read<uint32_t>();
 #endif
-      field->untag()->kind_bits_ = d.Read<uint16_t>();
+      field->untag()->kind_bits_ = d.Read<uint32_t>();
 
       field->untag()->host_offset_or_field_id_ =
           static_cast<SmiPtr>(d.ReadRef());

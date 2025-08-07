@@ -233,8 +233,10 @@ class KernelLoader : public ValueObject {
   using FfiNativePragma =
       BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit>;
   using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit>;
-  using DynModuleExtendablePragma =
+  using NoSanitizeThreadPragma =
       BitField<uint32_t, bool, SharedPragma::kNextBit>;
+  using DynModuleExtendablePragma =
+      BitField<uint32_t, bool, NoSanitizeThreadPragma::kNextBit>;
   using DynModuleImplicitlyExtendablePragma =
       BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit>;
   using DynModuleCanBeOverriddenPragma =

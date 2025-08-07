@@ -7,7 +7,7 @@ import 'package:kernel/src/printer.dart';
 import 'package:kernel/type_environment.dart' show StaticTypeContext;
 
 import '../base/messages.dart'
-    show noLength, templateExpectedAfterButGot, templateExpectedButGot;
+    show noLength, codeExpectedAfterButGot, codeExpectedButGot;
 import '../base/problems.dart' show getFileUri, unsupported;
 import '../type_inference/inference_helper.dart' show InferenceHelper;
 import '../type_inference/inference_results.dart';
@@ -1252,7 +1252,7 @@ Expression _convertToErroneousElement(
   // TODO(johnniwinther): How can this be triggered? This will fail if
   // encountered in top level inference.
   return helper!.buildProblem(
-    templateExpectedButGot.withArguments(','),
+    codeExpectedButGot.withArguments(','),
     entry.fileOffset,
     1,
   );
@@ -1378,7 +1378,7 @@ MapLiteralEntry _convertToErroneousMapEntry(
     Expression element, InferenceHelper helper) {
   return new MapLiteralEntry(
       helper.buildProblem(
-        templateExpectedAfterButGot.withArguments(':'),
+        codeExpectedAfterButGot.withArguments(':'),
         element.fileOffset,
         // TODO(danrubel): what is the length of the expression?
         noLength,

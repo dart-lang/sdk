@@ -141,26 +141,33 @@ library;
         var errorName = entry.key;
         var errorCodeInfo = entry.value;
 
-        out.writeln();
-        out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
-        var deprecatedMessage = errorCodeInfo.deprecatedMessage;
-        if (deprecatedMessage != null) {
-          out.writeln('  @Deprecated("$deprecatedMessage")');
-        }
-        if (errorCodeInfo is AliasErrorCodeInfo) {
-          out.writeln(
-            '  static const ${errorCodeInfo.aliasForClass} $errorName =',
-          );
-          out.writeln('${errorCodeInfo.aliasFor};');
-        } else {
-          generatedCodes.add('${errorClass.name}.$errorName');
-          out.writeln('  static const ${errorClass.name} $errorName =');
-          out.writeln(
-            errorCodeInfo.toAnalyzerCode(
-              errorClass,
-              errorName,
-              useExplicitConst: file.shouldUseExplicitConst,
-            ),
+        try {
+          out.writeln();
+          out.write(errorCodeInfo.toAnalyzerComments(indent: '  '));
+          var deprecatedMessage = errorCodeInfo.deprecatedMessage;
+          if (deprecatedMessage != null) {
+            out.writeln('  @Deprecated("$deprecatedMessage")');
+          }
+          if (errorCodeInfo is AliasErrorCodeInfo) {
+            out.writeln(
+              '  static const ${errorCodeInfo.aliasForClass} $errorName =',
+            );
+            out.writeln('${errorCodeInfo.aliasFor};');
+          } else {
+            generatedCodes.add('${errorClass.name}.$errorName');
+            out.writeln('  static const ${errorClass.name} $errorName =');
+            out.writeln(
+              errorCodeInfo.toAnalyzerCode(
+                errorClass,
+                errorName,
+                useExplicitConst: file.shouldUseExplicitConst,
+              ),
+            );
+          }
+        } catch (e, st) {
+          Error.throwWithStackTrace(
+            'While processing ${errorClass.name}.$errorName: $e',
+            st,
           );
         }
       }

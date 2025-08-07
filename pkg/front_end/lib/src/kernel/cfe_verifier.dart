@@ -12,9 +12,9 @@ import '../codes/cfe_codes.dart'
     show
         LocatedMessage,
         Message,
-        messageVerificationErrorOriginContext,
+        codeVerificationErrorOriginContext,
         noLength,
-        templateInternalProblemVerificationError;
+        codeInternalProblemVerificationError;
 import '../base/compiler_context.dart' show CompilerContext;
 
 List<LocatedMessage> verifyComponent(
@@ -47,7 +47,7 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
       required TreeNode? context,
       required TreeNode? origin}) {
     Message message =
-        templateInternalProblemVerificationError.withArguments(details);
+        codeInternalProblemVerificationError.withArguments(details);
     LocatedMessage locatedMessage = problemUri != null
         ? message.withLocation(
             problemUri, problemOffset ?? TreeNode.noOffset, noLength)
@@ -55,7 +55,7 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
     List<LocatedMessage>? contextMessages;
     if (origin != null) {
       contextMessages = [
-        messageVerificationErrorOriginContext.withLocation(
+        codeVerificationErrorOriginContext.withLocation(
             origin.location!.file, origin.fileOffset, noLength)
       ];
     }

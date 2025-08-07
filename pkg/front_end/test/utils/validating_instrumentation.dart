@@ -17,7 +17,7 @@ import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/instrumentation.dart'
     show Instrumentation, InstrumentationValue;
 import 'package:front_end/src/base/messages.dart'
-    show noLength, templateUnspecified;
+    show noLength, codeUnspecified;
 
 /// Implementation of [Instrumentation] which checks property/value pairs
 /// against expectations encoded in source files using "/*@...*/" comments.
@@ -227,7 +227,7 @@ class ValidatingInstrumentation implements Instrumentation {
       Uri uri, int offset, String desc, StackTrace? stackTrace) {
     return compilerContext
         .format(
-            templateUnspecified
+            codeUnspecified
                 .withArguments(
                     '$desc${stackTrace == null ? '' : '\n$stackTrace'}')
                 .withLocation(uri, offset, noLength),

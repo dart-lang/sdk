@@ -3757,7 +3757,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitInstanceClosure, 0);
+    BYTECODE(VMInternal_ImplicitInstanceClosure, D_F);
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
@@ -3770,10 +3770,60 @@ SwitchDispatch:
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
     ObjectPtr* argv = FrameArguments(FP, argc);
+    ClosurePtr closure = Closure::RawCast(argv[receiver_idx]);
+
+    TypeParametersPtr type_params =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters();
+    if (type_params == null_value) {
+      if (type_args_len > 0) {
+        SP[1] = function;
+        goto NoSuchMethodFromPrologue;
+      }
+    } else {
+      TypeArgumentsPtr delayed_type_arguments =
+          closure->untag()->delayed_type_arguments();
+      if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
+        if (type_args_len > 0) {
+          SP[1] = function;
+          goto NoSuchMethodFromPrologue;
+        }
+
+        // Type arguments.
+        *++SP = delayed_type_arguments;
+        ObjectPtr* call_base = SP;
+        // Captured receiver.
+        *++SP = closure->untag()->context();
+        // Copy the rest of the arguments.
+        for (intptr_t i = receiver_idx + 1; i < argc; i++) {
+          *++SP = argv[i];
+        }
+
+        const intptr_t new_type_args_len =
+            Smi::Value(type_params->untag()->names()->untag()->length());
+
+        SP[1] = target;
+        SP[2] = 0;  // Space for result.
+        SP[3] = argdesc_;
+        SP[4] = target;
+        SP[5] = Smi::New(new_type_args_len);
+        Exit(thread, FP, SP + 6, pc);
+        INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
+                       NativeArguments(thread, 3, SP + 3, SP + 2));
+        argdesc_ = Array::RawCast(SP[2]);
+
+        ObjectPtr* call_top = SP + 1;
+        if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+          HANDLE_EXCEPTION;
+        }
+
+        DISPATCH();
+      }
+    }
 
     // Replace closure receiver with captured receiver
     // and call target function.
-    ClosurePtr closure = Closure::RawCast(argv[receiver_idx]);
     argv[receiver_idx] = closure->untag()->context();
     SP[1] = target;
 

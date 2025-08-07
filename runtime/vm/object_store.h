@@ -169,7 +169,7 @@ class ObjectPointerVisitor;
   RW(Array, closure_functions_table)                                           \
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Array, record_field_names_map)                                            \
-  ARW_RELAXED(Array, record_field_names)                                       \
+  ARW_AR(Array, record_field_names)                                            \
   RW(Instance, stack_overflow)                                                 \
   RW(Instance, out_of_memory)                                                  \
   RW(Function, growable_list_factory)                                          \

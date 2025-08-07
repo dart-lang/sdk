@@ -8,10 +8,10 @@ import 'package:kernel/type_algebra.dart';
 import '../../base/messages.dart'
     show
         LocatedMessage,
-        messageDeclaredMemberConflictsWithInheritedMembersCause,
-        messageDeclaredMemberConflictsWithOverriddenMembersCause,
-        templateCombinedMemberSignatureFailed,
-        templateExtensionTypeCombinedMemberSignatureFailed;
+        codeDeclaredMemberConflictsWithInheritedMembersCause,
+        codeDeclaredMemberConflictsWithOverriddenMembersCause,
+        codeCombinedMemberSignatureFailed,
+        codeExtensionTypeCombinedMemberSignatureFailed;
 import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
@@ -563,12 +563,12 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         int nameLength =
             classBuilder.isAnonymousMixinApplication ? 1 : name.length;
         List<LocatedMessage> context = declarations.map((ClassMember d) {
-          return messageDeclaredMemberConflictsWithOverriddenMembersCause
+          return codeDeclaredMemberConflictsWithOverriddenMembersCause
               .withLocation2(d.uriOffset);
         }).toList();
 
         classBuilder.libraryBuilder.addProblem(
-            templateCombinedMemberSignatureFailed.withArguments(
+            codeCombinedMemberSignatureFailed.withArguments(
                 name, declarations.first.fullNameForErrors),
             classBuilder.fileOffset,
             nameLength,
@@ -932,12 +932,12 @@ class SynthesizedNonExtensionTypeMember extends SynthesizedMember {
       String name = extensionTypeDeclarationBuilder.fullNameForErrors;
       int nameLength = name.length;
       List<LocatedMessage> context = declarations.map((ClassMember d) {
-        return messageDeclaredMemberConflictsWithInheritedMembersCause
+        return codeDeclaredMemberConflictsWithInheritedMembersCause
             .withLocation2(d.uriOffset);
       }).toList();
 
       extensionTypeDeclarationBuilder.libraryBuilder.addProblem(
-          templateExtensionTypeCombinedMemberSignatureFailed.withArguments(
+          codeExtensionTypeCombinedMemberSignatureFailed.withArguments(
               name, declarations.first.fullNameForErrors),
           extensionTypeDeclarationBuilder.fileOffset,
           nameLength,

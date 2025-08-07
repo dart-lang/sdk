@@ -15,11 +15,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/workspace/workspace.dart';
 import 'package:path/path.dart' as path;
 
-final Set<String> _reservedWords = {
-  for (var entry in Keyword.keywords.entries)
-    if (entry.value.isReservedWord) entry.key,
-};
-
 /// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String? name]) {
   var children = <Element>[];
@@ -154,9 +149,6 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
       cuPath == buildHookFile ||
       cuPath == linkHookFile;
 }
-
-/// Check if the given word is a Dart reserved word.
-bool isReservedWord(String word) => _reservedWords.contains(word);
 
 /// Returns `true` if the given method [declaration] is a "simple getter".
 ///

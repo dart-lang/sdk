@@ -3459,6 +3459,7 @@ package:analyzer/dart/element/element.dart:
   ElementDirective (class extends Object implements Annotatable):
     new (constructor: ElementDirective Function())
     libraryFragment (getter: LibraryFragment)
+    metadata (getter: Metadata)
     uri (getter: DirectiveUri)
   ElementKind (class extends Object implements Comparable<ElementKind>):
     AUGMENTATION_IMPORT (static getter: ElementKind)
@@ -4033,6 +4034,7 @@ package:analyzer/dart/element/element.dart:
   PartInclude (class extends Object implements ElementDirective):
     new (constructor: PartInclude Function())
     includedFragment (getter: LibraryFragment?)
+    partKeywordOffset (getter: int)
   PatternVariableElement (class extends Object implements LocalVariableElement):
     new (constructor: PatternVariableElement Function())
     firstFragment (getter: PatternVariableFragment)

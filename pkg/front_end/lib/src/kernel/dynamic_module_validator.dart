@@ -13,14 +13,14 @@ import '../api_prototype/lowering_predicates.dart'
 
 import '../codes/cfe_codes.dart'
     show
-        messageDynamicCallsAreNotAllowedInDynamicModule,
+        codeDynamicCallsAreNotAllowedInDynamicModule,
         noLength,
-        templateConstructorShouldBeListedAsCallableInDynamicInterface,
-        templateMemberShouldBeListedAsCallableInDynamicInterface,
-        templateExtensionTypeShouldBeListedAsCallableInDynamicInterface,
-        templateClassShouldBeListedAsCallableInDynamicInterface,
-        templateClassShouldBeListedAsExtendableInDynamicInterface,
-        templateMemberShouldBeListedAsCanBeOverriddenInDynamicInterface;
+        codeConstructorShouldBeListedAsCallableInDynamicInterface,
+        codeMemberShouldBeListedAsCallableInDynamicInterface,
+        codeExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+        codeClassShouldBeListedAsCallableInDynamicInterface,
+        codeClassShouldBeListedAsExtendableInDynamicInterface,
+        codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface;
 
 /// Validate dynamic module [libraries].
 ///
@@ -601,7 +601,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
       throw 'Unexpected node ${node.runtimeType} $node';
 
   void _dynamicCall(TreeNode node) {
-    loader.addProblem(messageDynamicCallsAreNotAllowedInDynamicModule,
+    loader.addProblem(codeDynamicCallsAreNotAllowedInDynamicModule,
         node.fileOffset, noLength, node.location!.file);
   }
 
@@ -622,7 +622,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             name += '.' + target.name.text;
           }
           loader.addProblem(
-              templateConstructorShouldBeListedAsCallableInDynamicInterface
+              codeConstructorShouldBeListedAsCallableInDynamicInterface
                   .withArguments(name),
               node.fileOffset,
               noLength,
@@ -639,21 +639,21 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             }
           }
           loader.addProblem(
-              templateMemberShouldBeListedAsCallableInDynamicInterface
+              codeMemberShouldBeListedAsCallableInDynamicInterface
                   .withArguments(name),
               node.fileOffset,
               noLength,
               node.location!.file);
         case Class():
           loader.addProblem(
-              templateClassShouldBeListedAsCallableInDynamicInterface
+              codeClassShouldBeListedAsCallableInDynamicInterface
                   .withArguments(target.name),
               node.fileOffset,
               noLength,
               node.location!.file);
         case ExtensionTypeDeclaration():
           loader.addProblem(
-              templateExtensionTypeShouldBeListedAsCallableInDynamicInterface
+              codeExtensionTypeShouldBeListedAsCallableInDynamicInterface
                   .withArguments(target.name),
               node.fileOffset,
               noLength,
@@ -671,7 +671,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         !_isSpecified(baseClass, spec.extendable) &&
         !languageImplPragmas.isExtendable(baseClass)) {
       loader.addProblem(
-          templateClassShouldBeListedAsExtendableInDynamicInterface
+          codeClassShouldBeListedAsExtendableInDynamicInterface
               .withArguments(baseClass.name),
           node.fileOffset,
           noLength,
@@ -733,7 +733,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         !_isSpecified(superMember, spec.canBeOverridden) &&
         !languageImplPragmas.canBeOverridden(superMember)) {
       loader.addProblem(
-          templateMemberShouldBeListedAsCanBeOverriddenInDynamicInterface
+          codeMemberShouldBeListedAsCanBeOverriddenInDynamicInterface
               .withArguments(
                   superMember.enclosingClass!.name, superMember.name.text),
           ownMember.fileOffset,

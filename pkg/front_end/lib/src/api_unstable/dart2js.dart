@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show messageMissingMain;
+    show codeMissingMain;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
@@ -166,7 +166,7 @@ Future<Component?> compile(
     if (component.mainMethod == null) {
       context.options.report(
           context,
-          messageMissingMain.withLocation(inputs.single, -1, 0),
+          codeMissingMain.withLocation(inputs.single, -1, 0),
           CfeSeverity.error);
       return null;
     }

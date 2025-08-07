@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -133,4 +134,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     return classElement.getInheritedMember(Name(null, name)) != null;
   }
+}
+
+extension on List<ClassMember> {
+  MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
+      .firstWhereOrNull((node) => node.name.lexeme == name);
 }

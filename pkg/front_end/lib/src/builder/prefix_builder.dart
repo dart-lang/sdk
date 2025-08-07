@@ -75,7 +75,7 @@ class PrefixBuilder extends NamedBuilderImpl
   void addToPrefixScope(String name, NamedBuilder member,
       {required int importOffset, required int prefixOffset}) {
     if (deferred && member is ExtensionBuilder) {
-      parent.addProblem(templateDeferredExtensionImport.withArguments(name),
+      parent.addProblem(codeDeferredExtensionImport.withArguments(name),
           importOffset, noLength, fileUri);
     }
 

@@ -635,8 +635,12 @@ class ConstantPool {
 
   int addEmptyTypeArguments() => _add(const ConstantEmptyTypeArguments());
 
-  int addObjectRef(Node? node) =>
-      _add(new ConstantObjectRef(objectTable.getHandle(node)));
+  int addObjectRef(Node? node) {
+    // Constant objects should not depend on the type parameters of
+    // the enclosing function.
+    return objectTable.withoutEnclosingFunctionTypeParameters(
+        () => _add(new ConstantObjectRef(objectTable.getHandle(node))));
+  }
 
   int addSelectorName(Name name, InvocationKind invocationKind) =>
       _add(new ConstantObjectRef(objectTable.getSelectorNameHandle(name,

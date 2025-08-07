@@ -8,29 +8,29 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         Message,
         MessageCode,
         codeBuiltInIdentifierInDeclaration,
-        messageAbstractLateField,
-        messageAbstractStaticField,
-        messageConstConstructorWithBody,
-        messageConstFactory,
-        messageConstructorWithTypeParameters,
-        messageDirectiveAfterDeclaration,
-        messageExpectedStatement,
-        messageExternalLateField,
-        messageFieldInitializerOutsideConstructor,
-        messageIllegalAssignmentToNonAssignable,
-        messageInterpolationInUri,
-        messageInvalidInitializer,
-        messageInvalidSuperInInitializer,
-        messageInvalidThisInInitializer,
-        messageMissingAssignableSelector,
-        messageNativeClauseShouldBeAnnotation,
-        messageOperatorWithTypeParameters,
-        messagePositionalAfterNamedArgument,
-        templateDuplicateLabelInSwitchStatement,
-        templateExpectedIdentifier,
-        templateExperimentNotEnabled,
-        templateExtraneousModifier,
-        templateInternalProblemUnhandled;
+        codeAbstractLateField,
+        codeAbstractStaticField,
+        codeConstConstructorWithBody,
+        codeConstFactory,
+        codeConstructorWithTypeParameters,
+        codeDirectiveAfterDeclaration,
+        codeExpectedStatement,
+        codeExternalLateField,
+        codeFieldInitializerOutsideConstructor,
+        codeIllegalAssignmentToNonAssignable,
+        codeInterpolationInUri,
+        codeInvalidInitializer,
+        codeInvalidSuperInInitializer,
+        codeInvalidThisInInitializer,
+        codeMissingAssignableSelector,
+        codeNativeClauseShouldBeAnnotation,
+        codeOperatorWithTypeParameters,
+        codePositionalAfterNamedArgument,
+        codeDuplicateLabelInSwitchStatement,
+        codeExpectedIdentifier,
+        codeExperimentNotEnabled,
+        codeExtraneousModifier,
+        codeInternalProblemUnhandled;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show
         Assert,
@@ -226,7 +226,7 @@ class AstBuilder extends StackListener {
               'NON_PART_OF_DIRECTIVE_IN_PART',
             ) ??
             false)) {
-      message = messageDirectiveAfterDeclaration;
+      message = codeDirectiveAfterDeclaration;
     }
     diagnosticReporter.reportMessage(message, charOffset, length);
   }
@@ -791,7 +791,7 @@ class AstBuilder extends StackListener {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
       handleRecoverableError(
-        messageInvalidSuperInInitializer,
+        codeInvalidSuperInInitializer,
         target.superKeyword,
         target.superKeyword,
       );
@@ -806,7 +806,7 @@ class AstBuilder extends StackListener {
       // TODO(danrubel): Consider generating this error in the parser
       // This error is also reported in the body builder
       handleRecoverableError(
-        messageInvalidThisInInitializer,
+        codeInvalidThisInInitializer,
         target.thisKeyword,
         target.thisKeyword,
       );
@@ -828,7 +828,7 @@ class AstBuilder extends StackListener {
         if (parameter is FieldFormalParameterImpl) {
           // This error is reported in the BodyBuilder.endFormalParameter.
           handleRecoverableError(
-            messageFieldInitializerOutsideConstructor,
+            codeFieldInitializerOutsideConstructor,
             parameter.thisKeyword,
             parameter.thisKeyword,
           );
@@ -900,9 +900,9 @@ class AstBuilder extends StackListener {
       // This same error is reported in BodyBuilder.doDotOrCascadeExpression
       Token token = identifierOrInvoke.beginToken;
       // TODO(danrubel): Consider specializing the error message based
-      // upon the type of expression. e.g. "x.this" -> templateThisAsIdentifier
+      // upon the type of expression. e.g. "x.this" -> codeThisAsIdentifier
       handleRecoverableError(
-        templateExpectedIdentifier.withArguments(token),
+        codeExpectedIdentifier.withArguments(token),
         token,
         token,
       );
@@ -967,7 +967,7 @@ class AstBuilder extends StackListener {
         } else if (hasSeenNamedArgument) {
           // Positional argument after named argument.
           handleRecoverableError(
-            messagePositionalAfterNamedArgument,
+            codePositionalAfterNamedArgument,
             expression.beginToken,
             expression.endToken,
           );
@@ -1298,14 +1298,14 @@ class AstBuilder extends StackListener {
     if (abstractToken != null) {
       if (staticToken != null) {
         handleRecoverableError(
-          messageAbstractStaticField,
+          codeAbstractStaticField,
           abstractToken,
           abstractToken,
         );
       }
       if (lateToken != null) {
         handleRecoverableError(
-          messageAbstractLateField,
+          codeAbstractLateField,
           abstractToken,
           abstractToken,
         );
@@ -1314,7 +1314,7 @@ class AstBuilder extends StackListener {
     if (externalToken != null) {
       if (lateToken != null) {
         handleRecoverableError(
-          messageExternalLateField,
+          codeExternalLateField,
           externalToken,
           externalToken,
         );
@@ -1386,7 +1386,7 @@ class AstBuilder extends StackListener {
       nameId = name.name;
       if (typeParameters != null) {
         handleRecoverableError(
-          messageOperatorWithTypeParameters,
+          codeOperatorWithTypeParameters,
           typeParameters.beginToken,
           typeParameters.endToken,
         );
@@ -1408,7 +1408,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -1520,7 +1520,7 @@ class AstBuilder extends StackListener {
         if (child is InterpolationExpressionImpl) {
           // This error is reported in OutlineBuilder.endLiteralString
           handleRecoverableError(
-            messageInterpolationInUri,
+            codeInterpolationInUri,
             child.beginToken,
             child.endToken,
           );
@@ -2083,7 +2083,7 @@ class AstBuilder extends StackListener {
         );
         if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
           handleRecoverableError(
-            templateExtraneousModifier.withArguments(keyword),
+            codeExtraneousModifier.withArguments(keyword),
             keyword,
             keyword,
           );
@@ -2436,7 +2436,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${node.runtimeType}",
           "identifier",
         ),
@@ -2464,7 +2464,7 @@ class AstBuilder extends StackListener {
         initializers.add(initializer);
       } else {
         handleRecoverableError(
-          messageInvalidInitializer,
+          codeInvalidInitializer,
           initializerObject is AstNodeImpl
               ? initializerObject.beginToken
               : colon,
@@ -2586,7 +2586,7 @@ class AstBuilder extends StackListener {
           elements.add(part);
         } else {
           internalProblem(
-            templateInternalProblemUnhandled.withArguments(
+            codeInternalProblemUnhandled.withArguments(
               "${part.runtimeType}",
               "string interpolation",
             ),
@@ -3330,9 +3330,7 @@ class AstBuilder extends StackListener {
       for (var label in member.labels) {
         if (!labels.add(label.label.name)) {
           handleRecoverableError(
-            templateDuplicateLabelInSwitchStatement.withArguments(
-              label.label.name,
-            ),
+            codeDuplicateLabelInSwitchStatement.withArguments(label.label.name),
             label.beginToken,
             label.beginToken,
           );
@@ -3565,7 +3563,7 @@ class AstBuilder extends StackListener {
     if (externalToken != null) {
       if (lateToken != null) {
         handleRecoverableError(
-          messageExternalLateField,
+          codeExternalLateField,
           externalToken,
           externalToken,
         );
@@ -3715,7 +3713,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       var type = pop() as TypeAnnotationImpl;
-      var templateParameters = pop() as TypeParameterListImpl?;
+      var codeParameters = pop() as TypeParameterListImpl?;
       var name = pop() as SimpleIdentifierImpl;
       var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, typedefKeyword);
@@ -3732,7 +3730,7 @@ class AstBuilder extends StackListener {
           augmentKeyword: augmentToken,
           typedefKeyword: typedefKeyword,
           name: name.token,
-          typeParameters: templateParameters,
+          typeParameters: codeParameters,
           equals: equals,
           type: type,
           semicolon: semicolon,
@@ -3995,7 +3993,7 @@ class AstBuilder extends StackListener {
     if (!lhs.isAssignable) {
       // TODO(danrubel): Update the BodyBuilder to report this error.
       handleRecoverableError(
-        messageMissingAssignableSelector,
+        codeMissingAssignableSelector,
         lhs.beginToken,
         lhs.endToken,
       );
@@ -4234,7 +4232,7 @@ class AstBuilder extends StackListener {
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
     // TODO(kallentu): Removal of const factory error for const function feature
-    handleRecoverableError(messageConstFactory, constKeyword, constKeyword);
+    handleRecoverableError(codeConstFactory, constKeyword, constKeyword);
   }
 
   @override
@@ -4551,7 +4549,7 @@ class AstBuilder extends StackListener {
         expression.token.keyword?.isBuiltInOrPseudo == false) {
       // This error is also reported by the body builder.
       handleRecoverableError(
-        messageExpectedStatement,
+        codeExpectedStatement,
         expression.beginToken,
         expression.endToken,
       );
@@ -4560,7 +4558,7 @@ class AstBuilder extends StackListener {
       if (!expression.leftHandSide.isAssignable) {
         // This error is also reported by the body builder.
         handleRecoverableError(
-          messageIllegalAssignmentToNonAssignable,
+          codeIllegalAssignmentToNonAssignable,
           expression.leftHandSide.beginToken,
           expression.leftHandSide.endToken,
         );
@@ -5616,7 +5614,7 @@ class AstBuilder extends StackListener {
     Token endToken,
   ) {
     // TODO(danrubel): Ignore this error until we deprecate `native` support.
-    if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
+    if (message == codeNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
     } else if (message.code == codeBuiltInIdentifierInDeclaration) {
       // Allow e.g. 'class Function' in sdk.
@@ -5898,7 +5896,7 @@ class AstBuilder extends StackListener {
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(
-        messageIllegalAssignmentToNonAssignable,
+        codeIllegalAssignmentToNonAssignable,
         operator,
         operator,
       );
@@ -5915,7 +5913,7 @@ class AstBuilder extends StackListener {
     if (!expression.isAssignable) {
       // This error is also reported by the body builder.
       handleRecoverableError(
-        messageMissingAssignableSelector,
+        codeMissingAssignableSelector,
         expression.endToken,
         expression.endToken,
       );
@@ -6061,7 +6059,7 @@ class AstBuilder extends StackListener {
     if (expression is SuperExpressionImpl) {
       // This error is also reported by the body builder.
       handleRecoverableError(
-        messageMissingAssignableSelector,
+        codeMissingAssignableSelector,
         expression.beginToken,
         expression.endToken,
       );
@@ -6093,7 +6091,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6122,7 +6120,7 @@ class AstBuilder extends StackListener {
     if (typeParameters != null) {
       // Outline builder also reports this error message.
       handleRecoverableError(
-        messageConstructorWithTypeParameters,
+        codeConstructorWithTypeParameters,
         typeParameters.beginToken,
         typeParameters.endToken,
       );
@@ -6133,7 +6131,7 @@ class AstBuilder extends StackListener {
       Token bodyToken = body.beginToken;
       // Token bodyToken = body.beginToken ?? modifiers.constKeyword;
       handleRecoverableError(
-        messageConstConstructorWithBody,
+        codeConstConstructorWithBody,
         bodyToken,
         bodyToken,
       );
@@ -6187,7 +6185,7 @@ class AstBuilder extends StackListener {
       body = EmptyFunctionBodyImpl(semicolon: endToken);
     } else {
       internalProblem(
-        templateInternalProblemUnhandled.withArguments(
+        codeInternalProblemUnhandled.withArguments(
           "${bodyObject.runtimeType}",
           "bodyObject",
         ),
@@ -6206,7 +6204,7 @@ class AstBuilder extends StackListener {
     if (typeParameters != null) {
       // TODO(danrubel): Update OutlineBuilder to report this error message.
       handleRecoverableError(
-        messageConstructorWithTypeParameters,
+        codeConstructorWithTypeParameters,
         typeParameters.beginToken,
         typeParameters.endToken,
       );
@@ -6370,7 +6368,7 @@ class AstBuilder extends StackListener {
     var requiredVersion =
         feature.releaseVersion ?? ExperimentStatus.currentVersion;
     handleRecoverableError(
-      templateExperimentNotEnabled.withArguments(
+      codeExperimentNotEnabled.withArguments(
         feature.enableString,
         _versionAsString(requiredVersion),
       ),

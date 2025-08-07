@@ -28,9 +28,9 @@ import 'package:front_end/src/codes/cfe_codes.dart'
     show
         Message,
         PlainAndColorizedString,
-        messageFastaUsageLong,
-        messageFastaUsageShort,
-        templateUnspecified;
+        codeFastaUsageLong,
+        codeFastaUsageShort,
+        codeUnspecified;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
 import 'package:front_end/src/scheme_based_file_system.dart'
@@ -329,8 +329,8 @@ Message computeUsage(String programName, bool verbose) {
   String basicUsage = "Usage: $programName [options] dartfile\n";
   String? summary;
   String options = (verbose
-          ? messageFastaUsageLong.problemMessage
-          : messageFastaUsageShort.problemMessage)
+          ? codeFastaUsageLong.problemMessage
+          : codeFastaUsageShort.problemMessage)
       .trim();
   switch (programName) {
     case "outline":
@@ -359,8 +359,8 @@ Message computeUsage(String programName, bool verbose) {
     sb.writeln();
   }
   sb.write(options);
-  // TODO(ahe): Don't use [templateUnspecified].
-  return templateUnspecified.withArguments("$sb");
+  // TODO(ahe): Don't use [codeUnspecified].
+  return codeUnspecified.withArguments("$sb");
 }
 
 Future<T> runProtectedFromAbort<T>(Future<T> Function() action,

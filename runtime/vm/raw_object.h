@@ -584,6 +584,13 @@ class UntaggedObject {
                             ->load(order);
     return static_cast<type>(v.Decompress(heap_base()));
   }
+  template <typename type, typename compressed_type>
+  NO_SANITIZE_THREAD type
+  LoadCompressedPointerIgnoreRace(compressed_type const* addr) const {
+    compressed_type v =
+        *reinterpret_cast<compressed_type*>(const_cast<compressed_type*>(addr));
+    return static_cast<type>(v.Decompress(heap_base()));
+  }
 
   uword heap_base() const {
     return reinterpret_cast<uword>(this) & kHeapBaseMask;
@@ -906,6 +913,9 @@ inline intptr_t ObjectPtr::GetClassId() const {
   template <std::memory_order order = std::memory_order_relaxed>               \
   type name() const {                                                          \
     return LoadCompressedPointer<type, Compressed##type, order>(&name##_);     \
+  }                                                                            \
+  type name##_ignore_race() const {                                            \
+    return LoadCompressedPointerIgnoreRace<type, Compressed##type>(&name##_);  \
   }                                                                            \
   template <std::memory_order order = std::memory_order_relaxed>               \
   void set_##name(type value) {                                                \
@@ -1603,7 +1613,7 @@ class UntaggedField : public UntaggedObject {
   int8_t static_type_exactness_state_;
 
   // static, final, const, has initializer....
-  AtomicBitFieldContainer<uint16_t> kind_bits_;
+  AtomicBitFieldContainer<uint32_t> kind_bits_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // for instance fields, the offset in words in the target architecture

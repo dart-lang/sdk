@@ -1172,11 +1172,10 @@ class ConstantsTransformer extends RemovingTransformer {
                 createArguments([
                   createStringLiteral(
                       forUnsoundness
-                          ? messageUnsoundSwitchStatementError.problemMessage
+                          ? codeUnsoundSwitchStatementError.problemMessage
                           :
                           // Coverage-ignore(suite): Not run.
-                          messageNeverReachableSwitchStatementError
-                              .problemMessage,
+                          codeNeverReachableSwitchStatementError.problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
                 fileOffset: node.fileOffset),
@@ -1286,8 +1285,8 @@ class ConstantsTransformer extends RemovingTransformer {
               node,
               fileOffset,
               (isSwitchExpression
-                      ? templateNonExhaustiveSwitchExpression
-                      : templateNonExhaustiveSwitchStatement)
+                      ? codeNonExhaustiveSwitchExpression
+                      : codeNonExhaustiveSwitchStatement)
                   .withArguments(
                       expressionType,
                       nonExhaustiveness.witnesses.first.asWitness,
@@ -1322,7 +1321,7 @@ class ConstantsTransformer extends RemovingTransformer {
             constantEvaluator.errorReporter.report(
                 constantEvaluator.createLocatedMessage(
                     caseExpression,
-                    templateConstEvalCaseImplementsEqual
+                    codeConstEvalCaseImplementsEqual
                         .withArguments(caseExpression.constant)),
                 null);
           }
@@ -1475,7 +1474,7 @@ class ConstantsTransformer extends RemovingTransformer {
                     typeEnvironment.coreTypes.stateErrorConstructor,
                     createArguments([
                       createStringLiteral(
-                          messagePatternMatchingError.problemMessage,
+                          codePatternMatchingError.problemMessage,
                           fileOffset: node.fileOffset)
                     ], fileOffset: node.fileOffset),
                     fileOffset: node.fileOffset),
@@ -1556,7 +1555,7 @@ class ConstantsTransformer extends RemovingTransformer {
                     typeEnvironment.coreTypes.stateErrorConstructor,
                     createArguments([
                       createStringLiteral(
-                          messagePatternMatchingError.problemMessage,
+                          codePatternMatchingError.problemMessage,
                           fileOffset: node.fileOffset)
                     ], fileOffset: node.fileOffset),
                     fileOffset: node.fileOffset),
@@ -1625,10 +1624,10 @@ class ConstantsTransformer extends RemovingTransformer {
       if (existing != null) {
         constantEvaluator.errorReporter.report(
             constantEvaluator.createLocatedMessage(
-                entry.key, messageEqualKeysInMapPattern),
+                entry.key, codeEqualKeysInMapPattern),
             [
               constantEvaluator.createLocatedMessage(
-                  existing.key, messageEqualKeysInMapPatternContext)
+                  existing.key, codeEqualKeysInMapPatternContext)
             ]);
       } else {
         keyValueMap[keyValue] = entry;
@@ -1843,10 +1842,10 @@ class ConstantsTransformer extends RemovingTransformer {
                 createArguments([
                   createStringLiteral(
                       forUnsoundness
-                          ? messageUnsoundSwitchExpressionError.problemMessage
+                          ? codeUnsoundSwitchExpressionError.problemMessage
                           :
                           // Coverage-ignore(suite): Not run.
-                          messageNeverReachableSwitchExpressionError
+                          codeNeverReachableSwitchExpressionError
                               .problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
@@ -2337,13 +2336,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             contextMessages.addAll(result.context!);
           }
           if (contextNode != null && contextNode != result.node) {
-            contextMessages.add(
-                createLocatedMessage(contextNode, messageConstEvalContext));
+            contextMessages
+                .add(createLocatedMessage(contextNode, codeConstEvalContext));
           }
 
           {
             final LocatedMessage locatedMessage =
-                createLocatedMessage(node, messageConstEvalStartingPoint);
+                createLocatedMessage(node, codeConstEvalStartingPoint);
             errorReporter.report(locatedMessage, contextMessages);
           }
         } else {
@@ -2356,9 +2355,9 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         final Object value = result.throwValue;
         Message? message;
         if (value is Constant) {
-          message = templateConstEvalUnhandledException.withArguments(value);
+          message = codeConstEvalUnhandledException.withArguments(value);
         } else if (value is Error) {
-          message = templateConstEvalUnhandledCoreException
+          message = codeConstEvalUnhandledCoreException
               .withArguments(value.toString());
         }
         assert(message != null);
@@ -2370,7 +2369,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         ];
         {
           final LocatedMessage locatedMessage =
-              createLocatedMessage(node, messageConstEvalStartingPoint);
+              createLocatedMessage(node, codeConstEvalStartingPoint);
           errorReporter.report(locatedMessage, contextMessages);
         }
         return new UnevaluatedConstant(
@@ -2388,7 +2387,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (result is UnevaluatedConstant) {
       if (errorOnUnevaluatedConstant) {
         // Coverage-ignore-block(suite): Not run.
-        return createEvaluationErrorConstant(node, messageConstEvalUnevaluated);
+        return createEvaluationErrorConstant(node, codeConstEvalUnevaluated);
       }
       return canonicalize(new UnevaluatedConstant(
           removeRedundantFileUriExpressions(result.expression)));
@@ -2422,7 +2421,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
         statement,
-        templateConstEvalError.withArguments(
+        codeConstEvalError.withArguments(
             'No valid constant returned from the execution of the '
             'statement.'));
   }
@@ -2448,13 +2447,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // Coverage-ignore: Should not be reachable.
       return createEvaluationErrorConstant(
           constructor,
-          templateConstEvalError
+          codeConstEvalError
               .withArguments("Constructors can't have a return value."));
     } else if (status is! ProceedStatus) {
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
           constructor,
-          templateConstEvalError
+          codeConstEvalError
               .withArguments("Invalid execution status of constructor body."));
     }
     return null;
@@ -2584,8 +2583,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         if (cachedResult == null) {
           // [null] is a sentinel value only used when still evaluating the same
           // node.
-          return createEvaluationErrorConstant(
-              node, messageConstEvalCircularity);
+          return createEvaluationErrorConstant(node, codeConstEvalCircularity);
         }
         result = cachedResult;
       } else {
@@ -2613,8 +2611,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         if (nodeCache[node] == null &&
             !(enableConstFunctions && isRecursiveFunctionCall)) {
           // recursive call
-          return createEvaluationErrorConstant(
-              node, messageConstEvalCircularity);
+          return createEvaluationErrorConstant(node, codeConstEvalCircularity);
         }
         // else we've seen the node before and come to a result -> we won't
         // go into an infinite loop here either.
@@ -2644,7 +2641,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant _notAConstantExpression(Expression node) {
     // Only a subset of the expression language is valid for constant
     // evaluation.
-    return createExpressionErrorConstant(node, messageNotAConstantExpression);
+    return createExpressionErrorConstant(node, codeNotAConstantExpression);
   }
 
   @override
@@ -2715,10 +2712,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitListLiteral(ListLiteral node) {
     if (!node.isConst && !enableConstFunctions) {
-      return createExpressionErrorConstant(
-          node,
-          templateNotConstantExpression
-              .withArguments('Non-constant list literal'));
+      return createExpressionErrorConstant(node,
+          codeNotConstantExpression.withArguments('Non-constant list literal'));
     }
 
     DartType? type = _evaluateDartType(node, node.typeArgument);
@@ -2810,10 +2805,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitSetLiteral(SetLiteral node) {
     if (!node.isConst) {
-      return createExpressionErrorConstant(
-          node,
-          templateNotConstantExpression
-              .withArguments('Non-constant set literal'));
+      return createExpressionErrorConstant(node,
+          codeNotConstantExpression.withArguments('Non-constant set literal'));
     }
 
     DartType? type = _evaluateDartType(node, node.typeArgument);
@@ -2863,10 +2856,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitMapLiteral(MapLiteral node) {
     if (!node.isConst) {
-      return createExpressionErrorConstant(
-          node,
-          templateNotConstantExpression
-              .withArguments('Non-constant map literal'));
+      return createExpressionErrorConstant(node,
+          codeNotConstantExpression.withArguments('Non-constant map literal'));
     }
 
     DartType? keyType = _evaluateDartType(node, node.keyType);
@@ -2934,27 +2925,27 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (enableConstFunctions) {
       return new FunctionValue(node.function, env);
     }
-    return createExpressionErrorConstant(node,
-        templateNotConstantExpression.withArguments('Function expression'));
+    return createExpressionErrorConstant(
+        node, codeNotConstantExpression.withArguments('Function expression'));
   }
 
   @override
   Constant visitConstructorInvocation(ConstructorInvocation node) {
     if (!node.isConst && !enableConstFunctions) {
       return createExpressionErrorConstant(
-          node, templateNotConstantExpression.withArguments('New expression'));
+          node, codeNotConstantExpression.withArguments('New expression'));
     }
 
     final Constructor constructor = node.target;
     AbortConstant? error =
-        checkConstructorConst(node, constructor, messageNonConstConstructor);
+        checkConstructorConst(node, constructor, codeNonConstConstructor);
     if (error != null) return error;
 
     final Class klass = constructor.enclosingClass;
     if (klass.isAbstract) {
       // Coverage-ignore: Probably unreachable.
       return createExpressionErrorConstant(
-          node, templateAbstractClassInstantiation.withArguments(klass.name));
+          node, codeAbstractClassInstantiation.withArguments(klass.name));
     }
 
     final List<Constant>? positional =
@@ -2997,7 +2988,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
       // Coverage-ignore(suite): Not run.
       return createEvaluationErrorConstant(node.arguments.positional.first,
-          templateConstEvalInvalidSymbolName.withArguments(nameValue));
+          codeConstEvalInvalidSymbolName.withArguments(nameValue));
     }
 
     List<DartType>? types = _evaluateTypeArguments(node, node.arguments);
@@ -3044,19 +3035,18 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
   AbortConstant? checkConstructorConst(
-      TreeNode node, Constructor constructor, Message messageIfNonConst) {
+      TreeNode node, Constructor constructor, Message codeIfNonConst) {
     if (!constructor.isConst) {
-      return createExpressionErrorConstant(node, messageIfNonConst);
+      return createExpressionErrorConstant(node, codeIfNonConst);
     }
     if (constructor.function.body != null &&
         constructor.function.body is! EmptyStatement &&
         !enableConstFunctions) {
       // Coverage-ignore: Probably unreachable.
-      return createExpressionErrorConstant(
-          node, messageConstConstructorWithBody);
+      return createExpressionErrorConstant(node, codeConstConstructorWithBody);
     } else if (constructor.isExternal) {
       return createEvaluationErrorConstant(
-          node, messageConstEvalExternalConstructor);
+          node, codeConstEvalExternalConstructor);
     }
     return null;
   }
@@ -3163,7 +3153,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           env.addVariableValue(variable, constant);
         } else if (init is SuperInitializer) {
           AbortConstant? error = checkConstructorConst(
-              init, init.target, messageConstConstructorWithNonConstSuper);
+              init, init.target, codeConstConstructorWithNonConstSuper);
           if (error != null) return error;
           List<DartType>? types = _evaluateSuperTypeArguments(
               init, constructor.enclosingClass.supertype!);
@@ -3201,7 +3191,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           // class, we pass the same [typeArguments].
 
           AbortConstant? error = checkConstructorConst(
-              init, init.target, messageConstConstructorRedirectionToNonConst);
+              init, init.target, codeConstConstructorRedirectionToNonConst);
           if (error != null) return error;
           List<Constant>? positionalArguments =
               _evaluatePositionalArguments(init.arguments.positional);
@@ -3242,7 +3232,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               'No support for handling initializer of type '
               '"${init.runtimeType}".');
           return createEvaluationErrorConstant(
-              init, messageNotAConstantExpression);
+              init, codeNotAConstantExpression);
         }
       }
 
@@ -3289,7 +3279,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       if (!condition.value) {
         if (statement.message == null) {
           return createEvaluationErrorConstant(
-              statement.condition, messageConstEvalFailedAssertion);
+              statement.condition, codeConstEvalFailedAssertion);
         }
         final Constant message = _evaluateSubexpression(statement.message!);
         if (message is AbortConstant) return message;
@@ -3302,21 +3292,21 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         } else if (message is StringConstant) {
           return createEvaluationErrorConstant(
               statement.condition,
-              templateConstEvalFailedAssertionWithMessage
+              codeConstEvalFailedAssertionWithMessage
                   .withArguments(message.value));
         } else if (message is NullConstant) {
           return createEvaluationErrorConstant(
-              statement.condition, messageConstEvalFailedAssertion);
+              statement.condition, codeConstEvalFailedAssertion);
         } else {
           return createEvaluationErrorConstant(statement.message!,
-              messageConstEvalFailedAssertionWithNonStringMessage);
+              codeConstEvalFailedAssertionWithNonStringMessage);
         }
       }
     } else {
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
           statement.condition,
-          templateConstEvalInvalidType.withArguments(
+          codeConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolNonNullableRawType,
               condition.getType(staticTypeContext)));
@@ -3334,15 +3324,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitDynamicInvocation(DynamicInvocation node) {
     // We have no support for generic method invocation at the moment.
     if (node.arguments.types.isNotEmpty) {
-      return createExpressionErrorConstant(node,
-          templateNotConstantExpression.withArguments("Dynamic invocation"));
+      return createExpressionErrorConstant(
+          node, codeNotConstantExpression.withArguments("Dynamic invocation"));
     }
 
     // We have no support for method invocation with named arguments at the
     // moment.
     if (node.arguments.named.isNotEmpty) {
-      return createExpressionErrorConstant(node,
-          templateNotConstantExpression.withArguments("Dynamic invocation"));
+      return createExpressionErrorConstant(
+          node, codeNotConstantExpression.withArguments("Dynamic invocation"));
     }
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
@@ -3380,15 +3370,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   Constant visitInstanceInvocation(InstanceInvocation node) {
     // We have no support for generic method invocation at the moment.
     if (node.arguments.types.isNotEmpty) {
-      return createExpressionErrorConstant(node,
-          templateNotConstantExpression.withArguments("Instance invocation"));
+      return createExpressionErrorConstant(
+          node, codeNotConstantExpression.withArguments("Instance invocation"));
     }
 
     // We have no support for method invocation with named arguments at the
     // moment.
     if (node.arguments.named.isNotEmpty) {
-      return createExpressionErrorConstant(node,
-          templateNotConstantExpression.withArguments("Instance invocation"));
+      return createExpressionErrorConstant(
+          node, codeNotConstantExpression.withArguments("Instance invocation"));
     }
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
@@ -3426,8 +3416,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitFunctionInvocation(FunctionInvocation node) {
     if (!enableConstFunctions) {
-      return createExpressionErrorConstant(node,
-          templateNotConstantExpression.withArguments('Function invocation'));
+      return createExpressionErrorConstant(
+          node, codeNotConstantExpression.withArguments('Function invocation'));
     }
 
     final Constant receiver = _evaluateSubexpression(node.receiver);
@@ -3439,10 +3429,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   @override
   Constant visitLocalFunctionInvocation(LocalFunctionInvocation node) {
     if (!enableConstFunctions) {
-      return createExpressionErrorConstant(
-          node,
-          templateNotConstantExpression
-              .withArguments('Local function invocation'));
+      return createExpressionErrorConstant(node,
+          codeNotConstantExpression.withArguments('Local function invocation'));
     }
 
     final Constant receiver = env.lookupVariable(node.variable)!;
@@ -3493,7 +3481,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
           node,
-          templateConstEvalError
+          codeConstEvalError
               .withArguments('Function invocation with invalid receiver.'));
     }
   }
@@ -3540,7 +3528,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       } else {
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalEqualsOperandNotPrimitiveEquality.withArguments(
+            codeConstEvalEqualsOperandNotPrimitiveEquality.withArguments(
                 left, left.getType(staticTypeContext)));
       }
     } else {
@@ -3558,7 +3546,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       } else {
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidEqualsOperandType.withArguments(
+            codeConstEvalInvalidEqualsOperandType.withArguments(
                 left, left.getType(staticTypeContext)));
       }
     }
@@ -3597,7 +3585,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             }
             return createEvaluationErrorConstant(
                 node,
-                templateConstEvalInvalidBinaryOperandType.withArguments(
+                codeConstEvalInvalidBinaryOperandType.withArguments(
                     '+',
                     receiver,
                     typeEnvironment.coreTypes.stringNonNullableRawType,
@@ -3615,7 +3603,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               // Coverage-ignore(suite): Not run.
               return createEvaluationErrorConstant(
                   node,
-                  templateConstEvalInvalidBinaryOperandType.withArguments(
+                  codeConstEvalInvalidBinaryOperandType.withArguments(
                       '[]',
                       receiver,
                       typeEnvironment.coreTypes.intNonNullableRawType,
@@ -3636,7 +3624,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               (op == '<<' || op == '>>' || op == '>>>')) {
             return createEvaluationErrorConstant(
                 node,
-                templateConstEvalInvalidBinaryOperandType.withArguments(
+                codeConstEvalInvalidBinaryOperandType.withArguments(
                     op,
                     other,
                     typeEnvironment.coreTypes.intNonNullableRawType,
@@ -3648,7 +3636,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidBinaryOperandType.withArguments(
+            codeConstEvalInvalidBinaryOperandType.withArguments(
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numNonNullableRawType,
@@ -3659,7 +3647,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           (op == '<<' || op == '>>' || op == '>>>')) {
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidBinaryOperandType.withArguments(
+            codeConstEvalInvalidBinaryOperandType.withArguments(
                 op,
                 receiver,
                 typeEnvironment.coreTypes.intNonNullableRawType,
@@ -3681,7 +3669,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // Coverage-ignore(suite): Not run.
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidBinaryOperandType.withArguments(
+            codeConstEvalInvalidBinaryOperandType.withArguments(
                 op,
                 receiver,
                 typeEnvironment.coreTypes.numNonNullableRawType,
@@ -3705,7 +3693,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
       }
     } else if (receiver is NullConstant) {
-      return createEvaluationErrorConstant(node, messageConstEvalNullValue);
+      return createEvaluationErrorConstant(node, codeConstEvalNullValue);
     } else if (receiver is ListConstant && enableConstFunctions) {
       if (positionalArguments.length == 1) {
         final Constant other = positionalArguments[0];
@@ -3722,7 +3710,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             // Coverage-ignore(suite): Not run.
             return createEvaluationErrorConstant(
                 node,
-                templateConstEvalInvalidBinaryOperandType.withArguments(
+                codeConstEvalInvalidBinaryOperandType.withArguments(
                     '[]',
                     receiver,
                     typeEnvironment.coreTypes.intNonNullableRawType,
@@ -3815,8 +3803,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       }
     }
 
-    return createEvaluationErrorConstant(node,
-        templateConstEvalInvalidMethodInvocation.withArguments(op, receiver));
+    return createEvaluationErrorConstant(
+        node, codeConstEvalInvalidMethodInvocation.withArguments(op, receiver));
   }
 
   @override
@@ -3847,7 +3835,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           // Coverage-ignore(suite): Not run.
           return createEvaluationErrorConstant(
               node,
-              templateConstEvalInvalidBinaryOperandType.withArguments(
+              codeConstEvalInvalidBinaryOperandType.withArguments(
                   logicalExpressionOperatorToString(node.operatorEnum),
                   left,
                   typeEnvironment.coreTypes.boolNonNullableRawType,
@@ -3856,7 +3844,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // Coverage-ignore(suite): Not run.
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidMethodInvocation.withArguments(
+            codeConstEvalInvalidMethodInvocation.withArguments(
                 logicalExpressionOperatorToString(node.operatorEnum), left));
       case LogicalExpressionOperator.AND:
         if (left is BoolConstant) {
@@ -3872,7 +3860,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           // Coverage-ignore(suite): Not run.
           return createEvaluationErrorConstant(
               node,
-              templateConstEvalInvalidBinaryOperandType.withArguments(
+              codeConstEvalInvalidBinaryOperandType.withArguments(
                   logicalExpressionOperatorToString(node.operatorEnum),
                   left,
                   typeEnvironment.coreTypes.boolNonNullableRawType,
@@ -3881,7 +3869,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // Coverage-ignore(suite): Not run.
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidMethodInvocation.withArguments(
+            codeConstEvalInvalidMethodInvocation.withArguments(
                 logicalExpressionOperatorToString(node.operatorEnum), left));
     }
   }
@@ -3909,7 +3897,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // Coverage-ignore-block(suite): Not run.
       return createEvaluationErrorConstant(
           node.condition,
-          templateConstEvalInvalidType.withArguments(
+          codeConstEvalInvalidType.withArguments(
               condition,
               typeEnvironment.coreTypes.boolNonNullableRawType,
               condition.getType(staticTypeContext)));
@@ -3923,8 +3911,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // non-const stuff as const.
       // Access "this" during instance creation.
       if (instanceBuilder == null) {
-        return createEvaluationErrorConstant(
-            node, messageNotAConstantExpression);
+        return createEvaluationErrorConstant(node, codeNotAConstantExpression);
       }
 
       for (final MapEntry<Field, Constant> entry
@@ -3940,7 +3927,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // Coverage-ignore: Probably unreachable.
       return createEvaluationErrorConstant(
           node,
-          templateConstEvalError.withArguments(
+          codeConstEvalError.withArguments(
               'Could not evaluate field get ${node.name} on incomplete '
               'instance'));
     }
@@ -3957,7 +3944,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
               resultType: node.resultType,
               interfaceTarget: node.interfaceTarget));
     } else if (receiver is NullConstant) {
-      return createEvaluationErrorConstant(node, messageConstEvalNullValue);
+      return createEvaluationErrorConstant(node, codeConstEvalNullValue);
     } else if (receiver is ListConstant && enableConstFunctions) {
       switch (node.name.text) {
         case 'first':
@@ -4001,7 +3988,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     return createEvaluationErrorConstant(
         node,
-        templateConstEvalInvalidPropertyGet.withArguments(
+        codeConstEvalInvalidPropertyGet.withArguments(
             node.name.text, receiver));
   }
 
@@ -4018,7 +4005,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     return createEvaluationErrorConstant(
         node,
-        templateConstEvalInvalidRecordIndexGet.withArguments(
+        codeConstEvalInvalidRecordIndexGet.withArguments(
             "${node.index}", receiver));
   }
 
@@ -4035,10 +4022,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return result;
       }
     }
-    return createEvaluationErrorConstant(
-        node,
-        templateConstEvalInvalidRecordNameGet.withArguments(
-            node.name, receiver));
+    return createEvaluationErrorConstant(node,
+        codeConstEvalInvalidRecordNameGet.withArguments(node.name, receiver));
   }
 
   @override
@@ -4053,12 +4038,12 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       return unevaluated(
           node, new DynamicGet(node.kind, _wrap(receiver), node.name));
     } else if (receiver is NullConstant) {
-      return createEvaluationErrorConstant(node, messageConstEvalNullValue);
+      return createEvaluationErrorConstant(node, codeConstEvalNullValue);
     }
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
         node,
-        templateConstEvalInvalidPropertyGet.withArguments(
+        codeConstEvalInvalidPropertyGet.withArguments(
             node.name.text, receiver));
   }
 
@@ -4068,7 +4053,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (receiver is AbortConstant) return receiver;
     return createEvaluationErrorConstant(
         node,
-        templateConstEvalInvalidPropertyGet.withArguments(
+        codeConstEvalInvalidPropertyGet.withArguments(
             node.name.text, receiver));
   }
 
@@ -4079,7 +4064,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
         node,
-        templateConstEvalInvalidPropertyGet.withArguments(
+        codeConstEvalInvalidPropertyGet.withArguments(
             Name.callName.text, receiver));
   }
 
@@ -4103,10 +4088,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           // Coverage-ignore(suite): Not run.
-          createEvaluationErrorConstant(
-              node,
-              templateConstEvalGetterNotFound
-                  .withArguments(variable.name ?? ''));
+          createEvaluationErrorConstant(node,
+              codeConstEvalGetterNotFound.withArguments(variable.name ?? ''));
     } else {
       if (variable.parent is Let ||
           variable.parent is LocalInitializer ||
@@ -4114,7 +4097,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return env.lookupVariable(node.variable) ??
             createEvaluationErrorConstant(
                 node,
-                templateConstEvalNonConstantVariableGet
+                codeConstEvalNonConstantVariableGet
                     .withArguments(variable.name ?? ''));
       }
       if (variable.isConst) {
@@ -4123,7 +4106,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     }
     return createExpressionErrorConstant(
         node,
-        templateNotConstantExpression
+        codeNotConstantExpression
             .withArguments('Read of a non-const variable'));
   }
 
@@ -4140,7 +4123,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // Coverage-ignore(suite): Not run.
       return createEvaluationErrorConstant(
           node,
-          templateConstEvalError
+          codeConstEvalError
               .withArguments('Variable set of an unknown value.'));
     }
     return _notAConstantExpression(node);
@@ -4175,10 +4158,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         return _handleFunctionInvocation(target.function, [], [], {});
       }
     }
-    return createEvaluationErrorConstant(
-        node,
-        templateConstEvalInvalidStaticInvocation
-            .withArguments(target.name.text));
+    return createEvaluationErrorConstant(node,
+        codeConstEvalInvalidStaticInvocation.withArguments(target.name.text));
   }
 
   @override
@@ -4215,7 +4196,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       } else {
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalInvalidStringInterpolationOperand
+            codeConstEvalInvalidStringInterpolationOperand
                 .withArguments(constant));
       }
     }
@@ -4370,7 +4351,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
             // Coverage-ignore(suite): Not run.
             else if (name is NullConstant) {
               return createEvaluationErrorConstant(
-                  node, messageConstEvalNullValue);
+                  node, codeConstEvalNullValue);
             }
           } else {
             // Leave environment constant unevaluated.
@@ -4382,14 +4363,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           }
         } else if (target.isExternal) {
           return createEvaluationErrorConstant(
-              node, messageConstEvalExternalFactory);
+              node, codeConstEvalExternalFactory);
         } else if (enableConstFunctions) {
           return _handleFunctionInvocation(
               node.target.function, typeArguments, positional, named);
         } else {
           return createExpressionErrorConstant(
               node,
-              templateNotConstantExpression
+              codeNotConstantExpression
                   .withArguments('Non-redirecting const factory invocation'));
         }
       } else {
@@ -4397,13 +4378,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           return _handleFunctionInvocation(
               node.target.function, typeArguments, positional, named);
         } else if (!node.isConst) {
-          return createExpressionErrorConstant(node,
-              templateNotConstantExpression.withArguments('New expression'));
+          return createExpressionErrorConstant(
+              node, codeNotConstantExpression.withArguments('New expression'));
         } else {
           // Coverage-ignore-block(suite): Not run.
           return createEvaluationErrorConstant(
               node,
-              templateNotConstantExpression
+              codeNotConstantExpression
                   .withArguments('Non-const factory invocation'));
         }
       }
@@ -4445,18 +4426,18 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       } else {
         return createEvaluationErrorConstant(
             node,
-            templateNotConstantExpression.withArguments(
+            codeNotConstantExpression.withArguments(
                 'Invocation of non-const extension type member'));
       }
     } else if (target.isExtensionMember) {
-      return createEvaluationErrorConstant(node, messageConstEvalExtension);
+      return createEvaluationErrorConstant(node, codeConstEvalExtension);
     } else if (enableConstFunctions && target.kind == ProcedureKind.Method) {
       return _handleFunctionInvocation(
           node.target.function, typeArguments, positional, named);
     }
 
     return createExpressionErrorConstant(
-        node, templateNotConstantExpression.withArguments('Static invocation'));
+        node, codeNotConstantExpression.withArguments('Static invocation'));
   }
 
   Constant _handleFunctionInvocation(
@@ -4495,8 +4476,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // function has a non-nullable return type.
         return createEvaluationErrorConstant(
             function,
-            templateConstEvalInvalidType.withArguments(result,
-                function.returnType, result.getType(staticTypeContext)));
+            codeConstEvalInvalidType.withArguments(result, function.returnType,
+                result.getType(staticTypeContext)));
       }
       return result;
     }
@@ -4583,7 +4564,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // Coverage-ignore(suite): Not run.
     return createEvaluationErrorConstant(
         node,
-        templateConstEvalInvalidType.withArguments(
+        codeConstEvalInvalidType.withArguments(
             constant,
             typeEnvironment.coreTypes.boolNonNullableRawType,
             constant.getType(staticTypeContext)));
@@ -4596,7 +4577,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       final Constant constant = _evaluateSubexpression(node.operand);
       if (constant is AbortConstant) return constant;
       if (constant is NullConstant) {
-        return createEvaluationErrorConstant(node, messageConstEvalNonNull);
+        return createEvaluationErrorConstant(node, codeConstEvalNonNull);
       }
       if (shouldBeUnevaluated) {
         return unevaluated(node, new NullCheck(_wrap(constant)));
@@ -4663,7 +4644,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         // Coverage-ignore: Probably unreachable.
         return createEvaluationErrorConstant(
             node,
-            templateConstEvalError.withArguments(
+            codeConstEvalError.withArguments(
                 'The number of type arguments supplied in the partial '
                 'instantiation does not match the number of type arguments '
                 'of the $constant.'));
@@ -4674,7 +4655,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // Coverage-ignore: Probably unreachable.
     return createEvaluationErrorConstant(
         node,
-        templateConstEvalError.withArguments(
+        codeConstEvalError.withArguments(
             'Only tear-off constants can be partially instantiated.'));
   }
 
@@ -4706,15 +4687,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // Coverage-ignore: Probably unreachable.
       return createEvaluationErrorConstant(
           node,
-          templateConstEvalError.withArguments(
+          codeConstEvalError.withArguments(
               "Unsupported typedef tearoff target: ${constant}."));
     }
   }
 
   @override
   Constant visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    return createEvaluationErrorConstant(node,
-        templateConstEvalDeferredLibrary.withArguments(node.import.name!));
+    return createEvaluationErrorConstant(
+        node, codeConstEvalDeferredLibrary.withArguments(node.import.name!));
   }
 
   // Helper methods:
@@ -4869,7 +4850,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     if (!result) {
       return createEvaluationErrorConstant(
           node,
-          templateConstEvalInvalidType.withArguments(
+          codeConstEvalInvalidType.withArguments(
               constant, type, constant.getType(staticTypeContext)));
     }
     return constant;
@@ -4923,7 +4904,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       // potentially constant types, but we should be able to handle all (or
       // none) in the body builder.
       _gotError = createExpressionErrorConstant(
-          node, messageTypeVariableInConstantContext);
+          node, codeTypeVariableInConstantContext);
       return null;
     }
 
@@ -5051,7 +5032,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       case '~/':
         if (b == 0) {
           return createEvaluationErrorConstant(
-              node, templateConstEvalZeroDivisor.withArguments(op, '$a'));
+              node, codeConstEvalZeroDivisor.withArguments(op, '$a'));
         }
         return intFolder.truncatingDivide(node, a, b);
       case '%':
@@ -5071,7 +5052,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
     // Coverage-ignore: Probably unreachable.
     return createExpressionErrorConstant(node,
-        templateNotConstantExpression.withArguments("Binary '$op' operation"));
+        codeNotConstantExpression.withArguments("Binary '$op' operation"));
   }
 
   @override
@@ -5137,14 +5118,14 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   // Coverage-ignore(suite): Not run.
   Constant visitSwitchExpression(SwitchExpression node) {
     return createExpressionErrorConstant(
-        node, templateNotConstantExpression.withArguments('Switch expression'));
+        node, codeNotConstantExpression.withArguments('Switch expression'));
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Constant visitPatternAssignment(PatternAssignment node) {
-    return createExpressionErrorConstant(node,
-        templateNotConstantExpression.withArguments('Pattern assignment'));
+    return createExpressionErrorConstant(
+        node, codeNotConstantExpression.withArguments('Pattern assignment'));
   }
 
   @override
@@ -5414,20 +5395,20 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   // Coverage-ignore(suite): Not run.
   ExecutionStatus visitForInStatement(ForInStatement node) {
     return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
-        node, templateConstEvalError.withArguments('For-in statement.')));
+        node, codeConstEvalError.withArguments('For-in statement.')));
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   ExecutionStatus visitIfCaseStatement(IfCaseStatement node) {
     return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
-        node, templateConstEvalError.withArguments('If-case statement.')));
+        node, codeConstEvalError.withArguments('If-case statement.')));
   }
 
   @override
   ExecutionStatus visitPatternSwitchStatement(PatternSwitchStatement node) {
-    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(node,
-        templateConstEvalError.withArguments('Pattern switch statement.')));
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
+        node, codeConstEvalError.withArguments('Pattern switch statement.')));
   }
 
   @override
@@ -5435,14 +5416,14 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   ExecutionStatus visitPatternVariableDeclaration(
       PatternVariableDeclaration node) {
     return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(node,
-        templateConstEvalError.withArguments('Pattern variable declaration.')));
+        codeConstEvalError.withArguments('Pattern variable declaration.')));
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   ExecutionStatus visitYieldStatement(YieldStatement node) {
     return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
-        node, templateConstEvalError.withArguments('Yield statement.')));
+        node, codeConstEvalError.withArguments('Yield statement.')));
   }
 
   @override

@@ -16,8 +16,7 @@ class TargetFlags {
   final bool supportMirrors;
 
   const TargetFlags(
-      {this.trackWidgetCreation = false,
-      this.supportMirrors = true});
+      {this.trackWidgetCreation = false, this.supportMirrors = true});
 
   @override
   bool operator ==(other) {
@@ -732,8 +731,7 @@ class TestTargetFlags extends TargetFlags {
       this.forceConstructorTearOffLoweringForTesting,
       this.supportedDartLibraries = const {},
       this.unsupportedDartLibraries = const {}})
-      : super(
-            trackWidgetCreation: trackWidgetCreation);
+      : super(trackWidgetCreation: trackWidgetCreation);
 }
 
 mixin TestTargetMixin on Target {

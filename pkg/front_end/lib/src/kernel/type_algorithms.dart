@@ -269,10 +269,10 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
           for (TypeBuilder dependency in dependencies) {
             issues.add(new NonSimplicityIssue(
                 parameter,
-                templateBoundIssueViaRawTypeWithNonSimpleBounds
+                codeBoundIssueViaRawTypeWithNonSimpleBounds
                     .withArguments(type.declaration!.name),
                 <LocatedMessage>[
-                  templateNonSimpleBoundViaVariable
+                  codeNonSimpleBoundViaVariable
                       .withArguments(dependency.declaration!.name)
                       .withLocation(dependent.fileUri!, dependent.fileOffset,
                           dependent.name.length)
@@ -283,7 +283,7 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
           // The inbound references are in a compiled declaration in a .dill.
           issues.add(new NonSimplicityIssue(
               parameter,
-              templateBoundIssueViaRawTypeWithNonSimpleBounds
+              codeBoundIssueViaRawTypeWithNonSimpleBounds
                   .withArguments(type.declaration!.name),
               const <LocatedMessage>[]));
         }
@@ -511,14 +511,14 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
       // Loop.
       issues.add(new NonSimplicityIssue(
           declaration,
-          templateBoundIssueViaLoopNonSimplicity
+          codeBoundIssueViaLoopNonSimplicity
               .withArguments(cycle.single.type.declaration!.name),
           null));
     } else if (cycle.isNotEmpty) {
       assert(cycle.length > 1);
       List<LocatedMessage> context = <LocatedMessage>[];
       for (RawTypeCycleElement cycleElement in cycle) {
-        context.add(templateNonSimpleBoundViaReference
+        context.add(codeNonSimpleBoundViaReference
             .withArguments(cycleElement.type.declaration!.name)
             .withLocation(
                 cycleElement.typeParameterBuilder!.fileUri!,
@@ -528,7 +528,7 @@ List<NonSimplicityIssue> _convertRawTypeCyclesIntoIssues(
 
       issues.add(new NonSimplicityIssue(
           declaration,
-          templateBoundIssueViaCycleNonSimplicity.withArguments(
+          codeBoundIssueViaCycleNonSimplicity.withArguments(
               declaration.name, cycle.first.type.declaration!.name),
           context));
     }
@@ -821,8 +821,8 @@ class ComputeDefaultTypeContext {
     }
 
     if (isUnaliasedGenericFunctionType || isAliasedGenericFunctionType) {
-      _problemReporting.addProblem(messageGenericFunctionTypeInBound,
-          charOffset, typeParameterName.length, fileUri);
+      _problemReporting.addProblem(codeGenericFunctionTypeInBound, charOffset,
+          typeParameterName.length, fileUri);
       return true;
     }
     return false;

@@ -78,6 +78,8 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
   bool addCommentsToFiles = false,
   bool removeCommentsFromFiles = false,
   bool addAndRemoveCommentsInFiles = false,
+  void Function(String line)? stdoutReceiver,
+  void Function(String line)? stderrReceiver,
 }) async {
   void output(Object? object) {
     if (silent) return;
@@ -198,19 +200,31 @@ Future<Map<Uri, CoverageInfo>?> mergeFromDirUri(
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
-      stderr.writeln("stderr> $line");
+      if (stderrReceiver != null) {
+        stderrReceiver(line);
+      } else {
+        stderr.writeln("stderr> $line");
+      }
     });
     p.stdout
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String line) {
-      stdout.writeln("stdout> $line");
+      if (stdoutReceiver != null) {
+        stdoutReceiver(line);
+      } else {
+        stdout.writeln("stdout> $line");
+      }
     });
+    await p.exitCode;
   }
 
   output("Processed $filesCount files with $errorsCount error(s) and "
       "$allCoveredCount files being covered 100%.");
-  int percentHit = (hitsTotal * 100) ~/ (hitsTotal + missesTotal);
+  int percentHit = 0;
+  if (hitsTotal > 0) {
+    percentHit = (hitsTotal * 100) ~/ (hitsTotal + missesTotal);
+  }
   output("All-in-all $hitsTotal hits and $missesTotal misses ($percentHit%).");
 
   return result;
@@ -348,6 +362,12 @@ CoverageInfo _process(
               commentOn.commentOnToken.lexeme == "?.") {
             // A comment on the actual call isn't pretty.
             // Allow the "bigger one".
+          } else if (prevAdded.beginToken.charOffset ==
+                  commentOn.beginToken.charOffset &&
+              prevAdded.endToken.charEnd == commentOn.endToken.charEnd &&
+              prevAdded.allowToWrapInBlock) {
+            // They have the same size and the previous one should be wrapped.
+            // Keep that one so we do wrap.
           } else if (prevAdded.canBeReplaced) {
             // Though if there aren't any possible extra coverage in the
             // previous block compared to this one, we do prefer the smaller
@@ -500,14 +520,23 @@ CoverageInfo _process(
 
       // The extra spaces at the end makes the formatter format better if for
       // instance there's comments after this.
+      bool addedStartBrace = false;
       if (entry.isBlock) {
         sb.write("$extra// Coverage-ignore-block(suite): Not run.\n  ");
+      } else if (entry.allowToWrapInBlock) {
+        sb.write("$extra {\n  // Coverage-ignore-block(suite): Not run.\n  ");
+        addedStartBrace = true;
       } else {
         sb.write("$extra// Coverage-ignore(suite): Not run.\n  ");
       }
       ignoredIntervalsBuilder?.addIntervalIncludingEnd(
           entry.beginToken.charOffset, entry.endToken.charEnd);
       from = token.charOffset;
+      if (addedStartBrace) {
+        addChunk(from, entry.endToken.charEnd);
+        from = entry.endToken.charEnd;
+        sb.write("\n  }");
+      }
     }
     addChunk(from, sourceText.length);
     f.writeAsStringSync(sb.toString());
@@ -874,10 +903,10 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   /// there is possible coverage but no actual coverage).
   bool _checkCommentAndIgnoreCoverage(
       Token tokenWithPossibleComment, BeginAndEndTokenParserAstNode ignoreRange,
-      {required bool allowReplace}) {
+      {required bool allowReplace, bool allowToWrapInBlock = false}) {
     return _checkCommentAndIgnoreCoverageWithBeginAndEnd(
         tokenWithPossibleComment, ignoreRange.beginToken, ignoreRange.endToken,
-        allowReplace: allowReplace);
+        allowReplace: allowReplace, allowToWrapInBlock: allowToWrapInBlock);
   }
 
   /// Check if there is an ignore comment on [tokenWithPossibleComment] and
@@ -891,7 +920,8 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
       final Token endToken,
       {required bool allowReplace,
       bool isBlock = false,
-      bool allowOnBraceStart = false}) {
+      bool allowOnBraceStart = false,
+      bool allowToWrapInBlock = false}) {
     if (_hasIgnoreComment(tokenWithPossibleComment, isBlock: isBlock)) {
       ignoredStartEnd.addIntervalIncludingEnd(
           beginToken.charOffset, endToken.charEnd);
@@ -962,6 +992,7 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
         endToken: endToken,
         canBeReplaced: allowReplace,
         isBlock: isBlock,
+        allowToWrapInBlock: allowToWrapInBlock,
       ));
     }
 
@@ -1288,7 +1319,9 @@ class _AstIndexerAndIgnoreCollectorBody extends RecursiveParserAstVisitor {
   @override
   void visitThenStatementEnd(ThenStatementEnd node) {
     if (_collector._checkCommentAndIgnoreCoverage(node.beginToken, node,
-        allowReplace: true)) {
+        allowReplace: true,
+        allowToWrapInBlock:
+            !node.beginToken.isA(TokenType.OPEN_CURLY_BRACKET))) {
       return;
     }
     super.visitThenStatementEnd(node);
@@ -1542,6 +1575,7 @@ class _CommentOn implements Comparable<_CommentOn> {
   final Token endToken;
   final bool canBeReplaced;
   final bool isBlock;
+  final bool allowToWrapInBlock;
 
   _CommentOn({
     required this.commentOnToken,
@@ -1549,6 +1583,7 @@ class _CommentOn implements Comparable<_CommentOn> {
     required this.endToken,
     required this.canBeReplaced,
     required this.isBlock,
+    required this.allowToWrapInBlock,
   });
 
   @override

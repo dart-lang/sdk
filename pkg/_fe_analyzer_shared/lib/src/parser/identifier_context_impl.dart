@@ -31,7 +31,7 @@ class CatchParameterIdentifierContext extends IdentifierContext {
     }
 
     // Recovery
-    parser.reportRecoverableError(identifier, codes.messageCatchSyntax);
+    parser.reportRecoverableError(identifier, codes.codeCatchSyntax);
     if (looksLikeStatementStart(identifier) ||
         identifier.isA(TokenType.COMMA) ||
         identifier.isA(TokenType.CLOSE_PAREN) ||
@@ -87,18 +87,18 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateBuiltInIdentifierInDeclaration,
+        codes.codeBuiltInIdentifierInDeclaration,
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -107,7 +107,7 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -149,7 +149,7 @@ class CombinatorIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
         (identifier.next == null ||
@@ -157,13 +157,13 @@ class CombinatorIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -172,7 +172,7 @@ class CombinatorIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -213,13 +213,13 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifierButGotKeyword,
+        codes.codeExpectedIdentifierButGotKeyword,
       );
     }
     return identifier;
@@ -262,13 +262,13 @@ class DottedNameIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -277,7 +277,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -309,18 +309,18 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateBuiltInIdentifierInDeclaration,
+        codes.codeBuiltInIdentifierInDeclaration,
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -329,7 +329,7 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -357,13 +357,13 @@ class EnumValueDeclarationIdentifierContext extends IdentifierContext {
         identifier.isA(TokenType.EOF)) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifier,
+        codes.codeExpectedIdentifier,
       );
       return parser.rewriter.insertSyntheticIdentifier(token);
     } else if (!identifier.isKeywordOrIdentifier) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifier,
+        codes.codeExpectedIdentifier,
       );
       // When in doubt, consume the token to ensure we make progress
       // but insert a synthetic identifier to satisfy listeners.
@@ -372,7 +372,7 @@ class EnumValueDeclarationIdentifierContext extends IdentifierContext {
       // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifierButGotKeyword,
+        codes.codeExpectedIdentifierButGotKeyword,
       );
     }
     return identifier;
@@ -402,7 +402,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
         // rather than the token following it.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateUnexpectedToken,
+          codes.codeUnexpectedToken,
         );
 
         // TODO(danrubel) Consider a new listener event so that analyzer
@@ -423,7 +423,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
       // Keyword used as identifier in string interpolation
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifierButGotKeyword,
+        codes.codeExpectedIdentifierButGotKeyword,
       );
       return identifier;
     } else if (!looksLikeStatementStart(identifier)) {
@@ -435,7 +435,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
           // Use the keyword as the identifier.
           parser.reportRecoverableErrorWithToken(
             identifier,
-            codes.templateExpectedIdentifierButGotKeyword,
+            codes.codeExpectedIdentifierButGotKeyword,
           );
           return identifier;
         }
@@ -460,7 +460,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
 
     parser.reportRecoverableErrorWithToken(
       reportErrorAt,
-      codes.templateExpectedIdentifier,
+      codes.codeExpectedIdentifier,
     );
 
     // Insert a synthetic identifier to satisfy listeners.
@@ -496,14 +496,14 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(
         identifier,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
         messageOnToken: identifier,
       );
     } else {
       // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifierButGotKeyword,
+        codes.codeExpectedIdentifierButGotKeyword,
       );
       return identifier;
     }
@@ -529,7 +529,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
       identifier,
-      codes.templateExpectedIdentifierButGotKeyword,
+      codes.codeExpectedIdentifierButGotKeyword,
     );
     return identifier;
   }
@@ -555,7 +555,7 @@ class FieldInitializerIdentifierContext extends IdentifierContext {
     // Recovery
     parser.reportRecoverableErrorWithToken(
       identifier,
-      codes.templateExpectedIdentifier,
+      codes.codeExpectedIdentifier,
     );
     // Insert a synthetic identifier to satisfy listeners.
     return parser.rewriter.insertSyntheticIdentifier(token);
@@ -598,13 +598,13 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -613,7 +613,7 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -656,13 +656,13 @@ class RecordFieldDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -671,7 +671,7 @@ class RecordFieldDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -711,7 +711,7 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
         _isOneOfFollowingValues(identifier.next!)) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateBuiltInIdentifierInDeclaration,
+        codes.codeBuiltInIdentifierInDeclaration,
       );
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
         (identifier.next == null ||
@@ -719,19 +719,19 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else if (_isOneOfFollowingValues(identifier)) {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -740,7 +740,7 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -768,13 +768,13 @@ class LiteralSymbolIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifierButGotKeyword,
+        codes.codeExpectedIdentifierButGotKeyword,
       );
     }
 
@@ -814,13 +814,13 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -829,7 +829,7 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -858,13 +858,13 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -873,7 +873,7 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -899,13 +899,13 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -914,7 +914,7 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -974,7 +974,7 @@ class LibraryIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
         (identifier.next == null ||
@@ -982,13 +982,13 @@ class LibraryIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -997,7 +997,7 @@ class LibraryIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1031,13 +1031,13 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -1046,7 +1046,7 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1089,13 +1089,13 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -1104,7 +1104,7 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1156,7 +1156,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(
         identifier,
         this,
-        message: codes.messageMissingOperatorKeyword,
+        message: codes.codeMissingOperatorKeyword,
         messageOnToken: identifier,
       );
     } else if (identifier.isA(TokenType.PERIOD) ||
@@ -1173,14 +1173,14 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
       return parser.insertSyntheticIdentifier(
         identifier,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
         messageOnToken: identifier,
       );
     } else {
       // Use the keyword as the identifier.
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifierButGotKeyword,
+        codes.codeExpectedIdentifierButGotKeyword,
       );
       return identifier;
     }
@@ -1206,7 +1206,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
       identifier,
-      codes.templateExpectedIdentifierButGotKeyword,
+      codes.codeExpectedIdentifierButGotKeyword,
     );
     return identifier;
   }
@@ -1231,13 +1231,13 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -1246,7 +1246,7 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1276,13 +1276,13 @@ class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -1291,7 +1291,7 @@ class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1329,18 +1329,18 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateBuiltInIdentifierInDeclaration,
+        codes.codeBuiltInIdentifierInDeclaration,
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -1349,7 +1349,7 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1381,7 +1381,7 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
       identifier,
-      codes.templateExpectedIdentifierButGotKeyword,
+      codes.codeExpectedIdentifierButGotKeyword,
     );
     return identifier;
   }
@@ -1412,7 +1412,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
       if (identifier.isA(Keyword.FUNCTION)) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
       return identifier;
@@ -1423,20 +1423,20 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
         _isOneOfFollowingValues(identifier.next!)) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateBuiltInIdentifierInDeclaration,
+        codes.codeBuiltInIdentifierInDeclaration,
       );
     } else if (looksLikeStartOfNextTopLevelDeclaration(identifier) ||
         _isOneOfFollowingValues(identifier)) {
       identifier = parser.insertSyntheticIdentifier(
         token,
         this,
-        message: codes.templateExpectedIdentifier.withArguments(identifier),
+        message: codes.codeExpectedIdentifier.withArguments(identifier),
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -1445,7 +1445,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1465,7 +1465,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
       if (identifier.isA(Keyword.FUNCTION)) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
       return identifier;
@@ -1479,7 +1479,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
     // If already recovered, use the given token.
     parser.reportRecoverableErrorWithToken(
       identifier,
-      codes.templateExpectedIdentifierButGotKeyword,
+      codes.codeExpectedIdentifierButGotKeyword,
     );
     return identifier;
   }
@@ -1492,7 +1492,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
         'typeReference',
         isScopeReference: true,
         isBuiltInIdentifierAllowed: false,
-        recoveryTemplate: codes.templateExpectedType,
+        recoveryTemplate: codes.codeExpectedType,
       );
 
   const TypeReferenceIdentifierContext.continuation()
@@ -1507,7 +1507,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
         'prefixedTypeReference',
         isScopeReference: true,
         isBuiltInIdentifierAllowed: true,
-        recoveryTemplate: codes.templateExpectedType,
+        recoveryTemplate: codes.codeExpectedType,
       );
 
   @override
@@ -1518,25 +1518,22 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
       return next;
     } else if (next.isKeywordOrIdentifier) {
       if (next.isA(Keyword.VOID)) {
-        parser.reportRecoverableError(next, codes.messageInvalidVoid);
+        parser.reportRecoverableError(next, codes.codeInvalidVoid);
       } else if (next.type.isBuiltIn) {
         if (!isBuiltInIdentifierAllowed) {
           parser.reportRecoverableErrorWithToken(
             next,
-            codes.templateBuiltInIdentifierAsType,
+            codes.codeBuiltInIdentifierAsType,
           );
         }
       } else if (next.isA(Keyword.VAR)) {
-        parser.reportRecoverableError(next, codes.messageVarAsTypeName);
+        parser.reportRecoverableError(next, codes.codeVarAsTypeName);
       } else {
-        parser.reportRecoverableErrorWithToken(
-          next,
-          codes.templateExpectedType,
-        );
+        parser.reportRecoverableErrorWithToken(next, codes.codeExpectedType);
       }
       return next;
     }
-    parser.reportRecoverableErrorWithToken(next, codes.templateExpectedType);
+    parser.reportRecoverableErrorWithToken(next, codes.codeExpectedType);
     if (!(next.isA(TokenType.LT) ||
         next.isA(TokenType.GT) ||
         next.isA(TokenType.GT_GT) ||
@@ -1605,19 +1602,19 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
         _isOneOfFollowingValues(identifier)) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateExpectedIdentifier,
+        codes.codeExpectedIdentifier,
       );
       identifier = parser.rewriter.insertSyntheticIdentifier(token);
     } else if (identifier.type.isBuiltIn) {
       parser.reportRecoverableErrorWithToken(
         identifier,
-        codes.templateBuiltInIdentifierInDeclaration,
+        codes.codeBuiltInIdentifierInDeclaration,
       );
     } else {
       if (!identifier.isKeywordOrIdentifier) {
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifier,
+          codes.codeExpectedIdentifier,
         );
         // When in doubt, consume the token to ensure we make progress
         // but insert a synthetic identifier to satisfy listeners.
@@ -1626,7 +1623,7 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
         // Use the keyword as the identifier.
         parser.reportRecoverableErrorWithToken(
           identifier,
-          codes.templateExpectedIdentifierButGotKeyword,
+          codes.codeExpectedIdentifierButGotKeyword,
         );
       }
     }
@@ -1637,9 +1634,9 @@ class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
 void checkAsyncAwaitYieldAsIdentifier(Token identifier, Parser parser) {
   if (!parser.inPlainSync && identifier.type.isPseudo) {
     if (identifier.isA(Keyword.AWAIT)) {
-      parser.reportRecoverableError(identifier, codes.messageAwaitAsIdentifier);
+      parser.reportRecoverableError(identifier, codes.codeAwaitAsIdentifier);
     } else if (identifier.isA(Keyword.YIELD)) {
-      parser.reportRecoverableError(identifier, codes.messageYieldAsIdentifier);
+      parser.reportRecoverableError(identifier, codes.codeYieldAsIdentifier);
     }
   }
 }

@@ -9,7 +9,7 @@ library;
 
 import 'package:kernel/ast.dart';
 
-import '../base/messages.dart' show messageRecordUseCannotBePlacedHere;
+import '../base/messages.dart' show codeRecordUseCannotBePlacedHere;
 import 'constant_evaluator.dart' show ErrorReporter;
 
 /// Get all of the `@RecordUse` annotations from `package:meta`
@@ -65,7 +65,7 @@ void validateRecordUseDeclaration(
   final bool onClassWithoutConstConstructor = node is! Class ||
       !node.constructors.any((constructor) => constructor.isConst);
   if (onNonStaticMethod && onClassWithoutConstConstructor) {
-    errorReporter.report(messageRecordUseCannotBePlacedHere.withLocation(
+    errorReporter.report(codeRecordUseCannotBePlacedHere.withLocation(
         node.location!.file, node.fileOffset, 1));
   }
 }

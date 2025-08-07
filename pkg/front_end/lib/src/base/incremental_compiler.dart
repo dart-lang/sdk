@@ -1744,7 +1744,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (TypeParameter typeParam in typeDefinitions) {
         if (!isLegalIdentifier(typeParam.name!)) {
           lastGoodKernelTarget.loader.addProblem(
-              templateIncrementalCompilerIllegalTypeParameter
+              codeIncrementalCompilerIllegalTypeParameter
                   .withArguments('$typeParam'),
               typeParam.fileOffset,
               0,
@@ -1761,7 +1761,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 index == 1 &&
                 isExtensionThisName(name)))) {
           lastGoodKernelTarget.loader.addProblem(
-              templateIncrementalCompilerIllegalParameter.withArguments(name),
+              codeIncrementalCompilerIllegalParameter.withArguments(name),
               // TODO: pass variable declarations instead of
               // parameter names for proper location detection.
               // https://github.com/dart-lang/sdk/issues/44158
@@ -2412,20 +2412,20 @@ class _InitializationFromUri extends _InitializationFromSdkSummary {
         }
         if (e is CanonicalNameError) {
           Message message = gzInitializedFrom != null
-              ? templateInitializeFromDillNotSelfContained.withArguments(
+              ? codeInitializeFromDillNotSelfContained.withArguments(
                   initializeFromDillUri.toString(), gzInitializedFrom)
-              : templateInitializeFromDillNotSelfContainedNoDump
+              : codeInitializeFromDillNotSelfContainedNoDump
                   .withArguments(initializeFromDillUri.toString());
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         } else {
           // Unknown error: Report problem as such.
           Message message = gzInitializedFrom != null
-              ? templateInitializeFromDillUnknownProblem.withArguments(
+              ? codeInitializeFromDillUnknownProblem.withArguments(
                   initializeFromDillUri.toString(),
                   "$e",
                   "$st",
                   gzInitializedFrom)
-              : templateInitializeFromDillUnknownProblemNoDump.withArguments(
+              : codeInitializeFromDillUnknownProblemNoDump.withArguments(
                   initializeFromDillUri.toString(), "$e", "$st");
           dillLoadedData.loader.addProblem(message, TreeNode.noOffset, 1, null);
         }

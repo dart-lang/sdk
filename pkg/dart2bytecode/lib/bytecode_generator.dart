@@ -1039,6 +1039,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Library? dartFfiLibrary = libraryIndex.tryGetLibrary('dart:ffi');
 
+  // Selector for implicit dynamic calls 'foo(...)' where
+  // variable 'foo' has type 'dynamic'.
+  late final implicitCallName = Name('implicit:call');
+
   void _recordSourcePosition(int fileOffset) {
     asm.currentSourcePosition = fileOffset;
     maxSourcePosition = math.max(maxSourcePosition, fileOffset);
@@ -1298,7 +1302,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     if (typeArgs.isEmpty || !hasFreeTypeParameters(typeArgs)) {
-      asm.emitPushConstant(typeArgsCPIndex());
+      // Instantiated type arguments should not depend on
+      // the type parameters of the enclosing function.
+      objectTable.withoutEnclosingFunctionTypeParameters(() {
+        asm.emitPushConstant(typeArgsCPIndex());
+      });
     } else {
       final flattenedTypeArgs = (instantiatingClass != null &&
               (instantiatorTypeArguments != null ||
@@ -1581,11 +1589,16 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (hasFreeTypeParameters([type])) {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
+      asm.emitPushConstant(cp.addType(type));
     } else {
       asm.emitPushNull(); // Instantiator type arguments.
       asm.emitPushNull(); // Function type arguments.
+      // Instantiated type should not depend on
+      // the type parameters of the enclosing function.
+      objectTable.withoutEnclosingFunctionTypeParameters(() {
+        asm.emitPushConstant(cp.addType(type));
+      });
     }
-    asm.emitPushConstant(cp.addType(type));
     final argDesc = objectTable.getArgDescHandle(4);
     final cpIndex =
         cp.addInterfaceCall(InvocationKind.method, objectInstanceOf, argDesc);
@@ -3119,12 +3132,13 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitDynamicInvocation(DynamicInvocation node) {
-    _genMethodInvocation(node, null);
+    final targetName = node.isImplicitCall ? implicitCallName : node.name;
+    _genMethodInvocation(node, null, targetName);
   }
 
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
-    _genMethodInvocation(node, node.interfaceTarget);
+    _genMethodInvocation(node, node.interfaceTarget, node.name);
   }
 
   @override
@@ -3142,8 +3156,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitSpecializedBytecode(Opcode.kEqualsNull);
   }
 
-  void _genMethodInvocation(
-      InstanceInvocationExpression node, Procedure? interfaceTarget) {
+  void _genMethodInvocation(InstanceInvocationExpression node,
+      Procedure? interfaceTarget, Name targetName) {
     final Opcode? opcode = recognizedMethods.specializedBytecodeFor(node);
     if (opcode != null) {
       _genMethodInvocationUsingSpecializedBytecode(opcode, node);
@@ -3163,7 +3177,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final argDesc =
         objectTable.getArgDescHandleByArguments(args, hasReceiver: true);
 
-    _genInstanceCall(node, InvocationKind.method, interfaceTarget, node.name,
+    _genInstanceCall(node, InvocationKind.method, interfaceTarget, targetName,
         node.receiver, totalArgCount, argDesc);
   }
 
@@ -3568,12 +3582,15 @@ class BytecodeGenerator extends RecursiveVisitor {
   @override
   void visitTypeLiteral(TypeLiteral node) {
     final DartType type = node.type;
-    final int typeCPIndex = cp.addType(type);
     if (!hasFreeTypeParameters([type])) {
-      asm.emitPushConstant(typeCPIndex);
+      // Instantiated type should not depend on
+      // the type parameters of the enclosing function.
+      objectTable.withoutEnclosingFunctionTypeParameters(() {
+        asm.emitPushConstant(cp.addType(type));
+      });
     } else {
       _genPushInstantiatorAndFunctionTypeArguments([type]);
-      asm.emitInstantiateType(typeCPIndex);
+      asm.emitInstantiateType(cp.addType(type));
     }
   }
 

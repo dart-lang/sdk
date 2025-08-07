@@ -107,7 +107,7 @@ mixin SourceDeclarationBuilderBaseMixin
           "the numbers of type parameters and type arguments don't match.",
           expectedPhase: CompilationPhaseForProblemReporting.outline));
       return unhandled(
-          templateTypeArgumentMismatch
+          codeTypeArgumentMismatch
               .withArguments(typeParametersCount)
               .problemMessage,
           "buildTypeArguments",
@@ -160,8 +160,7 @@ mixin SourceDeclarationBuilderMixin
           libraryBuilder.addProblem(
               // TODO(johnniwinther): Use a different error message for
               //  extension type declarations.
-              templateExtensionMemberConflictsWithObjectMember
-                  .withArguments(name),
+              codeExtensionMemberConflictsWithObjectMember.withArguments(name),
               declaration.fileOffset,
               name.length,
               declaration.fileUri);

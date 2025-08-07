@@ -1418,9 +1418,10 @@ ObjectPtr BytecodeReaderHelper::ReadType(intptr_t tag,
       }
       const TypeArguments& type_arguments =
           TypeArguments::CheckedHandle(Z, ReadObject());
-      const Type& type =
-          Type::Handle(Z, Type::New(cls, type_arguments, nullability));
+      AbstractType& type =
+          AbstractType::Handle(Z, Type::New(cls, type_arguments, nullability));
       type.SetIsFinalized();
+      type = type.NormalizeFutureOrType(Heap::kOld);
       return type.Canonicalize(thread_);
     }
     case kFunctionType: {

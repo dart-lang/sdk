@@ -59,7 +59,7 @@ class LocalForInVariable implements ForInVariable {
         visitor.computeGreatestClosure(variableSet.variable.type);
     Expression rhs = visitor.ensureAssignable(
         variableType, rhsType, variableSet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        errorTemplate: codeForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
 
     variableSet.value = rhs..parent = variableSet;
@@ -112,7 +112,7 @@ class PropertyForInVariable implements ForInVariable {
         receiverType,
         propertySet.name,
         propertySet.fileOffset,
-        templateUndefinedSetter);
+        codeUndefinedSetter);
     if (error != null) {
       _rhs = error;
     } else {
@@ -136,7 +136,7 @@ class PropertyForInVariable implements ForInVariable {
   Expression inferAssignment(InferenceVisitorBase visitor, DartType rhsType) {
     Expression rhs = visitor.ensureAssignable(
         visitor.computeGreatestClosure(_writeType!), rhsType, _rhs!,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        errorTemplate: codeForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
 
     propertySet.value = rhs..parent = propertySet;
@@ -170,7 +170,7 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
         visitor.computeGreatestClosure(_writeType!),
         rhsType,
         superPropertySet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        errorTemplate: codeForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
@@ -205,7 +205,7 @@ class SuperPropertyForInVariable implements ForInVariable {
         visitor.computeGreatestClosure(_writeType!),
         rhsType,
         superPropertySet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        errorTemplate: codeForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
     superPropertySet.value = rhs..parent = superPropertySet;
     ExpressionInferenceResult result = visitor.inferExpression(
@@ -230,7 +230,7 @@ class StaticForInVariable implements ForInVariable {
         visitor.computeGreatestClosure(staticSet.target.setterType);
     Expression rhs = visitor.ensureAssignable(
         setterType, rhsType, staticSet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        errorTemplate: codeForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
 
     staticSet.value = rhs..parent = staticSet;
@@ -276,7 +276,7 @@ class ExtensionSetForInVariable implements ForInVariable {
     assert(setterType != null);
     Expression rhs = visitor.ensureAssignable(
         setterType!, rhsType, extensionSet.value,
-        errorTemplate: templateForInLoopElementTypeNotAssignable,
+        errorTemplate: codeForInLoopElementTypeNotAssignable,
         isVoidAllowed: true);
 
     extensionSet.value = rhs..parent = extensionSet;

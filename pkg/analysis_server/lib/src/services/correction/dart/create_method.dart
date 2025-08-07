@@ -7,6 +7,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -221,6 +222,11 @@ class CreateMethod extends ResolvedCorrectionProducer {
     if (targetSource == null) return;
 
     var targetFile = targetSource.fullName;
+    var type = inferUndefinedExpressionType(invocation);
+    if (type is InvalidType) {
+      return;
+    }
+
     await builder.addDartFileEdit(targetFile, (builder) {
       if (targetNode == null) return;
       builder.insertMethod(targetNode, (builder) {
@@ -229,7 +235,6 @@ class CreateMethod extends ResolvedCorrectionProducer {
           builder.write('static ');
         }
         // Append return type.
-        var type = inferUndefinedExpressionType(invocation);
         if (builder.writeType(type, groupName: 'RETURN_TYPE')) {
           builder.write(' ');
         }

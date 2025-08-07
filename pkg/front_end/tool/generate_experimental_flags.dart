@@ -10,7 +10,8 @@ import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
-import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import '../test/utils/io_utils.dart'
+    show computeRepoDirUri, getPackageVersionFor;
 
 void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
@@ -180,7 +181,7 @@ class Version {
 ''');
 
   return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+          languageVersion: getPackageVersionFor("_fe_analyzer_shared"))
       .format("$sb");
 }
 
@@ -215,8 +216,7 @@ import "ast.dart";
 const Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 ''');
 
-  return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+  return new DartFormatter(languageVersion: getPackageVersionFor("kernel"))
       .format("$sb");
 }
 
@@ -278,16 +278,17 @@ class ExperimentalFlag {
   final bool isExpired;
   final Version enabledVersion;
 
-  /// The minimum version that supports this feature.
+  /// The minimum version that enables the feature by default.
   ///
   /// If the feature is not enabled by default, this is the current language
   /// version.
   final Version experimentEnabledVersion;
 
-  /// The minimum version that supports this feature in allowed libraries.
+  /// The minimum version that allows this feature to be enabled with a flag and
+  /// enables the experiment in allowed libraries.
   ///
   /// Allowed libraries are specified in
-  /// 
+  ///
   ///    sdk/lib/_internal/allowed_experiments.json
   final Version experimentReleasedVersion;
 
@@ -529,8 +530,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   };
   ''');
 
-  return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
       .format("$sb");
 }
 
