@@ -7,6 +7,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_computer.dart';
@@ -1585,6 +1586,9 @@ class SuggestionBuilder {
 }
 
 abstract class SuggestionListener {
+  /// Invoked when a candidate suggestion has had its relevance score computed.
+  void builtCandidate(CandidateSuggestion candidate);
+
   /// Invoked when a suggestion has been built.
   void builtSuggestion(CompletionSuggestionBuilder suggestionBuilder);
 

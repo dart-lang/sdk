@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -12,8 +13,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as element;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
-
-import 'completion_metrics.dart';
 
 class ExpectedCompletion {
   final String _filePath;
@@ -105,19 +104,11 @@ class ExpectedCompletion {
 
   SyntacticEntity get syntacticEntity => _entity;
 
-  bool matches(CompletionSuggestionLite completionSuggestion) {
-    if (completionSuggestion.completion == completion) {
-      if (kind != null && completionSuggestion.kind != kind) {
-        return false;
-      }
-      if (elementKind != null &&
-          completionSuggestion.elementKind != null &&
-          completionSuggestion.elementKind != elementKind) {
-        return false;
-      }
-      return true;
-    }
-    return false;
+  bool matches(CandidateSuggestion completionSuggestion) {
+    // This method used to use the `_kind` and `_elementKind` to further
+    // validate that the right suggestion had been found, but that was removed
+    // because candidate suggestions don't have that information.
+    return completionSuggestion.completion == completion;
   }
 
   /// Return a map used to represent this expected completion in a JSON structure.
