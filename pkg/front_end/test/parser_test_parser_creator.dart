@@ -10,7 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-import 'utils/io_utils.dart' show computeRepoDirUri;
+import 'utils/io_utils.dart' show computeRepoDirUri, getPackageVersionFor;
 
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
@@ -114,8 +114,7 @@ class TestParser extends Parser {
 
   out.writeln("}");
 
-  return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
       .format("$out");
 }
 

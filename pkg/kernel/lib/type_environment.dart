@@ -647,8 +647,7 @@ class IsSubtypeOf {
     if (!_isSuccess) {
       return this;
     } else {
-      return this
-          .and(tester.performSubtypeCheck(subtype, supertype));
+      return this.and(tester.performSubtypeCheck(subtype, supertype));
     }
   }
 
@@ -678,8 +677,7 @@ class IsSubtypeOf {
     if (_isSuccess) {
       return this;
     } else {
-      return this
-          .or(tester.performSubtypeCheck(subtype, supertype));
+      return this.or(tester.performSubtypeCheck(subtype, supertype));
     }
   }
 

@@ -164,7 +164,8 @@ Future<Component?> compile(
     Component? component = compilerResult.component;
     if (component == null) return null;
     if (component.mainMethod == null) {
-      context.options.report(context,
+      context.options.report(
+          context,
           codeMissingMain.withLocation(inputs.single, -1, 0),
           CfeSeverity.error);
       return null;

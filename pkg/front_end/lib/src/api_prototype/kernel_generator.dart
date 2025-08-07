@@ -72,7 +72,8 @@ Future<CompilerResult?> kernelForProgramInternal(
     if (component == null) return null;
 
     if (requireMain && component.mainMethod == null) {
-      context.options.report(context,
+      context.options.report(
+          context,
           codeMissingMain.withLocation(source, -1, noLength),
           CfeSeverity.error);
       return null;

@@ -10,7 +10,8 @@ import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
-import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import '../test/utils/io_utils.dart'
+    show computeRepoDirUri, getPackageVersionFor;
 
 void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
@@ -180,7 +181,7 @@ class Version {
 ''');
 
   return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+          languageVersion: getPackageVersionFor("_fe_analyzer_shared"))
       .format("$sb");
 }
 
@@ -215,8 +216,7 @@ import "ast.dart";
 const Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 ''');
 
-  return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+  return new DartFormatter(languageVersion: getPackageVersionFor("kernel"))
       .format("$sb");
 }
 
@@ -530,8 +530,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   };
   ''');
 
-  return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
+  return new DartFormatter(languageVersion: getPackageVersionFor("front_end"))
       .format("$sb");
 }
 

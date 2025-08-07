@@ -711,8 +711,7 @@ class ProcessedOptions {
           CfeSeverity.error);
     } catch (e) {
       // Coverage-ignore-block(suite): Not run.
-      reportWithoutLocation(
-          codeCantReadFile.withArguments(requestedUri, "$e"),
+      reportWithoutLocation(codeCantReadFile.withArguments(requestedUri, "$e"),
           CfeSeverity.error);
     }
     // Coverage-ignore(suite): Not run.

@@ -10,7 +10,7 @@ import 'generate_messages_lib.dart';
 void main(List<String> arguments) {
   print("Running the fail-safe version.");
   final Uri repoDir = computeRepoDirUri();
-  Messages message = generateMessagesFilesRaw(repoDir, (s) => s);
+  Messages message = generateMessagesFilesRaw(repoDir, (s, _) => s);
   if (message.sharedMessages.trim().isEmpty ||
       message.cfeMessages.trim().isEmpty) {
     print("Bailing because of errors: "
