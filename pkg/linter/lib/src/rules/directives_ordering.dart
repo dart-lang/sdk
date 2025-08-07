@@ -82,7 +82,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
     reportAtNode(
       node,
       diagnosticCode: LinterLintCode.directives_ordering_dart,
-      arguments: [type],
+      arguments: ['${type}s'],
     );
   }
 
@@ -110,7 +110,7 @@ class DirectivesOrdering extends MultiAnalysisRule {
       node,
       diagnosticCode:
           LinterLintCode.directives_ordering_package_before_relative,
-      arguments: [type],
+      arguments: ['${type}s'],
     );
   }
 }
