@@ -5760,7 +5760,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M3
-          allDeclaredConstructors: #M7
+          constructors
+            new: #M7
 [status] idle
 ''',
       updatedA: r'''
@@ -5820,7 +5821,8 @@ class A {
       package:test/a.dart
         A
           interfaceId: #M10
-          allDeclaredConstructors: #M7
+          constructors
+            new: #M7
 [status] idle
 ''',
     );
@@ -6022,7 +6024,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M4
-          allDeclaredConstructors: #M8
+          constructors
+            new: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6105,7 +6108,8 @@ class A {
       package:test/a.dart
         A
           interfaceId: #M11
-          allDeclaredConstructors: #M8
+          constructors
+            new: #M8
 [operation] getErrorsCannotReuse
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
@@ -7438,7 +7442,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M2
-          allDeclaredConstructors: #M5
+          constructors
+            new: #M5
 [status] idle
 ''',
       updatedA: r'''
@@ -7492,7 +7497,8 @@ class A {
       package:test/a.dart
         A
           interfaceId: #M7
-          allDeclaredConstructors: #M5
+          constructors
+            new: #M5
 [status] idle
 ''',
     );
@@ -7797,7 +7803,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M3
-          allDeclaredConstructors: #M6
+          constructors
+            new: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7873,7 +7880,8 @@ class A {
       package:test/a.dart
         A
           interfaceId: #M8
-          allDeclaredConstructors: #M6
+          constructors
+            new: #M6
 [operation] getErrorsCannotReuse
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
@@ -7977,7 +7985,8 @@ class X extends C {}
       package:test/a.dart
         C
           interfaceId: #M7
-          allDeclaredConstructors: #M11
+          constructors
+            new: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -8071,7 +8080,8 @@ class C extends A implements B {}
       package:test/a.dart
         C
           interfaceId: #M14
-          allDeclaredConstructors: #M11
+          constructors
+            new: #M11
 [operation] getErrorsCannotReuse
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
@@ -13071,7 +13081,6 @@ class B extends A {
       package:test/a.dart
         A
           interfaceId: #M2
-          allDeclaredConstructors: #M1
           constructors
             named: #M1
 [operation] analyzeFile
@@ -13122,12 +13131,12 @@ class A {
     uri: package:test/test.dart
     flags: isLibrary
 [operation] cannotReuseLinkedBundle
-  interfaceChildrenIdsMismatch
+  interfaceConstructorIdMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    childrenPropertyName: constructors
-    expectedIds: #M1
-    actualIds: #M7
+    constructorName: named
+    expectedId: #M1
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
@@ -13147,7 +13156,6 @@ class A {
       package:test/a.dart
         A
           interfaceId: #M2
-          allDeclaredConstructors: #M7
           constructors
             named: #M7
 [operation] getErrorsCannotReuse

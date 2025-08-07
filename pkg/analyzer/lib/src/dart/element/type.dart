@@ -908,6 +908,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return getMethod(methodName);
   }
 
+  InternalConstructorElement? getNamedConstructor(String name) {
+    var base = element.getNamedConstructor(name);
+    return base != null
+        ? SubstitutedConstructorElementImpl.from2(base, this)
+        : null;
+  }
+
   @override
   InternalSetterElement? getSetter(String setterName) {
     var element = this.element.getSetter(setterName);
