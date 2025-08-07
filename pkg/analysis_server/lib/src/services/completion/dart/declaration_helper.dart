@@ -464,39 +464,41 @@ class DeclarationHelper {
         (extendedType is InterfaceType) ? extendedType.element : null;
     if (includeMethods) {
       for (var method in extension.methods) {
-        if (!method.isStatic) {
-          if (method.isOperator) {
-            continue;
-          }
-          _suggestMethod(
-            method: method,
-            importData: importData,
-            referencingInterface: referencingInterface,
-          );
+        if (method.isStatic ||
+            method.isOperator ||
+            !method.isVisibleIn(request.libraryElement)) {
+          continue;
         }
+        _suggestMethod(
+          method: method,
+          importData: importData,
+          referencingInterface: referencingInterface,
+        );
       }
     }
     for (var accessor in extension.getters) {
-      if (excludedGetters.contains(accessor.name)) {
+      if (excludedGetters.contains(accessor.name) ||
+          accessor.isStatic ||
+          !accessor.isVisibleIn(request.libraryElement)) {
         continue;
       }
-      if (!accessor.isStatic) {
+      _suggestProperty(
+        accessor: accessor,
+        referencingInterface: referencingInterface,
+        importData: importData,
+      );
+    }
+    if (includeSetters) {
+      for (var accessor in extension.setters) {
+        if (accessor.isStatic ||
+            !accessor.isVisibleIn(request.libraryElement)) {
+          continue;
+        }
         _suggestProperty(
           accessor: accessor,
           referencingInterface: referencingInterface,
           importData: importData,
         );
-      }
-    }
-    if (includeSetters) {
-      for (var accessor in extension.setters) {
-        if (!accessor.isStatic) {
-          _suggestProperty(
-            accessor: accessor,
-            referencingInterface: referencingInterface,
-            importData: importData,
-          );
-        }
       }
     }
   }
@@ -805,16 +807,16 @@ class DeclarationHelper {
       var extension = instantiatedExtension.extension;
       if (includeMethods) {
         for (var method in extension.methods) {
-          if (!method.isStatic) {
-            if (method.isOperator) {
-              continue;
-            }
-            _suggestMethod(
-              method: method,
-              isKeywordNeeded: isKeywordNeeded,
-              isTypeNeeded: isTypeNeeded,
-            );
+          if (method.isStatic ||
+              method.isOperator ||
+              !method.isVisibleIn(libraryElement)) {
+            continue;
           }
+          _suggestMethod(
+            method: method,
+            isKeywordNeeded: isKeywordNeeded,
+            isTypeNeeded: isTypeNeeded,
+          );
         }
       }
       for (var getter in extension.getters) {
@@ -822,32 +824,36 @@ class DeclarationHelper {
           continue;
         }
         if (!getter.isSynthetic) {
-          _suggestProperty(
-            accessor: getter,
-            isKeywordNeeded: isKeywordNeeded,
-            isTypeNeeded: isTypeNeeded,
-          );
-        } else {
-          // All fields induce a getter.
-          var variable = getter.variable;
-          if (variable is FieldElement) {
-            _suggestField(
-              field: variable,
+          if (getter.isVisibleIn(libraryElement)) {
+            _suggestProperty(
+              accessor: getter,
               isKeywordNeeded: isKeywordNeeded,
               isTypeNeeded: isTypeNeeded,
             );
           }
+        } else {
+          // All fields induce a getter.
+          var variable = getter.variable;
+          if (variable is FieldElement) {
+            if (variable.isVisibleIn(libraryElement)) {
+              _suggestField(
+                field: variable,
+                isKeywordNeeded: isKeywordNeeded,
+                isTypeNeeded: isTypeNeeded,
+              );
+            }
+          }
         }
       }
-      for (var setter in extension.setters) {
-        if (!setter.isSynthetic) {
-          if (includeSetters) {
-            _suggestProperty(accessor: setter);
-          }
-        } else {
+      if (includeSetters) {
+        for (var setter in extension.setters) {
           // Avoid visiting a field twice. All fields induce a getter, but only
-          // non-final fields induce a setter, so we don't add a suggestion for a
-          // synthetic setter.
+          // non-final fields induce a setter, so we don't add a suggestion for
+          // a synthetic setter.
+          if (setter.isSynthetic || !setter.isVisibleIn(libraryElement)) {
+            continue;
+          }
+          _suggestProperty(accessor: setter);
         }
       }
     }

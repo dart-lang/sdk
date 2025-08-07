@@ -33,9 +33,6 @@ class AbstractContextTest
 
   static final ByteStore _byteStore = MemoryByteStore();
 
-  /// Whether to rewrite line endings in test code based on platform.
-  bool useLineEndingsForPlatform = true;
-
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
@@ -203,9 +200,8 @@ class AbstractContextTest
   }
 
   /// Convenience function to normalize newlines in [code] for the current
-  /// platform if [useLineEndingsForPlatform] is `true`.
-  String normalizeSource(String code) =>
-      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
+  /// platform.
+  String normalizeSource(String code) => normalizeNewlinesForPlatform(code);
 
   Future<AnalysisSession> sessionFor(File file) async {
     var analysisContext = _contextFor(file);

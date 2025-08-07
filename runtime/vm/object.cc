@@ -19821,23 +19821,14 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
   return num_occupied();
 }
 
-intptr_t SubtypeTestCache::NumEntries() const {
-  ASSERT(!IsNull());
-  return Array::LengthOf(cache()) / kTestEntryLength;
+intptr_t SubtypeTestCache::NumEntries(const ArrayPtr array) {
+  ASSERT(array != Array::null());
+  return Array::LengthOf(array) / kTestEntryLength;
 }
 
-intptr_t SubtypeTestCache::NumEntries(const Array& array) {
-  SubtypeTestCacheTable table(array);
-  return table.Length();
-}
-
-bool SubtypeTestCache::IsHash() const {
-  if (IsNull()) return false;
-  return Array::LengthOf(cache()) > kMaxLinearCacheSize;
-}
-
-bool SubtypeTestCache::IsHash(const Array& array) {
-  return array.Length() > kMaxLinearCacheSize;
+bool SubtypeTestCache::IsHash(const ArrayPtr array) {
+  ASSERT(array != Array::null());
+  return Array::LengthOf(array) > kMaxLinearCacheSize;
 }
 
 intptr_t SubtypeTestCache::AddCheck(
@@ -19928,64 +19919,6 @@ intptr_t SubtypeTestCache::AddCheck(
   return loc.entry;
 }
 
-static inline bool SubtypeTestCacheEntryMatches(
-    const SubtypeTestCacheTable::TupleView& t,
-    intptr_t num_inputs,
-    const Object& instance_class_id_or_signature,
-    const AbstractType& destination_type,
-    const TypeArguments& instance_type_arguments,
-    const TypeArguments& instantiator_type_arguments,
-    const TypeArguments& function_type_arguments,
-    const TypeArguments& instance_parent_function_type_arguments,
-    const TypeArguments& instance_delayed_type_arguments) {
-  switch (num_inputs) {
-    case 7:
-      if (t.Get<SubtypeTestCache::kDestinationType>() !=
-          destination_type.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 6:
-      if (t.Get<SubtypeTestCache::kInstanceDelayedFunctionTypeArguments>() !=
-          instance_delayed_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 5:
-      if (t.Get<SubtypeTestCache::kInstanceParentFunctionTypeArguments>() !=
-          instance_parent_function_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 4:
-      if (t.Get<SubtypeTestCache::kFunctionTypeArguments>() !=
-          function_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 3:
-      if (t.Get<SubtypeTestCache::kInstantiatorTypeArguments>() !=
-          instantiator_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 2:
-      if (t.Get<SubtypeTestCache::kInstanceTypeArguments>() !=
-          instance_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 1:
-      // We don't need to perform load-acquire semantics when re-retrieving
-      // the kInstanceCidOrSignature field, as this is performed only if the
-      // entry is occupied, and occupied entries never change.
-      return t.Get<SubtypeTestCache::kInstanceCidOrSignature>() ==
-             instance_class_id_or_signature.ptr();
-    default:
-      UNREACHABLE();
-  }
-}
-
 SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
     const Array& array,
     intptr_t num_inputs,
@@ -20000,14 +19933,13 @@ SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
   if (array.ptr() == Object::empty_subtype_test_cache_array().ptr()) {
     return {0, false};
   }
-  const bool is_hash = IsHash(array);
+  const bool is_hash = IsHash(array.ptr());
   SubtypeTestCacheTable table(array);
   const intptr_t num_entries = table.Length();
   // For a linear cache, start at the first entry and probe linearly. This can
   // be done because a linear cache always has at least one unoccupied entry
   // after all the occupied ones.
   intptr_t probe = 0;
-  intptr_t probe_distance = 1;
   if (is_hash) {
     // For a hash-based cache, instead start at an entry determined by the hash
     // of the keys.
@@ -20045,17 +19977,126 @@ SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
     hash = FinalizeHash(hash);
     probe = hash & (num_entries - 1);
   }
+  NoSafepointScope scope;
+  return FindKeyOrUnusedFromProbe(
+      array.ptr(), num_inputs, probe, instance_class_id_or_signature.ptr(),
+      destination_type.ptr(), instance_type_arguments.ptr(),
+      instantiator_type_arguments.ptr(), function_type_arguments.ptr(),
+      instance_parent_function_type_arguments.ptr(),
+      instance_delayed_type_arguments.ptr());
+}
+
+static inline bool CheckSubtypeTestCacheEntry(
+    ArrayPtr array,
+    intptr_t num_inputs,
+    intptr_t entry_start,
+    ObjectPtr instance_class_id_or_signature,
+    AbstractTypePtr destination_type,
+    TypeArgumentsPtr instance_type_arguments,
+    TypeArgumentsPtr instantiator_type_arguments,
+    TypeArgumentsPtr function_type_arguments,
+    TypeArgumentsPtr instance_parent_function_type_arguments,
+    TypeArgumentsPtr instance_delayed_type_arguments) {
+  // This function is only called when the entry slot that determines occupancy
+  // is non-null. This means that the elements do not need to be load-acquired
+  // here, as entries in STC backing arrays are never changed once added.
+  switch (num_inputs) {
+    case 7:
+      if (Array::ElementAt(array,
+                           entry_start + SubtypeTestCache::kDestinationType) !=
+          destination_type) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 6:
+      if (Array::ElementAt(
+              array,
+              entry_start +
+                  SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) !=
+          instance_delayed_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 5:
+      if (Array::ElementAt(
+              array,
+              entry_start +
+                  SubtypeTestCache::kInstanceParentFunctionTypeArguments) !=
+          instance_parent_function_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 4:
+      if (Array::ElementAt(
+              array, entry_start + SubtypeTestCache::kFunctionTypeArguments) !=
+          function_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 3:
+      if (Array::ElementAt(
+              array,
+              entry_start + SubtypeTestCache::kInstantiatorTypeArguments) !=
+          instantiator_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 2:
+      if (Array::ElementAt(
+              array, entry_start + SubtypeTestCache::kInstanceTypeArguments) !=
+          instance_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 1:
+      return Array::ElementAt(
+                 array,
+                 entry_start + SubtypeTestCache::kInstanceCidOrSignature) ==
+             instance_class_id_or_signature;
+  }
+  UNREACHABLE();
+  return false;
+}
+
+SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnusedFromProbe(
+    ArrayPtr array,
+    intptr_t num_inputs,
+    intptr_t probe,
+    ObjectPtr instance_class_id_or_signature,
+    AbstractTypePtr destination_type,
+    TypeArgumentsPtr instance_type_arguments,
+    TypeArgumentsPtr instantiator_type_arguments,
+    TypeArgumentsPtr function_type_arguments,
+    TypeArgumentsPtr instance_parent_function_type_arguments,
+    TypeArgumentsPtr instance_delayed_type_arguments,
+    BoolPtr* test_result) {
+  // Fast case for empty STCs.
+  if (array == Object::empty_subtype_test_cache_array().ptr()) {
+    return {probe, false};
+  }
+  const bool is_hash = IsHash(array);
+  const intptr_t num_entries = NumEntries(array);
+  intptr_t probe_distance = 1;
   while (true) {
-    const auto& tuple = table.At(probe);
-    if (tuple.Get<kInstanceCidOrSignature, std::memory_order_acquire>() ==
-        Object::null()) {
-      break;
+    intptr_t entry_start = probe * SubtypeTestCache::kTestEntryLength;
+    // First check the entry slot that determines occupancy, which requires
+    // load-acquire semantics.
+    ObjectPtr cid_or_sig = Array::ElementAt<std::memory_order_acquire>(
+        array, entry_start + SubtypeTestCache::kInstanceCidOrSignature);
+    if (cid_or_sig == Object::null()) {
+      // The appropriate location was found, but there's no existing entry.
+      return {probe, false};
     }
-    if (SubtypeTestCacheEntryMatches(
-            tuple, num_inputs, instance_class_id_or_signature, destination_type,
-            instance_type_arguments, instantiator_type_arguments,
-            function_type_arguments, instance_parent_function_type_arguments,
+    if (CheckSubtypeTestCacheEntry(
+            array, num_inputs, entry_start, instance_class_id_or_signature,
+            destination_type, instance_type_arguments,
+            instantiator_type_arguments, function_type_arguments,
+            instance_parent_function_type_arguments,
             instance_delayed_type_arguments)) {
+      if (test_result != nullptr) {
+        *test_result = Bool::RawCast(Array::ElementAt(
+            array, entry_start + SubtypeTestCache::kTestResult));
+      }
       return {probe, true};
     }
     // Advance probe by the current probing distance.
@@ -20068,6 +20109,7 @@ SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
       probe_distance++;
     }
   }
+  UNREACHABLE();
   return {probe, false};
 }
 
@@ -20078,11 +20120,11 @@ ArrayPtr SubtypeTestCache::EnsureCapacity(Zone* zone,
   ASSERT(new_occupied > NumberOfChecks());
   ASSERT(was_grown != nullptr);
   // How many entries are in the current array (including unoccupied entries).
-  const intptr_t current_capacity = NumEntries(array);
+  const intptr_t current_capacity = NumEntries(array.ptr());
 
   // Early returns for cases where no growth is needed.
   *was_grown = false;
-  const bool is_linear = IsLinear(array);
+  const bool is_linear = IsLinear(array.ptr());
   if (is_linear) {
     // We need at least one unoccupied entry in addition to the occupied ones.
     if (current_capacity > new_occupied) return array.ptr();
