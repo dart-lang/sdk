@@ -4739,6 +4739,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   List<ConstructorElementImpl> get constructors {
+    globalResultRequirements?.record_instanceElement_constructors(
+      element: this,
+    );
     ensureReadMembers();
     if (!identical(_constructors, _Sentinel.constructorElement)) {
       return _constructors;
@@ -4877,7 +4880,16 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
       element: this,
       name: name,
     );
-    return constructors.firstWhereOrNull((e) => e.name == name);
+
+    return globalResultRequirements.withoutRecording(
+      reason: r'''
+The result depends only on the requested constructor, which we have already
+recorded above.
+''',
+      operation: () {
+        return constructors.firstWhereOrNull((e) => e.name == name);
+      },
+    );
   }
 
   @Deprecated('Use getNamedConstructor instead')

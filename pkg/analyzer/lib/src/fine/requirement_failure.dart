@@ -138,6 +138,30 @@ class InstanceMethodIdMismatch extends RequirementFailure {
   }
 }
 
+class InterfaceChildrenIdsMismatch extends RequirementFailure {
+  final Uri libraryUri;
+  final LookupName interfaceName;
+  final String childrenPropertyName;
+  final ManifestItemIdList expectedIds;
+  final ManifestItemIdList actualIds;
+
+  InterfaceChildrenIdsMismatch({
+    required this.libraryUri,
+    required this.interfaceName,
+    required this.childrenPropertyName,
+    required this.expectedIds,
+    required this.actualIds,
+  });
+
+  @override
+  String toString() {
+    return 'InterfaceChildrenIdsMismatch(libraryUri: $libraryUri, '
+        'interfaceName: ${interfaceName.asString}, '
+        'childrenPropertyName: $childrenPropertyName, '
+        'expectedIds: $expectedIds, actualIds: $actualIds)';
+  }
+}
+
 class InterfaceConstructorIdMismatch extends RequirementFailure {
   final Uri libraryUri;
   final LookupName interfaceName;

@@ -187,9 +187,15 @@ class BundleRequirementsPrinter {
             var idStr = idProvider.manifestId(id);
             sink.writelnWithIndent('interfaceId: $idStr');
           }
+          if (requirements.allDeclaredConstructors case var allConstructors?) {
+            if (allConstructors.ids.isNotEmpty) {
+              var idListStr = allConstructors.asString(idProvider);
+              sink.writelnWithIndent('allDeclaredConstructors: $idListStr');
+            }
+          }
           sink.writeElements(
             'constructors',
-            requirements.constructors.sorted,
+            requirements.requestedConstructors.sorted,
             _writeNamedId,
           );
           sink.writeElements(
@@ -532,6 +538,15 @@ class DriverEventsPrinter {
           'interfaceName': failure.interfaceName.asString,
           'expectedId': idProvider.manifestId(failure.expectedId),
           'actualId': idProvider.manifestId(failure.actualId),
+        });
+      case InterfaceChildrenIdsMismatch():
+        sink.writelnWithIndent('interfaceChildrenIdsMismatch');
+        sink.writeProperties({
+          'libraryUri': failure.libraryUri,
+          'interfaceName': failure.interfaceName.asString,
+          'childrenPropertyName': failure.childrenPropertyName,
+          'expectedIds': failure.expectedIds.asString(idProvider),
+          'actualIds': failure.actualIds.asString(idProvider),
         });
       case InterfaceConstructorIdMismatch():
         sink.writelnWithIndent('interfaceConstructorIdMismatch');
