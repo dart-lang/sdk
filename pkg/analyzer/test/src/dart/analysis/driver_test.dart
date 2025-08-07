@@ -14376,6 +14376,293 @@ enum A {
     );
   }
 
+  test_dependency_enum_instanceGetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  int get foo => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M1
+          v: #M2
+          values: #M3
+        declaredGetters
+          foo: #M4
+          v: #M5
+          values: #M6
+        interface: #M7
+          map
+            foo: #M4
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        int: #M9
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M10
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M4
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  double get foo => 1.2;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M11
+          v: #M2
+          values: #M3
+        declaredGetters
+          foo: #M12
+          v: #M5
+          values: #M6
+        interface: #M13
+          map
+            foo: #M12
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M14
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M11
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M11
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M12
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_instanceGetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  int get foo => 0;
+  int get bar => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M5
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface: #M9
+          map
+            bar: #M5
+            foo: #M6
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        int: #M11
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M12
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M6
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  int get foo => 0;
+  double get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M13
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M14
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface: #M15
+          map
+            bar: #M14
+            foo: #M6
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        double: #M16
+        int: #M11
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_enum_instanceMethod_change_invoked() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -14631,6 +14918,1115 @@ enum A {
       dart:core
         double: #M13
         int: #M9
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_instanceSetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M1
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        declaredSetters
+          foo=: #M6
+        interface: #M7
+          map
+            foo=: #M6
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        int: #M9
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M10
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M6
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M11
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        declaredSetters
+          foo=: #M12
+        interface: #M13
+          map
+            foo=: #M12
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M14
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M11
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M11
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M12
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_instanceSetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  set foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M7
+          foo=: #M8
+        interface: #M9
+          map
+            bar=: #M7
+            foo=: #M8
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        int: #M11
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M12
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M8
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  set foo(int _) {}
+  set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M13
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M14
+          foo=: #M8
+        interface: #M15
+          map
+            bar=: #M14
+            foo=: #M8
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        double: #M16
+        int: #M11
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_staticGetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  static int get foo {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M1
+          v: #M2
+          values: #M3
+        declaredGetters
+          foo: #M4
+          v: #M5
+          values: #M6
+        interface: #M7
+          map
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        int: #M9
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M10
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedGetters
+            foo: #M4
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M11
+          v: #M2
+          values: #M3
+        declaredGetters
+          foo: #M12
+          v: #M5
+          values: #M6
+        interface: #M7
+          map
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M13
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M11
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M11
+          requestedGetters
+            foo: #M12
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_staticGetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  static int get foo {}
+  static int get bar {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M5
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface: #M9
+          map
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        int: #M11
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M12
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedGetters
+            foo: #M6
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  static int get foo {}
+  static double get bar {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M13
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          bar: #M14
+          foo: #M6
+          v: #M7
+          values: #M8
+        interface: #M9
+          map
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        double: #M15
+        int: #M11
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_staticMethod_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  static int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M5
+        interface: #M6
+          map
+            index: #M7
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M9
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M5
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          foo: #M10
+        interface: #M6
+          map
+            index: #M7
+  requirements
+    topLevels
+      dart:core
+        double: #M11
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M5
+    actualId: #M10
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M10
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_staticMethod_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  static int foo() {}
+  static int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M5
+          foo: #M6
+        interface: #M7
+          map
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        int: #M9
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M10
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M6
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  static int foo() {}
+  static double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          v: #M1
+          values: #M2
+        declaredGetters
+          v: #M3
+          values: #M4
+        declaredMethods
+          bar: #M11
+          foo: #M6
+        interface: #M7
+          map
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M12
+        int: #M9
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_staticSetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  static set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M1
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        declaredSetters
+          foo=: #M6
+        interface: #M7
+          map
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        int: #M9
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M10
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedSetters
+            foo=: #M6
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          foo: #M11
+          v: #M2
+          values: #M3
+        declaredGetters
+          v: #M4
+          values: #M5
+        declaredSetters
+          foo=: #M12
+        interface: #M7
+          map
+            index: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M13
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M11
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M11
+          requestedSetters
+            foo=: #M12
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_enum_staticSetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+enum A {
+  v;
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M7
+          foo=: #M8
+        interface: #M9
+          map
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        int: #M11
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M12
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedSetters
+            foo=: #M8
+[status] idle
+''',
+      updatedA: r'''
+enum A {
+  v;
+  static set foo(int _) {}
+  static set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredEnums
+      A: #M0
+        declaredFields
+          bar: #M13
+          foo: #M2
+          v: #M3
+          values: #M4
+        declaredGetters
+          v: #M5
+          values: #M6
+        declaredSetters
+          bar=: #M14
+          foo=: #M8
+        interface: #M9
+          map
+            index: #M10
+  requirements
+    topLevels
+      dart:core
+        double: #M15
+        int: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16508,6 +17904,237 @@ typedef _A2 = int;
     );
   }
 
+  test_dependency_extension_staticGetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension A on int {
+  static int get foo => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedGetters
+            foo: #M2
+[status] idle
+''',
+      updatedA: r'''
+extension A on int {
+  static double get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          foo: #M5
+        declaredGetters
+          foo: #M6
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M5
+          requestedGetters
+            foo: #M6
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extension_staticGetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension A on int {
+  static int get foo => 0;
+  static int get bar => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+        declaredGetters
+          bar: #M3
+          foo: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedGetters
+            foo: #M4
+[status] idle
+''',
+      updatedA: r'''
+extension A on int {
+  static int get foo => 0;
+  static double get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          bar: #M7
+          foo: #M2
+        declaredGetters
+          bar: #M8
+          foo: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M9
+        int: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_extension_staticMethod_change_invoked() async {
     await _runChangeScenarioTA(
       initialA: r'''
@@ -16714,6 +18341,513 @@ extension A on int {
       dart:core
         double: #M6
         int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extension_staticSetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension A on int {
+  static set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedSetters
+            foo=: #M2
+[status] idle
+''',
+      updatedA: r'''
+extension A on int {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          foo: #M5
+        declaredSetters
+          foo=: #M6
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M3
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M5
+          requestedSetters
+            foo=: #M6
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extension_staticSetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension A on int {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+        declaredSetters
+          bar=: #M3
+          foo=: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedSetters
+            foo=: #M4
+[status] idle
+''',
+      updatedA: r'''
+extension A on int {
+  static set foo(int _) {}
+  static set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          bar: #M7
+          foo: #M2
+        declaredSetters
+          bar=: #M8
+          foo=: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M9
+        int: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_instanceGetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M1
+          it: #M2
+        declaredGetters
+          foo: #M3
+          it: #M4
+        interface: #M5
+          map
+            foo: #M3
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M3
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  double get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M8
+          it: #M2
+        declaredGetters
+          foo: #M9
+          it: #M4
+        interface: #M10
+          map
+            foo: #M9
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M11
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M8
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M9
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_instanceGetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  int get foo => 0;
+  int get bar => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          it: #M3
+        declaredGetters
+          bar: #M4
+          foo: #M5
+          it: #M6
+        interface: #M7
+          map
+            bar: #M4
+            foo: #M5
+            it: #M6
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M9
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo: #M5
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  int get foo => 0;
+  double get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          it: #M3
+        declaredGetters
+          bar: #M11
+          foo: #M5
+          it: #M6
+        interface: #M12
+          map
+            bar: #M11
+            foo: #M5
+            it: #M6
+  requirements
+    topLevels
+      dart:core
+        double: #M13
+        int: #M8
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -16973,6 +19107,1540 @@ extension type A(int it) {
       dart:core
         double: #M10
         int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_instanceSetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M1
+          it: #M2
+        declaredGetters
+          it: #M3
+        declaredSetters
+          foo=: #M4
+        interface: #M5
+          map
+            foo=: #M4
+            it: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M4
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M8
+          it: #M2
+        declaredGetters
+          it: #M3
+        declaredSetters
+          foo=: #M9
+        interface: #M10
+          map
+            foo=: #M9
+            it: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M11
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M8
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M9
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_instanceSetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          it: #M3
+        declaredGetters
+          it: #M4
+        declaredSetters
+          bar=: #M5
+          foo=: #M6
+        interface: #M7
+          map
+            bar=: #M5
+            foo=: #M6
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M9
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M6
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  set foo(int _) {}
+  set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          it: #M3
+        declaredGetters
+          it: #M4
+        declaredSetters
+          bar=: #M11
+          foo=: #M6
+        interface: #M12
+          map
+            bar=: #M11
+            foo=: #M6
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M13
+        int: #M8
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_namedConstructor_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  factory A.named(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M3
+        interface: #M4
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M3
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  factory A.named(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M7
+        interface: #M4
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M8
+        int: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: named
+    expectedId: #M3
+    actualId: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M7
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_namedConstructor_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  factory A.named(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M3
+        interface: #M4
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M7
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  factory A.named(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M8
+        interface: #M4
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M9
+        int: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_staticGetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  static int get foo => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M1
+          it: #M2
+        declaredGetters
+          foo: #M3
+          it: #M4
+        interface: #M5
+          map
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedGetters
+            foo: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  static double get foo => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M8
+          it: #M2
+        declaredGetters
+          foo: #M9
+          it: #M4
+        interface: #M5
+          map
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M8
+          requestedGetters
+            foo: #M9
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_staticGetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  static int get foo => 0;
+  static int get bar => 0;
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          it: #M3
+        declaredGetters
+          bar: #M4
+          foo: #M5
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M9
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedGetters
+            foo: #M5
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  static int get foo => 0;
+  static double get bar => 0;
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          it: #M3
+        declaredGetters
+          bar: #M11
+          foo: #M5
+          it: #M6
+        interface: #M7
+          map
+            it: #M6
+  requirements
+    topLevels
+      dart:core
+        double: #M12
+        int: #M8
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_staticMethod_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  static int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M3
+        interface: #M4
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M3
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          foo: #M7
+        interface: #M4
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M8
+        int: #M5
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M3
+    actualId: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M7
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_staticMethod_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  static int foo() {}
+  static int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M3
+          foo: #M4
+        interface: #M5
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M4
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  static int foo() {}
+  static double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredMethods
+          bar: #M8
+          foo: #M4
+        interface: #M5
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M9
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_staticSetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  static set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M1
+          it: #M2
+        declaredGetters
+          it: #M3
+        declaredSetters
+          foo=: #M4
+        interface: #M5
+          map
+            it: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedSetters
+            foo=: #M4
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          foo: #M8
+          it: #M2
+        declaredGetters
+          it: #M3
+        declaredSetters
+          foo=: #M9
+        interface: #M5
+          map
+            it: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M8
+          requestedSetters
+            foo=: #M9
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_staticSetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+          it: #M3
+        declaredGetters
+          it: #M4
+        declaredSetters
+          bar=: #M5
+          foo=: #M6
+        interface: #M7
+          map
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M8
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M9
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedSetters
+            foo=: #M6
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  static set foo(int _) {}
+  static set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          bar: #M10
+          foo: #M2
+          it: #M3
+        declaredGetters
+          it: #M4
+        declaredSetters
+          bar=: #M11
+          foo=: #M6
+        interface: #M7
+          map
+            it: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M12
+        int: #M8
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_unnamedConstructor_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        interface: #M3
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M6
+[status] idle
+''',
+      updatedA: r'''
+extension type A(double it) {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M7
+        declaredGetters
+          it: #M8
+        interface: #M9
+          map
+            it: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceConstructorIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    constructorName: new
+    expectedId: #M6
+    actualId: #M11
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M11
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_extensionType_unnamedConstructor_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  factory A.named(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M3
+        interface: #M4
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M5
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M6
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M3
+[status] idle
+''',
+      updatedA: r'''
+extension type A(double it) {
+  factory A.named(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M7
+        declaredGetters
+          it: #M8
+        declaredConstructors
+          named: #M3
+        interface: #M9
+          map
+            it: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+        int: #M5
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -18449,6 +22117,127 @@ mixin A {
     );
   }
 
+  test_dependency_mixin_instanceSetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  set foo(int _) {}
+  set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f(A a) {
+  a.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+        declaredSetters
+          bar=: #M3
+          foo=: #M4
+        interface: #M5
+          map
+            bar=: #M3
+            foo=: #M4
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          methods
+            foo=: #M4
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  set foo(int _) {}
+  set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          bar: #M8
+          foo: #M2
+        declaredSetters
+          bar=: #M9
+          foo=: #M4
+        interface: #M10
+          map
+            bar=: #M9
+            foo=: #M4
+  requirements
+    topLevels
+      dart:core
+        double: #M11
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_mixin_instanceSetter_inherited_fromGeneric_on_changeTypeArgument() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
@@ -19345,6 +23134,728 @@ mixin A {}
       A: #M0
         interface: #M1
   requirements
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_staticGetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  static int get foo {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredGetters
+          foo: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedGetters
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  static double get foo {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          foo: #M6
+        declaredGetters
+          foo: #M7
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M8
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M6
+          requestedGetters
+            foo: #M7
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_staticGetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  static int get foo {}
+  static int get bar {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+        declaredGetters
+          bar: #M3
+          foo: #M4
+        interface: #M5
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedGetters
+            foo: #M4
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  static int get foo {}
+  static double get bar {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          bar: #M8
+          foo: #M2
+        declaredGetters
+          bar: #M9
+          foo: #M4
+        interface: #M5
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_staticMethod_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  static int foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M1
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  static double foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          foo: #M5
+        interface: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M5
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_staticMethod_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  static int foo() {}
+  static int bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo();
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          bar: #M1
+          foo: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedGetters
+            foo: <null>
+          requestedMethods
+            foo: #M2
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            foo: <null>
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  static int foo() {}
+  static double bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredMethods
+          bar: #M6
+          foo: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_staticSetter_change_invoked() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  static set foo(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          foo: #M1
+        declaredSetters
+          foo=: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M1
+          requestedSetters
+            foo=: #M2
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  static set foo(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          foo: #M6
+        declaredSetters
+          foo=: #M7
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M8
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  instanceFieldIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    fieldName: foo
+    expectedId: #M1
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M6
+          requestedSetters
+            foo=: #M7
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_mixin_staticSetter_change_notUsed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+mixin A {
+  static set foo(int _) {}
+  static set bar(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.foo = 0;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          bar: #M1
+          foo: #M2
+        declaredSetters
+          bar=: #M3
+          foo=: #M4
+        interface: #M5
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M7
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    instances
+      package:test/a.dart
+        A
+          requestedFields
+            foo: #M2
+          requestedSetters
+            foo=: #M4
+[status] idle
+''',
+      updatedA: r'''
+mixin A {
+  static set foo(int _) {}
+  static set bar(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredMixins
+      A: #M0
+        declaredFields
+          bar: #M8
+          foo: #M2
+        declaredSetters
+          bar=: #M9
+          foo=: #M4
+        interface: #M5
+  requirements
+    topLevels
+      dart:core
+        double: #M10
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
