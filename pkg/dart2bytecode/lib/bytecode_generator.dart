@@ -1039,6 +1039,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   late Library? dartFfiLibrary = libraryIndex.tryGetLibrary('dart:ffi');
 
+  // Selector for implicit dynamic calls 'foo(...)' where
+  // variable 'foo' has type 'dynamic'.
+  late final implicitCallName = Name('implicit:call');
+
   void _recordSourcePosition(int fileOffset) {
     asm.currentSourcePosition = fileOffset;
     maxSourcePosition = math.max(maxSourcePosition, fileOffset);
@@ -3128,12 +3132,13 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitDynamicInvocation(DynamicInvocation node) {
-    _genMethodInvocation(node, null);
+    final targetName = node.isImplicitCall ? implicitCallName : node.name;
+    _genMethodInvocation(node, null, targetName);
   }
 
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
-    _genMethodInvocation(node, node.interfaceTarget);
+    _genMethodInvocation(node, node.interfaceTarget, node.name);
   }
 
   @override
@@ -3151,8 +3156,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     asm.emitSpecializedBytecode(Opcode.kEqualsNull);
   }
 
-  void _genMethodInvocation(
-      InstanceInvocationExpression node, Procedure? interfaceTarget) {
+  void _genMethodInvocation(InstanceInvocationExpression node,
+      Procedure? interfaceTarget, Name targetName) {
     final Opcode? opcode = recognizedMethods.specializedBytecodeFor(node);
     if (opcode != null) {
       _genMethodInvocationUsingSpecializedBytecode(opcode, node);
@@ -3172,7 +3177,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final argDesc =
         objectTable.getArgDescHandleByArguments(args, hasReceiver: true);
 
-    _genInstanceCall(node, InvocationKind.method, interfaceTarget, node.name,
+    _genInstanceCall(node, InvocationKind.method, interfaceTarget, targetName,
         node.receiver, totalArgCount, argDesc);
   }
 
