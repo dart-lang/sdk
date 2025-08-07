@@ -605,6 +605,12 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    optype.completionLocation = 'DotShorthandPropertyAccess_memberName';
+    optype.includeReturnValueSuggestions = true;
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     optype.completionLocation = 'DotShorthandPropertyAccess_propertyName';
     optype.includeReturnValueSuggestions = true;

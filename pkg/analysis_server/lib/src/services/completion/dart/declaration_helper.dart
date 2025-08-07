@@ -88,6 +88,9 @@ class DeclarationHelper {
   /// possible.
   final bool preferNonInvocation;
 
+  /// Whether suggestions are for completing a dot shorthand.
+  final bool suggestingDotShorthand;
+
   /// Whether unnamed constructors should be suggested as `.new`.
   final bool suggestUnnamedAsNew;
 
@@ -135,6 +138,7 @@ class DeclarationHelper {
     required this.excludeTypeNames,
     required this.objectPatternAllowed,
     required this.preferNonInvocation,
+    required this.suggestingDotShorthand,
     required this.suggestUnnamedAsNew,
     required this.skipImports,
     required this.excludedNodes,
@@ -1504,7 +1508,8 @@ class DeclarationHelper {
     }
     if (!mustBeAssignable) {
       var allowNonFactory =
-          containingElement is ClassElement && !containingElement.isAbstract;
+          containingElement is ClassElement && !containingElement.isAbstract ||
+          containingElement is ExtensionTypeElement;
       for (var constructor in constructors) {
         if (constructor.isVisibleIn(request.libraryElement) &&
             (allowNonFactory || constructor.isFactory)) {
@@ -1826,8 +1831,15 @@ class DeclarationHelper {
       );
     }
 
+    // Use the constructor element's name without the interface type to
+    // calculate the matcher score for dot shorthands.
+    var elementName = element.name;
+    var matcherName =
+        suggestingDotShorthand && elementName != null
+            ? elementName
+            : element.displayName;
     // TODO(keertip): Compute the completion string.
-    var matcherScore = state.matcher.score(element.displayName);
+    var matcherScore = state.matcher.score(matcherName);
     if (matcherScore != -1) {
       var isTearOff =
           preferNonInvocation || (mustBeConstant && !element.isConst);

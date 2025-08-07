@@ -359,7 +359,7 @@ mixin SharedDtdTests
   Future<void> test_service_codeAction_assist() async {
     setApplyEditSupport();
 
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 var a = [!''!];
 ''');
 
@@ -376,7 +376,7 @@ var a = "";
     failTestOnErrorDiagnostic = false;
     setApplyEditSupport();
 
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 Future<void> [!f!]() {}
 ''');
 
@@ -392,7 +392,7 @@ Future<void> f() async {}
   Future<void> test_service_codeAction_refactor() async {
     setApplyEditSupport();
 
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 void f() {
   [!print('');!]
 }
@@ -416,7 +416,7 @@ void newMethod() {
   Future<void> test_service_codeAction_source() async {
     setApplyEditSupport();
 
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 [!!]import 'dart:async';
 import 'dart:io';
 
@@ -506,7 +506,7 @@ FutureOr<void>? a;
   }
 
   Future<void> test_service_success_hover() async {
-    var code = TestCode.parse('''
+    var code = TestCode.parseNormalized('''
 /// A function.
 void [!myFun^ction!]() {}
 ''');

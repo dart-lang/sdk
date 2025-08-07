@@ -1024,6 +1024,22 @@ main() {new core.String.from^CharCodes([]);}
         returnValue: true);
   }
 
+  Future<void> test_dotShorthandInvocation() async {
+    addTestSource('''
+class C {
+  C.named();
+}
+void f() {
+  C c = .n^()
+}
+''');
+    await assertOpType(
+      completionLocation: 'DotShorthandPropertyAccess_memberName',
+      constructors: true,
+      returnValue: true,
+    );
+  }
+
   Future<void> test_doubleLiteral() async {
     addTestSource('main() { print(1.2^); }');
     await assertOpType();
