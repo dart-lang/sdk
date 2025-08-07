@@ -1186,9 +1186,7 @@ bool Interpreter::AssertAssignable(Thread* thread,
                                    ObjectPtr* args,
                                    SubtypeTestCachePtr cache) {
   ObjectPtr null_value = Object::null();
-  if ((cache != null_value) &&
-      (Smi::Value(cache->untag()->cache()->untag()->length()) <=
-       SubtypeTestCache::kMaxLinearCacheSize)) {
+  if (cache != null_value) {
     InstancePtr instance = Instance::RawCast(args[0]);
     AbstractTypePtr dst_type = AbstractType::RawCast(args[1]);
     TypeArgumentsPtr instantiator_type_arguments =
@@ -1232,36 +1230,95 @@ bool Interpreter::AssertAssignable(Thread* thread,
     }
 
     ArrayPtr entries = cache->untag()->cache();
-    for (intptr_t i = 0; entries->untag()->element(i) != null_value;
-         i += SubtypeTestCache::kTestEntryLength) {
-      if ((entries->untag()->element(
-               i + SubtypeTestCache::kInstanceCidOrSignature) ==
-           instance_cid_or_function) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstanceTypeArguments) ==
-           instance_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstantiatorTypeArguments) ==
-           instantiator_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kFunctionTypeArguments) ==
-           function_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstanceParentFunctionTypeArguments) ==
-           parent_function_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments) &&
-          (entries->untag()->element(i + SubtypeTestCache::kDestinationType) ==
-           dst_type)) {
-        if (Bool::True().ptr() ==
-            entries->untag()->element(i + SubtypeTestCache::kTestResult)) {
-          return true;
-        } else {
-          break;
-        }
+    const intptr_t num_inputs = cache->untag()->num_inputs_;
+    // The search in a linear-based STC starts at 0.
+    intptr_t probe = 0;
+    if (SubtypeTestCache::IsHash(entries)) {
+      // Perform the same hash as SubtypeTestCache::FindKeyOrUnused.
+      //
+      // Control flows to AssertAssignableCallRuntime if any of the individual
+      // hashes are 0 (which denotes the hash is not yet computed).
+      if (cid == kClosureCid) {
+        auto sig = AbstractType::RawCast(instance_cid_or_function);
+        probe = RawSmiValue(sig->untag()->hash());
+        if (probe == 0) goto AssertAssignableCallRuntime;
+      } else {
+        probe = cid;
       }
+      switch (num_inputs) {
+        case 7: {
+          intptr_t h = RawSmiValue(dst_type->untag()->hash());
+          if (h == 0) goto AssertAssignableCallRuntime;
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 6: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (delayed_function_type_arguments != null_value) {
+            h = RawSmiValue(delayed_function_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 5: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (parent_function_type_arguments != null_value) {
+            h = RawSmiValue(parent_function_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 4: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (function_type_arguments != null_value) {
+            h = RawSmiValue(function_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 3: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (instantiator_type_arguments != null_value) {
+            h = RawSmiValue(instantiator_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 2: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (instance_type_arguments != null_value) {
+            h = RawSmiValue(instance_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 1:
+          // Already included in the hash.
+          break;
+        default:
+          UNREACHABLE();
+      }
+      probe = FinalizeHash(probe);
+      // The number of entries for a hash-based cache is a power of 2,
+      // so use it as a mask to get a valid entry index from the hash.
+      probe = probe & (SubtypeTestCache::NumEntries(entries) - 1);
     }
+    BoolPtr test_result = nullptr;
+    auto loc = SubtypeTestCache::FindKeyOrUnusedFromProbe(
+        entries, num_inputs, probe, instance_cid_or_function, dst_type,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, parent_function_type_arguments,
+        delayed_function_type_arguments, &test_result);
+    if (loc.present && test_result == Bool::True().ptr()) {
+      return true;
+    }
+    // Either there is no matching entry or the matching entry had a false test
+    // result, so a runtime call is needed to generate an appropriate error.
   }
 
 AssertAssignableCallRuntime:

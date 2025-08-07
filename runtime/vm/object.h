@@ -7922,7 +7922,10 @@ class SubtypeTestCache : public Object {
   intptr_t NumberOfChecks() const;
 
   // Retrieves the number of entries (occupied or unoccupied) in the cache.
-  intptr_t NumEntries() const;
+  intptr_t NumEntries() const {
+    ASSERT(!IsNull());
+    return NumEntries(untag()->cache_);
+  }
 
   // Adds a check, returning the index of the new entry in the cache.
   intptr_t AddCheck(
@@ -8011,7 +8014,10 @@ class SubtypeTestCache : public Object {
   bool Equals(const SubtypeTestCache& other) const;
 
   // Returns whether the cache backed by the given storage is hash-based.
-  bool IsHash() const;
+  bool IsHash() const {
+    if (IsNull()) return false;
+    return IsHash(untag()->cache_);
+  }
 
   // Creates a separate copy of the current STC contents.
   SubtypeTestCachePtr Copy(Thread* thread) const;
@@ -8075,13 +8081,13 @@ class SubtypeTestCache : public Object {
 
   // Retrieves the number of entries (occupied or unoccupied) in a cache
   // backed by the given array.
-  static intptr_t NumEntries(const Array& array);
+  static intptr_t NumEntries(const ArrayPtr array);
 
   // Returns whether the cache backed by the given storage is linear.
-  static bool IsLinear(const Array& array) { return !IsHash(array); }
+  static bool IsLinear(const ArrayPtr array) { return !IsHash(array); }
 
   // Returns whether the cache backed by the given storage is hash-based.
-  static bool IsHash(const Array& array);
+  static bool IsHash(const ArrayPtr array);
 
   struct KeyLocation {
     // The entry index if [present] is true, otherwise where the entry would
@@ -8108,6 +8114,22 @@ class SubtypeTestCache : public Object {
       const TypeArguments& function_type_arguments,
       const TypeArguments& instance_parent_function_type_arguments,
       const TypeArguments& instance_delayed_type_arguments);
+
+  // The main loop of FindKeyOrUnused() after the initial probe index has
+  // been calculated. Used by both FindKeyOrUnused and by the bytecode
+  // interpreter, so uses tagged pointers instead of handles.
+  static KeyLocation FindKeyOrUnusedFromProbe(
+      ArrayPtr array,
+      intptr_t num_inputs,
+      intptr_t probe,
+      ObjectPtr instance_class_id_or_signature,
+      AbstractTypePtr destination_type,
+      TypeArgumentsPtr instance_type_arguments,
+      TypeArgumentsPtr instantiator_type_arguments,
+      TypeArgumentsPtr function_type_arguments,
+      TypeArgumentsPtr instance_parent_function_type_arguments,
+      TypeArgumentsPtr instance_delayed_type_arguments,
+      BoolPtr* test_result = nullptr);
 
   // If the given array can contain the requested number of entries, returns
   // the same array and sets [was_grown] to false.
@@ -8172,6 +8194,7 @@ class SubtypeTestCache : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
   friend class FieldInvalidator;
+  friend class Interpreter;
   friend class VMSerializationRoots;
   friend class VMDeserializationRoots;
 };
@@ -11051,9 +11074,14 @@ class Array : public Instance {
   }
 
   template <std::memory_order order = std::memory_order_relaxed>
+  static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
+    ASSERT((0 <= index) && (index < LengthOf(array)));
+    return array->untag()->element<order>(index);
+  }
+
+  template <std::memory_order order = std::memory_order_relaxed>
   ObjectPtr At(intptr_t index) const {
-    ASSERT((0 <= index) && (index < Length()));
-    return untag()->element<order>(index);
+    return ElementAt<order>(ptr(), index);
   }
   template <std::memory_order order = std::memory_order_relaxed>
   void SetAt(intptr_t index, const Object& value) const {
@@ -11068,8 +11096,7 @@ class Array : public Instance {
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
-    ASSERT((0 <= index) && (index < Length()));
-    return untag()->element<std::memory_order_acquire>(index);
+    return ElementAt<std::memory_order_acquire>(ptr(), index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
     ASSERT((0 <= index) && (index < Length()));
