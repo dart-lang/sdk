@@ -5,9 +5,6 @@
 # Status file for the strong_suite.dart test suite. This is testing generating
 # Kernel ASTs directly, that is, code in pkg/kernel.
 
-# Macros are in development
-macros/scope_access: SemiFuzzFailure
-
 # Assert failure
 general/error_recovery/issue_39202.crash: SemiFuzzAssertFailure
 
@@ -18,7 +15,6 @@ const_functions/const_functions_switch_statements: SemiFuzzFailure # https://git
 
 # POSSIBLY BAD ONES
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
-macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 
 # EXPECTED FAILURES DUE TO PRIVACY ETC:
 dart2js/native: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
@@ -37,7 +33,6 @@ extensions/unnamed_extensions: semiFuzzFailureOnForceRebuildBodies # unnamed ext
 general/bug33099: semiFuzzFailureOnForceRebuildBodies # private class
 general/closure: semiFuzzFailureOnForceRebuildBodies # private field
 general/constants/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
-general/constants/with_unevaluated_agnostic/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
 general/constructor_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
 general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
 general/issue48548: semiFuzzFailureOnForceRebuildBodies # private field
@@ -65,7 +60,6 @@ inference_update_3/if_null_assignment_explicit_extension_index_expression_test: 
 inference_update_3/if_null_assignment_explicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_3/if_null_assignment_implicit_extension_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_3/if_null_assignment_implicit_extension_null_aware_index_expression_test: semiFuzzFailureOnForceRebuildBodies # privacy.
-macros/macro_class: SemiFuzzFailure # Declares macros.
 patterns/exhaustiveness/extension_types: semiFuzzFailureOnForceRebuildBodies # uses sealed
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
@@ -125,7 +119,6 @@ nnbd/platform_optional_parameters/main: SemiFuzzFailure
 # UNSORTED ONES:
 coverage/static2_test: TypeCheckError
 constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
-general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
 general/error_recovery/issue_39058.crash: SemiFuzzFailure
 general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
 general/platform_invalid_uris/main: SemiFuzzFailure
@@ -133,21 +126,10 @@ general/supported_libraries/main: SemiFuzzFailure
 general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
 regress/utf_16_le_content.crash: SemiFuzzCrash
 
-macros/scope_access: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzCrash
-
-macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49414
-macros/duplicate_augment: semiFuzzFailureOnForceRebuildBodies
-macros/extend_augmented: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
-
 const_functions/const_functions_list: SemiFuzzCrash
 
-dart2js/mixin_from_opt_in/main: SemiFuzzFailure # seems like the difference between normal and no-link version: it goes from InstanceInvocation to InvalidExpression
-dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure # seems like the difference between normal and no-link version: it goes from InstanceInvocation to InvalidExpression
 late_lowering/private_members: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242285
-macros/multiple_imports: SemiFuzzFailure # probably augment imports that isn't split correctly.
-macros/augment_same_file: SemiFuzzFailure # probably augment imports that isn't split correctly.
 nnbd/constants: SemiFuzzFailure # Reproduced in https://dart-review.googlesource.com/c/sdk/+/242441
-macros/multiple_augment_class: semiFuzzFailureOnForceRebuildBodies # probably augment imports that isn't split correctly. Previously was: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/49990
 
 # These tests have "privacy issues" and isn't compatible with splitting files (fuzzing):
 dart2js/mixin_default_values/main: semiFuzzFailureOnForceRebuildBodies # private method
@@ -157,7 +139,6 @@ late_lowering/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodi
 late_lowering/issue41436/issue41436: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 late_lowering/issue41922: semiFuzzFailureOnForceRebuildBodies # private field
 late_lowering/private_members: semiFuzzFailureOnForceRebuildBodies # private class
-macros/inject_constructor: semiFuzzFailureOnForceRebuildBodies # Macro injection --- think it might introduce a class in a file?
 nnbd/injected_late_field_checks/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 nnbd/issue42504: semiFuzzFailureOnForceRebuildBodies # private class
 nnbd/issue43918: semiFuzzFailureOnForceRebuildBodies # private class
@@ -171,19 +152,6 @@ constructor_tearoffs/call_instantiation: TypeCheckError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 enhanced_enums/simple_mixins: RuntimeError
-extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
-extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
-extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
-extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
-extension_types/non_simple_many_libs_same_name_cycle: ExpectationFileMismatchSerialized
-extension_types/show_and_run_ceil: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
-extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
 extension_types/with_dependencies/issue53209_1/main: SemiFuzzFailure
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
@@ -197,7 +165,6 @@ general/call: RuntimeError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError
 general/continue_label_invalid: RuntimeError
-general/covariant_generic2: RuntimeError
 general/duplicated_field_initializer: RuntimeError
 general/error_locations/error_location_01: RuntimeError
 general/error_locations/error_location_02: RuntimeError
@@ -205,10 +172,8 @@ general/error_locations/error_location_03: RuntimeError
 general/error_recovery/empty_await_for: RuntimeError
 general/error_recovery/empty_for: RuntimeError
 general/expressions: RuntimeError
-general/getter_vs_setter_type: TypeCheckError
 general/hierarchy/conflict: TypeCheckError
 general/hierarchy/duplicates: TypeCheckError
-general/infer_field_from_multiple2: TypeCheckError
 general/invocations: RuntimeError
 general/issue37776: RuntimeError
 general/issue47994b: RuntimeError
@@ -280,16 +245,7 @@ regress/issue_35266: RuntimeError
 regress/issue_37285: RuntimeError
 regress/issue_39091_2: RuntimeError
 set_literals/disambiguation_rule: RuntimeError
-value_class/copy_with_call_sites: RuntimeError # Expected
-value_class/simple: RuntimeError # Expected
-value_class/value_extends_non_value: RuntimeError # Expected
-value_class/value_implements_non_value: RuntimeError # Expected
 wildcard_variables/class_type_parameters: semiFuzzFailureOnForceRebuildBodies # Expected
 wildcard_variables/initializing_formals: RuntimeError # Expected
 wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies # Expected
 wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBodies # Expected
-
-# Verifier crashes in semi-fuzzing
-macros/extend_augmented: SemiFuzzCrash
-macros/augment_concrete: SemiFuzzCrash
-macros/multiple_augment_class: SemiFuzzCrash
