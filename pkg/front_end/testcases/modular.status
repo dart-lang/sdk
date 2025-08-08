@@ -7,31 +7,15 @@
 constructor_tearoffs/call_instantiation: TypeCheckError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
-extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
-extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
-extension_types/extension_on_nullable: ExpectationFileMismatchSerialized # Expected.
-extension_types/issue45775: ExpectationFileMismatchSerialized # Expected.
-extension_types/non_simple_many_libs_same_name_cycle: ExpectationFileMismatchSerialized
-extension_types/show_and_run_ceil: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_getter_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_method_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
-extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
-extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
 extensions/extension_setter_error: TypeCheckError
 general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
-general/getter_vs_setter_type: TypeCheckError
 general/hierarchy/conflict: TypeCheckError
 general/hierarchy/duplicates: TypeCheckError
-general/infer_field_from_multiple2: TypeCheckError
 general/supertype_conflict: TypeCheckError
 inference/instantiate_tearoff_of_call: TypeCheckError
 inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
-runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError
 coverage/static2_test: TypeCheckError

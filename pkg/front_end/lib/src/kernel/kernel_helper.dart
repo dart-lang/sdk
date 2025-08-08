@@ -270,7 +270,7 @@ class DelayedDefaultValueCloner {
                 synthesizedParameter.type, synthesizedParameter.name!),
             synthesizedParameter.fileOffset,
             synthesizedParameter.name?.length ?? 1,
-            _libraryBuilder.fileUri);
+            synthesized.fileUri);
         synthesizedParameter.isErroneouslyInitialized = true;
       }
     }
