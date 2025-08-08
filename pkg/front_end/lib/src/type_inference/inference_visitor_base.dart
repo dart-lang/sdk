@@ -2544,7 +2544,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ),
           formal.fileOffset,
           formal.name!.length,
-          libraryBuilder.importUri,
+          helper.uri,
         );
         formal.isErroneouslyInitialized = true;
       }
@@ -2586,7 +2586,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ),
           formal.fileOffset,
           formal.name!.length,
-          libraryBuilder.importUri,
+          helper.uri,
         );
       }
     }
@@ -3920,7 +3920,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             codeRecordUsedAsCallable,
             receiver.fileOffset,
             noLength,
-            libraryBuilder.fileUri,
+            helper.uri,
           );
         }
         DartType type = target.getGetterType(this);

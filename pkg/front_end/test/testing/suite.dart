@@ -874,6 +874,14 @@ class FuzzCompiles
       );
       if (passResult != null) return passResult;
 
+      passResult = await wrapInPart(
+        compilationSetup,
+        platform,
+        result,
+        context,
+      );
+      if (passResult != null) return passResult;
+
       if (!hasErrors) {
         // To get proper splitting (between dill and not dill builders) we need
         // experimental invalidation - it doesn't work when there's errors
@@ -1109,6 +1117,62 @@ class FuzzCompiles
       }
     }
     return false;
+  }
+
+  /// Perform a compilations where the user file is wrapped in a part and that
+  /// no crashing occurs (because of wrong uris being set).
+  Future<Result<ComponentResult>?> wrapInPart(CompilationSetup compilationSetup,
+      Component platform, ComponentResult result, FastaContext context) async {
+    FileSystem orgFileSystem = compilationSetup.options.fileSystem;
+    Uri mainUri = compilationSetup.options.inputs.single;
+    Uint8List orgData = await orgFileSystem.entityForUri(mainUri).readAsBytes();
+
+    compilationSetup.options.clearFileSystemCache();
+    _FakeFileSystem fs = new _FakeFileSystem(orgFileSystem);
+    compilationSetup.compilerOptions.fileSystem = fs;
+
+    Uri newEntryUri = Uri.parse("foo:///newMain.dart");
+
+    Uint8List newMainData = Uint8List.fromList([
+      ...utf8.encode("""
+part of "${newEntryUri}";
+
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+// La la la la la la la la la la la la la.
+"""),
+      ...orgData,
+    ]);
+
+    compilationSetup.errors.clear();
+
+    fs.data[mainUri] = newMainData;
+    fs.data[newEntryUri] = utf8.encode("part '$mainUri';");
+    IncrementalCompiler incrementalCompiler =
+        new IncrementalCompiler.fromComponent(
+            new CompilerContext(compilationSetup.options), platform);
+    try {
+      await incrementalCompiler.computeDelta(entryPoints: [newEntryUri]);
+    } catch (e, st) {
+      if (e is AssertionError || (e is Crash && e.error is AssertionError)) {
+        return new Result<ComponentResult>(
+            result,
+            semiFuzzAssertFailure,
+            "Assertion failure with '$e' after putting '$mainUri' into a part."
+            "\n\n$st");
+      }
+      return new Result<ComponentResult>(
+          result,
+          semiFuzzCrash,
+          "Crashed with '$e' after putting '$mainUri' into a part."
+          "\n\n$st");
+    }
+
+    compilationSetup.options.clearFileSystemCache();
+    compilationSetup.compilerOptions.fileSystem = orgFileSystem;
+    return null;
   }
 
   /// Perform a number of compilations where each user-file is in turn sorted
