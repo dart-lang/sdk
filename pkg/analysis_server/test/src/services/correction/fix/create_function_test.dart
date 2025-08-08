@@ -11,8 +11,296 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(CreateFunctionTearoffTest);
     defineReflectiveTests(CreateFunctionTest);
   });
+}
+
+@reflectiveTest
+class CreateFunctionTearoffTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.CREATE_FUNCTION_TEAROFF;
+
+  Future<void> test_assignment() async {
+    await resolveTestCode('''
+bool Function() f = g;
+''');
+    await assertHasFix('''
+bool Function() f = g;
+
+bool g() {
+}
+''');
+  }
+
+  Future<void> test_functionType_cascadeSecond() async {
+    await resolveTestCode('''
+class A {
+  B ma() => throw 0;
+}
+class B {
+  useFunction(int g(double a, String b)) {}
+}
+
+void f() {
+  A a = new A();
+  a..ma().useFunction(test);
+}
+''');
+    await assertHasFix('''
+class A {
+  B ma() => throw 0;
+}
+class B {
+  useFunction(int g(double a, String b)) {}
+}
+
+void f() {
+  A a = new A();
+  a..ma().useFunction(test);
+}
+
+int test(double a, String b) {
+}
+''');
+  }
+
+  Future<void> test_functionType_coreFunction() async {
+    await resolveTestCode('''
+void f() {
+  useFunction(g: test);
+}
+useFunction({Function? g}) {}
+''');
+    await assertHasFix('''
+void f() {
+  useFunction(g: test);
+}
+useFunction({Function? g}) {}
+
+test() {
+}
+''');
+  }
+
+  Future<void> test_functionType_dynamicArgument() async {
+    await resolveTestCode('''
+void f() {
+  useFunction(test);
+}
+useFunction(int g(a, b)) {}
+''');
+    await assertHasFix('''
+void f() {
+  useFunction(test);
+}
+useFunction(int g(a, b)) {}
+
+int test(a, b) {
+}
+''');
+  }
+
+  Future<void> test_functionType_function() async {
+    await resolveTestCode('''
+void f() {
+  useFunction(test);
+}
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+void f() {
+  useFunction(test);
+}
+useFunction(int g(double a, String b)) {}
+
+int test(double a, String b) {
+}
+''');
+  }
+
+  Future<void> test_functionType_function_namedArgument() async {
+    await resolveTestCode('''
+void f() {
+  useFunction(g: test);
+}
+useFunction({int g(double a, String b)?}) {}
+''');
+    await assertHasFix('''
+void f() {
+  useFunction(g: test);
+}
+useFunction({int g(double a, String b)?}) {}
+
+int test(double a, String b) {
+}
+''');
+  }
+
+  Future<void> test_functionType_FunctionCall() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(f3);
+}
+
+void f2(int Function() f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(f3);
+}
+
+void f2(int Function() f) {}
+
+int f3() {
+}
+''');
+  }
+
+  Future<void> test_functionType_importType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'package:test/a.dart';
+
+useFunction(int g(A a)) {}
+''');
+    await resolveTestCode('''
+import 'package:test/b.dart';
+
+void f() {
+  useFunction(test);
+}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart';
+import 'package:test/b.dart';
+
+void f() {
+  useFunction(test);
+}
+
+int test(A a) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_conditional_operator() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(i == 0 ? f3 : (v) => v);
+}
+
+void f2(int Function(int) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(i == 0 ? f3 : (v) => v);
+}
+
+void f2(int Function(int) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_conditional_operator_else() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2(i == 0 ? (v) => v : f3);
+}
+
+void f2(int Function(int) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2(i == 0 ? (v) => v : f3);
+}
+
+void f2(int Function(int) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_record_functionType() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2((0, f3));
+}
+
+void f2((int, int Function(int)) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2((0, f3));
+}
+
+void f2((int, int Function(int)) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_functionType_inside_record_functionType_named() async {
+    await resolveTestCode('''
+void f1(int i) {
+  f2((f: f3));
+}
+
+void f2(({int Function(int) f}) f) {}
+''');
+    await assertHasFix('''
+void f1(int i) {
+  f2((f: f3));
+}
+
+void f2(({int Function(int) f}) f) {}
+
+int f3(int p1) {
+}
+''');
+  }
+
+  Future<void> test_record_tearoff() async {
+    await resolveTestCode('''
+(bool Function(),) f = (g,);
+''');
+    await assertHasFix('''
+(bool Function(),) f = (g,);
+
+bool g() {
+}
+''');
+  }
+
+  Future<void> test_returnType_typeAlias_function() async {
+    await resolveTestCode('''
+typedef A<T> = void Function(T a);
+
+void f(A<int> Function() a) {}
+
+void g() {
+  f(test);
+}
+''');
+    await assertHasFix('''
+typedef A<T> = void Function(T a);
+
+void f(A<int> Function() a) {}
+
+void g() {
+  f(test);
+}
+
+A<int> test() {
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -46,18 +334,6 @@ bool Function() f = g();
 bool Function() f = g();
 
 bool Function() g() {
-}
-''');
-  }
-
-  Future<void> test_assignment_tearoff() async {
-    await resolveTestCode('''
-bool Function() f = g;
-''');
-    await assertHasFix('''
-bool Function() f = g;
-
-bool g() {
 }
 ''');
   }
@@ -280,179 +556,6 @@ int myUndefinedFunction(int i, double d, String s) {
 ''');
   }
 
-  Future<void> test_functionType_cascadeSecond() async {
-    await resolveTestCode('''
-class A {
-  B ma() => throw 0;
-}
-class B {
-  useFunction(int g(double a, String b)) {}
-}
-
-void f() {
-  A a = new A();
-  a..ma().useFunction(test);
-}
-''');
-    await assertHasFix('''
-class A {
-  B ma() => throw 0;
-}
-class B {
-  useFunction(int g(double a, String b)) {}
-}
-
-void f() {
-  A a = new A();
-  a..ma().useFunction(test);
-}
-
-int test(double a, String b) {
-}
-''');
-  }
-
-  Future<void> test_functionType_coreFunction() async {
-    await resolveTestCode('''
-void f() {
-  useFunction(g: test);
-}
-useFunction({Function? g}) {}
-''');
-    await assertHasFix('''
-void f() {
-  useFunction(g: test);
-}
-useFunction({Function? g}) {}
-
-test() {
-}
-''');
-  }
-
-  Future<void> test_functionType_dynamicArgument() async {
-    await resolveTestCode('''
-void f() {
-  useFunction(test);
-}
-useFunction(int g(a, b)) {}
-''');
-    await assertHasFix('''
-void f() {
-  useFunction(test);
-}
-useFunction(int g(a, b)) {}
-
-int test(a, b) {
-}
-''');
-  }
-
-  Future<void> test_functionType_function() async {
-    await resolveTestCode('''
-void f() {
-  useFunction(test);
-}
-useFunction(int g(double a, String b)) {}
-''');
-    await assertHasFix('''
-void f() {
-  useFunction(test);
-}
-useFunction(int g(double a, String b)) {}
-
-int test(double a, String b) {
-}
-''');
-  }
-
-  Future<void> test_functionType_function_namedArgument() async {
-    await resolveTestCode('''
-void f() {
-  useFunction(g: test);
-}
-useFunction({int g(double a, String b)?}) {}
-''');
-    await assertHasFix('''
-void f() {
-  useFunction(g: test);
-}
-useFunction({int g(double a, String b)?}) {}
-
-int test(double a, String b) {
-}
-''');
-  }
-
-  Future<void> test_functionType_FunctionCall() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2(f3);
-}
-
-void f2(int Function() f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2(f3);
-}
-
-void f2(int Function() f) {}
-
-int f3() {
-}
-''');
-  }
-
-  Future<void> test_functionType_importType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-''');
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'package:test/a.dart';
-
-useFunction(int g(A a)) {}
-''');
-    await resolveTestCode('''
-import 'package:test/b.dart';
-
-void f() {
-  useFunction(test);
-}
-''');
-    await assertHasFix('''
-import 'package:test/a.dart';
-import 'package:test/b.dart';
-
-void f() {
-  useFunction(test);
-}
-
-int test(A a) {
-}
-''');
-  }
-
-  Future<void> test_functionType_inside_conditional_operator() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2(i == 0 ? f3 : (v) => v);
-}
-
-void f2(int Function(int) f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2(i == 0 ? f3 : (v) => v);
-}
-
-void f2(int Function(int) f) {}
-
-int f3(int p1) {
-}
-''');
-  }
-
   Future<void> test_functionType_inside_conditional_operator_condition() async {
     await resolveTestCode('''
 void f1(int i) {
@@ -482,26 +585,6 @@ bool f3() {
 }
 
 void f2(int Function(int) f) {}
-''');
-  }
-
-  Future<void> test_functionType_inside_conditional_operator_else() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2(i == 0 ? (v) => v : f3);
-}
-
-void f2(int Function(int) f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2(i == 0 ? (v) => v : f3);
-}
-
-void f2(int Function(int) f) {}
-
-int f3(int p1) {
-}
 ''');
   }
 
@@ -544,46 +627,6 @@ int f3() {
 }
 
 void f2(int p) {}
-''');
-  }
-
-  Future<void> test_functionType_inside_record_functionType() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2((0, f3));
-}
-
-void f2((int, int Function(int)) f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2((0, f3));
-}
-
-void f2((int, int Function(int)) f) {}
-
-int f3(int p1) {
-}
-''');
-  }
-
-  Future<void> test_functionType_inside_record_functionType_named() async {
-    await resolveTestCode('''
-void f1(int i) {
-  f2((f: f3));
-}
-
-void f2(({int Function(int) f}) f) {}
-''');
-    await assertHasFix('''
-void f1(int i) {
-  f2((f: f3));
-}
-
-void f2(({int Function(int) f}) f) {}
-
-int f3(int p1) {
-}
 ''');
   }
 
@@ -720,18 +763,6 @@ void bar(int i) {
 ''');
     await assertHasFix('''
 (bool,) f = (g(),);
-
-bool g() {
-}
-''');
-  }
-
-  Future<void> test_record_tearoff() async {
-    await resolveTestCode('''
-(bool Function(),) f = (g,);
-''');
-    await assertHasFix('''
-(bool Function(),) f = (g,);
 
 bool g() {
 }
@@ -914,30 +945,6 @@ int f() {
 }
 
 int myUndefinedFunction() {
-}
-''');
-  }
-
-  Future<void> test_returnType_typeAlias_function() async {
-    await resolveTestCode('''
-typedef A<T> = void Function(T a);
-
-void f(A<int> Function() a) {}
-
-void g() {
-  f(test);
-}
-''');
-    await assertHasFix('''
-typedef A<T> = void Function(T a);
-
-void f(A<int> Function() a) {}
-
-void g() {
-  f(test);
-}
-
-A<int> test() {
 }
 ''');
   }

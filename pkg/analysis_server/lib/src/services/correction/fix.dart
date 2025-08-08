@@ -808,6 +808,11 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard - 1,
     "Create function '{0}'",
   );
+  static const CREATE_FUNCTION_TEAROFF = FixKind(
+    'dart.fix.create.function.tearoff',
+    DartFixKindPriority.standard - 1,
+    "Create function '{0}'",
+  );
   static const CREATE_GETTER = FixKind(
     'dart.fix.create.getter',
     DartFixKindPriority.standard,
@@ -820,6 +825,11 @@ abstract final class DartFixKind {
   );
   static const CREATE_METHOD = FixKind(
     'dart.fix.create.method',
+    DartFixKindPriority.standard,
+    "Create method '{0}'",
+  );
+  static const CREATE_METHOD_TEAROFF = FixKind(
+    'dart.fix.create.method.tearoff',
     DartFixKindPriority.standard,
     "Create method '{0}'",
   );
