@@ -117,8 +117,6 @@ ${argParser.usage}
   }
   final enableServicePortFallback =
       argResults[DartDevelopmentServiceOptions.enableServicePortFallbackFlag];
-  final cachedUserTags =
-      argResults[DartDevelopmentServiceOptions.cachedUserTagsOption];
 
   final google3WorkspaceRoot =
       argResults[DartDevelopmentServiceOptions.google3WorkspaceRootOption];
@@ -142,7 +140,6 @@ ${argParser.usage}
             )
           : null,
       enableServicePortFallback: enableServicePortFallback,
-      cachedUserTags: cachedUserTags,
       uriConverter: uriConverter,
     );
     final dtdInfo = dds.hostedDartToolingDaemon;

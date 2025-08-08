@@ -75,8 +75,8 @@ abstract class DartDevelopmentServiceOptions {
       )
       ..addMultiOption(
         cachedUserTagsOption,
-        help: 'A set of UserTag names used to determine which CPU samples are '
-            'cached by DDS.',
+        help: 'This option is deprecated and supplying it will cause no '
+            'effect.',
         defaultsTo: <String>[],
       )
       ..addOption(

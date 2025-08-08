@@ -3105,7 +3105,7 @@ void Assembler::TsanLoadAcquire(Register dst,
   ReserveAlignedFrameSpace(0);
 
   AddImmediate(A0, addr.base(), addr.offset());
-  LoadImmediate(A1, __ATOMIC_ACQUIRE);
+  LoadImmediate(A1, static_cast<intx_t>(std::memory_order_acquire));
 
   switch (size) {
     case kEightBytes:
@@ -3156,7 +3156,7 @@ void Assembler::TsanStoreRelease(Register src,
     AddImmediate(A0, addr.base(), addr.offset());
     MoveRegister(A1, src);
   }
-  LoadImmediate(A2, __ATOMIC_RELEASE);
+  LoadImmediate(A2, static_cast<intx_t>(std::memory_order_release));
 
   switch (size) {
     case kEightBytes:

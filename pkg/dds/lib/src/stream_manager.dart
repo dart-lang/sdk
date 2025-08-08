@@ -133,9 +133,6 @@ class StreamManager {
         // Stdout and Stderr streams may not exist.
       }
     }
-    if (dds.cachedUserTags.isNotEmpty) {
-      await streamListen(null, EventStreams.kProfiler);
-    }
     dds.vmServiceClient.registerMethod(
       'streamNotify',
       (json_rpc.Parameters parameters) {
@@ -176,11 +173,6 @@ class StreamManager {
           loggingRepositories[streamId]!.add(
             parameters.asMap.cast<String, dynamic>(),
           );
-        }
-        // If the event contains an isolate, forward the event to the
-        // corresponding isolate to be handled.
-        if (event.isolate != null) {
-          dds.isolateManager.routeEventToIsolate(event);
         }
         streamNotify(streamId, parameters.value);
       },
