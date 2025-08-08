@@ -601,10 +601,7 @@ class ElementDisplayStringBuilder {
         name = typeParameter.name! + subscript;
       }
 
-      var newTypeParameter = TypeParameterFragmentImpl(
-        name: name,
-        firstTokenOffset: null,
-      );
+      var newTypeParameter = TypeParameterFragmentImpl(name: name);
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter.asElement2);
     }

@@ -981,7 +981,7 @@ class _MockSdkElementsBuilder {
     List<TypeParameterElementImpl> typeParameters = const [],
     required LibraryFragmentImpl unit,
   }) {
-    var fragment = ClassFragmentImpl(name: name, firstTokenOffset: null);
+    var fragment = ClassFragmentImpl(name: name);
     ClassElementImpl(Reference.root(), fragment);
     fragment.typeParameters =
         typeParameters.map((tp) => tp.firstFragment).toList();
@@ -996,7 +996,7 @@ class _MockSdkElementsBuilder {
     bool isFactory = false,
     List<FormalParameterElement> parameters = const [],
   }) {
-    var fragment = ConstructorFragmentImpl(name: name, firstTokenOffset: null);
+    var fragment = ConstructorFragmentImpl(name: name);
     fragment.isFactory = isFactory;
     fragment.isConst = isConst;
     fragment.formalParameters =
@@ -1020,7 +1020,7 @@ class _MockSdkElementsBuilder {
     bool isFinal = false,
     bool isStatic = false,
   }) {
-    var fragment = FieldFragmentImpl(name: name, firstTokenOffset: null);
+    var fragment = FieldFragmentImpl(name: name);
     var element = FieldElementImpl(
       reference: Reference.root(),
       firstFragment: fragment,
@@ -1029,20 +1029,18 @@ class _MockSdkElementsBuilder {
     fragment.isFinal = isFinal;
     fragment.isStatic = isStatic;
 
-    var getterFragment = GetterFragmentImpl(name: name, firstTokenOffset: null)
-      ..isSynthetic = true;
+    var getterFragment = GetterFragmentImpl(name: name)..isSynthetic = true;
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     element.getter = getterElement;
 
     if (!isConst && !isFinal) {
       var valueFragment = FormalParameterFragmentImpl(
-        firstTokenOffset: null,
         name: null,
         nameOffset: null,
         parameterKind: ParameterKind.REQUIRED,
       );
       var setterFragment =
-          SetterFragmentImpl(name: name, firstTokenOffset: null)
+          SetterFragmentImpl(name: name)
             ..isSynthetic = true
             ..formalParameters = [valueFragment];
       var setterElement = SetterElementImpl(Reference.root(), setterFragment);
@@ -1060,7 +1058,7 @@ class _MockSdkElementsBuilder {
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
-        TopLevelFunctionFragmentImpl(name: name, firstTokenOffset: null)
+        TopLevelFunctionFragmentImpl(name: name)
           ..formalParameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
@@ -1091,7 +1089,7 @@ class _MockSdkElementsBuilder {
     TypeImpl type, {
     bool isStatic = false,
   }) {
-    var fieldFragment = FieldFragmentImpl(name: name, firstTokenOffset: null);
+    var fieldFragment = FieldFragmentImpl(name: name);
     var fieldElement = FieldElementImpl(
       reference: Reference.root(),
       firstFragment: fieldFragment,
@@ -1100,7 +1098,7 @@ class _MockSdkElementsBuilder {
     fieldFragment.isSynthetic = true;
     fieldElement.type = type;
 
-    var getterFragment = GetterFragmentImpl(name: name, firstTokenOffset: null);
+    var getterFragment = GetterFragmentImpl(name: name);
     getterFragment.isStatic = isStatic;
     getterFragment.isSynthetic = false;
 
@@ -1130,7 +1128,7 @@ class _MockSdkElementsBuilder {
     List<FormalParameterElement> parameters = const [],
   }) {
     var fragment =
-        MethodFragmentImpl(name: name, firstTokenOffset: null)
+        MethodFragmentImpl(name: name)
           ..formalParameters =
               parameters
                   .map((p) => p.firstFragment as FormalParameterFragmentImpl)
@@ -1149,7 +1147,6 @@ class _MockSdkElementsBuilder {
 
   FormalParameterElement _namedParameter(String name, TypeImpl type) {
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name,
       nameOffset: 0,
       parameterKind: ParameterKind.NAMED,
@@ -1234,7 +1231,6 @@ class _MockSdkElementsBuilder {
 
   FormalParameterElement _positionalParameter(String name, TypeImpl type) {
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name,
       nameOffset: 0,
       parameterKind: ParameterKind.POSITIONAL,
@@ -1244,7 +1240,6 @@ class _MockSdkElementsBuilder {
 
   FormalParameterElement _requiredParameter(String name, TypeImpl type) {
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name,
       nameOffset: 0,
       parameterKind: ParameterKind.REQUIRED,
@@ -1269,13 +1264,9 @@ class _MockSdkElementsBuilder {
     String name,
     TypeImpl type,
   ) {
-    var fragment = TopLevelVariableFragmentImpl(
-      name: name,
-      firstTokenOffset: null,
-    )..isConst = true;
+    var fragment = TopLevelVariableFragmentImpl(name: name)..isConst = true;
     var element = TopLevelVariableElementImpl(Reference.root(), fragment);
-    var getterFragment = GetterFragmentImpl(name: name, firstTokenOffset: null)
-      ..isSynthetic = true;
+    var getterFragment = GetterFragmentImpl(name: name)..isSynthetic = true;
     var getterElement = GetterElementImpl(Reference.root(), getterFragment);
     element.getter = getterElement;
     element.type = type;
@@ -1284,10 +1275,7 @@ class _MockSdkElementsBuilder {
 
   TypeParameterElementImpl _typeParameter(String name) {
     return TypeParameterElementImpl(
-      firstFragment: TypeParameterFragmentImpl(
-        name: name,
-        firstTokenOffset: null,
-      ),
+      firstFragment: TypeParameterFragmentImpl(name: name),
       name: name.nullIfEmpty,
     );
   }
