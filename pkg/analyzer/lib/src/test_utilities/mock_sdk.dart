@@ -317,18 +317,27 @@ class Deprecated extends Object {
   final bool _isUse;
   final bool _isImplement;
   final bool _isExtend;
+  final bool _isSubclass;
   const Deprecated(this.message)
       : _isUse = true,
         _isImplement = false,
-        _isExtend = false;
+        _isExtend = false,
+        _isSubclass = false;
   const Deprecated.implement([this.message = "next release"])
       : _isUse = false,
         _isImplement = true,
-        _isExtend = false;
+        _isExtend = false,
+        _isSubclass = false;
   const Deprecated.extend([this.message = "next release"])
       : _isUse = false,
         _isImplement = false,
-        _isExtend = true;
+        _isExtend = true,
+        _isSubclass = false;
+  const Deprecated.subclass([this.message = "next release"])
+      : _isUse = false,
+        _isImplement = false,
+        _isExtend = false,
+        _isSubclass = true;
 }
 
 class pragma {

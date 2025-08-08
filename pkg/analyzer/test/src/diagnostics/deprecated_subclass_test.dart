@@ -9,88 +9,15 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DeprecatedImplementTest);
+    defineReflectiveTests(DeprecatedSubclassTest);
   });
 }
 
 @reflectiveTest
-class DeprecatedImplementTest extends PubPackageResolutionTest {
-  test_annotatedClass() async {
+class DeprecatedSubclassTest extends PubPackageResolutionTest {
+  test_enumImplementsClass() async {
     newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
-class Foo {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-import 'foo.dart';
-class Bar implements Foo {}
-''',
-      [error(WarningCode.DEPRECATED_IMPLEMENT, 40, 3)],
-    );
-  }
-
-  test_annotatedClass_indirect() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
-class Foo {}
-class Bar extends Foo {}
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-class Baz implements Bar {}
-''');
-  }
-
-  test_annotatedClass_typedef() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
-class Foo {}
-typedef Foo2 = Foo;
-''');
-
-    await assertNoErrorsInCode(r'''
-import 'foo.dart';
-class Bar implements Foo2 {}
-''');
-  }
-
-  test_annotatedClassTypeAlias() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
-class Foo  = Object with M;
-mixin M {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-import 'foo.dart';
-class Bar implements Foo {}
-''',
-      [error(WarningCode.DEPRECATED_IMPLEMENT, 40, 3)],
-    );
-  }
-
-  test_classTypeAlias() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
-class Foo {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-import 'foo.dart';
-mixin M {}
-class Bar = Object with M implements Foo;
-''',
-      [error(WarningCode.DEPRECATED_IMPLEMENT, 67, 3)],
-    );
-  }
-
-  test_enum() async {
-    newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
+@Deprecated.subclass()
 class Foo {}
 ''');
 
@@ -99,21 +26,83 @@ class Foo {}
 import 'foo.dart';
 enum Bar implements Foo { one; }
 ''',
-      [error(WarningCode.DEPRECATED_IMPLEMENT, 39, 3)],
+      [error(WarningCode.DEPRECATED_SUBCLASS, 39, 3)],
+    );
+  }
+
+  test_extendsClass() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.subclass()
+class Foo {}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+class Bar extends Foo {}
+''',
+      [error(WarningCode.DEPRECATED_SUBCLASS, 37, 3)],
+    );
+  }
+
+  test_implementsClass() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.subclass()
+class Foo {}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+class Bar implements Foo {}
+''',
+      [error(WarningCode.DEPRECATED_SUBCLASS, 40, 3)],
+    );
+  }
+
+  test_implementsMixin() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+@Deprecated.subclass()
+mixin Foo {}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'foo.dart';
+class Bar implements Foo {}
+''',
+      [error(WarningCode.DEPRECATED_SUBCLASS, 40, 3)],
     );
   }
 
   test_insideLibrary() async {
     await assertNoErrorsInCode(r'''
-@Deprecated.implement()
+@Deprecated.subclass()
 class Foo {}
-class Bar implements Foo {}
+class Bar extends Foo {}
 ''');
+  }
+
+  test_language212_mixedIn() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+// @dart = 2.12
+@Deprecated.subclass()
+class Foo {}
+''');
+
+    await assertErrorsInCode(
+      r'''
+// @dart = 2.12
+import 'foo.dart';
+class Bar extends Object with Foo {}
+''',
+      [error(WarningCode.DEPRECATED_SUBCLASS, 65, 3)],
+    );
   }
 
   test_mixinImplementsClass() async {
     newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
+@Deprecated.subclass()
 class Foo {}
 ''');
 
@@ -122,13 +111,13 @@ class Foo {}
 import 'foo.dart';
 mixin Bar implements Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_IMPLEMENT, 40, 3)],
+      [error(WarningCode.DEPRECATED_SUBCLASS, 40, 3)],
     );
   }
 
   test_mixinOnClass() async {
     newFile('$testPackageLibPath/foo.dart', r'''
-@Deprecated.implement()
+@Deprecated.subclass()
 class Foo {}
 ''');
 
@@ -137,7 +126,7 @@ class Foo {}
 import 'foo.dart';
 mixin Bar on Foo {}
 ''',
-      [error(WarningCode.DEPRECATED_IMPLEMENT, 32, 3)],
+      [error(WarningCode.DEPRECATED_SUBCLASS, 32, 3)],
     );
   }
 
@@ -148,7 +137,7 @@ class Foo {}
 
     await assertNoErrorsInCode(r'''
 import 'foo.dart';
-class Bar implements Foo {}
+class Bar extends Foo {}
 ''');
   }
 }

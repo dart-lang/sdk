@@ -681,6 +681,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 
+    _deprecatedFunctionalityVerifier.mixinDeclaration(node);
     _deprecatedMemberUseVerifier.pushInDeprecatedValue(element.isUseDeprecated);
 
     try {
