@@ -135,29 +135,30 @@ class AnnotationVerifier {
       _checkDeprecatedImplement(node, node.parent);
       return;
     }
+
+    var isSubclass = value.getField('_isSubclass')?.toBoolValue() ?? false;
+    if (isSubclass) {
+      _checkDeprecatedSubclass(node, node.parent);
+      return;
+    }
   }
 
   void _checkDeprecatedExtend(Annotation node, AstNode parent) {
+    Element? declaredElement;
     if (parent
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
-      var classElement = declaredFragment?.element;
-      if (classElement == null) return;
-      var hasGenerativeConstructor = classElement.constructors.any(
-        (c) => c.isPublic && c.isGenerative,
-      );
-      if (classElement.isExtendableOutside && hasGenerativeConstructor) return;
+      declaredElement = declaredFragment!.element;
+    } else if (parent is GenericTypeAlias) {
+      declaredElement = parent.type.type?.element;
     }
 
-    if (parent is GenericTypeAlias) {
-      var classElement = parent.type.type?.element;
-      if (classElement is ClassElement) {
-        var hasGenerativeConstructor = classElement.constructors.any(
-          (c) => c.isPublic && c.isGenerative,
-        );
-        if (classElement.isExtendableOutside && hasGenerativeConstructor) {
-          return;
-        }
+    if (declaredElement is ClassElement) {
+      var hasGenerativeConstructor = declaredElement.constructors.any(
+        (c) => c.isPublic && c.isGenerative,
+      );
+      if (declaredElement.isExtendableOutside && hasGenerativeConstructor) {
+        return;
       }
     }
 
@@ -168,32 +169,55 @@ class AnnotationVerifier {
   }
 
   void _checkDeprecatedImplement(Annotation node, AstNode parent) {
+    Element? declaredElement;
     if (parent
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
-      var classElement = declaredFragment?.element;
-      if (classElement == null) return;
-      if (classElement.isImplementableOutside) return;
+      declaredElement = declaredFragment!.element;
+    } else if (parent is MixinDeclaration) {
+      declaredElement = parent.declaredFragment!.element;
+    } else if (parent is GenericTypeAlias) {
+      declaredElement = parent.type.type?.element;
     }
 
-    if (parent is MixinDeclaration) {
-      var mixinElement = parent.declaredFragment?.element;
-      if (mixinElement == null) return;
-      if (mixinElement.isImplementableOutside) return;
-    }
-
-    if (parent is GenericTypeAlias) {
-      var element = parent.type.type?.element;
-      if (element is ClassElement && element.isImplementableOutside) {
-        return;
-      } else if (element is MixinElement && element.isImplementableOutside) {
-        return;
-      }
+    if (declaredElement is ClassElement &&
+        declaredElement.isImplementableOutside) {
+      return;
+    } else if (declaredElement is MixinElement &&
+        declaredElement.isImplementableOutside) {
+      return;
     }
 
     _diagnosticReporter.atNode(
       node.name,
       WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION,
+    );
+  }
+
+  void _checkDeprecatedSubclass(Annotation node, AstNode parent) {
+    Element? declaredElement;
+    if (parent
+        case ClassDeclaration(:var declaredFragment) ||
+            ClassTypeAlias(:var declaredFragment)) {
+      declaredElement = declaredFragment!.element;
+    } else if (parent is MixinDeclaration) {
+      declaredElement = parent.declaredFragment!.element;
+    } else if (parent is GenericTypeAlias) {
+      declaredElement = parent.type.type?.element;
+    }
+
+    if (declaredElement is ClassElement &&
+        (declaredElement.isImplementableOutside ||
+            declaredElement.isExtendableOutside)) {
+      return;
+    } else if (declaredElement is MixinElement &&
+        declaredElement.isImplementableOutside) {
+      return;
+    }
+
+    _diagnosticReporter.atNode(
+      node.name,
+      WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION,
     );
   }
 

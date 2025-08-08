@@ -27,7 +27,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   factory CreateMethodOrFunction({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
-      return CreateMethodOrFunction._(context: context);
+      return CreateMethodOrFunction._(
+        context: context,
+        fixKind: DartFixKind.CREATE_FUNCTION_TEAROFF,
+      );
     }
 
     if (context.node case SimpleIdentifier node) {
@@ -54,18 +57,21 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         targetElement: targetElement,
         fixKind:
             targetElement is InterfaceElement
-                ? DartFixKind.CREATE_METHOD
-                : DartFixKind.CREATE_FUNCTION,
+                ? DartFixKind.CREATE_METHOD_TEAROFF
+                : DartFixKind.CREATE_FUNCTION_TEAROFF,
       );
     }
 
-    return CreateMethodOrFunction._(context: context);
+    return CreateMethodOrFunction._(
+      context: context,
+      fixKind: DartFixKind.CREATE_FUNCTION_TEAROFF,
+    );
   }
 
   CreateMethodOrFunction._({
     required super.context,
     Element? targetElement,
-    this.fixKind = DartFixKind.CREATE_METHOD,
+    required this.fixKind,
   }) : _targetElement = targetElement;
 
   @override

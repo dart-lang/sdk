@@ -24049,7 +24049,11 @@ WarningCode:
       #### Common fixes
 
       Follow any directions found in the `Deprecation.extend` annotation, or
-      just remove the class name from the `extends` clause.
+      just remove the `extends` clause.
+
+      ```dart
+      class D {}
+      ```
   DEPRECATED_EXTENDS_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Extending 'Function' is deprecated."
@@ -24121,6 +24125,10 @@ WarningCode:
 
       Follow any directions found in the `Deprecation.implement` annotation, or
       just remove the class name from the `implements` clause.
+
+      ```dart
+      class D {}
+      ```
   DEPRECATED_IMPLEMENTS_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Implementing 'Function' has no effect."
@@ -24186,6 +24194,55 @@ WarningCode:
       class C {
         C.c();
       }
+      ```
+  DEPRECATED_SUBCLASS:
+    problemMessage: "Subclassing '{0}' is deprecated."
+    correctionMessage: Try removing the 'extends' clause, or removing '{0}' from the 'implements' clause.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the member
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class which is annotated with
+      `@Deprecated.subclass` is used in the `extends` clause of a class
+      declaration, or the `implements` clause of a class or enum declaration.
+
+      This annotation indicates that the ability for classes or enums to extend
+      or implement the annotated class is deprecated, and will soon be removed,
+      perhaps by marking the annotated class with `final` or `sealed`.
+
+      #### Example
+
+      If the library `p` defines a class annotated with `@Deprecated.subclass`:
+
+      ```dart
+      %uri="package:p/p.dart"
+      @Deprecated.subclass()
+      class C {}
+      ```
+
+      Then, the following code, when in a library other than `p`, produces this
+      diagnostic:
+
+      ```dart
+      import 'package:p/p.dart';
+
+      class D extends [!C!] {}
+      ```
+
+      #### Common fixes
+
+      If the annotation contains a description of how to deal with not being
+      able to subclass the class, then try following those directions.
+
+      If the annotation doesn't contain a description, or if the described
+      approach isn't appropriate for your case, then remove the relevant
+      `extends` clause or remove the class name from the `implements` clause:
+
+      ```dart
+      class D {}
       ```
   DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
     problemMessage: "The '{0}' directive has '{1}' arguments, but only '{2}' are expected."
@@ -24816,12 +24873,14 @@ WarningCode:
     correctionMessage: Try removing the '@Deprecated.extend' annotation.
     hasPublishedDocs: false
     comment: No parameters.
+    # TODO(srawlins): link Deprecated.extend below with:
+    # [`Deprecated.extend`][meta-deprecated-extend]
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when anything other than an
       extendable class is annotated with
-      [`Deprecated.extend`][meta-deprecated-extend]. An extendable class is a
+      Deprecated.extend. An extendable class is a
       class not declared with the `interface`, `final`, or `sealed` keywords,
       and with at least one public generative constructor.
 
@@ -24837,18 +24896,24 @@ WarningCode:
 
       #### Common fixes
 
-      Remove the annotation.
+      Remove the annotation:
+
+      ```dart
+      sealed class C {}
+      ```
   INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
     problemMessage: "The annotation '@Deprecated.implement' can only be applied to implementable classes."
     correctionMessage: Try removing the '@Deprecated.implement' annotation.
     hasPublishedDocs: false
     comment: No parameters.
+    # TODO(srawlins): link Deprecated.implement below with:
+    # [`Deprecated.implement`][meta-deprecated-implement]
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when anything other than an
       implementable class or mixin is annotated with
-      [`Deprecated.implement`][meta-deprecated-implement]. An implementable
+      Deprecated.implement. An implementable
       class or mixin is one not declared with the `base`, `final`, or `sealed`
       keywords.
 
@@ -24864,7 +24929,45 @@ WarningCode:
 
       #### Common fixes
 
-      Remove the annotation.
+      Remove the annotation:
+
+      ```dart
+      sealed class C {}
+      ```
+  INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
+    problemMessage: "The annotation '@Deprecated.subclass' can only be applied to subclassable classes and mixins."
+    correctionMessage: Try removing the '@Deprecated.subclass' annotation.
+    hasPublishedDocs: false
+    comment: |-
+      No parameters.
+    # TODO(srawlins): link Deprecated.subclass below with:
+    # [`Deprecated.subclass`][meta-deprecated-subclass]
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when anything other than a
+      subclassable class or mixin is annotated with
+      Deprecated.subclass. A subclassable
+      class is a class not declared with the `final` or `sealed` keywords. A
+      subclassable mixin is a mixin not declared with the `base` keyword.
+
+      #### Example
+
+      The following code produces this diagnostic because the annotation is on a
+      sealed class:
+
+      ```dart
+      @[!Deprecated.subclass!]()
+      sealed class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the annotation:
+
+      ```dart
+      sealed class C {}
+      ```
   INVALID_EXPORT_OF_INTERNAL_ELEMENT:
     problemMessage: "The member '{0}' can't be exported as a part of a package's public API."
     correctionMessage: "Try using a hide clause to hide '{0}'."

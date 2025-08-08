@@ -19,16 +19,24 @@ class DeprecatedFunctionalityVerifier {
 
   void classDeclaration(ClassDeclaration node) {
     _checkForDeprecatedExtend(node.extendsClause?.superclass);
-    _checkForDeprecatedImplement(node.implementsClause);
+    _checkForDeprecatedImplement(node.implementsClause?.interfaces);
+    _checkForDeprecatedSubclass(node.withClause?.mixinTypes);
   }
 
   void classTypeAlias(ClassTypeAlias node) {
     _checkForDeprecatedExtend(node.superclass);
-    _checkForDeprecatedImplement(node.implementsClause);
+    _checkForDeprecatedImplement(node.implementsClause?.interfaces);
   }
 
   void enumDeclaration(EnumDeclaration node) {
-    _checkForDeprecatedImplement(node.implementsClause);
+    _checkForDeprecatedImplement(node.implementsClause?.interfaces);
+  }
+
+  void mixinDeclaration(MixinDeclaration node) {
+    _checkForDeprecatedImplement(node.implementsClause?.interfaces);
+    // Not technically "implementing," but is similar enough for
+    // `@Deprecated.implement` and `@Deprecated.subclass`.
+    _checkForDeprecatedImplement(node.onClause?.superclassConstraints);
   }
 
   void _checkForDeprecatedExtend(NamedType? node) {
@@ -43,22 +51,51 @@ class DeprecatedFunctionalityVerifier {
           WarningCode.DEPRECATED_EXTEND,
           arguments: [element.name!],
         );
+      } else if (element.hasDeprecatedWithField('_isSubclass')) {
+        _diagnosticReporter.atNode(
+          node,
+          WarningCode.DEPRECATED_SUBCLASS,
+          arguments: [element.name!],
+        );
       }
     }
   }
 
-  void _checkForDeprecatedImplement(ImplementsClause? node) {
-    if (node == null) return;
-    var interfaces = node.interfaces;
-    for (var interface in interfaces) {
-      var element = interface.element;
+  void _checkForDeprecatedImplement(List<NamedType>? namedTypes) {
+    if (namedTypes == null) return;
+    for (var namedType in namedTypes) {
+      var element = namedType.element;
       if (element == null) continue;
-      if (interface.type?.element is InterfaceElement) {
-        if (element.library == _currentLibrary) continue;
+      if (element.library == _currentLibrary) continue;
+      if (namedType.type?.element is InterfaceElement) {
         if (element.hasDeprecatedWithField('_isImplement')) {
           _diagnosticReporter.atNode(
-            interface,
+            namedType,
             WarningCode.DEPRECATED_IMPLEMENT,
+            arguments: [element.name!],
+          );
+        } else if (element.hasDeprecatedWithField('_isSubclass')) {
+          _diagnosticReporter.atNode(
+            namedType,
+            WarningCode.DEPRECATED_SUBCLASS,
+            arguments: [element.name!],
+          );
+        }
+      }
+    }
+  }
+
+  void _checkForDeprecatedSubclass(List<NamedType>? namedTypes) {
+    if (namedTypes == null) return;
+    for (var namedType in namedTypes) {
+      var element = namedType.element;
+      if (element == null) continue;
+      if (element.library == _currentLibrary) continue;
+      if (namedType.type?.element is InterfaceElement) {
+        if (element.hasDeprecatedWithField('_isSubclass')) {
+          _diagnosticReporter.atNode(
+            namedType,
+            WarningCode.DEPRECATED_SUBCLASS,
             arguments: [element.name!],
           );
         }

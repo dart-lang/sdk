@@ -6424,6 +6424,16 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
+  /// 0: the name of the member
+  static const WarningCode DEPRECATED_SUBCLASS = WarningCode(
+    'DEPRECATED_SUBCLASS',
+    "Subclassing '{0}' is deprecated.",
+    correctionMessage:
+        "Try removing the 'extends' clause, or removing '{0}' from the "
+        "'implements' clause.",
+  );
+
+  /// Parameters:
   /// 0: the name of the doc directive argument
   /// 1: the expected format
   static const WarningCode DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT = WarningCode(
@@ -6733,6 +6743,14 @@ class WarningCode extends DiagnosticCode {
         correctionMessage:
             "Try removing the '@Deprecated.implement' annotation.",
       );
+
+  /// No parameters.
+  static const WarningCode INVALID_DEPRECATED_SUBCLASS_ANNOTATION = WarningCode(
+    'INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
+    "The annotation '@Deprecated.subclass' can only be applied to subclassable "
+        "classes and mixins.",
+    correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
+  );
 
   /// Parameters:
   /// 0: the name of the element

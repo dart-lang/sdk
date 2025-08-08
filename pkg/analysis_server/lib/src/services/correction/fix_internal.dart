@@ -1206,6 +1206,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
     RemoveDeprecatedNewInCommentReference.new,
   ],
+  WarningCode.DEPRECATED_SUBCLASS: [RemoveNameFromDeclarationClause.new],
   WarningCode.DUPLICATE_HIDDEN_NAME: [RemoveNameFromCombinator.new],
   WarningCode.DUPLICATE_IMPORT: [RemoveUnusedImport.new],
   WarningCode.DUPLICATE_SHOWN_NAME: [RemoveNameFromCombinator.new],
