@@ -265,7 +265,7 @@ class DartDevelopmentServiceClient {
       'getAvailableCachedCpuSamples',
       (_) => {
         'type': 'AvailableCachedCpuSamples',
-        'cacheNames': dds.cachedUserTags,
+        'cacheNames': <String>[],
       },
     );
 
@@ -286,7 +286,18 @@ class DartDevelopmentServiceClient {
 
     _clientPeer.registerMethod(
       'getCachedCpuSamples',
-      dds.isolateManager.getCachedCpuSamples,
+      (_) => {
+        'type': 'CachedCpuSamples',
+        'userTag': '',
+        'samplePeriod': -1,
+        'maxStackDepth': -1,
+        'sampleCount': -1,
+        'timeOriginMicros': -1,
+        'timeExtentMicros': -1,
+        'pid': -1,
+        'functions': [],
+        'samples': [],
+      },
     );
 
     _clientPeer.registerMethod(

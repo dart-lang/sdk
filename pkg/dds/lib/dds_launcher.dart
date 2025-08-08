@@ -39,8 +39,8 @@ import 'src/dds_impl.dart';
 /// If [enableServicePortFallback] is enabled, DDS will attempt to bind to any
 /// available port if the specified port is unavailable.
 ///
-/// If set, the set of [cachedUserTags] will be used to determine which CPU
-/// samples should be cached by DDS.
+/// [cachedUserTags] is deprecated and supplying an argument to it will cause no
+/// effect.
 ///
 /// If provided, [dartExecutable] is the path to the 'dart' executable that
 /// should be used to spawn the DDS instance. By default, `Platform.executable`
@@ -60,18 +60,16 @@ class DartDevelopmentServiceLauncher {
     var args = <String>[
       '--${DartDevelopmentServiceOptions.vmServiceUriOption}=$remoteVmServiceUri',
       if (serviceUri != null) ...<String>[
-        '--${DartDevelopmentServiceOptions.bindAddressOption}=${serviceUri.host}',       '--${DartDevelopmentServiceOptions.bindPortOption}=${serviceUri.port}',
+        '--${DartDevelopmentServiceOptions.bindAddressOption}=${serviceUri.host}',
+        '--${DartDevelopmentServiceOptions.bindPortOption}=${serviceUri.port}',
       ],
       if (!enableAuthCodes)
         '--${DartDevelopmentServiceOptions.disableServiceAuthCodesFlag}',
-      if (serveDevTools)
-        '--${DartDevelopmentServiceOptions.serveDevToolsFlag}',
+      if (serveDevTools) '--${DartDevelopmentServiceOptions.serveDevToolsFlag}',
       if (devToolsServerAddress != null)
         '--${DartDevelopmentServiceOptions.devToolsServerAddressOption}=$devToolsServerAddress',
       if (enableServicePortFallback)
         '--${DartDevelopmentServiceOptions.enableServicePortFallbackFlag}',
-      for (final String tag in cachedUserTags)
-        '--${DartDevelopmentServiceOptions.cachedUserTagsOption}=$tag',
       if (google3WorkspaceRoot != null)
         '--${DartDevelopmentServiceOptions.google3WorkspaceRootOption}=$google3WorkspaceRoot',
     ];

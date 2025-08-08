@@ -50,6 +50,10 @@ abstract class DartDevelopmentService {
     bool enableAuthCodes = true,
     bool ipv6 = false,
     bool enableServicePortFallback = false,
+    @Deprecated(
+      'This parameter is deprecated and supplying an argument to it will cause '
+      'no effect.',
+    )
     List<String> cachedUserTags = const [],
     DevToolsConfiguration? devToolsConfiguration,
     bool logRequests = false,
@@ -89,7 +93,6 @@ abstract class DartDevelopmentService {
       remoteVmServiceUri,
       serviceUri,
       enableAuthCodes,
-      cachedUserTags,
       ipv6,
       devToolsConfiguration,
       logRequests,
@@ -162,13 +165,14 @@ abstract class DartDevelopmentService {
   /// requests.
   bool get isRunning;
 
-  /// The list of [UserTag]s used to determine which CPU samples are cached by
-  /// DDS.
+  @Deprecated(
+    'This getter is deprecated and will always return an empty list.',
+  )
   List<String> get cachedUserTags;
 
   /// The version of the DDS protocol supported by this [DartDevelopmentService]
   /// instance.
-  static const String protocolVersion = '2.0';
+  static const String protocolVersion = '2.1';
 }
 
 /// Thrown by DDS during initialization failures, unexpected connection issues,

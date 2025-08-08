@@ -1,3 +1,7 @@
+# 2.1.0
+- Deprecate `DdsExtension.getAvailableCachedCpuSamples` and
+  `DdsExtension.getCachedCpuSamples` methods.
+
 # 2.0.2
 - Require dart sdk v. 3.5.0 or higher.
 - Add `DdsExtension.onTimerEventWithHistory`.

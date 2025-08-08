@@ -10,7 +10,6 @@ import 'package:vm_service/vm_service.dart';
 
 import 'client.dart';
 import 'constants.dart';
-import 'cpu_samples_manager.dart';
 import 'dds_impl.dart';
 import 'utils/mutex.dart';
 
@@ -43,11 +42,7 @@ enum _IsolateState {
 
 class RunningIsolate {
   RunningIsolate(this.isolateManager, this.id, this.name)
-      : cpuSamplesManager = CpuSamplesManager(
-          isolateManager.dds,
-          id,
-        ),
-        _state = _IsolateState.unknown;
+      : _state = _IsolateState.unknown;
 
   // State setters.
   void pausedOnExit() => _state = _IsolateState.pauseExit;
@@ -125,27 +120,6 @@ class RunningIsolate {
   /// Should always be called after an isolate is resumed.
   void clearResumeApprovals() => _resumeApprovalsByName.clear();
 
-  Future<Map<String, dynamic>> getCachedCpuSamples(String userTag) async {
-    final repo = cpuSamplesManager.cpuSamplesCaches[userTag];
-    if (repo == null) {
-      throw json_rpc.RpcException.invalidParams(
-        'CPU sample caching is not enabled for tag: "$userTag"',
-      );
-    }
-    await repo.populateFunctionDetails(isolateManager.dds, id);
-    return repo.toJson();
-  }
-
-  void handleEvent(Event event) {
-    switch (event.kind) {
-      case EventKind.kCpuSamples:
-        cpuSamplesManager.handleCpuSamplesEvent(event);
-        return;
-      default:
-        return;
-    }
-  }
-
   int get _isolateStateMask => isolateStateToMaskMapping[_state] ?? 0;
 
   static const isolateStateToMaskMapping = {
@@ -155,7 +129,6 @@ class RunningIsolate {
   };
 
   final IsolateManager isolateManager;
-  final CpuSamplesManager cpuSamplesManager;
   final String name;
   final String id;
   final Set<String?> _resumeApprovalsByName = {};
@@ -179,13 +152,6 @@ class IsolateManager {
     final id = isolateData.id!;
     final name = isolateData.name!;
     _updateIsolateState(id, name, event.kind!);
-  }
-
-  void routeEventToIsolate(Event event) {
-    final isolateId = event.isolate!.id!;
-    if (isolates.containsKey(isolateId)) {
-      isolates[isolateId]!.handleEvent(event);
-    }
   }
 
   void _updateIsolateState(String id, String name, String eventKind) {
@@ -271,14 +237,6 @@ class IsolateManager {
           ),
         ),
       );
-      if (dds.cachedUserTags.isNotEmpty) {
-        await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
-          'streamCpuSamplesWithUserTag',
-          {
-            'userTags': dds.cachedUserTags,
-          },
-        );
-      }
     }
     await _determineRequireUserPermissionToResumeFromFlags();
     _initialized = true;
@@ -455,17 +413,6 @@ class IsolateManager {
       pauseTypeMask |= PauseTypeMasks.pauseOnExitMask;
     }
     _requireUserPermissionToResumeMask = pauseTypeMask;
-  }
-
-  Future<Map<String, dynamic>> getCachedCpuSamples(
-      json_rpc.Parameters parameters) async {
-    final isolateId = parameters['isolateId'].asString;
-    if (!isolates.containsKey(isolateId)) {
-      return RPCResponses.collectedSentinel;
-    }
-    final isolate = isolates[isolateId]!;
-    final userTag = parameters['userTag'].asString;
-    return await isolate.getCachedCpuSamples(userTag);
   }
 
   Future<Map<String, dynamic>> getPerfettoVMTimelineWithCpuSamples(

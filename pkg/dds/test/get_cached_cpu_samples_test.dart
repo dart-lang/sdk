@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dds/dds.dart';
-import 'package:dds/src/utils/mutex.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:test/test.dart';
-import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 import 'common/test_helper.dart';
 
@@ -29,7 +26,7 @@ void main() {
   });
 
   test(
-    'No UserTags to cache',
+    'getAvailableCachedCpuSamples and getCachedCpuSamples are deprecated',
     () async {
       dds = await DartDevelopmentService.startDartDevelopmentService(
         remoteVmServiceUri,
@@ -37,118 +34,29 @@ void main() {
       expect(dds.isRunning, true);
       final service = await vmServiceConnectUri(dds.wsUri.toString());
 
-      // We didn't provide `cachedUserTags` when starting DDS, so we shouldn't
-      // be caching anything.
-      final availableCaches = await service.getAvailableCachedCpuSamples();
-      expect(availableCaches.cacheNames.length, 0);
+      // We have deprecated `getAvailableCachedCpuSamples`, so now it always
+      // returns an [AvailableCachedCpuSamples] object containing a single
+      // property named `cacheNames` with an empty array as its value.
+      final availableCachedCpuSamples =
+          // ignore: deprecated_member_use
+          await service.getAvailableCachedCpuSamples();
+      expect(availableCachedCpuSamples.cacheNames.length, 0);
 
-      IsolateRef isolate;
-      while (true) {
-        final vm = await service.getVM();
-        if (vm.isolates!.isNotEmpty) {
-          isolate = vm.isolates!.first;
-          break;
-        }
-        await Future.delayed(const Duration(seconds: 1));
-      }
-      try {
-        await service.getCachedCpuSamples(isolate.id!, 'Fake');
-        fail('Invalid userTag did not cause an exception');
-      } on RPCError catch (e) {
-        expect(
-          e.message,
-          'CPU sample caching is not enabled for tag: "Fake"',
-        );
-      }
-    },
-    timeout: Timeout.none,
-  );
-
-  test(
-    'Cache CPU samples for provided UserTag name',
-    () async {
-      const kUserTag = 'Testing';
-      dds = await DartDevelopmentService.startDartDevelopmentService(
-        remoteVmServiceUri,
-        cachedUserTags: [kUserTag],
-      );
-      expect(dds.isRunning, true);
-      final service = await vmServiceConnectUri(dds.wsUri.toString());
-      final otherService = await vmServiceConnectUri(dds.wsUri.toString());
-
-      // Ensure we're caching results for samples under the 'Testing' UserTag.
-      final availableCaches = await service.getAvailableCachedCpuSamples();
-      expect(availableCaches.cacheNames.length, 1);
-      expect(availableCaches.cacheNames.first, kUserTag);
-
-      IsolateRef isolate;
-      while (true) {
-        final vm = await service.getVM();
-        if (vm.isolates!.isNotEmpty) {
-          isolate = vm.isolates!.first;
-          try {
-            isolate = await service.getIsolate(isolate.id!);
-            if ((isolate as Isolate).runnable!) {
-              break;
-            }
-          } on SentinelException {
-            // ignore
-          }
-        }
-        await Future.delayed(const Duration(seconds: 1));
-      }
-      expect(isolate, isNotNull);
-
-      final completer = Completer<void>();
-      int i = 0;
-      int count = 0;
-      final mutex = Mutex();
-
-      late StreamSubscription sub;
-      sub = service.onProfilerEvent.listen(
-        (event) async {
-          // Process one event at a time to prevent racey updates to count.
-          await mutex.runGuarded(
-            () async {
-              if (event.kind == EventKind.kCpuSamples &&
-                  event.isolate!.id! == isolate.id!) {
-                ++i;
-                if (i > 3) {
-                  if (!completer.isCompleted) {
-                    await sub.cancel();
-                    completer.complete();
-                  }
-                  return;
-                }
-                // Ensure the number of CPU samples in the CpuSample event is
-                // is consistent with the number of samples in the cache.
-                expect(event.cpuSamples, isNotNull);
-                final sampleCount = event.cpuSamples!.samples!
-                    .where((e) => e.userTag == kUserTag)
-                    .length;
-                expect(sampleCount, event.cpuSamples!.samples!.length);
-                count += sampleCount;
-                final cache = await service.getCachedCpuSamples(
-                  isolate.id!,
-                  availableCaches.cacheNames.first,
-                );
-                // DDS may have processed more sample blocks than we've had a chance
-                // to, so just ensure we have at least as many samples in the cache
-                // as we've seen.
-                expect(cache.sampleCount! >= count, true);
-              }
-            },
-          );
-        },
-      );
-      await service.streamListen(EventStreams.kProfiler);
-      await service.streamCpuSamplesWithUserTag(['Testing']);
-      // Have another client register for samples from another UserTag. The
-      // main client should not see any samples with the 'Baz' tag.
-      await otherService.streamListen(EventStreams.kProfiler);
-      await otherService.streamCpuSamplesWithUserTag(['Testing', 'Baz']);
-      await service.resume(isolate.id!);
-      await completer.future;
+      // We have deprecated `getCachedCpuSamples_, so now it always returns a
+      // _CachedCpuSamples_ object containing properties with meaningless
+      // placeholder values.
+      final cachedCpuSamples =
+          // ignore: deprecated_member_use
+          await service.getCachedCpuSamples('fake', 'fake');
+      expect(cachedCpuSamples.userTag, '');
+      expect(cachedCpuSamples.samplePeriod, -1);
+      expect(cachedCpuSamples.maxStackDepth, -1);
+      expect(cachedCpuSamples.sampleCount, -1);
+      expect(cachedCpuSamples.timeOriginMicros, -1);
+      expect(cachedCpuSamples.timeExtentMicros, -1);
+      expect(cachedCpuSamples.pid, -1);
+      expect(cachedCpuSamples.functions!.length, 0);
+      expect(cachedCpuSamples.samples!.length, 0);
     },
     timeout: Timeout.none,
   );

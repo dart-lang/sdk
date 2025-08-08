@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -61,7 +60,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     this._remoteVmServiceUri,
     this._uri,
     this._authCodesEnabled,
-    this._cachedUserTags,
     this._ipv6,
     this._devToolsConfiguration,
     this.shouldLogRequests,
@@ -553,8 +551,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   final DevToolsConfiguration? _devToolsConfiguration;
 
   @override
-  List<String> get cachedUserTags => UnmodifiableListView(_cachedUserTags);
-  final List<String> _cachedUserTags;
+  List<String> get cachedUserTags => const <String>[];
 
   @override
   Future<void> get done => _done.future;
