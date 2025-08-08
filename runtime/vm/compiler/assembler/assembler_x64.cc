@@ -2135,7 +2135,8 @@ void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
   ReserveAlignedFrameSpace(0);
 
   leaq(CallingConventions::kArg1Reg, addr);
-  LoadImmediate(CallingConventions::kArg2Reg, __ATOMIC_ACQUIRE);
+  LoadImmediate(CallingConventions::kArg2Reg,
+                static_cast<int64_t>(std::memory_order_acquire));
 
   switch (size) {
     case kEightBytes:
@@ -2182,7 +2183,8 @@ void Assembler::TsanStoreRelease(Register src, Address addr, OperandSize size) {
     leaq(CallingConventions::kArg1Reg, addr);
     MoveRegister(CallingConventions::kArg2Reg, src);
   }
-  LoadImmediate(CallingConventions::kArg3Reg, __ATOMIC_RELEASE);
+  LoadImmediate(CallingConventions::kArg3Reg,
+                static_cast<int64_t>(std::memory_order_release));
 
   switch (size) {
     case kEightBytes:
