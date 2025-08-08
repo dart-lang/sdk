@@ -15,12 +15,18 @@ void main() {
   final ffiTestFunctions = DynamicLibrary.process();
 
   // Error: a named record field.
-  print(ffiTestFunctions.lookupFunction< //# 1: compile-time error
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32, {Int32 foo})>), //# 1: compile-time error
-    void Function(Pointer<Utf8>, int, int)>('PassObjectToC')); //# 1: compile-time error
+  print(ffiTestFunctions.lookupFunction<
+    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32, {Int32 foo})>),
+//                                                      ^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.VARARGS_CANNOT_HAVE_NAMED_FIELDS
+// [cfe] VarArgs cannot have named arguments.
+    void Function(Pointer<Utf8>, int, int)>('PassObjectToC'));
 
   // Error: VarArgs not last.
-  print(ffiTestFunctions.lookupFunction< //# 2: compile-time error
-    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>, Int32), //# 2: compile-time error
-    void Function(Pointer<Utf8>, int, int, int)>('PassObjectToC')); //# 2: compile-time error
+  print(ffiTestFunctions.lookupFunction<
+    Void Function(Pointer<Utf8>, VarArgs<(Int32, Int32)>, Int32),
+//                               ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.VARARGS_MUST_BE_LAST_PARAMETER
+// [cfe] VarArgs must be the last parameter.
+    void Function(Pointer<Utf8>, int, int, int)>('PassObjectToC'));
 }
