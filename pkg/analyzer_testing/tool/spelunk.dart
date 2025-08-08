@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:analyzer/src/lint/util.dart' show Spelunker;
+import 'package:analyzer_testing/src/spelunker.dart';
 import 'package:args/args.dart';
 
 /// AST Spelunker

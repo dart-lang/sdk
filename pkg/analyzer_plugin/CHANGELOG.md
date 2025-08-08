@@ -1,4 +1,4 @@
-## 0.13.6-dev
+## 0.13.6
 
 - Require version `^8.1.0` of the `analyzer` package.
 

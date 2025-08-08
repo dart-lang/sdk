@@ -4098,7 +4098,7 @@ LintCode:
       ```
   directives_ordering_dart:
     sharedName: directives_ordering
-    problemMessage: "Place 'dart:' {0}s before other {0}s."
+    problemMessage: "Place 'dart:' {0} before other {0}."
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
   directives_ordering_exports:
@@ -4108,7 +4108,7 @@ LintCode:
     hasPublishedDocs: false
   directives_ordering_package_before_relative:
     sharedName: directives_ordering
-    problemMessage: "Place 'package:' {0}s before relative {0}s."
+    problemMessage: "Place 'package:' {0} before relative {0}."
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
   discarded_futures:

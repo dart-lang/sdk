@@ -469,6 +469,26 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_extension_notImported_lint() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension E on int {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+void f(int o) {
+  o.m();
+}
+''');
+    await assertHasFix('''
+import 'lib.dart';
+
+void f(int o) {
+  o.m();
+}
+''', matchFixMessage: "Import library 'lib.dart'");
+  }
+
   Future<void> test_extension_notImported_method() async {
     newFile('$testPackageLibPath/lib.dart', '''
 extension E on String {
@@ -632,44 +652,6 @@ import 'package:test/lib.dart';
 
 void f(String s) {
   ~s;
-}
-''');
-  }
-
-  Future<void> test_extension_otherPackage_exported_fromSrc() async {
-    var pkgRootPath = '$packagesRootPath/aaa';
-
-    newFile('$pkgRootPath/lib/a.dart', r'''
-export 'src/b.dart';
-''');
-
-    newFile('$pkgRootPath/lib/src/b.dart', r'''
-extension IntExtension on int {
-  int get foo => 0;
-}
-''');
-
-    writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: pkgRootPath),
-    );
-
-    updateTestPubspecFile('''
-dependencies:
-  aaa: any
-''');
-
-    await resolveTestCode('''
-void f() {
-  0.foo;
-}
-''');
-
-    await assertHasFix('''
-import 'package:aaa/a.dart';
-
-void f() {
-  0.foo;
 }
 ''');
   }
@@ -2245,6 +2227,44 @@ import 'package:test/lib2.dart';
 
 /// This should import [Ext].
 void f() {}
+''');
+  }
+
+  Future<void> test_extension_otherPackage_exported_fromSrc() async {
+    var pkgRootPath = '$packagesRootPath/aaa';
+
+    newFile('$pkgRootPath/lib/a.dart', r'''
+export 'src/b.dart';
+''');
+
+    newFile('$pkgRootPath/lib/src/b.dart', r'''
+extension IntExtension on int {
+  int get foo => 0;
+}
+''');
+
+    writeTestPackageConfig(
+      config:
+          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: pkgRootPath),
+    );
+
+    updateTestPubspecFile('''
+dependencies:
+  aaa: any
+''');
+
+    await resolveTestCode('''
+void f() {
+  0.foo;
+}
+''');
+
+    await assertHasFix('''
+import 'package:aaa/a.dart';
+
+void f() {
+  0.foo;
+}
 ''');
   }
 

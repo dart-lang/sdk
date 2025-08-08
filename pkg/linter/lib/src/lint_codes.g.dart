@@ -593,7 +593,7 @@ class LinterLintCode extends LintCode {
 
   static const LintCode directives_ordering_dart = LinterLintCode(
     LintNames.directives_ordering,
-    "Place 'dart:' {0}s before other {0}s.",
+    "Place 'dart:' {0} before other {0}.",
     correctionMessage: "Try sorting the directives.",
     uniqueName: 'directives_ordering_dart',
   );
@@ -608,7 +608,7 @@ class LinterLintCode extends LintCode {
   static const LintCode directives_ordering_package_before_relative =
       LinterLintCode(
         LintNames.directives_ordering,
-        "Place 'package:' {0}s before relative {0}s.",
+        "Place 'package:' {0} before relative {0}.",
         correctionMessage: "Try sorting the directives.",
         uniqueName: 'directives_ordering_package_before_relative',
       );

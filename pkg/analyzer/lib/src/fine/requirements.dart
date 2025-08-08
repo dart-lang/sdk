@@ -260,21 +260,27 @@ class InterfaceItemRequirements {
   /// If the element was asked for its full interface.
   ManifestItemId? interfaceId;
 
-  final Map<LookupName, ManifestItemId?> constructors;
+  /// Set if [InstanceElementImpl.constructors] is invoked.
+  ManifestItemIdList? allDeclaredConstructors;
+
+  /// Requested with [InstanceElementImpl.getNamedConstructor].
+  final Map<LookupName, ManifestItemId?> requestedConstructors;
 
   /// These are "methods" in wide meaning: methods, getters, setters.
   final Map<LookupName, ManifestItemId?> methods;
 
   InterfaceItemRequirements({
     required this.interfaceId,
-    required this.constructors,
+    required this.allDeclaredConstructors,
+    required this.requestedConstructors,
     required this.methods,
   });
 
   factory InterfaceItemRequirements.empty() {
     return InterfaceItemRequirements(
       interfaceId: null,
-      constructors: {},
+      allDeclaredConstructors: null,
+      requestedConstructors: {},
       methods: {},
     );
   }
@@ -282,14 +288,16 @@ class InterfaceItemRequirements {
   factory InterfaceItemRequirements.read(SummaryDataReader reader) {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
-      constructors: reader.readNameToIdMap(),
+      allDeclaredConstructors: ManifestItemIdList.readOptional(reader),
+      requestedConstructors: reader.readNameToIdMap(),
       methods: reader.readNameToIdMap(),
     );
   }
 
   void write(BufferedSink sink) {
     interfaceId.writeOptional(sink);
-    sink.writeNameToIdMap(constructors);
+    allDeclaredConstructors.writeOptional(sink);
+    sink.writeNameToIdMap(requestedConstructors);
     sink.writeNameToIdMap(methods);
   }
 }
@@ -601,8 +609,8 @@ class RequirementsManifest {
           );
         }
 
-        var interfaceRequirements = interfaceEntry.value;
-        if (interfaceRequirements.interfaceId case var expectedId?) {
+        var requirements = interfaceEntry.value;
+        if (requirements.interfaceId case var expectedId?) {
           var actualId = interfaceItem.interface.id;
           if (expectedId != actualId) {
             return InterfaceIdMismatch(
@@ -614,7 +622,21 @@ class RequirementsManifest {
           }
         }
 
-        var constructors = interfaceRequirements.constructors;
+        if (requirements.allDeclaredConstructors case var required?) {
+          var actualItems = interfaceItem.declaredConstructors.values;
+          var actualIds = actualItems.map((item) => item.id);
+          if (!required.equalToIterable(actualIds)) {
+            return InterfaceChildrenIdsMismatch(
+              libraryUri: libraryUri,
+              interfaceName: interfaceName,
+              childrenPropertyName: 'constructors',
+              expectedIds: required,
+              actualIds: ManifestItemIdList(actualIds.toList()),
+            );
+          }
+        }
+
+        var constructors = requirements.requestedConstructors;
         for (var constructorEntry in constructors.entries) {
           var constructorName = constructorEntry.key;
           var constructorId = interfaceItem.getConstructorId(constructorName);
@@ -630,7 +652,7 @@ class RequirementsManifest {
           }
         }
 
-        var methods = interfaceRequirements.methods;
+        var methods = requirements.methods;
         for (var methodEntry in methods.entries) {
           var methodName = methodEntry.key;
           var methodId = interfaceItem.getInterfaceMethodId(methodName);
@@ -692,6 +714,26 @@ class RequirementsManifest {
         nameToId[lookupName] = manifest.getExportedId(lookupName);
       }
     }
+  }
+
+  void record_instanceElement_constructors({
+    required InterfaceElementImpl element,
+  }) {
+    if (_recordingLockLevel != 0) {
+      return;
+    }
+
+    var itemRequirements = _getInterfaceItem(element);
+    if (itemRequirements == null) {
+      return;
+    }
+
+    var item = itemRequirements.item;
+    var requirements = itemRequirements.requirements;
+
+    requirements.allDeclaredConstructors ??= ManifestItemIdList(
+      item.declaredConstructors.values.map((item) => item.id).toList(),
+    );
   }
 
   void record_instanceElement_fields({required InstanceElementImpl element}) {
@@ -897,7 +939,7 @@ class RequirementsManifest {
 
     var constructorName = name.asLookupName;
     var constructorId = item.getConstructorId(constructorName);
-    requirements.constructors[constructorName] = constructorId;
+    requirements.requestedConstructors[constructorName] = constructorId;
   }
 
   void record_propertyAccessorElement_variable({

@@ -5760,6 +5760,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M3
+          constructors
+            new: #M7
 [status] idle
 ''',
       updatedA: r'''
@@ -5775,14 +5777,14 @@ class A {
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M8
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M9
           foo: #M2
-        interface: #M9
+        interface: #M10
           map
-            bar: #M8
+            bar: #M9
             foo: #M2
   requirements
     topLevels
@@ -5800,14 +5802,14 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedId: #M3
-    actualId: #M9
+    actualId: #M10
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
       B: #M5
-        interface: #M10
+        interface: #M11
           map
-            bar: #M8
+            bar: #M9
             foo: #M2
   requirements
     topLevels
@@ -5818,7 +5820,9 @@ class A {
     interfaces
       package:test/a.dart
         A
-          interfaceId: #M9
+          interfaceId: #M10
+          constructors
+            new: #M7
 [status] idle
 ''',
     );
@@ -5961,7 +5965,7 @@ class A {
     );
   }
 
-  test_dependency_class_instanceGetter_change_classExtends_hasSEtter() async {
+  test_dependency_class_instanceGetter_change_classExtends_hasSetter() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
       initialA: r'''
@@ -6020,6 +6024,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M4
+          constructors
+            new: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -6041,6 +6047,7 @@ class B extends A {}
     interfaces
       package:test/a.dart
         A
+          allDeclaredConstructors: #M8
           constructors
             new: #M8
 [status] idle
@@ -6101,6 +6108,8 @@ class A {
       package:test/a.dart
         A
           interfaceId: #M11
+          constructors
+            new: #M8
 [operation] getErrorsCannotReuse
   instanceFieldIdMismatch
     libraryUri: package:test/a.dart
@@ -6129,6 +6138,7 @@ class A {
     interfaces
       package:test/a.dart
         A
+          allDeclaredConstructors: #M8
           constructors
             new: #M8
 [status] idle
@@ -7432,6 +7442,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M2
+          constructors
+            new: #M5
 [status] idle
 ''',
       updatedA: r'''
@@ -7447,11 +7459,11 @@ class A {
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M5
+          bar: #M6
           foo: #M1
-        interface: #M6
+        interface: #M7
           map
-            bar: #M5
+            bar: #M6
             foo: #M1
   requirements
 [future] getLibraryByUri T2
@@ -7466,14 +7478,14 @@ class A {
     libraryUri: package:test/a.dart
     interfaceName: A
     expectedId: #M2
-    actualId: #M6
+    actualId: #M7
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredClasses
       B: #M3
-        interface: #M7
+        interface: #M8
           map
-            bar: #M5
+            bar: #M6
             foo: #M1
   requirements
     topLevels
@@ -7484,7 +7496,9 @@ class A {
     interfaces
       package:test/a.dart
         A
-          interfaceId: #M6
+          interfaceId: #M7
+          constructors
+            new: #M5
 [status] idle
 ''',
     );
@@ -7789,6 +7803,8 @@ class B extends A {}
       package:test/a.dart
         A
           interfaceId: #M3
+          constructors
+            new: #M6
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7807,6 +7823,7 @@ class B extends A {}
     interfaces
       package:test/a.dart
         A
+          allDeclaredConstructors: #M6
           constructors
             new: #M6
 [status] idle
@@ -7863,6 +7880,8 @@ class A {
       package:test/a.dart
         A
           interfaceId: #M8
+          constructors
+            new: #M6
 [operation] getErrorsCannotReuse
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
@@ -7888,6 +7907,7 @@ class A {
     interfaces
       package:test/a.dart
         A
+          allDeclaredConstructors: #M6
           constructors
             new: #M6
 [status] idle
@@ -7965,6 +7985,8 @@ class X extends C {}
       package:test/a.dart
         C
           interfaceId: #M7
+          constructors
+            new: #M11
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -7986,6 +8008,7 @@ class X extends C {}
     interfaces
       package:test/a.dart
         C
+          allDeclaredConstructors: #M11
           constructors
             new: #M11
 [status] idle
@@ -8057,6 +8080,8 @@ class C extends A implements B {}
       package:test/a.dart
         C
           interfaceId: #M14
+          constructors
+            new: #M11
 [operation] getErrorsCannotReuse
   instanceChildrenIdsMismatch
     libraryUri: package:test/a.dart
@@ -8085,6 +8110,7 @@ class C extends A implements B {}
     interfaces
       package:test/a.dart
         C
+          allDeclaredConstructors: #M11
           constructors
             new: #M11
 [status] idle
@@ -12145,6 +12171,138 @@ class A {
     );
   }
 
+  test_dependency_class_namedConstructor_change_getConstructors() async {
+    configuration.includeDefaultConstructors();
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.constructors;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A(int _);
+  A.named(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M2 #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A(int _);
+  A.named(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M5
+          new: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    childrenPropertyName: constructors
+    expectedIds: #M2 #M1
+    actualIds: #M2 #M5
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M2 #M5
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_namedConstructor_change_getNamedConstructor() async {
     _ManualRequirements.install((state) {
       var A = state.singleUnit.scopeInterfaceElement('A');
@@ -12360,6 +12518,112 @@ class A {
       dart:core
         double: #M6
         int: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_namedConstructor_change_getUnnamedConstructor() async {
+    configuration.includeDefaultConstructors();
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.unnamedConstructor;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A();
+  A.named(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M2
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A();
+  A.named(double _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M5
+          new: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -12838,6 +13102,7 @@ class B extends A {
     interfaces
       package:test/a.dart
         A
+          allDeclaredConstructors: #M1
           constructors
             named: #M1
 [status] idle
@@ -12894,12 +13159,12 @@ class A {
           constructors
             named: #M7
 [operation] getErrorsCannotReuse
-  interfaceConstructorIdMismatch
+  interfaceChildrenIdsMismatch
     libraryUri: package:test/a.dart
     interfaceName: A
-    constructorName: named
-    expectedId: #M1
-    actualId: #M7
+    childrenPropertyName: constructors
+    expectedIds: #M1
+    actualIds: #M7
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -12919,6 +13184,7 @@ class A {
     interfaces
       package:test/a.dart
         A
+          allDeclaredConstructors: #M7
           constructors
             named: #M7
 [status] idle
@@ -13989,6 +14255,231 @@ class A {
     );
   }
 
+  test_dependency_class_unnamedConstructor_change_getConstructors() async {
+    configuration.includeDefaultConstructors();
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.constructors;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A(int _);
+  A.named(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M2 #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A(double _);
+  A.named(int _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M5
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M6
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    childrenPropertyName: constructors
+    expectedIds: #M2 #M1
+    actualIds: #M5 #M1
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M5 #M1
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_unnamedConstructor_change_getUnnamedConstructor() async {
+    configuration.includeDefaultConstructors();
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.unnamedConstructor;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          new: #M1
+        interface: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M3
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            new: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A(int _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] readLibraryCycleBundle
+  package:test/a.dart
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+''',
+    );
+  }
+
   test_dependency_class_unnamedConstructor_change_invoked() async {
     configuration
       ..includeDefaultConstructors()
@@ -14096,6 +14587,103 @@ class A {
         A
           constructors
             new: #M5
+[status] idle
+''',
+    );
+  }
+
+  test_dependency_class_unnamedConstructor_change_notUsed() async {
+    configuration
+      ..includeDefaultConstructors()
+      ..withStreamResolvedUnitResults = false;
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  A(int _);
+  A.named(int _);
+}
+''',
+      testCode: r'''
+import 'a.dart';
+void f() {
+  A.named(0);
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M2
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        int: #M4
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredFunctions
+      f: #M5
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          constructors
+            named: #M1
+[status] idle
+''',
+      updatedA: r'''
+class A {
+  A(double _);
+  A.named(int _);
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredClasses
+      A: #M0
+        declaredConstructors
+          named: #M1
+          new: #M6
+        interface: #M3
+  requirements
+    topLevels
+      dart:core
+        double: #M7
+        int: #M4
+[future] getErrors T2
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
 [status] idle
 ''',
     );
@@ -19402,7 +19990,150 @@ extension type A(int it) {
     );
   }
 
+  test_dependency_extensionType_namedConstructor_change_getConstructors() async {
+    configuration.includeDefaultConstructors();
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.constructors;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  factory A.named(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M3
+          new: #M4
+        interface: #M5
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M4 #M3
+[status] idle
+''',
+      updatedA: r'''
+extension type A(int it) {
+  factory A.named(double _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M7
+          new: #M4
+        interface: #M5
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        double: #M8
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    childrenPropertyName: constructors
+    expectedIds: #M4 #M3
+    actualIds: #M4 #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M4 #M7
+[status] idle
+''',
+    );
+  }
+
   test_dependency_extensionType_namedConstructor_change_invoked() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {
@@ -19434,17 +20165,18 @@ void f() {
           it: #M2
         declaredConstructors
           named: #M3
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -19485,15 +20217,16 @@ extension type A(int it) {
         declaredGetters
           it: #M2
         declaredConstructors
-          named: #M7
-        interface: #M4
+          named: #M8
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        double: #M8
-        int: #M5
+        double: #M9
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -19507,7 +20240,7 @@ extension type A(int it) {
     interfaceName: A
     constructorName: named
     expectedId: #M3
-    actualId: #M7
+    actualId: #M8
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -19528,13 +20261,14 @@ extension type A(int it) {
       package:test/a.dart
         A
           constructors
-            named: #M7
+            named: #M8
 [status] idle
 ''',
     );
   }
 
   test_dependency_extensionType_namedConstructor_change_notUsed() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {
@@ -19566,17 +20300,18 @@ void f() {
           it: #M2
         declaredConstructors
           named: #M3
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -19598,7 +20333,7 @@ void f() {
       package:test/a.dart
         A
           constructors
-            new: #M7
+            new: #M4
 [status] idle
 ''',
       updatedA: r'''
@@ -19618,14 +20353,15 @@ extension type A(int it) {
           it: #M2
         declaredConstructors
           named: #M8
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
         double: #M9
-        int: #M5
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20426,7 +21162,150 @@ extension type A(int it) {
     );
   }
 
+  test_dependency_extensionType_unnamedConstructor_change_getConstructors() async {
+    configuration.includeDefaultConstructors();
+
+    _ManualRequirements.install((state) {
+      var A = state.singleUnit.scopeInterfaceElement('A');
+      A.constructors;
+    });
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+extension type A(int it) {
+  factory A.named(int _) {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[future] getErrors T1
+  ErrorsResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M1
+        declaredGetters
+          it: #M2
+        declaredConstructors
+          named: #M3
+          new: #M4
+        interface: #M5
+          map
+            it: #M2
+  requirements
+    topLevels
+      dart:core
+        int: #M6
+[operation] linkLibraryCycle
+  package:test/test.dart
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M4 #M3
+[status] idle
+''',
+      updatedA: r'''
+extension type A(double it) {
+  factory A.named(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredExtensionTypes
+      A: #M0
+        declaredFields
+          it: #M7
+        declaredGetters
+          it: #M8
+        declaredConstructors
+          named: #M3
+          new: #M9
+        interface: #M10
+          map
+            it: #M8
+  requirements
+    topLevels
+      dart:core
+        double: #M11
+        int: #M6
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] readLibraryCycleBundle
+  package:test/test.dart
+[operation] getErrorsCannotReuse
+  interfaceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    childrenPropertyName: constructors
+    expectedIds: #M4 #M3
+    actualIds: #M9 #M3
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    topLevels
+      dart:core
+        A: <null>
+      package:test/a.dart
+        A: #M0
+    interfaces
+      package:test/a.dart
+        A
+          allDeclaredConstructors: #M9 #M3
+[status] idle
+''',
+    );
+  }
+
   test_dependency_extensionType_unnamedConstructor_change_invoked() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {}
@@ -20454,17 +21333,19 @@ void f() {
           it: #M1
         declaredGetters
           it: #M2
-        interface: #M3
+        declaredConstructors
+          new: #M3
+        interface: #M4
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M4
+        int: #M5
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M5
+      f: #M6
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20486,7 +21367,7 @@ void f() {
       package:test/a.dart
         A
           constructors
-            new: #M6
+            new: #M3
 [status] idle
 ''',
       updatedA: r'''
@@ -20502,13 +21383,15 @@ extension type A(double it) {}
           it: #M7
         declaredGetters
           it: #M8
-        interface: #M9
+        declaredConstructors
+          new: #M9
+        interface: #M10
           map
             it: #M8
   requirements
     topLevels
       dart:core
-        double: #M10
+        double: #M11
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -20521,8 +21404,8 @@ extension type A(double it) {}
     libraryUri: package:test/a.dart
     interfaceName: A
     constructorName: new
-    expectedId: #M6
-    actualId: #M11
+    expectedId: #M3
+    actualId: #M9
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -20543,13 +21426,14 @@ extension type A(double it) {}
       package:test/a.dart
         A
           constructors
-            new: #M11
+            new: #M9
 [status] idle
 ''',
     );
   }
 
   test_dependency_extensionType_unnamedConstructor_change_notUsed() async {
+    configuration.includeDefaultConstructors();
     await _runChangeScenarioTA(
       initialA: r'''
 extension type A(int it) {
@@ -20581,17 +21465,18 @@ void f() {
           it: #M2
         declaredConstructors
           named: #M3
-        interface: #M4
+          new: #M4
+        interface: #M5
           map
             it: #M2
   requirements
     topLevels
       dart:core
-        int: #M5
+        int: #M6
 [operation] linkLibraryCycle
   package:test/test.dart
     declaredFunctions
-      f: #M6
+      f: #M7
   requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
@@ -20628,19 +21513,20 @@ extension type A(double it) {
     declaredExtensionTypes
       A: #M0
         declaredFields
-          it: #M7
-        declaredGetters
           it: #M8
+        declaredGetters
+          it: #M9
         declaredConstructors
           named: #M3
-        interface: #M9
+          new: #M10
+        interface: #M11
           map
-            it: #M8
+            it: #M9
   requirements
     topLevels
       dart:core
-        double: #M10
-        int: #M5
+        double: #M12
+        int: #M6
 [future] getErrors T2
   ErrorsResult #2
     path: /home/test/lib/test.dart
@@ -42983,7 +43869,7 @@ const a = A.named();
   }
 
   test_manifest_constInitializer_constructorName_unnamed() async {
-    configuration.ignoredManifestInstanceMemberNames.remove('new');
+    configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {
@@ -43028,7 +43914,7 @@ const a = A();
   }
 
   test_manifest_constInitializer_constructorName_unnamed_notAffected() async {
-    configuration.ignoredManifestInstanceMemberNames.remove('new');
+    configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
       initialCode: r'''
 class A {

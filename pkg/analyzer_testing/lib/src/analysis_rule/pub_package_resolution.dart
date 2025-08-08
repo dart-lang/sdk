@@ -13,12 +13,12 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implemen
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/util.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/spelunker.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
