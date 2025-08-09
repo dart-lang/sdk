@@ -514,7 +514,6 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         superConstructors.map((superConstructor) {
           var constructorFragment = ConstructorFragmentImpl(
             name: superConstructor.name ?? 'new',
-            firstTokenOffset: null,
           );
           constructorFragment.isSynthetic = true;
           constructorFragment.typeName = name;
@@ -538,7 +537,6 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
           var superInvocationArguments = <ExpressionImpl>[];
           for (var superFormalParameter in superConstructor.formalParameters) {
             var formalParameterFragment = FormalParameterFragmentImpl(
-                firstTokenOffset: null,
                 name: superFormalParameter.name,
                 nameOffset: null,
                 parameterKind: superFormalParameter.parameterKind,
@@ -615,7 +613,7 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  ClassFragmentImpl({required super.name, required super.firstTokenOffset});
+  ClassFragmentImpl({required super.name});
 
   bool get hasExtendsClause {
     return hasModifier(Modifier.HAS_EXTENDS_CLAUSE);
@@ -968,10 +966,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
-  ConstructorFragmentImpl({
-    required this.name,
-    required super.firstTokenOffset,
-  });
+  ConstructorFragmentImpl({required this.name});
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -2121,7 +2116,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  EnumFragmentImpl({required super.name, required super.firstTokenOffset});
+  EnumFragmentImpl({required super.name});
 
   @override
   List<FieldElement> get constants {
@@ -2341,7 +2336,7 @@ abstract class ExecutableFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
-  ExecutableFragmentImpl({required super.firstTokenOffset});
+  ExecutableFragmentImpl({super.firstTokenOffset});
 
   @override
   List<Fragment> get children => [...typeParameters, ...formalParameters];
@@ -2550,7 +2545,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
-  ExtensionFragmentImpl({required super.name, required super.firstTokenOffset});
+  ExtensionFragmentImpl({required super.name});
 
   @override
   List<Fragment> get children => [
@@ -2717,10 +2712,7 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   /// in implemented superinterfaces.
   bool hasImplementsSelfReference = false;
 
-  ExtensionTypeFragmentImpl({
-    required super.name,
-    required super.firstTokenOffset,
-  });
+  ExtensionTypeFragmentImpl({required super.name});
 
   @override
   ExtensionTypeFragmentImpl? get nextFragment =>
@@ -2938,7 +2930,7 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FieldFormalParameterFragmentImpl({
-    required super.firstTokenOffset,
+    super.firstTokenOffset,
     required super.name,
     required super.nameOffset,
     required super.parameterKind,
@@ -2987,7 +2979,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
-  FieldFragmentImpl({required super.name, required super.firstTokenOffset});
+  FieldFragmentImpl({required super.name});
 
   @override
   ExpressionImpl? get constantInitializer {
@@ -3320,7 +3312,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FormalParameterFragmentImpl({
-    required super.firstTokenOffset,
+    super.firstTokenOffset,
     required this.name,
     required this.nameOffset,
     required this.parameterKind,
@@ -3336,7 +3328,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     //  parameter which prevents navigation/references from working. See
     //  https://github.com/dart-lang/sdk/issues/60200
     var element = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name2,
       nameOffset: null,
       parameterKind: parameterKind,
@@ -3538,7 +3529,7 @@ abstract class FragmentImpl implements Fragment {
 
   /// Initialize a newly created element to have the given [name] at the given
   /// [_nameOffset].
-  FragmentImpl({required this.firstTokenOffset});
+  FragmentImpl({this.firstTokenOffset});
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
@@ -3719,7 +3710,7 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
-  FunctionFragmentImpl({required this.name, required super.firstTokenOffset});
+  FunctionFragmentImpl({required this.name, super.firstTokenOffset});
 
   @override
   ExecutableFragmentImpl get declaration => this;
@@ -3873,7 +3864,7 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
-  GenericFunctionTypeFragmentImpl({required super.firstTokenOffset});
+  GenericFunctionTypeFragmentImpl({super.firstTokenOffset});
 
   @override
   List<Fragment> get children => [...typeParameters, ...formalParameters];
@@ -4052,7 +4043,7 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   @override
   GetterFragmentImpl? nextFragment;
 
-  GetterFragmentImpl({required super.name, required super.firstTokenOffset});
+  GetterFragmentImpl({required super.name});
 
   GetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
@@ -4560,7 +4551,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
   List<SetterFragmentImpl> _setters = _Sentinel.setterFragment;
   List<MethodFragmentImpl> _methods = _Sentinel.methodFragment;
 
-  InstanceFragmentImpl({required this.name, required super.firstTokenOffset});
+  InstanceFragmentImpl({required this.name});
 
   List<PropertyAccessorFragmentImpl> get accessors {
     return [...getters, ...setters];
@@ -5097,7 +5088,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  InterfaceFragmentImpl({required super.name, required super.firstTokenOffset});
+  InterfaceFragmentImpl({required super.name});
 
   @override
   List<Fragment> get children => [
@@ -6908,10 +6899,7 @@ final class LoadLibraryFunctionProvider {
   TopLevelFunctionElementImpl _create(LibraryElementImpl library) {
     var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
 
-    var fragment = TopLevelFunctionFragmentImpl(
-      name: name,
-      firstTokenOffset: null,
-    );
+    var fragment = TopLevelFunctionFragmentImpl(name: name);
     fragment.isSynthetic = true;
     fragment.isStatic = true;
     fragment.enclosingFragment = library.definingCompilationUnit;
@@ -7673,7 +7661,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
-  MethodFragmentImpl({required this.name, required super.firstTokenOffset});
+  MethodFragmentImpl({required this.name});
 
   @override
   MethodFragmentImpl get declaration => this;
@@ -7827,7 +7815,7 @@ class MixinFragmentImpl extends InterfaceFragmentImpl implements MixinFragment {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  MixinFragmentImpl({required super.name, required super.firstTokenOffset});
+  MixinFragmentImpl({required super.name});
 
   bool get isBase {
     return hasModifier(Modifier.BASE);
@@ -8385,7 +8373,7 @@ class NeverFragmentImpl extends FragmentImpl implements TypeDefiningFragment {
 abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  NonParameterVariableFragmentImpl({required super.firstTokenOffset});
+  NonParameterVariableFragmentImpl({super.firstTokenOffset});
 
   @override
   FragmentImpl get enclosingFragment {
@@ -8743,10 +8731,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
-  PropertyAccessorFragmentImpl({
-    required this.name,
-    required super.firstTokenOffset,
-  });
+  PropertyAccessorFragmentImpl({required this.name, super.firstTokenOffset});
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
@@ -8937,10 +8922,7 @@ abstract class PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingFragmentImpl({
-    required this.name,
-    required super.firstTokenOffset,
-  });
+  PropertyInducingFragmentImpl({required this.name});
 
   @override
   List<Fragment> get children => const [];
@@ -9096,7 +9078,7 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   @override
   SetterFragmentImpl? nextFragment;
 
-  SetterFragmentImpl({required super.name, required super.firstTokenOffset});
+  SetterFragmentImpl({required super.name});
 
   SetterFragmentImpl.forVariable(super.variable) : super.forVariable();
 
@@ -9273,7 +9255,7 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   SuperFormalParameterFragmentImpl({
-    required super.firstTokenOffset,
+    super.firstTokenOffset,
     required super.name,
     required super.nameOffset,
     required super.parameterKind,
@@ -9415,10 +9397,7 @@ class TopLevelFunctionFragmentImpl extends FunctionFragmentImpl
   @override
   TopLevelFunctionFragmentImpl? nextFragment;
 
-  TopLevelFunctionFragmentImpl({
-    required super.name,
-    required super.firstTokenOffset,
-  });
+  TopLevelFunctionFragmentImpl({required super.name});
 
   @override
   LibraryFragmentImpl get enclosingFragment =>
@@ -9555,10 +9534,7 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
-  TopLevelVariableFragmentImpl({
-    required super.name,
-    required super.firstTokenOffset,
-  });
+  TopLevelVariableFragmentImpl({required super.name});
 
   @override
   ExpressionImpl? get constantInitializer {
@@ -10108,10 +10084,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
-  TypeParameterFragmentImpl({
-    required this.name,
-    required super.firstTokenOffset,
-  });
+  TypeParameterFragmentImpl({required this.name, super.firstTokenOffset});
 
   /// Initialize a newly created synthetic type parameter element to have the
   /// given [name], and with [isSynthetic] set to `true`.

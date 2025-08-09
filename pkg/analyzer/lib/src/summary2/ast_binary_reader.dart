@@ -429,7 +429,6 @@ class AstBinaryReader {
 
     var nonDefaultElement = parameter.declaredFragment!;
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: nonDefaultElement.name,
       nameOffset: nonDefaultElement.nameOffset,
       parameterKind: kind,
@@ -697,7 +696,7 @@ class AstBinaryReader {
     var type = _reader.readRequiredType() as FunctionTypeImpl;
     node.type = type;
 
-    var fragment = GenericFunctionTypeFragmentImpl(firstTokenOffset: null);
+    var fragment = GenericFunctionTypeFragmentImpl();
     fragment.formalParameters =
         formalParameters.parameters
             .map((parameter) => parameter.declaredFragment!)
@@ -1220,7 +1219,6 @@ class AstBinaryReader {
     var actualType = _reader.readRequiredType();
 
     var fragment = FormalParameterFragmentImpl(
-      firstTokenOffset: null,
       name: name?.lexeme,
       nameOffset: null,
       parameterKind: node.kind,

@@ -302,7 +302,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ClassFragmentImpl(name: name, firstTokenOffset: null);
+          var fragment = ClassFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
@@ -369,10 +369,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ConstructorFragmentImpl(
-            name: name!,
-            firstTokenOffset: null,
-          );
+          var fragment = ConstructorFragmentImpl(name: name!);
 
           fragment.readModifiers(_reader);
           fragment.typeName = _reader.readOptionalStringReference();
@@ -507,7 +504,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = EnumFragmentImpl(name: name, firstTokenOffset: null);
+          var fragment = EnumFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
 
@@ -593,10 +590,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ExtensionFragmentImpl(
-            name: name,
-            firstTokenOffset: null,
-          );
+          var fragment = ExtensionFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
           fragment.fields = _readFieldFragments();
@@ -650,10 +644,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = ExtensionTypeFragmentImpl(
-            name: name,
-            firstTokenOffset: null,
-          );
+          var fragment = ExtensionTypeFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           fragment.hasRepresentationSelfReference = _reader.readBool();
           fragment.hasImplementsSelfReference = _reader.readBool();
@@ -713,7 +704,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = FieldFragmentImpl(name: name, firstTokenOffset: null);
+          var fragment = FieldFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           return fragment;
         },
@@ -806,7 +797,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = GetterFragmentImpl(name: name, firstTokenOffset: null);
+          var fragment = GetterFragmentImpl(name: name);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -938,7 +929,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = MethodFragmentImpl(name: name, firstTokenOffset: null);
+          var fragment = MethodFragmentImpl(name: name);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -1000,7 +991,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = MixinFragmentImpl(name: name, firstTokenOffset: null);
+          var fragment = MixinFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           fragment.superInvokedNames = _reader.readStringReferenceList();
           fragment.typeParameters = _readTypeParameters();
@@ -1062,21 +1053,18 @@ class LibraryReader {
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
         element = FieldFormalParameterFragmentImpl(
-          firstTokenOffset: null,
           name: fragmentName,
           nameOffset: null,
           parameterKind: kind,
         );
       } else if (isSuperFormal) {
         element = SuperFormalParameterFragmentImpl(
-          firstTokenOffset: null,
           name: fragmentName,
           nameOffset: null,
           parameterKind: kind,
         );
       } else {
         element = FormalParameterFragmentImpl(
-          firstTokenOffset: null,
           name: fragmentName,
           nameOffset: null,
           parameterKind: kind,
@@ -1127,7 +1115,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = SetterFragmentImpl(name: name, firstTokenOffset: null);
+          var fragment = SetterFragmentImpl(name: name);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -1210,10 +1198,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = TopLevelFunctionFragmentImpl(
-            name: name,
-            firstTokenOffset: null,
-          );
+          var fragment = TopLevelFunctionFragmentImpl(name: name);
 
           fragment.readModifiers(_reader);
           fragment.typeParameters = _readTypeParameters();
@@ -1270,10 +1255,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return _readTemplateFragment(
         create: (name) {
-          var fragment = TopLevelVariableFragmentImpl(
-            name: name,
-            firstTokenOffset: null,
-          );
+          var fragment = TopLevelVariableFragmentImpl(name: name);
           fragment.readModifiers(_reader);
           return fragment;
         },
@@ -1340,10 +1322,7 @@ class LibraryReader {
       var fragmentName = _readFragmentName();
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
-      var element = TypeParameterFragmentImpl(
-        name: fragmentName,
-        firstTokenOffset: null,
-      );
+      var element = TypeParameterFragmentImpl(name: fragmentName);
       element.variance = variance;
       return element;
     });
@@ -1713,7 +1692,7 @@ class ResolutionReader {
       _localElements.length -= typeParameters.length;
 
       var fragment =
-          GenericFunctionTypeFragmentImpl(firstTokenOffset: null)
+          GenericFunctionTypeFragmentImpl()
             ..typeParameters = typeParameters
             ..formalParameters = formalParameters
             ..returnType = returnType;
@@ -1796,7 +1775,6 @@ class ResolutionReader {
       FormalParameterFragmentImpl element;
       if (isInitializingFormal) {
         element = FieldFormalParameterFragmentImpl(
-          firstTokenOffset: null,
           name: name,
           nameOffset: null,
           parameterKind: kind,
@@ -1804,7 +1782,6 @@ class ResolutionReader {
         element.element.type = type;
       } else {
         element = FormalParameterFragmentImpl(
-          firstTokenOffset: null,
           name: name,
           nameOffset: null,
           parameterKind: kind,
@@ -1916,10 +1893,7 @@ class ResolutionReader {
   ) {
     var typeParameters = readTypedList(() {
       var fragmentName = _readFragmentName();
-      var typeParameterFragment = TypeParameterFragmentImpl(
-        name: fragmentName,
-        firstTokenOffset: null,
-      );
+      var typeParameterFragment = TypeParameterFragmentImpl(name: fragmentName);
       var typeParameterElement = TypeParameterElementImpl(
         firstFragment: typeParameterFragment,
         name: typeParameterFragment.name,
