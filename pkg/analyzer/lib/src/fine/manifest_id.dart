@@ -13,7 +13,7 @@ import 'package:collection/collection.dart';
 /// We give a new identifier each time when just anything changes about
 /// an element. Even if an element changes as `A` to `B` to `A`, it will get
 /// `id1`, `id2`, `id3`. Never `id1` again.
-class ManifestItemId {
+class ManifestItemId implements Comparable<ManifestItemId> {
   static final _randomGenerator = Random();
 
   final int timestamp;
@@ -40,6 +40,15 @@ class ManifestItemId {
     return other is ManifestItemId &&
         other.timestamp == timestamp &&
         other.randomBits == randomBits;
+  }
+
+  @override
+  int compareTo(ManifestItemId other) {
+    var result = timestamp.compareTo(other.timestamp);
+    if (result != 0) {
+      return result;
+    }
+    return randomBits.compareTo(other.randomBits);
   }
 
   @override
