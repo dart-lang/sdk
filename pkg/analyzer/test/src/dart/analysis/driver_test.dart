@@ -43997,6 +43997,98 @@ const b = 0 as int;
     );
   }
 
+  test_manifest_constInitializer_identifier_addIdentifier() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@foo
+class A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        metadata
+          [0]
+            tokenBuffer: @foo
+            tokenLengthList: [1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M1
+''',
+      updatedCode: r'''
+@foo.bar
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M2
+        metadata
+          [0]
+            tokenBuffer: @foo.bar
+            tokenLengthList: [1, 3, 1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_identifierIdentifier_removeIdentifier() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@foo.bar
+class A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        metadata
+          [0]
+            tokenBuffer: @foo.bar
+            tokenLengthList: [1, 3, 1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M1
+''',
+      updatedCode: r'''
+@foo
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M2
+        metadata
+          [0]
+            tokenBuffer: @foo
+            tokenLengthList: [1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M3
+''',
+    );
+  }
+
   test_manifest_constInitializer_importPrefixReference() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(

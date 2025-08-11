@@ -142,6 +142,10 @@ class ManifestNode {
     var tokenOffset = 0;
     var token = node.beginToken;
     while (true) {
+      if (tokenIndex >= tokenLengthList.length) {
+        return false;
+      }
+
       var tokenLength = token.lexeme.length;
       if (tokenLengthList[tokenIndex++] != tokenLength) {
         return false;
@@ -156,6 +160,10 @@ class ManifestNode {
         break;
       }
       token = token.next ?? (throw StateError('endToken not found'));
+    }
+
+    if (tokenIndex != tokenLengthList.length) {
+      return false;
     }
 
     var collector = _ElementCollector(
