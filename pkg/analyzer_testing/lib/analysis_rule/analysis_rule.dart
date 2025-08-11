@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show json;
+
 import 'package:analyzer/analysis_rule/pubspec.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -46,6 +48,28 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
     assertDiagnosticsIn(errors, expectedDiagnostics);
   }
 
+  @override
+  String correctionMessage(List<Diagnostic> diagnostics) {
+    var buffer = StringBuffer();
+    diagnostics.sort((first, second) => first.offset.compareTo(second.offset));
+    buffer.writeln();
+    buffer.writeln('To accept the current state, expect:');
+    for (var actual in diagnostics) {
+      if (actual.diagnosticCode is LintCode) {
+        buffer.write('  lint(');
+      } else {
+        buffer.write('  error(${actual.diagnosticCode}, ');
+      }
+      buffer.write('${actual.offset}, ${actual.length}');
+      if (actual.diagnosticCode.name != analysisRule) {
+        buffer.write(", name: '${actual.diagnosticCode.name}'");
+      }
+      buffer.writeln('),');
+    }
+
+    return buffer.toString();
+  }
+
   /// Returns an "expected diagnostic" for [analysisRule] (or [name], if given)
   /// at [offset] and [length].
   ///
@@ -77,6 +101,25 @@ abstract class AnalysisRuleTest extends PubPackageResolutionTest {
       testPackageRootPath,
       analysisOptionsContent(experiments: experiments, rules: [analysisRule]),
     );
+  }
+
+  @override
+  String unexpectedMessage(List<Diagnostic> unmatchedActual) {
+    var buffer = StringBuffer();
+    if (buffer.isNotEmpty) {
+      buffer.writeln();
+    }
+    buffer.writeln('Found but did not expect:');
+    for (var actual in unmatchedActual) {
+      buffer.write('  $analysisRule.${actual.diagnosticCode.name} [');
+      buffer.write('${actual.offset}, ${actual.length}, ${actual.message}');
+      if (actual.correctionMessage case Pattern correctionMessage) {
+        buffer.write(', ');
+        buffer.write(json.encode(correctionMessage));
+      }
+      buffer.writeln(']');
+    }
+    return buffer.toString();
   }
 
   Future<List<Diagnostic>> _analyzePubspecFile(String content) async {
