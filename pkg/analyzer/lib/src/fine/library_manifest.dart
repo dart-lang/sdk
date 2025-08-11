@@ -881,10 +881,15 @@ class LibraryManifestBuilder {
   void _fillInterfaceElementsInterface() {
     var librarySet = libraryElements.toSet();
     var interfaceSet = <InterfaceElementImpl>{};
+    var interfaceList = <InterfaceElementImpl>[];
 
     void addInterfacesToFill(InterfaceElementImpl element) {
       // If not in this bundle, it has interface ready.
       if (!librarySet.contains(element.library)) {
+        return;
+      }
+
+      if (!interfaceSet.add(element)) {
         return;
       }
 
@@ -893,7 +898,7 @@ class LibraryManifestBuilder {
         addInterfacesToFill(superType.element);
       }
 
-      interfaceSet.add(element);
+      interfaceList.add(element);
     }
 
     for (var libraryElement in libraryElements) {
@@ -908,7 +913,7 @@ class LibraryManifestBuilder {
     // So that if there are synthetic top-merged members in interfaces of
     // supertypes (these members are not included into declared), we can
     // get corresponding IDs.
-    for (var element in interfaceSet) {
+    for (var element in interfaceList) {
       _fillInterfaceElementInterface(element);
     }
   }
