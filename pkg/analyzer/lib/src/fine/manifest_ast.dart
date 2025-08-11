@@ -23,7 +23,8 @@ enum ManifestAstElementKind {
   formalParameter,
   importPrefix,
   typeParameter,
-  regular;
+  regular,
+  multiplyDefined;
 
   static final _bitCount = values.length.bitLength;
   static final _bitMask = (1 << _bitCount) - 1;
@@ -432,6 +433,9 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
         rawIndex = 0;
       case DynamicElementImpl():
         kind = ManifestAstElementKind.dynamic_;
+        rawIndex = 0;
+      case MultiplyDefinedElementImpl():
+        kind = ManifestAstElementKind.multiplyDefined;
         rawIndex = 0;
       case FormalParameterElementImpl():
         kind = ManifestAstElementKind.formalParameter;

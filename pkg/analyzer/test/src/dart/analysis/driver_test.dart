@@ -44456,6 +44456,88 @@ const b = 0;
     );
   }
 
+  test_manifest_constInitializer_multiplyDefinedElement() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const foo = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+const foo = 0;
+''');
+
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+import 'b.dart';
+const x = foo;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      foo: #M0
+        returnType: int @ dart:core
+    declaredVariables
+      foo: #M1
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredGetters
+      foo: #M2
+        returnType: int @ dart:core
+    declaredVariables
+      foo: #M3
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      x: #M4
+        returnType: InvalidType
+    declaredVariables
+      x: #M5
+        type: InvalidType
+        constInitializer
+          tokenBuffer: foo
+          tokenLengthList: [3]
+          elementIndexList
+            6 = multiplyDefined
+''',
+      updatedCode: r'''
+import 'a.dart';
+import 'b.dart';
+const x = foo;
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M6
+        supertype: Object @ dart:core
+        interface: #M7
+    declaredGetters
+      x: #M4
+        returnType: InvalidType
+    declaredVariables
+      x: #M5
+        type: InvalidType
+        constInitializer
+          tokenBuffer: foo
+          tokenLengthList: [3]
+          elementIndexList
+            6 = multiplyDefined
+''',
+    );
+  }
+
   test_manifest_constInitializer_namedType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
