@@ -13402,7 +13402,9 @@ void Field::SetStaticValue(const Object& value) const {
 
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_shared()) {
-    thread->isolate_group()->shared_field_table()->SetAt(id, value.ptr());
+    thread->isolate_group()->shared_field_table()->SetAt(
+        id, value.ptr(),
+        /*concurrent_use=*/true);
   } else {
     thread->isolate()->field_table()->SetAt(id, value.ptr());
   }
