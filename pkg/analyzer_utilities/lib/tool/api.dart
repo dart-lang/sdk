@@ -148,13 +148,20 @@ class ApiDescription {
         for (var formalParameter in formalParameters) {
           if (formalParameter.isNamed) {
             namedParams[formalParameter.name!] = [
+              if (formalParameter.isDeprecated) 'deprecated ',
               if (formalParameter.isRequired) 'required ',
               ..._describeType(formalParameter.type),
             ];
           } else if (formalParameter.isOptional) {
-            optionalParams.add(_describeType(formalParameter.type));
+            optionalParams.add([
+              if (formalParameter.isDeprecated) 'deprecated ',
+              ..._describeType(formalParameter.type),
+            ]);
           } else {
-            params.add(_describeType(formalParameter.type));
+            params.add([
+              if (formalParameter.isDeprecated) 'deprecated ',
+              ..._describeType(formalParameter.type),
+            ]);
           }
         }
         if (optionalParams.isNotEmpty) {
@@ -672,6 +679,13 @@ extension on Element {
     } else {
       return false;
     }
+  }
+}
+
+extension on FormalParameterElement {
+  bool get isDeprecated {
+    // TODO(paulberry): add this to the analyzer public API
+    return metadata.hasDeprecated;
   }
 }
 

@@ -4434,7 +4434,7 @@ package:analyzer/dart/element/type.dart:
     acceptWithArgument (method: R Function<R, A>(TypeVisitorWithArgument<R, A>, A))
     asInstanceOf (method: InterfaceType? Function(InterfaceElement), experimental)
     asInstanceOf2 (method: InterfaceType? Function(InterfaceElement), deprecated, experimental)
-    getDisplayString (method: String Function({bool withNullability}))
+    getDisplayString (method: String Function({deprecated bool withNullability}))
   DynamicType (class extends Object implements DartType):
     new (constructor: DynamicType Function())
   FunctionType (class extends Object implements DartType):
@@ -4763,8 +4763,8 @@ package:analyzer/dart/sdk/build_sdk_summary.dart:
   buildSdkSummary (function: Future<Uint8List> Function({String? embedderYamlPath, required ResourceProvider resourceProvider, required String sdkPath}))
 package:analyzer/diagnostic/diagnostic.dart:
   Diagnostic (class extends Object):
-    forValues (constructor: Diagnostic Function({List<DiagnosticMessage> contextMessages, String? correctionMessage, Object? data, DiagnosticCode? diagnosticCode, DiagnosticCode? errorCode, required int length, required String message, required int offset, required Source source}))
-    tmp (constructor: Diagnostic Function({List<Object?> arguments, List<DiagnosticMessage> contextMessages, Object? data, DiagnosticCode? diagnosticCode, DiagnosticCode? errorCode, required int length, required int offset, required Source source}))
+    forValues (constructor: Diagnostic Function({List<DiagnosticMessage> contextMessages, String? correctionMessage, Object? data, DiagnosticCode? diagnosticCode, deprecated DiagnosticCode? errorCode, required int length, required String message, required int offset, required Source source}))
+    tmp (constructor: Diagnostic Function({List<Object?> arguments, List<DiagnosticMessage> contextMessages, Object? data, DiagnosticCode? diagnosticCode, deprecated DiagnosticCode? errorCode, required int length, required int offset, required Source source}))
     contextMessages (getter: List<DiagnosticMessage>)
     correction (getter: String?, deprecated)
     correctionMessage (getter: String?)
@@ -4878,7 +4878,7 @@ package:analyzer/error/listener.dart:
     atElement2 (method: void Function(Element, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}), experimental)
     atEntity (method: void Function(SyntacticEntity, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     atNode (method: void Function(AstNode, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
-    atOffset (method: void Function({List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data, DiagnosticCode? diagnosticCode, DiagnosticCode? errorCode, required int length, required int offset}))
+    atOffset (method: void Function({List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data, DiagnosticCode? diagnosticCode, deprecated DiagnosticCode? errorCode, required int length, required int offset}))
     atSourceSpan (method: void Function(SourceSpan, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     atToken (method: void Function(Token, DiagnosticCode, {List<Object>? arguments, List<DiagnosticMessage>? contextMessages, Object? data}))
     reportError (method: void Function(Diagnostic))

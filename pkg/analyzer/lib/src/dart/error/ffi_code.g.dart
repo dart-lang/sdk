@@ -105,7 +105,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters
+  /// No parameters.
   static const FfiCode ARGUMENT_MUST_BE_NATIVE = FfiCode(
     'ARGUMENT_MUST_BE_NATIVE',
     "Argument to 'Native.addressOf' must be annotated with @Native",
@@ -161,7 +161,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters
+  /// No parameters.
   static const FfiCode FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET = FfiCode(
     'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
     "There may be at most one @DefaultAsset annotation on a library.",
@@ -169,7 +169,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters
+  /// No parameters.
   static const FfiCode FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS = FfiCode(
     'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
     "Native functions and fields must have exactly one `@Native` annotation.",
@@ -373,7 +373,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters
+  /// No parameters.
   static const FfiCode NATIVE_FIELD_MISSING_TYPE = FfiCode(
     'NATIVE_FIELD_MISSING_TYPE',
     "The native type of this field could not be inferred and must be specified "
@@ -384,7 +384,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters
+  /// No parameters.
   static const FfiCode NATIVE_FIELD_NOT_STATIC = FfiCode(
     'NATIVE_FIELD_NOT_STATIC',
     "Native fields must be static.",
@@ -392,7 +392,7 @@ class FfiCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters
+  /// No parameters.
   static const FfiCode NATIVE_FUNCTION_MISSING_TYPE = FfiCode(
     'NATIVE_FUNCTION_MISSING_TYPE',
     "The native type of this function couldn't be inferred so it must be "

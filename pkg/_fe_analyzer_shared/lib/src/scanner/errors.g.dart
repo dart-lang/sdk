@@ -41,21 +41,25 @@ class ScannerErrorCode extends DiagnosticCode {
     "Illegal character '{0}'.",
   );
 
+  /// No parameters.
   static const ScannerErrorCode MISSING_DIGIT = const ScannerErrorCode(
     'MISSING_DIGIT',
     "Decimal digit expected.",
   );
 
+  /// No parameters.
   static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
     'MISSING_HEX_DIGIT',
     "Hexadecimal digit expected.",
   );
 
+  /// No parameters.
   static const ScannerErrorCode MISSING_IDENTIFIER = const ScannerErrorCode(
     'MISSING_IDENTIFIER',
     "Expected an identifier.",
   );
 
+  /// No parameters.
   static const ScannerErrorCode MISSING_QUOTE = const ScannerErrorCode(
     'MISSING_QUOTE',
     "Expected quote (' or \").",
@@ -68,6 +72,7 @@ class ScannerErrorCode extends DiagnosticCode {
     "Unable to get content of '{0}'.",
   );
 
+  /// No parameters.
   static const ScannerErrorCode
   UNEXPECTED_DOLLAR_IN_STRING = const ScannerErrorCode(
     'UNEXPECTED_DOLLAR_IN_STRING',
@@ -76,6 +81,7 @@ class ScannerErrorCode extends DiagnosticCode {
     correctionMessage: "Try adding a backslash (\\) to escape the '\$'.",
   );
 
+  /// No parameters.
   static const ScannerErrorCode
   UNEXPECTED_SEPARATOR_IN_NUMBER = const ScannerErrorCode(
     'UNEXPECTED_SEPARATOR_IN_NUMBER',
@@ -91,6 +97,7 @@ class ScannerErrorCode extends DiagnosticCode {
     "The '{0}' operator is not supported.",
   );
 
+  /// No parameters.
   static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
       const ScannerErrorCode(
         'UNTERMINATED_MULTI_LINE_COMMENT',
@@ -100,6 +107,7 @@ class ScannerErrorCode extends DiagnosticCode {
             "occurrences of '/*' (because comments nest in Dart).",
       );
 
+  /// No parameters.
   static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
       const ScannerErrorCode(
         'UNTERMINATED_STRING_LITERAL',

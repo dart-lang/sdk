@@ -27,10 +27,10 @@ library;
 import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class HintCode extends DiagnosticCode {
-  /// No parameters.
-  ///
   /// Note: Since this diagnostic is only produced in pre-3.0 code, we do not
   /// plan to go through the exercise of converting it to a Warning.
+  ///
+  /// No parameters.
   static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     "Using a colon as the separator before a default value is deprecated and "
@@ -49,11 +49,11 @@ class HintCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// Parameters:
-  /// 0: the name of the member
-  ///
   /// This code is deprecated in favor of the
   /// 'deprecated_member_from_same_package' lint rule, and will be removed.
+  ///
+  /// Parameters:
+  /// 0: the name of the member
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used.",
@@ -62,12 +62,12 @@ class HintCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// This code is deprecated in favor of the
+  /// 'deprecated_member_from_same_package' lint rule, and will be removed.
+  ///
   /// Parameters:
   /// 0: the name of the member
   /// 1: message details
-  ///
-  /// This code is deprecated in favor of the
-  /// 'deprecated_member_from_same_package' lint rule, and will be removed.
   static const HintCode
   DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',

@@ -76,7 +76,6 @@ class AnalysisOptionsWarningCode extends DiagnosticCode {
   ///
   /// Parameters:
   /// 0: the option name
-  ///
   static const AnalysisOptionsWarningCode ANALYSIS_OPTION_DEPRECATED =
       AnalysisOptionsWarningCode(
         'ANALYSIS_OPTION_DEPRECATED',
