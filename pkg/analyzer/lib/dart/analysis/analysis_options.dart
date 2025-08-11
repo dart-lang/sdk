@@ -6,8 +6,8 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
 
 /// A set of analysis options used to control the behavior of an analysis
 /// context.

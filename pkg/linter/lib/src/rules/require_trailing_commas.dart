@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -26,7 +27,10 @@ class RequireTrailingCommas extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.require_trailing_commas;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     // Don't report if tall-style is enforced by the formatter.
     var languageVersion = context.libraryElement?.languageVersion.effective;
     if (languageVersion != null && languageVersion >= language37) return;

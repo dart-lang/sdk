@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 
 /// Shared registry of analysis rule timers.
 final analysisRuleTimers = AnalysisRuleTimers();

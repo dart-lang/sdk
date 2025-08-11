@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -24,7 +25,10 @@ class SwitchOnType extends LintRule {
   DiagnosticCode get diagnosticCode => LinterLintCode.switch_on_type;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     if (!context.isFeatureEnabled(Feature.patterns)) return;
     var visitor = _Visitor(this, context);
     registry.addSwitchExpression(this, visitor);

@@ -5,7 +5,9 @@
 /// @docImport 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
 library;
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -37,7 +39,10 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }

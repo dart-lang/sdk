@@ -5,7 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
