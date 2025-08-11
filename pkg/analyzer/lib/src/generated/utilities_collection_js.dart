@@ -5,9 +5,16 @@
 /// Provides [EnumSet] which works when compiled to JS.
 library;
 
+import 'package:analyzer/src/summary2/data_reader.dart';
+import 'package:analyzer/src/summary2/data_writer.dart';
+
 /// The set of [Enum] values, up to `60` constants.
 extension type EnumSet<T extends Enum>((int, int) _bits) {
   EnumSet.empty() : this((0, 0));
+
+  factory EnumSet.read(SummaryDataReader reader) {
+    return EnumSet((reader.readInt64(), reader.readInt64()));
+  }
 
   /// Whether [constant] is present.
   bool operator [](T constant) {
@@ -40,6 +47,11 @@ extension type EnumSet<T extends Enum>((int, int) _bits) {
       var newField = value ? field | mask : field & ~mask;
       return EnumSet<T>((_bits.$1, newField));
     }
+  }
+
+  void write(BufferedSink writer) {
+    writer.writeInt64(_bits.$1);
+    writer.writeInt64(_bits.$2);
   }
 
   /// Throws an exception if the [index] does not fit the storage.

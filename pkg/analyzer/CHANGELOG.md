@@ -1,3 +1,6 @@
+## 8.1.1-dev
+* Fix for `EnumSet` usage when compiled to JavaScript.
+
 ## 8.1.0
 * Add `DartObject.constructorInvocation` with the constructor and arguments.
 * Make `PropertyAccessorElement.variable` non-nullable.

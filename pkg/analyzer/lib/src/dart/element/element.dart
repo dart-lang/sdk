@@ -1974,7 +1974,7 @@ abstract class ElementImpl implements Element {
   }
 
   void readModifiers(SummaryDataReader reader) {
-    _modifiers = EnumSet(reader.readInt64());
+    _modifiers = EnumSet.read(reader);
   }
 
   /// Update [modifier] of this element to [value].
@@ -3675,7 +3675,7 @@ abstract class FragmentImpl implements Fragment {
   bool hasModifier(Modifier modifier) => _modifiers[modifier];
 
   void readModifiers(SummaryDataReader reader) {
-    _modifiers = EnumSet(reader.readInt64());
+    _modifiers = EnumSet.read(reader);
   }
 
   /// Set the code range for this element.
