@@ -1335,14 +1335,12 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-dyn-${system}-${mode}-${arch}",
-            "corelib",
-            "language",
+            "--default-suites",
             "co19",
-            "vm",
             "pkg/vm_service/"
           ],
           "fileset": "vm",
-          "shards": 5
+          "shards": 16
         },
         {
           "name": "dynamic module tests",
