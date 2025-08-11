@@ -16,12 +16,12 @@ import 'package:args/args.dart';
 import 'package:linter/src/extensions.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/test_utilities/analysis_error_info.dart';
-import 'package:linter/src/test_utilities/linter_options.dart';
-import 'package:linter/src/test_utilities/test_linter.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 import 'lint_sets.dart';
+import 'linter_options.dart';
+import 'test_linter.dart';
 
 /// Benchmarks lint rules.
 Future<void> main(List<String> args) async {
@@ -134,6 +134,7 @@ Future<void> runLinter(List<String> args) async {
 
   var configFile = options['config'];
   var ruleNames = options['rules'];
+  var customSdk = options.option('dart-sdk');
 
   LinterOptions linterOptions;
   if (configFile is String) {
@@ -144,7 +145,10 @@ Future<void> runLinter(List<String> args) async {
       (rule) => !ruleConfigs.any((rc) => rc.disables(rule.name)),
     );
 
-    linterOptions = LinterOptions(enabledRules: enabledRules);
+    linterOptions = LinterOptions(
+      enabledRules: enabledRules,
+      dartSdkPath: customSdk,
+    );
   } else if (ruleNames is Iterable<String> && ruleNames.isNotEmpty) {
     var rules = <AbstractAnalysisRule>[];
     for (var ruleName in ruleNames) {
@@ -155,17 +159,10 @@ Future<void> runLinter(List<String> args) async {
       }
       rules.add(rule);
     }
-    linterOptions = LinterOptions(enabledRules: rules);
+    linterOptions = LinterOptions(enabledRules: rules, dartSdkPath: customSdk);
   } else {
-    linterOptions = LinterOptions();
+    linterOptions = LinterOptions(dartSdkPath: customSdk);
   }
-
-  var customSdk = options['dart-sdk'];
-  if (customSdk is String) {
-    linterOptions.dartSdkPath = customSdk;
-  }
-
-  linterOptions.enableTiming = true;
 
   var filesToLint = [
     for (var path in paths)

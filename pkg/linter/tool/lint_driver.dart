@@ -6,15 +6,13 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/instrumentation/instrumentation.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-// ignore: implementation_imports
 import 'package:analyzer/src/lint/io.dart';
+import 'package:linter/src/test_utilities/analysis_error_info.dart';
 
-import 'analysis_error_info.dart';
 import 'linter_options.dart';
 
 class LintDriver {
@@ -24,9 +22,10 @@ class LintDriver {
 
   final LinterOptions _options;
 
-  final ResourceProvider _resourceProvider;
+  LintDriver(this._options);
 
-  LintDriver(this._options, this._resourceProvider);
+  ResourceProvider get _resourceProvider =>
+      file_system.PhysicalResourceProvider.INSTANCE;
 
   Future<List<DiagnosticInfo>> analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.instrumentationService = _StdInstrumentation();
@@ -45,7 +44,7 @@ class LintDriver {
           growable: false,
         );
       },
-      enableLintRuleTiming: _options.enableTiming,
+      enableLintRuleTiming: true,
     );
 
     _filesAnalyzed.addAll(filesPaths);
@@ -63,10 +62,8 @@ class LintDriver {
     return result;
   }
 
-  String _absoluteNormalizedPath(String path) {
-    var pathContext = _resourceProvider.pathContext;
-    return pathContext.normalize(pathContext.absolute(path));
-  }
+  String _absoluteNormalizedPath(String path) => _resourceProvider.pathContext
+      .normalize(_resourceProvider.pathContext.absolute(path));
 }
 
 /// Prints logging information comments to the [outSink] and error messages to
