@@ -39,7 +39,7 @@
 
 ## 3.9.0
 
-**Released on:** Unreleased
+**Released on:** 2025-08-13
 
 ### Language
 
@@ -158,6 +158,28 @@ when the target OS is Linux.
   See https://github.com/flutter/flutter/issues/95472 for details.
 
 [Git dependencies]: https://dart.dev/tools/pub/dependencies#git-packages
+
+## 3.8.3
+
+**Released on:** 2025-07-31
+
+This is a patch release that:
+
+- Fixes an issue with the DevTools Network screen and Hot Restart (issue [flutter/devtools#9203])
+- Fixes an issue when clearing the DevTools network screen (issue [#61187])
+
+[flutter/devtools#9203]: https://github.com/flutter/devtools/issues/9203
+[#61187]: https://github.com/dart-lang/sdk/issues/61187
+
+## 3.8.2
+
+**Released on:** 2025-07-16
+
+This is a patch release that:
+
+- Fixes an issue with the size of cross-compiled binaries (issue [#61097])
+
+[#61097]: https://github.com/dart-lang/sdk/issues/61097
 
 ## 3.8.1
 
