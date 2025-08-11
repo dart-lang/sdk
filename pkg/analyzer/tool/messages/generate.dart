@@ -339,9 +339,10 @@ class _SyntacticErrorGenerator {
     // Build a map of error message to ParserErrorCode
     var messageToName = <String, String>{};
     for (var entry in analyzerMessages['ParserErrorCode']!.entries) {
-      String message = entry.value.problemMessage
-          .replaceAll(RegExp(r'\{\d+\}'), '')
-          .replaceAll(placeholderPattern, '');
+      String message = entry.value.problemMessage.replaceAll(
+        placeholderPattern,
+        '',
+      );
       messageToName[message] = entry.key;
     }
 

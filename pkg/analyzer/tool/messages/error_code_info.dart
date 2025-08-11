@@ -146,6 +146,13 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 final Map<String, Map<String, AnalyzerErrorCodeInfo>> lintMessages =
     _loadLintMessages();
 
+/// Pattern formerly used by the analyzer to identify placeholders in error
+/// message strings.
+///
+/// (This pattern is still used internally by the analyzer implementation, but
+/// it is no longer supported in `messages.yaml`.)
+final RegExp oldPlaceholderPattern = RegExp(r'\{\d+\}');
+
 /// Pattern for placeholders in error message strings.
 // TODO(paulberry): share this regexp (and the code for interpreting
 // it) between the CFE and analyzer.
@@ -357,7 +364,9 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     required super.problemMessage,
     super.removedIn,
     super.sharedName,
-  });
+  }) {
+    _check();
+  }
 
   factory AnalyzerErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml) {
     if (yaml['aliasFor'] case var aliasFor?) {
@@ -367,7 +376,13 @@ class AnalyzerErrorCodeInfo extends ErrorCodeInfo {
     }
   }
 
-  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml();
+  AnalyzerErrorCodeInfo._fromYaml(super.yaml) : super.fromYaml() {
+    _check();
+  }
+
+  void _check() {
+    if (parameters == null) throw StateError('Missing `parameters` entry.');
+  }
 }
 
 /// Data tables mapping between CFE errors and their corresponding automatically
@@ -563,7 +578,21 @@ abstract class ErrorCodeInfo {
     this.previousName,
     this.removedIn,
     this.parameters,
-  });
+  }) {
+    for (var MapEntry(:key, :value)
+        in {
+          'problemMessage': problemMessage,
+          'correctionMessage': correctionMessage,
+        }.entries) {
+      if (value == null) continue;
+      if (value.contains(oldPlaceholderPattern)) {
+        throw StateError(
+          '$key is ${json.encode(value)}, which contains an old-style analyzer '
+          'placeholder pattern. Please convert to #NAME format.',
+        );
+      }
+    }
+  }
 
   /// Decodes an [ErrorCodeInfo] object from its YAML representation.
   ErrorCodeInfo.fromYaml(Map<Object?, Object?> yaml)

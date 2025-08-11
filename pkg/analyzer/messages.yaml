@@ -45,9 +45,7 @@
 # strings take the form `#NAME`.
 #
 # If a diagnostic takes no parameters, it should have an entry of the
-# form `parameters: none`. (If there is no `parameters:` entry, then
-# the error hasn't been translated from the old placeholder format
-# yet).
+# form `parameters: none`.
 #
 # At the time the analyzer reports the error, it supplies
 # substitutions to take the place of the `#NAME` placeholders in the
