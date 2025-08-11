@@ -701,7 +701,7 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the token that was expected but not found
+  /// String p0: the token that was expected but not found
   static const ParserErrorCode EXPECTED_TOKEN = ParserErrorCode(
     'EXPECTED_TOKEN',
     "Expected to find '{0}'.",
@@ -1124,7 +1124,7 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the invalid escape sequence
+  /// String p0: the invalid escape sequence
   static const ParserErrorCode INVALID_CODE_POINT = ParserErrorCode(
     'INVALID_CODE_POINT',
     "The escape sequence '{0}' isn't a valid code point.",
@@ -1239,7 +1239,7 @@ class ParserErrorCode extends DiagnosticCode {
   /// Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
   ///
   /// Parameters:
-  /// 0: the operator being applied to 'super'
+  /// Object p0: the operator being applied to 'super'
   static const ParserErrorCode INVALID_OPERATOR_FOR_SUPER = ParserErrorCode(
     'INVALID_OPERATOR_FOR_SUPER',
     "The operator '{0}' can't be used with 'super'.",
@@ -1552,7 +1552,7 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the terminator that is missing
+  /// Object p0: the terminator that is missing
   static const ParserErrorCode MISSING_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
         'MISSING_TERMINATOR_FOR_PARAMETER_GROUP',
@@ -1669,7 +1669,7 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the number of variables being declared
+  /// Object p0: the number of variables being declared
   static const ParserErrorCode MULTIPLE_VARIABLES_IN_FOR_EACH = ParserErrorCode(
     'MULTIPLE_VARIABLES_IN_FOR_EACH',
     "A single loop variable must be declared in a for-each loop before the "
@@ -1773,7 +1773,7 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the operator that the user is trying to define
+  /// Object p0: the operator that the user is trying to define
   static const ParserErrorCode NON_USER_DEFINABLE_OPERATOR = ParserErrorCode(
     'NON_USER_DEFINABLE_OPERATOR',
     "The operator '{0}' isn't user definable.",
@@ -2027,7 +2027,7 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the starting character that was missing
+  /// Object p0: the starting character that was missing
   static const ParserErrorCode UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
         'UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP',
@@ -2037,7 +2037,7 @@ class ParserErrorCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the unexpected text that was found
+  /// String p0: the unexpected text that was found
   static const ParserErrorCode UNEXPECTED_TOKEN = ParserErrorCode(
     'UNEXPECTED_TOKEN',
     "Unexpected text '{0}'.",
@@ -2130,8 +2130,8 @@ class ParserErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the terminator that was expected
-  /// 1: the terminator that was found
+  /// Object p0: the terminator that was expected
+  /// Object p1: the terminator that was found
   static const ParserErrorCode WRONG_TERMINATOR_FOR_PARAMETER_GROUP =
       ParserErrorCode(
         'WRONG_TERMINATOR_FOR_PARAMETER_GROUP',

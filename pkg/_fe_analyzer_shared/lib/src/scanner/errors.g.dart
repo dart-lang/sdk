@@ -28,14 +28,14 @@ import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class ScannerErrorCode extends DiagnosticCode {
   /// Parameters:
-  /// 0: the token that was expected but not found
+  /// String p0: the token that was expected but not found
   static const ScannerErrorCode EXPECTED_TOKEN = const ScannerErrorCode(
     'EXPECTED_TOKEN',
     "Expected to find '{0}'.",
   );
 
   /// Parameters:
-  /// 0: the illegal character
+  /// Object p0: the illegal character
   static const ScannerErrorCode ILLEGAL_CHARACTER = const ScannerErrorCode(
     'ILLEGAL_CHARACTER',
     "Illegal character '{0}'.",
@@ -66,7 +66,7 @@ class ScannerErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the path of the file that cannot be read
+  /// Object p0: the path of the file that cannot be read
   static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
     'UNABLE_GET_CONTENT',
     "Unable to get content of '{0}'.",
@@ -91,7 +91,7 @@ class ScannerErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the unsupported operator
+  /// String p0: the unsupported operator
   static const ScannerErrorCode UNSUPPORTED_OPERATOR = const ScannerErrorCode(
     'UNSUPPORTED_OPERATOR',
     "The '{0}' operator is not supported.",

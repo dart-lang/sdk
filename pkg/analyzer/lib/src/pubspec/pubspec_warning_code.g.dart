@@ -28,7 +28,7 @@ import "package:_fe_analyzer_shared/src/base/errors.dart";
 
 class PubspecWarningCode extends DiagnosticCode {
   /// Parameters:
-  /// 0: the path to the asset directory as given in the file.
+  /// String p0: the path to the asset directory as given in the file.
   static const PubspecWarningCode ASSET_DIRECTORY_DOES_NOT_EXIST =
       PubspecWarningCode(
         'ASSET_DIRECTORY_DOES_NOT_EXIST',
@@ -39,7 +39,7 @@ class PubspecWarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the path to the asset as given in the file.
+  /// String p0: the path to the asset as given in the file.
   static const PubspecWarningCode ASSET_DOES_NOT_EXIST = PubspecWarningCode(
     'ASSET_DOES_NOT_EXIST',
     "The asset file '{0}' doesn't exist.",
@@ -93,7 +93,7 @@ class PubspecWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the field
+  /// String p0: the name of the field
   static const PubspecWarningCode DEPENDENCIES_FIELD_NOT_MAP =
       PubspecWarningCode(
         'DEPENDENCIES_FIELD_NOT_MAP',
@@ -103,7 +103,7 @@ class PubspecWarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the name of the field
+  /// String p0: the name of the field
   static const PubspecWarningCode DEPRECATED_FIELD = PubspecWarningCode(
     'DEPRECATED_FIELD',
     "The '{0}' field is no longer used and can be removed.",
@@ -120,7 +120,7 @@ class PubspecWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the kind of dependency.
+  /// String p0: the kind of dependency.
   static const PubspecWarningCode INVALID_DEPENDENCY = PubspecWarningCode(
     'INVALID_DEPENDENCY',
     "Publishable packages can't have '{0}' dependencies.",
@@ -140,9 +140,9 @@ class PubspecWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the list of packages missing from the dependencies and the list of
-  ///    packages missing from the dev_dependencies (if any) in the pubspec
-  ///    file.
+  /// String p0: the list of packages missing from the dependencies and the list
+  ///            of packages missing from the dev_dependencies (if any) in the
+  ///            pubspec file.
   static const PubspecWarningCode MISSING_DEPENDENCY = PubspecWarningCode(
     'MISSING_DEPENDENCY',
     "Missing a dependency on imported package '{0}'.",
@@ -167,7 +167,7 @@ class PubspecWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the path to the dependency as given in the file.
+  /// String p0: the path to the dependency as given in the file.
   static const PubspecWarningCode PATH_DOES_NOT_EXIST = PubspecWarningCode(
     'PATH_DOES_NOT_EXIST',
     "The path '{0}' doesn't exist.",
@@ -177,7 +177,7 @@ class PubspecWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the path as given in the file.
+  /// String p0: the path as given in the file.
   static const PubspecWarningCode PATH_NOT_POSIX = PubspecWarningCode(
     'PATH_NOT_POSIX',
     "The path '{0}' isn't a POSIX-style path.",
@@ -186,7 +186,7 @@ class PubspecWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the path to the dependency as given in the file.
+  /// String p0: the path to the dependency as given in the file.
   static const PubspecWarningCode
   PATH_PUBSPEC_DOES_NOT_EXIST = PubspecWarningCode(
     'PATH_PUBSPEC_DOES_NOT_EXIST',
@@ -207,7 +207,7 @@ class PubspecWarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the unknown platform.
+  /// Object p0: the unknown platform.
   static const PubspecWarningCode UNKNOWN_PLATFORM = PubspecWarningCode(
     'UNKNOWN_PLATFORM',
     "The platform '{0}' is not a recognized platform.",
@@ -216,7 +216,7 @@ class PubspecWarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the package in the dev_dependency list.
+  /// String p0: the name of the package in the dev_dependency list.
   static const PubspecWarningCode
   UNNECESSARY_DEV_DEPENDENCY = PubspecWarningCode(
     'UNNECESSARY_DEV_DEPENDENCY',
@@ -244,7 +244,7 @@ class PubspecWarningCode extends DiagnosticCode {
       );
 
   /// Parameters:
-  /// 0: the path of the directory that contains the pubspec.yaml file.
+  /// String p0: the path of the directory that contains the pubspec.yaml file.
   static const PubspecWarningCode WORKSPACE_VALUE_NOT_SUBDIRECTORY =
       PubspecWarningCode(
         'WORKSPACE_VALUE_NOT_SUBDIRECTORY',

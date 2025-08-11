@@ -40,7 +40,7 @@ class HintCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const HintCode DEPRECATED_MEMBER_USE = HintCode(
     'DEPRECATED_MEMBER_USE',
     "'{0}' is deprecated and shouldn't be used.",
@@ -53,7 +53,7 @@ class HintCode extends DiagnosticCode {
   /// 'deprecated_member_from_same_package' lint rule, and will be removed.
   ///
   /// Parameters:
-  /// 0: the name of the member
+  /// String p0: the name of the member
   static const HintCode DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
     "'{0}' is deprecated and shouldn't be used.",
@@ -66,8 +66,8 @@ class HintCode extends DiagnosticCode {
   /// 'deprecated_member_from_same_package' lint rule, and will be removed.
   ///
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: message details
+  /// Object p0: the name of the member
+  /// Object p1: message details
   static const HintCode
   DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE',
@@ -79,8 +79,8 @@ class HintCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the member
-  /// 1: message details
+  /// String p0: the name of the member
+  /// String p1: message details
   static const HintCode DEPRECATED_MEMBER_USE_WITH_MESSAGE = HintCode(
     'DEPRECATED_MEMBER_USE',
     "'{0}' is deprecated and shouldn't be used. {1}",
@@ -102,8 +102,8 @@ class HintCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the URI that is not necessary
-  /// 1: the URI that makes it unnecessary
+  /// String p0: the URI that is not necessary
+  /// String p1: the URI that makes it unnecessary
   static const HintCode UNNECESSARY_IMPORT = HintCode(
     'UNNECESSARY_IMPORT',
     "The import of '{0}' is unnecessary because all of the used elements are "

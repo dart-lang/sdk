@@ -709,8 +709,8 @@ abstract class ErrorCodeInfo {
       case var parameters?:
         if (commentLines.isNotEmpty) commentLines.add('');
         commentLines.add('Parameters:');
-        for (var (i, p) in parameters.indexed) {
-          var prefix = '$i: ';
+        for (var p in parameters) {
+          var prefix = '${p.type} ${p.name}: ';
           var extraIndent = ' ' * prefix.length;
           var firstLineWidth = 80 - 4 - indent.length;
           var lines = _splitText(
