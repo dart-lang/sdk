@@ -1628,11 +1628,11 @@ package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
     addAssist (method: void Function(AssistKind, ChangeBuilder, {List<Object>? args}))
 package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
   ChangeBuilder (class extends Object):
-    new (constructor: ChangeBuilder Function({String? defaultEol, String? eol, AnalysisSession session, ChangeWorkspace workspace}))
+    new (constructor: ChangeBuilder Function({String? defaultEol, deprecated String? eol, AnalysisSession session, ChangeWorkspace workspace}))
     defaultEol (getter: String)
     selectionRange (getter: SourceRange?)
     sourceChange (getter: SourceChange)
-    addDartFileEdit (method: Future<void> Function(String, FutureOr<void> Function(DartFileEditBuilder), {bool createEditsForImports, String Function(Uri) importPrefixGenerator}))
+    addDartFileEdit (method: Future<void> Function(String, FutureOr<void> Function(DartFileEditBuilder), {bool createEditsForImports, deprecated String Function(Uri) importPrefixGenerator}))
     addGenericFileEdit (method: Future<void> Function(String, void Function(FileEditBuilder)))
     addYamlFileEdit (method: Future<void> Function(String, void Function(YamlFileEditBuilder)))
     copy (method: ChangeBuilder Function(), deprecated)
