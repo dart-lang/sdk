@@ -235,6 +235,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT = CompileTimeErrorCode(
     'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
@@ -278,6 +279,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "Try changing the augmentation to match the declaration kind.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_BOUND =
       CompileTimeErrorCode(
         'AUGMENTATION_TYPE_PARAMETER_BOUND',
@@ -288,6 +290,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "parameters.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_COUNT =
       CompileTimeErrorCode(
         'AUGMENTATION_TYPE_PARAMETER_COUNT',
@@ -298,6 +301,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "parameters.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode AUGMENTATION_TYPE_PARAMETER_NAME =
       CompileTimeErrorCode(
         'AUGMENTATION_TYPE_PARAMETER_NAME',
@@ -308,6 +312,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "parameters.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode AUGMENTATION_WITHOUT_DECLARATION =
       CompileTimeErrorCode(
         'AUGMENTATION_WITHOUT_DECLARATION',
@@ -316,6 +321,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "Try changing the augmentation to match an existing declaration.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   AUGMENTED_EXPRESSION_IS_NOT_SETTER = CompileTimeErrorCode(
     'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
@@ -324,6 +330,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     correctionMessage: "Try assigning a value to a setter.",
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   AUGMENTED_EXPRESSION_IS_SETTER = CompileTimeErrorCode(
     'AUGMENTED_EXPRESSION_IS_SETTER',
@@ -355,6 +362,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// 16.30 Await Expressions: It is a compile-time error if the function
   /// immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
   /// await expression.)
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode AWAIT_IN_WRONG_CONTEXT =
       CompileTimeErrorCode(
         'AWAIT_IN_WRONG_CONTEXT',
@@ -363,6 +372,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "Try marking the function body with either 'async' or 'async*'.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   AWAIT_OF_INCOMPATIBLE_TYPE = CompileTimeErrorCode(
     'AWAIT_OF_INCOMPATIBLE_TYPE',
@@ -569,6 +579,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
       CompileTimeErrorCode(
         'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
@@ -645,7 +656,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// Parameters:
   /// 0: the name of the class defining the conflicting field
   /// 1: the name of the conflicting field
-  /// 2: the name of the class defining the method with which the field conflicts
+  /// 2: the name of the class defining the method with which the field
+  ///    conflicts
   static const CompileTimeErrorCode
   CONFLICTING_FIELD_AND_METHOD = CompileTimeErrorCode(
     'CONFLICTING_FIELD_AND_METHOD',
@@ -657,7 +669,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the kind of the element implementing the conflicting interface
+  /// 0: the name of the kind of the element implementing the conflicting
+  ///    interface
   /// 1: the name of the element implementing the conflicting interface
   /// 2: the first conflicting type
   /// 3: the second conflicting type
@@ -690,7 +703,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// Parameters:
   /// 0: the name of the class defining the conflicting method
   /// 1: the name of the conflicting method
-  /// 2: the name of the class defining the field with which the method conflicts
+  /// 2: the name of the class defining the field with which the method
+  ///    conflicts
   static const CompileTimeErrorCode
   CONFLICTING_METHOD_AND_FIELD = CompileTimeErrorCode(
     'CONFLICTING_METHOD_AND_FIELD',
@@ -708,7 +722,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// Parameters:
   /// 0: the name of the class defining the conflicting member
   /// 1: the name of the conflicting static member
-  /// 2: the name of the class defining the field with which the method conflicts
+  /// 2: the name of the class defining the field with which the method
+  ///    conflicts
   static const CompileTimeErrorCode CONFLICTING_STATIC_AND_INSTANCE =
       CompileTimeErrorCode(
         'CONFLICTING_STATIC_AND_INSTANCE',
@@ -891,6 +906,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// 16.12.2 Const: It is a compile-time error if evaluation of a constant
   /// object results in an uncaught exception being thrown.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   CONST_CONSTRUCTOR_THROWS_EXCEPTION = CompileTimeErrorCode(
     'CONST_CONSTRUCTOR_THROWS_EXCEPTION',
@@ -991,6 +1008,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_ASSERTION_FAILURE =
       CompileTimeErrorCode(
         'CONST_EVAL_ASSERTION_FAILURE',
@@ -1005,18 +1023,21 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "An assertion failed with message '{0}'.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_EXTENSION_METHOD =
       CompileTimeErrorCode(
         'CONST_EVAL_EXTENSION_METHOD',
         "Extension methods can't be used in constant expressions.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_EXTENSION_TYPE_METHOD =
       CompileTimeErrorCode(
         'CONST_EVAL_EXTENSION_TYPE_METHOD',
         "Extension type methods can't be used in constant expressions.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   CONST_EVAL_FOR_ELEMENT = CompileTimeErrorCode(
     'CONST_EVAL_FOR_ELEMENT',
@@ -1025,6 +1046,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "Try replacing the 'for' element with a spread, or removing 'const'.",
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_METHOD_INVOCATION =
       CompileTimeErrorCode(
         'CONST_EVAL_METHOD_INVOCATION',
@@ -1033,6 +1055,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 == e2".
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_PRIMITIVE_EQUALITY =
       CompileTimeErrorCode(
         'CONST_EVAL_PRIMITIVE_EQUALITY',
@@ -1052,6 +1076,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// 16.12.2 Const: It is a compile-time error if evaluation of a constant
   /// object results in an uncaught exception being thrown.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =
       CompileTimeErrorCode(
         'CONST_EVAL_THROWS_EXCEPTION',
@@ -1060,6 +1086,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// 16.12.2 Const: It is a compile-time error if evaluation of a constant
   /// object results in an uncaught exception being thrown.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_THROWS_IDBZE =
       CompileTimeErrorCode(
         'CONST_EVAL_THROWS_IDBZE',
@@ -1070,6 +1098,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form !e1", "An expression of the form
   /// e1 && e2", and "An expression of the form e1 || e2".
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL',
     "In constant expressions, operands of this operator must be of type "
@@ -1078,6 +1108,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 & e2".
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   CONST_EVAL_TYPE_BOOL_INT = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_BOOL_INT',
@@ -1087,6 +1119,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "A literal string".
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_TYPE_BOOL_NUM_STRING =
       CompileTimeErrorCode(
         'CONST_EVAL_TYPE_BOOL_NUM_STRING',
@@ -1097,6 +1131,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form ~e1", "An expression of one of
   /// the forms e1 >> e2".
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_TYPE_INT = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_INT',
     "In constant expressions, operands of this operator must be of type 'int'.",
@@ -1104,6 +1140,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 - e2".
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_NUM',
     "In constant expressions, operands of this operator must be of type 'num'.",
@@ -1111,6 +1149,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 + e2".
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   CONST_EVAL_TYPE_NUM_STRING = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_NUM_STRING',
@@ -1126,6 +1166,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
             "'String'.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_TYPE',
     "In constant expressions, operands of this operator must be of type "
@@ -1398,6 +1439,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode DOT_SHORTHAND_MISSING_CONTEXT =
       CompileTimeErrorCode(
         'DOT_SHORTHAND_MISSING_CONTEXT',
@@ -1421,7 +1463,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// 0: the name of the static method or constructor
-  /// 1: the name of the enclosing type where the method or constructor is being looked for
+  /// 1: the name of the enclosing type where the method or constructor is being
+  ///    looked for
   static const CompileTimeErrorCode
   DOT_SHORTHAND_UNDEFINED_INVOCATION = CompileTimeErrorCode(
     'DOT_SHORTHAND_UNDEFINED_MEMBER',
@@ -1554,6 +1597,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR =
       CompileTimeErrorCode(
         'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
@@ -1561,6 +1605,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         correctionMessage: "Try using a generative constructor.",
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
         'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
@@ -1569,6 +1614,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED = CompileTimeErrorCode(
     'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
@@ -1576,6 +1622,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     correctionMessage: "Try using different bounds for type parameters.",
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode ENUM_MIXIN_WITH_INSTANCE_VARIABLE =
       CompileTimeErrorCode(
         'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
@@ -1584,6 +1631,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode ENUM_WITHOUT_CONSTANTS =
       CompileTimeErrorCode(
         'ENUM_WITHOUT_CONSTANTS',
@@ -1602,6 +1650,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode ENUM_WITH_NAME_VALUES =
       CompileTimeErrorCode(
         'ENUM_WITH_NAME_VALUES',
@@ -1973,6 +2022,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER = CompileTimeErrorCode(
     'EXTERNAL_WITH_INITIALIZER',
@@ -1984,6 +2034,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode EXTERNAL_FIELD_INITIALIZER =
       CompileTimeErrorCode(
         'EXTERNAL_WITH_INITIALIZER',
@@ -1994,6 +2045,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         uniqueName: 'EXTERNAL_FIELD_INITIALIZER',
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode EXTERNAL_VARIABLE_INITIALIZER =
       CompileTimeErrorCode(
         'EXTERNAL_WITH_INITIALIZER',
@@ -2132,7 +2184,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the final class being used as a mixin superclass constraint.
+  /// 0: the name of the final class being used as a mixin superclass
+  ///    constraint.
   static const CompileTimeErrorCode
   FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY = CompileTimeErrorCode(
     'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
@@ -2235,6 +2288,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// It is a compile-time error if a generic function type is used as a bound
   /// for a formal type parameter of a class or a function.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND = CompileTimeErrorCode(
     'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
@@ -2246,6 +2301,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// It is a compile-time error if a generic function type is used as an actual
   /// type argument.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT = CompileTimeErrorCode(
     'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
@@ -2295,6 +2352,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
     'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
@@ -2352,6 +2410,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode ILLEGAL_ENUM_VALUES_DECLARATION =
       CompileTimeErrorCode(
         'ILLEGAL_ENUM_VALUES',
@@ -2614,7 +2673,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// 0: the name of the static member
   /// 1: the kind of the static member (field, getter, setter, or method)
   /// 2: the name of the static member's enclosing element
-  /// 3: the kind of the static member's enclosing element (class, mixin, or extension)
+  /// 3: the kind of the static member's enclosing element (class, mixin, or
+  ///    extension)
   static const CompileTimeErrorCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
       CompileTimeErrorCode(
         'INSTANCE_ACCESS_TO_STATIC_MEMBER',
@@ -2760,12 +2820,12 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the name of the function
   /// 1: the type of the function
   /// 2: the expected function type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode
   INVALID_CAST_FUNCTION = CompileTimeErrorCode(
     'INVALID_CAST_FUNCTION',
@@ -2773,11 +2833,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "means its parameter or return type doesn't match what is expected.",
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the type of the torn-off function expression
   /// 1: the expected function type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode
   INVALID_CAST_FUNCTION_EXPR = CompileTimeErrorCode(
     'INVALID_CAST_FUNCTION_EXPR',
@@ -2786,22 +2846,22 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "changing parameter type(s) or the returned type(s).",
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the lexeme of the literal
   /// 1: the type of the literal
   /// 2: the expected type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode INVALID_CAST_LITERAL = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL',
     "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the type of the list literal
   /// 1: the expected type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode
   INVALID_CAST_LITERAL_LIST = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_LIST',
@@ -2810,11 +2870,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "the element types.",
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the type of the map literal
   /// 1: the expected type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode
   INVALID_CAST_LITERAL_MAP = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_MAP',
@@ -2823,11 +2883,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "the key and value types.",
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the type of the set literal
   /// 1: the expected type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode
   INVALID_CAST_LITERAL_SET = CompileTimeErrorCode(
     'INVALID_CAST_LITERAL_SET',
@@ -2836,12 +2896,12 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "the element types.",
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the name of the torn-off method
   /// 1: the type of the torn-off method
   /// 2: the expected function type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode INVALID_CAST_METHOD = CompileTimeErrorCode(
     'INVALID_CAST_METHOD',
     "The method tear-off '{0}' has type '{1}' that isn't of expected type "
@@ -2849,11 +2909,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "expected.",
   );
 
+  /// This error is only reported in libraries which are not null safe.
+  ///
   /// Parameters:
   /// 0: the type of the instantiated object
   /// 1: the expected type
-  ///
-  /// This error is only reported in libraries which are not null safe.
   static const CompileTimeErrorCode INVALID_CAST_NEW_EXPR =
       CompileTimeErrorCode(
         'INVALID_CAST_NEW_EXPR',
@@ -2865,6 +2925,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// for more informative errors.
   ///
   /// See TODOs in ConstantVisitor
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode INVALID_CONSTANT = CompileTimeErrorCode(
     'INVALID_CONSTANT',
     "Invalid constant value.",
@@ -2920,15 +2982,15 @@ class CompileTimeErrorCode extends DiagnosticCode {
         uniqueName: 'INVALID_FIELD_NAME_PRIVATE',
       );
 
+  /// The parameters of this error code must be kept in sync with those of
+  /// [CompileTimeErrorCode.INVALID_OVERRIDE].
+  ///
   /// Parameters:
   /// 0: the name of the declared member that is not a valid override.
   /// 1: the name of the interface that declares the member.
   /// 2: the type of the declared member in the interface.
   /// 3: the name of the interface with the overridden member.
   /// 4: the type of the overridden member.
-  ///
-  /// These parameters must be kept in sync with those of
-  /// [CompileTimeErrorCode.INVALID_OVERRIDE].
   static const CompileTimeErrorCode INVALID_IMPLEMENTATION_OVERRIDE =
       CompileTimeErrorCode(
         'INVALID_IMPLEMENTATION_OVERRIDE',
@@ -2937,15 +2999,15 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// The parameters of this error code must be kept in sync with those of
+  /// [CompileTimeErrorCode.INVALID_OVERRIDE].
+  ///
   /// Parameters:
   /// 0: the name of the declared setter that is not a valid override.
   /// 1: the name of the interface that declares the setter.
   /// 2: the type of the declared setter in the interface.
   /// 3: the name of the interface with the overridden setter.
   /// 4: the type of the overridden setter.
-  ///
-  /// These parameters must be kept in sync with those of
-  /// [CompileTimeErrorCode.INVALID_OVERRIDE].
   static const CompileTimeErrorCode INVALID_IMPLEMENTATION_OVERRIDE_SETTER =
       CompileTimeErrorCode(
         'INVALID_IMPLEMENTATION_OVERRIDE',
@@ -3012,6 +3074,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'INVALID_OVERRIDE_SETTER',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR = CompileTimeErrorCode(
     'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
@@ -3088,6 +3151,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   );
 
   /// The 'covariant' keyword was found in an inappropriate location.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode INVALID_USE_OF_COVARIANT =
       CompileTimeErrorCode(
         'INVALID_USE_OF_COVARIANT',
@@ -3293,6 +3358,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   ///
   /// Note: This diagnostic is never displayed to the user, so it doesn't need
   /// to be documented.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode MISSING_CONST_IN_LIST_LITERAL =
       CompileTimeErrorCode(
         'MISSING_CONST_IN_LIST_LITERAL',
@@ -3303,6 +3370,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   ///
   /// Note: This diagnostic is never displayed to the user, so it doesn't need
   /// to be documented.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode MISSING_CONST_IN_MAP_LITERAL =
       CompileTimeErrorCode(
         'MISSING_CONST_IN_MAP_LITERAL',
@@ -3313,6 +3382,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   ///
   /// Note: This diagnostic is never displayed to the user, so it doesn't need
   /// to be documented.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode MISSING_CONST_IN_SET_LITERAL =
       CompileTimeErrorCode(
         'MISSING_CONST_IN_SET_LITERAL',
@@ -3595,6 +3666,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
   /// denote a class available in the immediately enclosing scope.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode MIXIN_WITH_NON_CLASS_SUPERCLASS =
       CompileTimeErrorCode(
         'MIXIN_WITH_NON_CLASS_SUPERCLASS',
@@ -3943,6 +4016,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// No parameters.
   static const CompileTimeErrorCode NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR =
       CompileTimeErrorCode(
         'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
@@ -3954,6 +4028,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// 13.2 Expression Statements: It is a compile-time error if a non-constant
   /// map literal that has no explicit type arguments appears in a place where a
   /// statement is expected.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   NON_CONST_MAP_AS_EXPRESSION_STATEMENT = CompileTimeErrorCode(
     'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
@@ -4269,7 +4345,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// Parameters:
   /// 0: the name of the superclass that does not define an implicitly invoked
   ///    constructor
-  /// 1: the name of the subclass that does not contain any explicit constructors
+  /// 1: the name of the subclass that does not contain any explicit
+  ///    constructors
   static const CompileTimeErrorCode
   NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT = CompileTimeErrorCode(
     'NO_DEFAULT_SUPER_CONSTRUCTOR',
@@ -4334,6 +4411,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// 7.9 Superclasses: It is a compile-time error to specify an extends clause
   /// for class Object.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode OBJECT_CANNOT_EXTEND_ANOTHER_CLASS =
       CompileTimeErrorCode(
         'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
@@ -4593,6 +4672,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
       );
 
   /// The documentation is in `front_end/message.yaml`.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA = CompileTimeErrorCode(
     'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
@@ -4617,13 +4698,13 @@ class CompileTimeErrorCode extends DiagnosticCode {
         "The constant constructor depends on itself.",
       );
 
-  /// No parameters.
-  ///
   /// TODO(scheglov): review this later, there are no explicit "it is a
   /// compile-time error" in specification. But it was added to the co19 and
   /// there is same error for factories.
   ///
   /// https://code.google.com/p/dart/issues/detail?id=954
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode
   RECURSIVE_CONSTRUCTOR_REDIRECT = CompileTimeErrorCode(
     'RECURSIVE_CONSTRUCTOR_REDIRECT',
@@ -4745,7 +4826,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
 
   /// Parameters:
   /// 0: the name of the redirecting constructor
-  /// 1: the name of the abstract class defining the constructor being redirected to
+  /// 1: the name of the abstract class defining the constructor being
+  ///    redirected to
   static const CompileTimeErrorCode
   REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR = CompileTimeErrorCode(
     'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
@@ -5022,6 +5104,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(
         'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
@@ -5101,6 +5184,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
   /// is a compile-time error if a generative constructor of class Object
   /// includes a superinitializer.
+  ///
+  /// No parameters.
   static const CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT =
       CompileTimeErrorCode(
         'SUPER_INITIALIZER_IN_OBJECT',
@@ -5248,11 +5333,11 @@ class CompileTimeErrorCode extends DiagnosticCode {
         hasPublishedDocs: true,
       );
 
+  /// See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+  ///
   /// Parameters:
   /// 0: the name of the type parameter
   /// 1: the name of the bounding type
-  ///
-  /// See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
   static const CompileTimeErrorCode TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND =
       CompileTimeErrorCode(
         'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
@@ -5284,6 +5369,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   UNCHECKED_INVOCATION_OF_NULLABLE_VALUE = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5333,6 +5419,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5344,6 +5431,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5355,6 +5443,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5366,6 +5455,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode
   UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH = CompileTimeErrorCode(
     'UNCHECKED_USE_OF_NULLABLE_VALUE',
@@ -5467,6 +5557,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     uniqueName: 'UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED =
       CompileTimeErrorCode(
         'UNDEFINED_ENUM_CONSTRUCTOR',
@@ -5809,6 +5900,7 @@ class CompileTimeErrorCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const CompileTimeErrorCode VALUES_DECLARATION_IN_ENUM =
       CompileTimeErrorCode(
         'VALUES_DECLARATION_IN_ENUM',
@@ -5842,8 +5934,8 @@ class CompileTimeErrorCode extends DiagnosticCode {
   /// Parameters:
   /// 0: the name of the type parameter
   /// 1: the variance modifier defined for {0}
-  /// 2: the variance position of the type parameter {0} in the
-  ///    superinterface {3}
+  /// 2: the variance position of the type parameter {0} in the superinterface
+  ///    {3}
   /// 3: the name of the superinterface
   static const CompileTimeErrorCode
   WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE = CompileTimeErrorCode(
@@ -6462,6 +6554,7 @@ class WarningCode extends DiagnosticCode {
         correctionMessage: "Try removing the unexpected argument.",
       );
 
+  /// No parameters.
   static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_BRACE = WarningCode(
     'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
     "Doc directive is missing a closing curly brace ('}').",
@@ -6529,6 +6622,7 @@ class WarningCode extends DiagnosticCode {
     correctionMessage: "Try using one of the supported doc directives.",
   );
 
+  /// No parameters.
   static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
     'DOC_IMPORT_CANNOT_BE_DEFERRED',
     "Doc imports can't be deferred.",
@@ -6536,6 +6630,7 @@ class WarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_COMBINATORS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
     "Doc imports can't have show or hide combinators.",
@@ -6543,6 +6638,7 @@ class WarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
     "Doc imports can't have configurations.",
@@ -6550,6 +6646,7 @@ class WarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const WarningCode DOC_IMPORT_CANNOT_HAVE_PREFIX = WarningCode(
     'DOC_IMPORT_CANNOT_HAVE_PREFIX',
     "Doc imports can't have prefixes.",
@@ -6762,8 +6859,9 @@ class WarningCode extends DiagnosticCode {
   );
 
   /// Parameters:
-  /// 0: the name of the element
-  /// 1: ?
+  /// 0: the name of the internal element
+  /// 1: the name of the exported element that indirectly exposes the internal
+  ///    element
   static const WarningCode
   INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY = WarningCode(
     'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
@@ -6835,6 +6933,7 @@ class WarningCode extends DiagnosticCode {
     uniqueName: 'INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
   );
 
+  /// No parameters.
   static const WarningCode
   INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION = WarningCode(
     'INVALID_LANGUAGE_VERSION_OVERRIDE',
@@ -6921,7 +7020,7 @@ class WarningCode extends DiagnosticCode {
   /// This warning is generated anywhere where `@nonVirtual` annotates something
   /// other than a non-abstract instance member in a class or mixin.
   ///
-  /// No Parameters.
+  /// No parameters.
   static const WarningCode INVALID_NON_VIRTUAL_ANNOTATION = WarningCode(
     'INVALID_NON_VIRTUAL_ANNOTATION',
     "The annotation '@nonVirtual' can only be applied to a concrete instance "
@@ -7088,6 +7187,7 @@ class WarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
+  /// No parameters.
   static const WarningCode INVALID_WIDGET_PREVIEW_APPLICATION = WarningCode(
     'INVALID_WIDGET_PREVIEW_APPLICATION',
     "The '@Preview(...)' annotation can only be applied to public, statically "
@@ -7359,7 +7459,7 @@ class WarningCode extends DiagnosticCode {
   /// dead or unreachable code are encouraged to indicate that any arguments to
   /// the call are unreachable.
   ///
-  /// Parameters: none
+  /// No parameters.
   static const WarningCode RECEIVER_OF_TYPE_NEVER = WarningCode(
     'RECEIVER_OF_TYPE_NEVER',
     "The receiver is of type 'Never', and will never complete with a value.",
@@ -7437,12 +7537,12 @@ class WarningCode extends DiagnosticCode {
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
 
-  /// No parameters.
-  ///
   /// There is also a [ParserErrorCode.EXPERIMENT_NOT_ENABLED] code which
   /// catches some cases of constructor tearoff features (like
   /// `List<int>.filled;`). Other constructor tearoff cases are not realized
   /// until resolution (like `List.filled;`).
+  ///
+  /// No parameters.
   static const WarningCode SDK_VERSION_CONSTRUCTOR_TEAROFFS = WarningCode(
     'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
     "Tearing off a constructor requires the 'constructor-tearoffs' language "

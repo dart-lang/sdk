@@ -65,10 +65,10 @@ class PubspecWarningCode extends DiagnosticCode {
     hasPublishedDocs: true,
   );
 
-  /// No parameters.
-  ///
   /// This code is deprecated in favor of the
   /// 'ASSET_NOT_STRING_OR_MAP' code, and will be removed.
+  ///
+  /// No parameters.
   static const PubspecWarningCode ASSET_NOT_STRING = PubspecWarningCode(
     'ASSET_NOT_STRING',
     "Assets are required to be file paths (strings).",
@@ -141,7 +141,8 @@ class PubspecWarningCode extends DiagnosticCode {
 
   /// Parameters:
   /// 0: the list of packages missing from the dependencies and the list of
-  /// packages missing from the dev_dependencies (if any) in the pubspec file.
+  ///    packages missing from the dev_dependencies (if any) in the pubspec
+  ///    file.
   static const PubspecWarningCode MISSING_DEPENDENCY = PubspecWarningCode(
     'MISSING_DEPENDENCY',
     "Missing a dependency on imported package '{0}'.",

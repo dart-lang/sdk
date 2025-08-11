@@ -65,7 +65,7 @@ AnalysisOptionsWarningCode:
   ANALYSIS_OPTION_DEPRECATED:
     problemMessage: "The option '{0}' is no longer supported."
     hasPublishedDocs: false
-    comment: |
+    comment: |-
       An error code indicating that the given option is deprecated.
 
       Parameters:
@@ -1152,6 +1152,7 @@ CompileTimeErrorCode:
     problemMessage: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
     correctionMessage: Try removing the 'extends' clause, either here or in the augmentation target.
     hasPublishedDocs: false
+    comment: No parameters.
   AUGMENTATION_MODIFIER_EXTRA:
     experiment: augmentations
     problemMessage: The augmentation has the '{0}' modifier that the declaration doesn't have.
@@ -1182,31 +1183,37 @@ CompileTimeErrorCode:
     problemMessage: The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
+    comment: No parameters.
   AUGMENTATION_TYPE_PARAMETER_COUNT:
     experiment: augmentations
     problemMessage: The augmentation must have the same number of type parameters as the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
+    comment: No parameters.
   AUGMENTATION_TYPE_PARAMETER_NAME:
     experiment: augmentations
     problemMessage: The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
+    comment: No parameters.
   AUGMENTATION_WITHOUT_DECLARATION:
     experiment: augmentations
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
+    comment: No parameters.
   AUGMENTED_EXPRESSION_IS_NOT_SETTER:
     experiment: augmentations
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
     correctionMessage: Try assigning a value to a setter.
     hasPublishedDocs: false
+    comment: No parameters.
   AUGMENTED_EXPRESSION_IS_SETTER:
     experiment: augmentations
     problemMessage: The augmented declaration is a setter, it can't be used to read a value.
     correctionMessage: Try assigning a value to the augmented setter.
     hasPublishedDocs: false
+    comment: No parameters.
   AUGMENTED_EXPRESSION_NOT_OPERATOR:
     experiment: augmentations
     problemMessage: The enclosing augmentation doesn't augment the operator '{0}'.
@@ -1265,10 +1272,13 @@ CompileTimeErrorCode:
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
+
+      No parameters.
   AWAIT_OF_INCOMPATIBLE_TYPE:
     problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
     correctionMessage: Try removing the `await`, or updating the extension type to implement 'Future'.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -1906,6 +1916,7 @@ CompileTimeErrorCode:
     problemMessage: Generative enum constructors must be 'const'.
     correctionMessage: Try adding the keyword 'const'.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -2103,7 +2114,10 @@ CompileTimeErrorCode:
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
-    comment: The documentation is in `front_end/message.yaml`.
+    comment: |-
+      The documentation is in `front_end/message.yaml`.
+
+      No parameters.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
@@ -2114,6 +2128,7 @@ CompileTimeErrorCode:
     problemMessage: "Concrete classes can't have 'Enum' as a superinterface."
     correctionMessage: Try specifying a different interface, or remove it from the list.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -2283,13 +2298,15 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the class defining the conflicting field
       1: the name of the conflicting field
-      2: the name of the class defining the method with which the field conflicts
+      2: the name of the class defining the method with which the field
+         conflicts
   CONFLICTING_GENERIC_INTERFACES:
     problemMessage: "The {0} '{1}' can't implement both '{2}' and '{3}' because the type arguments are different."
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the kind of the element implementing the conflicting interface
+      0: the name of the kind of the element implementing the conflicting
+         interface
       1: the name of the element implementing the conflicting interface
       2: the first conflicting type
       3: the second conflicting type
@@ -2349,7 +2366,8 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the class defining the conflicting method
       1: the name of the conflicting method
-      2: the name of the class defining the field with which the method conflicts
+      2: the name of the class defining the field with which the method
+         conflicts
   CONFLICTING_STATIC_AND_INSTANCE:
     problemMessage: "Class '{0}' can't define static member '{1}' and have instance member '{2}.{1}' with the same name."
     correctionMessage: "Try renaming the member to a name that doesn't conflict."
@@ -2362,7 +2380,8 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the class defining the conflicting member
       1: the name of the conflicting static member
-      2: the name of the class defining the field with which the method conflicts
+      2: the name of the class defining the field with which the method
+         conflicts
   CONFLICTING_TYPE_VARIABLE_AND_CLASS:
     sharedName: CONFLICTING_TYPE_VARIABLE_AND_CONTAINER
     problemMessage: "'{0}' can't be used to name both a type parameter and the class in which the type parameter is defined."
@@ -2569,6 +2588,8 @@ CompileTimeErrorCode:
     comment: |-
       16.12.2 Const: It is a compile-time error if evaluation of a constant
       object results in an uncaught exception being thrown.
+
+      No parameters.
   CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
     problemMessage: "Can't define the 'const' constructor because the field '{0}' is initialized with a non-constant value."
     correctionMessage: "Try initializing the field to a constant value, or removing the keyword 'const' from the constructor."
@@ -2823,6 +2844,7 @@ CompileTimeErrorCode:
   CONST_EVAL_ASSERTION_FAILURE:
     problemMessage: "The assertion in this constant expression failed."
     hasPublishedDocs: false
+    comment: No parameters.
   CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
     problemMessage: "An assertion failed with message '{0}'."
     hasPublishedDocs: false
@@ -2832,13 +2854,16 @@ CompileTimeErrorCode:
   CONST_EVAL_EXTENSION_METHOD:
     problemMessage: "Extension methods can't be used in constant expressions."
     hasPublishedDocs: false
+    comment: No parameters.
   CONST_EVAL_EXTENSION_TYPE_METHOD:
     problemMessage: "Extension type methods can't be used in constant expressions."
     hasPublishedDocs: false
+    comment: No parameters.
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
     hasPublishedDocs: false
+    comment: No parameters.
   CONST_EVAL_PROPERTY_ACCESS:
     problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
     hasPublishedDocs: false
@@ -2849,18 +2874,23 @@ CompileTimeErrorCode:
   CONST_EVAL_METHOD_INVOCATION:
     problemMessage: "Methods can't be invoked in constant expressions."
     hasPublishedDocs: false
+    comment: No parameters.
   CONST_EVAL_THROWS_EXCEPTION:
     problemMessage: Evaluation of this constant expression throws an exception.
     hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if evaluation of a constant
       object results in an uncaught exception being thrown.
+
+      No parameters.
   CONST_EVAL_THROWS_IDBZE:
     problemMessage: Evaluation of this constant expression throws an IntegerDivisionByZeroException.
     hasPublishedDocs: false
     comment: |-
       16.12.2 Const: It is a compile-time error if evaluation of a constant
       object results in an uncaught exception being thrown.
+
+      No parameters.
   CONST_EVAL_TYPE_BOOL:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool'."
     hasPublishedDocs: false
@@ -2868,24 +2898,32 @@ CompileTimeErrorCode:
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form !e1", "An expression of the form
       e1 && e2", and "An expression of the form e1 || e2".
+
+      No parameters.
   CONST_EVAL_TYPE_BOOL_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool' or 'int'."
     hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form e1 & e2".
+
+      No parameters.
   CONST_EVAL_TYPE_BOOL_NUM_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'bool', 'num', 'String' or 'null'."
     hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "A literal string".
+
+      No parameters.
   CONST_EVAL_PRIMITIVE_EQUALITY:
     problemMessage: "In constant expressions, operands of the equality operator must have primitive equality."
     hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form e1 == e2".
+
+      No parameters.
   CONST_EVAL_TYPE_INT:
     problemMessage: "In constant expressions, operands of this operator must be of type 'int'."
     hasPublishedDocs: false
@@ -2893,18 +2931,24 @@ CompileTimeErrorCode:
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form ~e1", "An expression of one of
       the forms e1 >> e2".
+
+      No parameters.
   CONST_EVAL_TYPE_NUM:
     problemMessage: "In constant expressions, operands of this operator must be of type 'num'."
     hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form e1 - e2".
+
+      No parameters.
   CONST_EVAL_TYPE_NUM_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'num' or 'String'."
     hasPublishedDocs: false
     comment: |-
       See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
       for text about "An expression of the form e1 + e2".
+
+      No parameters.
   CONST_EVAL_TYPE_STRING:
     problemMessage: "In constant expressions, operands of this operator must be of type 'String'."
     hasPublishedDocs: false
@@ -2912,6 +2956,7 @@ CompileTimeErrorCode:
   CONST_EVAL_TYPE_TYPE:
     problemMessage: "In constant expressions, operands of this operator must be of type 'Type'."
     hasPublishedDocs: false
+    comment: No parameters.
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
     problemMessage: Const variables must be initialized with a constant value.
     correctionMessage: Try changing the initializer to be a constant expression.
@@ -3879,6 +3924,7 @@ CompileTimeErrorCode:
     experiment: dot-shorthands
     problemMessage: "A dot shorthand can't be used where there is no context type."
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -3988,7 +4034,8 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the static method or constructor
-      1: the name of the enclosing type where the method or constructor is being looked for
+      1: the name of the enclosing type where the method or constructor is being
+         looked for
   DUPLICATE_CONSTRUCTOR_DEFAULT:
     sharedName: DUPLICATE_CONSTRUCTOR
     problemMessage: The unnamed constructor is already defined.
@@ -4509,10 +4556,12 @@ CompileTimeErrorCode:
     problemMessage: "An enum value can't invoke a factory constructor."
     correctionMessage: Try using a generative constructor.
     hasPublishedDocs: false
+    comment: No parameters.
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum value can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -4589,10 +4638,12 @@ CompileTimeErrorCode:
     problemMessage: The result of instantiating the enum to bounds is not well-bounded.
     correctionMessage: Try using different bounds for type parameters.
     hasPublishedDocs: false
+    comment: No parameters.
   ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
     problemMessage: Mixins applied to enums can't have instance variables.
     correctionMessage: Try replacing the instance variables with getters.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -4681,6 +4732,7 @@ CompileTimeErrorCode:
     problemMessage: The name 'values' is not a valid name for an enum.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -4706,6 +4758,7 @@ CompileTimeErrorCode:
     problemMessage: The enum must have at least one enum constant.
     correctionMessage: Try declaring an enum constant.
     hasPublishedDocs: false
+    comment: No parameters.
   EQUAL_ELEMENTS_IN_CONST_SET:
     problemMessage: "Two elements in a constant set literal can't be equal."
     correctionMessage: Change or remove the duplicate element.
@@ -6012,6 +6065,7 @@ CompileTimeErrorCode:
     problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the field initializer or the 'external' keyword from the field declaration."
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -6061,11 +6115,13 @@ CompileTimeErrorCode:
     problemMessage: External fields can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
     hasPublishedDocs: true
+    comment: No parameters.
   EXTERNAL_VARIABLE_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External variables can't have initializers.
     correctionMessage: "Try removing the initializer or the 'external' keyword."
     hasPublishedDocs: true
+    comment: No parameters.
   EXTRA_POSITIONAL_ARGUMENTS:
     problemMessage: "Too many positional arguments: {0} expected, but {1} found."
     correctionMessage: Try removing the extra arguments.
@@ -6586,7 +6642,8 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the final class being used as a mixin superclass constraint.
+      0: the name of the final class being used as a mixin superclass
+         constraint.
   FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
     problemMessage: "'{0}' is final and was given a value when it was declared, so it can't be set to a new value."
     correctionMessage: Try removing one of the initializations.
@@ -6931,6 +6988,8 @@ CompileTimeErrorCode:
     comment: |-
       It is a compile-time error if a generic function type is used as a bound
       for a formal type parameter of a class or a function.
+
+      No parameters.
   GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT:
     problemMessage: "A generic function type can't be a type argument."
     correctionMessage: "Try removing type parameters from the generic function type, or using 'dynamic' as the type argument here."
@@ -6938,6 +6997,8 @@ CompileTimeErrorCode:
     comment: |-
       It is a compile-time error if a generic function type is used as an actual
       type argument.
+
+      No parameters.
   GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
     problemMessage: "A method tear-off on a receiver whose type is 'dynamic' can't have type arguments."
     correctionMessage: Specify the type of the receiver, or remove the type arguments from the method tear-off.
@@ -7051,6 +7112,7 @@ CompileTimeErrorCode:
     problemMessage: "Constant values from a deferred library can't be used as values in an if condition inside a const collection literal."
     correctionMessage: Try making the deferred import non-deferred.
     hasPublishedDocs: false
+    comment: No parameters.
   ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
     problemMessage: "Functions marked 'async*' must have a return type that is a supertype of 'Stream<T>' for some type 'T'."
     correctionMessage: "Try fixing the return type of the function, or removing the modifier 'async*' from the function body."
@@ -7132,6 +7194,7 @@ CompileTimeErrorCode:
     problemMessage: An instance member named 'values' can't be declared in a class that implements 'Enum'.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -8018,7 +8081,8 @@ CompileTimeErrorCode:
       0: the name of the static member
       1: the kind of the static member (field, getter, setter, or method)
       2: the name of the static member's enclosing element
-      3: the kind of the static member's enclosing element (class, mixin, or extension)
+      3: the kind of the static member's enclosing element (class, mixin, or
+         extension)
     documentation: |-
       #### Description
 
@@ -8565,77 +8629,77 @@ CompileTimeErrorCode:
     problemMessage: "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This means its parameter or return type doesn't match what is expected."
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the name of the function
       1: the type of the function
       2: the expected function type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CAST_FUNCTION_EXPR:
     problemMessage: The function expression type '{0}' isn't of type '{1}'. This means its parameter or return type doesn't match what is expected. Consider changing parameter type(s) or the returned type(s).
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the type of the torn-off function expression
       1: the expected function type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL:
     problemMessage: "The literal '{0}' with type '{1}' isn't of expected type '{2}'."
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the lexeme of the literal
       1: the type of the literal
       2: the expected type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_LIST:
     problemMessage: "The list literal type '{0}' isn't of expected type '{1}'. The list's type can be changed with an explicit generic type argument or by changing the element types."
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the type of the list literal
       1: the expected type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_MAP:
     problemMessage: "The map literal type '{0}' isn't of expected type '{1}'. The map's type can be changed with an explicit generic type arguments or by changing the key and value types."
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the type of the map literal
       1: the expected type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CAST_LITERAL_SET:
     problemMessage: "The set literal type '{0}' isn't of expected type '{1}'. The set's type can be changed with an explicit generic type argument or by changing the element types."
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the type of the set literal
       1: the expected type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CAST_METHOD:
     problemMessage: "The method tear-off '{0}' has type '{1}' that isn't of expected type '{2}'. This means its parameter or return type doesn't match what is expected."
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the name of the torn-off method
       1: the type of the torn-off method
       2: the expected function type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CAST_NEW_EXPR:
     problemMessage: "The constructor returns type '{0}' that isn't of expected type '{1}'."
     hasPublishedDocs: false
     comment: |-
+      This error is only reported in libraries which are not null safe.
+
       Parameters:
       0: the type of the instantiated object
       1: the expected type
-
-      This error is only reported in libraries which are not null safe.
   INVALID_CONSTANT:
     problemMessage: Invalid constant value.
     hasPublishedDocs: false
@@ -8645,6 +8709,8 @@ CompileTimeErrorCode:
       for more informative errors.
 
       See TODOs in ConstantVisitor
+
+      No parameters.
   INVALID_EXTENSION_ARGUMENT_COUNT:
     problemMessage: "Extension overrides must have exactly one argument: the value of 'this' in the extension method."
     correctionMessage: Try specifying exactly one argument.
@@ -8855,15 +8921,15 @@ CompileTimeErrorCode:
     problemMessage: "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')."
     hasPublishedDocs: true
     comment: |-
+      The parameters of this error code must be kept in sync with those of
+      [CompileTimeErrorCode.INVALID_OVERRIDE].
+
       Parameters:
       0: the name of the declared member that is not a valid override.
       1: the name of the interface that declares the member.
       2: the type of the declared member in the interface.
       3: the name of the interface with the overridden member.
       4: the type of the overridden member.
-
-      These parameters must be kept in sync with those of
-      [CompileTimeErrorCode.INVALID_OVERRIDE].
     documentation: |-
       #### Description
 
@@ -8951,15 +9017,15 @@ CompileTimeErrorCode:
     problemMessage: "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')."
     hasPublishedDocs: true
     comment: |-
+      The parameters of this error code must be kept in sync with those of
+      [CompileTimeErrorCode.INVALID_OVERRIDE].
+
       Parameters:
       0: the name of the declared setter that is not a valid override.
       1: the name of the interface that declares the setter.
       2: the type of the declared setter in the interface.
       3: the name of the interface with the overridden setter.
       4: the type of the overridden setter.
-
-      These parameters must be kept in sync with those of
-      [CompileTimeErrorCode.INVALID_OVERRIDE].
   INVALID_INLINE_FUNCTION_TYPE:
     problemMessage: "Inline function types can't be used for parameters in a generic function type."
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
@@ -9158,6 +9224,7 @@ CompileTimeErrorCode:
     problemMessage: Generative enum constructors can only be used as targets of redirection.
     correctionMessage: Try using an enum value, or a factory constructor.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -9426,7 +9493,10 @@ CompileTimeErrorCode:
     problemMessage: "The 'covariant' keyword can only be used for parameters in instance methods or before non-final instance fields."
     correctionMessage: "Try removing the 'covariant' keyword."
     hasPublishedDocs: false
-    comment: "The 'covariant' keyword was found in an inappropriate location."
+    comment: |-
+      The 'covariant' keyword was found in an inappropriate location.
+
+      No parameters.
   INVALID_USE_OF_NULL_VALUE:
     problemMessage: "An expression whose value is always 'null' can't be dereferenced."
     correctionMessage: Try changing the type of the expression.
@@ -10130,6 +10200,8 @@ CompileTimeErrorCode:
 
       Note: This diagnostic is never displayed to the user, so it doesn't need
       to be documented.
+
+      No parameters.
   MISSING_CONST_IN_MAP_LITERAL:
     problemMessage: Seeing this message constitutes a bug. Please report it.
     hasPublishedDocs: false
@@ -10138,6 +10210,8 @@ CompileTimeErrorCode:
 
       Note: This diagnostic is never displayed to the user, so it doesn't need
       to be documented.
+
+      No parameters.
   MISSING_CONST_IN_SET_LITERAL:
     problemMessage: Seeing this message constitutes a bug. Please report it.
     hasPublishedDocs: false
@@ -10146,6 +10220,8 @@ CompileTimeErrorCode:
 
       Note: This diagnostic is never displayed to the user, so it doesn't need
       to be documented.
+
+      No parameters.
   MISSING_DART_LIBRARY:
     problemMessage: "Required library '{0}' is missing."
     correctionMessage: Re-install the Dart or Flutter SDK.
@@ -10961,6 +11037,8 @@ CompileTimeErrorCode:
     comment: |-
       9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
       denote a class available in the immediately enclosing scope.
+
+      No parameters.
   MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
     problemMessage: Constructors can have only one 'this' redirection, at most.
     correctionMessage: Try removing all but one of the redirections.
@@ -11933,6 +12011,8 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
+
+      No parameters.
   NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
     problemMessage: "An extension type parameter can't be used in a non-covariant position of its representation type."
     correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
@@ -13005,7 +13085,8 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the superclass that does not define an implicitly invoked
          constructor
-      1: the name of the subclass that does not contain any explicit constructors
+      1: the name of the subclass that does not contain any explicit
+         constructors
   NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
     problemMessage: "The class '{0}' can't extend '{1}' because '{1}' only has factory constructors (no generative constructors), and '{0}' has at least one generative constructor."
     correctionMessage: "Try implementing the class instead, adding a generative (not factory) constructor to the superclass '{1}', or a factory constructor to the subclass."
@@ -13229,6 +13310,8 @@ CompileTimeErrorCode:
     comment: |-
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
+
+      No parameters.
   OBSOLETE_COLON_FOR_DEFAULT_VALUE:
     problemMessage: Using a colon as the separator before a default value is no longer supported.
     correctionMessage: Try replacing the colon with an equal sign.
@@ -14229,13 +14312,13 @@ CompileTimeErrorCode:
     correctionMessage: Try changing one of the constructors in the loop to not redirect.
     hasPublishedDocs: true
     comment: |-
-      No parameters.
-
       TODO(scheglov): review this later, there are no explicit "it is a
       compile-time error" in specification. But it was added to the co19 and
       there is same error for factories.
 
       https://code.google.com/p/dart/issues/detail?id=954
+
+      No parameters.
     documentation: |-
       #### Description
 
@@ -14503,7 +14586,8 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the redirecting constructor
-      1: the name of the abstract class defining the constructor being redirected to
+      1: the name of the abstract class defining the constructor being
+         redirected to
     documentation: |-
       #### Description
 
@@ -15508,6 +15592,7 @@ CompileTimeErrorCode:
     problemMessage: "Constant values from a deferred library can't be spread into a const literal."
     correctionMessage: Try making the deferred import non-deferred.
     hasPublishedDocs: false
+    comment: No parameters.
   STATIC_ACCESS_TO_INSTANCE_MEMBER:
     problemMessage: "Instance member '{0}' can't be accessed using static access."
     hasPublishedDocs: true
@@ -16024,6 +16109,8 @@ CompileTimeErrorCode:
       7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
       is a compile-time error if a generative constructor of class Object
       includes a superinitializer.
+
+      No parameters.
   SUPER_INVOCATION_NOT_LAST:
     previousName: INVALID_SUPER_INVOCATION
     problemMessage: "The superconstructor call must be last in an initializer list: '{0}'."
@@ -16591,11 +16678,11 @@ CompileTimeErrorCode:
     correctionMessage: "Try using a type that is the same as or a subclass of '{1}'."
     hasPublishedDocs: true
     comment: |-
+      See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
+
       Parameters:
       0: the name of the type parameter
       1: the name of the bounding type
-
-      See [CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS].
     documentation: |-
       #### Description
 
@@ -16732,11 +16819,13 @@ CompileTimeErrorCode:
     problemMessage: "A nullable expression can't be used in a spread."
     correctionMessage: "Try checking that the value isn't 'null' before using it in a spread, or use a null-aware spread."
     hasPublishedDocs: true
+    comment: No parameters.
   UNCHECKED_INVOCATION_OF_NULLABLE_VALUE:
     sharedName: UNCHECKED_USE_OF_NULLABLE_VALUE
     problemMessage: "The function can't be unconditionally invoked because it can be 'null'."
     correctionMessage: "Try adding a null check ('!')."
     hasPublishedDocs: true
+    comment: No parameters.
   UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE:
     sharedName: UNCHECKED_USE_OF_NULLABLE_VALUE
     problemMessage: "The method '{0}' can't be unconditionally invoked because the receiver can be 'null'."
@@ -16758,11 +16847,13 @@ CompileTimeErrorCode:
     problemMessage: "A nullable expression can't be used in a yield-each statement."
     correctionMessage: "Try checking that the value isn't 'null' before using it in a yield-each statement."
     hasPublishedDocs: true
+    comment: No parameters.
   UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION:
     sharedName: UNCHECKED_USE_OF_NULLABLE_VALUE
     problemMessage: "A nullable expression can't be used as a condition."
     correctionMessage: "Try checking that the value isn't 'null' before using it as a condition."
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -16824,6 +16915,7 @@ CompileTimeErrorCode:
     problemMessage: "A nullable expression can't be used as an iterator in a for-in loop."
     correctionMessage: "Try checking that the value isn't 'null' before using it as an iterator."
     hasPublishedDocs: true
+    comment: No parameters.
   UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE:
     sharedName: UNCHECKED_USE_OF_NULLABLE_VALUE
     problemMessage: "The property '{0}' can't be unconditionally accessed because the receiver can be 'null'."
@@ -17143,6 +17235,7 @@ CompileTimeErrorCode:
     problemMessage: The enum doesn't have an unnamed constructor.
     correctionMessage: Try adding the name of an existing constructor, or defining an unnamed constructor.
     hasPublishedDocs: true
+    comment: No parameters.
   UNDEFINED_EXTENSION_GETTER:
     problemMessage: "The getter '{0}' isn't defined for the extension '{1}'."
     correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '{0}'."
@@ -18219,6 +18312,7 @@ CompileTimeErrorCode:
     problemMessage: A member named 'values' can't be declared in an enum.
     correctionMessage: Try using a different name.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -18310,8 +18404,8 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the type parameter
       1: the variance modifier defined for {0}
-      2: the variance position of the type parameter {0} in the
-         superinterface {3}
+      2: the variance position of the type parameter {0} in the superinterface
+         {3}
       3: the name of the superinterface
   WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR:
     problemMessage: "Operator '{0}' should declare exactly {1} parameters, but {2} found."
@@ -19225,7 +19319,7 @@ FfiCode:
     problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native"
     correctionMessage: "Try passing a static function or field annotated with '@Native'"
     hasPublishedDocs: true
-    comment: No parameters
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19352,7 +19446,7 @@ FfiCode:
     problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
     correctionMessage: "Try adding a type parameter extending `NativeType` to the `@Native` annotation."
     hasPublishedDocs: true
-    comment: "No parameters"
+    comment: "No parameters."
     documentation: |-
       #### Description
 
@@ -19396,7 +19490,7 @@ FfiCode:
     problemMessage: "Native fields must be static."
     correctionMessage: "Try adding the modifier 'static' to this field."
     hasPublishedDocs: true
-    comment: "No parameters"
+    comment: "No parameters."
     documentation: |-
       #### Description
 
@@ -19463,7 +19557,7 @@ FfiCode:
     problemMessage: The native type of this function couldn't be inferred so it must be specified in the annotation.
     correctionMessage: Try adding a type parameter extending `NativeType` to the `@Native` annotation.
     hasPublishedDocs: true
-    comment: No parameters
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19919,7 +20013,7 @@ FfiCode:
     problemMessage: "There may be at most one @DefaultAsset annotation on a library."
     correctionMessage: "Try removing the extra annotation."
     hasPublishedDocs: true
-    comment: No parameters
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -19953,7 +20047,7 @@ FfiCode:
     problemMessage: "Native functions and fields must have exactly one `@Native` annotation."
     correctionMessage: "Try removing the extra annotation."
     hasPublishedDocs: true
-    comment: No parameters
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -21352,10 +21446,10 @@ HintCode:
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
     comment: |-
-      No parameters.
-
       Note: Since this diagnostic is only produced in pre-3.0 code, we do not
       plan to go through the exercise of converting it to a Warning.
+
+      No parameters.
     documentation: |-
       #### Description
 
@@ -21422,11 +21516,11 @@ HintCode:
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
     comment: |-
-      Parameters:
-      0: the name of the member
-
       This code is deprecated in favor of the
       'deprecated_member_from_same_package' lint rule, and will be removed.
+
+      Parameters:
+      0: the name of the member
     documentation: |-
       #### Description
 
@@ -21454,12 +21548,12 @@ HintCode:
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
     hasPublishedDocs: true
     comment: |-
+      This code is deprecated in favor of the
+      'deprecated_member_from_same_package' lint rule, and will be removed.
+
       Parameters:
       0: the name of the member
       1: message details
-
-      This code is deprecated in favor of the
-      'deprecated_member_from_same_package' lint rule, and will be removed.
   DIVISION_OPTIMIZATION:
     removedIn: "3.5"
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
@@ -21665,11 +21759,16 @@ ManifestWarningCode:
     comment: |-
       A code indicating that the camera permissions is not supported on Chrome
       OS.
+
+      No parameters.
   NON_RESIZABLE_ACTIVITY:
     problemMessage: The `<activity>` element should be allowed to be resized to allow users to take advantage of the multi-window environment on Chrome OS
     correctionMessage: Consider declaring the corresponding activity element with `resizableActivity="true"` attribute.
     hasPublishedDocs: false
-    comment: A code indicating that the activity is set to be non resizable.
+    comment: |-
+      A code indicating that the activity is set to be non resizable.
+
+      No parameters.
   NO_TOUCHSCREEN_FEATURE:
     problemMessage: 'The default "android.hardware.touchscreen" needs to be optional for Chrome OS. '
     correctionMessage: 'Consider adding <uses-feature android:name="android.hardware.touchscreen" android:required="false" /> to the manifest.'
@@ -21677,6 +21776,8 @@ ManifestWarningCode:
     comment: |-
       A code indicating that the touchscreen feature is not specified in the
       manifest.
+
+      No parameters.
   PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE:
     problemMessage: "Permission makes app incompatible for Chrome OS, consider adding optional {0} feature tag, "
     correctionMessage: ' Try adding `<uses-feature android:name="{0}"  android:required="false">`.'
@@ -21691,7 +21792,10 @@ ManifestWarningCode:
     problemMessage: The `<activity>` element should not be locked to any orientation so that users can take advantage of the multi-window environments and larger screens on Chrome OS
     correctionMessage: Consider declaring the corresponding activity element with `screenOrientation="unspecified"` or `"fullSensor"` attribute.
     hasPublishedDocs: false
-    comment: A code indicating that the activity is locked to an orientation.
+    comment: |-
+      A code indicating that the activity is locked to an orientation.
+
+      No parameters.
   UNSUPPORTED_CHROME_OS_FEATURE:
     problemMessage: "The feature {0} isn't supported on Chrome OS, consider making it optional."
     correctionMessage: 'Try changing to `android:required="false"` for this feature.'
@@ -21716,6 +21820,7 @@ ParserErrorCode:
     problemMessage: "Static methods can't be declared to be 'abstract'."
     correctionMessage: "Try removing the keyword 'abstract'."
     hasPublishedDocs: false
+    comment: No parameters.
   ASYNC_KEYWORD_USED_AS_IDENTIFIER:
     problemMessage: "The keywords 'await' and 'yield' can't be used as identifiers in an asynchronous or generator function."
     hasPublishedDocs: false
@@ -21723,14 +21828,18 @@ ParserErrorCode:
       16.32 Identifier Reference: It is a compile-time error if any of the
       identifiers async, await, or yield is used as an identifier in a function
       body marked with either async, async, or sync.
+
+      No parameters.
   CONST_CONSTRUCTOR_WITH_BODY:
     problemMessage: "Const constructors can't have a body."
     correctionMessage: "Try removing either the 'const' keyword or the body."
     hasPublishedDocs: false
+    comment: No parameters.
   COVARIANT_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'covariant'."
     correctionMessage: "Try removing the keyword 'covariant'."
     hasPublishedDocs: false
+    comment: No parameters.
   DEFAULT_VALUE_IN_FUNCTION_TYPE:
     problemMessage: "Parameters in a function type can't have default values."
     correctionMessage: Try removing the default value.
@@ -21766,53 +21875,65 @@ ParserErrorCode:
     problemMessage: An enum must declare at least one constant name.
     correctionMessage: Try declaring a constant.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_CASE_OR_DEFAULT:
     problemMessage: "Expected 'case' or 'default'."
     correctionMessage: Try placing this code inside a case clause.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_CLASS_MEMBER:
     problemMessage: Expected a class member.
     correctionMessage: Try placing this code inside a class member.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_EXECUTABLE:
     problemMessage: Expected a method, getter, setter or operator declaration.
     correctionMessage: This appears to be incomplete code. Try removing it or completing it.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_LIST_OR_MAP_LITERAL:
     problemMessage: Expected a list or map literal.
     correctionMessage: Try inserting a list or map literal, or remove the type arguments.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_NAMED_TYPE_EXTENDS:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a class name.
     correctionMessage: Try using a class name, possibly with type arguments.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_NAMED_TYPE_IMPLEMENTS:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected the name of a class or mixin.
     correctionMessage: Try using a class or mixin name, possibly with type arguments.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_NAMED_TYPE_ON:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected the name of a class or mixin.
     correctionMessage: Try using a class or mixin name, possibly with type arguments.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_NAMED_TYPE_WITH:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a mixin name.
     correctionMessage: Try using a mixin name, possibly with type arguments.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_REPRESENTATION_FIELD:
     problemMessage: Expected a representation field.
     correctionMessage: Try providing the representation field for this extension type.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_REPRESENTATION_TYPE:
     problemMessage: Expected a representation type.
     correctionMessage: Try providing the representation type for this extension type.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_STRING_LITERAL:
     problemMessage: Expected a string literal.
     hasPublishedDocs: false
+    comment: No parameters.
   EXPECTED_TOKEN:
     problemMessage: "Expected to find '{0}'."
     hasPublishedDocs: false
@@ -21822,42 +21943,52 @@ ParserErrorCode:
   EXPECTED_TYPE_NAME:
     problemMessage: Expected a type name.
     hasPublishedDocs: false
+    comment: No parameters.
   EXTERNAL_GETTER_WITH_BODY:
     problemMessage: "External getters can't have a body."
     correctionMessage: "Try removing the body of the getter, or removing the keyword 'external'."
     hasPublishedDocs: false
+    comment: No parameters.
   EXTERNAL_OPERATOR_WITH_BODY:
     problemMessage: "External operators can't have a body."
     correctionMessage: "Try removing the body of the operator, or removing the keyword 'external'."
     hasPublishedDocs: false
+    comment: No parameters.
   EXTERNAL_SETTER_WITH_BODY:
     problemMessage: "External setters can't have a body."
     correctionMessage: "Try removing the body of the setter, or removing the keyword 'external'."
     hasPublishedDocs: false
+    comment: No parameters.
   FACTORY_WITHOUT_BODY:
     problemMessage: "A non-redirecting 'factory' constructor must have a body."
     correctionMessage: Try adding a body to the constructor.
     hasPublishedDocs: false
+    comment: No parameters.
   FACTORY_WITH_INITIALIZERS:
     problemMessage: "A 'factory' constructor can't have initializers."
     correctionMessage: "Try removing the 'factory' keyword to make this a generative constructor, or removing the initializers."
     hasPublishedDocs: false
+    comment: No parameters.
   FINAL_CONSTRUCTOR:
     problemMessage: "A constructor can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
     hasPublishedDocs: false
+    comment: No parameters.
   FINAL_METHOD:
     problemMessage: "Getters, setters and methods can't be declared to be 'final'."
     correctionMessage: "Try removing the keyword 'final'."
     hasPublishedDocs: false
+    comment: No parameters.
   GETTER_IN_FUNCTION:
     problemMessage: "Getters can't be defined within methods or functions."
     correctionMessage: Try moving the getter outside the method or function, or converting the getter to a function.
     hasPublishedDocs: false
+    comment: No parameters.
   GETTER_WITH_PARAMETERS:
     problemMessage: Getters must be declared without a parameter list.
     correctionMessage: "Try removing the parameter list, or removing the keyword 'get' to define a method rather than a getter."
     hasPublishedDocs: false
+    comment: No parameters.
   INVALID_CODE_POINT:
     problemMessage: "The escape sequence '{0}' isn't a valid code point."
     hasPublishedDocs: false
@@ -21867,91 +21998,111 @@ ParserErrorCode:
   INVALID_COMMENT_REFERENCE:
     problemMessage: "Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else."
     hasPublishedDocs: false
+    comment: No parameters.
   INVALID_GENERIC_FUNCTION_TYPE:
     problemMessage: Invalid generic function type.
     correctionMessage: "Try using a generic function type (returnType 'Function(' parameters ')')."
     hasPublishedDocs: false
+    comment: No parameters.
   INVALID_LITERAL_IN_CONFIGURATION:
     problemMessage: "The literal in a configuration can't contain interpolation."
     correctionMessage: Try removing the interpolation expressions.
     hasPublishedDocs: false
+    comment: No parameters.
   INVALID_OPERATOR_FOR_SUPER:
     problemMessage: "The operator '{0}' can't be used with 'super'."
     hasPublishedDocs: false
     comment: |-
-      Parameters:
-      0: the operator being applied to 'super'
-
       Only generated by the old parser.
       Replaced by INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER.
+
+      Parameters:
+      0: the operator being applied to 'super'
   INVALID_STAR_AFTER_ASYNC:
     problemMessage: "The modifier 'async*' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
     hasPublishedDocs: false
+    comment: No parameters.
   INVALID_SYNC:
     problemMessage: "The modifier 'sync' isn't allowed for an expression function body."
     correctionMessage: Try converting the body to a block.
     hasPublishedDocs: false
+    comment: No parameters.
   INVALID_USE_OF_IDENTIFIER_AUGMENTED:
     experiment: augmentations
     problemMessage: The identifier 'augmented' can only be used to reference the augmented declaration inside an augmentation.
     correctionMessage: Try using a different identifier.
     hasPublishedDocs: false
+    comment: No parameters.
   LOCAL_FUNCTION_DECLARATION_MODIFIER:
     problemMessage: "Local function declarations can't specify any modifiers."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_CLOSING_PARENTHESIS:
     problemMessage: The closing parenthesis is missing.
     correctionMessage: Try adding the closing parenthesis.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_ENUM_BODY:
     problemMessage: An enum definition must have a body with at least one constant name.
     correctionMessage: Try adding a body and defining at least one constant.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_EXPRESSION_IN_INITIALIZER:
     problemMessage: Expected an expression after the assignment operator.
     correctionMessage: Try adding the value to be assigned, or remove the assignment operator.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_FUNCTION_BODY:
     problemMessage: A function body must be provided.
     correctionMessage: Try adding a function body.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_FUNCTION_KEYWORD:
     problemMessage: "Function types must have the keyword 'Function' before the parameter list."
     correctionMessage: "Try adding the keyword 'Function'."
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_FUNCTION_PARAMETERS:
     problemMessage: Functions must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_GET:
     problemMessage: "Getters must have the keyword 'get' before the getter name."
     correctionMessage: "Try adding the keyword 'get'."
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_IDENTIFIER:
     problemMessage: Expected an identifier.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_METHOD_PARAMETERS:
     problemMessage: Methods must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_NAME_FOR_NAMED_PARAMETER:
     problemMessage: Named parameters in a function type must have a name
     correctionMessage: Try providing a name for the parameter or removing the curly braces.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_NAME_IN_LIBRARY_DIRECTIVE:
     problemMessage: Library directives must include a library name.
     correctionMessage: "Try adding a library name after the keyword 'library', or remove the library directive if the library doesn't have any parts."
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_NAME_IN_PART_OF_DIRECTIVE:
     problemMessage: Part-of directives must include a library name.
     correctionMessage: "Try adding a library name after the 'of'."
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_STAR_AFTER_SYNC:
     problemMessage: "The modifier 'sync' must be followed by a star ('*')."
     correctionMessage: Try removing the modifier, or add a star.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to close the parameter group."
     correctionMessage: "Try inserting a '{0}' at the end of the group."
@@ -21963,30 +22114,37 @@ ParserErrorCode:
     problemMessage: Typedefs must have an explicit list of parameters.
     correctionMessage: Try adding a parameter list.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_VARIABLE_IN_FOR_EACH:
     problemMessage: "A loop variable must be declared in a for-each loop before the 'in', but none was found."
     correctionMessage: Try declaring a loop variable.
     hasPublishedDocs: false
+    comment: No parameters.
   MIXED_PARAMETER_GROUPS:
     problemMessage: "Can't have both positional and named parameters in a single parameter list."
     correctionMessage: Try choosing a single style of optional parameters.
     hasPublishedDocs: false
+    comment: No parameters.
   MULTIPLE_IMPLEMENTS_CLAUSES:
     problemMessage: Each class or mixin definition can have at most one implements clause.
     correctionMessage: Try combining all of the implements clauses into a single clause.
     hasPublishedDocs: false
+    comment: No parameters.
   MULTIPLE_NAMED_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of named parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
     hasPublishedDocs: false
+    comment: No parameters.
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
     hasPublishedDocs: false
+    comment: No parameters.
   MULTIPLE_REPRESENTATION_FIELDS:
     problemMessage: Each extension type should have exactly one representation field.
     correctionMessage: Try combining fields into a record, or removing extra fields.
     hasPublishedDocs: false
+    comment: No parameters.
   MULTIPLE_VARIABLES_IN_FOR_EACH:
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
@@ -21998,38 +22156,47 @@ ParserErrorCode:
     problemMessage: "Function expressions can't be named."
     correctionMessage: Try removing the name, or moving the function expression to a function declaration statement.
     hasPublishedDocs: false
+    comment: No parameters.
   NAMED_FUNCTION_TYPE:
     problemMessage: "Function types can't be named."
     correctionMessage: "Try replacing the name with the keyword 'Function'."
     hasPublishedDocs: false
+    comment: No parameters.
   NAMED_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Named parameters must be enclosed in curly braces ('{' and '}')."
     correctionMessage: Try surrounding the named parameters in curly braces.
     hasPublishedDocs: false
+    comment: No parameters.
   NATIVE_CLAUSE_IN_NON_SDK_CODE:
     problemMessage: Native clause can only be used in the SDK and code that is loaded through native extensions.
     correctionMessage: Try removing the native clause.
     hasPublishedDocs: false
+    comment: No parameters.
   NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
     problemMessage: Native functions can only be declared in the SDK and code that is loaded through native extensions.
     correctionMessage: "Try removing the word 'native'."
     hasPublishedDocs: false
+    comment: No parameters.
   NON_CONSTRUCTOR_FACTORY:
     problemMessage: Only a constructor can be declared to be a factory.
     correctionMessage: "Try removing the keyword 'factory'."
     hasPublishedDocs: false
+    comment: No parameters.
   NON_IDENTIFIER_LIBRARY_NAME:
     problemMessage: The name of a library must be an identifier.
     correctionMessage: Try using an identifier as the name of the library.
     hasPublishedDocs: false
+    comment: No parameters.
   NON_PART_OF_DIRECTIVE_IN_PART:
     problemMessage: The part-of directive must be the only directive in a part.
     correctionMessage: Try removing the other directives, or moving them to the library for which this is a part.
     hasPublishedDocs: false
+    comment: No parameters.
   NON_STRING_LITERAL_AS_URI:
     problemMessage: The URI must be a string literal.
     correctionMessage: Try enclosing the URI in either single or double quotes.
     hasPublishedDocs: false
+    comment: No parameters.
   NON_USER_DEFINABLE_OPERATOR:
     problemMessage: "The operator '{0}' isn't user definable."
     hasPublishedDocs: false
@@ -22040,38 +22207,47 @@ ParserErrorCode:
     problemMessage: Normal parameters must occur before optional parameters.
     correctionMessage: Try moving all of the normal parameters before the optional parameters.
     hasPublishedDocs: false
+    comment: No parameters.
   PART_OF_NAME:
     problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature."
     correctionMessage: "Try using 'part of' with a URI instead."
     hasPublishedDocs: false
+    comment: No parameters.
   POSITIONAL_AFTER_NAMED_ARGUMENT:
     problemMessage: Positional arguments must occur before named arguments.
     correctionMessage: Try moving all of the positional arguments before the named arguments.
     hasPublishedDocs: false
+    comment: No parameters.
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
     hasPublishedDocs: false
+    comment: No parameters.
   REPRESENTATION_FIELD_MODIFIER:
     problemMessage: "Representation fields can't have modifiers."
     correctionMessage: Try removing the modifier.
     hasPublishedDocs: false
+    comment: No parameters.
   REPRESENTATION_FIELD_TRAILING_COMMA:
     problemMessage: The representation field can't have a trailing comma.
     correctionMessage: Try removing the trailing comma.
     hasPublishedDocs: false
+    comment: No parameters.
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
     hasPublishedDocs: false
+    comment: No parameters.
   STATIC_GETTER_WITHOUT_BODY:
     problemMessage: "A 'static' getter must have a body."
     correctionMessage: "Try adding a body to the getter, or removing the keyword 'static'."
     hasPublishedDocs: false
+    comment: No parameters.
   STATIC_SETTER_WITHOUT_BODY:
     problemMessage: "A 'static' setter must have a body."
     correctionMessage: "Try adding a body to the setter, or removing the keyword 'static'."
     hasPublishedDocs: false
+    comment: No parameters.
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "There is no '{0}' to open a parameter group."
     correctionMessage: "Try inserting the '{0}' at the appropriate location."
@@ -22090,17 +22266,21 @@ ParserErrorCode:
     problemMessage: "Classes can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
     hasPublishedDocs: false
+    comment: No parameters.
   VAR_ENUM:
     problemMessage: "Enums can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var'."
     hasPublishedDocs: false
+    comment: No parameters.
   VAR_TYPEDEF:
     problemMessage: "Typedefs can't be declared to be 'var'."
     correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
     hasPublishedDocs: false
+    comment: No parameters.
   WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
     problemMessage: Setters must declare exactly one required positional parameter.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -22141,6 +22321,7 @@ ParserErrorCode:
     problemMessage: "The default value of a positional parameter should be preceded by '='."
     correctionMessage: "Try replacing the ':' with '='."
     hasPublishedDocs: false
+    comment: No parameters.
   WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
     problemMessage: "Expected '{0}' to close parameter group."
     correctionMessage: "Try replacing '{0}' with '{1}'."
@@ -22293,10 +22474,10 @@ PubspecWarningCode:
     correctionMessage: Try converting the value to be a string.
     hasPublishedDocs: true
     comment: |-
-      No parameters.
-
       This code is deprecated in favor of the
       'ASSET_NOT_STRING_OR_MAP' code, and will be removed.
+
+      No parameters.
     documentation: |-
       #### Description
 
@@ -22750,7 +22931,8 @@ PubspecWarningCode:
     comment: |-
       Parameters:
       0: the list of packages missing from the dependencies and the list of
-      packages missing from the dev_dependencies (if any) in the pubspec file.
+         packages missing from the dev_dependencies (if any) in the pubspec
+         file.
     documentation: |-
       #### Description
 
@@ -23076,15 +23258,19 @@ ScannerErrorCode:
   MISSING_DIGIT:
     problemMessage: Decimal digit expected.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_HEX_DIGIT:
     problemMessage: Hexadecimal digit expected.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_IDENTIFIER:
     problemMessage: Expected an identifier.
     hasPublishedDocs: false
+    comment: No parameters.
   MISSING_QUOTE:
     problemMessage: Expected quote (' or ").
     hasPublishedDocs: false
+    comment: No parameters.
   UNABLE_GET_CONTENT:
     problemMessage: Unable to get content of '{0}'.
     hasPublishedDocs: false
@@ -23095,10 +23281,12 @@ ScannerErrorCode:
     problemMessage: A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
     hasPublishedDocs: false
     correctionMessage: Try adding a backslash (\) to escape the '$'.
+    comment: No parameters.
   UNEXPECTED_SEPARATOR_IN_NUMBER:
     problemMessage: Digit separators ('_') in a number literal can only be placed between two digits.
     hasPublishedDocs: false
     correctionMessage: Try removing the '_'.
+    comment: No parameters.
   UNSUPPORTED_OPERATOR:
     problemMessage: The '{0}' operator is not supported.
     hasPublishedDocs: false
@@ -23109,9 +23297,11 @@ ScannerErrorCode:
     problemMessage: Unterminated multi-line comment.
     hasPublishedDocs: false
     correctionMessage: Try terminating the comment with '*/', or removing any unbalanced occurrences of '/*' (because comments nest in Dart).
+    comment: No parameters.
   UNTERMINATED_STRING_LITERAL:
     problemMessage: Unterminated string literal.
     hasPublishedDocs: false
+    comment: No parameters.
 StaticWarningCode:
   DEAD_NULL_AWARE_EXPRESSION:
     problemMessage: "The left operand can't be null, so the right operand is never executed."
@@ -24265,6 +24455,7 @@ WarningCode:
     problemMessage: "Doc directive is missing a closing curly brace ('}')."
     correctionMessage: "Try closing the directive with a curly brace."
     hasPublishedDocs: false
+    comment: No parameters.
   DOC_DIRECTIVE_MISSING_CLOSING_TAG:
     problemMessage: "Doc directive is missing a closing tag."
     correctionMessage: "Try closing the directive with the appropriate closing tag, '{0}'."
@@ -24328,6 +24519,7 @@ WarningCode:
     problemMessage: "Doc imports can't be deferred."
     correctionMessage: Try removing the 'deferred' keyword.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -24360,6 +24552,7 @@ WarningCode:
     problemMessage: "Doc imports can't have show or hide combinators."
     correctionMessage: Try removing the combinator.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -24390,6 +24583,7 @@ WarningCode:
     problemMessage: "Doc imports can't have configurations."
     correctionMessage: Try removing the configurations.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -24420,6 +24614,7 @@ WarningCode:
     problemMessage: "Doc imports can't have prefixes."
     correctionMessage: Try removing the prefix.
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -25017,8 +25212,9 @@ WarningCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the element
-      1: ?
+      0: the name of the internal element
+      1: the name of the exported element that indirectly exposes the internal
+         element
     documentation: |-
       #### Description
 
@@ -25249,6 +25445,7 @@ WarningCode:
     problemMessage: The language version override must be specified before any declaration or directive.
     correctionMessage: Try moving the language version override to the top of the file.
     hasPublishedDocs: true
+    comment: No parameters.
   INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE
     problemMessage: "The Dart language version override comment must be specified with the word 'dart' in all lower case."
@@ -25356,7 +25553,7 @@ WarningCode:
       This warning is generated anywhere where `@nonVirtual` annotates something
       other than a non-abstract instance member in a class or mixin.
 
-      No Parameters.
+      No parameters.
     documentation: |-
       #### Description
 
@@ -26094,6 +26291,7 @@ WarningCode:
   INVALID_WIDGET_PREVIEW_APPLICATION:
     problemMessage: "The '@Preview(...)' annotation can only be applied to public, statically accessible constructors and functions."
     hasPublishedDocs: true
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -26944,7 +27142,7 @@ WarningCode:
       dead or unreachable code are encouraged to indicate that any arguments to
       the call are unreachable.
 
-      Parameters: none
+      No parameters.
   REDECLARE_ON_NON_REDECLARING_MEMBER:
     problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
     correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
@@ -27253,12 +27451,12 @@ WarningCode:
     correctionMessage: "Try updating your pubspec.yaml to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
     hasPublishedDocs: true
     comment: |-
-      No parameters.
-
       There is also a [ParserErrorCode.EXPERIMENT_NOT_ENABLED] code which
       catches some cases of constructor tearoff features (like
       `List<int>.filled;`). Other constructor tearoff cases are not realized
       until resolution (like `List.filled;`).
+
+      No parameters.
     documentation: |-
       #### Description
 

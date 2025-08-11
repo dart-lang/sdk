@@ -29,6 +29,8 @@ import "package:_fe_analyzer_shared/src/base/errors.dart";
 class ManifestWarningCode extends DiagnosticCode {
   /// A code indicating that the camera permissions is not supported on Chrome
   /// OS.
+  ///
+  /// No parameters.
   static const ManifestWarningCode
   CAMERA_PERMISSIONS_INCOMPATIBLE = ManifestWarningCode(
     'CAMERA_PERMISSIONS_INCOMPATIBLE',
@@ -43,6 +45,8 @@ class ManifestWarningCode extends DiagnosticCode {
   );
 
   /// A code indicating that the activity is set to be non resizable.
+  ///
+  /// No parameters.
   static const ManifestWarningCode NON_RESIZABLE_ACTIVITY = ManifestWarningCode(
     'NON_RESIZABLE_ACTIVITY',
     "The `<activity>` element should be allowed to be resized to allow users "
@@ -54,6 +58,8 @@ class ManifestWarningCode extends DiagnosticCode {
 
   /// A code indicating that the touchscreen feature is not specified in the
   /// manifest.
+  ///
+  /// No parameters.
   static const ManifestWarningCode NO_TOUCHSCREEN_FEATURE = ManifestWarningCode(
     'NO_TOUCHSCREEN_FEATURE',
     "The default \"android.hardware.touchscreen\" needs to be optional for "
@@ -80,6 +86,8 @@ class ManifestWarningCode extends DiagnosticCode {
   );
 
   /// A code indicating that the activity is locked to an orientation.
+  ///
+  /// No parameters.
   static const ManifestWarningCode
   SETTING_ORIENTATION_ON_ACTIVITY = ManifestWarningCode(
     'SETTING_ORIENTATION_ON_ACTIVITY',
