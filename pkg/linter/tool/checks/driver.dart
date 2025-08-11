@@ -95,13 +95,7 @@ class Driver {
             try {
               var result = await context.currentSession.getErrors(filePath);
               if (result is ErrorsResult) {
-                var filtered =
-                    result.diagnostics
-                        .where((e) => e.diagnosticCode.name != 'TODO')
-                        .toList();
-                if (filtered.isNotEmpty) {
-                  errors.add(DiagnosticInfo(filtered, result.lineInfo));
-                }
+                errors.add(DiagnosticInfo(result.diagnostics, result.lineInfo));
               }
             } on Exception catch (e) {
               _print('Exception caught analyzing: $filePath');

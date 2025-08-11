@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
@@ -13,6 +15,7 @@ import 'package:analyzer/src/fine/requirement_failure.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// When using fine-grained dependencies, this variable might be set to
@@ -411,6 +414,31 @@ class RequirementsManifest {
       var libraryElement = elementFactory.libraryOfUri2(libraryUri);
       _addExports(libraryElement);
     }
+  }
+
+  /// Checks that this manifest can be written and read back without any
+  /// changes, and that the binary form is exactly the same each time.
+  ///
+  /// Used in `assert()` during debug runs to catch serialization issues.
+  ///
+  /// Returns `true` if everything matches. Throws [StateError] if not.
+  bool assertSerialization() {
+    Uint8List manifestAsBytes(RequirementsManifest manifest) {
+      var sink = BufferedSink();
+      manifest.write(sink);
+      return sink.takeBytes();
+    }
+
+    var bytes = manifestAsBytes(this);
+
+    var readManifest = RequirementsManifest.read(SummaryDataReader(bytes));
+    var bytes2 = manifestAsBytes(readManifest);
+
+    if (!const ListEquality<int>().equals(bytes, bytes2)) {
+      throw StateError('Requirement manifest bytes are different.');
+    }
+
+    return true;
   }
 
   /// Returns the first unsatisfied requirement, or `null` if all requirements

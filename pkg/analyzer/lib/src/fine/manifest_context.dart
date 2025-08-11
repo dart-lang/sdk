@@ -207,6 +207,7 @@ final class ManifestElement {
 enum ManifestElementKind {
   class_,
   enum_,
+  extension_,
   extensionType,
   mixin_,
   typeAlias,
@@ -226,6 +227,8 @@ enum ManifestElementKind {
         return ManifestElementKind.class_;
       case EnumElement():
         return ManifestElementKind.enum_;
+      case ExtensionElement():
+        return ManifestElementKind.extension_;
       case ExtensionTypeElement():
         return ManifestElementKind.extensionType;
       case MixinElement():

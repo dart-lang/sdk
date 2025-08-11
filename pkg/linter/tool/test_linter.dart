@@ -6,18 +6,14 @@ import 'dart:io';
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/file_system/file_system.dart' as file_system;
 import 'package:analyzer/file_system/physical_file_system.dart' as file_system;
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/lint/pub.dart';
-// ignore: implementation_imports
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:meta/meta.dart';
+import 'package:linter/src/test_utilities/analysis_error_info.dart';
 import 'package:path/path.dart' as path;
 
-import 'analysis_error_info.dart';
 import 'lint_driver.dart';
 import 'linter_options.dart';
 
@@ -27,33 +23,37 @@ Source _createSource(Uri uri) {
   return FileSource(file, uri);
 }
 
-/// Dart source linter, only for package:linter's tools and tests.
 class TestLinter implements DiagnosticListener {
   final errors = <Diagnostic>[];
 
   final LinterOptions options;
-  final file_system.ResourceProvider _resourceProvider;
+  TestLinter(this.options);
 
-  TestLinter(this.options, {file_system.ResourceProvider? resourceProvider})
-    : _resourceProvider =
-          resourceProvider ?? file_system.PhysicalResourceProvider.INSTANCE;
+  path.Context get _pathContext =>
+      file_system.PhysicalResourceProvider.INSTANCE.pathContext;
 
   Future<List<DiagnosticInfo>> lintFiles(List<File> files) async {
-    var lintDriver = LintDriver(options, _resourceProvider);
+    var lintDriver = LintDriver(options);
     var errors = await lintDriver.analyze(
       files.where((f) => f.path.endsWith('.dart')),
     );
     for (var file in files.where(_isPubspecFile)) {
-      lintPubspecSource(
+      _lintPubspecSource(
         contents: file.readAsStringSync(),
-        sourcePath: _resourceProvider.pathContext.normalize(file.absolute.path),
+        sourcePath: _pathContext.normalize(file.absolute.path),
       );
     }
     return errors;
   }
 
-  @visibleForTesting
-  void lintPubspecSource({required String contents, String? sourcePath}) {
+  @override
+  void onDiagnostic(Diagnostic error) => errors.add(error);
+
+  /// Returns whether this [entry] is a pubspec file.
+  bool _isPubspecFile(FileSystemEntity entry) =>
+      path.basename(entry.path) == file_paths.pubspecYaml;
+
+  void _lintPubspecSource({required String contents, String? sourcePath}) {
     var sourceUrl = sourcePath == null ? null : path.toUri(sourcePath);
     var spec = Pubspec.parse(contents, sourceUrl: sourceUrl);
 
@@ -75,11 +75,4 @@ class TestLinter implements DiagnosticListener {
       }
     }
   }
-
-  @override
-  void onDiagnostic(Diagnostic error) => errors.add(error);
-
-  /// Returns whether this [entry] is a pubspec file.
-  bool _isPubspecFile(FileSystemEntity entry) =>
-      path.basename(entry.path) == file_paths.pubspecYaml;
 }

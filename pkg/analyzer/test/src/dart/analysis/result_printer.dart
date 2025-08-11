@@ -1315,6 +1315,8 @@ class LibraryManifestPrinter {
                   sink.writelnWithIndent('$index = null');
                 case ManifestAstElementKind.dynamic_:
                   sink.writelnWithIndent('$index = dynamic');
+                case ManifestAstElementKind.multiplyDefined:
+                  sink.writelnWithIndent('$index = multiplyDefined');
                 case ManifestAstElementKind.formalParameter:
                   sink.writelnWithIndent('$index = formalParameter $rawIndex');
                 case ManifestAstElementKind.importPrefix:

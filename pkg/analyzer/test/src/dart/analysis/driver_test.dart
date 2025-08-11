@@ -43997,6 +43997,98 @@ const b = 0 as int;
     );
   }
 
+  test_manifest_constInitializer_identifier_addIdentifier() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@foo
+class A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        metadata
+          [0]
+            tokenBuffer: @foo
+            tokenLengthList: [1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M1
+''',
+      updatedCode: r'''
+@foo.bar
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M2
+        metadata
+          [0]
+            tokenBuffer: @foo.bar
+            tokenLengthList: [1, 3, 1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M3
+''',
+    );
+  }
+
+  test_manifest_constInitializer_identifierIdentifier_removeIdentifier() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+@foo.bar
+class A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M0
+        metadata
+          [0]
+            tokenBuffer: @foo.bar
+            tokenLengthList: [1, 3, 1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M1
+''',
+      updatedCode: r'''
+@foo
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M2
+        metadata
+          [0]
+            tokenBuffer: @foo
+            tokenLengthList: [1, 3]
+            elementIndexList
+              0 = null
+              0 = null
+        supertype: Object @ dart:core
+        interface: #M3
+''',
+    );
+  }
+
   test_manifest_constInitializer_importPrefixReference() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(
@@ -44456,6 +44548,88 @@ const b = 0;
     );
   }
 
+  test_manifest_constInitializer_multiplyDefinedElement() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const foo = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+const foo = 0;
+''');
+
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'a.dart';
+import 'b.dart';
+const x = foo;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    declaredGetters
+      foo: #M0
+        returnType: int @ dart:core
+    declaredVariables
+      foo: #M1
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+[operation] linkLibraryCycle
+  package:test/b.dart
+    declaredGetters
+      foo: #M2
+        returnType: int @ dart:core
+    declaredVariables
+      foo: #M3
+        type: int @ dart:core
+        constInitializer
+          tokenBuffer: 0
+          tokenLengthList: [1]
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredGetters
+      x: #M4
+        returnType: InvalidType
+    declaredVariables
+      x: #M5
+        type: InvalidType
+        constInitializer
+          tokenBuffer: foo
+          tokenLengthList: [3]
+          elementIndexList
+            6 = multiplyDefined
+''',
+      updatedCode: r'''
+import 'a.dart';
+import 'b.dart';
+const x = foo;
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredClasses
+      A: #M6
+        supertype: Object @ dart:core
+        interface: #M7
+    declaredGetters
+      x: #M4
+        returnType: InvalidType
+    declaredVariables
+      x: #M5
+        type: InvalidType
+        constInitializer
+          tokenBuffer: foo
+          tokenLengthList: [3]
+          elementIndexList
+            6 = multiplyDefined
+''',
+    );
+  }
+
   test_manifest_constInitializer_namedType() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -44668,6 +44842,66 @@ const d = A.b;
     declaredVariables
       c: #M8
       d: #M11
+''',
+    );
+  }
+
+  test_manifest_constInitializer_prefixedIdentifier_extensionName_fieldName() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension A on Object {
+  static const a = 0;
+  static const b = 0;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+        declaredGetters
+          a: #M3
+          b: #M4
+    declaredGetters
+      c: #M5
+      d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
+''',
+      updatedCode: r'''
+extension A on Object {
+  static const a = 0;
+  static const b = 1;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M9
+        declaredGetters
+          a: #M3
+          b: #M4
+    declaredGetters
+      c: #M5
+      d: #M6
+    declaredVariables
+      c: #M7
+      d: #M10
 ''',
     );
   }

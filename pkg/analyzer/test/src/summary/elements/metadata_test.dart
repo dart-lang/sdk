@@ -6932,6 +6932,55 @@ library
 ''');
   }
 
+  test_metadata_value_extension_staticField_unnamed() async {
+    var library = await buildLibrary('''
+extension on Object {
+  @foo
+  static const foo = 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
+          element: <testLibrary>::@extension::0
+          fields
+            #F2 hasInitializer foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
+              element: <testLibrary>::@extension::0::@field::foo
+              initializer: expression_0
+                IntegerLiteral
+                  literal: 0 @50
+                  staticType: int
+          getters
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: <testLibrary>::@extension::0::@getter::foo
+  extensions
+    extension <null-name>
+      reference: <testLibrary>::@extension::0
+      firstFragment: #F1
+      extendedType: Object
+      fields
+        static const hasInitializer foo
+          reference: <testLibrary>::@extension::0::@field::foo
+          firstFragment: #F2
+          type: int
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@extension::0::@getter::foo
+      getters
+        synthetic static foo
+          reference: <testLibrary>::@extension::0::@getter::foo
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extension::0::@field::foo
+''');
+  }
+
   test_metadata_value_prefix_extension_staticField() async {
     newFile('$testPackageLibPath/foo.dart', '''
 extension E on int {
