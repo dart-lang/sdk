@@ -44672,6 +44672,66 @@ const d = A.b;
     );
   }
 
+  test_manifest_constInitializer_prefixedIdentifier_extensionName_fieldName() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+extension A on Object {
+  static const a = 0;
+  static const b = 0;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M2
+        declaredGetters
+          a: #M3
+          b: #M4
+    declaredGetters
+      c: #M5
+      d: #M6
+    declaredVariables
+      c: #M7
+      d: #M8
+''',
+      updatedCode: r'''
+extension A on Object {
+  static const a = 0;
+  static const b = 1;
+}
+
+const c = A.a;
+const d = A.b;
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    declaredExtensions
+      A: #M0
+        declaredFields
+          a: #M1
+          b: #M9
+        declaredGetters
+          a: #M3
+          b: #M4
+    declaredGetters
+      c: #M5
+      d: #M6
+    declaredVariables
+      c: #M7
+      d: #M10
+''',
+    );
+  }
+
   test_manifest_constInitializer_prefixedIdentifier_importPrefix_className_fieldName() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {
