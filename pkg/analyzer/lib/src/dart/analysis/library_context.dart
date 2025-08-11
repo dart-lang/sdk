@@ -298,6 +298,7 @@ class LibraryContext {
           );
           globalResultRequirements = null;
           requirements.removeReqForLibs(cycle.libraryUris);
+          assert(requirements.assertSerialization());
 
           bundleEntry = LinkedBundleEntry(
             apiSignature: cycle.nonTransitiveApiSignature,
