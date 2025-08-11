@@ -154,7 +154,7 @@ class PubspecFixGenerator {
       defaultEol: endOfLine,
     );
 
-    var data = diagnostic.data as MissingDependencyData;
+    var data = MissingDependencyData.byDiagnostic[diagnostic]!;
     var addDeps = data.addDeps;
     var addDevDeps = data.addDevDeps;
     var removeDevDeps = data.removeDevDeps;

@@ -22,6 +22,8 @@
 * Deprecate `ClassElement.isImplementableIn`; use `isImplementableOutside` instead.
 * Deprecate `ClassElement.isMixableIn`; use `isMixableOutside` instead.
 * Deprecate `MixinElement.isImplementableIn`; use `isImplementableOutside` instead.
+* Deprecate `Diagnostic.data`. Instead, please use an expando to attach data to
+  the `Diagnostic` object.
 
 ## 8.0.0
 * Remove deprecated element model V1.

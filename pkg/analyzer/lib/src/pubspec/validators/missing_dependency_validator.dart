@@ -12,6 +12,12 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:yaml/yaml.dart';
 
 class MissingDependencyData {
+  /// Expando associating each [PubspecWarningCode.MISSING_DEPENDENCY] with
+  /// missing dependency information; this information is used by the analysis
+  /// server to list of missing patterns; this data is used by the analysis
+  /// server to compute fixes.
+  static final byDiagnostic = Expando<MissingDependencyData>();
+
   final List<String> addDeps;
   final List<String> addDevDeps;
   final List<String> removeDevDeps;
@@ -127,33 +133,37 @@ class MissingDependencyValidator {
           "$message ${addDevDeps.map((s) => "'$s'").join(',')} in 'dev_dependencies'";
     }
     if (addDeps.isNotEmpty || addDevDeps.isNotEmpty) {
-      _reportErrorForNode(
+      var diagnostic = _reportErrorForNode(
         contents.nodes.values.first,
         PubspecWarningCode.MISSING_DEPENDENCY,
         [message],
         [],
-        MissingDependencyData(addDeps, addDevDeps, removeDevDeps),
+      );
+      MissingDependencyData.byDiagnostic[diagnostic] = MissingDependencyData(
+        addDeps,
+        addDevDeps,
+        removeDevDeps,
       );
     }
     return recorder.diagnostics;
   }
 
   /// Report an error for the given node.
-  void _reportErrorForNode(
+  ///
+  /// The reported [Diagnostic] is returned.
+  Diagnostic _reportErrorForNode(
     YamlNode node,
     DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
-    Object? data,
   ]) {
     var span = node.span;
-    reporter.atOffset(
+    return reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
       diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
-      data: data,
     );
   }
 }

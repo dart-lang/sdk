@@ -165,7 +165,6 @@ final class PubspecValidationContext {
     DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
-    Object? data,
   ]) {
     var span = node.span;
     reporter.atOffset(
@@ -174,7 +173,6 @@ final class PubspecValidationContext {
       diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
-      data: data,
     );
   }
 }
