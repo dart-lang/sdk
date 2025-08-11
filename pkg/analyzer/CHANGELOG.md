@@ -1,4 +1,4 @@
-## 8.1.1-dev
+## 8.1.1
 * Fix for `EnumSet` usage when compiled to JavaScript.
 
 ## 8.1.0
