@@ -13400,6 +13400,15 @@ void Field::SetStaticValue(const Object& value) const {
   const intptr_t id = field_id();
   ASSERT(id >= 0);
 
+  if (is_shared() && !value.IsImmutable() &&
+      !IsTypedDataBaseClassId(value.GetClassId())) {
+    const String& error = String::Handle(
+        thread->zone(),
+        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                             value.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_shared()) {
     thread->isolate_group()->shared_field_table()->SetAt(

@@ -363,14 +363,18 @@ static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
         zone, Closure::RawCast(p_obj->ptr()));
     return;
   }
-  if (!p_obj->IsImmutable()) {
-    const String& error = String::Handle(
-        zone,
-        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
-                             p_obj->ToCString()));
-    Exceptions::ThrowArgumentError(error);
-    UNREACHABLE();
+  if (p_obj->IsImmutable()) {
+    return;
   }
+  if (IsTypedDataBaseClassId(p_obj->GetClassId())) {
+    return;
+  }
+  const String& error = String::Handle(
+      zone,
+      String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                           p_obj->ToCString()));
+  Exceptions::ThrowArgumentError(error);
+  UNREACHABLE();
 }
 
 void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
