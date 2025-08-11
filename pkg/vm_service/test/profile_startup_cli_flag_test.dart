@@ -101,7 +101,7 @@ Future<void> main([args = const <String>[]]) => runIsolateTests(
       extraArgs: [
         '--profiler',
         '--profile-startup',
-        '--profile-period=500',
+        '--profile-period=2000',
         '--max-profile-depth=2',
         '--sample-buffer-duration=1',
       ],
